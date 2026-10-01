@@ -1,0 +1,31 @@
+{
+  "name": "@rewire-bio/benchmark-data",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "npm run omics:release && npm run validate:benchmark-literature && npm run export:benchmark-literature && node scripts/package-website.mjs",
+    "build:current": "npm run omics:release -- --current-only && npm run validate:benchmark-literature && npm run export:benchmark-literature && node scripts/package-website.mjs --current-only",
+    "omics:release": "tsx scripts/omics/release.ts",
+    "omics:migrate": "tsx scripts/omics/migrate.ts",
+    "validate:benchmark-literature": "node scripts/validate-benchmark-literature.mjs",
+    "export:benchmark-literature": "node scripts/export-benchmark-literature.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "test:python": "python3 -m unittest discover -s scripts/omics/tests -p \"test_*.py\"",
+    "verify:extraction": "node scripts/verify-extraction.mjs"
+  },
+  "dependencies": {
+    "@noble/hashes": "2.4.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "fast-xml-parser": "^5.11.1",
+    "tsx": "^4.23.13",
+    "typescript": "^5",
+    "vitest": "^1.0.4"
+  }
+}
