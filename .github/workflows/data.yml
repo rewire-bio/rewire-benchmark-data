@@ -1,0 +1,33 @@
+name: Benchmark data checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: benchmark-data-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  data:
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max-old-space-size=8192
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reserve space for immutable history verification
+        run: node scripts/prepare-runner-space.mjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run verify:extraction
+      - run: npm test
+      - run: npm run test:python
+      - run: npm run typecheck
+      - name: Reproduce the reviewed release and prepared website artifact
+        run: npm run build
+      - name: Require reviewed prepared artifacts
+        run: git diff --exit-code -- data website
