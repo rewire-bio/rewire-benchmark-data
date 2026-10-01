@@ -92,6 +92,13 @@ async function main() {
     }
     case "export": {
       const data = store.publicData();
+      for (const update of data.updates) {
+        const proofName = new URL(update.receipt_url).pathname
+          .split("/")
+          .at(-1)!;
+        const proof = store.read(`maintenance/publication-proofs/${proofName}`);
+        store.write(`public/omics/publication-proofs/${proofName}`, proof);
+      }
       store.write("public/omics/refresh.json", data);
       return {
         exported: "public/omics/refresh.json",

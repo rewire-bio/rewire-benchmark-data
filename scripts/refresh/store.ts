@@ -627,7 +627,10 @@ export class RefreshStore {
             a.published_at.localeCompare(b.published_at) ||
             a.release_id.localeCompare(b.release_id),
         )
-        .map(({ proof_sha256, ...u }) => u),
+        .map(({ proof_sha256, ...u }) => ({
+          ...u,
+          receipt_url: `https://benchmarks.rewirebio.io/omics/publication-proofs/${proof_sha256}.json`,
+        })),
     };
   }
   status() {
