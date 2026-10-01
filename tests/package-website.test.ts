@@ -211,3 +211,107 @@ describe('prepared website package', () => {
   });
 
 });
+
+
+describe('historical baseline audit preservation on clean builds', () => {
+  async function prepared() {
+    const value = fixture();
+    for (const releaseId of [historical, current]) {
+      const files: Record<string, string> = {};
+      for (const name of ['coverage.json', 'model-evaluation-matrix.csv', 'protocol-baselines.csv', 'sources.csv', 'sources.json', 'suite-coverage.csv']) {
+        const bytes = `Reviewed ${releaseId} ${name}\n`;
+        write(value.root, `public/omics/baseline-coverage/${releaseId}/${name}`, bytes);
+        files[name] = sha(bytes);
+      }
+      const receipt = JSON.parse(fs.readFileSync(path.join(value.root, `data/omics/releases/${releaseId}.json`), 'utf8'));
+      write(value.root, `public/omics/baseline-coverage/${releaseId}/manifest.json`, JSON.stringify({
+        release_id: releaseId, publication_status: 'published_release', catalogue_sha256: receipt.files['catalogue.json'], files,
+      }) + '\n');
+    }
+    await packageWebsite({ dataDir: value.root });
+    const inventoryPath = path.join(value.root, 'website/manifest.json');
+    const inventoryBytes = fs.readFileSync(inventoryPath);
+    const inventory = JSON.parse(inventoryBytes.toString()) as PreparedManifest;
+    const oldDirectory = path.join(value.root, `public/omics/baseline-coverage/${historical}`);
+    fs.rmSync(oldDirectory, { recursive: true });
+    return { ...value, inventoryPath, inventoryBytes, inventory, oldDirectory };
+  }
+
+  it('reconstructs all prior audit bytes and reproduces the exact package inventory', async () => {
+    const f = await prepared();
+    await packageWebsite({ dataDir: f.root });
+    expect(fs.readFileSync(f.inventoryPath)).toEqual(f.inventoryBytes);
+    for (const entry of f.inventory.files.filter(entry => entry.destination.startsWith(`public/omics/baseline-coverage/${historical}/`))) {
+      expect(fs.readFileSync(path.join(f.root, entry.destination))).toEqual(gunzipSync(fs.readFileSync(path.join(f.root, entry.source))));
+    }
+    const oldFile = path.join(f.oldDirectory, 'coverage.json');
+    const before = fs.statSync(oldFile);
+    await packageWebsite({ dataDir: f.root });
+    expect(fs.statSync(oldFile).ino).toBe(before.ino);
+    expect(fs.statSync(oldFile).mtimeMs).toBe(before.mtimeMs);
+  });
+
+  it('never restores missing current audit outputs from an old package', async () => {
+    const f = await prepared();
+    const currentDirectory = path.join(f.root, `public/omics/baseline-coverage/${current}`);
+    fs.rmSync(currentDirectory, { recursive: true });
+    const { manifest } = await packageWebsite({ dataDir: f.root });
+    expect(fs.existsSync(currentDirectory)).toBe(false);
+    expect(manifest.files.some(entry => entry.destination.startsWith(`public/omics/baseline-coverage/${current}/`))).toBe(false);
+  });
+
+  it('refuses corrupted compressed audit bytes without changing the package inventory', async () => {
+    const f = await prepared();
+    const entry = f.inventory.files.find(entry => entry.destination.endsWith(`${historical}/coverage.json`))!;
+    fs.writeFileSync(path.join(f.root, entry.source), gzipSync('wrong bytes'));
+    await expect(packageWebsite({ dataDir: f.root })).rejects.toThrow(/checksum or size mismatch/);
+    expect(fs.existsSync(f.oldDirectory)).toBe(false);
+    expect(fs.readFileSync(f.inventoryPath)).toEqual(f.inventoryBytes);
+  });
+
+  it('bounds historical inflation by the declared byte count', async () => {
+    const f = await prepared();
+    const entry = f.inventory.files.find(entry => entry.destination.endsWith(`${historical}/coverage.json`))!;
+    fs.writeFileSync(path.join(f.root, entry.source), gzipSync(Buffer.alloc(1024 * 1024)));
+    await expect(packageWebsite({ dataDir: f.root })).rejects.toThrow();
+    expect(fs.existsSync(f.oldDirectory)).toBe(false);
+  });
+
+  it('rejects existing conflicting historical files without overwriting them', async () => {
+    const f = await prepared();
+    const target = write(f.root, `public/omics/baseline-coverage/${historical}/coverage.json`, 'preserve conflict');
+    await expect(packageWebsite({ dataDir: f.root })).rejects.toThrow(/Immutable historical baseline conflict/);
+    expect(fs.readFileSync(target, 'utf8')).toBe('preserve conflict');
+  });
+
+  it.each(['source', 'destination'])('rejects symlinked historical %s parents', async kind => {
+    const f = await prepared();
+    const directory = kind === 'source'
+      ? path.join(f.root, `website/files/public/omics/baseline-coverage/${historical}`)
+      : f.oldDirectory;
+    const target = path.join(f.root, 'outside');
+    if (kind === 'source') fs.renameSync(directory, target);
+    else fs.mkdirSync(target);
+    fs.symlinkSync(target, directory);
+    await expect(packageWebsite({ dataDir: f.root })).rejects.toThrow(/Symlink path/);
+  });
+
+  it.each(['missing entry', 'unsafe source', 'unexpected name', 'wrong release binding'])('rejects %s in a historical audit', async kind => {
+    const f = await prepared();
+    const entry = f.inventory.files.find(entry => entry.destination.endsWith(`${historical}/coverage.json`))!;
+    if (kind === 'missing entry') f.inventory.files = f.inventory.files.filter(row => row !== entry);
+    else if (kind === 'unsafe source') entry.source = '../private.gz';
+    else if (kind === 'unexpected name') entry.destination = `public/omics/baseline-coverage/${historical}/unexpected.json`;
+    else {
+      const manifestEntry = f.inventory.files.find(entry => entry.destination.endsWith(`${historical}/manifest.json`) && entry.destination.includes('baseline-coverage'))!;
+      const audit = JSON.parse(gunzipSync(fs.readFileSync(path.join(f.root, manifestEntry.source))).toString());
+      audit.catalogue_sha256 = '0'.repeat(64);
+      const bytes = JSON.stringify(audit);
+      fs.writeFileSync(path.join(f.root, manifestEntry.source), gzipSync(bytes));
+      manifestEntry.sha256 = sha(bytes); manifestEntry.bytes = Buffer.byteLength(bytes);
+    }
+    fs.writeFileSync(f.inventoryPath, JSON.stringify(f.inventory));
+    await expect(packageWebsite({ dataDir: f.root })).rejects.toThrow(/historical baseline|Historical baseline/);
+    expect(fs.existsSync(f.oldDirectory)).toBe(false);
+  });
+});
