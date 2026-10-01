@@ -34,3 +34,7 @@ The new `package-website.test.ts` covers exact prepared-byte round trips, requir
 ## Verification
 
 Producer: 38 suites / 437 tests passed in the complete run, then the newly split literature build suite passed its two tests; total 39 suites / 439 tests. Producer TypeScript validation passed. Website: the initial complete run and targeted rerun of all six affected suites passed all 61 suites / 592 tests in aggregate. Exact historical navigation, model-count, result-count, and comparison-count assertions remain present.
+
+## Upstream PR #80 preservation
+
+The later upstream sync adds the unchanged archive-storage and use-case-coverage suites from `bc6b40772298f518ec1827311cc0e89f71c3c37e`, and preserves its updated use-case-release suite. The producer now has 41 suites / 449 passing tests. TypeScript validation and all six Python tests pass. Original extraction provenance remains in `docs/data-extraction.json`; the separate import receipt is `docs/upstream-sync-80.json`.
