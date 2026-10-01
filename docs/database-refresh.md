@@ -78,7 +78,7 @@ Default limits are three attempts, 120 minutes per attempt, and 60 queries. Allo
 
 This illustrative subset is **blocked**, not a completed monthly report. Replace every example with actual evidence. `decision` is one of `included`, `revised`, `excluded`, `unchanged`, or `blocked`. `checked_ids` refers to configured scope IDs; `reviewed_ids` enumerates the current use-case IDs. Completion requires every required scope to be both targeted and checked, actual check evidence for each checked scope, all current use cases reviewed, and no gaps or blocked checks.
 
-Use `fingerprint_policy: "preserved"` when the tracked use-case inputs remain unchanged against the captured beginning state. If real curation changes them, use `"explicitly_reviewed"` and supply a nonempty `review_receipt` path to the matching existing native review receipt. Its bytes are hashed. The receipt must identify its actual reviewer, method, and time and pass the producer's existing review gates; simply regenerating hashes does not constitute review. Do not forge a human reviewer or mark inaccessible source content as inspected.
+Use `fingerprint_policy: "preserved"` when the tracked use-case inputs remain unchanged against the captured beginning state. If real curation changes them, use `"explicitly_reviewed"` and supply a nonempty `review_receipt` path to the matching existing native review receipt. Its bytes are hashed and validated by the native receipt loader. The receipt must identify its actual reviewer, method, and time and pass the producer's existing review gates; simply regenerating hashes does not constitute review. Do not forge a human reviewer or mark inaccessible source content as inspected.
 
 ## Review, PRs, and publication
 
