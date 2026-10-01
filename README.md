@@ -10,7 +10,7 @@ Requires Node 22 or newer and Python 3.
 
 ```sh
 npm ci
-npm run verify:extraction
+npm run verify:archives
 npm test
 npm run test:python
 npm run typecheck
@@ -31,3 +31,5 @@ npm run build
 No data change automatically changes the live website or activates submissions. The frontend uses a read-only token scoped to this private repository. It does not need write access or data-generation credentials.
 
 `docs/data-extraction.json` records all 6,592 original data files and their hashes. The initial release preserves `2026-09-29-06401fd5b220` and 26,126 public records. Existing unmerged evidence work remains in the original repository's pull requests and can be ported here after review.
+
+The extraction receipt is permanent provenance. `verify:extraction` checks the entire original snapshot during migration; CI uses `verify:archives` so reviewed source updates and new release timestamps remain possible while original historical exports stay immutable.
