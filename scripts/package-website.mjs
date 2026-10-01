@@ -36,6 +36,80 @@ function checkedReleaseManifest(bytes, releaseId) {
   return manifest;
 }
 
+const BASELINE_FILES = [
+  'coverage.json', 'manifest.json', 'model-evaluation-matrix.csv',
+  'protocol-baselines.csv', 'sources.csv', 'sources.json', 'suite-coverage.csv',
+];
+const MAX_BASELINE_BYTES = 64 * 1024 ** 2;
+
+/** Restore reviewed historical audits omitted by a clean current-release build. */
+function restoreHistoricalBaselineAudits(dataDir, currentRelease) {
+  const inventoryPath = path.join(dataDir, 'website/manifest.json');
+  assertNoSymlinkPath(inventoryPath);
+  if (!fs.existsSync(inventoryPath)) return;
+  if (!fs.lstatSync(inventoryPath).isFile()) throw new Error('Prepared inventory must be a regular file');
+  const inventory = JSON.parse(fs.readFileSync(inventoryPath, 'utf8'));
+  if (inventory.schema_version !== 1 || !Array.isArray(inventory.files)) throw new Error('Invalid previous prepared inventory');
+  const groups = new Map();
+  for (const entry of inventory.files) {
+    if (typeof entry?.destination !== 'string' || !entry.destination.startsWith('public/omics/baseline-coverage/')) continue;
+    const match = /^public\/omics\/baseline-coverage\/(\d{4}-\d{2}-\d{2}-[a-f0-9]{12})\/([^/]+)$/.exec(entry.destination);
+    if (!match || !BASELINE_FILES.includes(match[2])) throw new Error(`Unexpected historical baseline destination: ${entry.destination}`);
+    const [, releaseId, name] = match;
+    // Current outputs must come from this build, never from the prior package.
+    if (releaseId === currentRelease) continue;
+    const expectedSource = `website/files/${entry.destination}.gz`;
+    if (entry.source !== expectedSource || entry.scope !== 'current' ||
+        typeof entry.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(entry.sha256) ||
+        !Number.isSafeInteger(entry.bytes) || entry.bytes < 0 || entry.bytes > MAX_BASELINE_BYTES) {
+      throw new Error(`Invalid historical baseline metadata: ${entry.destination}`);
+    }
+    if (!groups.has(releaseId)) groups.set(releaseId, new Map());
+    const group = groups.get(releaseId);
+    if (group.has(name)) throw new Error(`Duplicate historical baseline entry: ${entry.destination}`);
+    const source = path.join(dataDir, expectedSource);
+    const destination = path.join(dataDir, entry.destination);
+    assertNoSymlinkPath(source);
+    assertNoSymlinkPath(destination);
+    const sourceStat = fs.lstatSync(source);
+    if (!sourceStat.isFile() || sourceStat.size > MAX_BASELINE_BYTES + 1024 ** 2) throw new Error(`Invalid historical baseline source: ${source}`);
+    const bytes = zlib.gunzipSync(fs.readFileSync(source), { maxOutputLength: entry.bytes + 1 });
+    if (bytes.length !== entry.bytes || crypto.createHash('sha256').update(bytes).digest('hex') !== entry.sha256) {
+      throw new Error(`Historical baseline checksum or size mismatch: ${entry.destination}`);
+    }
+    if (fs.existsSync(destination) && (!fs.lstatSync(destination).isFile() || !fs.readFileSync(destination).equals(bytes))) {
+      throw new Error(`Immutable historical baseline conflict: ${entry.destination}`);
+    }
+    group.set(name, { entry, destination, bytes });
+  }
+  // Validate complete audit groups and their archive binding before any writes.
+  for (const [releaseId, group] of groups) {
+    if (group.size !== BASELINE_FILES.length || BASELINE_FILES.some(name => !group.has(name))) {
+      throw new Error(`Incomplete historical baseline audit: ${releaseId}`);
+    }
+    const receiptPath = path.join(dataDir, `data/omics/releases/${releaseId}.json`);
+    assertNoSymlinkPath(receiptPath);
+    if (!fs.lstatSync(receiptPath).isFile()) throw new Error(`Invalid historical receipt: ${releaseId}`);
+    const receipt = checkedReleaseManifest(fs.readFileSync(receiptPath), releaseId);
+    const audit = JSON.parse(group.get('manifest.json').bytes.toString('utf8'));
+    if (audit.release_id !== releaseId || audit.publication_status !== 'published_release' ||
+        audit.catalogue_sha256 !== receipt.files['catalogue.json'] ||
+        !audit.files || typeof audit.files !== 'object' || Array.isArray(audit.files) ||
+        Object.keys(audit.files).length !== BASELINE_FILES.length - 1 ||
+        BASELINE_FILES.filter(name => name !== 'manifest.json').some(name => audit.files[name] !== group.get(name).entry.sha256)) {
+      throw new Error(`Historical baseline release binding mismatch: ${releaseId}`);
+    }
+  }
+  for (const group of groups.values()) {
+    for (const { destination, bytes } of group.values()) {
+      assertNoSymlinkPath(destination);
+      if (fs.existsSync(destination)) continue;
+      fs.mkdirSync(path.dirname(destination), { recursive: true });
+      fs.writeFileSync(destination, bytes, { flag: 'wx' });
+    }
+  }
+}
+
 /**
  * Recursively collect regular files from a directory, rejecting symlinks.
  * @param {string} dir
@@ -155,6 +229,8 @@ export async function packageWebsite(options = {}) {
   if (typeof releaseId !== 'string' || !/^\d{4}-\d{2}-\d{2}-[a-f0-9]{12}$/.test(releaseId)) {
     throw new Error(`Invalid or missing release_id in ${omicsManifestPath}`);
   }
+
+  restoreHistoricalBaselineAudits(dataDir, releaseId);
 
   /** @type {Array<{ filePath: string, destination: string, scope: 'current' | 'historical' }>} */
   const items = [];
