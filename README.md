@@ -30,6 +30,6 @@ npm run build
 
 No data change automatically changes the live website or activates submissions. The frontend uses a read-only token scoped to this private repository. It does not need write access or data-generation credentials.
 
-`docs/data-extraction.json` records all 6,592 original data files and their hashes. The initial release preserves `2026-09-29-06401fd5b220` and 26,126 public records. Existing unmerged evidence work remains in the original repository's pull requests and can be ported here after review.
+`docs/data-extraction.json` records all 6,592 original data files and their hashes. The initial release preserves `2026-09-29-06401fd5b220` and 26,126 public records. Upstream PR #80 was subsequently preserved from `bc6b40772298f518ec1827311cc0e89f71c3c37e`; its latest release is `2026-09-30-e37e3ab1284d`, with 28,133 public records and evidence/gap audits for all 17 use cases. `docs/upstream-sync-80.json` records every imported path and checksum separately from the original extraction receipt.
 
 The extraction receipt is permanent provenance. `verify:extraction` checks the entire original snapshot during migration; CI uses `verify:archives` so reviewed source updates and new release timestamps remain possible while original historical exports stay immutable.
