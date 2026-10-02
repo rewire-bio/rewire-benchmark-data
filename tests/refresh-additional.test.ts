@@ -189,3 +189,44 @@ describe("refresh scope amendments and retained evidence", () => {
     expect(store.get(run.id).status).toBe("blocked");
   });
 });
+
+describe("export revalidates terminal sweep receipts", () => {
+  it("rejects the actual incomplete October pilot relabelled as completed", () => {
+    // Reproduce the review finding using the committed pilot and its original
+    // content-addressed evidence; never modify the real maintenance receipts.
+    fs.cpSync(path.join(repository, "maintenance"), path.join(root, "maintenance"), { recursive: true });
+    const receipts = path.join(repository, "data/omics/releases");
+    for (const name of fs.readdirSync(receipts).filter(name => name.endsWith(".json")))
+      fs.copyFileSync(path.join(receipts, name), store.file(`data/omics/releases/${name}`));
+    const pilot = store.runs().find(run => run.cycle_id === "2026-10")!;
+    expect(pilot.status).toBe("blocked");
+    expect(pilot.coverage.checked_ids).toHaveLength(0);
+    expect(pilot.counts.blocked).toBeGreaterThan(0);
+    const reportPath = store.file(`maintenance/reports/${pilot.id}/${pilot.report_sha256}.json`);
+    const reportBytes = fs.readFileSync(reportPath);
+    expect(store.publicData().runs.find(run => run.id === pilot.id)?.status).toBe("blocked");
+    store.write(`maintenance/runs/${pilot.id}.json`, { ...pilot, status: "completed", outcome: "review_required" });
+    expect(() => store.publicData()).toThrow("Incomplete coverage");
+    expect(fs.readFileSync(reportPath)).toEqual(reportBytes);
+  });
+
+  it.each(["counts", "outcome", "missing report", "effort"])("rejects edited completed %s while retaining the report", field => {
+    const run = store.begin("2026-10", requiredScope, baseline);
+    store.write("maintenance/report.json", report(requiredScope));
+    const complete = store.finish(run.id, "maintenance/report.json", "completed", "no_change");
+    if (field === "counts") complete.counts.added = 1;
+    else if (field === "outcome") complete.outcome = "review_required";
+    else if (field === "missing report") complete.report_sha256 = null;
+    else complete.finished_at = "2026-10-01T12:00:00.000Z";
+    store.write(`maintenance/runs/${run.id}.json`, complete);
+    expect(() => store.publicData()).toThrow(/counts differ|outcome disagrees|retained report|effort limits/);
+  });
+
+  it("rejects a completed pilot missing the configured monthly scope even when its narrow report has no gaps", () => {
+    const pilot = store.begin("2026-10", ["genomics"], baseline);
+    store.write("maintenance/report.json", report(["genomics"]));
+    const blocked = store.finish(pilot.id, "maintenance/report.json", "blocked");
+    store.write(`maintenance/runs/${pilot.id}.json`, { ...blocked, status: "completed", outcome: "no_change" });
+    expect(() => store.publicData()).toThrow("Incomplete coverage");
+  });
+});

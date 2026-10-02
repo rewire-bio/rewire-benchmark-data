@@ -110,6 +110,8 @@ const Run = z
   })
   .strict()
   .superRefine((r, ctx) => {
+    if ((r.status === "running") !== (r.report_sha256 === null))
+      ctx.addIssue({ code: "custom", message: "Terminal attempts require a retained report" });
     if ((r.status === "running") !== (r.finished_at === null))
       ctx.addIssue({ code: "custom", message: "Invalid finish time" });
     if ((r.status === "completed") !== (r.outcome !== null))
@@ -567,7 +569,36 @@ export class RefreshStore {
         const { review_receipt_sha256, ...report } = JSON.parse(
           bytes.toString(),
         );
-        Report.parse(report);
+        const checkedReport = Report.parse(report);
+        // Receipts are reviewable repository data, so export must enforce the
+        // same completion rules as finish(), even after a manual JSON edit.
+        const counts = { added: 0, revised: 0, excluded: 0, blocked: 0 };
+        for (const check of checkedReport.checks) {
+          if (check.decision === "included") counts.added++;
+          else if (check.decision !== "unchanged") counts[check.decision]++;
+          if (!run.coverage.target_ids.includes(check.scope_id) ||
+              Date.parse(check.checked_at) < Date.parse(run.window.from) ||
+              Date.parse(check.checked_at) > Date.parse(run.finished_at!)) {
+            throw Error("Retained check scope or retrieval time outside attempt");
+          }
+        }
+        if (Object.keys(counts).some(key => counts[key as keyof typeof counts] !== run.counts[key as keyof typeof counts]))
+          throw Error("Run counts differ from its report");
+        if (checkedReport.coverage.checked_ids.some(scope =>
+          !run.coverage.target_ids.includes(scope) || !checkedReport.checks.some(check => check.scope_id === scope)))
+          throw Error("Retained checked scope lacks declared evidence");
+        if (run.status === "completed") {
+          const required = run.cycle_id.startsWith("correction-") ? run.coverage.target_ids : run.required_scope;
+          if (required.some(scope => !run.coverage.target_ids.includes(scope)) ||
+              run.coverage.target_ids.some(scope => !checkedReport.coverage.checked_ids.includes(scope)) ||
+              checkedReport.coverage.gaps.length || counts.blocked)
+            throw Error("Incomplete coverage cannot complete an exported sweep");
+          if ((run.outcome === "no_change") !== (counts.added + counts.revised === 0))
+            throw Error("Completed outcome disagrees with retained findings");
+          if (checkedReport.checks.length > run.limits.max_queries ||
+              (Date.parse(run.finished_at!) - Date.parse(run.started_at)) / 60000 > run.limits.max_minutes)
+            throw Error("Completed retained sweep exceeds effort limits");
+        }
         for (const [file, hash] of Object.entries(report.artifact_sha256 ?? {}))
           if (digest(fs.readFileSync(this.file(file))) !== hash)
             throw Error("Evidence artifact checksum mismatch");
