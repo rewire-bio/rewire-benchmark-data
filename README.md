@@ -28,7 +28,7 @@ npm run build
 3. Publish the prepared artifact with its Git revision. Open a website pull request updating its data lock (revision, manifest digest and release ID).
 4. The website verifies the artifact and renders pages. Existing deployment checks still control activation and preserve historical downloads.
 
-No data change automatically changes the live website or activates submissions. The frontend uses a read-only token scoped to this private repository. It does not need write access or data-generation credentials.
+This repository is public. The frontend can fetch its pinned artifacts without a personal access token or a special repository read secret. It does not need write access or data-generation credentials. No data change automatically changes the live website or activates submissions. Private contributor data and unreviewed submissions remain excluded from this repository and its release artifacts.
 
 `docs/data-extraction.json` records all 6,592 original data files and their hashes. The initial release preserves `2026-09-29-06401fd5b220` and 26,126 public records. Upstream PR #80 was subsequently preserved from `bc6b40772298f518ec1827311cc0e89f71c3c37e`; its latest release is `2026-09-30-e37e3ab1284d`, with 28,133 public records and evidence/gap audits for all 17 use cases. `docs/upstream-sync-80.json` records every imported path and checksum separately from the original extraction receipt.
 
