@@ -1,3 +1,4 @@
+import { benchmarkCoverage as benchmarkPageCoverage } from "../../services/omics/src/benchmark-coverage";
 import { addMfassMatchedEvaluations } from "./mfass-matched-evaluations";
 import { addUseCaseCoverage, useCaseCoverageInputFiles } from "./use-case-coverage";
 import { validateSnapshot } from "../../services/omics/src/validation";
@@ -517,6 +518,11 @@ function main() {
   fs.writeFileSync(
     "public/omics/manifest.json",
     JSON.stringify(output.manifest, null, 2) + "\n",
+  );
+  fs.mkdirSync("public/omics/coverage", { recursive: true });
+  fs.writeFileSync(
+    `public/omics/coverage/${output.snapshot.release_id}.json`,
+    JSON.stringify(benchmarkPageCoverage(output.snapshot), null, 2) + "\n",
   );
   writeBaselineAudit();
   console.log(
