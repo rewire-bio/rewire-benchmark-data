@@ -21,9 +21,13 @@ describe("reviewed 17-use-case evidence integration", () => {
   it("preserves the old catalogue and mappings, validates every new record, and resolves the audited cases", () => {
     const baseline = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-28-c7b5ac6d34f2/catalogue.json.gz")).toString());
     const previousCases = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-28-c7b5ac6d34f2/use-cases.json.gz")).toString());
-    const records = addUseCaseCoverage(baseline.records);
+    // Mirror the exact two-pass chain in scripts/omics/release.ts: default 20260930 root,
+    // then the 20261005 root, so buildUseCaseArtifact sees every protocol the current
+    // reviewed inputs reference.
+    const afterFirstIntake = addUseCaseCoverage(baseline.records);
+    const records = addUseCaseCoverage(afterFirstIntake, "data/omics/use-case-coverage-20261005");
     validateRecords(records);
-    const snapshot = { ...baseline, release_id: "2026-09-30-000000000000", released_at: "2026-09-30T21:00:00Z", records };
+    const snapshot = { ...baseline, release_id: "2026-10-05-000000000000", released_at: "2026-10-05T21:00:00Z", records };
     validateSnapshot(snapshot);
     expect(records.slice(0, baseline.records.length)).toEqual(baseline.records);
     const disputedCell = "ucc-docking-cluspro-bm5-2020-result-total-top10-easy-acceptable-or-better-targets";
