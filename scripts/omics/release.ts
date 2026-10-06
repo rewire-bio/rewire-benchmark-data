@@ -338,9 +338,9 @@ function main() {
     addAcquiredEvidence(addRunRecipes(separateEntities(profiled))),
   )))));
   const reviewedUseCases = loadUseCases();
-  const records = addUseCaseCoverage(addUseCaseSources(addSourceLabelIdentities(
+  const records = addUseCaseCoverage(addUseCaseCoverage(addUseCaseSources(addSourceLabelIdentities(
     addProfileEvidence(addModelEvaluationLinks(addCoverageTables(evaluated))),
-  ), reviewedUseCases));
+  ), reviewedUseCases)), "data/omics/use-case-coverage-20261005");
   const profiles = records
     .filter((record) => record.attributes.profile)
     .map((record) => record.attributes.profile as OmicsProfile);
@@ -469,6 +469,7 @@ function main() {
               "Name nine evaluated methods printed only as an author-year citation (eight ATOM3D comparisons) or an author surname (HEST, Ciga), from the benchmark text and the cited original sources. The ATOM3D RSR scorer is named only as a Rosetta scoring function; its citation conflict and settings stay unresolved. Printed labels remain searchable and auditable; IDs, values, locators and comparison conditions are unchanged. Add sourced DeepDTA and DeepAffinity method profiles.",
               "Preserve archived release bytes, historical URLs and MFASS history. Contribution intake remains controlled separately from catalogue publication.",
               ...(research ? ["Add verified research manifests, frozen readiness assessments and reviewed-only investigation contracts. Record IDs and values remain unchanged."] : []),
+              "Add a second, additive BRCA1/BRCA2 germline-interpretation evidence intake (issue #343): 42 new source-checked clinical-lane records from five sources (Benet-Pages 2025, So 2024, HECTOR preprint, Hu 2026, Karalidou 2022/MARGINAL source-only), distinguishing reclassification rate, tool agreement, preprint classification concordance and functional-data classification yield from clinical accuracy. Add five new scoped proxy use-case mappings against these records: two for Benet-Pages criteria-version reclassification on a fixed VUS cohort (ACMG/AMP+SVI, then ENIGMA VCEP), one for So 2024 VarSome-vs-CanVIG-UK tool agreement on conflicting BRCA1 missense calls, one for HECTOR preprint agreement with ClinGen eRepo expert calls, and one for Hu 2026 BRCA2 exon 15-26 functional-data classification yield; Karalidou 2022 remains source-only with no mapping added. None of these endpoints establishes clinical accuracy, qualified human scientific review or Rewire execution. All prior scientific records, mapping objects and historic release bytes remain unchanged.",
             ],
           }
         : {}),
@@ -493,6 +494,7 @@ function main() {
         ...sourceLabelInputs(),
         ...useCaseInputFiles(),
         ...useCaseCoverageInputFiles(),
+        ...useCaseCoverageInputFiles("data/omics/use-case-coverage-20261005"),
         ...researchInputFiles.filter(file => fs.existsSync(file)),
         ...reviewInputFiles.filter((file) => fs.existsSync(file)),
         ...profileInputs.filter((file) => fs.existsSync(file)),
