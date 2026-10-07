@@ -1,0 +1,35 @@
+{
+  "status": "passed_with_explicit_scope_limits",
+  "reviewer": "Claude Sonnet cell-type-annotation-transfer evidence-research worker",
+  "method": "automated_source_review",
+  "reviewed_at": "2026-10-07T07:44:08Z",
+  "record_count": 23,
+  "result_count": 9,
+  "scope": "Bounded additive cell-type-annotation-transfer intake (issue #349), independently reviewed by Codex before this ingestion (docs/omics/evidence-research/cell-type-completion-assessment-2026-10-07.md). Ingests Abdelaal et al. 2019 Figure S10 Panel B (34-population inter-dataset brain comparison), SVMrejection row only: nine percent-unlabeled values across all nine VISp/ALM/MTG train-test combinations, read directly from a page-image render of the supplement PDF (not pdftotext, not OCR, not color inference) and independently cross-checked by a separate reviewer before ingestion. Reuses the existing SVMrejection method/configuration records unmodified. Adds one new source record for the supplement PDF (a separate byte artifact, SHA-256 797a2b22f584135f4ff6f7c98203d8e9529d6600f675b500205607b47b212a81, from the already-catalogued main-text XML), three new dataset records (VISp, ALM, MTG; Table 2 raw totals recorded as context only, not a scored denominator), one new protocol record, nine new evaluation records and nine new result records. See research.md for the full scope, exclusions and rationale.",
+  "checked": {
+    "numeric_results_verified_against_cached_or_live_source_text": 9,
+    "result_ids": [
+      "ucc-research-result-abdelaal-brain-alm-from-visp-unlabeled",
+      "ucc-research-result-abdelaal-brain-alm-from-mtg-unlabeled",
+      "ucc-research-result-abdelaal-brain-alm-from-visp-mtg-unlabeled",
+      "ucc-research-result-abdelaal-brain-mtg-from-visp-unlabeled",
+      "ucc-research-result-abdelaal-brain-mtg-from-alm-unlabeled",
+      "ucc-research-result-abdelaal-brain-mtg-from-visp-alm-unlabeled",
+      "ucc-research-result-abdelaal-brain-visp-from-alm-unlabeled",
+      "ucc-research-result-abdelaal-brain-visp-from-mtg-unlabeled",
+      "ucc-research-result-abdelaal-brain-visp-from-alm-mtg-unlabeled"
+    ]
+  },
+  "required_interpretation_limits": [
+    "Automated source review; no human scientific review or new model execution.",
+    "Scored denominator is unreported in the retrieved main text and supplement; Table 2's raw per-dataset cell counts (VISp 12,832; ALM 8,758; MTG 14,636) are context only on the linked dataset records, not a confirmed denominator, and must not be used to back-calculate rejected-cell counts.",
+    "metric_direction is \"unknown\" for every result: percentage unlabeled is a coverage/rejection-rate figure, not a standalone performance metric with one universal direction.",
+    "Not a known-type accuracy claim, not an unknown/absent-type-detection accuracy claim, and not a superiority claim over any other classifier; no comparison across methods is asserted.",
+    "Only the SVMrejection row is ingested; the other 17 classifiers in the same Figure S10 Panel B heatmap, and the entire Figure S10 Panel A (3-population level), remain unextracted.",
+    "Figure S9 Panel A carries no printed digit labels at any resolution checked and separately shows an unresolved conflict between its caption, legend and title text; nothing from Figure S9 is ingested.",
+    "Reference labels are the original brain-atlas studies' author annotations, not independently adjudicated ground truth.",
+    "This pass adds one new active mapping for use-case-cell-type-annotation-transfer; the four existing active mappings for this use case are unchanged.",
+    "Predates scTab, CellTypist, Azimuth, scANVI and scParadise; does not evaluate them, and does not measure or substitute for the common-protocol cross-study benchmark gap tracked separately at rewire-benchmarks #27."
+  ],
+  "unresolved_blockers": []
+}

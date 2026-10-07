@@ -26,11 +26,14 @@ describe("additive cell-type-annotation-transfer research-evidence intake, 2026-
     gunzipSync(fs.readFileSync("data/omics/releases/2026-09-28-c7b5ac6d34f2/catalogue.json.gz")).toString(),
   );
   // Mirror the exact chain in scripts/omics/release.ts: default 20260930 root,
-  // then 20261005, then the new 20261006 root, all on the same immutable baseline.
+  // then 20261005, then 20261006, then the new 20261007 root, so buildUseCaseArtifact
+  // sees every protocol the current reviewed inputs reference (including the later
+  // 2026-10-07 cell-type-annotation-transfer addition, which shares one inputs.json).
   const afterFirstIntake = addUseCaseCoverage(baseline.records);
   const afterSecondIntake = addUseCaseCoverage(afterFirstIntake, "data/omics/use-case-coverage-20261005");
-  const records = addUseCaseCoverage(afterSecondIntake, NEW_ROOT);
-  const newRecords = records.slice(afterSecondIntake.length);
+  const afterThirdIntake = addUseCaseCoverage(afterSecondIntake, NEW_ROOT);
+  const records = addUseCaseCoverage(afterThirdIntake, "data/omics/use-case-coverage-20261007");
+  const newRecords = records.slice(afterSecondIntake.length, afterThirdIntake.length);
 
   it("validates every new record and preserves every prior record byte-identically", () => {
     validateRecords(records);
@@ -90,9 +93,12 @@ describe("additive cell-type-annotation-transfer research-evidence intake, 2026-
     const mappings = artifact.mappings.filter(
       (mapping) => mapping.use_case_id === "use-case-cell-type-annotation-transfer",
     );
-    expect(mappings.map((mapping) => mapping.id).sort()).toEqual(
-      [EXISTING_MAPPING_ID, ...NEW_MAPPING_IDS].sort(),
-    );
+    // inputs.json is shared across dated passes; a later pass (2026-10-07) adds a fifth
+    // mapping for this use case, which is out of scope for this 2026-10-06 test file and
+    // is covered by tests/omics-use-case-coverage-20261007.test.ts instead. Assert this
+    // pass's own four mapping IDs are present, not that they are the only ones.
+    const actualIds = new Set(mappings.map((mapping) => mapping.id));
+    for (const id of [EXISTING_MAPPING_ID, ...NEW_MAPPING_IDS]) expect(actualIds.has(id)).toBe(true);
     expect(mappings.every((mapping) => mapping.lifecycle === "active")).toBe(true);
     expect(mappings.every((mapping) => !("stale_from" in mapping))).toBe(true);
 
