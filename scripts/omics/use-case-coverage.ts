@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
+import { gunzipSync } from "node:zlib";
 import { z } from "zod";
 import { recordSchema, type RecordEntry } from "./schema";
 
@@ -17,6 +18,36 @@ const receiptSchema = z.object({
   files: z.record(z.string(), z.string().regex(/^[a-f0-9]{64}$/)),
 }).strict();
 const digest = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
+
+/** Public evidence copies and original retrieved source bytes have distinct
+ * identities. Verify the archived copy actually bound by the lane receipt;
+ * a curator extract does not establish fresh-clone access to the full source. */
+export function verifyReviewedArtifacts(review: unknown, repositoryRoot = process.cwd()): void {
+  if (!review || typeof review !== "object") return;
+  const checked = (review as { checked?: Record<string, unknown> }).checked;
+  if (!checked || (!checked.bound_artifacts_raw_sha256 && !checked.bound_artifacts_archive_sha256)) return;
+  const hashes = z.record(z.string(), z.string().regex(/^[a-f0-9]{64}$/));
+  const raw = hashes.parse(checked.bound_artifacts_raw_sha256);
+  const archived = hashes.parse(checked.bound_artifacts_archive_sha256);
+  if (JSON.stringify(Object.keys(raw).sort()) !== JSON.stringify(Object.keys(archived).sort()))
+    throw Error("Reviewed evidence raw/archive inventories differ");
+  const allowedRoot = path.resolve(repositoryRoot, "data/omics");
+  for (const [relativePath, rawHash] of Object.entries(raw)) {
+    const file = path.resolve(repositoryRoot, relativePath);
+    const inside = path.relative(allowedRoot, file);
+    if (path.isAbsolute(relativePath) || inside.startsWith("..") || path.isAbsolute(inside))
+      throw Error(`Reviewed evidence path escapes data/omics: ${relativePath}`);
+    const realInside = path.relative(fs.realpathSync(allowedRoot), fs.realpathSync(file));
+    if (realInside.startsWith("..") || path.isAbsolute(realInside))
+      throw Error(`Reviewed evidence symlink escapes data/omics: ${relativePath}`);
+    const bytes = fs.readFileSync(file);
+    if (digest(bytes) !== archived[relativePath])
+      throw Error(`Reviewed evidence archive changed: ${relativePath}`);
+    const uncompressed = relativePath.endsWith(".gz") ? gunzipSync(bytes) : bytes;
+    if (digest(uncompressed) !== rawHash)
+      throw Error(`Reviewed evidence content changed: ${relativePath}`);
+  }
+}
 
 export function useCaseCoverageInputFiles(root = useCaseCoverageRoot): string[] {
   return ["review.json", "before.json", "review-clinical.json", "review-research.json", "review-experimental.json", ...lanes.flatMap(lane =>
@@ -35,6 +66,11 @@ export function addUseCaseCoverage(records: RecordEntry[], root = useCaseCoverag
   for (const file of files) {
     if (digest(fs.readFileSync(file)) !== receipt.files[path.relative(root, file)])
       throw Error(`Use-case coverage input changed since review: ${file}`);
+  }
+  for (const lane of lanes) {
+    const reviewFile = path.join(root, `review-${lane}.json`);
+    const reviewText = fs.readFileSync(reviewFile, "utf8").trim();
+    if (reviewText) verifyReviewedArtifacts(JSON.parse(reviewText));
   }
   const additions = lanes.flatMap(lane => fs.readFileSync(path.join(root, lane, "records.jsonl"), "utf8")
     .split("\n").filter(Boolean).map(line => recordSchema.parse(JSON.parse(line))));

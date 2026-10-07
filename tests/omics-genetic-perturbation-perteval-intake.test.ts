@@ -22,7 +22,16 @@ function assembledRecords() {
   const afterThirdIntake = addUseCaseCoverage(afterSecondIntake, "data/omics/use-case-coverage-20261006");
   const afterFourthIntake = addUseCaseCoverage(afterThirdIntake, "data/omics/use-case-coverage-20261007");
   const afterFifthIntake = addUseCaseCoverage(afterFourthIntake, "data/omics/use-case-coverage-egfr-20261007");
-  return { baseline, withoutThisIntake: afterFifthIntake, withThisIntake: addUseCaseCoverage(afterFifthIntake, INTAKE_ROOT) };
+  const withThisIntake = addUseCaseCoverage(afterFifthIntake, INTAKE_ROOT);
+  // The shared inputs.json also references the later AMP intake, so artifact builds need it in both fixtures.
+  const AMP_ROOT = "data/omics/use-case-coverage-amp-20261007";
+  return {
+    baseline,
+    withoutThisIntake: afterFifthIntake,
+    withThisIntake,
+    fullWithoutThisIntake: addUseCaseCoverage(afterFifthIntake, AMP_ROOT),
+    fullWithThisIntake: addUseCaseCoverage(withThisIntake, AMP_ROOT),
+  };
 }
 
 describe("genetic-perturbation-response PertEval-scFM bounded intake (dry run, not wired into release.ts)", () => {
@@ -34,7 +43,7 @@ describe("genetic-perturbation-response PertEval-scFM bounded intake (dry run, n
   });
 
   it("resolves the new mapping against the fully assembled catalogue, and leaves every other mapping byte-identical", () => {
-    const { withoutThisIntake, withThisIntake } = assembledRecords();
+    const { fullWithoutThisIntake, fullWithThisIntake } = assembledRecords();
     const inputs = loadUseCases()!.inputs;
     const newMappingId = "use-case-map-perteval-scfm-norman-single-auspc";
     // inputsWithout mirrors the real inputs.json but omits the new mapping, so that
@@ -43,8 +52,8 @@ describe("genetic-perturbation-response PertEval-scFM bounded intake (dry run, n
     // OTHER mapping stay byte-identical" from "does the new mapping itself resolve",
     // tested separately below.
     const inputsWithout = { ...inputs, mappings: inputs.mappings.filter((m) => m.id !== newMappingId) };
-    const snapshotWithout = { schema_version: "1.1", release_id: "dry-run-without", released_at: "2026-10-07T11:50:00Z", coverage: {}, records: withoutThisIntake };
-    const snapshotWith = { schema_version: "1.1", release_id: "dry-run-with", released_at: "2026-10-07T11:50:00Z", coverage: {}, records: withThisIntake };
+    const snapshotWithout = { schema_version: "1.1", release_id: "dry-run-without", released_at: "2026-10-07T11:50:00Z", coverage: {}, records: fullWithoutThisIntake };
+    const snapshotWith = { schema_version: "1.1", release_id: "dry-run-with", released_at: "2026-10-07T11:50:00Z", coverage: {}, records: fullWithThisIntake };
     validateSnapshot(snapshotWith);
     const artifactWithout = buildUseCaseArtifact(snapshotWithout, inputsWithout);
     const artifactWith = buildUseCaseArtifact(snapshotWith, inputs);
@@ -56,11 +65,11 @@ describe("genetic-perturbation-response PertEval-scFM bounded intake (dry run, n
   });
 
   it("recomputes the mapping's evidence_sha256 identically to the value stored in inputs.json", () => {
-    const { withThisIntake } = assembledRecords();
+    const { fullWithThisIntake } = assembledRecords();
     const inputs = loadUseCases()!.inputs;
     const useCase = inputs.use_cases.find((u) => u.id === "use-case-genetic-perturbation-response")!;
     const mapping = inputs.mappings.find((m) => m.id === "use-case-map-perteval-scfm-norman-single-auspc")!;
-    const snapshot = { schema_version: "1.1", release_id: "dry-run-hash-check", released_at: "2026-10-07T11:50:00Z", coverage: {}, records: withThisIntake };
+    const snapshot = { schema_version: "1.1", release_id: "dry-run-hash-check", released_at: "2026-10-07T11:50:00Z", coverage: {}, records: fullWithThisIntake };
     expect(mappingEvidenceHash(snapshot, useCase, mapping)).toBe(mapping.evidence_sha256);
   });
 
