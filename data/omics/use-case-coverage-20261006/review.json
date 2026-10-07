@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "reviewer": "Claude Sonnet cell-type-annotation-transfer evidence-research worker",
+  "reviewed_at": "2026-10-06T23:32:17Z",
+  "scope": "Additive cell-type-annotation-transfer intake (issue #349), same dated lane, three same-day/next-review passes. Pass 1: two scTab deep-ensemble uncertainty ROC-AUC values (0.782, 0.891), corrected for averaging order/ensemble terminology/training-setting claim. Pass 2: Abdelaal et al. 2019 Baron Human INTRA-dataset rejection-option evidence ingested (new source + dataset + protocol + 3 methods + 4 configurations + 4 evaluations + 7 results); scArches's ~84% accuracy re-checked and held unresolved. Pass 3 (this review): Abdelaal source retrieved_at corrected to a real re-fetch timestamp (2026-10-06T23:28:54Z UTC, byte-identical, replacing a bounded-window estimate); retrieved bytes archived as a committed gzip artifact (artifacts/abdelaal-2019-pmc6734286-fulltext.xml.gz); the three unlabeled-percentage results' metric_direction changed from 'lower' to 'unknown' (schema's own three-value contract) with an explicit F1/rejection-tradeoff note; the 8,569-cell Table 2 figure is now explicitly distinguished from a confirmed per-classifier scored denominator. No printed value changed. No release frozen.",
+  "limitations": [
+    "Automated source review is not qualified human scientific review or experimental reproduction.",
+    "No new model execution.",
+    "scTab's 0.782 (absent-type detection) and 0.891 (known-type error detection) are two distinct comparisons from the same uncertainty mechanism (predicted probabilities averaged across the 5-model ensemble first, then uncertainty = 1 minus the maximum of that averaged probability; ensemble_size, not n_runs) and must never be combined or described interchangeably. Neither establishes cross-study or cross-platform transfer; exact Group 2/Group 3 denominators are not stated in the retrieved main text.",
+    "Abdelaal et al. 2019's four median F1 values and three unlabeled percentages are INTRA-dataset (same single Baron Human dataset, stratified 5-fold cross-validation); they do not establish cross-study or cross-platform transfer. The source's own genuine inter-dataset experiments (Fig. 4, Fig. 5) are not ingested.",
+    "Percentage-unlabeled results carry metric_direction: \"unknown\" (not \"lower\"): this is a coverage/rejection-rate tradeoff against the same classifier's own median F1, not a standalone performance figure with one universal direction.",
+    "8,569 cells is the Table 2 Baron Human dataset-size figure, not independently confirmed as the exact number of cells scored for any individual classifier's result.",
+    "scArches's ~84% accuracy figure is NOT ingested: its accuracy-formula denominator (whether cells labelled \"unknown\" count against accuracy or are excluded) is not stated for the figure that reports it (Fig. 4c); the only explicit formula found applies to a different, narrower-population figure (Supplementary Fig. 17, which explicitly excludes the unseen tissue). No record for scArches exists in this release.",
+    "This pass adds no change to any existing record, source, or mapping outside this use case's own three new mappings; it adds new catalogue records and new mappings only, under the same already-reviewed dated lane."
+  ],
+  "errors": [],
+  "files": {
+    "before.json": "4ae5427a8f0cb39086eb8010ebb72995e6f6e3dcdcb06cacb892917070efe916",
+    "review-clinical.json": "68b3814f61ba754138641f183d66678e9771682563a5a78766798caef577838f",
+    "review-research.json": "199413b41118ac3a60d292860764bd2e975d3cacc949d93ad0eda9d6695ffe7b",
+    "review-experimental.json": "98e2f1e40cbb26e2ad3f11b3e3d22b3e5375a1646d7f5589bfd18c5dc6c21306",
+    "clinical/records.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "clinical/coverage.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "clinical/research.md": "585e17161d308eb3f108c08cb7e19a42bc7e8f66c60c116c74425bd905de0bd0",
+    "clinical/sources.md": "e31ee9e35ef3f85193bdf29b0b5abb5e6183a666ddb5048dbd4020a975eeaac2",
+    "clinical/claims.csv": "dfd141142dd216fea7c1790ba85c32b0b8806a3ecf85ee9674529d3d0ccc087e",
+    "clinical/retrieval-log.md": "e10528e4d2e97e33853e7971c5e4a90bb90ef462d9a56dc26f0ff82df9a40ee2",
+    "research/records.jsonl": "0d8a78a4ee27aa1573dc774ce77209c27516f82554ad5783294e0f73c15c0bb5",
+    "research/coverage.json": "fa534beb6edc9b8d06e064367037d70f5c64e08e0959edb61baa29fd79e23509",
+    "research/research.md": "c379894fdb4fdcd857fb31190731bc4cd5f0c5b33b5eb060194b1cd502703caa",
+    "research/sources.md": "2ac0a3d42f44502848b921da03c994c0e256db0167da23fae96624dc8fe73df0",
+    "research/claims.csv": "1c9475c187387f98df19b6af381cf071a490477acc0f226da2a6d99c21f2890b",
+    "research/retrieval-log.md": "55e5095b13cadba66c2c73000579142eca2c863f127f87d958428b07c09db29c",
+    "experimental/records.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "experimental/coverage.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "experimental/research.md": "69f8d2deff3f643823403aa61579f36e2ae2ada96aae5653650cf4c693f184ff",
+    "experimental/sources.md": "241570bcadf5b1dce7ee62d9f8f19519567b8bfda178fc35d16d5cf281e122b1",
+    "experimental/claims.csv": "dfd141142dd216fea7c1790ba85c32b0b8806a3ecf85ee9674529d3d0ccc087e",
+    "experimental/retrieval-log.md": "4f98b9d05956eca40d89371f154b110b82606cd6d21c9cae890c5f1b2e1d55d1"
+  }
+}

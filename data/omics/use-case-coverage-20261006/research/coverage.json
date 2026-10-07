@@ -1,0 +1,125 @@
+[
+  {
+    "use_case_id": "use-case-cell-type-annotation-transfer",
+    "issue": 349,
+    "existing_ids": [
+      "ucc-research-protocol-sctab-seed",
+      "ucc-research-protocol-sctab-donor-bootstrap"
+    ],
+    "new_ids": [
+      "ucc-research-protocol-sctab-uncertainty-absent",
+      "ucc-research-protocol-sctab-uncertainty-error",
+      "ucc-research-eval-sctab-uncertainty-absent",
+      "ucc-research-eval-sctab-uncertainty-error",
+      "ucc-research-protocol-abdelaal-baron-human-intra",
+      "ucc-research-eval-abdelaal-baron-human-svm",
+      "ucc-research-eval-abdelaal-baron-human-svm-rejection",
+      "ucc-research-eval-abdelaal-baron-human-scmapcell",
+      "ucc-research-eval-abdelaal-baron-human-scpred"
+    ],
+    "sources": [
+      {
+        "source_id": "ucc-research-source-sctab-paper",
+        "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11298532/fullTextXML"
+      },
+      {
+        "source_id": "ucc-research-source-abdelaal-2019-paper",
+        "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC6734286/fullTextXML"
+      }
+    ],
+    "search_queries": [],
+    "search_date": "2026-10-06",
+    "verdict": "Additive intake only, same dated lane, two same-day passes. First pass: two independently checked scTab deep-ensemble uncertainty ROC-AUC values (0.782 unknown/absent-type detection; 0.891 known-type error detection, kept as a separate endpoint), corrected after an independent review for averaging order, ensemble terminology and an unsupported training-setting claim. Second pass (same day): Abdelaal et al. 2019 Baron Human INTRA-dataset rejection-option evidence ingested (four median F1 values, three unlabeled percentages); scArches's ~84% accuracy figure re-checked and held unresolved (accuracy-formula denominator not stated for the reporting figure). The existing Table 1a known-type macro-F1 mapping is unchanged. No new literature search was performed in either pass; see the 2026-10-06 research dossier and retrieval-log.md for search provenance.",
+    "gaps": [
+      "Both scTab protocols are donor-level holdouts within one pooled 249-dataset corpus, not a whole-study or whole-platform holdout; dataset/study overlap between splits is not directly confirmed.",
+      "Exact scTab Group 2/Group 3 denominators (cell/type counts) are not stated in the retrieved main text.",
+      "No rejection-at-coverage curve or demonstrated calibration for either scTab ROC-AUC value.",
+      "The Abdelaal protocol is INTRA-dataset only (same single dataset, stratified 5-fold CV); it does not establish cross-study or cross-platform transfer. The source's own genuine inter-dataset experiments (Fig. 4, Fig. 5) remain unretrieved as precise numeric values (graphical heatmap data only, Supp. Figs. S9/S10).",
+      "scArches's ~84% accuracy figure is not ingested: its accuracy-formula denominator (all-cell vs. accepted-only) is not stated for the figure that reports it.",
+      "Automated source review only; independent human scientific review remains outstanding.",
+      "Independent-study and coverage-aware unknown-type validation across methods remain gaps, consistent with the existing use-case evidence_gaps, which are not changed by this pass."
+    ],
+    "suggested_mappings": [
+      {
+        "protocol_id": "ucc-research-protocol-sctab-uncertainty-absent",
+        "evaluation_ids": [
+          "ucc-research-eval-sctab-uncertainty-absent"
+        ],
+        "endpoint": "Deep-ensemble uncertainty-score ROC-AUC distinguishing correctly predicted known cell types from cell types entirely absent from training, within one donor-held-out split of one pooled corpus.",
+        "relevance": "proxy",
+        "rationale": "Directly on the unknown-type-recognition endpoint, but single-corpus and donor-level only; no cross-study or cross-platform transfer established.",
+        "constraints": [
+          "Donor-level holdout within one pooled 249-dataset corpus; not a whole-study or whole-platform holdout."
+        ],
+        "limitations": [
+          "This is unknown/absent-type detection only; must not be combined with the separate known-type error-detection figure (0.891).",
+          "Exact Group 3 denominator not stated in the retrieved main text.",
+          "Reference labels are author annotations, not independent ground truth.",
+          "Automated source review only; independent human scientific review remains outstanding."
+        ],
+        "citations": [
+          {
+            "source_id": "ucc-research-source-sctab-paper",
+            "locator": "Methods, \"Uncertainty quantification for scTab model\""
+          }
+        ]
+      },
+      {
+        "protocol_id": "ucc-research-protocol-sctab-uncertainty-error",
+        "evaluation_ids": [
+          "ucc-research-eval-sctab-uncertainty-error"
+        ],
+        "endpoint": "Deep-ensemble uncertainty-score ROC-AUC distinguishing correctly from incorrectly predicted known cell types, within one donor-held-out split of one pooled corpus.",
+        "relevance": "proxy",
+        "rationale": "Measures known-type confidence/error detection (relevant to 'identify cells that require expert review'), not unknown-type detection; no cross-study or cross-platform transfer established.",
+        "constraints": [
+          "Donor-level holdout within one pooled 249-dataset corpus; not a whole-study or whole-platform holdout."
+        ],
+        "limitations": [
+          "This is known-type error detection, not unknown-type or absent-reference detection; must not be combined with the separate absent-type figure (0.782).",
+          "Exact Group 2 denominator not stated in the retrieved main text.",
+          "Reference labels are author annotations, not independent ground truth.",
+          "Automated source review only; independent human scientific review remains outstanding."
+        ],
+        "citations": [
+          {
+            "source_id": "ucc-research-source-sctab-paper",
+            "locator": "Methods, \"Uncertainty quantification for scTab model\""
+          }
+        ]
+      },
+      {
+        "protocol_id": "ucc-research-protocol-abdelaal-baron-human-intra",
+        "evaluation_ids": [
+          "ucc-research-eval-abdelaal-baron-human-svm",
+          "ucc-research-eval-abdelaal-baron-human-svm-rejection",
+          "ucc-research-eval-abdelaal-baron-human-scmapcell",
+          "ucc-research-eval-abdelaal-baron-human-scpred"
+        ],
+        "endpoint": "Intra-dataset (stratified 5-fold cross-validation, Baron Human pancreatic dataset) median F1-score and, for rejection-capable classifiers, percentage of cells left unlabeled.",
+        "relevance": "proxy",
+        "rationale": "A conventional-classifier rejection-option baseline directly relevant to the use case's 'identify cells that require expert review' endpoint, but intra-dataset only; it does not establish cross-study or cross-platform transfer, and predates scTab/CellTypist/Azimuth/scANVI/scParadise.",
+        "constraints": [
+          "INTRA-dataset (same single dataset, stratified 5-fold CV, identical folds across classifiers); NOT cross-study or cross-platform.",
+          "Baron Human only: 8,569 cells, 14/13 cell populations, inDrop protocol (Table 2)."
+        ],
+        "limitations": [
+          "Does not establish cross-study or cross-platform transfer; the source's own inter-dataset experiments (Fig. 4, Fig. 5) are not ingested here.",
+          "Median F1-score is a per-dataset summary statistic, not a per-population breakdown.",
+          "SVM's 0% implied unlabeled rate is not given its own result record.",
+          "Reference labels are the original Baron et al. study's author annotations, not independently adjudicated ground truth.",
+          "Automated source review only; independent human scientific review remains outstanding.",
+          "Percentage unlabeled is a coverage/rejection-rate tradeoff against the same classifier own median F1, not a standalone performance figure with a universal direction; read jointly, not in isolation.",
+          "8,569 cells is the Table 2 dataset-size figure, not independently confirmed as the exact scored denominator for any individual classifier result."
+        ],
+        "citations": [
+          {
+            "source_id": "ucc-research-source-abdelaal-2019-paper",
+            "locator": "Results, \"All classifiers perform well in intra-dataset experiments\"; Methods, \"Intra-dataset classification\"; Fig. 1a,b; Table 1; Table 2"
+          }
+        ]
+      }
+    ],
+    "draft_issue_comment": "Additive intake (2026-10-06, two same-day passes): two scTab deep-ensemble uncertainty ROC-AUC values (0.782 unknown/absent-type detection; 0.891 known-type error detection) and Abdelaal et al. 2019 Baron Human INTRA-dataset rejection-option evidence (four median F1 values, three unlabeled percentages) ingested as separate protocols. scArches's ~84% accuracy figure was re-checked and held unresolved: its accuracy-formula denominator (all-cell vs. accepted-only) is not stated for the figure that reports it. No other candidate source from the 2026-10-06 research dossier is ingested in this pass; see workbench/cell-type-ingestion-plan.md for the deferred list. This use case remains incomplete."
+  }
+]
