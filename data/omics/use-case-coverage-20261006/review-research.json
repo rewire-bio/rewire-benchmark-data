@@ -1,0 +1,41 @@
+{
+  "status": "passed_with_explicit_scope_limits",
+  "reviewer": "Claude Sonnet cell-type-annotation-transfer evidence-research worker",
+  "method": "automated_source_review",
+  "reviewed_at": "2026-10-06T23:32:17Z",
+  "record_count": 27,
+  "result_count": 9,
+  "scope": "Additive cell-type-annotation-transfer intake (issue #349). Two scTab facts re-verified (already catalogued 2026-09-30; no new source record). Same-day continuation added Abdelaal et al. 2019 Baron Human intra-dataset evidence (new source + dataset + protocol + 3 methods + 4 configurations + 4 evaluations + 7 results) and re-checked scArches's ~84% accuracy figure, which is recorded as unresolved and NOT ingested because its accuracy-formula denominator (all-cell vs. accepted-only) is not stated for the figure that reports it. Revised again after an independent review: Abdelaal's source retrieved_at was re-fetched with a real timestamp (was borrowing a bounded-window estimate), its bytes archived as a committed artifact (was workbench-only), the three unlabeled-percentage results' metric_direction changed to 'unknown' with an explicit F1/rejection-tradeoff note (was 'lower', an unsupported universal claim), and the 8,569-cell Table 2 figure is now explicitly distinguished from a confirmed per-classifier scored denominator. See research.md for the full correction history and the scArches reasoning.",
+  "checked": {
+    "numeric_results_verified_against_cached_or_live_source_text": 9,
+    "result_ids": [
+      "ucc-research-result-sctab-uncertainty-absent-rocauc",
+      "ucc-research-result-sctab-uncertainty-error-rocauc",
+      "ucc-research-result-abdelaal-baron-human-svm-medianf1",
+      "ucc-research-result-abdelaal-baron-human-svm-rejection-medianf1",
+      "ucc-research-result-abdelaal-baron-human-svm-rejection-unlabeled",
+      "ucc-research-result-abdelaal-baron-human-scmapcell-medianf1",
+      "ucc-research-result-abdelaal-baron-human-scmapcell-unlabeled",
+      "ucc-research-result-abdelaal-baron-human-scpred-medianf1",
+      "ucc-research-result-abdelaal-baron-human-scpred-unlabeled"
+    ]
+  },
+  "required_interpretation_limits": [
+    "Automated source review; no human scientific review or new model execution.",
+    "Both values are donor-level holdouts within one pooled 249-dataset corpus, not a whole-study or whole-platform holdout; dataset/study overlap between splits is not directly confirmed in the retrieved text.",
+    "0.782 (correct known-type vs. absent-type) and 0.891 (correct vs. incorrect known-type) are two distinct comparisons using the same uncertainty mechanism and must never be combined, averaged, or described interchangeably.",
+    "Exact Group 2/Group 3 denominators (cell/type counts) are not stated in the retrieved main text and are recorded as explicit missing denominators, not invented.",
+    "Neither value is a rejection-at-coverage curve or a demonstrated calibration of any decision threshold.",
+    "Uncertainty mechanism, precisely: predicted probabilities are averaged across the 5-model ensemble first, then uncertainty = 1 minus the maximum of that averaged probability vector; the source does not state temperature scaling. The ensemble member count is recorded as ensemble_size, not n_runs. Whether the ensemble members share the scTab model's training settings (e.g., data augmentation) is not independently restated in this subsection.",
+    "This pass adds three new active mappings for use-case-cell-type-annotation-transfer (one per new protocol); the one existing active mapping for this use case is unchanged. No release is built or frozen by this pass.",
+    "Abdelaal et al. 2019 Baron Human results are INTRA-dataset (same single dataset, stratified 5-fold cross-validation); they do not establish cross-study or cross-platform transfer. The source's own genuine inter-dataset/cross-platform experiments (Fig. 4, Fig. 5) are not ingested in this pass.",
+    "SVM's rejection-percentage (0% unlabeled, implied by \"classified 100% of the cells\") is not given its own result record; only its median F1-score (0.980) is ingested, matching the requested scope of four F1 values and three rejection percentages.",
+    "scArches's ~84% accuracy figure was re-checked and is NOT ingested: its accuracy-formula denominator (whether cells labelled \"unknown\" count against accuracy or are excluded) is not stated for the figure that reports it (Fig. 4c); the only explicit formula found in the accessible text is for a different, narrower-population figure (Supplementary Fig. 17, which explicitly excludes the unseen tissue). No source, protocol, evaluation, or result record for scArches exists in this release.",
+    "Abdelaal source retrieved_at is the real, logged re-fetch timestamp 2026-10-06T23:28:54Z UTC (confirmed byte-identical to the earlier cached copy), not the bounded-window estimate used previously; the bytes are additionally archived as a committed gzip artifact (artifacts/abdelaal-2019-pmc6734286-fulltext.xml.gz), not only the gitignored workbench copy.",
+    "Percentage-unlabeled results (1.5%/4.2%/10.8%) carry metric_direction: \"unknown\", not \"lower\": this metric is a coverage/rejection-rate tradeoff against the same classifier's own median F1, not a standalone performance figure with one universal direction. Read jointly with each classifier's median F1, never in isolation.",
+    "8,569 cells is the Table 2 Baron Human dataset-size figure; it is not independently confirmed as the exact number of cells scored for any individual classifier's median F1 or unlabeled-percentage result. Per-classifier/per-fold scored counts are not stated in the retrieved main text."
+  ],
+  "unresolved_blockers": [
+    "scArches ~84% accuracy (PMC8763644, Fig. 4c): accuracy-formula denominator not stated for this figure; see research.md, 'Unresolved: scArches ~84% accuracy'. Resolvable by locating an explicit formula statement for Fig. 4c specifically (e.g., in Supplementary Note text not yet retrieved) or by author clarification."
+  ]
+}
