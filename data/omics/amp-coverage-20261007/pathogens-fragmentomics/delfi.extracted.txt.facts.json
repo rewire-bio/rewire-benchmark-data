@@ -1,0 +1,68 @@
+{
+  "schema_version": "curator-factual-receipt-1",
+  "artifact_format": "curator_factual_receipt",
+  "media_type": "application/json",
+  "curator": "Codex /root/amp_methylation_cnv_operations automated archive transformation",
+  "created_at": "2026-10-07T13:08:56.155713+00:00",
+  "original_artifact": "data/omics/amp-coverage-20261007/pathogens-fragmentomics/delfi.extracted.txt",
+  "original_artifact_sha256": "d4756d5470cf4871c866c70b878d4d3c573b9869ad925f42d56f2e24a1798d1c",
+  "original_archive_sha256": "d4756d5470cf4871c866c70b878d4d3c573b9869ad925f42d56f2e24a1798d1c",
+  "original_bytes": 60478,
+  "provenance": [
+    {
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC6774252/fullTextXML",
+      "retrieved_at": "2026-10-07T12:24:27.091080+00:00"
+    },
+    {
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC6774252/fullTextXML",
+      "retrieved_at": "2026-10-07T12:24:27.091080+00:00",
+      "sha256": "1c9b4eca18f8e2f11c647f938aa55dea0a20e3db17e0bb5ba5eb839dab182923",
+      "name": "delfi"
+    }
+  ],
+  "licence_fact": "academic_research_terms",
+  "permission_locator": [
+    "delfi.raw.gz JATS permissions/license"
+  ],
+  "reuse_note": "Keep extracted fullarticle ignored along with XML; public compact factual tableendpoint receipt preserving XMLhash/URL/locator.",
+  "content_note": "Curator-selected numerical facts and protocol metadata; not full source text/XML/PDF/workbook, not an execution or human scientific review. Historical source review receipts retain original hashes.",
+  "facts": [
+    {
+      "issue": 15,
+      "key": "ctdna-fragmentomics",
+      "title": "DELFI 2019 internally cross-validated cancer detection",
+      "source": "delfi",
+      "doi": "10.1038/s41586-019-1272-6",
+      "citation": "Cristiano et al., Nature 570, 385–389 (2019), author manuscript PMC6774252",
+      "workflow": "DELFI stochastic gradient boosting: GC-corrected TOTAL and SHORT fragment coverage in 504 genomic bins, 39 autosomal arm Z-scores and mitochondrial representation. R gbm 2.1-4, n.trees=150, interaction.depth=3, shrinkage=0.1, n.minobsinside=10.",
+      "population": "208 patients with seven cancer types and 215 healthy individuals used for classifier; broader study abstract 236 cancers/245 healthy is not classifier denominator.",
+      "inputs": "Plasma cfDNA whole-genome fragmentation and copy-number features; composite cfDNA includes background and tumour-derived signal",
+      "split": "10-fold cross-validation repeated 10 times; feature selection and model estimation on training folds only",
+      "adaptation": "Supervised cohort-specific gradient boosting; not a foundation model",
+      "metric": "sensitivity_at_reported_98_percent_specificity",
+      "value": "73",
+      "printed": "73%",
+      "unit": "percent",
+      "denominator": 208,
+      "numerator": 152,
+      "uncertainty": "95% CI 67%–79%; sensitivity intervals from 2,000 bootstrap replicates",
+      "locator": "PMC6774252 Table 1 T1 Cancer row / 98% specificity columns; Results P15; Methods P34; Extended Data Fig. 7 F11.",
+      "baseline": "Same Fig. 4/Results P15 feature comparisons: chromosomal-arm copy number ML AUC 0.88, individual copy-number scores AUC 0.78, mitochondrial copy number AUC 0.72; separate ROC endpoints, not sensitivity-matched comparisons.",
+      "limits": [
+        "4 of 215 healthy individuals misclassified at source-labelled 98% specificity. Retain rounded printed specificity; do not recompute sensitivity.",
+        "Internal repeated cross-validation is not independent prospective screening validation; clinically identified cancers and healthy comparators differ from intended screening population.",
+        "DELFI composite features include CNAs/mtDNA, so this exact result is not pure fragmentation alone.",
+        "cfDNA signal is not purified ctDNA, tumour fraction limit is unreported for this endpoint.",
+        "Combined mutation+DELFI 115/126 (91%) is a different subset/configuration and is excluded."
+      ]
+    }
+  ],
+  "factual_corrections": [
+    {
+      "corrected_at": "2026-10-07T13:12:32.947181+00:00",
+      "actor": "Codex /root/amp_methylation_cnv_operations",
+      "primary_locator": "DELFI PMC6774252 Methods classifier-development paragraph P34",
+      "reason": "Corrected inherited curator protocol wording after independent primary-source review; original retrieved bytes and historical review hashes unchanged."
+    }
+  ]
+}
