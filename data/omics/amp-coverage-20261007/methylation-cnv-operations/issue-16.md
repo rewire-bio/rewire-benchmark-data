@@ -1,0 +1,15 @@
+# AMP #16: plasma ctDNA methylation
+
+Candidate: Stackpole et al., *Cost-effective methylome sequencing of cell-free DNA for accurately detecting and locating cancer*, Nature Communications 13:5566 (2022), DOI https://doi.org/10.1038/s41467-022-32995-6. Direct primary XML read, including the 2024 author correction https://doi.org/10.1038/s41467-024-48018-5. Correction adds commercial relationships and patent disclosures; it does not change the selected endpoint. Sources are archived unchanged with hashes/times in retrieval.json. Retrieval via Europe PMC REST succeeded after PMC/browser routes failed.
+
+Reported sensitivity is **80.7%**, 95% CI **68.6%–90.7%**, at **97.9% specificity**. Exact locator: PMC9522828 XML paragraph **Par17**, Results cancer detection, Fig3a; protocol Par16; preprocessing Par34; classifier Par37. These are mean test metrics across ten repeated random splits, not one prospective validation cohort.
+
+Population: 479 plasma cfMethyl-Seq libraries generated, 408 QC-passing samples (coverage >15×, conversion >98.7%). QC-passing samples include 217 cancers (49 colon,30 liver,106 lung,32 stomach) and191 noncancers including other diseases. Each split holds out25% of each class; among remaining75% noncancers,30 are reserved for marker discovery. Fig3c prints test n=102. Exact per-class integer test counts and split seeds are not supplied here and must not be inferred from rounded proportions.
+
+Configuration: cfMethyl-Seq150bp paired-end reads, UMI removal, Trim-galore trimming, Bismark alignment/calling against hg19/GRCh37 GCA000001405.1 and Umi-Grinder deduplication. Four L2 linear SVMs (C=1) use cancer/tissue hyper/hypomethylation marker profiles; a random forest of2000 trees integrates their outputs. Remaining scikit-learn settings are defaults; immutable fitted checkpoint and library version are unreported in the inspected text. Noncancer participants supply the negative control. Individual-marker classifiers are separately studied, and are not assigned this ensemble sensitivity.
+
+This is direct plasma cfDNA methylation detection evidence. It supports a conventional assay/model baseline, with no genomic foundation model result. Clinical utility, population screening, treatment response or qualified human scientific review are not established. Cross-platform independent WGBS validation does not directly validate the level-2 random forest (Par25), because absolute score scales differ.
+
+Reuse: article and correction CC-BY4.0. EGA EGAS00001006020 raw data require author request and access is restricted to noncommercial entities. The article states code is freely usable for educational/research purposes by nonprofit institutions and US government agencies, and directs commercial requests to the author. Article licence is not a code/model/data licence. Repository licence and checkpoint access were not independently inspected.
+
+No baseline catalogue duplicate found for method name or DOI. One new exact assay configuration, dataset, protocol, evaluation and result proposed. Keep source_checked/reproduced separate: all worker candidates are needs_review until parent curation.
