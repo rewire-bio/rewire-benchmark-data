@@ -35,12 +35,14 @@ describe("additive BRCA1/BRCA2 research-evidence intake, 2026-10-05", () => {
     gunzipSync(fs.readFileSync("data/omics/releases/2026-09-30-e37e3ab1284d/use-cases.json.gz")).toString(),
   );
   // Mirror the exact chain in scripts/omics/release.ts: default 20260930 root, then the
-  // 20261005 root, then the 20261006 root, so buildUseCaseArtifact sees every protocol the
-  // current reviewed inputs reference (including the later 2026-10-06 cell-type-annotation-
-  // transfer addition, which is not part of this BRCA-scoped pass but shares one inputs.json).
+  // 20261005 root, then the 20261006 root, then the 20261007 root, so buildUseCaseArtifact
+  // sees every protocol the current reviewed inputs reference (including the later
+  // 2026-10-06/2026-10-07 cell-type-annotation-transfer additions, which are not part of
+  // this BRCA-scoped pass but share one inputs.json).
   const afterFirstIntake = addUseCaseCoverage(baseline.records);
   const afterSecondIntake = addUseCaseCoverage(afterFirstIntake, NEW_ROOT);
-  const records = addUseCaseCoverage(afterSecondIntake, "data/omics/use-case-coverage-20261006");
+  const afterThirdIntake = addUseCaseCoverage(afterSecondIntake, "data/omics/use-case-coverage-20261006");
+  const records = addUseCaseCoverage(afterThirdIntake, "data/omics/use-case-coverage-20261007");
   const newRecords = records.slice(afterFirstIntake.length, afterSecondIntake.length);
 
   it("validates every new record and preserves every prior record byte-identically", () => {
