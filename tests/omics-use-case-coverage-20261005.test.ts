@@ -43,7 +43,8 @@ describe("additive BRCA1/BRCA2 research-evidence intake, 2026-10-05", () => {
   const afterSecondIntake = addUseCaseCoverage(afterFirstIntake, NEW_ROOT);
   const afterThirdIntake = addUseCaseCoverage(afterSecondIntake, "data/omics/use-case-coverage-20261006");
   const afterFourthIntake = addUseCaseCoverage(afterThirdIntake, "data/omics/use-case-coverage-20261007");
-  const records = addUseCaseCoverage(afterFourthIntake, "data/omics/use-case-coverage-egfr-20261007");
+  const afterFifthIntake = addUseCaseCoverage(afterFourthIntake, "data/omics/use-case-coverage-egfr-20261007");
+  const records = addUseCaseCoverage(afterFifthIntake, "data/omics/use-case-coverage-genetic-perturbation-20261007");
   const newRecords = records.slice(afterFirstIntake.length, afterSecondIntake.length);
 
   it("validates every new record and preserves every prior record byte-identically", () => {

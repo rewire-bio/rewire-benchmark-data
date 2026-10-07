@@ -22,13 +22,15 @@ describe("reviewed 17-use-case evidence integration", () => {
     const baseline = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-28-c7b5ac6d34f2/catalogue.json.gz")).toString());
     const previousCases = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-28-c7b5ac6d34f2/use-cases.json.gz")).toString());
     // Mirror the exact chain in scripts/omics/release.ts: default 20260930 root,
-    // then 20261005, then 20261006, then 20261007, then egfr-20261007, so
-    // buildUseCaseArtifact sees every protocol the current reviewed inputs reference.
+    // then 20261005, then 20261006, then 20261007, then egfr-20261007, then
+    // genetic-perturbation-20261007, so buildUseCaseArtifact sees every protocol
+    // the current reviewed inputs reference.
     const afterFirstIntake = addUseCaseCoverage(baseline.records);
     const afterSecondIntake = addUseCaseCoverage(afterFirstIntake, "data/omics/use-case-coverage-20261005");
     const afterThirdIntake = addUseCaseCoverage(afterSecondIntake, "data/omics/use-case-coverage-20261006");
     const afterFourthIntake = addUseCaseCoverage(afterThirdIntake, "data/omics/use-case-coverage-20261007");
-    const records = addUseCaseCoverage(afterFourthIntake, "data/omics/use-case-coverage-egfr-20261007");
+    const afterFifthIntake = addUseCaseCoverage(afterFourthIntake, "data/omics/use-case-coverage-egfr-20261007");
+    const records = addUseCaseCoverage(afterFifthIntake, "data/omics/use-case-coverage-genetic-perturbation-20261007");
     validateRecords(records);
     const snapshot = { ...baseline, release_id: "2026-10-05-000000000000", released_at: "2026-10-05T21:00:00Z", records };
     validateSnapshot(snapshot);
