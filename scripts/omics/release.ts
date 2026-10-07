@@ -338,9 +338,9 @@ function main() {
     addAcquiredEvidence(addRunRecipes(separateEntities(profiled))),
   )))));
   const reviewedUseCases = loadUseCases();
-  const records = addUseCaseCoverage(addUseCaseCoverage(addUseCaseSources(addSourceLabelIdentities(
+  const records = addUseCaseCoverage(addUseCaseCoverage(addUseCaseCoverage(addUseCaseSources(addSourceLabelIdentities(
     addProfileEvidence(addModelEvaluationLinks(addCoverageTables(evaluated))),
-  ), reviewedUseCases)), "data/omics/use-case-coverage-20261005");
+  ), reviewedUseCases)), "data/omics/use-case-coverage-20261005"), "data/omics/use-case-coverage-20261006");
   const profiles = records
     .filter((record) => record.attributes.profile)
     .map((record) => record.attributes.profile as OmicsProfile);
@@ -495,6 +495,7 @@ function main() {
         ...useCaseInputFiles(),
         ...useCaseCoverageInputFiles(),
         ...useCaseCoverageInputFiles("data/omics/use-case-coverage-20261005"),
+        ...useCaseCoverageInputFiles("data/omics/use-case-coverage-20261006"),
         ...researchInputFiles.filter(file => fs.existsSync(file)),
         ...reviewInputFiles.filter((file) => fs.existsSync(file)),
         ...profileInputs.filter((file) => fs.existsSync(file)),

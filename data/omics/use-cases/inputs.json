@@ -4197,6 +4197,124 @@
         "note": "Source-backed literature curation with independent automated transcription and scope checks against the additive 2026-10-05 BRCA1/BRCA2 evidence intake (issue #343). No new model execution, independent experimental replication, qualified human scientific review or clinical validation."
       },
       "evidence_sha256": "16b62ca6230dd2a624f367524a71ae47084254b3cd85b2c960950ce4a55db9d4"
+    },
+    {
+      "id": "use-case-mapping-20261006-349-2cfbe5c7674a",
+      "use_case_id": "use-case-cell-type-annotation-transfer",
+      "lifecycle": "active",
+      "revision": 1,
+      "reason": "Add scTab's own unknown/absent-type detection ROC-AUC (deep-ensemble uncertainty score, correct known-type vs. absent-type), independently source-checked in the additive 2026-10-06 intake (issue #349). Kept as a separate mapping from the existing Table 1a known-type macro-F1 mapping and from scTab's own known-type error-detection ROC-AUC, which must not be conflated with unknown-type detection.",
+      "protocol_id": "ucc-research-protocol-sctab-uncertainty-absent",
+      "evaluation_ids": [
+        "ucc-research-eval-sctab-uncertainty-absent"
+      ],
+      "endpoint": "Deep-ensemble (5-model) uncertainty-score ROC-AUC distinguishing correctly predicted known cell types from cell types entirely absent from training, within one donor-held-out split of scTab's pooled 249-dataset CELLxGENE corpus.",
+      "relevance": "proxy",
+      "rationale": "Directly on the use case's unknown-type-recognition endpoint, but single-corpus and donor-level only; no cross-study or cross-platform transfer of this capability is established by this source.",
+      "constraints": [
+        "Donor-level holdout within one pooled 249-dataset corpus (10x-related assays only; rare types excluded); not a whole-study or whole-platform holdout. Dataset/study overlap between training and test splits is not directly confirmed in the retrieved text.",
+        "Single ROC-AUC value; no rejection-at-coverage curve or demonstrated calibration."
+      ],
+      "limitations": [
+        "This is unknown/absent-type detection only; it must not be combined with or treated as evidence for scTab's separate known-type error-detection ROC-AUC (0.891, see use-case-mapping-20261006-349-6a9d63555f43).",
+        "Exact number of cell types and cells comprising the absent-type comparison group is not stated in the retrieved main text; held here as an explicit missing denominator, not invented.",
+        "Reference/training labels are author annotations, not independent ground truth.",
+        "Automated source review only; independent human scientific review remains outstanding."
+      ],
+      "citations": [
+        {
+          "source_id": "ucc-research-source-sctab-paper",
+          "locator": "Methods, \"Uncertainty quantification for scTab model\""
+        }
+      ],
+      "review": {
+        "method": "automated_source_review",
+        "actor": "Claude Sonnet cell-type-annotation-transfer evidence-research worker",
+        "reviewed_at": "2026-10-06T22:39:40Z",
+        "note": "Source-backed primary-text transcription of the 2026-10-06 cell-type-annotation-transfer research dossier (docs/omics/evidence-research/cell-type-annotation-transfer-2026-10-06.md), corrected after an independent source check; bound by data/omics/use-case-coverage-20261006/review.json. Revised same day after a second independent review corrected the uncertainty-averaging order, removed an unsupported 'temperature-scaled' claim, replaced n_runs with ensemble_size, and removed an unsupported 'data augmentation enabled' assertion; evidence_sha256 refreshed accordingly. No ROC-AUC value or endpoint scoping changed. No new model execution, independent experimental replication, qualified human scientific review or clinical validation."
+      },
+      "evidence_sha256": "a1690c50b7f8265bfb8f0cac670bc262b7174377da5556a1edfae508abb68189"
+    },
+    {
+      "id": "use-case-mapping-20261006-349-6a9d63555f43",
+      "use_case_id": "use-case-cell-type-annotation-transfer",
+      "lifecycle": "active",
+      "revision": 1,
+      "reason": "Add scTab's own known-type error/confidence-detection ROC-AUC (deep-ensemble uncertainty score, correct vs. incorrect known-type), independently source-checked in the additive 2026-10-06 intake (issue #349). Kept as a separate mapping from the existing Table 1a known-type macro-F1 mapping and from scTab's own unknown/absent-type detection ROC-AUC, which must not be conflated with this known-type endpoint.",
+      "protocol_id": "ucc-research-protocol-sctab-uncertainty-error",
+      "evaluation_ids": [
+        "ucc-research-eval-sctab-uncertainty-error"
+      ],
+      "endpoint": "Deep-ensemble (5-model) uncertainty-score ROC-AUC distinguishing correctly from incorrectly predicted known cell types, within one donor-held-out split of scTab's pooled 249-dataset CELLxGENE corpus.",
+      "relevance": "proxy",
+      "rationale": "Relevant to the use case's \"identify cells that require expert review\" endpoint for known-type calls (flagging the model's own low-confidence/incorrect predictions among trained types), but it is NOT an unknown-type or absent-reference detection result, and no cross-study or cross-platform transfer of this capability is established by this source.",
+      "constraints": [
+        "Donor-level holdout within one pooled 249-dataset corpus (10x-related assays only; rare types excluded); not a whole-study or whole-platform holdout.",
+        "Single ROC-AUC value; no rejection-at-coverage curve or demonstrated calibration."
+      ],
+      "limitations": [
+        "This is known-type error/confidence detection, not unknown-type or absent-reference detection; it must not be combined with or treated as evidence for scTab's separate absent-type ROC-AUC (0.782, see use-case-mapping-20261006-349-2cfbe5c7674a).",
+        "Exact number of cells comprising the incorrect-known-type comparison group is not stated in the retrieved main text; held here as an explicit missing denominator, not invented.",
+        "Reference/training labels are author annotations, not independent ground truth.",
+        "Automated source review only; independent human scientific review remains outstanding."
+      ],
+      "citations": [
+        {
+          "source_id": "ucc-research-source-sctab-paper",
+          "locator": "Methods, \"Uncertainty quantification for scTab model\""
+        }
+      ],
+      "review": {
+        "method": "automated_source_review",
+        "actor": "Claude Sonnet cell-type-annotation-transfer evidence-research worker",
+        "reviewed_at": "2026-10-06T22:39:40Z",
+        "note": "Source-backed primary-text transcription of the 2026-10-06 cell-type-annotation-transfer research dossier (docs/omics/evidence-research/cell-type-annotation-transfer-2026-10-06.md), corrected after an independent source check; bound by data/omics/use-case-coverage-20261006/review.json. Revised same day after a second independent review corrected the uncertainty-averaging order, removed an unsupported 'temperature-scaled' claim, replaced n_runs with ensemble_size, and removed an unsupported 'data augmentation enabled' assertion; evidence_sha256 refreshed accordingly. No ROC-AUC value or endpoint scoping changed. No new model execution, independent experimental replication, qualified human scientific review or clinical validation."
+      },
+      "evidence_sha256": "e58579cd7ad115270a2313f48faa46a431b3598e4e85e07d1b8fe13756627255"
+    },
+    {
+      "id": "use-case-mapping-20261006-349-967caca02e7d",
+      "use_case_id": "use-case-cell-type-annotation-transfer",
+      "lifecycle": "active",
+      "revision": 1,
+      "reason": "Add Abdelaal et al. 2019 Baron Human INTRA-dataset rejection-option baseline (same-day continuation of the additive 2026-10-06 intake, issue #349): four median F1 values and three cells-left-unlabeled percentages for conventional classifiers, re-verified directly against the cached primary source. This is explicitly NOT a cross-study or cross-platform result; the source's own genuine inter-dataset experiments (Fig. 4, Fig. 5) are not ingested here.",
+      "protocol_id": "ucc-research-protocol-abdelaal-baron-human-intra",
+      "evaluation_ids": [
+        "ucc-research-eval-abdelaal-baron-human-svm",
+        "ucc-research-eval-abdelaal-baron-human-svm-rejection",
+        "ucc-research-eval-abdelaal-baron-human-scmapcell",
+        "ucc-research-eval-abdelaal-baron-human-scpred"
+      ],
+      "endpoint": "Intra-dataset (same single Baron Human dataset, stratified 5-fold cross-validation, identical folds across classifiers) median F1-score and, for rejection-capable classifiers, percentage of cells left unlabeled.",
+      "relevance": "proxy",
+      "rationale": "A conventional-classifier rejection-option baseline directly relevant to the use case's 'identify cells that require expert review' endpoint, but intra-dataset only; it does not establish cross-study or cross-platform transfer, and the compared classifiers (SVM, SVMrejection, scmapcell, scPred) predate scTab, CellTypist, Azimuth, scANVI and scParadise.",
+      "constraints": [
+        "INTRA-dataset (same single dataset, stratified 5-fold CV, identical folds across classifiers); NOT cross-study or cross-platform. Confirmed from the source's own Methods, which explicitly distinguishes this design from a separate inter-dataset design.",
+        "Baron Human dataset only: 8,569 cells, 17,499 genes, 14 cell populations (13 after <10-cell filtering), inDrop protocol (Table 2)."
+      ],
+      "limitations": [
+        "Does not establish cross-study or cross-platform transfer; the source's own inter-dataset (cross-platform/cross-study) experiments (Fig. 4 brain, Fig. 5 pancreatic) are not ingested in this mapping.",
+        "Median F1-score is a per-dataset summary statistic across cell populations, not a per-population breakdown.",
+        "SVM (no rejection) is quoted as classifying \"100% of the cells\" (0% unlabeled by implication) but is not given its own rejection-percentage result record in this intake.",
+        "Reference labels are the original Baron et al. study's author-assigned cell-population annotations, not independently adjudicated ground truth.",
+        "Exact per-fold cell counts and the fold manifest are not stated in the retrieved main text.",
+        "8,569 cells is the Table 2 Baron Human dataset-size figure; it is not independently confirmed as the exact number of cells scored for any individual classifier's median F1 or unlabeled-percentage result.",
+        "Percentage unlabeled is a coverage/rejection-rate tradeoff against the same classifier's own median F1-score, not a standalone performance figure with a universal better/worse direction; it must be read jointly with that classifier's F1, not in isolation. The corresponding result records carry metric_direction: \"unknown\" for this reason, per the schema's higher/lower/unknown contract.",
+        "Automated source review only; independent human scientific review remains outstanding."
+      ],
+      "citations": [
+        {
+          "source_id": "ucc-research-source-abdelaal-2019-paper",
+          "locator": "Results, \"All classifiers perform well in intra-dataset experiments\"; Methods, \"Intra-dataset classification\"; Fig. 1a,b; Table 1; Table 2"
+        }
+      ],
+      "review": {
+        "method": "automated_source_review",
+        "actor": "Claude Sonnet cell-type-annotation-transfer evidence-research worker",
+        "reviewed_at": "2026-10-06T23:32:17Z",
+        "note": "Source-backed primary-text transcription of Abdelaal et al. 2019, continuing the bounded 2026-10-06 cell-type-annotation-transfer research dossier and same-day additive intake; bound by data/omics/use-case-coverage-20261006/review.json. Revised after an independent review: the source's retrieved_at is now the real re-fetch timestamp 2026-10-06T23:28:54Z UTC (byte-identical; a bounded-window estimate was used previously), its bytes are archived as a committed artifact (not only the gitignored workbench copy), the three unlabeled-percentage results' metric_direction is now \"unknown\" (was \"lower\", an unsupported universal claim) with an explicit F1/rejection-tradeoff note, and the 8,569-cell figure is now explicitly scoped as the Table 2 dataset size, not a confirmed scored denominator. No printed value changed; evidence_sha256 refreshed accordingly. scArches's ~84% accuracy figure was re-checked in the same pass and found unresolved (accuracy-formula denominator not stated for the reporting figure); no record for it exists in this release. No new model execution, independent experimental replication, qualified human scientific review or clinical validation."
+      },
+      "evidence_sha256": "e0f5ec5a720c706fbe9c2cee13e1079f53b36c874c3ba392c7baee4165690e55"
     }
   ]
 }

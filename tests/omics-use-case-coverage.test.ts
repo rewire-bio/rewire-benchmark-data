@@ -21,11 +21,12 @@ describe("reviewed 17-use-case evidence integration", () => {
   it("preserves the old catalogue and mappings, validates every new record, and resolves the audited cases", () => {
     const baseline = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-28-c7b5ac6d34f2/catalogue.json.gz")).toString());
     const previousCases = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-28-c7b5ac6d34f2/use-cases.json.gz")).toString());
-    // Mirror the exact two-pass chain in scripts/omics/release.ts: default 20260930 root,
-    // then the 20261005 root, so buildUseCaseArtifact sees every protocol the current
+    // Mirror the exact three-pass chain in scripts/omics/release.ts: default 20260930 root,
+    // then 20261005, then 20261006, so buildUseCaseArtifact sees every protocol the current
     // reviewed inputs reference.
     const afterFirstIntake = addUseCaseCoverage(baseline.records);
-    const records = addUseCaseCoverage(afterFirstIntake, "data/omics/use-case-coverage-20261005");
+    const afterSecondIntake = addUseCaseCoverage(afterFirstIntake, "data/omics/use-case-coverage-20261005");
+    const records = addUseCaseCoverage(afterSecondIntake, "data/omics/use-case-coverage-20261006");
     validateRecords(records);
     const snapshot = { ...baseline, release_id: "2026-10-05-000000000000", released_at: "2026-10-05T21:00:00Z", records };
     validateSnapshot(snapshot);
