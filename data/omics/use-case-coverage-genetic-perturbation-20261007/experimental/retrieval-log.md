@@ -1,0 +1,17 @@
+# Retrieval log — genetic-perturbation-response bounded intake, 2026-10-07
+
+Full dated search/query log for the underlying research pass is preserved separately in
+`docs/omics/evidence-research/genetic-perturbation-response-2026-10-07.md`. This log records only
+the retrieval actions specific to this additive intake.
+
+- Fetched `https://raw.githubusercontent.com/mlresearch/v267/main/assets/wenteler25a/wenteler25a.pdf` at 2026-10-07T11:39:51Z UTC (logged via `curl -D` response headers: `date: Wed, 07 Oct 2026 11:39:50 GMT`, `etag: "ed9f0fe44cf6edc939ee6950d024f65dcd8dd6f16414bd9f5297cda9395d6e58"`); SHA-256 `c116a153872645d5c91b9ee836df3945cd8ffd02a6e736f58f854c4b70978bcc`, byte-identical to an earlier same-session fetch of the same URL.
+- Extracted text locally via `pdftotext -layout` (no network access for extraction); independently re-read Table 1 (Norman single-gene section), Section 2.1 ("Raw expression data," Eq. 3), Section 2.2 (MLP baseline Eq. 4 / GEARS baseline Eq. 5 / Mean baseline definitions, including the exact phrase "we train GEARS from scratch without using pretrained weights"), Appendix F.2 / Algorithm 1 (AUSPC and uncertainty-propagation definitions, Eqs. F2–F5), main-text Figure 2 caption, and Appendix I / Figure I1 caption before transcribing any value or uncertainty description.
+- Confirmed `github.com/aaronwtr/PertEval` license via `curl https://api.github.com/repos/aaronwtr/PertEval/license`: MIT; independently re-confirmed by reading the pinned LICENSE blob at main commit `ce48c8b998901c8f8b6275114caac3a4d8543c0b` (blob `8f7d6532772dcd06951192fe441e00d02e0848c2`).
+- Read the pinned `src/models/components/predictors.py` at the same commit (cached `workbench/genetic-perturbation-20261007/codex-perteval-src-models-components-predictors.py`, SHA-256 `fc1f39877c143beae50dcc51e0fc0933b460d61f1c18594db7b2424465355df9`, fetched 2026-10-07T11:35:14.743899Z) to independently check the `MeanExpression.forward` implementation against the paper's Section 2.2 text; kept as a separate, dated code observation, not merged with the paper's definition.
+- Read PMLR's general Publication Agreement at `https://proceedings.mlr.press/pmlr-license-agreement.html` directly via `curl` at 2026-10-07T12:22:03Z: confirms a blanket CC BY 4.0 grant for all PMLR articles (attribution requires citation + PMLR hyperlink), as the basis for this article's license, separate from the absent individual-page CC-BY badge and the footer's "Copyright © The authors and PMLR 2026" line.
+- Checked `https://doi.org/10.1038/s41592-025-02980-0` (a distinct paper, Wei et al.): direct `curl` with a browser user-agent returns the full abstract plus the explicit text "This is a preview of subscription content, access via your institution" — confirmed genuinely paywalled by page content, not merely an authentication redirect; not bypassed, not retried.
+- Computed `recordSchema.parse()` validation and the mapping's `evidence_sha256` via a local `tsx` script invoking the repository's own `services/omics/src/use-cases.ts` `mappingEvidenceHash` function against a snapshot combining the latest release's two cited existing source records with these 12 new records; not a full `omics:release` run.
+
+Cached bytes (PDF, PMLR page, GitHub API responses, intermediate extraction text) remain under the
+git-ignored `workbench/genetic-perturbation-20261007/`. Only the compressed PertEval-scFM PDF is
+committed, under `experimental/artifacts/perteval-scfm-wenteler25a.pdf.gz`.

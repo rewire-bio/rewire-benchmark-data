@@ -38,6 +38,10 @@ describe("bounded EGFR NSCLC evidence-retrieval CIViC-Fact v3 intake, 2026-10-07
   const after3 = addUseCaseCoverage(after2, "data/omics/use-case-coverage-20261006");
   const after4 = addUseCaseCoverage(after3, "data/omics/use-case-coverage-20261007");
   const records = addUseCaseCoverage(after4, NEW_ROOT);
+  // Extends one step further than `records` so buildUseCaseArtifact (below) can resolve
+  // the later 2026-10-07 genetic-perturbation-response addition, which shares the same
+  // inputs.json but is not part of this EGFR-scoped pass's own record slicing/assertions.
+  const fullRecords = addUseCaseCoverage(records, "data/omics/use-case-coverage-genetic-perturbation-20261007");
   const newRecords = records.slice(after4.length);
   const byId = new Map<string, RecordEntry>(newRecords.map((record) => [record.id, record]));
 
@@ -248,7 +252,7 @@ describe("bounded EGFR NSCLC evidence-retrieval CIViC-Fact v3 intake, 2026-10-07
       ...baseline,
       release_id: "2026-10-07-000000000002",
       released_at: "2026-10-07T09:59:21Z",
-      records,
+      records: fullRecords,
     };
     const artifact = buildUseCaseArtifact(snapshot, reviewed.inputs);
     const mappings = artifact.mappings.filter((m) => m.use_case_id === "use-case-egfr-nsclc-actionability-resistance-evidence");
