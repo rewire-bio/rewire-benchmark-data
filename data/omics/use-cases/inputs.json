@@ -5044,6 +5044,47 @@
       "evidence_sha256": "2c244a1d6cdfa0b4059e49cb8b72580fefa55effe869edbbb507aa8dc33a68cc"
     },
     {
+      "id": "use-case-map-perteval-scfm-norman-single-auspc",
+      "use_case_id": "use-case-genetic-perturbation-response",
+      "lifecycle": "active",
+      "revision": 1,
+      "reason": "Initial applicability review: a second, independently-sourced, full-text-verified comparison of GEARS (trained from scratch) against conventional baselines (an Xc-plus-co-expression MLP baseline, a context-mean baseline) on a differently-preprocessed Norman2019 single-gene subset, with an independent split mechanism (SPECTRA sparsification) and metric (AUSPC), distinct from the existing GEARS Supplementary Table 6 comparison already mapped to this use case.",
+      "protocol_id": "perteval-scfm-2025-protocol-norman-single-2000hvg-auspc",
+      "evaluation_ids": [
+        "perteval-scfm-2025-evaluation-gears",
+        "perteval-scfm-2025-evaluation-mlp-baseline",
+        "perteval-scfm-2025-evaluation-mean-baseline"
+      ],
+      "endpoint": "Area Under the SPECTRA Performance Curve (AUSPC): trapezoidal-rule integral of mean squared error scoring the perturbation-effect delta := P - Xc (Eq. 5, described by the source as a 'log fold change perturbation effect'), across seven increasing-distribution-shift (SPECTRA sparsification) train-test splits; lower is better.",
+      "relevance": "proxy",
+      "rationale": "A second, independent, full-text-verified expression-change-prediction comparison including GEARS (trained from scratch by a different group of authors), an MLP baseline (input Xc concatenated with perturbed-gene co-expression features, Eq. 3) and a context-mean baseline. It can inform the same pilot-selection decision as the existing Table 6 comparison; it does not measure experiment-selection yield, and it uses a different dataset preprocessing, split mechanism and metric from Table 6, so the two must not be merged.",
+      "constraints": [
+        "Use the exact PertEval-scFM Table 1 Norman single-gene (2,000 HVG) protocol and configurations; do not combine this evidence with the existing GEARS Supplementary Table 6 comparison, PerturBench, or any other dataset/split/metric in this catalogue.",
+        "This intake is limited to the three configurations GEARS, MLP baseline and Mean baseline from Table 1's Norman single-gene section; the five scFM-embedding configurations (Geneformer, scBERT, scFoundation, scGPT, UCE) in the same table, the double-gene section, and the Replogle K562/RPE1 tables in the same paper are not part of this mapping."
+      ],
+      "limitations": [
+        "AUSPC's printed +/- is the source's own propagated standard error (Appendix F.2, Eqs. F3-F5, propagating per-split triplicate-run MSE uncertainty; main-text Figure 2 caption: 'standard error bars') -- a single, author-reported, propagated quantity, not an independently resampled model-seed standard deviation or confidence interval, and its mathematical derivation is not independently validated here.",
+        "Per-sparsification-split (S0.1-S0.7) scored perturbation counts are not printed; the paper's Appendix A.1 gives only the eligible raw dataset perturbation count (105 single-gene perturbations), which is not a scored-per-split count and must not be substituted for one.",
+        "Scores the perturbation-effect delta := P - Xc (Eq. 5), not raw post-perturbation expression; the same proxy endpoint class as the existing Table 6 mappings (expression-change prediction, not prospective experiment-selection hit rate) but a different metric construction from Table 6's own Pearson-delta-expression. Does not establish anything about case 6's intervention-selection endpoint.",
+        "GEARS here is an independent from-scratch training run by this paper's authors (official implementation, only the train-test split modified, other parameters at default values, no pretrained weights), not the original GEARS authors' own Table 6 checkpoint/run; this is a second, independent GEARS evaluation, not a reproduction of Table 6.",
+        "The Mean baseline's input population ('all cells in the same context', per the source's own Section 2.2 text) is not fully specified as control-only or training-only; input budgets differ across the three intaken configurations and are not assumed identical.",
+        "This protocol concerns generalisation to unseen perturbations under distribution shift; it does not test or establish forecasting for unseen cells, donors, or cell-line/context transfer."
+      ],
+      "citations": [
+        {
+          "source_id": "perteval-scfm-2025-source",
+          "locator": "Table 1 (Norman single-gene section, rows GEARS / MLP baseline / Mean baseline, AUSPC column, units 10^-2); Appendix A.1 (Norman dataset overview); Section 2.1 (Eq. 3, MLP baseline input); Section 2.2 (Eq. 4 MLP baseline, Eq. 5 perturbation-effect target, GEARS baseline, Mean baseline); Appendix F.2 and Algorithm 1 (AUSPC/uncertainty propagation definitions); main-text Figure 2 caption; Appendix I, Figure I1 caption."
+        }
+      ],
+      "review": {
+        "method": "automated_source_review",
+        "actor": "Claude Sonnet genetic-perturbation-response evidence-research worker, independently reviewed by Codex",
+        "reviewed_at": "2026-10-07T13:24:02.149Z",
+        "note": "Primary-source transcription of three printed table cells (Table 1, Norman single-gene, AUSPC column), independently cross-checked against a freshly re-fetched copy of the same PDF (identical SHA-256), the pinned GitHub code at commit ce48c8b998901c8f8b6275114caac3a4d8543c0b, and the PMLR general publication agreement. No new model execution, independent replication, or qualified human scientific review."
+      },
+      "evidence_sha256": "3cefc6cec994d3e98ec549910481180ad347e3ee0530c7ba9026e9fc5e8d4f07"
+    },
+    {
       "citations": [
         {
           "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",

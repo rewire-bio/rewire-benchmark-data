@@ -110,6 +110,72 @@ function restoreHistoricalBaselineAudits(dataDir, currentRelease) {
   }
 }
 
+const MAX_COVERAGE_BYTES = 64 * 1024 ** 2;
+
+/**
+ * Restore reviewed historical public coverage exports omitted by a clean build.
+ * Only paths already declared by the previous reviewed inventory are restored,
+ * from their exact reviewed compressed sources; the current release's coverage
+ * export must always come from this build.
+ */
+function restoreHistoricalCoverageExports(dataDir, currentRelease) {
+  const inventoryPath = path.join(dataDir, 'website/manifest.json');
+  assertNoSymlinkPath(inventoryPath);
+  if (!fs.existsSync(inventoryPath)) return;
+  if (!fs.lstatSync(inventoryPath).isFile()) throw new Error('Prepared inventory must be a regular file');
+  const inventory = JSON.parse(fs.readFileSync(inventoryPath, 'utf8'));
+  if (inventory.schema_version !== 1 || !Array.isArray(inventory.files)) throw new Error('Invalid previous prepared inventory');
+  const restores = new Map();
+  for (const entry of inventory.files) {
+    if (typeof entry?.destination !== 'string' || !entry.destination.startsWith('public/omics/coverage/')) continue;
+    const match = /^public\/omics\/coverage\/(\d{4}-\d{2}-\d{2}-[a-f0-9]{12})\.json$/.exec(entry.destination);
+    if (!match) throw new Error(`Unexpected historical coverage destination: ${entry.destination}`);
+    const releaseId = match[1];
+    // Current outputs must come from this build, never from the prior package.
+    if (releaseId === currentRelease) continue;
+    const expectedSource = `website/files/${entry.destination}.gz`;
+    if (entry.source !== expectedSource || entry.scope !== 'current' ||
+        typeof entry.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(entry.sha256) ||
+        !Number.isSafeInteger(entry.bytes) || entry.bytes < 0 || entry.bytes > MAX_COVERAGE_BYTES) {
+      throw new Error(`Invalid historical coverage metadata: ${entry.destination}`);
+    }
+    if (restores.has(releaseId)) throw new Error(`Duplicate historical coverage entry: ${entry.destination}`);
+    const source = path.join(dataDir, expectedSource);
+    const destination = path.join(dataDir, entry.destination);
+    assertNoSymlinkPath(source);
+    assertNoSymlinkPath(destination);
+    const sourceStat = fs.lstatSync(source);
+    if (!sourceStat.isFile() || sourceStat.size > MAX_COVERAGE_BYTES + 1024 ** 2) throw new Error(`Invalid historical coverage source: ${source}`);
+    const bytes = zlib.gunzipSync(fs.readFileSync(source), { maxOutputLength: entry.bytes + 1 });
+    if (bytes.length !== entry.bytes || crypto.createHash('sha256').update(bytes).digest('hex') !== entry.sha256) {
+      throw new Error(`Historical coverage checksum or size mismatch: ${entry.destination}`);
+    }
+    if (fs.existsSync(destination) && (!fs.lstatSync(destination).isFile() || !fs.readFileSync(destination).equals(bytes))) {
+      throw new Error(`Immutable historical coverage conflict: ${entry.destination}`);
+    }
+    restores.set(releaseId, { destination, bytes });
+  }
+  // Bind each export to its own immutable release receipt before any writes.
+  for (const [releaseId, { bytes }] of restores) {
+    const receiptPath = path.join(dataDir, `data/omics/releases/${releaseId}.json`);
+    assertNoSymlinkPath(receiptPath);
+    if (!fs.existsSync(receiptPath) || !fs.lstatSync(receiptPath).isFile()) throw new Error(`Invalid historical receipt: ${releaseId}`);
+    const receiptBytes = fs.readFileSync(receiptPath);
+    const receipt = checkedReleaseManifest(receiptBytes, releaseId);
+    const coverage = JSON.parse(bytes.toString('utf8'));
+    if (coverage === null || typeof coverage !== 'object' || Array.isArray(coverage) || coverage.release_id !== releaseId ||
+        (typeof receipt.released_at === 'string' && coverage.released_at !== receipt.released_at)) {
+      throw new Error(`Historical coverage release binding mismatch: ${releaseId}`);
+    }
+  }
+  for (const { destination, bytes } of restores.values()) {
+    assertNoSymlinkPath(destination);
+    if (fs.existsSync(destination)) continue;
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
+    fs.writeFileSync(destination, bytes, { flag: 'wx' });
+  }
+}
+
 /**
  * Recursively collect regular files from a directory, rejecting symlinks.
  * @param {string} dir
@@ -231,6 +297,7 @@ export async function packageWebsite(options = {}) {
   }
 
   restoreHistoricalBaselineAudits(dataDir, releaseId);
+  restoreHistoricalCoverageExports(dataDir, releaseId);
 
   /** @type {Array<{ filePath: string, destination: string, scope: 'current' | 'historical' }>} */
   const items = [];

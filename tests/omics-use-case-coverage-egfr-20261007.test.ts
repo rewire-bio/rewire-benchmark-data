@@ -37,9 +37,11 @@ describe("bounded EGFR NSCLC evidence-retrieval CIViC-Fact v3 intake, 2026-10-07
   const after2 = addUseCaseCoverage(after1, "data/omics/use-case-coverage-20261005");
   const after3 = addUseCaseCoverage(after2, "data/omics/use-case-coverage-20261006");
   const after4 = addUseCaseCoverage(after3, "data/omics/use-case-coverage-20261007");
-  const afterEgfr = addUseCaseCoverage(after4, NEW_ROOT);
-  const records = addUseCaseCoverage(afterEgfr, "data/omics/use-case-coverage-amp-20261007");
-  const newRecords = afterEgfr.slice(after4.length);
+  const records = addUseCaseCoverage(after4, NEW_ROOT);
+  const newRecords = records.slice(after4.length);
+  // Complete current chain (EGFR, genetic-perturbation, AMP) so buildUseCaseArtifact
+  // (below) resolves every protocol the shared inputs.json references.
+  const fullRecords = addUseCaseCoverage(addUseCaseCoverage(records, "data/omics/use-case-coverage-genetic-perturbation-20261007"), "data/omics/use-case-coverage-amp-20261007");
   const byId = new Map<string, RecordEntry>(newRecords.map((record) => [record.id, record]));
 
   it("validates every new record and preserves every prior record byte-identically", () => {
@@ -249,7 +251,7 @@ describe("bounded EGFR NSCLC evidence-retrieval CIViC-Fact v3 intake, 2026-10-07
       ...baseline,
       release_id: "2026-10-07-000000000002",
       released_at: "2026-10-07T09:59:21Z",
-      records,
+      records: fullRecords,
     };
     const artifact = buildUseCaseArtifact(snapshot, reviewed.inputs);
     const mappings = artifact.mappings.filter((m) => m.use_case_id === "use-case-egfr-nsclc-actionability-resistance-evidence");

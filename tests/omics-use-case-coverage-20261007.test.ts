@@ -43,7 +43,8 @@ describe("bounded cell-type-annotation-transfer Figure S10 Panel B intake, 2026-
   const afterThird = addUseCaseCoverage(afterSecond, "data/omics/use-case-coverage-20261006");
   const afterFourth = addUseCaseCoverage(afterThird, NEW_ROOT);
   const afterEgfr = addUseCaseCoverage(afterFourth, "data/omics/use-case-coverage-egfr-20261007");
-  const records = addUseCaseCoverage(afterEgfr, "data/omics/use-case-coverage-amp-20261007");
+  const afterGeneticPerturbation = addUseCaseCoverage(afterEgfr, "data/omics/use-case-coverage-genetic-perturbation-20261007");
+  const records = addUseCaseCoverage(afterGeneticPerturbation, "data/omics/use-case-coverage-amp-20261007");
   const newRecords = records.slice(afterThird.length, afterFourth.length);
   const byId = new Map<string, RecordEntry>(newRecords.map((record) => [record.id, record]));
 

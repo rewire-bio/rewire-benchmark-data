@@ -22,7 +22,8 @@ describe("use-case coverage audit", () => {
     const afterThirdIntake = addUseCaseCoverage(afterSecondIntake, "data/omics/use-case-coverage-20261006");
     const afterFourthIntake = addUseCaseCoverage(afterThirdIntake, "data/omics/use-case-coverage-20261007");
     const afterEgfr = addUseCaseCoverage(afterFourthIntake, "data/omics/use-case-coverage-egfr-20261007");
-    const records = addUseCaseCoverage(afterEgfr, "data/omics/use-case-coverage-amp-20261007");
+    const afterPerturbation = addUseCaseCoverage(afterEgfr, "data/omics/use-case-coverage-genetic-perturbation-20261007");
+    const records = addUseCaseCoverage(afterPerturbation, "data/omics/use-case-coverage-amp-20261007");
     validateRecords(records);
     const snapshot = { ...baseline, release_id: "2026-10-05-000000000000", released_at: "2026-10-05T21:00:00Z", records };
     validateSnapshot(snapshot);

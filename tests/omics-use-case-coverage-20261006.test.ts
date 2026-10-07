@@ -34,7 +34,8 @@ describe("additive cell-type-annotation-transfer research-evidence intake, 2026-
   const afterThirdIntake = addUseCaseCoverage(afterSecondIntake, NEW_ROOT);
   const afterFourthIntake = addUseCaseCoverage(afterThirdIntake, "data/omics/use-case-coverage-20261007");
   const afterEgfr = addUseCaseCoverage(afterFourthIntake, "data/omics/use-case-coverage-egfr-20261007");
-  const records = addUseCaseCoverage(afterEgfr, "data/omics/use-case-coverage-amp-20261007");
+  const afterGeneticPerturbation = addUseCaseCoverage(afterEgfr, "data/omics/use-case-coverage-genetic-perturbation-20261007");
+  const records = addUseCaseCoverage(afterGeneticPerturbation, "data/omics/use-case-coverage-amp-20261007");
   const newRecords = records.slice(afterSecondIntake.length, afterThirdIntake.length);
 
   it("validates every new record and preserves every prior record byte-identically", () => {

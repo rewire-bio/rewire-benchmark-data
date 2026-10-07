@@ -1,0 +1,61 @@
+[
+  {
+    "use_case_id": "use-case-genetic-perturbation-response",
+    "issue": 334,
+    "existing_ids": [
+      "gears-2023-supp-table6-task-mse",
+      "gears-2023-supp-table6-task-pearson-de",
+      "gears-2023-supp-table6-evaluation-no-perturb-mse",
+      "gears-2023-supp-table6-evaluation-cpa-mse",
+      "gears-2023-supp-table6-evaluation-cpa-plus-kg-mse",
+      "gears-2023-supp-table6-evaluation-gears-mse",
+      "gears-2023-supp-table6-evaluation-no-perturb-pearson-de",
+      "gears-2023-supp-table6-evaluation-cpa-pearson-de",
+      "gears-2023-supp-table6-evaluation-cpa-plus-kg-pearson-de",
+      "gears-2023-supp-table6-evaluation-gears-pearson-de"
+    ],
+    "existing_protocol_ids": [
+      "gears-2023-supp-table6-task-mse",
+      "gears-2023-supp-table6-task-pearson-de"
+    ],
+    "new_ids": [
+      "perteval-scfm-2025-source",
+      "perteval-scfm-2025-dataset-norman-single-2000hvg",
+      "perteval-scfm-2025-protocol-norman-single-2000hvg-auspc",
+      "perteval-scfm-2025-method-gears",
+      "perteval-scfm-2025-method-mlp-baseline",
+      "perteval-scfm-2025-method-mean-baseline",
+      "perteval-scfm-2025-evaluation-gears",
+      "perteval-scfm-2025-evaluation-mlp-baseline",
+      "perteval-scfm-2025-evaluation-mean-baseline",
+      "perteval-scfm-2025-result-gears-auspc",
+      "perteval-scfm-2025-result-mlp-baseline-auspc",
+      "perteval-scfm-2025-result-mean-baseline-auspc"
+    ],
+    "sources": [
+      {
+        "source_id": "perteval-scfm-2025-source",
+        "url": "https://proceedings.mlr.press/v267/wenteler25a.html"
+      }
+    ],
+    "queries": [
+      "PertEval-scFM benchmarking single-cell foundation models perturbation effect prediction NeurIPS 2024",
+      "scPerturBench Nature Methods benchmark perturbation prediction 10.1038/s41592-025-02980-0 (used to disambiguate PertEval-scFM from a distinct, confirmed-paywalled paper of a similar name; not itself a source for this addition)"
+    ],
+    "coverage_verdict": "second independent exact-value comparison added; existing Table 6 catalogue unchanged",
+    "summary": "PertEval-scFM (ICML 2025) Table 1, Norman single-gene section (2,000 HVGs), provides a second, independent, from-scratch GEARS evaluation against a raw-expression MLP baseline and a context-mean baseline, using a different preprocessing, split mechanism (SPECTRA sparsification) and metric (AUSPC) from the existing GEARS Supplementary Table 6 comparison. Only the three AUSPC values for GEARS/MLP baseline/Mean baseline from the Norman single-gene row are added; the five scFM-embedding configurations, the double-gene section, the Replogle K562/RPE1 tables, and the paper's own Delta-AUSPC column are not added.",
+    "additions": "Added one new source, one dataset subset, one protocol, three configurations, three evaluations and three results (12 records), plus one new proxy mapping (use-case-map-perteval-scfm-norman-single-auspc) on use-case-genetic-perturbation-response. All eight existing GEARS Supplementary Table 6 records and both existing mappings remain byte-identical.",
+    "remaining_gaps": [
+      "A benchmark exists for expression responses on two independent Norman2019-derived comparisons (GEARS Table 6 and this PertEval-scFM addition), but prospective experiment-selection hit rates and transfer to a new cell system remain uncovered by either.",
+      "scPerturBench (Wei et al., Nat. Methods, DOI 10.1038/s41592-025-02980-0; 27 methods x 29 datasets x 6 metrics) is confirmed genuinely paywalled; its Methods were not read and no record is derived from it.",
+      "No frozen, matched Norman control panel with a predeclared metric-sensitivity check and a separately registered context-transfer protocol has been executed; this is the focused gap tracked at rewire-benchmarks #29, which this source-transcription intake does not close."
+    ],
+    "suggested_mappings": [],
+    "draft_issue_comment": "Not posted by this pass. Codex independently opened rewire-benchmarks #29 (https://github.com/rewire-bio/rewire-benchmarks/issues/29, 'B334 -- Freeze Norman controls and metric-sensitivity protocol before model comparison') after an open/closed title-and-body dedup check. That issue tracks the remaining execution gap (a frozen, matched Norman control panel with a metric-sensitivity check and a separately registered context-transfer protocol); this intake is reconciled to it, not duplicative of it. The earlier draft at workbench/genetic-perturbation-20261007/benchmark-gap-draft.md is superseded by #29 and is not posted.",
+    "review": {
+      "method": "automated_source_review",
+      "reviewed_at": "2026-10-07T11:50:00.000Z",
+      "human_scientific_review": "outstanding"
+    }
+  }
+]
