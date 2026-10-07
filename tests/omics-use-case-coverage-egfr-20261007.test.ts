@@ -37,8 +37,9 @@ describe("bounded EGFR NSCLC evidence-retrieval CIViC-Fact v3 intake, 2026-10-07
   const after2 = addUseCaseCoverage(after1, "data/omics/use-case-coverage-20261005");
   const after3 = addUseCaseCoverage(after2, "data/omics/use-case-coverage-20261006");
   const after4 = addUseCaseCoverage(after3, "data/omics/use-case-coverage-20261007");
-  const records = addUseCaseCoverage(after4, NEW_ROOT);
-  const newRecords = records.slice(after4.length);
+  const afterEgfr = addUseCaseCoverage(after4, NEW_ROOT);
+  const records = addUseCaseCoverage(afterEgfr, "data/omics/use-case-coverage-amp-20261007");
+  const newRecords = afterEgfr.slice(after4.length);
   const byId = new Map<string, RecordEntry>(newRecords.map((record) => [record.id, record]));
 
   it("validates every new record and preserves every prior record byte-identically", () => {

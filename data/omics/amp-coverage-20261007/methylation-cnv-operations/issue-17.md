@@ -1,0 +1,13 @@
+# AMP #17: CNV detection, characterization and visualization
+
+Candidate: Behera et al., *Comprehensive genome analysis and variant detection at scale using DRAGEN*, Nature Biotechnology43:1177–1191(2025), published online25October2024, DOI https://doi.org/10.1038/s41587-024-02382-1. Current HTML and actual supplementary XLSX bytes inspected and archived. Citation year2025 and publication date2024 coexist and are retained.
+
+Selected direct molecular endpoint: **F-score0.926** for **DRAGEN4.2(CNV+SV)** deletion calls of length **[1000,5000)bp**. Exact locator: XLSX sheet **S4 CNV benchmarking**, **H6**; row labelA6, recallF6=.873, precisionG6=.986. Main Results CNV paragraph reports92.60%, consistent with the selected table score. Figure2f defines comparison against >1kb deletion records of GIAB SVv0.6; GRCh37 pangenome reference. Population is a single HG00235× Illumina NovaSeq6000 2×151bp sample. Per-bin truth/TP/FP/FN counts are not reported in TableS4. The1156 genome-wide CNV calls are not the selected truth denominator.
+
+Exact tested configuration: paper framework DRAGENv4.2.4; supplement row explicitly DRAGEN4.2(CNV+SV), using SV signals to improve CNV calling. CNV-only DRAGEN is a distinct column, with NaN F-score in this bin; NaN is not zero. Comparator is CNVnatorv0.4.1, defaults on alignment BAM. Its TableS4 **L6** score is **0.391**, but prose reports**39.20%**. Preserve this conflict; do not average, round, repair or import the prose comparator as if identical to the table. No uncertainty is reported. Exact CNV matching implementation remains unextracted; STR Truvari commands cannot be transferred to CNV by assumption.
+
+This supports deletion-call concordance in a reference sample, with no foundation model. It does not establish duplication accuracy, somatic tumour CNV/ploidy characterization, diagnostic clinical benefit or visualization usability. The pipeline produces CNV track files, but generation time is not an accuracy/usability benchmark. It is partial coverage of #17.
+
+Access/reuse: current article CC-BY-NC-ND4.0; unchanged bytes kept for internal scientific source audit. Public commercial redistribution is not authorized merely by this archive. Data availability lists Zenodo8350256 and10428664 VCFs and s3://1000genomes-dragen-v4-2-7/. These data reuse terms were not independently reviewed. DRAGENv4.2 is available as an academic free trial on request and hosted on AWS; the2December2024 correction retracts the earlier broader freely-available statement. No unrestricted model/software licence assumed.
+
+No baseline duplicate found for DRAGEN/CNVnator or DOI. The primary source is shared with #18, using the same new source ID; CNV and runtime configurations/protocols/evaluations remain separate.

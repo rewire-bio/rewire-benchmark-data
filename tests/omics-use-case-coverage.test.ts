@@ -2,9 +2,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { gunzipSync } from "node:zlib";
+import { gunzipSync, gzipSync } from "node:zlib";
 import { afterEach, describe, expect, it } from "vitest";
-import { addUseCaseCoverage, useCaseCoverageInputFiles } from "../scripts/omics/use-case-coverage";
+import { addUseCaseCoverage, useCaseCoverageInputFiles, verifyReviewedArtifacts } from "../scripts/omics/use-case-coverage";
 import type { RecordEntry } from "../scripts/omics/schema";
 import { validateRecords, publicRecords } from "../scripts/omics/schema";
 import { validateSnapshot } from "../services/omics/src/validation";
@@ -28,7 +28,8 @@ describe("reviewed 17-use-case evidence integration", () => {
     const afterSecondIntake = addUseCaseCoverage(afterFirstIntake, "data/omics/use-case-coverage-20261005");
     const afterThirdIntake = addUseCaseCoverage(afterSecondIntake, "data/omics/use-case-coverage-20261006");
     const afterFourthIntake = addUseCaseCoverage(afterThirdIntake, "data/omics/use-case-coverage-20261007");
-    const records = addUseCaseCoverage(afterFourthIntake, "data/omics/use-case-coverage-egfr-20261007");
+    const afterEgfr = addUseCaseCoverage(afterFourthIntake, "data/omics/use-case-coverage-egfr-20261007");
+    const records = addUseCaseCoverage(afterEgfr, "data/omics/use-case-coverage-amp-20261007");
     validateRecords(records);
     const snapshot = { ...baseline, release_id: "2026-10-05-000000000000", released_at: "2026-10-05T21:00:00Z", records };
     validateSnapshot(snapshot);
@@ -38,7 +39,7 @@ describe("reviewed 17-use-case evidence integration", () => {
     expect(publicRecords(records).some(record => record.id === disputedCell)).toBe(false);
     const inputs = loadUseCases()!.inputs;
     const artifact = buildUseCaseArtifact(snapshot, inputs);
-    expect(artifact.use_cases).toHaveLength(17);
+    expect(artifact.use_cases).toHaveLength(26);
     expect(artifact.mappings.every(mapping => mapping.lifecycle === "active")).toBe(true);
     for (const oldMapping of previousCases.mappings)
       expect(artifact.mappings.find(mapping => mapping.id === oldMapping.id)).toEqual(oldMapping);
@@ -51,6 +52,43 @@ describe("reviewed 17-use-case evidence integration", () => {
       expect((audit.remaining_gaps || audit.gaps).length).toBeGreaterThan(0);
       expect(inputs.use_cases.some(entry => entry.id === audit.use_case_id)).toBe(true);
     }
+  });
+});
+
+describe("reviewed public evidence archives", () => {
+  function artifactFixture() {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "reviewed-artifact-"));
+    roots.push(root);
+    const relative = "data/omics/evidence/factual-receipt.json.gz" as const;
+    const file = path.join(root, relative);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const raw = Buffer.from('{"selected_cell":"0.926","original_source_sha256":"separate identity"}');
+    const compressed = gzipSync(raw);
+    fs.writeFileSync(file, compressed);
+    const review: { checked: { bound_artifacts_raw_sha256: Record<string, string>; bound_artifacts_archive_sha256: Record<string, string> } } = { checked: {
+      bound_artifacts_raw_sha256: { [relative]: createHash("sha256").update(raw).digest("hex") },
+      bound_artifacts_archive_sha256: { [relative]: createHash("sha256").update(compressed).digest("hex") },
+    } };
+    return { root, relative, file, review };
+  }
+  it("verifies the committed receipt bytes separately from the original source identity", () => {
+    const { root, review } = artifactFixture();
+    expect(() => verifyReviewedArtifacts(review, root)).not.toThrow();
+  });
+  it("rejects a changed archive or a false decompressed digest", () => {
+    const { root, relative, file, review } = artifactFixture();
+    review.checked.bound_artifacts_raw_sha256[relative] = "a".repeat(64);
+    expect(() => verifyReviewedArtifacts(review, root)).toThrow("content changed");
+    fs.appendFileSync(file, "tampered");
+    expect(() => verifyReviewedArtifacts(review, root)).toThrow("archive changed");
+  });
+  it("rejects incomplete inventories and paths outside scientific data", () => {
+    const { root, relative, review } = artifactFixture();
+    delete review.checked.bound_artifacts_archive_sha256[relative];
+    expect(() => verifyReviewedArtifacts(review, root)).toThrow("inventories differ");
+    const hash = "a".repeat(64);
+    const outside = { checked: { bound_artifacts_raw_sha256: { "../../secret.gz": hash }, bound_artifacts_archive_sha256: { "../../secret.gz": hash } } };
+    expect(() => verifyReviewedArtifacts(outside, root)).toThrow("escapes data/omics");
   });
 });
 function fixture(additions: RecordEntry[] = [record("new-method")]) {

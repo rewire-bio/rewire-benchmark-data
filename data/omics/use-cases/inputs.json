@@ -1327,6 +1327,639 @@
         "note": "Source-backed literature curation with independent automated transcription and scope checks. No new model execution, independent experimental replication, qualified human scientific review or clinical validation."
       },
       "planned_work": []
+    },
+    {
+      "area": "dna-genomes",
+      "citations": [
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-oncology-rna-20261007-source-pmc6123722"
+        }
+      ],
+      "clinical_scope": "Clinical applicability is not established. A synthetic virtual-tumour spike-in does not demonstrate sensitivity in real clinical tumours, FFPE specimens, gene panels, ctDNA, or for copy-number/structural variants.",
+      "collection_plan": {
+        "baselines": [
+          "The conventional/author-introduced workflow measured in the linked primary source(s)."
+        ],
+        "comparison_question": "Which calling or rescoring workflow reliably detects tumour SNVs and small indels under the available sequencing and normal-sample regime?",
+        "next_step": "A dedicated rewire-benchmarks protocol/run task with a real clinical tumour cohort, pinned truth set, purity/platform/assembly strata and an explicit foundation-model eligibility check.",
+        "outcomes": [
+          "The declared endpoint in this use case's active mapping(s); see evidence_gaps for what remains open."
+        ],
+        "status": "collecting",
+        "validation_requirements": [
+          "Independent held-out population matched to the intended clinical setting.",
+          "Qualified human scientific review before any clinical-validation claim."
+        ]
+      },
+      "contexts": [
+        "clinical_research"
+      ],
+      "decision": "Inspect the matched virtual-tumour precision/recall evidence for Lancet and Strelka2 before selecting a caller and designing a validation protocol for the intended sequencing/normal regime.",
+      "evidence_gaps": [
+        "Individual-condition confidence intervals are unreported in the source tables.",
+        "Exact caller release versions are not extracted from the primary article.",
+        "No foundation-model component is evaluated in this bounded intake."
+      ],
+      "exclusions": [
+        "Real clinical tumour specimens, FFPE samples, targeted panels, ctDNA, copy-number and structural variation",
+        "Callers other than Lancet/Strelka2 not transcribed in this bounded intake (Strelka, MuTect, MuTect2, LoFreq rows exist in the source but are not all ingested; LoFreq/MuTect2 unselected rows are internally inconsistent in the source and are excluded)"
+      ],
+      "id": "use-case-tumour-dna-somatic-variant-detection",
+      "inputs": [
+        "Tumour and matched-normal aligned sequencing reads",
+        "The intended variant-fraction, coverage and genomic-context strata"
+      ],
+      "intended_users": [
+        "Clinical researchers scoping the available diagnostic-genomics evidence",
+        "Computational researchers comparing exact evaluated configurations"
+      ],
+      "output": "A sourced set of exact evaluated caller precision/recall/F1 values and remaining validation needs; no patient-level variant classification or clinical recommendation.",
+      "planned_work": [
+        {
+          "reason": "Reviewed literature evidence is bounded (see evidence_gaps); closing the remaining decision gap needs a dedicated protocol/run task with frozen population and matched controls, tracked in rewire-benchmarks.",
+          "status": "planned",
+          "title": "Focused benchmark/run task for rewire-benchmark-data issue #10",
+          "url": "https://github.com/rewire-bio/rewire-benchmark-data/issues/10"
+        }
+      ],
+      "question": "Which calling or rescoring workflow reliably detects tumour SNVs and small indels under the available sequencing and normal-sample regime?",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "search_terms": [
+        "tumour dna somatic variant detection"
+      ],
+      "setting": "A real-read virtual-tumour spike-in (NA12892/NA12891 HapMap samples, 80x/40x WGS) measures SNV and indel precision/recall/F1 for the Lancet caller and the Strelka2 comparator.",
+      "slug": "tumour-dna-somatic-variant-detection",
+      "title": "Select a tumour DNA somatic variant-calling workflow"
+    },
+    {
+      "area": "dna-genomes",
+      "citations": [
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-oncology-rna-20261007-source-pmc8642973"
+        }
+      ],
+      "clinical_scope": "Clinical applicability is bounded: the NCH clinical-cohort sensitivity figures are ascertained against the optimised EnFusion ensemble's own calls, not an independent exhaustive truth set, so a false-negative rate for fusions the ensemble itself missed cannot be derived from this evidence.",
+      "collection_plan": {
+        "baselines": [
+          "The conventional/author-introduced workflow measured in the linked primary source(s)."
+        ],
+        "comparison_question": "Which RNA-sequencing workflow detects and prioritises tumour gene fusions with useful sensitivity and a manageable false-positive review burden?",
+        "next_step": "A dedicated rewire-benchmarks protocol/run task with an independent fusion truth set not ascertained by the same ensemble being evaluated.",
+        "outcomes": [
+          "The declared endpoint in this use case's active mapping(s); see evidence_gaps for what remains open."
+        ],
+        "status": "collecting",
+        "validation_requirements": [
+          "Independent held-out population matched to the intended clinical setting.",
+          "Qualified human scientific review before any clinical-validation claim."
+        ]
+      },
+      "contexts": [
+        "clinical_research"
+      ],
+      "decision": "Inspect the matched synthetic Seraseq reference-standard and NCH clinical-ascertainment evidence for Arriba, STAR-Fusion and the EnFusion ensemble before selecting a workflow and review burden for the intended specimen type.",
+      "evidence_gaps": [
+        "Table 2 caption (v3) vs the optimisation narrative (v2) is an unresolved source version conflict.",
+        "STAR-Fusion precision is printed as both 43.6% (Table 2) and 43.8% (paragraph) in the source; both are preserved, neither is silently reconciled.",
+        "No confidence interval or dispersion is printed for the Seraseq Table 2 rows."
+      ],
+      "exclusions": [
+        "Novel-fusion discovery performance (the optimised known-fusion rescue measures recovery of 14 known synthetic fusions, not novel-fusion discovery)",
+        "Adult solid-tumour cohorts outside the transcribed NCH cohort",
+        "Non-Seraseq background fusions, all counted false positive in this intake though some may be real endogenous fusions"
+      ],
+      "id": "use-case-tumour-rna-fusion-detection",
+      "inputs": [
+        "Paired-end tumour RNA-seq reads",
+        "The intended specimen type (frozen, FFPE or other) and acceptable false-positive review burden"
+      ],
+      "intended_users": [
+        "Clinical researchers scoping the available diagnostic-genomics evidence",
+        "Computational researchers comparing exact evaluated configurations"
+      ],
+      "output": "A sourced set of exact evaluated sensitivity/precision values on a synthetic reference standard and a real clinical cohort, with the ascertainment-bias caveat explicit; no patient-level fusion classification.",
+      "planned_work": [
+        {
+          "reason": "Reviewed literature evidence is bounded (see evidence_gaps); closing the remaining decision gap needs a dedicated protocol/run task with frozen population and matched controls, tracked in rewire-benchmarks.",
+          "status": "planned",
+          "title": "Focused benchmark/run task for rewire-benchmark-data issue #11",
+          "url": "https://github.com/rewire-bio/rewire-benchmark-data/issues/11"
+        }
+      ],
+      "question": "Which RNA-sequencing workflow detects and prioritises tumour gene fusions with useful sensitivity and a manageable false-positive review burden?",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "search_terms": [
+        "tumour rna fusion detection"
+      ],
+      "setting": "A 14-fusion synthetic Seraseq reference standard (undiluted, duplicate libraries) and a 229-sample paediatric cancer/haematologic cohort (67 ensemble-ascertained clinically relevant fusions) measure fusion-calling sensitivity and precision for Arriba, STAR-Fusion and the EnFusion ensemble (with/without filtering and a known-fusion list).",
+      "slug": "tumour-rna-fusion-detection",
+      "title": "Select a tumour RNA fusion-detection workflow"
+    },
+    {
+      "area": "dna-genomes",
+      "citations": [
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-oncology-rna-20261007-source-pmc7822922"
+        }
+      ],
+      "clinical_scope": "Clinical applicability is not established beyond known-event recovery. This does not demonstrate prospective diagnostic yield, blinded adjudication, or general tissue transfer.",
+      "collection_plan": {
+        "baselines": [
+          "The conventional/author-introduced workflow measured in the linked primary source(s)."
+        ],
+        "comparison_question": "Which DNA/RNA evidence workflow identifies splice-altering variants for inherited-disorder follow-up when patient RNA and tissue-specific context are available?",
+        "next_step": "A dedicated rewire-benchmarks protocol/run task with a prospective, blinded patient-RNA cohort including cases without a pre-known pathogenic event.",
+        "outcomes": [
+          "The declared endpoint in this use case's active mapping(s); see evidence_gaps for what remains open."
+        ],
+        "status": "collecting",
+        "validation_requirements": [
+          "Independent held-out population matched to the intended clinical setting.",
+          "Qualified human scientific review before any clinical-validation claim."
+        ]
+      },
+      "contexts": [
+        "clinical_research"
+      ],
+      "decision": "Inspect the FRASER known pathogenic-event recovery curve and the sequence-classification proxy evidence before selecting a workflow and designing patient-RNA follow-up for the intended cohort size.",
+      "evidence_gaps": [
+        "No numeric confidence interval is reported for the 85% recovery figure in the inspected main text.",
+        "Subsampling repeat count and exact score-aggregation method are unextracted.",
+        "The sequence-classification proxy mapping (Feng Table 1) measures AUC on a different population (DNABERT-2/NT benchmark splice-site datasets), not minigene reporter exon inclusion or patient RNA, and must not be pooled with the FRASER recovery figure."
+      ],
+      "exclusions": [
+        "Diagnostic yield in patients without a known pathogenic event (this is recovery of already-known events, not discovery)",
+        "Full-cohort outlier-gene workload counts (12/7/10 genes/sample), a different population from the 30-sample recovery evaluation and not ingested here",
+        "Blinded pathogenicity adjudication or VUS reclassification"
+      ],
+      "id": "use-case-patient-rna-splicing-validation",
+      "inputs": [
+        "Patient skin-fibroblast (or matched tissue) RNA-seq aligned reads",
+        "The number of samples available for a FRASER-style aberrant-splicing cohort"
+      ],
+      "intended_users": [
+        "Clinical researchers scoping the available diagnostic-genomics evidence",
+        "Computational researchers comparing exact evaluated configurations"
+      ],
+      "output": "A sourced recovery curve (fraction of known pathogenic splicing events recovered as cohort size grows) and a separate sequence-classification proxy; no diagnostic-yield claim for unknown cases.",
+      "planned_work": [
+        {
+          "reason": "Reviewed literature evidence is bounded (see evidence_gaps); closing the remaining decision gap needs a dedicated protocol/run task with frozen population and matched controls, tracked in rewire-benchmarks.",
+          "status": "planned",
+          "title": "Focused benchmark/run task for rewire-benchmark-data issue #12",
+          "url": "https://github.com/rewire-bio/rewire-benchmark-data/issues/12"
+        }
+      ],
+      "question": "Which DNA/RNA evidence workflow identifies splice-altering variants for inherited-disorder follow-up when patient RNA and tissue-specific context are available?",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "search_terms": [
+        "patient rna splicing validation"
+      ],
+      "setting": "FRASER, applied to a retrospective Kremer rare-mitochondrial-disorder skin-fibroblast RNA cohort (119 samples/105 individuals, 13 known pathogenic splicing events), recovers a mean 85% (11 of 13) of known events at a reduced 30-sample subsample. A separate, proxy sequence-classification AUC for DNA foundation-model embeddings (Feng et al. 2025, Table 1 Acceptor/Donor) is also linked, scoped as a different endpoint.",
+      "slug": "patient-rna-splicing-validation",
+      "title": "Select a patient-RNA splicing-variant validation workflow"
+    },
+    {
+      "area": "dna-genomes",
+      "citations": [
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-20261007-dna-pathogens-source"
+        }
+      ],
+      "clinical_scope": "Clinical applicability is bounded to agreement with initial blood culture, a reference standard that does not identify every true infection; this is not an estimate of sensitivity against all infections in the cohort.",
+      "collection_plan": {
+        "baselines": [
+          "The conventional/author-introduced workflow measured in the linked primary source(s)."
+        ],
+        "comparison_question": "Which DNA sequencing classification workflow detects clinically relevant pathogens and handles contamination or organisms absent from the reference?",
+        "next_step": "A dedicated rewire-benchmarks protocol/run task with a prospectively adjudicated composite reference standard, not solely initial blood culture.",
+        "outcomes": [
+          "The declared endpoint in this use case's active mapping(s); see evidence_gaps for what remains open."
+        ],
+        "status": "collecting",
+        "validation_requirements": [
+          "Independent held-out population matched to the intended clinical setting.",
+          "Qualified human scientific review before any clinical-validation claim."
+        ]
+      },
+      "contexts": [
+        "clinical_research"
+      ],
+      "decision": "Inspect the Karius plasma microbial cfDNA positive-percent-agreement evidence against initial blood culture before selecting a workflow and reference standard for the intended specimen population.",
+      "evidence_gaps": [
+        "The composite-reference negative-percent-agreement CI is internally conflicting in the source (54.8-70.0 vs 55.2-70.4) and is excluded from this intake.",
+        "The exact executable/database version is not pinned in the inspected primary text.",
+        "The primary article's public redistribution licence is absent; only a compact factual table excerpt is archived."
+      ],
+      "exclusions": [
+        "Sensitivity against a composite/adjudicated reference standard (a separate, excluded endpoint in the source due to a printed CI conflict)",
+        "RNA viral pathogen detection (this is a DNA-only assay)"
+      ],
+      "id": "use-case-diagnostic-dna-pathogen-identification",
+      "inputs": [
+        "Plasma microbial cell-free DNA sequencing reads",
+        "The reference standard available for agreement/sensitivity comparison (e.g. blood culture, composite adjudication)"
+      ],
+      "intended_users": [
+        "Clinical researchers scoping the available diagnostic-genomics evidence",
+        "Computational researchers comparing exact evaluated configurations"
+      ],
+      "output": "A sourced positive-percent-agreement figure against one reference standard, with the reference standard's own detection limits explicit; no general sensitivity claim against all true infections.",
+      "planned_work": [
+        {
+          "reason": "Reviewed literature evidence is bounded (see evidence_gaps); closing the remaining decision gap needs a dedicated protocol/run task with frozen population and matched controls, tracked in rewire-benchmarks.",
+          "status": "planned",
+          "title": "Focused benchmark/run task for rewire-benchmark-data issue #13",
+          "url": "https://github.com/rewire-bio/rewire-benchmark-data/issues/13"
+        }
+      ],
+      "question": "Which DNA sequencing classification workflow detects clinically relevant pathogens and handles contamination or organisms absent from the reference?",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "search_terms": [
+        "diagnostic dna pathogen identification"
+      ],
+      "setting": "The Karius 2019 plasma microbial cfDNA sequencing assay achieves 93.7% (59 of 63) positive percent agreement with initial blood culture in a prospective 350-patient sepsis-alert cohort (348 paired results).",
+      "slug": "diagnostic-dna-pathogen-identification",
+      "title": "Select a DNA pathogen-identification workflow for diagnostic testing"
+    },
+    {
+      "area": "dna-genomes",
+      "citations": [
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-20261007-rna-pathogens-source"
+        }
+      ],
+      "clinical_scope": "Clinical applicability is bounded to agreement with the original clinical panel on one residual-sample cohort; this is not a mixed DNA/RNA sample-prep comparison and not an RNA-virus-only subgroup score, and is not validated prospectively.",
+      "collection_plan": {
+        "baselines": [
+          "The conventional/author-introduced workflow measured in the linked primary source(s)."
+        ],
+        "comparison_question": "Which RNA sequencing workflow detects RNA pathogens reliably in the intended specimen and distinguishes real detections from host/background contamination?",
+        "next_step": "A dedicated rewire-benchmarks protocol/run task with a prospective RNA-pathogen cohort and an adjudicated composite reference standard.",
+        "outcomes": [
+          "The declared endpoint in this use case's active mapping(s); see evidence_gaps for what remains open."
+        ],
+        "status": "collecting",
+        "validation_requirements": [
+          "Independent held-out population matched to the intended clinical setting.",
+          "Qualified human scientific review before any clinical-validation claim."
+        ]
+      },
+      "contexts": [
+        "clinical_research"
+      ],
+      "decision": "Inspect the UCSF respiratory RNA mNGS sensitivity-against-original-testing evidence before selecting a workflow and specimen-prep protocol for the intended respiratory-target population.",
+      "evidence_gaps": [
+        "A positive-specimen BAL/swab count disagreement between the source's Results and Methods sections (104+6 vs 103+7) is unresolved and preserved.",
+        "No confidence interval is extracted for this sensitivity figure in the inspected text."
+      ],
+      "exclusions": [
+        "A composite-PPA figure (98.7%, 110.5/113) that conflicts with the source's own printed numbers and is excluded from this intake",
+        "Non-respiratory specimen types"
+      ],
+      "id": "use-case-diagnostic-rna-pathogen-detection",
+      "inputs": [
+        "Respiratory specimen RNA (DNase-treated), reverse-transcribed to cDNA libraries",
+        "The original clinical reference assay(s) available for sensitivity comparison"
+      ],
+      "intended_users": [
+        "Clinical researchers scoping the available diagnostic-genomics evidence",
+        "Computational researchers comparing exact evaluated configurations"
+      ],
+      "output": "A sourced sensitivity-against-original-clinical-testing figure for one respiratory mNGS assay; no general RNA-virus-only diagnostic accuracy claim.",
+      "planned_work": [
+        {
+          "reason": "Reviewed literature evidence is bounded (see evidence_gaps); closing the remaining decision gap needs a dedicated protocol/run task with frozen population and matched controls, tracked in rewire-benchmarks.",
+          "status": "planned",
+          "title": "Focused benchmark/run task for rewire-benchmark-data issue #14",
+          "url": "https://github.com/rewire-bio/rewire-benchmark-data/issues/14"
+        }
+      ],
+      "question": "Which RNA sequencing workflow detects RNA pathogens reliably in the intended specimen and distinguishes real detections from host/background contamination?",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "search_terms": [
+        "diagnostic rna pathogen detection"
+      ],
+      "setting": "A UCSF respiratory RNA metagenomic next-generation sequencing (mNGS) assay (RNA extraction, DNase treatment, cDNA synthesis; SURPI+ pipeline) achieves 93.6% (103 of 110) sensitivity against original clinical respiratory-virus-panel testing in a residual pre-DTCA mixed respiratory-target cohort (adenovirus transcripts included via transcription).",
+      "slug": "diagnostic-rna-pathogen-detection",
+      "title": "Select an RNA pathogen-detection workflow for diagnostic testing"
+    },
+    {
+      "area": "dna-genomes",
+      "citations": [
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-20261007-ctdna-fragmentomics-source"
+        }
+      ],
+      "clinical_scope": "Clinical applicability is not established as prospective screening performance: this is internal repeated cross-validation on one assembled cohort, not a separately held-out validation cohort or a prospective screening trial, and the cohort's clinically identified cancers/healthy comparators differ from an intended screening population.",
+      "collection_plan": {
+        "baselines": [
+          "The conventional/author-introduced workflow measured in the linked primary source(s)."
+        ],
+        "comparison_question": "Which fragmentomics workflow detects tumour-derived plasma DNA under realistic low tumour fractions and fixed false-positive constraints?",
+        "next_step": "A dedicated rewire-benchmarks protocol/run task with an independent, prospectively collected held-out validation cohort.",
+        "outcomes": [
+          "The declared endpoint in this use case's active mapping(s); see evidence_gaps for what remains open."
+        ],
+        "status": "collecting",
+        "validation_requirements": [
+          "Independent held-out population matched to the intended clinical setting.",
+          "Qualified human scientific review before any clinical-validation claim."
+        ]
+      },
+      "contexts": [
+        "clinical_research"
+      ],
+      "decision": "Inspect the DELFI repeated-cross-validation sensitivity-at-fixed-specificity evidence before selecting a workflow and validation design for the intended screening or diagnostic population.",
+      "evidence_gaps": [
+        "4 of 215 healthy individuals were misclassified at the source-labelled 98% specificity; the printed specificity is retained rather than recomputed.",
+        "cfDNA signal reflects total circulating DNA, not purified ctDNA; tumour-fraction limits are unreported for this endpoint."
+      ],
+      "exclusions": [
+        "A combined mutation+DELFI configuration (115/126, 91%), a different subset/configuration not ingested here",
+        "Tumour-fraction-stratified sensitivity (unreported for this endpoint)"
+      ],
+      "id": "use-case-plasma-ctdna-fragmentomics",
+      "inputs": [
+        "Plasma cell-free DNA whole-genome sequencing reads",
+        "The target specificity (false-positive) constraint for the intended use"
+      ],
+      "intended_users": [
+        "Clinical researchers scoping the available diagnostic-genomics evidence",
+        "Computational researchers comparing exact evaluated configurations"
+      ],
+      "output": "A sourced sensitivity figure at one reported specificity, from internal cross-validation; no prospective screening-validation claim.",
+      "planned_work": [
+        {
+          "reason": "Reviewed literature evidence is bounded (see evidence_gaps); closing the remaining decision gap needs a dedicated protocol/run task with frozen population and matched controls, tracked in rewire-benchmarks.",
+          "status": "planned",
+          "title": "Focused benchmark/run task for rewire-benchmark-data issue #15",
+          "url": "https://github.com/rewire-bio/rewire-benchmark-data/issues/15"
+        }
+      ],
+      "question": "Which fragmentomics workflow detects tumour-derived plasma DNA under realistic low tumour fractions and fixed false-positive constraints?",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "search_terms": [
+        "plasma ctdna fragmentomics"
+      ],
+      "setting": "The DELFI stochastic gradient boosting classifier (GC-corrected total and short fragment coverage across 504 genomic bins, 39 arm Z-scores, mitochondrial representation) achieves 73% (152 of 208) sensitivity at a reported 98% specificity, under repeated 10-fold cross-validation (10 repeats) across 208 cancer patients (seven cancer types) and 215 healthy individuals.",
+      "slug": "plasma-ctdna-fragmentomics",
+      "title": "Select a plasma ctDNA fragmentomics detection workflow"
+    },
+    {
+      "area": "dna-genomes",
+      "citations": [
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-source-cfmethyl"
+        },
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-source-cfmethyl-correction"
+        }
+      ],
+      "clinical_scope": "Clinical applicability is not established as prospective screening performance: this is a repeated random test-split evaluation on one assembled cohort, not an independent prospective validation.",
+      "collection_plan": {
+        "baselines": [
+          "The conventional/author-introduced workflow measured in the linked primary source(s)."
+        ],
+        "comparison_question": "Which measured methylation workflow detects tumour-derived plasma DNA and, where separately supported, identifies tissue of origin?",
+        "next_step": "A dedicated rewire-benchmarks protocol/run task with an independent prospective cohort and an explicit tissue-of-origin evaluation if pursued.",
+        "outcomes": [
+          "The declared endpoint in this use case's active mapping(s); see evidence_gaps for what remains open."
+        ],
+        "status": "collecting",
+        "validation_requirements": [
+          "Independent held-out population matched to the intended clinical setting.",
+          "Qualified human scientific review before any clinical-validation claim."
+        ]
+      },
+      "contexts": [
+        "clinical_research"
+      ],
+      "decision": "Inspect the cfMethyl-Seq repeated-split sensitivity/specificity evidence before selecting a workflow and validation design for the intended cancer-detection population.",
+      "evidence_gaps": [
+        "No per-run scored denominator beyond the printed test n=102 is inferred.",
+        "A correction/source-reuse note on this source is tracked separately from the assay sensitivity/specificity values and must not be conflated with them."
+      ],
+      "exclusions": [
+        "Tissue-of-origin identification (not ingested in this bounded intake)",
+        "Prospective screening validation"
+      ],
+      "id": "use-case-plasma-ctdna-methylation",
+      "inputs": [
+        "Plasma cell-free DNA for targeted/genome-wide methylation sequencing",
+        "The target specificity constraint for the intended use"
+      ],
+      "intended_users": [
+        "Clinical researchers scoping the available diagnostic-genomics evidence",
+        "Computational researchers comparing exact evaluated configurations"
+      ],
+      "output": "A sourced all-stage cancer-detection sensitivity/specificity figure from a repeated random test split; no tissue-of-origin claim is ingested in this bounded intake.",
+      "planned_work": [
+        {
+          "reason": "Reviewed literature evidence is bounded (see evidence_gaps); closing the remaining decision gap needs a dedicated protocol/run task with frozen population and matched controls, tracked in rewire-benchmarks.",
+          "status": "planned",
+          "title": "Focused benchmark/run task for rewire-benchmark-data issue #16",
+          "url": "https://github.com/rewire-bio/rewire-benchmark-data/issues/16"
+        }
+      ],
+      "question": "Which measured methylation workflow detects tumour-derived plasma DNA and, where separately supported, identifies tissue of origin?",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "search_terms": [
+        "plasma ctdna methylation"
+      ],
+      "setting": "cfMethyl-Seq achieves 80.7% all-stage cancer-detection sensitivity (95% CI 68.6-90.7) at 97.9% specificity, under a repeated random 25% test split (cohort 217 cancers/191 non-cancers, test n=102).",
+      "slug": "plasma-ctdna-methylation",
+      "title": "Select a plasma ctDNA methylation detection workflow"
+    },
+    {
+      "area": "dna-genomes",
+      "citations": [
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-source-dragen"
+        },
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-source-dragen-supplementary-tables"
+        }
+      ],
+      "clinical_scope": "Clinical applicability is not established beyond this one size-stratified deletion F-score; a conflicting comparator figure (.391 vs 39.20% in source table/prose) is preserved unresolved and not promoted.",
+      "collection_plan": {
+        "baselines": [
+          "The conventional/author-introduced workflow measured in the linked primary source(s)."
+        ],
+        "comparison_question": "Which workflow detects and characterises copy-number changes accurately and helps an analyst assess the evidence?",
+        "next_step": "A dedicated rewire-benchmarks protocol/run task covering duplications and tumour CNV, plus an analyst-facing visualisation-usability evaluation.",
+        "outcomes": [
+          "The declared endpoint in this use case's active mapping(s); see evidence_gaps for what remains open."
+        ],
+        "status": "collecting",
+        "validation_requirements": [
+          "Independent held-out population matched to the intended clinical setting.",
+          "Qualified human scientific review before any clinical-validation claim."
+        ]
+      },
+      "contexts": [
+        "clinical_research"
+      ],
+      "decision": "Inspect the DRAGEN 4.2 CNV/SV benchmarking F-score evidence for 1-5 kb deletions before selecting a workflow; evidence-visualisation usability is not addressed by this bounded intake.",
+      "evidence_gaps": [
+        "Unreported per-bin counts behind the printed F-score.",
+        "No duplication, tumour-CNV or clinical-reporting endpoint is ingested in this bounded intake.",
+        "No foundation-model applicability is established for this task."
+      ],
+      "exclusions": [
+        "Duplications, larger/smaller size strata, and tumour CNV (not ingested in this bounded intake)",
+        "Evidence-visualisation usability for an analyst (not measured by this F-score endpoint)"
+      ],
+      "id": "use-case-cnv-detection-characterisation",
+      "inputs": [
+        "Whole-genome sequencing aligned reads",
+        "The size range and variant class (deletion, duplication, etc.) of clinical interest"
+      ],
+      "intended_users": [
+        "Clinical researchers scoping the available diagnostic-genomics evidence",
+        "Computational researchers comparing exact evaluated configurations"
+      ],
+      "output": "A sourced F-score for one size-stratified deletion class against a truth set; no visualisation-usability or clinical-reporting claim.",
+      "planned_work": [
+        {
+          "reason": "Reviewed literature evidence is bounded (see evidence_gaps); closing the remaining decision gap needs a dedicated protocol/run task with frozen population and matched controls, tracked in rewire-benchmarks.",
+          "status": "planned",
+          "title": "Focused benchmark/run task for rewire-benchmark-data issue #17",
+          "url": "https://github.com/rewire-bio/rewire-benchmark-data/issues/17"
+        }
+      ],
+      "question": "Which workflow detects and characterises copy-number changes accurately and helps an analyst assess the evidence?",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "search_terms": [
+        "cnv detection characterisation"
+      ],
+      "setting": "DRAGEN 4.2's CNV/SV benchmarking (HG002, GIAB SV truth set) reports an F-score for 1-5 kb deletion detection (selected Table S4 cells, sheet CNVbenchmarking, H6=.926, L6=.391).",
+      "slug": "cnv-detection-characterisation",
+      "title": "Select a copy-number variant detection and characterisation workflow"
+    },
+    {
+      "area": "dna-genomes",
+      "citations": [
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-source-dragen"
+        },
+        {
+          "locator": "See data/omics/use-case-coverage-amp-20261007/clinical/sources.md",
+          "source_id": "amp-source-dragen-supplementary-tables"
+        }
+      ],
+      "clinical_scope": "Clinical applicability is not established: this is a conventional variant-calling pipeline's operational runtime baseline, a proxy for the resource/throughput constraints a foundation-model execution workflow would need to meet, not itself a model-execution benchmark.",
+      "collection_plan": {
+        "baselines": [
+          "The conventional/author-introduced workflow measured in the linked primary source(s)."
+        ],
+        "comparison_question": "Which eligible model configuration and execution workflow can meet a diagnostic genomics team's resource, throughput and reproducibility constraints?",
+        "next_step": "A dedicated rewire-benchmarks protocol/run task that actually executes an eligible foundation-model configuration and measures its resource/throughput budget.",
+        "outcomes": [
+          "The declared endpoint in this use case's active mapping(s); see evidence_gaps for what remains open."
+        ],
+        "status": "collecting",
+        "validation_requirements": [
+          "Independent held-out population matched to the intended clinical setting.",
+          "Qualified human scientific review before any clinical-validation claim."
+        ]
+      },
+      "contexts": [
+        "clinical_research"
+      ],
+      "decision": "Inspect the DRAGEN 4.2 single-sample runtime baseline before scoping a foundation-model execution workflow's resource/throughput budget; this conventional baseline is a proxy, not a model-execution benchmark.",
+      "evidence_gaps": [
+        "No peak-memory endpoint is reported.",
+        "No runtime repeat/variance (CI) is reported.",
+        "A separate ~2-hour joint-aggregation figure over 3,202 genomes at concurrency 200 is a different operation and is not assigned to this single-sample runtime."
+      ],
+      "exclusions": [
+        "Any foundation-model inference runtime or throughput benchmark (none is ingested in this bounded intake)",
+        "Peak memory usage (host RAM capacity in the hardware comparator is not measured peak usage)",
+        "Clinical-reporting turnaround time"
+      ],
+      "id": "use-case-diagnostic-genomics-model-execution",
+      "inputs": [
+        "The diagnostic genomics team's available hardware configuration",
+        "The required per-sample turnaround and batch throughput"
+      ],
+      "intended_users": [
+        "Clinical researchers scoping the available diagnostic-genomics evidence",
+        "Computational researchers comparing exact evaluated configurations"
+      ],
+      "output": "A sourced single-sample total runtime baseline on two hardware configurations; no foundation-model execution benchmark is ingested in this bounded intake.",
+      "planned_work": [
+        {
+          "reason": "Reviewed literature evidence is bounded (see evidence_gaps); closing the remaining decision gap needs a dedicated protocol/run task with frozen population and matched controls, tracked in rewire-benchmarks.",
+          "status": "planned",
+          "title": "Focused benchmark/run task for rewire-benchmark-data issue #18",
+          "url": "https://github.com/rewire-bio/rewire-benchmark-data/issues/18"
+        }
+      ],
+      "question": "Which eligible model configuration and execution workflow can meet a diagnostic genomics team's resource, throughput and reproducibility constraints?",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "search_terms": [
+        "diagnostic genomics model execution"
+      ],
+      "setting": "DRAGEN 4.2 Phase 4 total single-sample wall-clock runtime for HG002 is 1,838.5 seconds on one hardware configuration and 5,521.21 seconds on an AWS HG002 configuration (f1.4xlarge, Xeon E5-2686v4, 16 threads); these are hardware comparators, not model comparators, and stage times cannot be summed due to concurrency.",
+      "slug": "diagnostic-genomics-model-execution",
+      "title": "Select an execution workflow for large-scale diagnostic genomics"
     }
   ],
   "mappings": [
@@ -4409,6 +5042,800 @@
         "note": "Source-backed primary-text transcription of Abdelaal et al. 2019 Figure S10 Panel B, bound by data/omics/use-case-coverage-20261007/research/review.json. Independently cross-checked against the original supplement PDF by a separate reviewer (Codex) before this mapping was added, including the nine printed values, column order, and the Figure S9 Panel A caption/legend/title conflict and Table 2 denominator-scope correction carried over from the preceding 2026-10-07 completion-assessment review. No new model execution, independent experimental replication, qualified human scientific review or clinical validation."
       },
       "evidence_sha256": "2c244a1d6cdfa0b4059e49cb8b72580fefa55effe869edbbb507aa8dc33a68cc"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-oncology-rna-20261007-source-pmc6123722"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Virtual-tumour SNV and indel precision/recall/F1, true/false positive and false negative counts for Lancet and Strelka2 on a real-read synthetic tumour/normal pair",
+      "evaluation_ids": [
+        "amp-oncology-rna-20261007-issue-10-eval-lancet",
+        "amp-oncology-rna-20261007-issue-10-eval-strelka2"
+      ],
+      "evidence_sha256": "018e83af740b165027737c9b171ceb64ed144c548de9666ac12367c215027b78",
+      "id": "use-case-mapping-amp-20261007-issue10-lancet-virtual-tumor",
+      "lifecycle": "active",
+      "limitations": [
+        "Author-developed-caller evaluation, not independent reproduction.",
+        "Virtual tumor endpoint does not establish sensitivity in clinical tumors, FFPE samples, panels, ctDNA, copy-number or structural variation.",
+        "SNV printed counts agree with 31,592 truth variants. Do not repair MuTect table #calls=50,228 versus TP+FP=26,505; its row is not proposed for numerical ingestion.",
+        "Indel Lancet and Strelka2 counts agree with 4,945 truth variants. Preserve Table 1 rounding and do not recompute percentages.",
+        "Individual-condition confidence intervals unreported in Tables 1–2."
+      ],
+      "protocol_id": "amp-oncology-rna-20261007-protocol-lancet-virtual-tumor",
+      "rationale": "Real-read virtual-tumour spike-in directly measures somatic SNV/indel calling precision and recall, the declared benchmark endpoint, under one sequencing/normal regime.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-tumour-dna-somatic-variant-detection"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-oncology-rna-20261007-source-pmc8642973"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Synthetic 14-fusion Seraseq reference-standard sensitivity, precision and total/true fusion counts for Arriba, STAR-Fusion and EnFusion ensemble configurations (undiluted duplicate libraries)",
+      "evaluation_ids": [
+        "amp-oncology-rna-20261007-issue-11-eval-arriba",
+        "amp-oncology-rna-20261007-issue-11-eval-star-fusion",
+        "amp-oncology-rna-20261007-issue-11-eval-enfusion-3-callers",
+        "amp-oncology-rna-20261007-issue-11-eval-enfusion-3-callers-filter-known-fusion-list"
+      ],
+      "evidence_sha256": "46998424368e98a97385dea2498684ed51e5fa11037ea2666ed678ed62884995",
+      "id": "use-case-mapping-amp-20261007-issue11-enfusion-seraseq",
+      "lifecycle": "active",
+      "limitations": [
+        "The optimized known-fusion rescue uses prior knowledge of true reference fusions; 100% precision/sensitivity is an optimization-control observation, not unbiased generalization.",
+        "Table2 caption v3 versus optimization narrative v2 is unresolved; dataset_version=null and automatic comparison blocked.",
+        "STAR-Fusion precision 43.6% in Table2 vs 43.8% Par31; numeric candidate retains printed table value but requires disputed-result warning or omission pending resolution.",
+        "All non-Seraseq fusions counted false positives although endogenous background fusions may exist.",
+        "No CI or dispersion printed for Table2 rows.",
+        "Clinical Table1 sensitivity is relative to 67 fusions ascertained through optimized ensemble, not independently exhaustive truth or treatment benefit."
+      ],
+      "protocol_id": "amp-oncology-rna-20261007-protocol-enfusion-seraseq",
+      "rationale": "A synthetic reference standard with a known fusion set directly measures fusion-calling sensitivity and precision, the declared benchmark endpoint.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-tumour-rna-fusion-detection"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-oncology-rna-20261007-source-pmc8642973"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Retrospective sensitivity among 67 ensemble-ascertained clinically relevant fusions in a 229-sample paediatric cancer/haematologic cohort, for STAR-Fusion and Arriba",
+      "evaluation_ids": [
+        "amp-oncology-rna-20261007-nch-eval-star-fusion",
+        "amp-oncology-rna-20261007-nch-eval-arriba"
+      ],
+      "evidence_sha256": "fa64eef53c2b9588535b6c09e919f81b7d6e8c9a0b19bf47cf5e211339dce30b",
+      "id": "use-case-mapping-amp-20261007-issue11-enfusion-nch-clinical",
+      "lifecycle": "active",
+      "limitations": [
+        "Ascertainment is from the optimized EnFusion pipeline; denominator is not an independent exhaustive truth set.",
+        "Only a subset orthogonally confirmed; the endpoint does not quantify novel fusion generalization or patient outcomes.",
+        "Do not combine with duplicate Seraseq measurements."
+      ],
+      "protocol_id": "amp-oncology-rna-20261007-protocol-enfusion-nch-clinical",
+      "rationale": "A real clinical cohort with ensemble-ascertained clinically relevant fusions directly measures fusion-detection sensitivity in a clinical population, the declared endpoint; the ascertainment denominator is not an independent exhaustive truth set.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-tumour-rna-fusion-detection"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-oncology-rna-20261007-source-pmc7822922"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Mean recovery of 13 known pathogenic splicing events at reduced cohort size (30 of 119 patient RNA samples) using FRASER on patient skin-fibroblast RNA",
+      "evaluation_ids": [
+        "amp-oncology-rna-20261007-issue-12-eval-fraser-2021-article-implementation"
+      ],
+      "evidence_sha256": "bf9ed2b271943fe5d0a2622184d310ada3400f2318ed1728280fda8feaffa630",
+      "id": "use-case-mapping-amp-20261007-issue12-fraser-kremer",
+      "lifecycle": "active",
+      "limitations": [
+        "Direct patient-RNA known-event recovery does not establish prospective diagnostic accuracy or patient outcome benefit.",
+        "Known pathogenic-event ascertainment and same-cohort retrospective selection can bias recovery.",
+        "30 is RNA sample subset size; do not silently equate to 30 independent patients.",
+        "No blinded pathogenicity adjudication, general tissue transfer, VUS reclassification sensitivity or transcriptome-wide precision established by this endpoint.",
+        "Subsampling repeats, exact score aggregation and numeric uncertainty unavailable from inspected main-text endpoint; supplementary PDF DNS retrieval failed.",
+        "FRASER author correction 2022 changes GTEx version V7 to V6p; patient-Kremer endpoint not affected according to correction search result; exact correction bytes not retrieved."
+      ],
+      "protocol_id": "amp-oncology-rna-20261007-protocol-fraser-kremer-subsampling",
+      "rationale": "Direct patient-RNA evidence measuring recovery of known pathogenic splicing events bears on the declared decision, scoped narrowly to known-event recovery rather than diagnostic yield in unknown cases.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-patient-rna-splicing-validation"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-20261007-dna-pathogens-source"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Positive percent agreement with initial blood culture for plasma microbial cfDNA sequencing in a prospective sepsis-alert cohort (59/63 initial-blood-culture-positive subset)",
+      "evaluation_ids": [
+        "amp-20261007-dna-pathogens-evaluation"
+      ],
+      "evidence_sha256": "2f8f6df06e1984966961023a929212ba443fba549e5ea12cb8f5592004ce552b",
+      "id": "use-case-mapping-amp-20261007-issue13",
+      "lifecycle": "active",
+      "limitations": [
+        "Positive agreement uses initial blood culture as reference, which does not identify all infections. It is not sensitivity against all true infections.",
+        "Exact executable/software/database revision is not established; no foundation model and no new execution.",
+        "Composite-reference outcomes and estimates are separate endpoints; Table 2 negative composite CI54.8–70.0 conflicts with narrative55.2–70.4 and is excluded.",
+        "DNA-only plasma microbial cfDNA assay; no RNA viral detection or RNA sensitivity implied.",
+        "Primary article hosted on third-party rious168 mirror; DOI/title match publisher. Public redistribution licence absent; only compact factual table excerpt retained, original PDF retrieval hash preserved."
+      ],
+      "protocol_id": "amp-20261007-dna-pathogens-protocol",
+      "rationale": "Positive percent agreement against initial blood culture is a proxy for sensitivity against all true infections, since initial blood culture does not identify every infection.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-20261007-rna-pathogens-source"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Sensitivity against original clinical respiratory-virus-panel testing (103/110, 93.6%) for RNA mNGS on a residual-sample pre-DTCA mixed respiratory-target cohort, adenovirus transcripts included",
+      "evaluation_ids": [
+        "amp-20261007-rna-pathogens-evaluation"
+      ],
+      "evidence_sha256": "4424bab553c78aafbbcf4a181468877e47b00bfc9ab02554c879483ef5f392cc",
+      "id": "use-case-mapping-amp-20261007-issue14",
+      "lifecycle": "active",
+      "limitations": [
+        "RNA-only specimen preparation supports RNA pathogen-detection workflow; tested target mix includes adenovirus, a DNA virus detected via transcription. Do not describe the 93.6% as a pure RNA-virus-only subgroup score.",
+        "Multiple detected targets are weighted so each specimen contributes one observation; out-of-panel mNGS positive calls are not counted as false positives.",
+        "Positive-specimen BAL/swab count disagreement in Results vs Methods remains unresolved; total 110 positives and 81 negatives agree.",
+        "No confidence interval extracted for original sensitivity. After selective discrepancy adjudication, report PPA/NPA rather than sensitivity; DTCA measurements must remain separate.",
+        "No foundation model or independent external replication; clinical residual-sample validation study supplies conventional baseline evidence.",
+        "Post-DTCA printed PPA98.7% (110.5/113) is arithmetically inconsistent; no DTCA endpoint selected or corrected."
+      ],
+      "protocol_id": "amp-20261007-rna-pathogens-protocol",
+      "rationale": "Sensitivity against original clinical RVP testing (RNA extraction, DNase treatment, cDNA synthesis; mixed respiratory-virus target panel including transcriptionally detected adenovirus) is a proxy for the declared RNA-pathogen diagnostic-accuracy decision: the specimen prep is an RNA workflow, not a mixed DNA/RNA sample-prep comparison, and this is not an RNA-virus-only subgroup score. The conflicting composite PPA figure (98.7%, 110.5/113) is excluded.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-diagnostic-rna-pathogen-detection"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-20261007-ctdna-fragmentomics-source"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Sensitivity (73%, 152/208) at a reported 98% specificity for plasma cfDNA fragmentomics-based cancer detection, repeated 10-fold cross-validation (10 repeats)",
+      "evaluation_ids": [
+        "amp-20261007-ctdna-fragmentomics-evaluation"
+      ],
+      "evidence_sha256": "cd4db57e178c0edf3c49a8cbf8877bc769168345ab18d7cee3bbd32ee831f892",
+      "id": "use-case-mapping-amp-20261007-issue15",
+      "lifecycle": "active",
+      "limitations": [
+        "4 of 215 healthy individuals misclassified at source-labelled 98% specificity. Retain rounded printed specificity; do not recompute sensitivity.",
+        "Internal repeated cross-validation is not independent prospective screening validation; clinically identified cancers and healthy comparators differ from intended screening population.",
+        "DELFI composite features include CNAs/mtDNA, so this exact result is not pure fragmentation alone.",
+        "cfDNA signal is not purified ctDNA, tumour fraction limit is unreported for this endpoint.",
+        "Combined mutation+DELFI 115/126 (91%) is a different subset/configuration and is excluded."
+      ],
+      "protocol_id": "amp-20261007-ctdna-fragmentomics-protocol",
+      "rationale": "A repeated 10-fold cross-validation (10 repeats) on one assembled cohort is a proxy for the broader plasma ctDNA fragmentomics detection decision and for this explicitly assessed assay endpoint; it is internal cross-validation, not a separately held-out validation cohort and not prospective screening validation.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-plasma-ctdna-fragmentomics"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-source-cfmethyl"
+        },
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-source-cfmethyl-correction"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "All-stage cancer-detection sensitivity (95% CI) at a declared specificity for cfMethyl-Seq on a repeated random 25% test split",
+      "evaluation_ids": [
+        "amp-eval-cfmethyl-allstage-sensitivity"
+      ],
+      "evidence_sha256": "a4557cbe344cb50f36f257abb924d6a0f31b765c965dd695fae27dd18cf9327b",
+      "id": "use-case-mapping-amp-20261007-issue16",
+      "lifecycle": "active",
+      "limitations": [
+        "No foundation-model comparison",
+        "No prospective screening benefit",
+        "No independent reproduction"
+      ],
+      "protocol_id": "amp-protocol-cfmethyl-randomsplit-detection",
+      "rationale": "A repeated-split cross-validated sensitivity/specificity figure at a declared specificity directly measures plasma cfDNA methylation cancer-detection performance, the declared endpoint.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-plasma-ctdna-methylation"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-source-dragen"
+        },
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-source-dragen-supplementary-tables"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "F-score for 1-5 kb deletion detection (DRAGEN 4.2 CNV/SV benchmarking, HG002) against the GIAB SV truth set",
+      "evaluation_ids": [
+        "amp-eval-dragen-cnv-sv-1-5kb-fscore"
+      ],
+      "evidence_sha256": "98e91a04803fe81a2302567c8942d3ec69a99c86179c781c6f06b5f9ba0a476e",
+      "id": "use-case-mapping-amp-20261007-issue17",
+      "lifecycle": "active",
+      "limitations": [
+        "Unreported per-bin counts",
+        "No duplication/tumourCNV/clinical endpoint",
+        "No visualisation usability",
+        "CNVnator table/prose conflict",
+        "No foundation-model applicability"
+      ],
+      "protocol_id": "amp-protocol-hg002-cnv-1-5kb",
+      "rationale": "F-score for 1-5 kb deletion detection against a GIAB truth set directly measures the declared CNV-detection endpoint; it does not cover visualisation usability.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-cnv-detection-characterisation"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-source-dragen"
+        },
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "amp-source-dragen-supplementary-tables"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Total single-sample wall-clock runtime (seconds) for DRAGEN 4.2 Phase 4 processing of HG002, by hardware configuration",
+      "evaluation_ids": [
+        "amp-eval-dragen-hg002-phase4-runtime"
+      ],
+      "evidence_sha256": "8992490eb9aba66f496e6f9d8950a8b85405062638ca44d2bfed0dbe80e2dd59",
+      "id": "use-case-mapping-amp-20261007-issue18",
+      "lifecycle": "active",
+      "limitations": [
+        "No foundation-model inference benchmark",
+        "No peak memory",
+        "No clinical reporting turnaround",
+        "No runtime repeatCI"
+      ],
+      "protocol_id": "amp-protocol-dragen-hg002-phase4-total-runtime",
+      "rationale": "A conventional variant-calling pipeline's measured single-sample runtime is a proxy baseline for the throughput/resource constraints a foundation-model execution workflow would need to meet; it is not itself a model-execution benchmark.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-diagnostic-genomics-model-execution"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "evidence-expansion-dna-foundation-models-2025-5d8ca9bc"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Acceptor sequence-classification AUC for five DNA foundation-model embeddings",
+      "evaluation_ids": [
+        "amp-feng-20261007-eval-splice-acceptor-dnabert-2",
+        "amp-feng-20261007-eval-splice-acceptor-nt-v2",
+        "amp-feng-20261007-eval-splice-acceptor-hyenadna",
+        "amp-feng-20261007-eval-splice-acceptor-caduceus-ph",
+        "amp-feng-20261007-eval-splice-acceptor-grover"
+      ],
+      "evidence_sha256": "c88a42cc23de2e92676eff53699c3b57d2f8d024886f3dbd620313d2d5a2fc29",
+      "id": "use-case-mapping-amp-20261007-feng-splice-acceptor",
+      "lifecycle": "active",
+      "limitations": [
+        "Sequence-label acceptor classification is not a minigene reporter exon-inclusion endpoint and is not patient-RNA splicing validation.",
+        "Exact per-task split sizes/counts are unextracted from the inspected main text (Supplementary Data 6 is identified but not inspected).",
+        "No independent reproduction or qualified human scientific review."
+      ],
+      "protocol_id": "amp-feng-20261007-protocol-splice-acceptor",
+      "rationale": "Sequence-label splice-acceptor classification AUC is a proxy for splicing-effect prioritisation; it is a different endpoint from MFASS exon-recognition reporter-assay ranking and must not be pooled with it or with the donor task.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-splicing-follow-up"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "evidence-expansion-dna-foundation-models-2025-5d8ca9bc"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Donor sequence-classification AUC for five DNA foundation-model embeddings",
+      "evaluation_ids": [
+        "amp-feng-20261007-eval-splice-donor-dnabert-2",
+        "amp-feng-20261007-eval-splice-donor-nt-v2",
+        "amp-feng-20261007-eval-splice-donor-hyenadna",
+        "amp-feng-20261007-eval-splice-donor-caduceus-ph",
+        "amp-feng-20261007-eval-splice-donor-grover"
+      ],
+      "evidence_sha256": "7a805d2604c8eabefbdbd87b20be86922526da2270261c60bdb62307f139ae04",
+      "id": "use-case-mapping-amp-20261007-feng-splice-donor",
+      "lifecycle": "active",
+      "limitations": [
+        "Sequence-label donor classification is not a minigene reporter exon-inclusion endpoint and is not patient-RNA splicing validation.",
+        "Exact per-task split sizes/counts are unextracted from the inspected main text (Supplementary Data 6 is identified but not inspected).",
+        "No independent reproduction or qualified human scientific review."
+      ],
+      "protocol_id": "amp-feng-20261007-protocol-splice-donor",
+      "rationale": "Sequence-label splice-donor classification AUC is a proxy for splicing-effect prioritisation; it is a separate task from acceptor classification and from MFASS exon-recognition reporter-assay ranking, and must not be pooled with either.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-splicing-follow-up"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "evidence-expansion-dna-foundation-models-2025-5d8ca9bc"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Promoter Arabidopsis TATA sequence-classification AUC for five DNA foundation-model embeddings",
+      "evaluation_ids": [
+        "amp-feng-20261007-eval-promoter-tata-dnabert-2",
+        "amp-feng-20261007-eval-promoter-tata-nt-v2",
+        "amp-feng-20261007-eval-promoter-tata-hyenadna",
+        "amp-feng-20261007-eval-promoter-tata-caduceus-ph",
+        "amp-feng-20261007-eval-promoter-tata-grover"
+      ],
+      "evidence_sha256": "82cdfa5a836cb8dbca37e6b7358371b345cff6715624503b26b80c14ffd99e6b",
+      "id": "use-case-mapping-amp-20261007-feng-promoter-tata",
+      "lifecycle": "active",
+      "limitations": [
+        "Sequence classification accuracy is not a reporter expression measurement.",
+        "Exact per-task split sizes/counts are unextracted from the inspected main text (Supplementary Data 6 is identified but not inspected).",
+        "No independent reproduction or qualified human scientific review."
+      ],
+      "protocol_id": "amp-feng-20261007-protocol-promoter-tata",
+      "rationale": "Sequence-label TATA promoter classification AUC is a proxy for reporter-measured promoter strength; it is a separate task from NonTATA classification and does not itself measure reporter expression.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-plant-promoter-reporters"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "evidence-expansion-dna-foundation-models-2025-5d8ca9bc"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Promoter Arabidopsis NonTATA sequence-classification AUC for five DNA foundation-model embeddings",
+      "evaluation_ids": [
+        "amp-feng-20261007-eval-promoter-nontata-dnabert-2",
+        "amp-feng-20261007-eval-promoter-nontata-nt-v2",
+        "amp-feng-20261007-eval-promoter-nontata-hyenadna",
+        "amp-feng-20261007-eval-promoter-nontata-caduceus-ph",
+        "amp-feng-20261007-eval-promoter-nontata-grover"
+      ],
+      "evidence_sha256": "484019f2b00fc14a76245b942ee2284d896ade9ac7ae1881ffb57f2d48c74646",
+      "id": "use-case-mapping-amp-20261007-feng-promoter-nontata",
+      "lifecycle": "active",
+      "limitations": [
+        "Sequence classification accuracy is not a reporter expression measurement.",
+        "Exact per-task split sizes/counts are unextracted from the inspected main text (Supplementary Data 6 is identified but not inspected).",
+        "No independent reproduction or qualified human scientific review."
+      ],
+      "protocol_id": "amp-feng-20261007-protocol-promoter-nontata",
+      "rationale": "Sequence-label NonTATA promoter classification AUC is a proxy for reporter-measured promoter strength; it is a separate task from TATA classification and does not itself measure reporter expression.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-plant-promoter-reporters"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "evidence-expansion-dna-foundation-models-2025-5d8ca9bc"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "Pathogenic-versus-common SNP discrimination (AUC, Cohen's d) for eleven DNA foundation-model/genomic-comparator configurations, across separate short- and long-window scored populations",
+      "evaluation_ids": [
+        "amp-feng-20261007-eval-variant-sei-hidden-states",
+        "amp-feng-20261007-eval-variant-sei-output-tracks",
+        "amp-feng-20261007-eval-variant-enformer-hidden-states",
+        "amp-feng-20261007-eval-variant-enformer-output-tracks",
+        "amp-feng-20261007-eval-variant-dnabert-2",
+        "amp-feng-20261007-eval-variant-nt-v2",
+        "amp-feng-20261007-eval-variant-hyenadna",
+        "amp-feng-20261007-eval-variant-hyenadna-450k-long-sequence",
+        "amp-feng-20261007-eval-variant-caduceus-ph",
+        "amp-feng-20261007-eval-variant-caduceus-ph-long-sequence",
+        "amp-feng-20261007-eval-variant-grover"
+      ],
+      "evidence_sha256": "2d0b549dcee81e4cfed5e2a0aafe4eb1db610a1ee23da5e18dcd2bc38e3913ce",
+      "id": "use-case-mapping-amp-20261007-feng-pathogenic-common-variant",
+      "lifecycle": "active",
+      "limitations": [
+        "No disease-specific (e.g. BRCA) subgroup claim is supported by this table.",
+        "Short-window and long-window populations are separate and must not be pooled; each configuration/dataset records its exact assignment.",
+        "Sei, Enformer (hidden/output tracks) are non-DNA-foundation specialised genomic comparators per the source's own asterisk notation, not DNA foundation models.",
+        "No independent reproduction or qualified human scientific review."
+      ],
+      "protocol_id": "amp-feng-20261007-protocol-pathogenic-common-variant-classification",
+      "rationale": "Genome-wide pathogenic-versus-common SNP discrimination is a proxy for rare-disease candidate variant ranking; it is not disease-specific (no BRCA subgroup claim) and is not a complete clinical classification.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-rare-disease-candidate-ranking"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "evidence-expansion-dna-foundation-models-2025-5d8ca9bc"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "eQTL causal-versus-noncausal variant discrimination (AUC, Cohen's d) for twelve DNA foundation-model/genomic-comparator configurations",
+      "evaluation_ids": [
+        "amp-feng-20261007-eval-qtl-eqtl-sei-hidden-states",
+        "amp-feng-20261007-eval-qtl-eqtl-sei-output-tracks",
+        "amp-feng-20261007-eval-qtl-eqtl-enformer-hidden-states",
+        "amp-feng-20261007-eval-qtl-eqtl-enformer-output-tracks",
+        "amp-feng-20261007-eval-qtl-eqtl-dnabert-2",
+        "amp-feng-20261007-eval-qtl-eqtl-nt-v2",
+        "amp-feng-20261007-eval-qtl-eqtl-hyenadna",
+        "amp-feng-20261007-eval-qtl-eqtl-hyenadna-450k-long-sequence",
+        "amp-feng-20261007-eval-qtl-eqtl-caduceus-ph",
+        "amp-feng-20261007-eval-qtl-eqtl-caduceus-ph-long-sequence",
+        "amp-feng-20261007-eval-qtl-eqtl-grover",
+        "amp-feng-20261007-eval-qtl-eqtl-alphagenome-output-tracks"
+      ],
+      "evidence_sha256": "d0b9b6fefcc9ddecfd669a085afc1a750f8e9abea41282aa5fb29905c825e713",
+      "id": "use-case-mapping-amp-20261007-feng-qtl-eqtl",
+      "lifecycle": "active",
+      "limitations": [
+        "Post-window-filter per-model scored denominators are unreported for eQTL; the pre-filter positive count (1896) is not a confirmed denominator.",
+        "AlphaGenome appears only in this QTL comparison, not the pathogenic/common SNP comparison. It uses the long-window QTL dataset, consuming central 131,072 bp and averaging output tracks over central 2,048 bp.",
+        "Sei, Enformer (hidden/output tracks) and AlphaGenome (output tracks) are non-DNA-foundation specialised genomic comparators per the source's own asterisk notation, not DNA foundation models.",
+        "No independent reproduction or qualified human scientific review."
+      ],
+      "protocol_id": "amp-feng-20261007-protocol-qtl-eqtl",
+      "rationale": "eQTL causal-variant discrimination is a proxy for regulatory-variant gene follow-up prioritisation; it is not an experimentally validated follow-up choice and is a separate task from the other three QTL types.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-regulatory-variant-gene-follow-up"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "evidence-expansion-dna-foundation-models-2025-5d8ca9bc"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "sQTL causal-versus-noncausal variant discrimination (AUC, Cohen's d) for twelve DNA foundation-model/genomic-comparator configurations",
+      "evaluation_ids": [
+        "amp-feng-20261007-eval-qtl-sqtl-sei-hidden-states",
+        "amp-feng-20261007-eval-qtl-sqtl-sei-output-tracks",
+        "amp-feng-20261007-eval-qtl-sqtl-enformer-hidden-states",
+        "amp-feng-20261007-eval-qtl-sqtl-enformer-output-tracks",
+        "amp-feng-20261007-eval-qtl-sqtl-dnabert-2",
+        "amp-feng-20261007-eval-qtl-sqtl-nt-v2",
+        "amp-feng-20261007-eval-qtl-sqtl-hyenadna",
+        "amp-feng-20261007-eval-qtl-sqtl-hyenadna-450k-long-sequence",
+        "amp-feng-20261007-eval-qtl-sqtl-caduceus-ph",
+        "amp-feng-20261007-eval-qtl-sqtl-caduceus-ph-long-sequence",
+        "amp-feng-20261007-eval-qtl-sqtl-grover",
+        "amp-feng-20261007-eval-qtl-sqtl-alphagenome-output-tracks"
+      ],
+      "evidence_sha256": "84b40a538a5094d1faceaa17e4fd620b8713d5dff6b895b54eea4242769fcede",
+      "id": "use-case-mapping-amp-20261007-feng-qtl-sqtl",
+      "lifecycle": "active",
+      "limitations": [
+        "Post-window-filter per-model scored denominators are unreported for sQTL; the pre-filter positive count (540) is not a confirmed denominator.",
+        "AlphaGenome appears only in this QTL comparison, not the pathogenic/common SNP comparison. It uses the long-window QTL dataset, consuming central 131,072 bp and averaging output tracks over central 2,048 bp.",
+        "Sei, Enformer (hidden/output tracks) and AlphaGenome (output tracks) are non-DNA-foundation specialised genomic comparators per the source's own asterisk notation, not DNA foundation models.",
+        "No independent reproduction or qualified human scientific review."
+      ],
+      "protocol_id": "amp-feng-20261007-protocol-qtl-sqtl",
+      "rationale": "sQTL causal-variant discrimination is a proxy for regulatory-variant gene follow-up prioritisation; it is not an experimentally validated follow-up choice and is a separate task from the other three QTL types.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-regulatory-variant-gene-follow-up"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "evidence-expansion-dna-foundation-models-2025-5d8ca9bc"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "paQTL causal-versus-noncausal variant discrimination (AUC, Cohen's d) for twelve DNA foundation-model/genomic-comparator configurations",
+      "evaluation_ids": [
+        "amp-feng-20261007-eval-qtl-paqtl-sei-hidden-states",
+        "amp-feng-20261007-eval-qtl-paqtl-sei-output-tracks",
+        "amp-feng-20261007-eval-qtl-paqtl-enformer-hidden-states",
+        "amp-feng-20261007-eval-qtl-paqtl-enformer-output-tracks",
+        "amp-feng-20261007-eval-qtl-paqtl-dnabert-2",
+        "amp-feng-20261007-eval-qtl-paqtl-nt-v2",
+        "amp-feng-20261007-eval-qtl-paqtl-hyenadna",
+        "amp-feng-20261007-eval-qtl-paqtl-hyenadna-450k-long-sequence",
+        "amp-feng-20261007-eval-qtl-paqtl-caduceus-ph",
+        "amp-feng-20261007-eval-qtl-paqtl-caduceus-ph-long-sequence",
+        "amp-feng-20261007-eval-qtl-paqtl-grover",
+        "amp-feng-20261007-eval-qtl-paqtl-alphagenome-output-tracks"
+      ],
+      "evidence_sha256": "c0275a28175c6f6dd8314d774021849363976dbef2f39b09da81dd8a3d8782ed",
+      "id": "use-case-mapping-amp-20261007-feng-qtl-paqtl",
+      "lifecycle": "active",
+      "limitations": [
+        "Post-window-filter per-model scored denominators are unreported for paQTL; the pre-filter positive count (142) is not a confirmed denominator.",
+        "AlphaGenome appears only in this QTL comparison, not the pathogenic/common SNP comparison. It uses the long-window QTL dataset, consuming central 131,072 bp and averaging output tracks over central 2,048 bp.",
+        "Sei, Enformer (hidden/output tracks) and AlphaGenome (output tracks) are non-DNA-foundation specialised genomic comparators per the source's own asterisk notation, not DNA foundation models.",
+        "No independent reproduction or qualified human scientific review."
+      ],
+      "protocol_id": "amp-feng-20261007-protocol-qtl-paqtl",
+      "rationale": "paQTL causal-variant discrimination is a proxy for regulatory-variant gene follow-up prioritisation; it is not an experimentally validated follow-up choice and is a separate task from the other three QTL types.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-regulatory-variant-gene-follow-up"
+    },
+    {
+      "citations": [
+        {
+          "locator": "See clinical/claims.csv and clinical/sources.md in data/omics/use-case-coverage-amp-20261007/",
+          "source_id": "evidence-expansion-dna-foundation-models-2025-5d8ca9bc"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results."
+      ],
+      "endpoint": "ipaQTL causal-versus-noncausal variant discrimination (AUC, Cohen's d) for twelve DNA foundation-model/genomic-comparator configurations",
+      "evaluation_ids": [
+        "amp-feng-20261007-eval-qtl-ipaqtl-sei-hidden-states",
+        "amp-feng-20261007-eval-qtl-ipaqtl-sei-output-tracks",
+        "amp-feng-20261007-eval-qtl-ipaqtl-enformer-hidden-states",
+        "amp-feng-20261007-eval-qtl-ipaqtl-enformer-output-tracks",
+        "amp-feng-20261007-eval-qtl-ipaqtl-dnabert-2",
+        "amp-feng-20261007-eval-qtl-ipaqtl-nt-v2",
+        "amp-feng-20261007-eval-qtl-ipaqtl-hyenadna",
+        "amp-feng-20261007-eval-qtl-ipaqtl-hyenadna-450k-long-sequence",
+        "amp-feng-20261007-eval-qtl-ipaqtl-caduceus-ph",
+        "amp-feng-20261007-eval-qtl-ipaqtl-caduceus-ph-long-sequence",
+        "amp-feng-20261007-eval-qtl-ipaqtl-grover",
+        "amp-feng-20261007-eval-qtl-ipaqtl-alphagenome-output-tracks"
+      ],
+      "evidence_sha256": "7da1452b791f1146c42d650a409cbc8728a649b4cecc04322d25d420c2ebdaef",
+      "id": "use-case-mapping-amp-20261007-feng-qtl-ipaqtl",
+      "lifecycle": "active",
+      "limitations": [
+        "Post-window-filter per-model scored denominators are unreported for ipaQTL; the pre-filter positive count (116) is not a confirmed denominator.",
+        "AlphaGenome appears only in this QTL comparison, not the pathogenic/common SNP comparison. It uses the long-window QTL dataset, consuming central 131,072 bp and averaging output tracks over central 2,048 bp.",
+        "Sei, Enformer (hidden/output tracks) and AlphaGenome (output tracks) are non-DNA-foundation specialised genomic comparators per the source's own asterisk notation, not DNA foundation models.",
+        "No independent reproduction or qualified human scientific review."
+      ],
+      "protocol_id": "amp-feng-20261007-protocol-qtl-ipaqtl",
+      "rationale": "ipaQTL causal-variant discrimination is a proxy for regulatory-variant gene follow-up prioritisation; it is not an experimentally validated follow-up choice and is a separate task from the other three QTL types.",
+      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-07T13:38:59Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-regulatory-variant-gene-follow-up"
     }
   ]
 }

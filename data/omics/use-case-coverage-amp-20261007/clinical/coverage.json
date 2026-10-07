@@ -1,0 +1,385 @@
+[
+  {
+    "endpoint": "Virtual-tumour SNV and indel precision/recall/F1, true/false positive and false negative counts for Lancet and Strelka2 on a real-read synthetic tumour/normal pair",
+    "evaluation_ids": [
+      "amp-oncology-rna-20261007-issue-10-eval-lancet",
+      "amp-oncology-rna-20261007-issue-10-eval-strelka2"
+    ],
+    "limitations": [
+      "Author-developed-caller evaluation, not independent reproduction.",
+      "Virtual tumor endpoint does not establish sensitivity in clinical tumors, FFPE samples, panels, ctDNA, copy-number or structural variation.",
+      "SNV printed counts agree with 31,592 truth variants. Do not repair MuTect table #calls=50,228 versus TP+FP=26,505; its row is not proposed for numerical ingestion.",
+      "Indel Lancet and Strelka2 counts agree with 4,945 truth variants. Preserve Table 1 rounding and do not recompute percentages.",
+      "Individual-condition confidence intervals unreported in Tables 1\u20132."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-issue10-lancet-virtual-tumor",
+    "protocol_id": "amp-oncology-rna-20261007-protocol-lancet-virtual-tumor",
+    "relevance": "direct",
+    "use_case_id": "use-case-tumour-dna-somatic-variant-detection"
+  },
+  {
+    "endpoint": "Synthetic 14-fusion Seraseq reference-standard sensitivity, precision and total/true fusion counts for Arriba, STAR-Fusion and EnFusion ensemble configurations (undiluted duplicate libraries)",
+    "evaluation_ids": [
+      "amp-oncology-rna-20261007-issue-11-eval-arriba",
+      "amp-oncology-rna-20261007-issue-11-eval-star-fusion",
+      "amp-oncology-rna-20261007-issue-11-eval-enfusion-3-callers",
+      "amp-oncology-rna-20261007-issue-11-eval-enfusion-3-callers-filter-known-fusion-list"
+    ],
+    "limitations": [
+      "The optimized known-fusion rescue uses prior knowledge of true reference fusions; 100% precision/sensitivity is an optimization-control observation, not unbiased generalization.",
+      "Table2 caption v3 versus optimization narrative v2 is unresolved; dataset_version=null and automatic comparison blocked.",
+      "STAR-Fusion precision 43.6% in Table2 vs 43.8% Par31; numeric candidate retains printed table value but requires disputed-result warning or omission pending resolution.",
+      "All non-Seraseq fusions counted false positives although endogenous background fusions may exist.",
+      "No CI or dispersion printed for Table2 rows.",
+      "Clinical Table1 sensitivity is relative to 67 fusions ascertained through optimized ensemble, not independently exhaustive truth or treatment benefit."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-issue11-enfusion-seraseq",
+    "protocol_id": "amp-oncology-rna-20261007-protocol-enfusion-seraseq",
+    "relevance": "direct",
+    "use_case_id": "use-case-tumour-rna-fusion-detection"
+  },
+  {
+    "endpoint": "Retrospective sensitivity among 67 ensemble-ascertained clinically relevant fusions in a 229-sample paediatric cancer/haematologic cohort, for STAR-Fusion and Arriba",
+    "evaluation_ids": [
+      "amp-oncology-rna-20261007-nch-eval-star-fusion",
+      "amp-oncology-rna-20261007-nch-eval-arriba"
+    ],
+    "limitations": [
+      "Ascertainment is from the optimized EnFusion pipeline; denominator is not an independent exhaustive truth set.",
+      "Only a subset orthogonally confirmed; the endpoint does not quantify novel fusion generalization or patient outcomes.",
+      "Do not combine with duplicate Seraseq measurements."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-issue11-enfusion-nch-clinical",
+    "protocol_id": "amp-oncology-rna-20261007-protocol-enfusion-nch-clinical",
+    "relevance": "direct",
+    "use_case_id": "use-case-tumour-rna-fusion-detection"
+  },
+  {
+    "endpoint": "Mean recovery of 13 known pathogenic splicing events at reduced cohort size (30 of 119 patient RNA samples) using FRASER on patient skin-fibroblast RNA",
+    "evaluation_ids": [
+      "amp-oncology-rna-20261007-issue-12-eval-fraser-2021-article-implementation"
+    ],
+    "limitations": [
+      "Direct patient-RNA known-event recovery does not establish prospective diagnostic accuracy or patient outcome benefit.",
+      "Known pathogenic-event ascertainment and same-cohort retrospective selection can bias recovery.",
+      "30 is RNA sample subset size; do not silently equate to 30 independent patients.",
+      "No blinded pathogenicity adjudication, general tissue transfer, VUS reclassification sensitivity or transcriptome-wide precision established by this endpoint.",
+      "Subsampling repeats, exact score aggregation and numeric uncertainty unavailable from inspected main-text endpoint; supplementary PDF DNS retrieval failed.",
+      "FRASER author correction 2022 changes GTEx version V7 to V6p; patient-Kremer endpoint not affected according to correction search result; exact correction bytes not retrieved."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-issue12-fraser-kremer",
+    "protocol_id": "amp-oncology-rna-20261007-protocol-fraser-kremer-subsampling",
+    "relevance": "direct",
+    "use_case_id": "use-case-patient-rna-splicing-validation"
+  },
+  {
+    "endpoint": "Positive percent agreement with initial blood culture for plasma microbial cfDNA sequencing in a prospective sepsis-alert cohort (59/63 initial-blood-culture-positive subset)",
+    "evaluation_ids": [
+      "amp-20261007-dna-pathogens-evaluation"
+    ],
+    "limitations": [
+      "Positive agreement uses initial blood culture as reference, which does not identify all infections. It is not sensitivity against all true infections.",
+      "Exact executable/software/database revision is not established; no foundation model and no new execution.",
+      "Composite-reference outcomes and estimates are separate endpoints; Table 2 negative composite CI54.8\u201370.0 conflicts with narrative55.2\u201370.4 and is excluded.",
+      "DNA-only plasma microbial cfDNA assay; no RNA viral detection or RNA sensitivity implied.",
+      "Primary article hosted on third-party rious168 mirror; DOI/title match publisher. Public redistribution licence absent; only compact factual table excerpt retained, original PDF retrieval hash preserved."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-issue13",
+    "protocol_id": "amp-20261007-dna-pathogens-protocol",
+    "relevance": "proxy",
+    "use_case_id": "use-case-diagnostic-dna-pathogen-identification"
+  },
+  {
+    "endpoint": "Sensitivity against original clinical respiratory-virus-panel testing (103/110, 93.6%) for RNA mNGS on a residual-sample pre-DTCA mixed respiratory-target cohort, adenovirus transcripts included",
+    "evaluation_ids": [
+      "amp-20261007-rna-pathogens-evaluation"
+    ],
+    "limitations": [
+      "RNA-only specimen preparation supports RNA pathogen-detection workflow; tested target mix includes adenovirus, a DNA virus detected via transcription. Do not describe the 93.6% as a pure RNA-virus-only subgroup score.",
+      "Multiple detected targets are weighted so each specimen contributes one observation; out-of-panel mNGS positive calls are not counted as false positives.",
+      "Positive-specimen BAL/swab count disagreement in Results vs Methods remains unresolved; total 110 positives and 81 negatives agree.",
+      "No confidence interval extracted for original sensitivity. After selective discrepancy adjudication, report PPA/NPA rather than sensitivity; DTCA measurements must remain separate.",
+      "No foundation model or independent external replication; clinical residual-sample validation study supplies conventional baseline evidence.",
+      "Post-DTCA printed PPA98.7% (110.5/113) is arithmetically inconsistent; no DTCA endpoint selected or corrected."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-issue14",
+    "protocol_id": "amp-20261007-rna-pathogens-protocol",
+    "relevance": "proxy",
+    "use_case_id": "use-case-diagnostic-rna-pathogen-detection"
+  },
+  {
+    "endpoint": "Sensitivity (73%, 152/208) at a reported 98% specificity for plasma cfDNA fragmentomics-based cancer detection, repeated 10-fold cross-validation (10 repeats)",
+    "evaluation_ids": [
+      "amp-20261007-ctdna-fragmentomics-evaluation"
+    ],
+    "limitations": [
+      "4 of 215 healthy individuals misclassified at source-labelled 98% specificity. Retain rounded printed specificity; do not recompute sensitivity.",
+      "Internal repeated cross-validation is not independent prospective screening validation; clinically identified cancers and healthy comparators differ from intended screening population.",
+      "DELFI composite features include CNAs/mtDNA, so this exact result is not pure fragmentation alone.",
+      "cfDNA signal is not purified ctDNA, tumour fraction limit is unreported for this endpoint.",
+      "Combined mutation+DELFI 115/126 (91%) is a different subset/configuration and is excluded."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-issue15",
+    "protocol_id": "amp-20261007-ctdna-fragmentomics-protocol",
+    "relevance": "proxy",
+    "use_case_id": "use-case-plasma-ctdna-fragmentomics"
+  },
+  {
+    "endpoint": "All-stage cancer-detection sensitivity (95% CI) at a declared specificity for cfMethyl-Seq on a repeated random 25% test split",
+    "evaluation_ids": [
+      "amp-eval-cfmethyl-allstage-sensitivity"
+    ],
+    "limitations": [
+      "No foundation-model comparison",
+      "No prospective screening benefit",
+      "No independent reproduction"
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-issue16",
+    "protocol_id": "amp-protocol-cfmethyl-randomsplit-detection",
+    "relevance": "direct",
+    "use_case_id": "use-case-plasma-ctdna-methylation"
+  },
+  {
+    "endpoint": "F-score for 1-5 kb deletion detection (DRAGEN 4.2 CNV/SV benchmarking, HG002) against the GIAB SV truth set",
+    "evaluation_ids": [
+      "amp-eval-dragen-cnv-sv-1-5kb-fscore"
+    ],
+    "limitations": [
+      "Unreported per-bin counts",
+      "No duplication/tumourCNV/clinical endpoint",
+      "No visualisation usability",
+      "CNVnator table/prose conflict",
+      "No foundation-model applicability"
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-issue17",
+    "protocol_id": "amp-protocol-hg002-cnv-1-5kb",
+    "relevance": "direct",
+    "use_case_id": "use-case-cnv-detection-characterisation"
+  },
+  {
+    "endpoint": "Total single-sample wall-clock runtime (seconds) for DRAGEN 4.2 Phase 4 processing of HG002, by hardware configuration",
+    "evaluation_ids": [
+      "amp-eval-dragen-hg002-phase4-runtime"
+    ],
+    "limitations": [
+      "No foundation-model inference benchmark",
+      "No peak memory",
+      "No clinical reporting turnaround",
+      "No runtime repeatCI"
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-issue18",
+    "protocol_id": "amp-protocol-dragen-hg002-phase4-total-runtime",
+    "relevance": "proxy",
+    "use_case_id": "use-case-diagnostic-genomics-model-execution"
+  },
+  {
+    "endpoint": "Acceptor sequence-classification AUC for five DNA foundation-model embeddings",
+    "evaluation_ids": [
+      "amp-feng-20261007-eval-splice-acceptor-dnabert-2",
+      "amp-feng-20261007-eval-splice-acceptor-nt-v2",
+      "amp-feng-20261007-eval-splice-acceptor-hyenadna",
+      "amp-feng-20261007-eval-splice-acceptor-caduceus-ph",
+      "amp-feng-20261007-eval-splice-acceptor-grover"
+    ],
+    "limitations": [
+      "Sequence-label acceptor classification is not a minigene reporter exon-inclusion endpoint and is not patient-RNA splicing validation.",
+      "Exact per-task split sizes/counts are unextracted from the inspected main text (Supplementary Data 6 is identified but not inspected).",
+      "No independent reproduction or qualified human scientific review."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-feng-splice-acceptor",
+    "protocol_id": "amp-feng-20261007-protocol-splice-acceptor",
+    "relevance": "proxy",
+    "use_case_id": "use-case-splicing-follow-up"
+  },
+  {
+    "endpoint": "Donor sequence-classification AUC for five DNA foundation-model embeddings",
+    "evaluation_ids": [
+      "amp-feng-20261007-eval-splice-donor-dnabert-2",
+      "amp-feng-20261007-eval-splice-donor-nt-v2",
+      "amp-feng-20261007-eval-splice-donor-hyenadna",
+      "amp-feng-20261007-eval-splice-donor-caduceus-ph",
+      "amp-feng-20261007-eval-splice-donor-grover"
+    ],
+    "limitations": [
+      "Sequence-label donor classification is not a minigene reporter exon-inclusion endpoint and is not patient-RNA splicing validation.",
+      "Exact per-task split sizes/counts are unextracted from the inspected main text (Supplementary Data 6 is identified but not inspected).",
+      "No independent reproduction or qualified human scientific review."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-feng-splice-donor",
+    "protocol_id": "amp-feng-20261007-protocol-splice-donor",
+    "relevance": "proxy",
+    "use_case_id": "use-case-splicing-follow-up"
+  },
+  {
+    "endpoint": "Promoter Arabidopsis TATA sequence-classification AUC for five DNA foundation-model embeddings",
+    "evaluation_ids": [
+      "amp-feng-20261007-eval-promoter-tata-dnabert-2",
+      "amp-feng-20261007-eval-promoter-tata-nt-v2",
+      "amp-feng-20261007-eval-promoter-tata-hyenadna",
+      "amp-feng-20261007-eval-promoter-tata-caduceus-ph",
+      "amp-feng-20261007-eval-promoter-tata-grover"
+    ],
+    "limitations": [
+      "Sequence classification accuracy is not a reporter expression measurement.",
+      "Exact per-task split sizes/counts are unextracted from the inspected main text (Supplementary Data 6 is identified but not inspected).",
+      "No independent reproduction or qualified human scientific review."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-feng-promoter-tata",
+    "protocol_id": "amp-feng-20261007-protocol-promoter-tata",
+    "relevance": "proxy",
+    "use_case_id": "use-case-plant-promoter-reporters"
+  },
+  {
+    "endpoint": "Promoter Arabidopsis NonTATA sequence-classification AUC for five DNA foundation-model embeddings",
+    "evaluation_ids": [
+      "amp-feng-20261007-eval-promoter-nontata-dnabert-2",
+      "amp-feng-20261007-eval-promoter-nontata-nt-v2",
+      "amp-feng-20261007-eval-promoter-nontata-hyenadna",
+      "amp-feng-20261007-eval-promoter-nontata-caduceus-ph",
+      "amp-feng-20261007-eval-promoter-nontata-grover"
+    ],
+    "limitations": [
+      "Sequence classification accuracy is not a reporter expression measurement.",
+      "Exact per-task split sizes/counts are unextracted from the inspected main text (Supplementary Data 6 is identified but not inspected).",
+      "No independent reproduction or qualified human scientific review."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-feng-promoter-nontata",
+    "protocol_id": "amp-feng-20261007-protocol-promoter-nontata",
+    "relevance": "proxy",
+    "use_case_id": "use-case-plant-promoter-reporters"
+  },
+  {
+    "endpoint": "Pathogenic-versus-common SNP discrimination (AUC, Cohen's d) for eleven DNA foundation-model/genomic-comparator configurations, across separate short- and long-window scored populations",
+    "evaluation_ids": [
+      "amp-feng-20261007-eval-variant-sei-hidden-states",
+      "amp-feng-20261007-eval-variant-sei-output-tracks",
+      "amp-feng-20261007-eval-variant-enformer-hidden-states",
+      "amp-feng-20261007-eval-variant-enformer-output-tracks",
+      "amp-feng-20261007-eval-variant-dnabert-2",
+      "amp-feng-20261007-eval-variant-nt-v2",
+      "amp-feng-20261007-eval-variant-hyenadna",
+      "amp-feng-20261007-eval-variant-hyenadna-450k-long-sequence",
+      "amp-feng-20261007-eval-variant-caduceus-ph",
+      "amp-feng-20261007-eval-variant-caduceus-ph-long-sequence",
+      "amp-feng-20261007-eval-variant-grover"
+    ],
+    "limitations": [
+      "No disease-specific (e.g. BRCA) subgroup claim is supported by this table.",
+      "Short-window and long-window populations are separate and must not be pooled; each configuration/dataset records its exact assignment.",
+      "Sei, Enformer (hidden/output tracks) are non-DNA-foundation specialised genomic comparators per the source's own asterisk notation, not DNA foundation models.",
+      "No independent reproduction or qualified human scientific review."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-feng-pathogenic-common-variant",
+    "protocol_id": "amp-feng-20261007-protocol-pathogenic-common-variant-classification",
+    "relevance": "proxy",
+    "use_case_id": "use-case-rare-disease-candidate-ranking"
+  },
+  {
+    "endpoint": "eQTL causal-versus-noncausal variant discrimination (AUC, Cohen's d) for twelve DNA foundation-model/genomic-comparator configurations",
+    "evaluation_ids": [
+      "amp-feng-20261007-eval-qtl-eqtl-sei-hidden-states",
+      "amp-feng-20261007-eval-qtl-eqtl-sei-output-tracks",
+      "amp-feng-20261007-eval-qtl-eqtl-enformer-hidden-states",
+      "amp-feng-20261007-eval-qtl-eqtl-enformer-output-tracks",
+      "amp-feng-20261007-eval-qtl-eqtl-dnabert-2",
+      "amp-feng-20261007-eval-qtl-eqtl-nt-v2",
+      "amp-feng-20261007-eval-qtl-eqtl-hyenadna",
+      "amp-feng-20261007-eval-qtl-eqtl-hyenadna-450k-long-sequence",
+      "amp-feng-20261007-eval-qtl-eqtl-caduceus-ph",
+      "amp-feng-20261007-eval-qtl-eqtl-caduceus-ph-long-sequence",
+      "amp-feng-20261007-eval-qtl-eqtl-grover",
+      "amp-feng-20261007-eval-qtl-eqtl-alphagenome-output-tracks"
+    ],
+    "limitations": [
+      "Post-window-filter per-model scored denominators are unreported for eQTL; the pre-filter positive count (1896) is not a confirmed denominator.",
+      "AlphaGenome appears only in this QTL comparison, not the pathogenic/common SNP comparison. It uses the long-window QTL dataset, consuming central 131,072 bp and averaging output tracks over central 2,048 bp.",
+      "Sei, Enformer (hidden/output tracks) and AlphaGenome (output tracks) are non-DNA-foundation specialised genomic comparators per the source's own asterisk notation, not DNA foundation models.",
+      "No independent reproduction or qualified human scientific review."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-feng-qtl-eqtl",
+    "protocol_id": "amp-feng-20261007-protocol-qtl-eqtl",
+    "relevance": "proxy",
+    "use_case_id": "use-case-regulatory-variant-gene-follow-up"
+  },
+  {
+    "endpoint": "sQTL causal-versus-noncausal variant discrimination (AUC, Cohen's d) for twelve DNA foundation-model/genomic-comparator configurations",
+    "evaluation_ids": [
+      "amp-feng-20261007-eval-qtl-sqtl-sei-hidden-states",
+      "amp-feng-20261007-eval-qtl-sqtl-sei-output-tracks",
+      "amp-feng-20261007-eval-qtl-sqtl-enformer-hidden-states",
+      "amp-feng-20261007-eval-qtl-sqtl-enformer-output-tracks",
+      "amp-feng-20261007-eval-qtl-sqtl-dnabert-2",
+      "amp-feng-20261007-eval-qtl-sqtl-nt-v2",
+      "amp-feng-20261007-eval-qtl-sqtl-hyenadna",
+      "amp-feng-20261007-eval-qtl-sqtl-hyenadna-450k-long-sequence",
+      "amp-feng-20261007-eval-qtl-sqtl-caduceus-ph",
+      "amp-feng-20261007-eval-qtl-sqtl-caduceus-ph-long-sequence",
+      "amp-feng-20261007-eval-qtl-sqtl-grover",
+      "amp-feng-20261007-eval-qtl-sqtl-alphagenome-output-tracks"
+    ],
+    "limitations": [
+      "Post-window-filter per-model scored denominators are unreported for sQTL; the pre-filter positive count (540) is not a confirmed denominator.",
+      "AlphaGenome appears only in this QTL comparison, not the pathogenic/common SNP comparison. It uses the long-window QTL dataset, consuming central 131,072 bp and averaging output tracks over central 2,048 bp.",
+      "Sei, Enformer (hidden/output tracks) and AlphaGenome (output tracks) are non-DNA-foundation specialised genomic comparators per the source's own asterisk notation, not DNA foundation models.",
+      "No independent reproduction or qualified human scientific review."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-feng-qtl-sqtl",
+    "protocol_id": "amp-feng-20261007-protocol-qtl-sqtl",
+    "relevance": "proxy",
+    "use_case_id": "use-case-regulatory-variant-gene-follow-up"
+  },
+  {
+    "endpoint": "paQTL causal-versus-noncausal variant discrimination (AUC, Cohen's d) for twelve DNA foundation-model/genomic-comparator configurations",
+    "evaluation_ids": [
+      "amp-feng-20261007-eval-qtl-paqtl-sei-hidden-states",
+      "amp-feng-20261007-eval-qtl-paqtl-sei-output-tracks",
+      "amp-feng-20261007-eval-qtl-paqtl-enformer-hidden-states",
+      "amp-feng-20261007-eval-qtl-paqtl-enformer-output-tracks",
+      "amp-feng-20261007-eval-qtl-paqtl-dnabert-2",
+      "amp-feng-20261007-eval-qtl-paqtl-nt-v2",
+      "amp-feng-20261007-eval-qtl-paqtl-hyenadna",
+      "amp-feng-20261007-eval-qtl-paqtl-hyenadna-450k-long-sequence",
+      "amp-feng-20261007-eval-qtl-paqtl-caduceus-ph",
+      "amp-feng-20261007-eval-qtl-paqtl-caduceus-ph-long-sequence",
+      "amp-feng-20261007-eval-qtl-paqtl-grover",
+      "amp-feng-20261007-eval-qtl-paqtl-alphagenome-output-tracks"
+    ],
+    "limitations": [
+      "Post-window-filter per-model scored denominators are unreported for paQTL; the pre-filter positive count (142) is not a confirmed denominator.",
+      "AlphaGenome appears only in this QTL comparison, not the pathogenic/common SNP comparison. It uses the long-window QTL dataset, consuming central 131,072 bp and averaging output tracks over central 2,048 bp.",
+      "Sei, Enformer (hidden/output tracks) and AlphaGenome (output tracks) are non-DNA-foundation specialised genomic comparators per the source's own asterisk notation, not DNA foundation models.",
+      "No independent reproduction or qualified human scientific review."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-feng-qtl-paqtl",
+    "protocol_id": "amp-feng-20261007-protocol-qtl-paqtl",
+    "relevance": "proxy",
+    "use_case_id": "use-case-regulatory-variant-gene-follow-up"
+  },
+  {
+    "endpoint": "ipaQTL causal-versus-noncausal variant discrimination (AUC, Cohen's d) for twelve DNA foundation-model/genomic-comparator configurations",
+    "evaluation_ids": [
+      "amp-feng-20261007-eval-qtl-ipaqtl-sei-hidden-states",
+      "amp-feng-20261007-eval-qtl-ipaqtl-sei-output-tracks",
+      "amp-feng-20261007-eval-qtl-ipaqtl-enformer-hidden-states",
+      "amp-feng-20261007-eval-qtl-ipaqtl-enformer-output-tracks",
+      "amp-feng-20261007-eval-qtl-ipaqtl-dnabert-2",
+      "amp-feng-20261007-eval-qtl-ipaqtl-nt-v2",
+      "amp-feng-20261007-eval-qtl-ipaqtl-hyenadna",
+      "amp-feng-20261007-eval-qtl-ipaqtl-hyenadna-450k-long-sequence",
+      "amp-feng-20261007-eval-qtl-ipaqtl-caduceus-ph",
+      "amp-feng-20261007-eval-qtl-ipaqtl-caduceus-ph-long-sequence",
+      "amp-feng-20261007-eval-qtl-ipaqtl-grover",
+      "amp-feng-20261007-eval-qtl-ipaqtl-alphagenome-output-tracks"
+    ],
+    "limitations": [
+      "Post-window-filter per-model scored denominators are unreported for ipaQTL; the pre-filter positive count (116) is not a confirmed denominator.",
+      "AlphaGenome appears only in this QTL comparison, not the pathogenic/common SNP comparison. It uses the long-window QTL dataset, consuming central 131,072 bp and averaging output tracks over central 2,048 bp.",
+      "Sei, Enformer (hidden/output tracks) and AlphaGenome (output tracks) are non-DNA-foundation specialised genomic comparators per the source's own asterisk notation, not DNA foundation models.",
+      "No independent reproduction or qualified human scientific review."
+    ],
+    "mapping_id": "use-case-mapping-amp-20261007-feng-qtl-ipaqtl",
+    "protocol_id": "amp-feng-20261007-protocol-qtl-ipaqtl",
+    "relevance": "proxy",
+    "use_case_id": "use-case-regulatory-variant-gene-follow-up"
+  }
+]

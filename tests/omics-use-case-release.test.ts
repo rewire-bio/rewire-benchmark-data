@@ -268,7 +268,7 @@ describe("historical reviewed use-case expansion", () => {
     const directory = path.join(temporary(), "curation");
     fs.cpSync(useCaseRoot, directory, { recursive: true });
     expect(useCaseInputFiles(directory)).toHaveLength(7);
-    expect(loadUseCases(directory)!.inputs.use_cases).toHaveLength(17);
+    expect(loadUseCases(directory)!.inputs.use_cases).toHaveLength(26);
     const file = path.join(directory, "inputs.json");
     const before = fs.readFileSync(file, "utf8");
     fs.writeFileSync(file, before + " ");
