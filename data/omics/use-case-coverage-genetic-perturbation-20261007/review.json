@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "reviewer": "Claude Sonnet genetic-perturbation-response evidence-research worker, independently reviewed by Codex",
+  "reviewed_at": "2026-10-07T12:24:44Z",
+  "scope": "Bounded additive genetic-perturbation-response evidence intake (B334/BL334, rewire-benchmarks #25; programme rewire-benchmark-data #3; article plan rewire.it #334). Adds PertEval-scFM (Wenteler et al., ICML 2025, PMLR v267 pp.66633-66677), Table 1, Norman single-gene section, 2,000 HVGs, AUSPC column, three configurations: GEARS (trained from scratch, no pretrained weights; 0.815 ± 0.039), MLP baseline (input Xc concatenated with perturbed-gene co-expression features, Eq. 3; 4.484 ± 0.299), Mean baseline (predicted effect = mean expression of all cells in the same context minus the cell's own expression, per the source's own text, population not restricted to controls or training cells in that text; 4.612 ± 0.317), all x10^-2 as printed. Scores the perturbation-effect delta=P-Xc (Eq. 5, described by the source as a 'log fold change perturbation effect'), not raw post-perturbation expression, and a different metric construction from GEARS Supplementary Table 6's own Pearson-delta-expression metric. AUSPC's printed uncertainty is the source's own propagated standard error (Appendix F.2 propagation formula; main-text Figure 2 caption wording), attributed to triplicate experiments per model (Appendix I, Figure I1 caption, which separately states '8 train-test splits' against Table 1's seven S-columns -- preserved as printed, not resolved). Experimental lane: 12 records (1 source, 1 dataset subset, 1 protocol, 3 configurations, 3 evaluations, 3 results); clinical and research lanes are empty scaffolding only. One new proxy mapping on use-case-genetic-perturbation-response (use-case-map-perteval-scfm-norman-single-auspc). This is a second, independent, full-text-verified GEARS evaluation distinct from the existing GEARS Supplementary Table 6 catalogue entries (different gene universe, split mechanism and metric construction); the eight existing Table 6 results and two mappings remain byte-identical. Reconciled to the focused execution gap opened at rewire-benchmarks #29 (frozen Norman control panel, metric-sensitivity check, separately registered context-transfer protocol), which this source-transcription intake does not close.",
+  "limitations": [
+    "Automated source review only (Claude local extraction, independently reviewed by Codex against the primary PDF, the pinned GitHub code at commit ce48c8b998901c8f8b6275114caac3a4d8543c0b, and the PMLR general publication agreement); not qualified human scientific review or independent experimental replication.",
+    "Proxy relevance only: expression-change-prediction endpoint, the same proxy class as the existing Table 6 mappings; does not establish prospective experiment-selection hit rate (case 6, use-case-phenotype-perturbation-selection, is the separate endpoint for that question).",
+    "Per-sparsification-split (S0.1-S0.7) scored perturbation counts are not printed by the source and are not computed or inferred here; the source's own eligible raw single-gene perturbation count (105, Appendix A.1) is the compiled dataset total, not a per-split scored count.",
+    "The source's own Table 1 double-gene section contains an internal printed arithmetic inconsistency (GEARS AUSPC 0.808, Mean-baseline AUSPC 4.255, printed Delta 4.254, where 4.255-0.808=3.447) and its Table 2 (Replogle RPE1, not part of this intake) contains a running-text-vs-table-row labeling conflict; neither is resolved by this pass.",
+    "The Mean baseline's input population ('all cells in the same context') is not fully specified by the paper's Section 2.2 text (control vs. all cells; training vs. all splits is not stated there). A separately dated, independently pinned code observation (commit ce48c8b998901c8f8b6275114caac3a4d8543c0b, MeanExpression.forward) computes a batch mean of the first half of whatever input is passed at call time; this is recorded as a distinct, dated fact, not merged with the paper's definition, and the code commit's correspondence to the published run is unverified.",
+    "GEARS in this intake is an independent from-scratch training run by PertEval-scFM's authors (official implementation, train-test splits modified to align with SPECTRA, other parameters at default values, no pretrained weights), not the original GEARS authors' own Table 6 checkpoint/run.",
+    "Input populations differ across the three intaken configurations (GEARS's graph-based architecture; the MLP baseline's Xc-plus-co-expression features; the Mean baseline's non-learned context mean) and are not an identical input budget.",
+    "This protocol concerns generalisation to unseen perturbations under SPECTRA's distribution-shift splits; it does not test or establish forecasting for unseen cells, donors, or cell-line/context transfer.",
+    "use-case-genetic-perturbation-response remains an incomplete, open evidence-collection case. A confirmed, directly relevant 27-method/29-dataset benchmark (scPerturBench, Wei et al., Nat. Methods) remains genuinely paywalled and unread. This intake does not close the focused execution gap tracked at rewire-benchmarks #29."
+  ],
+  "errors": [],
+  "files": {
+    "before.json": "3459ec854902ba86a96794e540c1a30c41d8ede1224ad17d062a10454e771771",
+    "review-clinical.json": "18d9edd91823aa57e0c2ea31f7e86bc1361fc97a5a3e21875dbbf0844ba70028",
+    "review-research.json": "ac93a0d99c2b83f88283cdd3bf868b74542b57b047bfb13fe736943138d4fea3",
+    "review-experimental.json": "d3a8c49f66ef799079a62a18a610d05a1081a40a6fe907bd9fce04f542fa22e9",
+    "clinical/records.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "clinical/coverage.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "clinical/research.md": "307ad460d827a5bb912804edcd959ea23c1bb1420cbc14758be7285cba552fbb",
+    "clinical/sources.md": "97de6dfab75f716e84c77e12fcb7b62442abffbbfffa8d2da602d1ac43500bc5",
+    "clinical/claims.csv": "dfd141142dd216fea7c1790ba85c32b0b8806a3ecf85ee9674529d3d0ccc087e",
+    "clinical/retrieval-log.md": "701ad41d1026fe097d8d078d908b72a6217ec52d2ee9e6d6fad54f23e7cc8b99",
+    "research/records.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/coverage.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "research/research.md": "0638a5c5dd38b0af19e2bdb36d09b43a2ecc625533b25481ce0086de51fd7497",
+    "research/sources.md": "2f0810f991084cfa1e9252af0c7b1dda6be28a9cda5a69ea776b44b070d928c2",
+    "research/claims.csv": "dfd141142dd216fea7c1790ba85c32b0b8806a3ecf85ee9674529d3d0ccc087e",
+    "research/retrieval-log.md": "8a0eea5c1b353160fc6d361a78cc92e2b924d15a09b3ffaa1a95ac9b123d1379",
+    "experimental/records.jsonl": "084b55c04af375789ba49d234f7774dc4ef00080a1f2f6060f4f815e8cf0404c",
+    "experimental/coverage.json": "577436c013425aa9eb6c21315c65714e202b26bde80720b0d594e8a77a6c935e",
+    "experimental/research.md": "0b73a47a4b8be3a252f0e051bbd78c9b6d33fafe75f5fd15d6768b320e415b31",
+    "experimental/sources.md": "fc990de64f437a2274897ac42abb359040e08dd6b1633beb82f92892bbda0147",
+    "experimental/claims.csv": "519ddbae1413367281ef09ee42e00a5413ace43c5cf97035b97806fad54a0f38",
+    "experimental/retrieval-log.md": "4151a582339c6a59da2a5d738538fdc508d98dfd93bd39b262766c85cd221483"
+  }
+}
