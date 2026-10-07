@@ -166,6 +166,16 @@ describe("AMP primary-source scientific regressions", () => {
     }
   });
 
+  it("preserves every record of the concurrently merged PertEval release", () => {
+    const latest = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-10-07-12bc4df80b96/catalogue.json.gz")).toString());
+    const combined = addUseCaseCoverage(latest.records, ROOT);
+    expect(combined.slice(0, latest.records.length)).toEqual(latest.records);
+    expect(combined).toHaveLength(latest.records.length + 431);
+    const sourceResults = latest.records.filter((r: RecordEntry) => r.kind === "result" && r.id.includes("perteval"));
+    expect(sourceResults).toHaveLength(3);
+    for (const result of sourceResults) expect(combined.find((r: RecordEntry) => r.id === result.id)).toEqual(result);
+  });
+
   it("preserves baseline scientific results through the native additive ingestion API", () => {
     const baseline = JSON.parse(gunzipSync(fs.readFileSync(`${BASE}/catalogue.json.gz`)).toString());
     const combined = addUseCaseCoverage(baseline.records, ROOT);

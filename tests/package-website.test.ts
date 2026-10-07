@@ -315,3 +315,117 @@ describe('historical baseline audit preservation on clean builds', () => {
     expect(fs.existsSync(f.oldDirectory)).toBe(false);
   });
 });
+
+describe('historical public coverage export preservation on clean builds', () => {
+  const coverageFile = (releaseId: string) => `public/omics/coverage/${releaseId}.json`;
+  async function prepared() {
+    const value = fixture();
+    for (const releaseId of [historical, current]) {
+      write(value.root, coverageFile(releaseId), JSON.stringify({ release_id: releaseId, released_at: '2026-01-01T00:00:00.000Z', scope: 'fixture', summary: {}, pages: [] }) + '\n');
+    }
+    await packageWebsite({ dataDir: value.root });
+    const inventoryPath = path.join(value.root, 'website/manifest.json');
+    const inventoryBytes = fs.readFileSync(inventoryPath);
+    const inventory = JSON.parse(inventoryBytes.toString()) as PreparedManifest;
+    const oldFile = path.join(value.root, coverageFile(historical));
+    const oldBytes = fs.readFileSync(oldFile);
+    fs.rmSync(oldFile);
+    const entry = inventory.files.find(row => row.destination === coverageFile(historical))!;
+    return { ...value, inventoryPath, inventoryBytes, inventory, oldFile, oldBytes, entry };
+  }
+  const rewrite = (f: Awaited<ReturnType<typeof prepared>>) => fs.writeFileSync(f.inventoryPath, JSON.stringify(f.inventory));
+
+  it.each([false, true])('reconstructs the prior coverage bytes and reproduces the exact inventory (currentOnly=%s)', async currentOnly => {
+    const f = await prepared();
+    if (currentOnly) {
+      // A current-only build keeps its historical-scope releases out, but must still carry the reviewed coverage entry.
+      f.inventory.files = f.inventory.files.filter(row => row.scope === 'current');
+      rewrite(f);
+    }
+    const { manifest } = await packageWebsite({ dataDir: f.root, currentOnly });
+    expect(fs.readFileSync(f.oldFile)).toEqual(f.oldBytes);
+    expect(manifest.files.find(row => row.destination === coverageFile(historical))).toEqual(f.entry);
+    if (!currentOnly) expect(fs.readFileSync(f.inventoryPath)).toEqual(f.inventoryBytes);
+    const before = fs.statSync(f.oldFile);
+    await packageWebsite({ dataDir: f.root, currentOnly });
+    expect(fs.statSync(f.oldFile).ino).toBe(before.ino);
+    expect(fs.statSync(f.oldFile).mtimeMs).toBe(before.mtimeMs);
+  });
+
+  it('never restores a missing current coverage export from an old package', async () => {
+    const f = await prepared();
+    fs.rmSync(path.join(f.root, coverageFile(current)));
+    const { manifest } = await packageWebsite({ dataDir: f.root });
+    expect(fs.existsSync(path.join(f.root, coverageFile(current)))).toBe(false);
+    expect(manifest.files.some(row => row.destination === coverageFile(current))).toBe(false);
+    expect(manifest.files.some(row => row.destination === coverageFile(historical))).toBe(true);
+  });
+
+  it('restores only reviewed coverage paths, never other omitted outputs', async () => {
+    const f = await prepared();
+    write(f.root, 'public/omics/other-export.json', '{"extra":true}\n');
+    await packageWebsite({ dataDir: f.root });
+    fs.rmSync(path.join(f.root, 'public/omics/other-export.json'));
+    const { manifest } = await packageWebsite({ dataDir: f.root });
+    expect(fs.existsSync(path.join(f.root, 'public/omics/other-export.json'))).toBe(false);
+    expect(manifest.files.some(row => row.destination === 'public/omics/other-export.json')).toBe(false);
+  });
+
+  it('refuses corrupted compressed coverage bytes without writing or changing the inventory', async () => {
+    const f = await prepared();
+    fs.writeFileSync(path.join(f.root, f.entry.source), gzipSync('wrong bytes'));
+    await expect(packageWebsite({ dataDir: f.root })).rejects.toThrow(/Historical coverage checksum or size mismatch/);
+    expect(fs.existsSync(f.oldFile)).toBe(false);
+    expect(fs.readFileSync(f.inventoryPath)).toEqual(f.inventoryBytes);
+  });
+
+  it('bounds historical inflation by the declared byte count', async () => {
+    const f = await prepared();
+    fs.writeFileSync(path.join(f.root, f.entry.source), gzipSync(Buffer.alloc(1024 * 1024)));
+    await expect(packageWebsite({ dataDir: f.root })).rejects.toThrow();
+    expect(fs.existsSync(f.oldFile)).toBe(false);
+  });
+
+  it('rejects an existing conflicting historical file without overwriting it', async () => {
+    const f = await prepared();
+    const target = write(f.root, coverageFile(historical), 'preserve conflict');
+    await expect(packageWebsite({ dataDir: f.root })).rejects.toThrow(/Immutable historical coverage conflict/);
+    expect(fs.readFileSync(target, 'utf8')).toBe('preserve conflict');
+  });
+
+  it.each(['source', 'destination'])('rejects a symlinked historical %s', async kind => {
+    const f = await prepared();
+    const outside = path.join(f.root, 'outside.json');
+    fs.writeFileSync(outside, f.oldBytes);
+    if (kind === 'source') {
+      const source = path.join(f.root, f.entry.source);
+      fs.rmSync(source);
+      fs.symlinkSync(outside, source);
+    } else fs.symlinkSync(outside, f.oldFile);
+    await expect(packageWebsite({ dataDir: f.root })).rejects.toThrow(/Symlink path/);
+    expect(fs.readFileSync(outside)).toEqual(f.oldBytes);
+  });
+
+  it.each(['unsafe source', 'unexpected name', 'wrong scope', 'oversized declaration', 'duplicate entry', 'wrong embedded release', 'missing receipt'])('rejects %s', async kind => {
+    const f = await prepared();
+    if (kind === 'unsafe source') f.entry.source = '../private.gz';
+    else if (kind === 'unexpected name') f.entry.destination = 'public/omics/coverage/not-a-release.json';
+    else if (kind === 'wrong scope') f.entry.scope = 'historical';
+    else if (kind === 'oversized declaration') f.entry.bytes = 1024 ** 3;
+    else if (kind === 'duplicate entry') f.inventory.files.push({ ...f.entry });
+    else if (kind === 'wrong embedded release') {
+      const bytes = JSON.stringify({ release_id: current, released_at: '2026-01-01T00:00:00.000Z' });
+      fs.writeFileSync(path.join(f.root, f.entry.source), gzipSync(bytes));
+      f.entry.sha256 = sha(bytes); f.entry.bytes = Buffer.byteLength(bytes);
+    } else fs.rmSync(path.join(f.root, `data/omics/releases/${historical}.json`));
+    rewrite(f);
+    const expected: Record<string, RegExp> = {
+      'unsafe source': /Invalid historical coverage metadata/, 'unexpected name': /Unexpected historical coverage destination/,
+      'wrong scope': /Invalid historical coverage metadata/, 'oversized declaration': /Invalid historical coverage metadata/,
+      'duplicate entry': /Duplicate historical coverage entry/, 'wrong embedded release': /Historical coverage release binding mismatch/,
+      'missing receipt': /Invalid historical receipt/,
+    };
+    await expect(packageWebsite({ dataDir: f.root })).rejects.toThrow(expected[kind]);
+    expect(fs.existsSync(f.oldFile)).toBe(false);
+  });
+});
