@@ -40,6 +40,57 @@ expected to change for any new current release); all other 416 changed entries a
 `scope: "current" -> "historical"` label flips for the now-superseded prior-current release
 (`b7e5907c917f`), with identical bytes.
 
+## Reproducibility fix — clean-build historical coverage retention (producer PR #20, CI run 37630313307)
+
+The reviewed package inventory (`website/manifest.json`, SHA-256
+`6afd35795e2ff956a829ead162c3d1a6d6ed92452b25559b078624e256ed3a4a`, 9,200 files) retains the prior release's
+public coverage export `public/omics/coverage/2026-10-07-b7e5907c917f.json`. The manual restore described in
+Correction 2 lived only in gitignored local `public/` scratch, so CI's clean `npm run build` regenerated only
+9,199 files and `git diff --exit-code -- data website` failed on exactly that omitted manifest entry. Nothing
+scientific was wrong; the generator was not reproducible from a clean checkout.
+
+Fix (packaging code only; `scripts/package-website.mjs`): a new `restoreHistoricalCoverageExports`, modelled on
+the existing `restoreHistoricalBaselineAudits`, runs at the start of packaging. It reads the previous reviewed
+`website/manifest.json` before it can be overwritten and restores **only** destinations of the exact form
+`public/omics/coverage/<release>.json` already declared there, from the exact reviewed compressed source
+`website/files/public/omics/coverage/<release>.json.gz`. Strict checks, all performed before any write:
+
+- destination must match the release/path pattern (any other `public/omics/coverage/` destination is rejected);
+  source must equal `website/files/<destination>.gz`; scope must be the reviewed `current`; SHA-256 and byte count
+  must be well formed and bounded; duplicate entries are rejected;
+- symlinks anywhere in source or destination paths are rejected; oversized or corrupt gzip input is rejected, with
+  inflation bounded by the declared byte count and a SHA-256 plus size comparison of the inflated bytes;
+- an existing destination with different bytes is a conflict and is never overwritten (identical existing bytes are
+  left untouched, preserving inode and mtime);
+- the embedded `release_id` must equal the named release, the named release's immutable receipt
+  `data/omics/releases/<release>.json` must exist and validate, and `released_at` must match the receipt when the
+  receipt carries one;
+- the current release's coverage export is never restored from the old package.
+
+No custom page cache, plugin or incremental release logic was added. No scientific record, mapping, receipt,
+archive byte, `release-config.json` value or `12bc4df80b96` content was touched.
+
+Regression tests added to `tests/package-website.test.ts` (16 new tests, block "historical public coverage
+export preservation on clean builds"): exact reconstruction and byte-identical inventory for full and
+current-only builds with inode/mtime stability; no restore of a missing current export; no restore of unrelated
+omitted outputs; corrupt gzip; inflation bound; conflicting existing bytes; symlinked source and destination; and
+rejection of unsafe source, unexpected destination name, wrong scope, oversized declaration, duplicate entry,
+wrong embedded release id and missing receipt, each asserting its specific error. Mutation check: with the
+restore call disabled, 15 of the 53 tests in the file fail; with it enabled all pass.
+
+Reproduction from CI's clean state: the local gitignored `public/` tree was moved aside (to
+`workbench/genetic-perturbation-20261007/public-pre-cleanbuild/`, ignored) and the unmodified command
+`npm run build` was run (started `2026-10-07T14:10:10Z`, exit `0`, finished `2026-10-07T14:18:21Z`). It reported
+`Packaged benchmark website data (2026-10-07-12bc4df80b96): 9200 files (current-only: false)`, and
+`git diff --exit-code -- data website` exited **0** with no untracked output under `data/` or `website/`. The
+release manifest (`data/omics/releases/2026-10-07-12bc4df80b96.json`, SHA-256
+`f265ce9e2f9ded5b9b47c0da95c31873f39e0018b0864c6e9169c45d13714895`), `website/manifest.json` (SHA-256
+`6afd35795e2ff956a829ead162c3d1a6d6ed92452b25559b078624e256ed3a4a`) and `release-config.json`
+(`released_at` `2026-10-07T13:25:04.000Z`) are unchanged; the 28,234 historic records, 72 mappings and 17 use-case
+definitions therefore remain byte-identical to the reviewed release. `npm run verify:package` then reported
+`Verified 9200 tracked prepared sources for 2026-10-07-12bc4df80b96` (the task files are already tracked) and
+`npm run verify:archives` verified 6,163 source files.
+
 ## Release identity
 
 - `data/omics/release-config.json` `released_at` updated once more, to a new actual UTC timestamp:
@@ -141,9 +192,12 @@ prior pass and are confirmed untouched by `git status` above).
 
 | Command | Result | Notes |
 |---|---|---|
-| `vitest run` (full suite, 51 files / 571 tests) | **passed** | Retained from earlier in this session; not re-run, since this pass's only changes are one record attribute's text, the corresponding receipt/mapping hashes, and release metadata/build state — no code or type change beyond what was already typechecked and build-exercised. |
+| `vitest run` (full suite) | **51 files / 587 tests passed** | Re-run once after the `package-website.mjs` change (571 prior + 16 new coverage-retention tests), with `TMPDIR` on the external SSD. |
+| `vitest run tests/package-website.test.ts` | **53/53 passed** | 37 pre-existing + 16 new; mutation check above |
 | `vitest run tests/omics-genetic-perturbation-perteval-intake.test.ts` | **6/6 passed** | Re-run after the Correction 1 wording fix, and again after the final clean release build, to confirm the focused intake remains internally consistent |
-| `tsc --noEmit` | **exit 0**, no output | Re-run after the final build |
+| `tsc --noEmit` | **exit 0**, no output | Re-run after the packaging code change |
+| `npm run build` (full, clean `public/`) | **exit 0**, 9,200 files, `git diff --exit-code -- data website` **exit 0** | See reproducibility fix above |
+| `npm run verify:package` | **exit 0**, 9,200 tracked prepared sources | Task files already tracked |
 | `python3 -m unittest discover -s scripts/omics/tests -p "test_*.py"` | **6/6 passed** (prior pass) | Not re-run; no Python-relevant file changed in this pass |
 | `npm run build:current` | **exit 0** (after in-place cleanup of a stale manifest left by the rejected candidate) | |
 | `node scripts/package-website.mjs` (full) | **exit 0** (after restoring the historical coverage file and removing leftover rejected-candidate scratch directories) | |
@@ -151,11 +205,11 @@ prior pass and are confirmed untouched by `git status` above).
 | Manifest-declared checksum re-verification | **9,200/9,200 verified, 0 mismatches** | |
 | Clean restore (new release only) | **415/415 files + manifest byte-identical** | |
 
-`npm run verify:extraction` (full, not `--archives-only`) and `npm run verify:package` were not re-run in
-this pass: both have the same pre-existing/by-design characteristics documented in the prior version of
-this report (the former fails on the immutable `docs/data-extraction.json` migration receipt pinning an
-old `release-config.json` hash, not altered here; the latter requires git-index tracking that only
-exists after staging, which this pass does not perform).
+`npm run verify:extraction` (full, not `--archives-only`) was not re-run in this pass; it keeps the same
+pre-existing, by-design characteristic documented earlier (it fails on the immutable
+`docs/data-extraction.json` migration receipt pinning an old `release-config.json` hash, which was not
+altered). `npm run verify:package`, which requires the prepared files to be git-tracked, passes now that the
+reviewed release and package are committed (see the reproducibility fix above).
 
 ## Scientific scope — unchanged limitations
 
