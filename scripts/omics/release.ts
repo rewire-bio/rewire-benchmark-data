@@ -338,9 +338,9 @@ function main() {
     addAcquiredEvidence(addRunRecipes(separateEntities(profiled))),
   )))));
   const reviewedUseCases = loadUseCases();
-  const records = addUseCaseCoverage(addUseCaseCoverage(addUseCaseCoverage(addUseCaseSources(addSourceLabelIdentities(
+  const records = addUseCaseCoverage(addUseCaseCoverage(addUseCaseCoverage(addUseCaseCoverage(addUseCaseSources(addSourceLabelIdentities(
     addProfileEvidence(addModelEvaluationLinks(addCoverageTables(evaluated))),
-  ), reviewedUseCases)), "data/omics/use-case-coverage-20261005"), "data/omics/use-case-coverage-20261006");
+  ), reviewedUseCases)), "data/omics/use-case-coverage-20261005"), "data/omics/use-case-coverage-20261006"), "data/omics/use-case-coverage-20261007");
   const profiles = records
     .filter((record) => record.attributes.profile)
     .map((record) => record.attributes.profile as OmicsProfile);
@@ -470,6 +470,7 @@ function main() {
               "Preserve archived release bytes, historical URLs and MFASS history. Contribution intake remains controlled separately from catalogue publication.",
               ...(research ? ["Add verified research manifests, frozen readiness assessments and reviewed-only investigation contracts. Record IDs and values remain unchanged."] : []),
               "Add a second, additive BRCA1/BRCA2 germline-interpretation evidence intake (issue #343): 42 new source-checked clinical-lane records from five sources (Benet-Pages 2025, So 2024, HECTOR preprint, Hu 2026, Karalidou 2022/MARGINAL source-only), distinguishing reclassification rate, tool agreement, preprint classification concordance and functional-data classification yield from clinical accuracy. Add five new scoped proxy use-case mappings against these records: two for Benet-Pages criteria-version reclassification on a fixed VUS cohort (ACMG/AMP+SVI, then ENIGMA VCEP), one for So 2024 VarSome-vs-CanVIG-UK tool agreement on conflicting BRCA1 missense calls, one for HECTOR preprint agreement with ClinGen eRepo expert calls, and one for Hu 2026 BRCA2 exon 15-26 functional-data classification yield; Karalidou 2022 remains source-only with no mapping added. None of these endpoints establishes clinical accuracy, qualified human scientific review or Rewire execution. All prior scientific records, mapping objects and historic release bytes remain unchanged.",
+              "Add a bounded, additive cell-type-annotation-transfer evidence intake (issue #349): Abdelaal et al. 2019 Figure S10 Panel B (34-population inter-dataset, cross-dataset/cross-species-where-applicable brain annotation-transfer comparison), SVMrejection row only (9 percent-unlabeled values across all nine VISp/ALM/MTG train-test combinations; VISp and ALM share a source study, GSE115746, so only the 7 of 9 combinations involving MTG are genuinely cross-study and cross-species), read directly from a page-image render of a separately-sourced supplement-PDF artifact and independently cross-checked before ingestion. Reuses the existing SVMrejection method/configuration records unmodified; adds one new source record, three new dataset records, one new protocol record, nine new evaluation records and nine new result records, plus one new scoped proxy use-case mapping. Scored denominator is explicitly unreported; Table 2's raw per-dataset cell counts are recorded as context only, not a confirmed denominator. Not a known-type accuracy claim, not an unknown-type-detection accuracy claim, and not a superiority claim across methods. All prior scientific records, mapping objects and historic release bytes remain unchanged.",
             ],
           }
         : {}),
@@ -496,6 +497,7 @@ function main() {
         ...useCaseCoverageInputFiles(),
         ...useCaseCoverageInputFiles("data/omics/use-case-coverage-20261005"),
         ...useCaseCoverageInputFiles("data/omics/use-case-coverage-20261006"),
+        ...useCaseCoverageInputFiles("data/omics/use-case-coverage-20261007"),
         ...researchInputFiles.filter(file => fs.existsSync(file)),
         ...reviewInputFiles.filter((file) => fs.existsSync(file)),
         ...profileInputs.filter((file) => fs.existsSync(file)),

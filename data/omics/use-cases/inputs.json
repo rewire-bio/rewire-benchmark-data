@@ -4315,6 +4315,60 @@
         "note": "Source-backed primary-text transcription of Abdelaal et al. 2019, continuing the bounded 2026-10-06 cell-type-annotation-transfer research dossier and same-day additive intake; bound by data/omics/use-case-coverage-20261006/review.json. Revised after an independent review: the source's retrieved_at is now the real re-fetch timestamp 2026-10-06T23:28:54Z UTC (byte-identical; a bounded-window estimate was used previously), its bytes are archived as a committed artifact (not only the gitignored workbench copy), the three unlabeled-percentage results' metric_direction is now \"unknown\" (was \"lower\", an unsupported universal claim) with an explicit F1/rejection-tradeoff note, and the 8,569-cell figure is now explicitly scoped as the Table 2 dataset size, not a confirmed scored denominator. No printed value changed; evidence_sha256 refreshed accordingly. scArches's ~84% accuracy figure was re-checked in the same pass and found unresolved (accuracy-formula denominator not stated for the reporting figure); no record for it exists in this release. No new model execution, independent experimental replication, qualified human scientific review or clinical validation."
       },
       "evidence_sha256": "e0f5ec5a720c706fbe9c2cee13e1079f53b36c874c3ba392c7baee4165690e55"
+    },
+    {
+      "id": "use-case-mapping-20261007-349-b12e5dc4f5b4",
+      "use_case_id": "use-case-cell-type-annotation-transfer",
+      "lifecycle": "active",
+      "revision": 1,
+      "reason": "Bounded additive intake (issue #349), continuing the 2026-10-06/2026-10-07 dossier series, independently reviewed by Codex before ingestion: Abdelaal et al. 2019 Figure S10 Panel B (34-population inter-dataset, cross-dataset/cross-species-where-applicable brain comparison), SVMrejection row only (9 values). VISp and ALM share GSE115746. MTG is a separate human single-nucleus dataset; combinations involving MTG include cross-species data. Some two-dataset training combinations still share the mouse study with the test dataset, so independent-study holdout must not be inferred for all nine combinations. A conventional rejection-option baseline, not a known-type accuracy or unknown-type-detection accuracy claim, and not a superiority claim across methods. Kept as a separate mapping from the existing Baron Human INTRA-dataset mapping (a different, non-transfer design) and from the two scTab uncertainty mappings.",
+      "protocol_id": "ucc-research-protocol-abdelaal-brain-inter-34pop",
+      "evaluation_ids": [
+        "ucc-research-eval-abdelaal-brain-alm-from-visp",
+        "ucc-research-eval-abdelaal-brain-alm-from-mtg",
+        "ucc-research-eval-abdelaal-brain-alm-from-visp-mtg",
+        "ucc-research-eval-abdelaal-brain-mtg-from-visp",
+        "ucc-research-eval-abdelaal-brain-mtg-from-alm",
+        "ucc-research-eval-abdelaal-brain-mtg-from-visp-alm",
+        "ucc-research-eval-abdelaal-brain-visp-from-alm",
+        "ucc-research-eval-abdelaal-brain-visp-from-mtg",
+        "ucc-research-eval-abdelaal-brain-visp-from-alm-mtg"
+      ],
+      "endpoint": "Inter-dataset (cross-dataset, cross-species where applicable) SVMrejection conventional rejection-option baseline: percentage of test-set cells left unlabeled across all 9 VISp/ALM/MTG train-test combinations, 34-cell-population annotation level.",
+      "relevance": "proxy",
+      "rationale": "A conventional-classifier rejection-option baseline on a genuine cross-dataset brain annotation-transfer design. VISp and ALM share GSE115746. MTG is a separate human single-nucleus dataset; combinations involving MTG include cross-species data. Some two-dataset training combinations still share the mouse study with the test dataset, so independent-study holdout must not be inferred for all nine combinations. This is directly relevant to the use case's 'identify cells that require expert review' endpoint. It is NOT a known-type accuracy result, NOT an unknown/absent-type-detection accuracy result, and NOT a comparison against any other classifier (only SVMrejection is ingested); it predates and does not evaluate scTab, CellTypist, Azimuth, scANVI or scParadise.",
+      "constraints": [
+        "Inter-dataset (whole-dataset train/test combinations across VISp, ALM, MTG), not a within-dataset cross-validation split.",
+        "34-cell-population (deeper) annotation level only (Figure S10 Panel B); the 3-population major-lineage level (Figure S10 Panel A) is not included.",
+        "SVMrejection only; the other 17 classifiers shown in the same source figure are not included in this mapping."
+      ],
+      "limitations": [
+        "Scored denominator is UNREPORTED in the retrieved main text and supplement. Table 2's raw per-dataset cell counts (VISp 12,832; ALM 8,758; MTG 14,636) are recorded on the linked dataset records as context only, not a confirmed denominator, and must not be used to back-calculate an implied rejected-cell count.",
+        "metric_direction is \"unknown\" for every result under this mapping's protocol: percentage unlabeled is a coverage/rejection-rate figure, not a standalone performance metric with one universal better/worse direction.",
+        "Not a known-type accuracy claim, not an unknown/absent-type-detection accuracy claim, and not a superiority claim over any other classifier; no comparison across methods is asserted by this mapping.",
+        "Figure S9 Panel A (PBMC) carries no printed digit labels in the source PDF at any resolution checked, and separately shows an unresolved conflict between its own caption (\"median F1-score\"), the page's only legend (\"Unlabeled (%)\"), and the figure's overall title (\"Percentage of unlabeled cells\"); nothing from Figure S9 is part of this mapping.",
+        "Reference labels are the original brain-atlas studies' author-assigned cell-population annotations, not independently adjudicated ground truth.",
+        "VISp and ALM share GSE115746. MTG is a separate human single-nucleus dataset; combinations involving MTG include cross-species data. Some two-dataset training combinations still share the mouse study with the test dataset, so independent-study holdout must not be inferred for all nine combinations.",
+        "Automated source review only; independent human scientific review remains outstanding.",
+        "Predates scTab, CellTypist, Azimuth, scANVI and scParadise; does not evaluate them. Does not measure or substitute for the common-protocol cross-study benchmark gap tracked separately at rewire-benchmarks #27."
+      ],
+      "citations": [
+        {
+          "source_id": "ucc-research-source-abdelaal-2019-supplement",
+          "locator": "Figure S10, Panel B (page 15 of 18), row \"SVMrejection\""
+        },
+        {
+          "source_id": "ucc-research-source-abdelaal-2019-paper",
+          "locator": "Methods, \"Brain\" (train-test design); Table 2 (VISp/ALM/MTG raw dataset sizes, context only)"
+        }
+      ],
+      "review": {
+        "method": "automated_source_review",
+        "actor": "Claude Sonnet cell-type-annotation-transfer evidence-research worker",
+        "reviewed_at": "2026-10-07T07:44:08Z",
+        "note": "Source-backed primary-text transcription of Abdelaal et al. 2019 Figure S10 Panel B, bound by data/omics/use-case-coverage-20261007/research/review.json. Independently cross-checked against the original supplement PDF by a separate reviewer (Codex) before this mapping was added, including the nine printed values, column order, and the Figure S9 Panel A caption/legend/title conflict and Table 2 denominator-scope correction carried over from the preceding 2026-10-07 completion-assessment review. No new model execution, independent experimental replication, qualified human scientific review or clinical validation."
+      },
+      "evidence_sha256": "2c244a1d6cdfa0b4059e49cb8b72580fefa55effe869edbbb507aa8dc33a68cc"
     }
   ]
 }

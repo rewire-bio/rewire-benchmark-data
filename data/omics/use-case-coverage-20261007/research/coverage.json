@@ -1,0 +1,86 @@
+[
+  {
+    "use_case_id": "use-case-cell-type-annotation-transfer",
+    "issue": 349,
+    "existing_ids": [
+      "ucc-research-config-abdelaal-svm-rejection",
+      "ucc-research-method-abdelaal-svm-linear"
+    ],
+    "new_ids": [
+      "ucc-research-source-abdelaal-2019-supplement",
+      "ucc-research-data-abdelaal-visp",
+      "ucc-research-data-abdelaal-alm",
+      "ucc-research-data-abdelaal-mtg",
+      "ucc-research-protocol-abdelaal-brain-inter-34pop",
+      "ucc-research-eval-abdelaal-brain-alm-from-visp",
+      "ucc-research-eval-abdelaal-brain-alm-from-mtg",
+      "ucc-research-eval-abdelaal-brain-alm-from-visp-mtg",
+      "ucc-research-eval-abdelaal-brain-mtg-from-visp",
+      "ucc-research-eval-abdelaal-brain-mtg-from-alm",
+      "ucc-research-eval-abdelaal-brain-mtg-from-visp-alm",
+      "ucc-research-eval-abdelaal-brain-visp-from-alm",
+      "ucc-research-eval-abdelaal-brain-visp-from-mtg",
+      "ucc-research-eval-abdelaal-brain-visp-from-alm-mtg"
+    ],
+    "sources": [
+      {
+        "source_id": "ucc-research-source-abdelaal-2019-supplement",
+        "url": "https://static-content.springer.com/esm/art%3A10.1186%2Fs13059-019-1795-z/MediaObjects/13059_2019_1795_MOESM1_ESM.pdf"
+      }
+    ],
+    "search_queries": [],
+    "search_date": "2026-10-07",
+    "verdict": "Bounded additive intake (issue #349), continuing the 2026-10-06/2026-10-07 dossier series. No new literature search was performed; this pass extracts exactly one previously-identified-but-unextracted figure from an already-cached, already-hashed primary source (Abdelaal et al. 2019 Additional File 1, Figure S10 Panel B), re-rendered at page-image resolution and read directly (not OCR, not color inference, not pdftotext). Ingests the SVMrejection row only (9 values): a conventional rejection-option baseline across the paper's genuine inter-dataset (cross-dataset, cross-species where applicable) brain annotation-transfer design (VISp/ALM/MTG, 34-population annotation level). VISp and ALM share GSE115746. MTG is a separate human single-nucleus dataset; combinations involving MTG include cross-species data. Some two-dataset training combinations still share the mouse study with the test dataset, so independent-study holdout must not be inferred for all nine combinations. This is a deliberately narrow, coherent subset of the 18-classifier heatmap shown in the source figure, not a full-panel ingestion; the other 17 classifier rows, Figure S10 Panel A (3-population level), and Figure S9 (PBMC) are explicitly not ingested. Reuses the existing SVMrejection method/configuration records (ucc-research-method-abdelaal-svm-linear, ucc-research-config-abdelaal-svm-rejection) by reference, unmodified, since this is the identical classifier identity already catalogued for the Baron Human intra-dataset evaluation. Adds one new source record for the supplement PDF specifically (a separate byte artifact, SHA-256 797a2b22f584135f4ff6f7c98203d8e9529d6600f675b500205607b47b212a81, from the already-catalogued main-text XML). No model execution, no superiority claim across methods, and no unknown/absent-type-detection accuracy claim: this is a coverage/rejection-rate baseline only.",
+    "gaps": [
+      "The scored denominator (exact number of cells scored in each individual train-test experiment) is unreported in the retrieved main text and supplement. Table 2's raw per-dataset cell counts (VISp 12,832; ALM 8,758; MTG 14,636) are recorded as context only on the linked dataset records, not as a confirmed denominator.",
+      "Only the SVMrejection row is ingested; the other 17 classifiers in the same Figure S10 Panel B heatmap, and the entire Figure S10 Panel A (3-population level), remain unextracted.",
+      "Figure S9 Panel A (PBMC cross-protocol heatmap) carries no printed digit labels in the source PDF at any resolution checked, and separately shows an unresolved source-internal conflict between its own caption (\"median F1-score\"), the page's only legend (\"Unlabeled (%)\"), and the figure's overall title (\"Percentage of unlabeled cells\"); nothing from it is ingested.",
+      "This remains a pre-2019 conventional-classifier result; it does not include scTab, CellTypist, Azimuth, scANVI, or scParadise, and does not by itself answer the use case's compound known-type-accuracy-and-unknown-type-rejection-at-matched-coverage-across-independent-studies question.",
+      "Automated source review only; independent human scientific review remains outstanding.",
+      "This bounded ingestion is separate from, and does not measure or substitute for, the common-protocol cross-study benchmark gap tracked at rewire-benchmarks #27."
+    ],
+    "suggested_mappings": [
+      {
+        "protocol_id": "ucc-research-protocol-abdelaal-brain-inter-34pop",
+        "evaluation_ids": [
+          "ucc-research-eval-abdelaal-brain-alm-from-visp",
+          "ucc-research-eval-abdelaal-brain-alm-from-mtg",
+          "ucc-research-eval-abdelaal-brain-alm-from-visp-mtg",
+          "ucc-research-eval-abdelaal-brain-mtg-from-visp",
+          "ucc-research-eval-abdelaal-brain-mtg-from-alm",
+          "ucc-research-eval-abdelaal-brain-mtg-from-visp-alm",
+          "ucc-research-eval-abdelaal-brain-visp-from-alm",
+          "ucc-research-eval-abdelaal-brain-visp-from-mtg",
+          "ucc-research-eval-abdelaal-brain-visp-from-alm-mtg"
+        ],
+        "endpoint": "Inter-dataset (cross-dataset, cross-species where applicable) SVMrejection conventional rejection-option baseline: percentage of test-set cells left unlabeled across all 9 VISp/ALM/MTG train-test combinations, 34-cell-population annotation level.",
+        "relevance": "proxy",
+        "rationale": "A conventional-classifier rejection-option baseline on a genuine cross-dataset brain annotation-transfer design (cross-study and cross-species for the 7 of 9 combinations involving MTG; VISp and ALM are two mouse datasets from the same source study GSE115746, so independent-study holdout is not established for every pair), directly relevant to the use case's 'identify cells that require expert review' endpoint, but a single pre-2019 classifier's coverage/rejection rate only, not a known-type accuracy or unknown-type-detection accuracy result, and not a comparison against scTab/CellTypist/Azimuth/scANVI/scParadise.",
+        "constraints": [
+          "Inter-dataset (whole-dataset train/test combinations across VISp, ALM, MTG), not a within-dataset cross-validation split.",
+          "34-cell-population (deeper) annotation level only; the 3-population major-lineage level (Figure S10 Panel A) is not included.",
+          "SVMrejection only; the other 17 classifiers shown in the same source figure are not included."
+        ],
+        "limitations": [
+          "Scored denominator is unreported; Table 2's raw per-dataset cell counts are context only, not a confirmed denominator.",
+          "metric_direction is \"unknown\" for every result: percentage unlabeled is a coverage/rejection-rate figure, not a standalone performance metric with one universal direction.",
+          "Not a known-type accuracy claim, not an unknown/absent-type-detection accuracy claim, and not a superiority claim over any other classifier.",
+          "Reference labels are the original brain-atlas studies' author annotations, not independently adjudicated ground truth.",
+          "Automated source review only; independent human scientific review remains outstanding.",
+          "Predates scTab, CellTypist, Azimuth, scANVI and scParadise; does not evaluate them."
+        ],
+        "citations": [
+          {
+            "source_id": "ucc-research-source-abdelaal-2019-supplement",
+            "locator": "Figure S10, Panel B (page 15 of 18), row \"SVMrejection\""
+          },
+          {
+            "source_id": "ucc-research-source-abdelaal-2019-paper",
+            "locator": "Methods, \"Brain\" (train-test design)"
+          }
+        ]
+      }
+    ],
+    "draft_issue_comment": "Bounded additive intake (2026-10-07): Abdelaal et al. 2019 Figure S10 Panel B SVMrejection row ingested (9 inter-dataset, cross-dataset/cross-species-where-applicable rejection-rate percentages, 34-population annotation level, VISp/ALM/MTG; VISp and ALM share a source study, GSE115746, so independent-study holdout is not established for every pair). Reuses the existing SVMrejection method/configuration records; adds one new source record for the supplement PDF. Scored denominator unreported; not a known-type accuracy or unknown-type-detection claim; no superiority claim across methods. The other 17 classifiers in the same figure, Figure S10 Panel A, and Figure S9 remain unextracted. This use case remains incomplete; the common-protocol cross-study benchmark gap remains tracked separately at rewire-benchmarks #27."
+  }
+]
