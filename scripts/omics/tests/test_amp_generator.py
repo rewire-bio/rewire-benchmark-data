@@ -15,6 +15,14 @@ GENERATOR_PATH = ROOT / "scripts/omics/build-amp-coverage.py"
 NATIVE_ROOT = ROOT / "data/omics/use-case-coverage-amp-20261007"
 
 
+def batch_records(added_in):
+    """Records a batch added, read from the canonical store through provenance."""
+    ids = {row["id"] for row in map(json.loads, (ROOT / "data/provenance/records.jsonl").read_text().splitlines())
+           if row["added_in"] == added_in}
+    return [record for path in sorted((ROOT / "data").glob("[ee][nv]*/*.jsonl"))
+            for record in map(json.loads, path.read_text().splitlines()) if record["id"] in ids]
+
+
 def digest(content):
     return hashlib.sha256(content).hexdigest()
 
@@ -64,7 +72,7 @@ class AmpGeneratorRegressionTests(unittest.TestCase):
                     self.generator._load_archive_transform_registry()
 
     def test_claims_csv_preserves_every_canonical_printed_value(self):
-        records = [json.loads(line) for line in (NATIVE_ROOT / "clinical/records.jsonl").read_text().splitlines() if line]
+        records = batch_records("data/omics/use-case-coverage-amp-20261007/clinical/records.jsonl")
         results = {record["id"]: record for record in records if record["kind"] == "result"}
         with (NATIVE_ROOT / "clinical/claims.csv").open(newline="") as stream:
             reader = csv.DictReader(stream)
@@ -83,7 +91,7 @@ class AmpGeneratorRegressionTests(unittest.TestCase):
         self.assertTrue({"23,848", "24,132"}.issubset({row["printed_value"] for row in rows}))
 
     def test_public_artifact_inventory_and_both_hash_layers_are_bound(self):
-        records = [json.loads(line) for line in (NATIVE_ROOT / "clinical/records.jsonl").read_text().splitlines() if line]
+        records = batch_records("data/omics/use-case-coverage-amp-20261007/clinical/records.jsonl")
         sources = [record for record in records if record["kind"] == "source"]
         expected_paths = {record["attributes"]["review_artifact"] for record in sources}
         expected_paths.update(f"data/omics/amp-coverage-20261007/feng/{name}" for name in

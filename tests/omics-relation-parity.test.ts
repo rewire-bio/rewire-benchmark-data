@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { recordSchema as websiteRecord, validateRecords } from "../scripts/omics/schema";
 import { recordSchema as serviceRecord, validateSnapshot } from "../services/omics/src/validation";
 import { catalogueRelations } from "../services/omics/src/entity-kinds";
-import { readFileSync } from "node:fs";
+import { recordsById } from "./helpers/records";
 
-const source = JSON.parse(readFileSync("data/omics/reviewed/baseline-runs-2026-09-22/records.jsonl", "utf8").trim().split("\n").find(line => JSON.parse(line).id === "rewire-dataset-proteingym-amfr-random-v13")!);
+const source = recordsById.get("rewire-dataset-proteingym-amfr-random-v13")!;
 describe("website and API relationship contract", () => {
   it("accepts the same relation vocabulary and rejects unknown relations", () => {
     for (const relation of [...catalogueRelations, "unknown_relation"]) {

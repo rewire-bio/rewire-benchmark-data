@@ -19,11 +19,12 @@ Follow [docs/collection.md](../../../docs/collection.md), section 5.
 3. Check descriptive `claim` records the same way.
 4. Fill each result's `review`: `method` (plain description of how it was checked), `reviewer` (the actual actor, e.g. "Codex research agent; no human review claimed"), `date`, `artifact_sha256`, `retrieval_url`, `notes`.
 5. For problems:
-   - a source or result that should not support comparison: add to `data/omics/evidence-concerns.jsonl` with artifact hash, locator and date
-   - a wrong descriptive field: add a superseding entry to `data/omics/metadata-corrections.jsonl`
-   - a wrong number in a stored record: add a corrected result that supersedes it; never edit the old one
+   - a source or result that should not support comparison: add an entry to the source record's `attributes.evidence_concerns` with artifact hash, locator and date
+   - a wrong descriptive field: change it and add a `metadata-correction-*` claim keeping the previous value
+   - a wrong number in a stored record: add a corrected result that supersedes it; never edit the old value
+   - after any edit to a stored record, run `npm run records -- change <dated review> <batch folder> <ids>` so provenance records the change
    - a batch not ready for the build: move it to `data/omics/pending-review/<batch>/` with a README stating why
-6. Write the receipt that binds the batch: `review.json` and `review-<lane>.json` for a use-case batch (schema version, method, reviewer, reviewed_at, scope, limitations, empty errors, SHA-256 of every input file), or `data/omics/reviews/<date>-<benchmark>-extraction.json` for a benchmark batch.
+6. Write the batch receipt `data/omics/<batch>/review.json`: schema version, method, reviewer, reviewed_at, scope, limitations, empty errors, and the SHA-256 of `batch.jsonl` and every other file in the folder.
 7. Write a dated review in `docs/reviews/` (or `docs/reviews/use-cases/`): sources and hashes, a table of every value checked with its outcome, conflicts, and remaining gaps.
 8. Run `npm test`, `npm run typecheck` and `npm run build`.
 

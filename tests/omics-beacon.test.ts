@@ -8,7 +8,7 @@
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
-import { currentCatalogueBase, readJsonl } from "../scripts/omics/inputs";
+import { batchRecords, records } from "./helpers/records";
 import { buildRelease } from "../scripts/omics/release";
 import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
 import { benchmarkCoverage } from "../scripts/omics/audit-benchmark-evidence";
@@ -16,7 +16,7 @@ import { BENCHMARK_ID, TASK_ORDER } from "../scripts/omics/extract-beacon";
 import { relationAcceptsKind } from "../services/omics/src/entity-kinds";
 import { type RecordEntry } from "../scripts/omics/schema";
 
-const batch = readJsonl<RecordEntry>("data/omics/reviewed/beacon-2026.jsonl");
+const batch = batchRecords("data/omics/reviewed/beacon-2026.jsonl");
 const byId = new Map(batch.map((record) => [record.id, record]));
 const of = (kind: string) => batch.filter((record) => record.kind === kind);
 const attr = (record: RecordEntry, key: string) =>
@@ -24,31 +24,13 @@ const attr = (record: RecordEntry, key: string) =>
 
 const query = createCatalogueQuery(
   buildRelease(
-    currentCatalogueBase(
-      ["migrated", "discovery"].flatMap((name) =>
-        readJsonl<RecordEntry>(`data/omics/${name}.jsonl`),
-      ),
-    ),
+    records,
     "2026-09-18T00:00:00Z",
     { entity_schema_version: "1.1" },
   ).snapshot,
 );
 
 describe("BEACON Table 3 batch", () => {
-  it("matches its extraction receipt", () => {
-    const receipt = JSON.parse(
-      fs.readFileSync(
-        "data/omics/reviews/2026-09-18-beacon-extraction.json",
-        "utf8",
-      ),
-    );
-    const digest = createHash("sha256")
-      .update(fs.readFileSync("data/omics/reviewed/beacon-2026.jsonl"))
-      .digest("hex");
-    expect(receipt.records_sha256).toBe(digest);
-    expect(receipt.errors).toEqual([]);
-  });
-
   it("carries one evaluation and one result per method and task", () => {
     // 17 methods, 13 tasks each. The 18th Table 3 row is Literature SOTA, whose
     // numbers belong to the cited papers under their own protocols.

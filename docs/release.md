@@ -14,24 +14,24 @@ Evidence PRs leave `release-config.json` alone. Several merged batches can go ou
 ## Steps
 
 1. On a branch from `main`, set `released_at` in `data/omics/release-config.json` to the current UTC time.
-2. Build the candidate and run the checks:
-
-   ```sh
-   npm run omics:release
-   npm test
-   npm run test:python
-   npm run typecheck
-   ```
-
-3. Freeze it. Copy the exact `public/omics/releases/<release-id>/manifest.json` bytes to `data/omics/releases/<release-id>.json`. For every entry in `manifest.files`, verify its SHA-256 and save the bytes as `data/omics/releases/<release-id>/<filename>.gz` (gzip level 9, no timestamp). Check that each decompressed file matches the receipt. Never overwrite an existing receipt or archive with different bytes.
-4. Delete the previous release's folder from `data/omics/releases/` (keep its receipt `.json`). Then run the build, which restores the newly frozen release through `restoreReleaseBundles`, checks the rebuilt release against it byte for byte, and packages the website inputs:
+2. Build it and run the checks:
 
    ```sh
    npm run build
+   npm test
+   npm run test:python
+   npm run typecheck
    npm run verify:package
    ```
 
-   Before publishing, restore the new release into a clean temporary directory and check its inventory and every checksum. That proves a fresh clone can serve the same evidence.
+   The build writes the new release's receipt (`data/omics/releases/<release-id>.json`, the exact manifest bytes) and its gzipped files (`data/omics/releases/<release-id>/`), and packages the website inputs. It never overwrites existing bytes.
+3. Remove the previous release's files, keeping its receipt:
+
+   ```sh
+   npm run release:prune
+   ```
+
+4. Run `npm run build` again. It restores the frozen release first, so this confirms a fresh clone rebuilds it byte for byte.
 5. Open the PR with the config change, receipt, archive and updated `website/` files. Review scientific changes separately from packaging.
 6. After merge, open a PR in [rewire-database](https://github.com/rewire-bio/rewire-database) updating `benchmark-data.lock.json` (revision, manifest digest and release ID). The website verifies the artifact and renders it; its own deployment checks control activation.
 7. Once the release is live, record it with `npm run refresh -- record-publication` and `npm run refresh -- export` (see [refresh.md](refresh.md#review-prs-and-publication)).

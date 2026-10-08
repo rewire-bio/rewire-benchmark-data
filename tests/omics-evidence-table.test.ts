@@ -8,28 +8,21 @@ import {
   type CatalogueRecord,
   type CatalogueSnapshot,
 } from "../services/omics/src/catalogue-query";
-import { currentCatalogueBase, readJsonl } from "../scripts/omics/inputs";
-import { enrichProfiles, type OmicsProfile } from "../lib/omics-profile";
-import { enrichAssociations } from "../scripts/omics/enrich";
+import { loadRecords, readProvenance } from "../scripts/omics/records";
+import type { OmicsProfile } from "../lib/omics-profile";
 import { buildRelease } from "../scripts/omics/release";
 import type { RecordEntry } from "../scripts/omics/schema";
 
-const base = ["migrated", "discovery"].flatMap((name) =>
-  readJsonl<RecordEntry>(`data/omics/${name}.jsonl`),
-);
-const profiles = ["model", "benchmark"].flatMap((name) =>
-  readJsonl<{ id: string; profile: OmicsProfile }>(
-    `data/omics/${name}-profiles.jsonl`,
-  ),
-);
-const associations = ["model", "benchmark"].flatMap((name) =>
-  readJsonl(`data/omics/${name}-profile-associations.jsonl`),
-);
+const records = loadRecords();
+// The original migrated and discovery records, identified by provenance.
+const base = [...readProvenance().values()]
+  .filter((row) => /data\/omics\/(migrated|discovery)\.jsonl$/.test(row.added_in))
+  .map((row) => records.find((record) => record.id === row.id)!);
+const profiles = records
+  .filter((record) => record.attributes.profile)
+  .map((record) => ({ id: record.id, profile: record.attributes.profile as OmicsProfile }));
 const snapshot = buildRelease(
-  enrichProfiles(
-    enrichAssociations(currentCatalogueBase(base), associations),
-    profiles,
-  ),
+  records,
   "2026-09-16T21:00:00Z",
   { entity_schema_version: "1.1" },
 ).snapshot;

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { createHash } from "node:crypto";
 import { XMLParser } from "fast-xml-parser";
+import { batchRecords } from "./helpers/records";
 import { describe, expect, it } from "vitest";
 import type { RecordEntry } from "../scripts/omics/schema";
 
@@ -54,7 +55,7 @@ function primaryCells(): Cell[] {
   return cells;
 }
 const records: RecordEntry[] = ["clinical", "research", "experimental"].flatMap(lane =>
-  fs.readFileSync(`${ROOT}/${lane}/records.jsonl`, "utf8").split("\n").filter(Boolean).map(line => JSON.parse(line)));
+  batchRecords(`${ROOT}/${lane}/records.jsonl`));
 const byId = new Map(records.map(r => [r.id, r]));
 const feng = records.filter(r => r.source_ids.includes(SOURCE));
 const evaluations = feng.filter(r => r.kind === "evaluation");

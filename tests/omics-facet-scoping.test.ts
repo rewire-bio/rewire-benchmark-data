@@ -1,14 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { currentCatalogueBase, readJsonl } from "../scripts/omics/inputs";
+import { loadRecords } from "../scripts/omics/records";
 import { buildRelease } from "../scripts/omics/release";
 import { type RecordEntry } from "../scripts/omics/schema";
 import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
 
-const base = ["migrated", "discovery"].flatMap((name) =>
-  readJsonl<RecordEntry>(`data/omics/${name}.jsonl`),
-);
 const release = buildRelease(
-  currentCatalogueBase(base),
+  loadRecords(),
   "2026-09-17T00:00:00Z",
   {
     entity_schema_version: "1.1",

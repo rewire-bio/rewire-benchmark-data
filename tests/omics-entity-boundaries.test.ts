@@ -65,39 +65,6 @@ describe("entity schema version boundaries", () => {
     ).toBe(release.snapshot.records.length);
     expect(() => parseCatalogue(release.snapshot)).not.toThrow();
   });
-  it("reconstructs the initial schema 1.0 receipt without changing any hashes", () => {
-    const manifest = JSON.parse(
-      fs.readFileSync(
-        "data/omics/releases/2026-09-16-b5213be10a49.json",
-        "utf8",
-      ),
-    );
-    const records = [
-      "data/omics/migrated.jsonl",
-      "data/omics/discovery.jsonl",
-    ].flatMap((file) =>
-      fs
-        .readFileSync(file, "utf8")
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => JSON.parse(line)),
-    );
-    const {
-      research_lanes,
-      search_entries,
-      legacy_papers,
-      legacy_result_rows,
-      source_inputs,
-    } = manifest.coverage;
-    const rebuilt = buildRelease(records, manifest.released_at, {
-      research_lanes,
-      search_entries,
-      legacy_papers,
-      legacy_result_rows,
-      source_inputs,
-    });
-    expect(JSON.stringify(rebuilt.manifest)).toBe(JSON.stringify(manifest));
-  });
 });
 
 describe("comparison assessment and dataset identities", () => {
