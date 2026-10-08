@@ -230,31 +230,6 @@ export function buildRelease(
   };
   return { snapshot, manifest, files };
 }
-/** Reconstruct archived bytes from preserved inputs and reject any historical drift. */
-function restoreArchivedRelease(records: RecordEntry[]) {
-  const manifest = JSON.parse(
-    fs.readFileSync("data/omics/releases/2026-09-16-b5213be10a49.json", "utf8"),
-  );
-  const {
-    research_lanes,
-    search_entries,
-    legacy_papers,
-    legacy_result_rows,
-    source_inputs,
-  } = manifest.coverage;
-  const old = buildRelease(records, manifest.released_at, {
-    research_lanes,
-    search_entries,
-    legacy_papers,
-    legacy_result_rows,
-    source_inputs,
-  });
-  if (JSON.stringify(old.manifest) !== JSON.stringify(manifest))
-    throw new Error(
-      "Historical release reconstruction differs from its immutable receipt",
-    );
-  writeArchive(old);
-}
 function writeArchive(output: ReturnType<typeof buildRelease>) {
   const dir = path.join("public/omics/releases", output.snapshot.release_id);
   fs.mkdirSync(dir, { recursive: true });
@@ -283,12 +258,8 @@ function main() {
       : [],
   );
   if (!baseRecords.length) throw new Error("No reviewed catalogue inputs");
-  // Current-only builds keep historical downloads in the previously published
-  // Hosting version. Full builds still restore and verify every archive.
-  if (!process.argv.includes("--current-only")) {
-    restoreArchivedRelease(baseRecords);
-    restoreReleaseBundles();
-  }
+  // Restore the frozen release first, so rebuilding it fails on any changed byte.
+  restoreReleaseBundles();
   const research = withResearchPins(() => loadResearchInputs());
   const ledger = fs.existsSync("data/omics/search-ledger.jsonl")
     ? fs

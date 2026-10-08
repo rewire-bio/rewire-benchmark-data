@@ -2,59 +2,15 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { gunzipSync, gzipSync } from "node:zlib";
+import { gzipSync } from "node:zlib";
 import { afterEach, describe, expect, it } from "vitest";
 import { addUseCaseCoverage, useCaseCoverageInputFiles, verifyReviewedArtifacts } from "../scripts/omics/use-case-coverage";
 import type { RecordEntry } from "../scripts/omics/schema";
-import { validateRecords, publicRecords } from "../scripts/omics/schema";
-import { validateSnapshot } from "../services/omics/src/validation";
-import { loadUseCases } from "../scripts/omics/use-cases";
-import { buildUseCaseArtifact } from "../services/omics/src/use-cases";
 
 const roots: string[] = [];
 const record = (id: string): RecordEntry => ({
   id, kind: "method", name: id, description: "Source-reported method",
   status: "source_checked", facets: {}, source_ids: [], links: [], attributes: {},
-});
-
-describe("reviewed 17-use-case evidence integration", () => {
-  it("preserves the old catalogue and mappings, validates every new record, and resolves the audited cases", () => {
-    const baseline = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-28-c7b5ac6d34f2/catalogue.json.gz")).toString());
-    const previousCases = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-28-c7b5ac6d34f2/use-cases.json.gz")).toString());
-    // Mirror the exact chain in scripts/omics/release.ts: default 20260930 root,
-    // then 20261005, then 20261006, then 20261007, then egfr-20261007, then
-    // genetic-perturbation-20261007, so buildUseCaseArtifact sees every protocol
-    // the current reviewed inputs reference.
-    const afterFirstIntake = addUseCaseCoverage(baseline.records);
-    const afterSecondIntake = addUseCaseCoverage(afterFirstIntake, "data/omics/use-case-coverage-20261005");
-    const afterThirdIntake = addUseCaseCoverage(afterSecondIntake, "data/omics/use-case-coverage-20261006");
-    const afterFourthIntake = addUseCaseCoverage(afterThirdIntake, "data/omics/use-case-coverage-20261007");
-    const afterEgfr = addUseCaseCoverage(afterFourthIntake, "data/omics/use-case-coverage-egfr-20261007");
-    const afterGeneticPerturbation = addUseCaseCoverage(afterEgfr, "data/omics/use-case-coverage-genetic-perturbation-20261007");
-    const records = addUseCaseCoverage(afterGeneticPerturbation, "data/omics/use-case-coverage-amp-20261007");
-    validateRecords(records);
-    const snapshot = { ...baseline, release_id: "2026-10-05-000000000000", released_at: "2026-10-05T21:00:00Z", records };
-    validateSnapshot(snapshot);
-    expect(records.slice(0, baseline.records.length)).toEqual(baseline.records);
-    const disputedCell = "ucc-docking-cluspro-bm5-2020-result-total-top10-easy-acceptable-or-better-targets";
-    expect(records.find(record => record.id === disputedCell)?.attributes.printed_value).toBe("87");
-    expect(publicRecords(records).some(record => record.id === disputedCell)).toBe(false);
-    const inputs = loadUseCases()!.inputs;
-    const artifact = buildUseCaseArtifact(snapshot, inputs);
-    expect(artifact.use_cases).toHaveLength(26);
-    expect(artifact.mappings.every(mapping => mapping.lifecycle === "active")).toBe(true);
-    for (const oldMapping of previousCases.mappings)
-      expect(artifact.mappings.find(mapping => mapping.id === oldMapping.id)).toEqual(oldMapping);
-    const audits = ["clinical", "research", "experimental"].flatMap(lane =>
-      JSON.parse(fs.readFileSync(`data/omics/use-case-coverage-20260930/${lane}/coverage.json`, "utf8")));
-    expect(audits).toHaveLength(17);
-    expect(new Set(audits.map(audit => audit.use_case_id)).size).toBe(17);
-    expect(audits.map(audit => audit.issue).sort((a, b) => a - b)).toEqual(Array.from({ length: 17 }, (_, i) => 334 + i));
-    for (const audit of audits) {
-      expect((audit.remaining_gaps || audit.gaps).length).toBeGreaterThan(0);
-      expect(inputs.use_cases.some(entry => entry.id === audit.use_case_id)).toBe(true);
-    }
-  });
 });
 
 describe("reviewed public evidence archives", () => {

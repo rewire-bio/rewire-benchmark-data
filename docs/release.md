@@ -1,6 +1,6 @@
 # Cutting a release
 
-A release is an immutable, content-addressed snapshot of every reviewed record. Its ID is `<date>-<hash>`, derived from the records and the `released_at` time in `data/omics/release-config.json`. The website pins one release; old releases stay downloadable byte for byte.
+A release is an immutable, content-addressed snapshot of every reviewed record. Its ID is `<date>-<hash>`, derived from the records and the `released_at` time in `data/omics/release-config.json`. The website pins one release. Only the current release's files are kept in the repository; earlier releases keep their receipts.
 
 ## When
 
@@ -17,14 +17,14 @@ Evidence PRs leave `release-config.json` alone. Several merged batches can go ou
 2. Build the candidate and run the checks:
 
    ```sh
-   npm run omics:release -- --current-only
+   npm run omics:release
    npm test
    npm run test:python
    npm run typecheck
    ```
 
 3. Freeze it. Copy the exact `public/omics/releases/<release-id>/manifest.json` bytes to `data/omics/releases/<release-id>.json`. For every entry in `manifest.files`, verify its SHA-256 and save the bytes as `data/omics/releases/<release-id>/<filename>.gz` (gzip level 9, no timestamp). Check that each decompressed file matches the receipt. Never overwrite an existing receipt or archive with different bytes.
-4. Run the full build, which restores every archived release through `restoreReleaseBundles` and packages the website inputs:
+4. Delete the previous release's folder from `data/omics/releases/` (keep its receipt `.json`). Then run the build, which restores the newly frozen release through `restoreReleaseBundles`, checks the rebuilt release against it byte for byte, and packages the website inputs:
 
    ```sh
    npm run build
@@ -36,4 +36,4 @@ Evidence PRs leave `release-config.json` alone. Several merged batches can go ou
 6. After merge, open a PR in [rewire-database](https://github.com/rewire-bio/rewire-database) updating `benchmark-data.lock.json` (revision, manifest digest and release ID). The website verifies the artifact and renders it; its own deployment checks control activation.
 7. Once the release is live, record it with `npm run refresh -- record-publication` and `npm run refresh -- export` (see [refresh.md](refresh.md#review-prs-and-publication)).
 
-Archived files may be shared through hardlinks during a full build, so never edit a restored file in place. Corrections always go into a new release.
+Never edit a frozen release in place. Corrections always go into a new release.

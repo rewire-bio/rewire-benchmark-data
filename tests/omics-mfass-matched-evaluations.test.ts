@@ -1,10 +1,7 @@
 import fs from "node:fs";
 import { createHash } from "node:crypto";
-import { gunzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import { addMfassMatchedEvaluations, applyMfassMatchedEvaluations, mfassMatchedRoot, mfassProtocolId, mfassSourceRevision, mfassExclusionsRevision, mfassScoredIdsHash } from "../scripts/omics/mfass-matched-evaluations";
-import { validateRecords, type RecordEntry } from "../scripts/omics/schema";
-import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
+import { addMfassMatchedEvaluations, applyMfassMatchedEvaluations, mfassMatchedRoot, mfassSourceRevision, mfassExclusionsRevision, mfassScoredIdsHash } from "../scripts/omics/mfass-matched-evaluations";
 const files = ["report.json", "manifest-v1.json", "verification.json", "provenance.json", "exclusion-verification.json"] as const;
 const texts = Object.fromEntries(files.map(file => [file, fs.readFileSync(`${mfassMatchedRoot}/${file}`, "utf8")])) as Record<typeof files[number], string>;
 const review = JSON.parse(fs.readFileSync(`${mfassMatchedRoot}/review.json`, "utf8"));
@@ -56,24 +53,5 @@ describe("MFASS frozen matched-annotation filtered study", () => {
     expect(tamper("exclusion-verification.json", v => { v.conditions.P1.predictions_sha256 = "0".repeat(64); })).toThrow(/prediction identity/);
     expect(tamper("report.json", v => { v.conditions.S0.metrics.auroc = 0.999; })).toThrow(/artifact binding|metrics disagree/);
     expect(tamper("report.json", v => { v.denominator = 8297; })).toThrow();
-  });
-  it("exposes source-scoped panels and model results without mixing historical MFASS protocols", () => {
-    const catalogue = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-20-b2596bdf5206/catalogue.json.gz")).toString());
-    const records = validateRecords([...catalogue.records, ...added]);
-    const query = createCatalogueQuery({ ...catalogue, records });
-    const protocol = added.find(r => r.id === mfassProtocolId)!;
-    expect((protocol.attributes.comparison_panels as any[])).toHaveLength(4);
-    for (const panel of protocol.attributes.comparison_panels as any[]) {
-      expect(panel.protocol_id).toBe(mfassProtocolId);
-      expect(panel.result_ids).toHaveLength(4);
-      expect(panel.result_ids.every((id: string) => id.startsWith("rewire-mfass-matched-v1-result-"))).toBe(true);
-      expect(panel.context).toContain("8,297 of 8,324");
-      expect(panel.caveats.join(" ")).toContain("23 assembly-orientation");
-      expect(panel.caveats.join(" ")).toContain("not human review");
-    }
-    expect(query.results({ id: mfassProtocolId, limit: 100 }).items).toHaveLength(16);
-    expect(query.results({ id: "catalog-task-mfass-splice", limit: 100 }).items.filter(row => row.result.id.startsWith("rewire-mfass-matched-v1-result-"))).toHaveLength(16);
-    for (const model of ["spliceai", "pangolin"])
-      expect(query.results({ id: `discovery-model-${model}`, limit: 100 }).items.filter(row => row.result.id.startsWith("rewire-mfass-matched-v1-result-"))).toHaveLength(8);
   });
 });

@@ -15,12 +15,16 @@ export function readPinnedResearchSnapshot(root: string, releaseId: string): Buf
   if (manifest.release_id !== releaseId || typeof digest !== "string" || !/^[a-f0-9]{64}$/.test(digest))
     throw new Error("Research source release receipt mismatch");
   const restored = path.join(root, "public/omics/releases", releaseId, "catalogue.json");
+  // Research inputs keep their own copy of the pinned catalogue; older
+  // checkouts held it inside the full release archive.
+  const pinned = path.join(root, "data/research/pins", `${releaseId}.catalogue.json.gz`);
   const compressed = path.join(archiveRoot, releaseId, "catalogue.json.gz");
   let bytes: Buffer;
   if (fs.existsSync(restored)) {
     if (!fs.lstatSync(restored).isFile()) throw new Error("Research source snapshot must be a regular file");
     bytes = fs.readFileSync(restored);
-  } else if (fs.existsSync(compressed)) bytes = gunzipSync(fs.readFileSync(compressed));
+  } else if (fs.existsSync(pinned)) bytes = gunzipSync(fs.readFileSync(pinned));
+  else if (fs.existsSync(compressed)) bytes = gunzipSync(fs.readFileSync(compressed));
   else {
     const bundle = JSON.parse(gunzipSync(fs.readFileSync(path.join(archiveRoot, `${releaseId}.bundle.json.gz`))).toString("utf8"));
     if (bundle["manifest.json"] !== receipt.toString("utf8") || typeof bundle["catalogue.json"] !== "string")
