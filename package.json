@@ -6,7 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "npm run omics:release && npm run kg -- export && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
+    "build": "npm run omics:release && npm run kg -- export && npm run serving && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
     "omics:release": "tsx scripts/omics/release.ts",
     "validate:benchmark-literature": "node scripts/validate-benchmark-literature.mjs",
     "export:benchmark-literature": "node scripts/export-benchmark-literature.mjs",
@@ -19,7 +19,8 @@
     "records": "tsx scripts/omics/records.ts",
     "release:prune": "tsx scripts/omics/prune-releases.ts",
     "identity:candidates": "tsx scripts/omics/identity-candidates.ts",
-    "kg": "tsx scripts/kg/export.ts"
+    "kg": "tsx scripts/kg/export.ts",
+    "serving": "tsx scripts/serving/build.ts"
   },
   "dependencies": {
     "@noble/hashes": "2.4.0",
