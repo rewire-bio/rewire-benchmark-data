@@ -176,7 +176,7 @@ async function main() {
     }
     default:
       throw Error(
-        "Usage: npm run refresh -- status|check-due|begin|resume|finish|link-pr|export|record-publication|unlock (see docs/database-refresh.md)",
+        "Usage: npm run refresh -- status|check-due|begin|resume|finish|link-pr|export|record-publication|unlock (see docs/refresh.md)",
       );
   }
 }
