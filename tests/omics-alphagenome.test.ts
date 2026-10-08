@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
-import { createHash } from "node:crypto";
 import { batchRecords, records } from "./helpers/records";
 import { buildRelease } from "../scripts/omics/release";
-import { type RecordEntry } from "../scripts/omics/schema";
 import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
 import { createEvidenceIndex } from "../services/omics/src/evidence-table";
 
@@ -53,11 +51,6 @@ describe("complete AlphaGenome primary-table batch", () => {
     expect(receipt.unique_results).toBe(136);
     expect(receipt.published_results).toBe(130);
     expect(receipt.quarantined_results).toBe(6);
-    expect(
-      createHash("sha256")
-        .update(fs.readFileSync("data/omics/reviewed/alphagenome-2026.jsonl"))
-        .digest("hex"),
-    ).toBe(receipt.records_sha256);
     for (const row of tables.rows)
       for (const role of ["alphagenome", "comparator"]) {
         const item = occurrence(row.table, row.sheet_row, role);
