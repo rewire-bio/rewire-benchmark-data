@@ -1,0 +1,341 @@
+{
+  "schema_version": "1.0",
+  "status": "proposed",
+  "note": "First mapping of record kinds, link relations and exported attributes to RDF. An external term is used only where its meaning matches; everything else is in the rewire vocabulary. Changes to this file are reviewed like record changes.",
+  "base": "https://benchmarks.rewire.it/id/",
+  "vocab": "https://benchmarks.rewire.it/vocab#",
+  "prefixes": {
+    "rb": "https://benchmarks.rewire.it/vocab#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "mls": "http://www.w3.org/ns/mls#",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "schema": "https://schema.org/",
+    "obo": "http://purl.obolibrary.org/obo/"
+  },
+  "classes": {
+    "method": {
+      "types": [
+        "rb:Method",
+        "mls:Algorithm"
+      ],
+      "basis": "A described procedure, independent of a trained artifact (W3C ML Schema Algorithm)."
+    },
+    "model": {
+      "types": [
+        "rb:Model",
+        "mls:Implementation"
+      ],
+      "basis": "A named model or model family as released; ML Schema Implementation is an executable realisation of an algorithm."
+    },
+    "configuration": {
+      "types": [
+        "rb:Configuration",
+        "mls:Model"
+      ],
+      "basis": "The exact trained setup that produced scores; ML Schema Model is the output of training with specific settings."
+    },
+    "pipeline": {
+      "types": [
+        "rb:Pipeline",
+        "mls:Implementation"
+      ],
+      "basis": "A multi-stage system; its results are not results of any model it uses."
+    },
+    "service": {
+      "types": [
+        "rb:Service",
+        "schema:WebAPI"
+      ],
+      "basis": "A hosted service with its own terms and limits."
+    },
+    "benchmark": {
+      "types": [
+        "rb:Benchmark"
+      ],
+      "basis": "No external class matches a benchmark suite as used here."
+    },
+    "task": {
+      "types": [
+        "rb:Task"
+      ],
+      "basis": "Linking to EDAM Operation needs a reviewed per-task mapping; not yet done."
+    },
+    "protocol": {
+      "types": [
+        "rb:Protocol",
+        "obo:OBI_0000272"
+      ],
+      "basis": "OBI protocol: a plan specification of how to carry out a process."
+    },
+    "evaluator": {
+      "types": [
+        "rb:Evaluator",
+        "mls:Implementation"
+      ],
+      "basis": "Scoring software."
+    },
+    "dataset": {
+      "types": [
+        "rb:Dataset",
+        "dcat:Dataset"
+      ],
+      "basis": "DCAT dataset."
+    },
+    "dataset_subset": {
+      "types": [
+        "rb:DatasetSubset",
+        "dcat:Dataset"
+      ],
+      "basis": "A defined subset is itself a dataset."
+    },
+    "baseline": {
+      "types": [
+        "rb:Baseline"
+      ],
+      "basis": "A proposed or source-supported comparison procedure; no external class matches."
+    },
+    "evaluation": {
+      "types": [
+        "rb:Evaluation",
+        "mls:Run"
+      ],
+      "basis": "One execution of a configuration under a protocol, as reported."
+    },
+    "result": {
+      "types": [
+        "rb:Result",
+        "mls:ModelEvaluation"
+      ],
+      "basis": "ML Schema ModelEvaluation holds one measured value of an evaluation measure."
+    },
+    "source": {
+      "types": [
+        "rb:Source",
+        "schema:CreativeWork"
+      ],
+      "basis": "Paper, supplement, repository file or web page. A finer schema.org type needs a reviewed per-source field."
+    },
+    "claim": {
+      "types": [
+        "rb:Claim"
+      ],
+      "basis": "One sourced assertion about another record; provenance via prov:wasDerivedFrom."
+    }
+  },
+  "relations": {
+    "evaluation": {
+      "property": "rb:evaluation",
+      "basis": "Result to its evaluation."
+    },
+    "model": {
+      "property": "rb:evaluatedSubject",
+      "basis": "Evaluation to the configuration, model or pipeline actually evaluated. Not inherited by families."
+    },
+    "configuration": {
+      "property": "rb:configuration",
+      "basis": "Link to an exact configuration."
+    },
+    "method": {
+      "property": "rb:method",
+      "basis": "Link to a method."
+    },
+    "pipeline": {
+      "property": "rb:pipeline",
+      "basis": "Link to a pipeline."
+    },
+    "service": {
+      "property": "rb:service",
+      "basis": "Link to a service."
+    },
+    "benchmark": {
+      "property": "rb:evaluatedOn",
+      "basis": "Evaluation to the benchmark or protocol used."
+    },
+    "protocol": {
+      "property": "rb:protocol",
+      "basis": "Link to a protocol."
+    },
+    "task": {
+      "property": "rb:task",
+      "basis": "Link to a task."
+    },
+    "evaluator": {
+      "property": "rb:evaluator",
+      "basis": "Link to scoring software."
+    },
+    "dataset": {
+      "property": "rb:dataset",
+      "basis": "Link to a dataset."
+    },
+    "dataset_subset": {
+      "property": "rb:datasetSubset",
+      "basis": "Link to a dataset subset."
+    },
+    "baseline": {
+      "property": "rb:baseline",
+      "basis": "Link to a baseline."
+    },
+    "family": {
+      "property": "rb:family",
+      "basis": "Configuration or variant to its model family. Results roll up only when a claim backs the link."
+    },
+    "variant_of": {
+      "property": "rb:variantOf",
+      "basis": "A model variant."
+    },
+    "alias_of": {
+      "property": "rb:aliasOf",
+      "basis": "Same identity under another ID. Deliberately not owl:sameAs, which would merge results without review."
+    },
+    "uses_model": {
+      "property": "rb:usesModel",
+      "basis": "A pipeline or service depends on a model. Not transitive and not a subproperty of rb:evaluatedSubject: pipeline results are never results of the model."
+    },
+    "part_of": {
+      "property": "dcterms:isPartOf",
+      "basis": "Component of a suite."
+    },
+    "evaluates_task": {
+      "property": "rb:evaluatesTask",
+      "basis": "Resource to the task it evaluates."
+    },
+    "parent": {
+      "property": "rb:parent",
+      "basis": "Hierarchy within a benchmark."
+    },
+    "supersedes": {
+      "property": "dcterms:replaces",
+      "basis": "A newer record replacing an older one."
+    },
+    "original_evaluation": {
+      "property": "rb:originalEvaluation",
+      "basis": "A copied result to the evaluation it was copied from."
+    },
+    "subject": {
+      "property": "rb:subject",
+      "basis": "Claim to the record it is about."
+    },
+    "source": {
+      "property": "prov:wasDerivedFrom",
+      "basis": "Record to a source it is derived from."
+    },
+    "applicable_to": {
+      "property": "rb:applicableTo",
+      "basis": "Candidate applicability; not evidence of performance."
+    },
+    "same_data_as": {
+      "property": "rb:sameDataAs",
+      "basis": "Informational data reuse; never merges results."
+    }
+  },
+  "fields": {
+    "name": {
+      "property": "rdfs:label"
+    },
+    "description": {
+      "property": "dcterms:description"
+    },
+    "status": {
+      "property": "rb:status"
+    },
+    "source_ids": {
+      "property": "prov:wasDerivedFrom",
+      "iri": true
+    }
+  },
+  "facets": {
+    "areas": {
+      "property": "rb:area"
+    },
+    "tasks": {
+      "property": "rb:taskFacet"
+    },
+    "contexts": {
+      "property": "rb:context"
+    },
+    "method_types": {
+      "property": "rb:methodType"
+    },
+    "domain": {
+      "property": "rb:domain"
+    }
+  },
+  "attributes": {
+    "version": {
+      "property": "schema:version"
+    },
+    "entity_level": {
+      "property": "rb:entityLevel"
+    },
+    "url": {
+      "property": "schema:url",
+      "iri": true
+    },
+    "doi": {
+      "property": "rb:doi"
+    },
+    "retrieved_at": {
+      "property": "rb:retrievedAt",
+      "datatype": "xsd:dateTime"
+    },
+    "artifact_sha256": {
+      "property": "rb:artifactSha256"
+    },
+    "publication_status": {
+      "property": "rb:publicationStatus"
+    },
+    "origin": {
+      "property": "rb:origin"
+    },
+    "metric": {
+      "property": "rb:metric"
+    },
+    "metric_direction": {
+      "property": "rb:metricDirection"
+    },
+    "unit": {
+      "property": "rb:unit"
+    },
+    "printed_value": {
+      "property": "rb:printedValue"
+    },
+    "numeric_value": {
+      "property": "mls:hasValue",
+      "datatype": "xsd:decimal"
+    },
+    "uncertainty": {
+      "property": "rb:uncertainty"
+    },
+    "source_locator": {
+      "property": "rb:sourceLocator"
+    },
+    "field": {
+      "property": "rb:claimField"
+    },
+    "split": {
+      "property": "rb:split"
+    }
+  },
+  "review": {
+    "method": {
+      "property": "rb:reviewMethod"
+    },
+    "reviewer": {
+      "property": "rb:reviewedBy"
+    },
+    "actor": {
+      "property": "rb:reviewedBy"
+    },
+    "date": {
+      "property": "rb:reviewDate"
+    },
+    "reviewed_at": {
+      "property": "rb:reviewDate"
+    }
+  },
+  "graph": "https://benchmarks.rewire.it/graph/asserted"
+}

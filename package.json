@@ -6,7 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "npm run omics:release && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
+    "build": "npm run omics:release && npm run kg -- export && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
     "omics:release": "tsx scripts/omics/release.ts",
     "validate:benchmark-literature": "node scripts/validate-benchmark-literature.mjs",
     "export:benchmark-literature": "node scripts/export-benchmark-literature.mjs",
@@ -17,15 +17,20 @@
     "refresh": "tsx scripts/refresh/cli.ts",
     "omics:check-updates": "tsx scripts/omics/check-updates.ts",
     "records": "tsx scripts/omics/records.ts",
-    "release:prune": "tsx scripts/omics/prune-releases.ts"
+    "release:prune": "tsx scripts/omics/prune-releases.ts",
+    "identity:candidates": "tsx scripts/omics/identity-candidates.ts",
+    "kg": "tsx scripts/kg/export.ts"
   },
   "dependencies": {
     "@noble/hashes": "2.4.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@types/n3": "1.16.4",
     "@types/node": "^20",
     "fast-xml-parser": "^5.11.1",
+    "jsonld": "8.3.3",
+    "n3": "1.17.4",
     "tsx": "^4.23.13",
     "typescript": "^5",
     "vitest": "^1.0.4"
