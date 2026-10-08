@@ -1,16 +1,11 @@
 /** Read-only discovery refresh. Writes a review report, never modifies catalogue records. */
 import fs from "node:fs";
 import path from "node:path";
-const input = [
-  "data/omics/discovery.jsonl",
-  "data/omics/migrated.jsonl",
-].flatMap((p) =>
-  fs
-    .readFileSync(p, "utf8")
-    .trim()
-    .split("\n")
-    .map((l) => JSON.parse(l)),
-);
+const input = fs
+  .readFileSync("data/entities/sources.jsonl", "utf8")
+  .trim()
+  .split("\n")
+  .map((l) => JSON.parse(l));
 const sources = input.filter(
   (r) =>
     r.kind === "source" &&

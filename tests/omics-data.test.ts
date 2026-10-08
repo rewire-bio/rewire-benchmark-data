@@ -7,22 +7,15 @@ import {
   type RecordEntry,
 } from "../scripts/omics/schema";
 import { buildRelease } from "../scripts/omics/release";
+import { records as storeRecords } from "./helpers/records";
 import { parseCsv } from "../lib/benchmark-literature";
 import { extensionsSchema } from "../scripts/omics/extensions";
-const records: RecordEntry[] = fs
-  .readFileSync("data/omics/migrated.jsonl", "utf8")
-  .trim()
-  .split("\n")
-  .map((x) => JSON.parse(x));
-const all = [
-  ...records,
-  ...fs
-    .readFileSync("data/omics/discovery.jsonl", "utf8")
-    .trim()
-    .split("\n")
-    .map((x) => JSON.parse(x)),
-];
+// Integrity checks run over the whole canonical store; later batches supply
+// sources that the original migrated records now cite.
+const records: RecordEntry[] = storeRecords;
+const all = storeRecords;
 const clone = () => structuredClone(records);
+const v11 = { entity_schema_version: "1.1" };
 describe("omics publication integrity", () => {
   it("retains every original result ID and exact historical CSV field", () => {
     const rows = parseCsv(
@@ -114,8 +107,8 @@ describe("omics publication integrity", () => {
     expect(() => validateRecords(broken)).toThrow("Private field");
   });
   it("makes identical releases independent of input ordering and hashes exact exports", () => {
-    const a = buildRelease(all, "2026-09-16T10:00:00Z");
-    const b = buildRelease([...all].reverse(), "2026-09-16T10:00:00Z");
+    const a = buildRelease(all, "2026-09-16T10:00:00Z", v11);
+    const b = buildRelease([...all].reverse(), "2026-09-16T10:00:00Z", v11);
     expect(a).toEqual(b);
     for (const [file, bytes] of Object.entries(a.files)) {
       expect(a.manifest.files[file]).toBe(
@@ -125,7 +118,7 @@ describe("omics publication integrity", () => {
     const changed = structuredClone(all);
     changed[0].description += " Correction.";
     expect(
-      buildRelease(changed, "2026-09-16T10:00:00Z").snapshot.release_id,
+      buildRelease(changed, "2026-09-16T10:00:00Z", v11).snapshot.release_id,
     ).not.toBe(a.snapshot.release_id);
   });
   it("preserves own-run correction history and keeps proposed baselines separate from scores", () => {
