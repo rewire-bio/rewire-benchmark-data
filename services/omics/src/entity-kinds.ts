@@ -75,6 +75,24 @@ export function relationAcceptsKind(relation: string, kind: string): boolean {
   return relation === kind;
 }
 
+/** Alias routes preserve published links: the canonical kind plus any listed legacy kinds. */
+export function recordRouteKinds(record: {
+  kind: EntityKind;
+  attributes: Record<string, unknown>;
+}): EntityKind[] {
+  const aliases = record.attributes.legacy_kinds;
+  return [
+    ...new Set([
+      record.kind,
+      ...(Array.isArray(aliases)
+        ? aliases.filter((kind): kind is EntityKind =>
+            (entityKinds as readonly unknown[]).includes(kind),
+          )
+        : []),
+    ]),
+  ];
+}
+
 /** Shared publication vocabulary prevents website/API release validation drift. */
 export const catalogueRelations = [
   "method", "configuration", "pipeline", "service", "task", "protocol",
