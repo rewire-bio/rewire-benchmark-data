@@ -3,9 +3,8 @@ import { gunzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
 import { benchmarkCoverage, assertCoverageFloor } from "../scripts/omics/audit-benchmark-evidence";
-const snapshot = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-19-eb6149e5d766/catalogue.json.gz")).toString());
+const snapshot = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-10-07-1448159e6a81/catalogue.json.gz")).toString());
 const query = createCatalogueQuery(snapshot);
-const bytes = (value: unknown) => Buffer.byteLength(JSON.stringify(value));
 describe("released benchmark coverage floor", () => {
   it("uses the production graph and detects per-benchmark regressions", () => {
     const coverage = benchmarkCoverage(snapshot.records);

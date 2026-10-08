@@ -16,19 +16,16 @@ jobs:
       NODE_OPTIONS: --max-old-space-size=8192
     steps:
       - uses: actions/checkout@v4
-      - name: Reserve space for immutable history verification
-        run: node scripts/prepare-runner-space.mjs
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run verify:package
-      - run: npm run verify:archives
       - run: npm test
       - run: npm run test:python
       - run: npm run typecheck
-      - name: Reproduce the reviewed release and prepared website artifact
+      - name: Reproduce the current release and prepared website artifact
         run: npm run build
       - name: Require reviewed prepared artifacts
         run: npm run verify:package && git diff --exit-code -- data website

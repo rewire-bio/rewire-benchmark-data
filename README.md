@@ -37,7 +37,7 @@ data/omics/
   metadata-corrections.jsonl           superseding descriptive corrections
   search-ledger.jsonl, scope-audit.jsonl   searches and scope decisions
   reviews/, audits/                    review receipts and audit runs
-  releases/                            frozen releases (receipt .json + archived files)
+  releases/                            current release files, plus a receipt .json for every release
   release-config.json                  released_at for the current release
 data/benchmark-literature/             paper-reported results table (see its README)
 data/research/                         research investigation inputs (see its README)
@@ -56,14 +56,13 @@ Requires Node 22 or newer and Python 3.
 
 ```sh
 npm ci
-npm run verify:archives   # historic release bytes are unchanged
 npm test
 npm run test:python
 npm run typecheck
-npm run build:current     # current release only; `npm run build` restores every historic release
+npm run build
 ```
 
-CI runs the full build and fails if it changes anything under `data/` or `website/`.
+The build rebuilds the current release from the inputs and fails if any byte differs from the frozen copy in `data/omics/releases/`. CI runs it and also fails if anything under `data/` or `website/` changes.
 
 ## How the website consumes releases
 
@@ -71,4 +70,4 @@ CI runs the full build and fails if it changes anything under `data/` or `websit
 
 ## Provenance
 
-This repository was split from rewire-database at `e13852aa4d190fb52fad29f38b0d6a5257aadb3b`. `docs/data-extraction.json` records every original file and hash from that split, and `verify:archives` checks that historic release exports still match it.
+This repository was split from rewire-database at `e13852aa4d190fb52fad29f38b0d6a5257aadb3b`. Only the current release is stored. Each earlier release keeps its receipt (`data/omics/releases/<id>.json`: counts, file hashes and changelog); its files remain in git history.

@@ -22,7 +22,7 @@ Follow [docs/collection.md](../../../docs/collection.md), sections 3, 4 and 6, a
 6. For a use-case batch, also write `claims.csv`, `coverage.json`, `sources.md`, `retrieval-log.md` and `research.md` for the lane. Add or update the use-case mapping in `data/omics/use-cases/inputs.json`.
 7. Register a new batch as a build input (`scripts/omics/inputs.ts` for benchmark batches, the `addUseCaseCoverage` chain in `scripts/omics/release.ts` for use-case batches).
 8. In each result's `review.notes`, record how it was extracted (parser, transcription, page render). Leave review sign-off to `review-evidence`.
-9. Run `npm test`, `npm run typecheck` and `npm run build:current`.
+9. Run `npm test`, `npm run typecheck` and `npm run build`.
 
 ## Outputs
 

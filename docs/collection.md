@@ -173,7 +173,7 @@ Audits are append-only checks on a specific catalogue release, stored in `data/o
 npm test
 npm run test:python
 npm run typecheck
-npm run build:current
+npm run build
 ```
 
 Then open a PR containing the batch, the ledger and scope entries, the review receipt and the dated review. Do not change `data/omics/release-config.json` in an evidence PR; releases are cut separately (see [release.md](release.md)).

@@ -131,6 +131,9 @@ evaluation, citation and claim fields. Prior release downloads retain the full
 historical evidence. A superseding revision uses a new mapping ID and points at
 the prior superseded mapping. Neither tombstones nor stale mappings support
 current evidence or active backlinks.
+Earlier release files are no longer stored in this repository, so before
+withdrawing a mapping, restore that release's `catalogue.json.gz` and
+`use-cases.json.gz` from git history into `data/omics/releases/<id>/`.
 Release assembly verifies the referenced historical catalogue and sidecar against
 their immutable receipt. The historical mapping must retain scoped evidence for
 the same mapping ID and use case, at a revision no greater than the tombstone's.
