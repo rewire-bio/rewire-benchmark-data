@@ -1,15 +1,8 @@
 import { benchmarkCoverage as benchmarkPageCoverage } from "../../services/omics/src/benchmark-coverage";
-import { addMfassMatchedEvaluations } from "./mfass-matched-evaluations";
-import { addUseCaseCoverage, useCaseCoverageInputFiles } from "./use-case-coverage";
 import { validateSnapshot } from "../../services/omics/src/validation";
-import { addCoverageTables, coverageTableInputs } from "./model-coverage-tables";
-import { addModelEvaluationLinks, modelLinkInputs } from "./model-evaluation-links";
-import { addProfileEvidence, profileEvidenceInputs } from "./profile-evidence";
-import { addSourceLabelIdentities, sourceLabelInputs } from "./source-label-identities";
-import { addAgroEvaluations, agroInputs } from "./agront-evaluations";
 import { writeBaselineAudit } from "./baseline-coverage";
 import { writeImmutableChunks } from "./stream-files";
-import { addUseCaseSources, loadUseCases, useCaseInputFiles, useCaseSourceDeclaration, writeUseCaseSourceCopies, validateUseCaseHistory } from "./use-cases";
+import { loadUseCases, useCaseInputFiles, useCaseSourceDeclaration, writeUseCaseSourceCopies, validateUseCaseHistory } from "./use-cases";
 import {
   buildUseCaseArtifact,
   MAX_USE_CASE_BYTES,
@@ -17,22 +10,13 @@ import {
   useCaseHash,
   type UseCaseInputs,
 } from "../../services/omics/src/use-cases";
-import { addLocalEvaluations, localEvaluationInputs, addBaselineEvaluations, baselineEvaluationInputs } from "./local-evaluations";
 
 import { loadResearchInputs, researchFiles, researchInputFiles } from "./research-release";
 import { withResearchPins } from "./research-snapshot";
 import { deriveResearchReadiness, validateResearchData, type ResearchData } from "../../services/omics/src/research";
-import {
-  addAcquiredEvidence,
-  acquisitionFiles,
-  applyAcquisitionCorrections,
-  profileCorrectionFile,
-} from "./acquisition/records";
 import { auditFiles, loadAudits, auditInputFiles } from "./audit/release";
 import { benchmarkCoverage } from "./audit-benchmark-evidence";
-import { addRunRecipes, runRecipeInputs } from "./run-recipes";
 import { legacyKinds } from "../../services/omics/src/entity-kinds";
-import { separateEntities, entityInputFiles } from "./entity-migration";
 import { assertNoPrivateFields } from "../../services/omics/src/private-fields";
 import {
   createEvidenceIndex,
@@ -42,11 +26,10 @@ import {
 } from "../../services/omics/src/evidence-table";
 import fs from "node:fs";
 import { restoreReleaseBundles } from "./archives";
-import { currentCatalogueBase, reviewInputFiles } from "./inputs";
+import { loadRecords, recordFiles, provenanceFile } from "./records";
 import path from "node:path";
 import crypto from "node:crypto";
-import { enrichProfiles, type OmicsProfile } from "../../lib/omics-profile";
-import { enrichAssociations } from "./enrich";
+import { type OmicsProfile } from "../../lib/omics-profile";
 import {
   validateRecords,
   publicRecords,
@@ -246,18 +229,8 @@ function writeArchive(output: ReturnType<typeof buildRelease>) {
   }
 }
 function main() {
-  const inputs = ["data/omics/migrated.jsonl", "data/omics/discovery.jsonl"];
-  const baseRecords = inputs.flatMap((file) =>
-    fs.existsSync(file)
-      ? fs
-          .readFileSync(file, "utf8")
-          .trim()
-          .split("\n")
-          .filter(Boolean)
-          .map((l) => JSON.parse(l))
-      : [],
-  );
-  if (!baseRecords.length) throw new Error("No reviewed catalogue inputs");
+  const records = loadRecords();
+  if (!records.length) throw new Error("No reviewed catalogue records");
   // Restore the frozen release first, so rebuilding it fails on any changed byte.
   restoreReleaseBundles();
   const research = withResearchPins(() => loadResearchInputs());
@@ -272,46 +245,7 @@ function main() {
   const audit = JSON.parse(
     fs.readFileSync("data/omics/release-config.json", "utf8"),
   );
-  const profileInputs = [
-    "data/omics/model-profiles.jsonl",
-    "data/omics/benchmark-profiles.jsonl",
-  ];
-  const associationInputs = [
-    "data/omics/model-profile-associations.jsonl",
-    "data/omics/benchmark-profile-associations.jsonl",
-  ];
-  const corrected = currentCatalogueBase(baseRecords);
-  const associated = enrichAssociations(
-    corrected,
-    associationInputs.flatMap((file) =>
-      fs.existsSync(file)
-        ? fs
-            .readFileSync(file, "utf8")
-            .split("\n")
-            .filter(Boolean)
-            .map((line) => JSON.parse(line))
-        : [],
-    ),
-  );
-  const profiled = enrichProfiles(
-    associated,
-    profileInputs.flatMap((file) =>
-      fs.existsSync(file)
-        ? fs
-            .readFileSync(file, "utf8")
-            .split("\n")
-            .filter(Boolean)
-            .map((line) => JSON.parse(line))
-        : [],
-    ),
-  );
-  const evaluated = addMfassMatchedEvaluations(addAgroEvaluations(addBaselineEvaluations(addLocalEvaluations(applyAcquisitionCorrections(
-    addAcquiredEvidence(addRunRecipes(separateEntities(profiled))),
-  )))));
   const reviewedUseCases = loadUseCases();
-  const records = addUseCaseCoverage(addUseCaseCoverage(addUseCaseCoverage(addUseCaseCoverage(addUseCaseCoverage(addUseCaseCoverage(addUseCaseCoverage(addUseCaseSources(addSourceLabelIdentities(
-    addProfileEvidence(addModelEvaluationLinks(addCoverageTables(evaluated))),
-  ), reviewedUseCases)), "data/omics/use-case-coverage-20261005"), "data/omics/use-case-coverage-20261006"), "data/omics/use-case-coverage-20261007"), "data/omics/use-case-coverage-egfr-20261007"), "data/omics/use-case-coverage-genetic-perturbation-20261007"), "data/omics/use-case-coverage-amp-20261007");
   const profiles = records
     .filter((record) => record.attributes.profile)
     .map((record) => record.attributes.profile as OmicsProfile);
@@ -453,32 +387,12 @@ function main() {
       legacy_papers: 100,
       legacy_result_rows: 149,
       source_inputs: [
-        ...inputs,
+        ...recordFiles(),
+        provenanceFile,
         ...auditInputFiles(),
-        ...[...acquisitionFiles, profileCorrectionFile].filter((file) =>
-          fs.existsSync(file),
-        ),
-        ...entityInputFiles,
-        ...runRecipeInputs,
-        ...localEvaluationInputs,
-        ...baselineEvaluationInputs,
-        ...agroInputs,
-        ...coverageTableInputs,
-        ...modelLinkInputs,
-        ...profileEvidenceInputs(),
-        ...sourceLabelInputs(),
         ...useCaseInputFiles(),
-        ...useCaseCoverageInputFiles(),
-        ...useCaseCoverageInputFiles("data/omics/use-case-coverage-20261005"),
-        ...useCaseCoverageInputFiles("data/omics/use-case-coverage-20261006"),
-        ...useCaseCoverageInputFiles("data/omics/use-case-coverage-20261007"),
-        ...useCaseCoverageInputFiles("data/omics/use-case-coverage-egfr-20261007"),
-        ...useCaseCoverageInputFiles("data/omics/use-case-coverage-genetic-perturbation-20261007"),
-        ...useCaseCoverageInputFiles("data/omics/use-case-coverage-amp-20261007"),
         ...researchInputFiles.filter(file => fs.existsSync(file)),
-        ...reviewInputFiles.filter((file) => fs.existsSync(file)),
-        ...profileInputs.filter((file) => fs.existsSync(file)),
-        ...associationInputs.filter((file) => fs.existsSync(file)),
+        "data/omics/search-ledger.jsonl",
       ].map((file) => ({
         file,
         sha256: fs.existsSync(file) ? sha(fs.readFileSync(file)) : null,

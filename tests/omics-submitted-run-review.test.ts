@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
+import { batchRecords } from "./helpers/records";
 import { describe, expect, it } from "vitest";
 
 const review = JSON.parse(readFileSync("data/omics/reviews/local-evaluations-2026-09-22.json", "utf8"));
-const records = readFileSync("data/omics/reviewed/local-runs-2026-09-20/records.jsonl", "utf8").trim().split("\n").map(line => JSON.parse(line));
+const records = batchRecords("data/omics/reviewed/local-runs-2026-09-20/records.jsonl");
 const entries = review.evaluations as Array<Record<string, any>>; // Public artifact schema varies by protocol.
 
 describe("ten submitted evaluations, separate from catalogue publication", () => {
@@ -10,7 +11,7 @@ describe("ten submitted evaluations, separate from catalogue publication", () =>
     for (const entry of entries.filter(entry => entry.catalogue_evaluation_id)) {
       const results = records.filter(record => record.kind === "result" && record.links.some((link: { relation: string; target_id: string }) => link.relation === "evaluation" && link.target_id === entry.evaluation_id));
       for (const result of results) {
-        const value = entry.metrics[result.attributes.metric_key];
+        const value = entry.metrics[result.attributes.metric_key as string];
         expect(value === null ? result.attributes.numeric_value : Number(result.attributes.numeric_value)).toBe(value);
       }
     }

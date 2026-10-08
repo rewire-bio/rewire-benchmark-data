@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { records, recordsById } from "./helpers/records";
 describe("recipes quoted from each project's own instructions", () => {
   const overlays: {
     id: string;
@@ -13,16 +13,10 @@ describe("recipes quoted from each project's own instructions", () => {
         source_locator: string;
       }[];
     }[];
-  }[] = JSON.parse(
-    readFileSync("data/omics/reviewed/run-recipes/overlays.json", "utf8"),
-  );
-  const sources = new Map(
-    readFileSync("data/omics/reviewed/run-recipes/records.jsonl", "utf8")
-      .split("\n")
-      .filter(Boolean)
-      .map((line) => JSON.parse(line))
-      .map((r) => [r.id, r]),
-  );
+  }[] = records
+    .filter((record) => record.attributes.run_recipes)
+    .map((record) => ({ id: record.id, source_ids: record.source_ids, run_recipes: record.attributes.run_recipes as never }));
+  const sources = recordsById;
   const generated = overlays.filter((overlay) =>
     overlay.run_recipes?.some(
       (recipe) =>
@@ -65,7 +59,7 @@ describe("recipes quoted from each project's own instructions", () => {
           for (const id of instruction.source_ids) {
             const source = sources.get(id);
             expect(source, `${overlay.id} cites ${id}`).toBeDefined();
-            expect(String(source.attributes.artifact_sha256)).toMatch(
+            expect(String(source!.attributes.artifact_sha256)).toMatch(
               /^[a-f0-9]{64}$/,
             );
           }

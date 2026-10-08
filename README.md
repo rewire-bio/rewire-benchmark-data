@@ -26,27 +26,28 @@ Agent skills in [.agents/skills/](.agents/skills) (also linked from `.claude/ski
 ## Layout
 
 ```
-data/omics/
-  discovery.jsonl, migrated.jsonl      base records
-  reviewed/                            benchmark extraction batches
-  use-case-coverage-<batch>/           use-case evidence batches, by lane
-  use-cases/                           use-case definitions and mappings
-  pending-review/                      extractions not yet ready for the build
-  evidence-sources.jsonl               pinned source artifacts
-  evidence-concerns.jsonl              known problems that block comparison
-  metadata-corrections.jsonl           superseding descriptive corrections
-  search-ledger.jsonl, scope-audit.jsonl   searches and scope decisions
-  reviews/, audits/                    review receipts and audit runs
-  releases/                            current release files, plus a receipt .json for every release
-  release-config.json                  released_at for the current release
-data/benchmark-literature/             paper-reported results table (see its README)
-data/research/                         research investigation inputs (see its README)
+data/
+  entities/                            canonical records, one JSONL file per kind (models, benchmarks, sources, ...)
+  evidence/                            evaluations, results and claims
+  provenance/records.jsonl             per-record hash, originating batch and reviewed changes
+  omics/
+    <batch folders>/                   evidence for each extraction: receipts, retrieval logs, archived sources
+    use-cases/                         use-case definitions and mappings
+    pending-review/                    extractions not yet ready for the store
+    search-ledger.jsonl, scope-audit.jsonl   searches and scope decisions
+    audits/                            append-only audit runs
+    releases/                          current release files, plus a receipt .json for every release
+    release-config.json                released_at for the current release
+  benchmark-literature/                paper-reported results table (see its README)
+  research/                            research investigation inputs (see its README)
 docs/                                  procedures and dated reviews
-scripts/omics/                         extraction, acquisition, audit and release code
+scripts/omics/                         record store, extraction, acquisition, audit and release code
 services/omics/src/, lib/              validation and query code shared with the website
 maintenance/                           refresh schedule, attempt records and reports
 website/                               packaged inputs pinned by the website
 ```
+
+Records are edited only through the store: `npm run records -- add` appends a reviewed batch, `npm run records -- change` records a reviewed edit, and `npm run records -- check` verifies every record against its provenance. See [docs/collection.md](docs/collection.md).
 
 `services/omics/src/` and `lib/` keep the directory names they have in rewire-database so imports match. There is no running service here. Changes to shared schemas need compatibility checks in both repositories.
 

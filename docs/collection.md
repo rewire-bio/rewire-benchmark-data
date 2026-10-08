@@ -62,7 +62,7 @@ Goal: find existing published results for models on benchmarks, and record the s
    | `coverage_claim` | an honest statement of coverage, for example "Bounded discovery pass, not systematic exhaustion or all-model coverage." |
 
 4. Record each include or exclude decision about a paper in `data/omics/scope-audit.jsonl`: `paper_id`, `decision` (`included` or `excluded`), `reason`, `reviewed_at`, `reviewer`.
-5. New benchmarks, models, datasets and their sources found by discovery, but not yet carrying results, go in `data/omics/discovery.jsonl`.
+5. New benchmarks, models, datasets and their sources found by discovery, but not yet carrying results, are added as records through step 6 with status `discovered`.
 
 Use-case passes also write a dated dossier in `docs/reviews/use-cases/` with the exact search log (query, mode, time, outcome). See `docs/reviews/use-cases/somatic-small-variant-oncogenicity-2026-10-08.md` for the expected level of detail.
 
@@ -77,7 +77,7 @@ Before extracting anything, pin the source.
 - If the bytes are needed for later review and the licence allows it, archive a gzip copy under the batch folder (for example `artifacts/`) and record both the raw and archived hashes in the review receipt.
 - If the source cannot be retrieved, stop and record the gap. Do not extract from a summary.
 
-Sources that support profiles or several batches go in `data/omics/evidence-sources.jsonl`. Sources for a single batch go in that batch's `records.jsonl`.
+Source records live in `data/entities/sources.jsonl` like any other record. Search it before adding one: 197 source URLs already have more than one record, and new duplicates make the graph harder to use.
 
 ## 4. Extract models and evaluations
 
@@ -100,27 +100,34 @@ Every record carries `source_ids`. Missing results stay missing: never record a 
 
 Where a deterministic extractor exists for the source (`scripts/omics/extract/<benchmark>.ts`), use it and assert the expected row labels. Otherwise transcribe by hand and say so in the review notes. Figures without printed numbers are not read by eye or by colour; record them as a gap.
 
-### Where extracted records go
+### Where records live
 
-There are two intake forms in use:
+All records live in one canonical store, one JSONL file per kind, sorted by ID:
 
-| Form | Use for | Location |
-| --- | --- | --- |
-| Benchmark batch | Complete tables from one benchmark source | `data/omics/reviewed/<benchmark>-<year>.jsonl`, receipt `data/omics/reviews/<date>-<benchmark>-extraction.json` |
-| Use-case coverage batch | Evidence gathered for one or more use cases | `data/omics/use-case-coverage-<batch>/<lane>/` where lane is `clinical`, `research` or `experimental` |
+| Folder | Kinds |
+| --- | --- |
+| `data/entities/` | `models`, `methods`, `configurations`, `pipelines`, `services`, `benchmarks`, `tasks`, `protocols`, `evaluators`, `datasets`, `dataset-subsets`, `baselines`, `sources` |
+| `data/evidence/` | `evaluations`, `results`, `claims` |
+| `data/provenance/records.jsonl` | one line per record: its SHA-256, the batch that added it, and every reviewed change since |
 
-A use-case coverage lane folder contains exactly these files, all bound by hash in the batch's `review.json`:
+The build reads only this store. A record whose bytes no longer match its provenance hash fails the build until the change is recorded (step 6).
+
+### The batch folder
+
+Each extraction keeps its working evidence in a batch folder, `data/omics/<batch>/` (existing batches are under `data/omics/reviewed/`, `data/omics/acquisition/` and `data/omics/use-case-coverage-*/`). The folder holds provenance, not records:
 
 | File | Content |
 | --- | --- |
-| `records.jsonl` | the new records |
+| `batch.jsonl` | the new records, as reviewed; added to the store in step 6 |
 | `claims.csv` | one row per result or claim: `record_id, source_id, locator, printed_value, review_scope` |
-| `coverage.json` | per use case: existing IDs reused, new IDs, and remaining gaps |
+| `coverage.json` | for use-case work: existing IDs reused, new IDs, and remaining gaps |
 | `sources.md` | each source with URL, version, retrieval time and hash |
 | `retrieval-log.md` | how each artifact was retrieved and read, step by step |
 | `research.md` | what was searched, what was decided and why |
+| `review.json` | the review receipt (step 5) |
+| `artifacts/` | archived source bytes, where the licence allows |
 
-Unreviewed or disputed extractions that are not ready for the build go in `data/omics/pending-review/<batch>/` with a README stating their status. The release never reads that folder.
+Unreviewed or disputed extractions that are not ready go in `data/omics/pending-review/<batch>/` with a README stating their status. The build never reads that folder.
 
 ## 5. Review
 
@@ -142,16 +149,24 @@ Review is a separate pass by a different worker from the one that extracted the 
    ```
 
    Human review is recorded only when a named person did it.
-4. Write the batch receipt. For a use-case batch this is `review.json` (schema version, method, reviewer, reviewed_at, scope, limitations, empty `errors`, and the SHA-256 of every input file) plus per-lane `review-<lane>.json`. For a benchmark batch it is the extraction receipt (source, artifact hash, records hash, method, reviewer, date). The build refuses a batch whose files no longer match their receipt.
+4. Write the batch receipt `review.json`: schema version, method, reviewer, `reviewed_at`, scope, limitations, an empty `errors` list, and the SHA-256 of `batch.jsonl` and every other file in the batch folder. After step 6, each record's hash in `data/provenance/records.jsonl` locks the reviewed bytes.
 5. Summarise the pass in a dated review in `docs/reviews/` (or `docs/reviews/use-cases/` for a use-case pass): sources, a table of every value checked and its outcome, conflicts found, and remaining gaps.
 
 A review can conclude that nothing should change. Record that in the dated review; no data change or release is needed.
 
 ### Corrections and concerns
 
-- A wrong descriptive field: add a superseding entry to `data/omics/metadata-corrections.jsonl` with the evidence. The original stays in history.
-- A problem with a source or result that should block comparison (conflicting tables, unclear units, abstract and body disagree): add an entry to `data/omics/evidence-concerns.jsonl` with the artifact hash, precise locator and review date. The value is kept and marked.
-- A wrong numerical result: add a corrected result that supersedes the old one, with the evidence. Do not edit the old record.
+Edit the record in its canonical file, then record the change with the review that justifies it:
+
+```sh
+npm run records -- change docs/reviews/<date>-<topic>.md data/omics/<batch> <record-id> [<record-id> ...]
+```
+
+That updates each record's provenance hash and appends a `changed_by` entry (inputs, date, review). Without it the build fails.
+
+- A wrong descriptive field: change the field, and add a `claim` record that keeps the old value (`field`, `previous_value`, `value`, `source_locator`, `review`, with a `subject` link). Existing examples have IDs starting `metadata-correction-`.
+- A problem with a source or result that should block comparison (conflicting tables, unclear units, abstract and body disagree): add an entry to the source record's `attributes.evidence_concerns` with `source_id`, `message`, `source_locator`, `artifact_sha256` and review date. The value is kept and marked.
+- A wrong numerical result: add a corrected result that supersedes the old one, with the evidence. Do not edit the old record's value.
 
 ### Auditing existing records
 
@@ -159,13 +174,18 @@ Audits are append-only checks on a specific catalogue release, stored in `data/o
 
 1. Freeze the release and retrieve primary sources with `scripts/omics/audit/check-sources.py`, recording hashes and access failures.
 2. Run independent source-cell and metadata checks. A parser rerun, an HTTP 200 or an old review date is not a new verification.
-3. Generate the run with `scripts/omics/audit/generate.ts`. Existing audit files cannot be overwritten with different bytes.
+3. Write the run, checks and resolutions in the audit format defined in `services/omics/src/audit.ts`, under a new run ID. Existing audit files cannot be overwritten with different bytes. (The generators for the September 2026 runs were tied to releases that are no longer stored; their output remains in `data/omics/audits/`.)
 4. Resolve confirmed errors through a reviewed record change and a linked follow-up check. Never erase a contradictory finding.
 
-## 6. Add the batch to the build
+## 6. Add the batch to the store
 
-- Use-case mappings: add or update the mapping in `data/omics/use-cases/inputs.json` that links a use case to the new protocol, evaluation and result IDs. Mappings carry an evidence fingerprint that the build checks against the records.
-- Register the batch as a build input. Benchmark batches are listed in `scripts/omics/inputs.ts`; use-case coverage folders are chained in `scripts/omics/release.ts` (search for `addUseCaseCoverage`). Additions must not replace or duplicate an existing record ID; the build rejects that.
+```sh
+npm run records -- add data/omics/<batch>/batch.jsonl data/omics/<batch>
+```
+
+This appends each record to the right canonical file, keeps the files sorted, and writes its provenance line. It refuses any ID that already exists; to change an existing record, use `records -- change` (step 5). `npm run records -- check` confirms the whole store matches its provenance.
+
+For use-case work, also add or update the mapping in `data/omics/use-cases/inputs.json` that links a use case to the new protocol, evaluation and result IDs. Mappings carry an evidence fingerprint that the build checks against the records.
 
 ## 7. Validate and open a PR
 
@@ -176,7 +196,7 @@ npm run typecheck
 npm run build
 ```
 
-Then open a PR containing the batch, the ledger and scope entries, the review receipt and the dated review. Do not change `data/omics/release-config.json` in an evidence PR; releases are cut separately (see [release.md](release.md)).
+Then open a PR containing the batch folder, the store and provenance changes, the ledger and scope entries, and the dated review. Plain JSONL keeps every changed record visible in the diff. Do not change `data/omics/release-config.json` in an evidence PR; releases are cut separately (see [release.md](release.md)).
 
 ## Where each claim is tracked
 
@@ -185,9 +205,10 @@ Then open a PR containing the batch, the ledger and scope entries, the review re
 | A search was done | `data/omics/search-ledger.jsonl`, use-case dossier | exact queries, channels, cutoff, gaps |
 | A paper was included or excluded | `data/omics/scope-audit.jsonl` | stated reason |
 | The source is what we say it is | `source` record | URL, version, `retrieved_at`, `artifact_sha256` |
-| A value was printed in the source | `result` record, `claims.csv` | `printed_value` and `source_locator` |
-| The value was checked | `result.attributes.review`, batch receipt, dated review | actor, method, time; file hashes |
+| A value was printed in the source | `result` record, batch `claims.csv` | `printed_value` and `source_locator` |
+| The value was checked | `result.attributes.review`, batch `review.json`, dated review | actor, method, time; file hashes |
+| The record has not changed since review | `data/provenance/records.jsonl` | per-record SHA-256 and `changed_by` history |
 | A descriptive fact about a model or benchmark | `claim` record, profile facts | `source_locator`, `status` |
-| A known problem | `data/omics/evidence-concerns.jsonl` | artifact hash and locator |
-| A correction | `data/omics/metadata-corrections.jsonl`, superseding records | linked evidence |
+| A known problem | source `attributes.evidence_concerns` | artifact hash and locator |
+| A correction | `metadata-correction-*` claim, superseding records, provenance `changed_by` | linked evidence and review |
 | What was not covered | ledger `gaps`, `coverage.json`, `missing_metadata` | explicit entries |
