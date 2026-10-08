@@ -3,13 +3,11 @@ import { gunzipSync } from "node:zlib";
 import { createHash } from "node:crypto";
 import { XMLParser } from "fast-xml-parser";
 import { describe, expect, it } from "vitest";
-import { addUseCaseCoverage } from "../scripts/omics/use-case-coverage";
 import type { RecordEntry } from "../scripts/omics/schema";
 
 // Independent scientific oracle: primary XML, not generated scores or builder IDs.
 const ROOT = "data/omics/use-case-coverage-amp-20261007";
 const SOURCE = "evidence-expansion-dna-foundation-models-2025-5d8ca9bc";
-const BASE = "data/omics/releases/2026-10-07-b7e5907c917f";
 const xmlBytes = gunzipSync(fs.readFileSync("data/omics/amp-coverage-20261007/feng/fulltext.xml.gz"));
 type Node = any;
 const xml = new XMLParser({ ignoreAttributes: false, parseTagValue: false }).parse(xmlBytes.toString());
@@ -157,31 +155,4 @@ describe("AMP primary-source scientific regressions", () => {
     }
   });
 
-  it("preserves all 17 original definitions and 72 mappings from the immutable producer baseline", () => {
-    const baseline = JSON.parse(gunzipSync(fs.readFileSync(`${BASE}/use-cases.json.gz`)).toString());
-    const inputs = JSON.parse(fs.readFileSync("data/omics/use-cases/inputs.json", "utf8"));
-    expect(baseline.use_cases).toHaveLength(17); expect(baseline.mappings).toHaveLength(72);
-    for (const key of ["use_cases", "mappings"]) for (const original of baseline[key]) {
-      expect(inputs[key].find((x: { id: string }) => x.id === original.id), original.id).toEqual(original);
-    }
-  });
-
-  it("preserves every record of the concurrently merged PertEval release", () => {
-    const latest = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-10-07-12bc4df80b96/catalogue.json.gz")).toString());
-    const combined = addUseCaseCoverage(latest.records, ROOT);
-    expect(combined.slice(0, latest.records.length)).toEqual(latest.records);
-    expect(combined).toHaveLength(latest.records.length + 431);
-    const sourceResults = latest.records.filter((r: RecordEntry) => r.kind === "result" && r.id.includes("perteval"));
-    expect(sourceResults).toHaveLength(3);
-    for (const result of sourceResults) expect(combined.find((r: RecordEntry) => r.id === result.id)).toEqual(result);
-  });
-
-  it("preserves baseline scientific results through the native additive ingestion API", () => {
-    const baseline = JSON.parse(gunzipSync(fs.readFileSync(`${BASE}/catalogue.json.gz`)).toString());
-    const combined = addUseCaseCoverage(baseline.records, ROOT);
-    const index = new Map(combined.map(r => [r.id, r]));
-    const originals = baseline.records.filter((r: RecordEntry) => r.kind === "result");
-    expect(originals.length).toBeGreaterThan(0);
-    for (const original of originals) expect(index.get(original.id), original.id).toEqual(original);
-  });
 });

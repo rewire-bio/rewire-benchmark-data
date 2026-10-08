@@ -25,7 +25,7 @@ Follow [docs/collection.md](../../../docs/collection.md), section 5.
    - a batch not ready for the build: move it to `data/omics/pending-review/<batch>/` with a README stating why
 6. Write the receipt that binds the batch: `review.json` and `review-<lane>.json` for a use-case batch (schema version, method, reviewer, reviewed_at, scope, limitations, empty errors, SHA-256 of every input file), or `data/omics/reviews/<date>-<benchmark>-extraction.json` for a benchmark batch.
 7. Write a dated review in `docs/reviews/` (or `docs/reviews/use-cases/`): sources and hashes, a table of every value checked with its outcome, conflicts, and remaining gaps.
-8. Run `npm test`, `npm run typecheck` and `npm run build:current`.
+8. Run `npm test`, `npm run typecheck` and `npm run build`.
 
 ## Rules
 

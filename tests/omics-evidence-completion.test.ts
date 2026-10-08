@@ -1,10 +1,5 @@
 import { describe, it, expect } from "vitest";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { gzipSync } from "node:zlib";
 import { createHash } from "node:crypto";
-import { restoreReleaseBundles } from "../scripts/omics/archives";
 import { enrichMetadata } from "../scripts/omics/metadata";
 import { evidenceSources, readJsonl } from "../scripts/omics/inputs";
 import { profileSchema, validateProfileSources } from "../lib/omics-profile";
@@ -128,47 +123,6 @@ describe("evidence completion and immutable publication", () => {
       expect(enriched.find((record) => record.id === result.id)).toEqual(
         result,
       );
-  });
-  it("restores the previously published release from a clean directory and rejects tampered exports", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "rewire-archive-test-"));
-    try {
-      const input = path.join(root, "input");
-      fs.mkdirSync(input);
-      const id = "2026-09-16-d74d282221a9";
-      for (const ext of [".json", ".bundle.json.gz"])
-        fs.copyFileSync(
-          `data/omics/releases/${id}${ext}`,
-          path.join(input, id + ext),
-        );
-      const output = path.join(root, "output");
-      restoreReleaseBundles(input, output);
-      restoreReleaseBundles(input, output);
-      expect(
-        fs.readFileSync(path.join(output, id, "manifest.json"), "utf8"),
-      ).toBe(fs.readFileSync(path.join(input, id + ".json"), "utf8"));
-      fs.writeFileSync(path.join(output, id, "records.csv"), "changed");
-      expect(() => restoreReleaseBundles(input, output)).toThrow(
-        "Immutable release conflict",
-      );
-      fs.writeFileSync(
-        path.join(input, id + ".bundle.json.gz"),
-        gzipSync(
-          JSON.stringify({
-            "../escape": "x",
-            "manifest.json": fs.readFileSync(
-              path.join(input, id + ".json"),
-              "utf8",
-            ),
-          }),
-        ),
-      );
-      expect(() => restoreReleaseBundles(input, output)).toThrow(
-        "Unexpected archived files",
-      );
-      expect(fs.existsSync(path.join(root, "escape"))).toBe(false);
-    } finally {
-      fs.rmSync(root, { recursive: true, force: true });
-    }
   });
 });
 

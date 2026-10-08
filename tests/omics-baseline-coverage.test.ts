@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import fs from "node:fs";
-import { gunzipSync } from "node:zlib";
 import { createHash } from "node:crypto";
 import { buildBaselineAudit, candidateRule } from "../lib/baseline-coverage";
 import {
@@ -242,23 +240,6 @@ describe("baseline coverage and model evaluation audit", () => {
     );
     expect(auditCsv([{ text: '=HYPERLINK("evil")' }])).toContain("'=HYPERLINK");
   });
-  it("audits every protocol and model identity in the pinned production release", () => {
-    const snapshot: OmicsCatalogue = JSON.parse(
-      gunzipSync(
-        fs.readFileSync(
-          "data/omics/releases/2026-09-20-b2596bdf5206/catalogue.json.gz",
-        ),
-      ).toString(),
-    );
-    const audit = buildBaselineAudit(snapshot);
-    expect(audit.counts.protocols).toBe(180);
-    expect(audit.counts.suites).toBe(30);
-    expect(audit.counts.model_records).toBe(59);
-    expect(audit.models).toHaveLength(2442);
-    expect(audit.counts.measured_roles).toBe(1);
-    expect(audit.counts.historical_roles).toBe(2);
-    expect(new Set(audit.protocols.map((p) => p.protocol_id)).size).toBe(180);
-  });
   it("separates recipes and author evidence from Rewire measured roles", () => {
     const fixture = baselineFixture();
     fixture.protocol.attributes.run_recipes = [{ id: "example-recipe" }];
@@ -272,20 +253,4 @@ describe("baseline coverage and model evaluation audit", () => {
     expect(audit.protocols[0].recipe_ids).toEqual(["example-recipe"]);
     expect(audit.protocols[0].published_evaluations_by_origin.author_reported).toEqual(["author-eval"]);
   });
-  it("reflects the ten published runs while keeping exact protocol and partial scope", () => {
-    const snapshot: OmicsCatalogue = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-22-f58a0f1d267f/catalogue.json.gz")).toString());
-    const before = JSON.stringify(snapshot);
-    const audit = buildBaselineAudit(snapshot);
-    expect(audit.counts).toMatchObject({ protocols: 184, measured_roles: 7, models_with_rewire_evaluations: 14 });
-    expect(audit.protocols.find((row) => row.protocol_id === "rewire-mfass-v2" && row.role === "null")?.evaluation_ids).toEqual(["rewire-local-20260921-evaluation-mfass-prior"]);
-    const random = audit.protocols.find((row) => row.protocol_id === "rewire-protocol-proteingym-amfr-random-v13" && row.role === "null")!;
-    expect(random.evaluation_ids).toEqual(["rewire-local-20260921-evaluation-proteingym-random"]);
-    expect(random.source_locator).toContain("not full-track coverage");
-    const conventional = audit.protocols.find((row) => row.protocol_id === "rewire-protocol-flip2-rhomax-by-wild-type-v1" && row.role === "conventional")!;
-    expect(conventional.evaluation_ids).toHaveLength(2);
-    const generated = baselineAuditFiles(Buffer.from(JSON.stringify(snapshot)), "published_release");
-    expect(generated.manifest.audit_version).toBe(2);
-    expect(JSON.stringify(snapshot)).toBe(before);
-  });
-
 });

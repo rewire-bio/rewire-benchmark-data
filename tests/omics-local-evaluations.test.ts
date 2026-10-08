@@ -85,7 +85,7 @@ describe("reviewed local benchmark executions", () => {
     // exercises additive graph integration in a clean checkout and cannot silently
     // pick up whichever newer catalogue happened to be generated on a workstation.
     const catalogue = JSON.parse(gunzipSync(fs.readFileSync(
-      "data/omics/releases/2026-09-20-b2596bdf5206/catalogue.json.gz",
+      "data/omics/releases/2026-10-07-1448159e6a81/catalogue.json.gz",
     )).toString("utf8"));
     const existing = catalogue.records.filter((record: RecordEntry) => !added.some((next) => next.id === record.id));
     const records = validateRecords([...existing, ...added]);

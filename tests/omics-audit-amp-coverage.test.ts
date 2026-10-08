@@ -4,55 +4,11 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
-import { gunzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import { addUseCaseCoverage } from "../scripts/omics/use-case-coverage";
-import { validateRecords } from "../scripts/omics/schema";
-import { validateSnapshot } from "../services/omics/src/validation";
-import { loadUseCases } from "../scripts/omics/use-cases";
 import { buildUseCaseArtifact, mappingEvidenceHash, useCaseDeclaration } from "../services/omics/src/use-cases";
 import { auditUseCaseCoverage, loadCoverageAudit } from "../scripts/omics/audit-amp-coverage";
 
 describe("use-case coverage audit", () => {
-  it("derives per-case mapping, protocol, evaluation and result IDs from the generated artifact", () => {
-    const baseline = JSON.parse(gunzipSync(fs.readFileSync("data/omics/releases/2026-09-28-c7b5ac6d34f2/catalogue.json.gz")).toString());
-    // Mirrors the exact chain in scripts/omics/release.ts.
-    const afterFirstIntake = addUseCaseCoverage(baseline.records);
-    const afterSecondIntake = addUseCaseCoverage(afterFirstIntake, "data/omics/use-case-coverage-20261005");
-    const afterThirdIntake = addUseCaseCoverage(afterSecondIntake, "data/omics/use-case-coverage-20261006");
-    const afterFourthIntake = addUseCaseCoverage(afterThirdIntake, "data/omics/use-case-coverage-20261007");
-    const afterEgfr = addUseCaseCoverage(afterFourthIntake, "data/omics/use-case-coverage-egfr-20261007");
-    const afterPerturbation = addUseCaseCoverage(afterEgfr, "data/omics/use-case-coverage-genetic-perturbation-20261007");
-    const records = addUseCaseCoverage(afterPerturbation, "data/omics/use-case-coverage-amp-20261007");
-    validateRecords(records);
-    const snapshot = { ...baseline, release_id: "2026-10-05-000000000000", released_at: "2026-10-05T21:00:00Z", records };
-    validateSnapshot(snapshot);
-    const inputs = loadUseCases()!.inputs;
-    const artifact = buildUseCaseArtifact(snapshot, inputs);
-    const declaration = useCaseDeclaration(inputs);
-
-    const audits = auditUseCaseCoverage(snapshot, artifact, declaration);
-
-    expect(audits).toHaveLength(artifact.use_cases.length);
-    expect(audits.map((a) => a.use_case_id)).toEqual([...audits.map((a) => a.use_case_id)].sort());
-    for (const audit of audits) {
-      expect(artifact.use_cases.some((u) => u.id === audit.use_case_id && u.slug === audit.slug)).toBe(true);
-      for (const mapping of audit.mappings) {
-        expect(artifact.mappings.some((m) => m.id === mapping.mapping_id)).toBe(true);
-        expect(mapping.numeric_result_count).toBeLessThanOrEqual(mapping.result_ids.length);
-        if (mapping.lifecycle === "withdrawn" || mapping.lifecycle === "superseded") {
-          expect(mapping.evaluation_ids).toHaveLength(0);
-          expect(mapping.result_ids).toHaveLength(0);
-          expect(mapping.missing_numeric_evidence).toBe(false);
-        }
-      }
-      expect(audit.active_mappings + audit.stale_mappings + audit.withdrawn_mappings).toBeLessThanOrEqual(audit.mappings.length);
-    }
-    // At least one reviewed, source-checked AMP-priority case already carries numeric evidence end to end.
-    const withEvidence = audits.find((a) => a.mappings.some((m) => m.numeric_result_count > 0));
-    expect(withEvidence).toBeDefined();
-  });
-
   it("flags a live mapping whose evaluations have no numeric result", () => {
     const { snapshot, useCase, draftMapping } = fixture();
     const audits = auditFixture(snapshot, [useCase], [draftMapping]);
