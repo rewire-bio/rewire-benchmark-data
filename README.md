@@ -14,6 +14,7 @@ The website and API that display this data live in [rewire-database](https://git
 | [docs/evidence-tables.md](docs/evidence-tables.md) | The per-claim evidence export |
 | [docs/refresh.md](docs/refresh.md) | The bounded monthly refresh cycle |
 | [docs/release.md](docs/release.md) | When and how to cut a release |
+| [docs/linked-data.md](docs/linked-data.md) | Ontology mapping, JSON-LD context and the N-Quads export |
 | [docs/reviews/](docs/reviews/README.md) | Dated evidence reviews: search logs and value-by-value checks |
 
 Agent skills in [.agents/skills/](.agents/skills) (also linked from `.claude/skills`):
@@ -30,6 +31,7 @@ data/
   entities/                            canonical records, one JSONL file per kind (models, benchmarks, sources, ...)
   evidence/                            evaluations, results and claims
   provenance/records.jsonl             per-record hash, originating batch and reviewed changes
+  ontology/                            RDF mapping and JSON-LD context for the records
   omics/
     <batch folders>/                   evidence for each extraction: receipts, retrieval logs, archived sources
     use-cases/                         use-case definitions and mappings
