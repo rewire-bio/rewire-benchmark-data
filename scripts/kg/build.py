@@ -32,6 +32,7 @@ import owlrl
 import pyshacl
 import rdflib
 from owlrl.Namespaces import ERRNS
+import rdflib.collection
 from rdflib import OWL, RDF, RDFS, BNode, URIRef
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -119,11 +120,37 @@ def load_asserted(path: Path) -> rdflib.Graph:
     return graph
 
 
+PROPERTY_AXIOMS = [RDFS.subPropertyOf, OWL.equivalentProperty, OWL.inverseOf, OWL.propertyDisjointWith,
+                   RDFS.domain, RDFS.range]
+PROPERTY_TYPES = [OWL.TransitiveProperty, OWL.SymmetricProperty, OWL.AsymmetricProperty, OWL.IrreflexiveProperty,
+                  OWL.FunctionalProperty, OWL.InverseFunctionalProperty]
+
+
+def axiom_properties(ontology: rdflib.Graph) -> set:
+    """Every property that appears in a property axiom, as either side, or in a chain."""
+    found = set()
+    for predicate in PROPERTY_AXIOMS:
+        for s, o in ontology.subject_objects(predicate):
+            found.update(t for t in (s, o) if isinstance(t, URIRef))
+    for kind in PROPERTY_TYPES:
+        found.update(ontology.subjects(RDF.type, kind))
+    for prop, head in ontology.subject_objects(OWL.propertyChainAxiom):
+        found.add(prop)
+        found.update(rdflib.collection.Collection(ontology, head))
+    return found
+
+
 def infer(asserted: rdflib.Graph, ontology: rdflib.Graph) -> set[tuple]:
-    """Run the OWL 2 RL closure and return the new statements about records."""
+    """Run the OWL 2 RL closure and return the new statements about records.
+
+    The reasoner only sees statements an axiom can act on: types, and links whose property
+    some axiom mentions. Text values and links such as dcterms:source or rb:area have no
+    axioms, cannot produce a new fact, and made up about two thirds of the input."""
     closure = rdflib.Graph()
+    active = axiom_properties(ontology)
     for triple in asserted:
-        closure.add(triple)
+        if triple[1] == RDF.type or triple[1] in active:
+            closure.add(triple)
     for triple in ontology:
         closure.add(triple)
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics, axiomatic_triples=False, datatype_axioms=False).expand(closure)

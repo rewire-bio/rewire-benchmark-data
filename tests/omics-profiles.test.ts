@@ -21,7 +21,12 @@ const review = {
   date: "2026-09-16",
   note: "Synthetic relationship fixture; not a scientific claim.",
 };
+// Each record's full result list and reverse links are paged once and reused: the
+// reachability test asks for the same models and evaluations thousands of times.
+const resultIdCache = new Map<string, string[]>();
 function resultIds(id: string) {
+  const cached = resultIdCache.get(id);
+  if (cached) return cached;
   const ids: string[] = [];
   let cursor: string | undefined;
   do {
@@ -29,6 +34,13 @@ function resultIds(id: string) {
     ids.push(...page.items.map((row) => row.result.id));
     cursor = page.next_cursor || undefined;
   } while (cursor);
+  resultIdCache.set(id, ids);
+  return ids;
+}
+const reverseCache = new Map<string, Set<string>>();
+function reverseIds(id: string) {
+  let ids = reverseCache.get(id);
+  if (!ids) reverseCache.set(id, (ids = new Set(query.get({ id })!.reverse.map((item) => item.record.id))));
   return ids;
 }
 
@@ -111,11 +123,7 @@ describe("source-backed profile publication", () => {
       const evaluation = detail.direct.find(
         (item) => item.relation === "evaluation",
       )!.record;
-      expect(
-        query
-          .get({ id: evaluation.id })!
-          .reverse.some((item) => item.record.id === result.id),
-      ).toBe(true);
+      expect(reverseIds(evaluation.id).has(result.id)).toBe(true);
       const row = query.results({ id: result.id }).items[0];
       expect(row.result.id).toBe(result.id);
       expect(row.evaluation?.id).toBe(evaluation.id);
@@ -124,12 +132,8 @@ describe("source-backed profile publication", () => {
       expect(row.sources.length).toBeGreaterThan(0);
       expect(row.review_status).toBe(result.status);
       for (const linked of [...row.models, ...row.benchmarks]) {
-        expect(resultIds(linked.id)).toContain(result.id);
-        expect(
-          query
-            .get({ id: linked.id })!
-            .reverse.some((item) => item.record.id === evaluation.id),
-        ).toBe(true);
+        expect(new Set(resultIds(linked.id)).has(result.id)).toBe(true);
+        expect(reverseIds(linked.id).has(evaluation.id)).toBe(true);
       }
     }
   });

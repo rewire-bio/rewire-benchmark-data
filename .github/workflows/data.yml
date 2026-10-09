@@ -12,14 +12,62 @@ concurrency:
 env:
   # The release of rdf-kg-mcp whose bundle format the knowledge graph must satisfy.
   RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.1.0
+  NODE_OPTIONS: --max-old-space-size=8192
+
 jobs:
-  data:
+  # A release is cut by changing data/omics/release-config.json. Data pull requests only run
+  # the checks job. Release runs also rebuild the release, on a separate machine at the same
+  # time as the checks; main release runs then publish once both have passed.
+  mode:
     runs-on: ubuntu-latest
-    # Write access only so main pushes can publish the immutable prepared release and knowledge-graph assets.
-    permissions:
-      contents: write
-    env:
-      NODE_OPTIONS: --max-old-space-size=8192
+    outputs:
+      release: ${{ steps.mode.outputs.release }}
+      main: ${{ steps.mode.outputs.main }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: mode
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            release=true
+          elif [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            git fetch --quiet --depth=1 origin "$BASE_REF"
+            git diff --quiet "origin/$BASE_REF" HEAD -- data/omics/release-config.json && release=false || release=true
+          else
+            git diff --quiet HEAD^1 HEAD -- data/omics/release-config.json && release=false || release=true
+          fi
+          main=false
+          [ "$GITHUB_EVENT_NAME" != pull_request ] && main=true
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "main=$main" >> "$GITHUB_OUTPUT"
+          echo "Release run: $release; main or manual: $main"
+
+  checks:
+    needs: mode
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci
+      - name: Validate the record store, vocabularies and provenance
+        run: npm run records -- check
+      - name: Tests (fast set on pull requests, all on main)
+        run: npm run ${{ needs.mode.outputs.main == 'true' && 'test' || 'test:fast' }}
+      - run: npm run test:python
+      - run: npm run test:kg
+      - run: npm run typecheck
+
+  release:
+    needs: mode
+    if: needs.mode.outputs.release == 'true'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,25 +78,53 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci
       - run: npm run verify:package
-      - run: npm test
-      - run: npm run test:python
-      - run: npm run test:kg
-      - run: npm run typecheck
-      - name: Reproduce the current release, knowledge graph and prepared website artifact
+      - name: Reproduce the release and prepared website artifact (pull requests, no inference)
+        if: needs.mode.outputs.main != 'true'
+        run: npm run build:check
+      - name: Reproduce the release, knowledge graph and prepared website artifact
+        if: needs.mode.outputs.main == 'true'
         run: npm run build
       - name: Require reviewed prepared artifacts
         run: npm run verify:package && git diff --exit-code -- data website
       - name: Check the prepared release file against the live query engine
         run: npm run serving:parity
-      - name: Publish the prepared release file (main only; never replaces an existing asset)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Check the knowledge-graph bundle against the bundle format
+        if: needs.mode.outputs.main == 'true'
+        run: uvx --from "$RDF_KG_MCP" rdf-kg-mcp verify public/kg
+      - name: Keep the prepared file and bundle for publishing
+        if: needs.mode.outputs.main == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-outputs
+          path: |
+            public/serving
+            public/kg
+          retention-days: 3
+
+  publish:
+    # Runs only on main release pushes, and only after the tests and the release rebuild pass.
+    needs: [mode, checks, release]
+    if: needs.mode.outputs.release == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-outputs
+          path: public
+      - name: Publish the prepared release file (never replaces an existing asset)
         env:
           GH_TOKEN: ${{ github.token }}
         run: npm run serving:publish
-      - name: Check the knowledge-graph bundle against the bundle format
-        run: uvx --from "$RDF_KG_MCP" rdf-kg-mcp verify public/kg
-      - name: Publish the knowledge-graph bundle (main only; never replaces an existing asset)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Publish the knowledge-graph bundle (never replaces an existing asset)
         env:
           GH_TOKEN: ${{ github.token }}
         run: npm run kg:publish
