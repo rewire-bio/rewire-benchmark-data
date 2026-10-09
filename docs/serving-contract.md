@@ -38,6 +38,6 @@ For release `2026-10-07-061436ccd3b9`: 28,677 records, 12,487 result rows, 77,36
 
 - `tests/prepared-catalogue.test.ts` builds the file from the canonical store, checks counts and runs the parity checks without use cases.
 - `npm run serving:parity` (CI, after the build) runs over 1,500 parity checks on the real release, including use cases, the busiest records, several cursor pages, filters, comparisons and missing IDs.
-- `npm run serving:publish` refuses to replace an existing asset with different bytes.
+- `npm run serving:publish` never replaces a published asset. It compares receipts: a build by the same generator must be byte-identical, and a build by a later generator leaves the published asset in place.
 
 The website pins the asset by tag, file name and SHA-256 in `benchmark-data.lock.json`, verifies it at image build time and copies it into the image.

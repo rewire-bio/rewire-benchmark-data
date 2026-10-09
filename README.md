@@ -45,14 +45,15 @@ data/
   research/                            research investigation inputs (see its README)
 docs/                                  procedures and dated reviews
 scripts/omics/                         record store, extraction, acquisition, audit and release code
-services/omics/src/, lib/              validation and query code shared with the website
+services/omics/src/                    record validation, query engine and prepared-file reader, mirrored by the website
+lib/                                   rendering helpers shared with the website
 maintenance/                           refresh schedule, attempt records and reports
 website/                               packaged inputs pinned by the website
 ```
 
 Records are edited only through the store: `npm run records -- add` appends a reviewed batch, `npm run records -- change` records a reviewed edit, and `npm run records -- check` verifies every record against its provenance. See [docs/collection.md](docs/collection.md).
 
-`services/omics/src/` and `lib/` keep the directory names they have in rewire-database so imports match. There is no running service here. Changes to shared schemas need compatibility checks in both repositories.
+`services/omics/src/` is the source of truth for the code the website mirrors in its `shared/omics/` (its tests are in `tests/shared/`); there is no running service here. The website copies it with `npm run shared:sync` when it adopts a release. The folder keeps its name because release IDs hash some of these files' bytes, so renaming it means a new release; do it alongside the next real one. Changes to shared schemas need compatibility checks in both repositories.
 
 ## Build and validate
 
@@ -73,7 +74,7 @@ CI keeps data pull requests fast. Every run validates the store (`npm run record
 
 ## How the website consumes releases
 
-`website/manifest.json` lists the prepared website inputs with destination, size and SHA-256. The website pins this manifest and a full git revision in its `benchmark-data.lock.json`, then verifies and unpacks the files without running any build step from here. No change in this repository reaches the live site until a website PR updates that lock.
+`website/manifest.json` lists the prepared website inputs with destination, size and SHA-256. Each release also has a prepared SQLite file, published as the GitHub release asset `serving/<release-id>` (see [docs/serving-contract.md](docs/serving-contract.md)); the website's pages and public API read only that file. The website pins the manifest, a full git revision and the prepared file's SHA-256 in its `benchmark-data.lock.json`, verifies them and builds the file into its image, without running any build step from here. No change in this repository reaches the live site until a website PR updates that lock (see [docs/release.md](docs/release.md)).
 
 ## Provenance
 
