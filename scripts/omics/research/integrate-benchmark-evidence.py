@@ -78,7 +78,7 @@ def add_group(g):
   if model not in old and model not in records:
    put(rec(model,'model',row.get('display_name') or row['model_name']+' ('+g.get('study_label','paper configuration')+')',model_summary,sources,{'entity_level':'method','configuration_type':'reported_configuration','version':config,'profile':profile(model_summary,sources,row['locator'],config,['Exact checkpoint, full training inventory and licences are not established by this comparison table. Follow the original method source before reuse.'])},facets=facets))
   attrs={'origin':origin,'protocol':context,'version':config,'comparison':{**comparison,'adaptation':config},'source_locator':loc,'missing_metadata':{'checkpoint_revision':'unextracted','budget':'unreported','split_manifest':'unextracted'}}
-  links=[{'relation':'model','target_id':model},{'relation':'benchmark','target_id':protocol},{'relation':'dataset','target_id':dataset}]
+  links=[{'relation':'system','target_id':model},{'relation':'assessment','target_id':protocol},{'relation':'data','target_id':dataset}]
   if ev in old:
    patch(ev,attrs,sources,links)
   elif ev not in records:put(rec(ev,'evaluation',get(model)['name']+': '+g['dataset'],context,sources,attrs,links,facets))

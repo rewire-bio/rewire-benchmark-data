@@ -13,7 +13,7 @@ import { buildRelease } from "../scripts/omics/release";
 import { createCatalogueQuery } from "../shared/omics/catalogue-query";
 import { benchmarkCoverage } from "../scripts/omics/audit-benchmark-evidence";
 import { BENCHMARK_ID, TASK_ORDER } from "../scripts/omics/extract-beacon";
-import { relationAcceptsKind } from "../shared/omics/entity-kinds";
+import { relationAllows } from "../shared/omics/relations";
 import { type RecordEntry } from "../scripts/omics/schema";
 
 const batch = batchRecords("data/omics/reviewed/beacon-2026.jsonl");
@@ -68,14 +68,14 @@ describe("BEACON Table 3 batch", () => {
     });
   });
 
-  it("gives every evaluation one resolvable model, benchmark and dataset", () => {
+  it("gives every evaluation one resolvable system, assessment and data", () => {
     for (const evaluation of of("evaluation")) {
       const relations = (evaluation.links || []).map((link) => link.relation);
-      expect(relations.sort()).toEqual(["benchmark", "dataset", "model"]);
+      expect(relations.sort()).toEqual(["assessment", "data", "system"]);
       for (const link of evaluation.links || []) {
         const target = byId.get(link.target_id);
         expect(target, `${evaluation.id} -> ${link.target_id}`).toBeDefined();
-        expect(relationAcceptsKind(link.relation, target!.kind)).toBe(true);
+        expect(relationAllows(link.relation, evaluation.kind, target!.kind)).toBe(true);
       }
     }
   });

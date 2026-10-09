@@ -263,9 +263,9 @@ for (const c of all) {
       facets: {},
       source_ids: [sid],
       links: [
-        { relation: "model", target_id: mid },
-        { relation: "benchmark", target_id: pid },
-        { relation: "dataset", target_id: did },
+        { relation: "system", target_id: mid },
+        { relation: "assessment", target_id: pid },
+        { relation: "data", target_id: did },
       ],
       attributes: {
         origin: c.evidence_origin?.includes("independent")

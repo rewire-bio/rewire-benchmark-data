@@ -3,14 +3,14 @@
 #
 # Rules this file must keep (checked by scripts/kg/tests):
 # - No owl:sameAs, and rb:aliasOf is neither symmetric nor transitive: aliases never merge records.
-# - rb:evaluatedSubject, rb:evaluation and mls:hasValue have no superproperty chains into them and
-#   are never inferred. Results attach only to what was actually evaluated.
-# - Links whose meaning depends on the kind of record (a baseline's evaluation, model and
-#   configuration links; a dataset subset's benchmark link) use their own properties via
-#   by_kind in mapping.json, so the generalised links below only ever start from evaluations.
-# - rb:usesModel, rb:family and rb:variantOf are not transitive, not subproperties of
-#   rb:testedSystem and not part of any property chain: a pipeline's or variant's result is never
-#   a result of the model it uses or belongs to.
+# - rb:testedSystem, rb:testedOn, rb:dataset, rb:evaluation and mls:hasValue are asserted only:
+#   nothing is a subproperty of them and they are never inferred. Results attach only to what
+#   was actually evaluated.
+# - Every relation has one meaning (shared/omics/relations.ts), so no axiom here has to
+#   account for links that mean different things on different kinds of record.
+# - rb:usesModel, rb:family, rb:variantOf and rb:configurationOf are not transitive, not
+#   subproperties of rb:testedSystem and not part of any property chain: a pipeline's or
+#   variant's result is never a result of the model it uses or belongs to.
 # - No rdfs:domain or rdfs:range on rb: properties, so no record gets a type from a link.
 # Changes to this file are reviewed like record changes.
 
@@ -110,65 +110,37 @@ rb:evaluation a owl:ObjectProperty ;
     rdfs:label "evaluation" ;
     rdfs:comment "Result to its evaluation." .
 
-rb:evaluatedSubject a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedSystem ;
-    rdfs:label "evaluated subject" ;
-    rdfs:comment "Evaluation to the configuration, model, method or pipeline actually evaluated. Not inherited by families." .
+rb:testedSystem a owl:ObjectProperty ;
+    rdfs:label "tested system" ;
+    rdfs:comment "Evaluation to the configuration, model, method, pipeline or service it evaluated. Not inherited by families." .
 
-rb:configuration a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedSystem ;
-    rdfs:label "configuration" ;
-    rdfs:comment "Evaluation to an exact configuration (the typed form of the subject link)." .
-
-rb:method a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedSystem ;
-    rdfs:label "method" ;
-    rdfs:comment "Link to a method (the typed form of the subject link)." .
-
-rb:pipeline a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedSystem ;
-    rdfs:label "pipeline" ;
-    rdfs:comment "Link to a pipeline (the typed form of the subject link)." .
-
-rb:service a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedSystem ;
-    rdfs:label "service" ;
-    rdfs:comment "Link to a service (the typed form of the subject link)." .
-
-rb:evaluatedOn a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedOn ;
-    rdfs:label "evaluated on" ;
-    rdfs:comment "Evaluation to the task or protocol used." .
-
-rb:protocol a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedOn ;
-    rdfs:label "protocol" ;
-    rdfs:comment "Link to a protocol (the typed form of the assessment link)." .
-
-rb:task a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedOn ;
-    rdfs:label "task" ;
-    rdfs:comment "Link to a task (the typed form of the assessment link)." .
-
-rb:evaluator a owl:ObjectProperty ;
-    rdfs:label "evaluator" ;
-    rdfs:comment "Link to scoring software." .
+rb:testedOn a owl:ObjectProperty ;
+    rdfs:label "tested on" ;
+    rdfs:comment "Evaluation to the task, protocol or benchmark it was assessed on." .
 
 rb:dataset a owl:ObjectProperty ;
     rdfs:label "dataset" ;
-    rdfs:comment "Link to the dataset or dataset subset used." .
-
-rb:datasetSubset a owl:ObjectProperty ; rdfs:subPropertyOf rb:dataset ;
-    rdfs:label "dataset subset" ;
-    rdfs:comment "Link to a dataset subset. A subset is a dataset, so this is also a dataset link." .
-
-rb:measuredIn a owl:ObjectProperty ;
-    rdfs:label "measured in" ;
-    rdfs:comment "Baseline to an evaluation that measured it as a comparator. The values belong to that evaluation's results; a baseline is not a result." .
+    rdfs:comment "Evaluation to the dataset or dataset subset it used." .
 
 rb:implementedBy a owl:ObjectProperty ;
     rdfs:label "implemented by" ;
     rdfs:comment "Baseline to the configuration, model or method that implements it. A baseline is not an evaluation, so this is not rb:testedSystem." .
 
+rb:measuredIn a owl:ObjectProperty ;
+    rdfs:label "measured in" ;
+    rdfs:comment "Baseline to an evaluation that measured it as a comparator. The values belong to that evaluation's results; a baseline is not a result." .
+
+rb:usesData a owl:ObjectProperty ;
+    rdfs:label "uses data" ;
+    rdfs:comment "Task, protocol or baseline to the data it uses. Not what an evaluation was run on." .
+
 rb:usedIn a owl:ObjectProperty ;
     rdfs:label "used in" ;
     rdfs:comment "Dataset subset to the protocol that uses it." .
 
-rb:baseline a owl:ObjectProperty ;
-    rdfs:label "baseline" ;
-    rdfs:comment "Link to a baseline." .
+rb:configurationOf a owl:ObjectProperty ;
+    rdfs:label "configuration of" ;
+    rdfs:comment "Configuration to the model, method or pipeline it configures. Not transitive; results roll up only when a claim backs the link." .
 
 rb:family a owl:ObjectProperty ;
     rdfs:label "family" ;
@@ -176,7 +148,7 @@ rb:family a owl:ObjectProperty ;
 
 rb:variantOf a owl:ObjectProperty ;
     rdfs:label "variant of" ;
-    rdfs:comment "A model variant. Not transitive." .
+    rdfs:comment "Model to the model it is a variant of. Not transitive." .
 
 rb:aliasOf a owl:ObjectProperty ;
     rdfs:label "alias of" ;
@@ -226,19 +198,11 @@ rb:partOf a owl:ObjectProperty ; rdfs:subPropertyOf dcterms:isPartOf, rb:within 
     rdfs:label "part of" ;
     rdfs:comment "A task or protocol to the benchmark or suite it is a component of." .
 
-# Generalised and inferred links ------------------------------------------------------------
-
-rb:testedSystem a owl:ObjectProperty ;
-    rdfs:label "tested system" ;
-    rdfs:comment "The system an evaluation tested, whichever link style the record uses (evaluatedSubject or a typed configuration, method, pipeline or service link). Inferred." .
+# Inferred links ------------------------------------------------------------
 
 rb:testedIn a owl:ObjectProperty ; owl:inverseOf rb:testedSystem ;
     rdfs:label "tested in" ;
     rdfs:comment "System to the evaluations that tested it directly. Inferred." .
-
-rb:testedOn a owl:ObjectProperty ;
-    rdfs:label "tested on" ;
-    rdfs:comment "The task or protocol an evaluation used, whichever link style the record uses. Inferred." .
 
 rb:within a owl:ObjectProperty, owl:TransitiveProperty ;
     rdfs:label "within" ;

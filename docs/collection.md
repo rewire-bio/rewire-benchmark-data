@@ -85,7 +85,7 @@ Write records following [record-contract.md](record-contract.md). Search existin
 
 - `model`, `method`, `pipeline` or `service` records for what was evaluated, and a `configuration` record for the exact setup that produced the scores (checkpoint, size, fine-tuning), with versions exactly as published.
 - `benchmark`, `task`, `protocol`, `dataset` and `dataset_subset` records for what it was evaluated on. A protocol fixes the split, inputs and metric; two tables with different splits are two protocols.
-- One `evaluation` per configuration and protocol, with `origin` (`author_reported`, `independent_paper`, `paper_compilation`, `rewire_run`, or `unreported` when the source does not say who ran it) and a `comparison` object. Comparison fields that the source does not state are `null`; that blocks automatic comparison, which is intended.
+- One `evaluation` per configuration and protocol, linked with exactly one `system`, one `assessment` and one `data` (see [record-contract.md](record-contract.md) for every relation), with `origin` (`author_reported`, `independent_paper`, `paper_compilation`, `rewire_run`, or `unreported` when the source does not say who ran it) and a `comparison` object. Comparison fields that the source does not state are `null`; that blocks automatic comparison, which is intended.
 - One `result` per printed cell, with:
   - `printed_value`: the string exactly as printed, including `%`, `±` and rounding
   - `numeric_value`: decimal string, or `null` if not numeric

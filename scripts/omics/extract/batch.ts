@@ -279,9 +279,9 @@ export function buildBatch(spec: BatchSpec): RecordEntry[] {
       facets: { areas, tasks: [task.title] },
       source_ids: [sourceId],
       links: [
-        { relation: "benchmark", target_id: id(spec, "task", task.label) },
-        { relation: "model", target_id: id(spec, "method", cell.method) },
-        { relation: "dataset", target_id: datasetId(task.dataset) },
+        { relation: "assessment", target_id: id(spec, "task", task.label) },
+        { relation: "system", target_id: id(spec, "method", cell.method) },
+        { relation: "data", target_id: datasetId(task.dataset) },
       ],
       attributes: {
         origin: "author_reported",

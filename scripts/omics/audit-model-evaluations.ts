@@ -17,7 +17,7 @@ export function modelEvaluationAudit(snapshot: CatalogueSnapshot) {
     while (cursor) { const page = query.results({ id: record.id, cursor, limit: 100 }); resultRows.push(...page.items); cursor = page.next_cursor; }
     const aliases = record.links.filter(link => link.relation === "alias_of" && verified(record.id, link.relation, link.target_id)).map(link => link.target_id);
     const pipelines = snapshot.records.filter(item => item.links.some(link => link.relation === "uses_model" && link.target_id === record.id && verified(item.id, link.relation, record.id))).map(item => ({ id: item.id, kind: item.kind, results: query.results({ id: item.id, limit: 1 }).total }));
-    const broaderFamilies = record.links.filter(link => ["family", "variant_of", "alias_of"].includes(link.relation) && verified(record.id, link.relation, link.target_id)).map(link => ({ id: link.target_id, results: query.results({ id: link.target_id, limit: 1 }).total })).filter(item => item.results > 0);
+    const broaderFamilies = record.links.filter(link => ["family", "variant_of", "configuration_of", "alias_of"].includes(link.relation) && verified(record.id, link.relation, link.target_id)).map(link => ({ id: link.target_id, results: query.results({ id: link.target_id, limit: 1 }).total })).filter(item => item.results > 0);
     return {
       record_id: record.id, name: record.name, kind: record.kind, record_status: record.status,
       coverage_status: first.total ? "linked_evaluations" : pipelines.some(item => item.results) ? "downstream_evaluations_only" : broaderFamilies.length ? "broader_family_only" : "no_linked_evaluations",

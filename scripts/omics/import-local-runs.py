@@ -125,7 +125,7 @@ for key, suite, label in configs:
         limitations=['One selected split or assay; no whole-suite score.', 'No published model score reproduction claim.',
                      'Raw predictions retained locally; hashes and inspected contribution bundle are public.',
                      'Single execution; no seed variability or uncertainty interval estimated.']),
-        [link('configuration',mid),link('protocol',pid),link('dataset_subset',did)], area)
+        [link('system',mid),link('assessment',pid),link('data',did)], area)
     metric_path = 'metrics'
     metric_values = report['metrics']
     if suite == 'proteingym':

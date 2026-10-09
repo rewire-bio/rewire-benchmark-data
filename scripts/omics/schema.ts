@@ -5,15 +5,14 @@ import { z } from "zod";
 import { extensionsSchema } from "./extensions";
 import { profileSchema, validateProfileSources } from "../../lib/omics-profile";
 import { createCatalogueQuery } from "../../shared/omics/catalogue-query";
+import { relationAllows, relations } from "../../shared/omics/relations";
 import { validateBenchmarkResearch } from "../../shared/omics/benchmark-research";
 import {
   entityKinds,
-  catalogueRelations,
   validateDatasetReuseLink,
   modelSubjectKinds,
   benchmarkSubjectKinds,
   datasetSubjectKinds,
-  relationAcceptsKind,
 } from "../../shared/omics/entity-kinds";
 export const kinds = entityKinds;
 export const statuses = [
@@ -37,7 +36,7 @@ export const recordSchema = z
     links: z.array(
       z.object({
         relation: z.string().refine(
-          value => (catalogueRelations as readonly string[]).includes(value),
+          value => (relations as readonly string[]).includes(value),
           "Unknown catalogue relationship",
         ),
         target_id: z.string().min(1),
@@ -64,12 +63,8 @@ export function validateRecords(input: unknown[]): RecordEntry[] {
       if (!byId.has(l.target_id))
         throw new Error(`Dangling ${r.id} -> ${l.target_id}`);
       validateDatasetReuseLink(r, l, byId.get(l.target_id)!);
-      if (
-        !(r.kind === "result" && l.relation === "evaluation") &&
-        (entityKinds as readonly string[]).includes(l.relation) &&
-        !relationAcceptsKind(l.relation, byId.get(l.target_id)!.kind)
-      )
-        throw new Error(`Wrong entity kind ${r.id} -> ${l.target_id}`);
+      if (!relationAllows(l.relation, r.kind, byId.get(l.target_id)!.kind))
+        throw new Error(`Relationship ${l.relation} cannot link ${r.kind} ${r.id} to ${byId.get(l.target_id)!.kind} ${l.target_id}`);
     }
     const a = r.attributes;
     validateBenchmarkResearch(r, byId);
@@ -119,25 +114,9 @@ export function validateRecords(input: unknown[]): RecordEntry[] {
         throw new Error(`External result mislabelled reproduced ${r.id}`);
     }
     if (r.kind === "evaluation")
-      for (const relation of ["model", "benchmark", "dataset"]) {
-        const roles: readonly string[] =
-          relation === "model"
-            ? modelSubjectKinds
-            : relation === "benchmark"
-              ? benchmarkSubjectKinds
-              : relation === "dataset"
-                ? datasetSubjectKinds
-                : [relation];
-        const links = r.links.filter((l) => roles.includes(l.relation));
-        if (
-          links.length !== 1 ||
-          !relationAcceptsKind(
-            relation,
-            byId.get(links[0].target_id)?.kind || "",
-          )
-        )
-          throw new Error(`Invalid evaluation ${relation} ${r.id}`);
-      }
+      for (const role of ["system", "assessment", "data"])
+        if (r.links.filter((l) => l.relation === role).length !== 1)
+          throw new Error(`Invalid evaluation ${role} ${r.id}`);
     if (r.kind === "claim" && !r.links.some((l) => l.relation === "subject"))
       throw new Error(`Claim has no subject ${r.id}`);
   }

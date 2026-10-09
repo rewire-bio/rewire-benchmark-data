@@ -474,11 +474,11 @@ export function buildRecords(rows: MethodRow[], sha256: string, date: string) {
         source_ids: [sourceId],
         links: [
           {
-            relation: "benchmark",
+            relation: "assessment",
             target_id: `beacon-task-${slug(spec.label)}`,
           },
-          { relation: "model", target_id: `beacon-model-${slug(row.name)}` },
-          { relation: "dataset", target_id: datasetId(spec.dataset) },
+          { relation: "system", target_id: `beacon-model-${slug(row.name)}` },
+          { relation: "data", target_id: datasetId(spec.dataset) },
         ],
         attributes: {
           origin: "author_reported",

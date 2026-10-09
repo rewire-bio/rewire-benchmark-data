@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { Parser } from "n3";
 import { buildContext, contextFile, exportQuads, readMapping, recordQuads } from "../scripts/kg/export";
 import { kinds } from "../scripts/omics/schema";
-import { catalogueRelations } from "../shared/omics/entity-kinds";
+import { relations as catalogueRelations } from "../shared/omics/relations";
 import { records, recordsById } from "./helpers/records";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const jsonld = require("jsonld");
@@ -21,7 +21,8 @@ describe("ontology mapping", () => {
   it("never equates aliases or lets a pipeline's model count as evaluated", () => {
     const properties = Object.values(mapping.relations).map((r) => r.property);
     expect(properties).not.toContain("owl:sameAs");
-    expect(mapping.relations.uses_model.property).not.toBe(mapping.relations.model.property);
+    expect(mapping.relations.uses_model.property).not.toBe(mapping.relations.system.property);
+    expect(new Set(properties).size).toBe(properties.length); // one property per relation
   });
 
   it("keeps the committed JSON-LD context in step with the mapping", () => {
@@ -67,10 +68,10 @@ describe("N-Quads export", () => {
   });
 
   it("types every record and links evaluations to what was actually evaluated", () => {
-    const evaluation = records.find((r) => r.kind === "evaluation" && r.links.some((l) => l.relation === "model"))!;
+    const evaluation = records.find((r) => r.kind === "evaluation")!;
     const lines = recordQuads(mapping, evaluation);
-    const subject = evaluation.links.find((l) => l.relation === "model")!.target_id;
-    expect(lines.some((l) => l.includes(`<${RB}evaluatedSubject> <${ID}${subject}>`))).toBe(true);
+    const subject = evaluation.links.find((l) => l.relation === "system")!.target_id;
+    expect(lines.some((l) => l.includes(`<${RB}testedSystem> <${ID}${subject}>`))).toBe(true);
     expect(lines.some((l) => l.includes("http://www.w3.org/ns/mls#Run"))).toBe(true);
   });
 
@@ -83,14 +84,14 @@ describe("N-Quads export", () => {
     expect(lines.some((l) => /<https:\/\/benchmarks\.rewire\.it\/vocab#(metric|area|status|unit)> "/.test(l))).toBe(false);
   });
 
-  it("gives links that mean something else on baselines and subsets their own properties", () => {
-    const baseline = records.find((r) => r.kind === "baseline" && r.links.some((l) => l.relation === "evaluation"))!;
+  it("gives baselines and dataset subsets their own relations, distinct from evaluations'", () => {
+    const baseline = records.find((r) => r.kind === "baseline" && r.links.some((l) => l.relation === "measured_in"))!;
     const lines = recordQuads(mapping, baseline);
     expect(lines.some((l) => l.includes(`<${RB}measuredIn>`))).toBe(true);
-    expect(lines.some((l) => l.includes(`<${RB}evaluation>`) || l.includes(`<${RB}evaluatedSubject>`))).toBe(false);
-    const subset = records.find((r) => r.kind === "dataset_subset" && r.links.some((l) => l.relation === "benchmark"))!;
+    expect(lines.some((l) => l.includes(`<${RB}evaluation>`) || l.includes(`<${RB}testedSystem>`))).toBe(false);
+    const subset = records.find((r) => r.kind === "dataset_subset" && r.links.some((l) => l.relation === "used_in"))!;
     const subsetLines = recordQuads(mapping, subset);
     expect(subsetLines.some((l) => l.includes(`<${RB}usedIn>`))).toBe(true);
-    expect(subsetLines.some((l) => l.includes(`<${RB}evaluatedOn>`))).toBe(false);
+    expect(subsetLines.some((l) => l.includes(`<${RB}testedOn>`))).toBe(false);
   });
 });

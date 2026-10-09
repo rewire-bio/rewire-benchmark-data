@@ -23,7 +23,7 @@ ID = rdflib.Namespace(build.ID)
 DCT = rdflib.Namespace("http://purl.org/dc/terms/")
 MLS = rdflib.Namespace("http://www.w3.org/ns/mls#")
 V = lambda scheme, key: URIRef(f"https://benchmarks.rewire.it/vocab/{scheme}/{key}")
-LINK_ONLY = [RB.usesModel, RB.family, RB.variantOf, RB.aliasOf, RB.measuredIn, RB.implementedBy, RB.usedIn]
+LINK_ONLY = [RB.usesModel, RB.family, RB.variantOf, RB.configurationOf, RB.aliasOf, RB.measuredIn, RB.implementedBy, RB.usedIn, RB.usesData]
 
 
 def expand(curie: str, prefixes: dict[str, str]) -> URIRef:
@@ -43,17 +43,11 @@ class VocabularyTest(unittest.TestCase):
         for section in ("relations", "fields", "facets", "attributes", "review"):
             for entry in self.mapping[section].values():
                 terms.add(entry["property"])
-                terms.update(k["property"] for k in entry.get("by_kind", {}).values())
         terms.update({"rb:link", "rb:relation", "rb:target"})  # JSON-LD link objects
         missing = sorted(
             t for t in terms if t.startswith("rb:") and (expand(t, prefixes), RDFS.label, None) not in self.vocab
         )
         self.assertEqual(missing, [])
-
-    def test_by_kind_overrides_name_real_kinds(self) -> None:
-        kinds = set(self.mapping["classes"])
-        for name, entry in self.mapping["relations"].items():
-            self.assertLessEqual(set(entry.get("by_kind", {})), kinds, name)
 
     def test_never_equates_records(self) -> None:
         self.assertEqual(list(self.vocab.triples((None, OWL.sameAs, None))), [])
@@ -100,15 +94,15 @@ def fixture() -> rdflib.Graph:
     record(g, ID.family, RB.Model)
     record(g, ID.alias, RB.Model, aliasOf=ID.model)
     record(g, ID.pipeline, RB.Pipeline, usesModel=ID.model)
-    record(g, ID.config, RB.Configuration, family=ID.family, variantOf=ID.model)
+    record(g, ID.config, RB.Configuration, family=ID.family, configurationOf=ID.model)
     record(g, ID.suite, RB.Benchmark)
     record(g, ID.bench, RB.Benchmark, partOf=ID.suite)
     record(g, ID.task, RB.Task, partOf=ID.bench)
     record(g, ID.protocol, RB.Protocol, partOf=ID.bench)
     record(g, ID.data, RB.Dataset)
     record(g, ID.subset, RB.DatasetSubset, usedIn=ID.protocol)
-    record(g, ID.eval1, RB.Evaluation, evaluatedSubject=ID.pipeline, evaluatedOn=ID.task, datasetSubset=ID.subset)
-    record(g, ID.eval2, RB.Evaluation, configuration=ID.config, protocol=ID.protocol, dataset=ID.data)
+    record(g, ID.eval1, RB.Evaluation, testedSystem=ID.pipeline, testedOn=ID.task, dataset=ID.subset)
+    record(g, ID.eval2, RB.Evaluation, testedSystem=ID.config, testedOn=ID.protocol, dataset=ID.data)
     record(g, ID.result1, RB.Result, evaluation=ID.eval1, source=ID.paper)
     record(g, ID.result2, RB.Result, evaluation=ID.eval2, source=ID.paper)
     for result in (ID.result1, ID.result2):
@@ -139,12 +133,9 @@ class InferenceTest(unittest.TestCase):
         self.assertTrue(targets.isdisjoint({ID.model, ID.family, ID.alias}))
         build.check_inferred(self.asserted, self.inferred)
 
-    def test_both_link_styles_generalise(self) -> None:
-        self.assertEqual(self.objects(ID.eval1, RB.testedSystem), {ID.pipeline})
-        self.assertEqual(self.objects(ID.eval2, RB.testedSystem), {ID.config})
-        self.assertEqual(self.objects(ID.eval1, RB.testedOn), {ID.task})
-        self.assertEqual(self.objects(ID.eval2, RB.testedOn), {ID.protocol})
-        self.assertEqual(self.objects(ID.eval1, RB.dataset), {ID.subset})
+    def test_evaluation_links_are_asserted_not_inferred(self) -> None:
+        for prop in (RB.testedSystem, RB.testedOn, RB.dataset):
+            self.assertEqual({o for s, p, o in self.inferred if p == prop}, set(), prop)
         self.assertEqual(self.objects(ID.config, RB.testedIn), {ID.eval2})
 
     def test_suites_are_transitive(self) -> None:
@@ -200,7 +191,7 @@ class InferenceTest(unittest.TestCase):
 
     def test_shacl_rejects_a_typed_subject_link_outside_an_evaluation(self) -> None:
         broken = fixture()
-        broken.add((ID.config, RB.method, ID.model))  # would make the configuration "test" the model
+        broken.add((ID.config, RB.testedSystem, ID.model))  # a configuration does not test anything
         conforms, report = build.validate(broken, build.infer(broken, self.ontology))
         self.assertFalse(conforms)
         self.assertIn("Evaluation", report)

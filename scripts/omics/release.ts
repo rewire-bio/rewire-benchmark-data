@@ -1,3 +1,4 @@
+import { normalizeRecords } from "../../shared/omics/relations";
 import { benchmarkCoverage as benchmarkPageCoverage } from "../../shared/omics/benchmark-coverage";
 import { validateSnapshot } from "../../shared/omics/validation";
 import { writeBaselineAudit } from "./baseline-coverage";
@@ -39,7 +40,7 @@ import {
 const sha = (s: string | Buffer) =>
   crypto.createHash("sha256").update(s).digest("hex");
 export function buildRelease(
-  records: RecordEntry[],
+  input: RecordEntry[],
   releasedAt: string,
   extraCoverage: Record<string, unknown> = {},
   streamEvidence = false,
@@ -47,6 +48,8 @@ export function buildRelease(
   useCaseSources?: Record<string, string>,
   research?: ResearchData,
 ) {
+  // Records written with older relation names are released under the current ones.
+  const records = normalizeRecords(input);
   if (useCases) {
     validateUseCaseHistory(useCases);
     const declaration = useCaseDeclaration(useCases);

@@ -26,7 +26,7 @@ const evalFor = (r: any) =>
   byId.get(r.links.find((l: any) => l.relation === "evaluation").target_id)!;
 const protocolFor = (r: any) =>
   byId.get(
-    evalFor(r).links.find((l: any) => l.relation === "benchmark").target_id,
+    evalFor(r).links.find((l: any) => l.relation === "assessment").target_id,
   )!;
 const candidateFor = (r: any) =>
   byCandidate.get(r.attributes.acquisition_candidate_id)!;
@@ -143,7 +143,7 @@ describe("reviewed acquisition graph and scientific scope", () => {
         "not established",
       );
       const m = byId.get(
-        e.links.find((l: any) => l.relation === "model").target_id,
+        e.links.find((l: any) => l.relation === "system").target_id,
       )!;
       expect(m.name).toMatch(/^CAFA3 /);
       expect(m.links).toEqual([]);

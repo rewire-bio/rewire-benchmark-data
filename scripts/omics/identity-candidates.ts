@@ -7,7 +7,7 @@ import { loadRecords } from "./records";
 import type { RecordEntry } from "./schema";
 
 const kinds = ["model", "method", "configuration", "pipeline", "service", "benchmark", "task", "protocol", "dataset", "source"];
-const parentRelations = ["family", "variant_of", "alias_of", "model"];
+const parentRelations = ["family", "variant_of", "configuration_of", "alias_of", "system"];
 const normalise = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "");
 const parents = (record: RecordEntry) =>
   record.links.filter((link) => parentRelations.includes(link.relation)).map((link) => link.target_id);
