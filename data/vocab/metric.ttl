@@ -301,8 +301,8 @@
 
 :capri-medium-target-count a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
-    skos:prefLabel "Targets with medium or better model"@en ;
-    skos:definition "Number of targets with at least one model of CAPRI medium or better quality among the top N models."@en ;
+    skos:prefLabel "Targets with medium-accuracy model"@en ;
+    skos:definition "Number of targets with at least one model of CAPRI medium accuracy among the top N models, as printed by the source. Whether targets that also have a high-accuracy model are included is source-specific and recorded in metric_qualifier."@en ;
     skos:broader :count ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
@@ -352,7 +352,7 @@
 :casf-screening-success-rate a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "CASF forward screening success rate"@en ;
-    skos:definition "Proportion of targets for which the highest-affinity true binder is ranked within the top fraction (1%, 5% or 10%) of candidate ligands."@en ;
+    skos:definition "Proportion of targets for which the highest-affinity true binder is ranked within a top fraction (1%, 5% or 10%) of candidate ligands. The fraction goes in metric_qualifier; 'not stated' when the source omits it."@en ;
     skos:broader :success-rate ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by CASF-2016"@en .
@@ -471,7 +471,7 @@
     skos:prefLabel "Maximum F1 over thresholds (Fmax)"@en ;
     skos:altLabel "F1-max"@en ;
     skos:altLabel "Fmax"@en ;
-    skos:definition "Maximum of the F1 score over all decision thresholds, as in the CAFA protein-centric Fmax."@en ;
+    skos:definition "Maximum of the F1 score over decision thresholds. Covers the CAFA protein-centric Fmax and multi-label implementations such as TorchDrug f1_max; the implementation is named in metric_qualifier."@en ;
     skos:broader :f1-score ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
@@ -661,7 +661,7 @@
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Ligand RMSD"@en ;
     skos:altLabel "ligand_rmsd"@en ;
-    skos:definition "Symmetry-corrected RMSD of small-molecule ligand heavy atoms after superposition on the receptor."@en ;
+    skos:definition "Symmetry-corrected RMSD of small-molecule ligand atoms between predicted and reference pose after superposition on the receptor or binding pocket. Atom set (heavy-atom or all-atom) and superposition region as stated by the source, recorded in metric_qualifier."@en ;
     skos:broader :rmsd ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
 
@@ -678,7 +678,7 @@
     skos:prefLabel "Ligand RMSD < 2 Å success rate"@en ;
     skos:altLabel "Success rate, ligand all-atom RMSD <2 Å"@en ;
     skos:altLabel "Top-1 ligand RMSD <2 Å rate"@en ;
-    skos:definition "Proportion of complexes whose top-ranked predicted ligand pose has heavy-atom RMSD below 2 Å."@en ;
+    skos:definition "Proportion of complexes (or ligands) whose selected predicted pose has ligand RMSD below 2 Å from the reference pose. Atom set, pose selection (top-1, top-scoring) and aggregation as stated by the source, recorded in metric_qualifier."@en ;
     skos:broader :success-rate ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
@@ -859,10 +859,11 @@
     skos:altLabel "Pearson correlation of differential expression"@en ;
     skos:altLabel "Pearson delta"@en ;
     skos:altLabel "pearson_delta_expression"@en ;
-    skos:definition "Pearson correlation between predicted and observed post-perturbation expression change relative to control (delta), computed per perturbation over genes and then averaged."@en ;
+    skos:definition "Pearson correlation between predicted and observed mean post-perturbation expression change relative to control (delta), computed per perturbation and averaged over perturbations. Computed over all measured genes unless metric_qualifier names a subset (for example top 20 DE genes)."@en ;
     skos:broader :pearson-correlation ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
-    skos:scopeNote "Defined by GEARS"@en .
+    skos:scopeNote "Defined by GEARS"@en ;
+    skos:scopeNote "In the GEARS supplement 'Pearson DE' abbreviates delta expression, not DE genes."@en .
 
 :pearson-r-squared a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1387,7 +1388,8 @@
     skos:altLabel "recall_at_1"@en ;
     skos:definition "Fraction of queries whose correct answer is ranked first. For single-answer retrieval this equals hit rate@1 and recall@1."@en ;
     skos:broader :accuracy ;
-    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "The setting goes in metric_qualifier: 'retrieval' (true molecule ranked among a candidate set) or 'de novo, exact match' (true molecule among k generated structures). Values from the two settings are not comparable."@en .
 
 :top-1-mces a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1397,7 +1399,8 @@
     skos:altLabel "Top-1 MCES"@en ;
     skos:definition "Maximum common edge subgraph edit distance between the top-ranked (retrieved or generated) molecule and the true molecule."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
-    skos:scopeNote "Defined by MassSpecGym"@en .
+    skos:scopeNote "Defined by MassSpecGym"@en ;
+    skos:scopeNote "The setting goes in metric_qualifier: 'retrieval' (true molecule ranked among a candidate set) or 'de novo, exact match' (true molecule among k generated structures). Values from the two settings are not comparable."@en .
 
 :top-1-tanimoto a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1415,7 +1418,8 @@
     skos:altLabel "case_recovery_top10"@en ;
     skos:definition "Fraction of queries whose correct answer is among the 10 highest-ranked candidates."@en ;
     skos:broader :accuracy ;
-    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "The setting goes in metric_qualifier: 'retrieval' (true molecule ranked among a candidate set) or 'de novo, exact match' (true molecule among k generated structures). Values from the two settings are not comparable."@en .
 
 :top-10-mces a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1450,7 +1454,8 @@
     skos:altLabel "accuracy_at_100"@en ;
     skos:definition "Fraction of queries whose correct answer is among the 100 highest-ranked candidates."@en ;
     skos:broader :accuracy ;
-    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "The setting goes in metric_qualifier: 'retrieval' (true molecule ranked among a candidate set) or 'de novo, exact match' (true molecule among k generated structures). Values from the two settings are not comparable."@en .
 
 :top-20-accuracy a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1462,7 +1467,8 @@
     skos:altLabel "recall_at_20"@en ;
     skos:definition "Fraction of queries whose correct answer is among the 20 highest-ranked candidates."@en ;
     skos:broader :accuracy ;
-    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "The setting goes in metric_qualifier: 'retrieval' (true molecule ranked among a candidate set) or 'de novo, exact match' (true molecule among k generated structures). Values from the two settings are not comparable."@en .
 
 :top-200-accuracy a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1471,7 +1477,8 @@
     skos:altLabel "accuracy_at_200"@en ;
     skos:definition "Fraction of queries whose correct answer is among the 200 highest-ranked candidates."@en ;
     skos:broader :accuracy ;
-    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "The setting goes in metric_qualifier: 'retrieval' (true molecule ranked among a candidate set) or 'de novo, exact match' (true molecule among k generated structures). Values from the two settings are not comparable."@en .
 
 :top-5-accuracy a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1484,7 +1491,8 @@
     skos:altLabel "recall_at_5"@en ;
     skos:definition "Fraction of queries whose correct answer is among the 5 highest-ranked candidates."@en ;
     skos:broader :accuracy ;
-    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "The setting goes in metric_qualifier: 'retrieval' (true molecule ranked among a candidate set) or 'de novo, exact match' (true molecule among k generated structures). Values from the two settings are not comparable."@en .
 
 :top-50-accuracy a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1493,7 +1501,8 @@
     skos:altLabel "accuracy_at_50"@en ;
     skos:definition "Fraction of queries whose correct answer is among the 50 highest-ranked candidates."@en ;
     skos:broader :accuracy ;
-    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "The setting goes in metric_qualifier: 'retrieval' (true molecule ranked among a candidate set) or 'de novo, exact match' (true molecule among k generated structures). Values from the two settings are not comparable."@en .
 
 :true-positive-count a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;

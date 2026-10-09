@@ -28,11 +28,18 @@ describe("controlled vocabularies", () => {
     }
   });
 
-  it("maps every migration table row to concepts that exist", () => {
+  it("maps every migration table row to concepts that exist or that a later correction retired", () => {
+    // A concept retired after the migration must have had its records moved by a reviewed
+    // correction table, so the history stays traceable.
+    const retired = new Set(
+      fs.readdirSync("data/vocab/corrections").flatMap((file) =>
+        readCsv(fs.readFileSync(`data/vocab/corrections/${file}`, "utf8")).map((row) => row.old_value),
+      ),
+    );
     for (const scheme of migratedSchemes)
       for (const row of readTable(scheme).values())
         for (const key of row.concept.split(";").map((k) => k.trim()))
-          expect(schemes.get(scheme)!.concepts.has(key), `${scheme}: ${row.source_string} -> ${key}`).toBe(true);
+          expect(schemes.get(scheme)!.concepts.has(key) || retired.has(key), `${scheme}: ${row.source_string} -> ${key}`).toBe(true);
   });
 
   it("rejects free text in a controlled field", () => {

@@ -48,8 +48,8 @@ describe("reviewed acquisition graph and scientific scope", () => {
       expect(r.attributes.printed_value, r.id).toBe(c.printed_value);
       expect(Number(r.attributes.numeric_value), r.id).toBe(c.numeric_value);
       // Units and metrics are concept keys now; the batch keeps the source wording.
-      expect(r.attributes.metric, r.id).toBe(migrated("metric", c.metric));
-      expect(r.attributes.unit, r.id).toBe(migrated("unit", c.unit));
+      expect(r.attributes.metric, r.id).toBe(migrated("metric", c.metric, r.id, "attributes.metric"));
+      expect(r.attributes.unit, r.id).toBe(migrated("unit", c.unit, r.id, "attributes.unit"));
       expect(r.attributes.uncertainty, r.id).toEqual(c.uncertainty);
       expect(evalFor(r).kind).toBe("evaluation");
       expect(protocolFor(r).links).toContainEqual({
