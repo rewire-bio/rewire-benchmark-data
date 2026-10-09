@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "pdf-text-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the collector and extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T21:10:34Z",
+  "scope": "Independent review of the rare-disease reanalysis use-case batch for use-case-unresolved-rare-disease-reanalysis: 904 records (711 results, 84 evaluations, 84 configurations, 14 claims of which 9 are relevance judgements, 4 sources, 3 methods, 2 protocols, 2 datasets). All four source artifacts were re-downloaded and matched their recorded SHA-256. All 711 results were re-read from the pinned cells with a separate parser (the extractor's script was not run) and match in printed and numeric value, locator, metric, qualifier, unit, direction, evaluation, configuration, protocol and dataset; recall, precision, F1 and F2 recompute from the TP, FN and FP cells on all 81 Vestito et al. rows. The 9 proxy judgements were checked against the use case's question, inputs, output and exclusions and are source_checked with reviewed_evaluations; pins are not set. Corrections change no number and are listed in docs/reviews/use-cases/unresolved-rare-disease-reanalysis-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review, not reproduction of any tool and not clinical validation.",
+    "Figures were not read (Demidov et al. Fig. 3, Talos Extended Data Fig. 1).",
+    "The Talos source records pin the publisher page; the stored Talos values were compared with the PMC copy (PMC13472938), whose hash is recorded in the judgement reviews, not with the pinned bytes.",
+    "Europe PMC supplementaryFiles requests returned HTTP 500 on 2026-10-09; both supplementary PDFs were fetched from the publisher and matched the pinned hashes.",
+    "Pins for the 9 judgements are not set; the use case's assessed_by links and gap changes are approved in the dated review but not applied here.",
+    "npm run build was not run (disk limit, by instruction). npm test and npm run typecheck passed, and a scratch-store dry run of addBatch, loadRecords and deriveUseCaseInputs succeeded.",
+    "Rerunning extract/extract_rare_reanalysis.py would restore the collector's wording for the corrected configuration versions and parameters and the corrected claim."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rare-reanalysis-20261009-config-demidov2024-clincnv",
+        "rare-reanalysis-20261009-config-demidov2024-conifer",
+        "rare-reanalysis-20261009-config-demidov2024-exomedepth"
+      ],
+      "message": "Version recorded as unreported; the article's Code availability prints ClinCNV 1.16.6, CoNIFER 0.2.2 and ExomeDepth 1.1.15."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rare-reanalysis-20261009-config-demidov2024-conifer"
+      ],
+      "message": "Rerun rule for CoNIFER batches was simplified to the median condition only; the Methods also require every experiment to have fewer than 30 calls."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rare-reanalysis-20261009-eval-demidov2024-clincnv",
+        "rare-reanalysis-20261009-protocol-demidov2024-cnv-calls-for-interpretation",
+        "use-case-mapping-rare-reanalysis-20261009-demidov2024-cnv-callers"
+      ],
+      "message": "ClinCNV origin reason strengthened: ref. 47 is the first author's thesis and he is listed under Software. Per-caller counts overlap (one row per caller per CNV, Supplementary Table 2), so their sum counts calls, not distinct CNVs; added to limitations."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rare-reanalysis-20261009-claim-demidov2024-per-caller-detection"
+      ],
+      "message": "Wording misstated the ExomeDepth discard (one of the ten, not one of the 40); a case-level gene name was removed."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "81 rare-reanalysis-20261009-config-vestito2024-exomiser-13-1-0-* configurations"
+      ],
+      "message": "Parameters cited Methods 'Reanalysis optimisation' for default settings, which that section does not state; now says other settings are not stated for these runs."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "9 use-case-mapping-rare-reanalysis-20261009-* judgements"
+      ],
+      "message": "Limitations rewritten: recall on known diagnoses stated plainly as not new diagnostic yield; threshold tuning narrowed to the 0.2/0.8 row; 194 against 190 narrowed to the Extended Data Fig. 1 legend. Six Talos headline metrics changed from recall to candidates-per-case."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "artifacts/demidov2024-article.xml.gz"
+      ],
+      "message": "Archived article XML contained Table 2, one row per pathogenic CNV with pseudonymised individual and family identifiers. Removed from the batch; URL and SHA-256 remain on the source record."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "data/vocab/metric.ttl true-negative-count"
+      ],
+      "message": "Added skos:exactMatch STATO_0000597 ('number of true negative'), checked in OLS4 on 2026-10-09."
+    }
+  ],
+  "files": {
+    "artifacts/demidov2024-supplementary-information.pdf.gz": "450f45168bc338df8308b9206b0cb2ac3f3d429a0ee2c3c0c235133251e76c94",
+    "batch.jsonl": "07490d1752547acf435cef6d00820a5b84b7bc1f75c6548f42754f74198e5668",
+    "claims.csv": "ceb52565fe500a8e1d538cb6ed07ac5ae2a47fbc5e72b5f9deec551173200616",
+    "coverage.json": "62807d40daf6665378dcbd53b0abb0bab8cd1d32982db8664588895a8d362824",
+    "extract/extract_rare_reanalysis.py": "b3b8177ca6af8b26bf7b14da1e07aa1de45ba063fd94b4ddab4cad90d605ab61",
+    "extract/judgements.json": "530d8a8da463c1fee0539cf780c7dc4a54d965b87ede9a5f7101f9e49e3abe57",
+    "research.md": "891f9adf90fc7133a14b1414d36bbe6272ef7a651b6ab38fa97bd7a303d22641",
+    "retrieval-log.md": "968eb7182402c27117c5f6163308e13291c3ca013c97f3f85eb1c295d300b2bb",
+    "sources.md": "beaa20245395c1d66245ac1bff80fdd1b4609d1e6d3a37a74bcd5b9f3c1f854b"
+  }
+}
