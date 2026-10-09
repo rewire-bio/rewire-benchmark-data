@@ -1,13 +1,14 @@
 name: Cut and publish a release
-# Weekly, and on demand: if main holds reviewed changes that are not in the
-# current release, cut a release from them, run every check, commit it to main
-# and publish its prepared SQLite file and knowledge-graph bundle. The website
-# adopts published releases on its own schedule (rewire-database's
-# adopt-data-release workflow). Evidence reaches main only through reviewed
-# pull requests; this workflow only packages what is already there.
+# On every push to main, and on demand: if main holds reviewed changes that are
+# not in the current release, cut a release from them, run every check, commit
+# it to main, publish its prepared SQLite file and knowledge-graph bundle, and
+# dispatch `data-release` to rewire-database, whose adopt-data-release workflow
+# deploys it. Evidence reaches main only through reviewed pull requests; this
+# workflow only packages what is already there. Its own release commit does not
+# start it again (pushes made with the workflow token start no workflows).
 on:
-  schedule:
-    - cron: "0 6 * * 1"
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: write
@@ -22,10 +23,6 @@ jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    env:
-      # Optional: a token that may dispatch workflows in rewire-database, so the
-      # website adopts the release at once instead of on its hourly check.
-      WEBSITE_DISPATCH_TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -90,8 +87,8 @@ jobs:
           # Tag the release commit itself; the website reads its revision from the tag.
           RELEASE_TARGET_SHA: ${{ steps.commit.outputs.sha }}
         run: node scripts/parallel.mjs serving:publish kg:publish
-      - name: Ask the website to adopt it now (optional token)
-        if: steps.pending.outputs.release == 'true' && env.WEBSITE_DISPATCH_TOKEN != ''
+      - name: Ask the website to adopt it
+        if: steps.pending.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
-        run: gh api repos/rewire-bio/rewire-database/dispatches -f event_type=data-release
+        run: node scripts/release/dispatch-website.mjs

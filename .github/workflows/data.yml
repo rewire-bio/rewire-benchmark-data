@@ -129,3 +129,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TARGET_SHA: ${{ github.sha }}
         run: node scripts/parallel.mjs serving:publish kg:publish
+      - name: Ask the website to adopt it
+        env:
+          GH_TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
+        run: node scripts/release/dispatch-website.mjs
