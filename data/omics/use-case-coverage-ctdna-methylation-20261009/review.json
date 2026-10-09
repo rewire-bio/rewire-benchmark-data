@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T21:30:00Z",
+  "scope": "Independent review of the plasma ctDNA methylation batch for use-case-plasma-ctdna-methylation: 487 records (380 results, 46 evaluations, 18 configurations, 12 methods, 10 claims including 7 relevance judgements, 7 datasets, 7 protocols, 7 sources). Every result checked against Sun et al. 2024 Table S7, Giuili et al. 2025 Supplementary Table 3 and Nguyen et al. 2023 Table S9; Supplementary Table 3 sheet A compared with preprint Figure 4A; Table S9 stage sizes compared with Tables S1, S2, S8 and article Table 1. See docs/reviews/use-cases/plasma-ctdna-methylation-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any tool or classifier.",
+    "The DecoNFlow preprint PDF cannot be re-pinned: bioRxiv rewrites it on each download. Its text layer was read from a fresh copy (SHA-256 fa7bcf8c25532f86dc99ed7d76a13a49ae70e29ab9f46559b3e0972e86aa9b96). No result value comes from it.",
+    "Figure 4A was read through the PDF text layer, not as an image.",
+    "The two source conflicts are unresolved; the affected 78 results are kept as printed with status disputed.",
+    "Relevance judgement pins are left unset for the integrator; the judgements were simulated active against an in-memory copy of the store with the proposed assessed_by links."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "ctdnameth-20261009-source-giuili2025-supp-table-3",
+        "30 RRBS-CL results of UXM, MetDecode, meth_atlas, PRMeth and CIBERSORT"
+      ],
+      "message": "Source-level evidence concern narrowed to the affected values: sheet A RRBS-CL rows of five tools are a cyclic shift of the Figure 4A rows. The 30 results are disputed with source_warnings and the five evaluations are excluded from the RRBS-CL judgement; the concern text moved to the source's limitations."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "ctdnameth-20261009-source-nguyen2023-supp-file-1",
+        "48 breast and all-cancer stage-stratum results"
+      ],
+      "message": "Source-level evidence concern narrowed: only the breast stage strata (and the all-cancer strata that include them) in Table S9 disagree with Tables S1, S2, S8 and Table 1. The 48 results are disputed with source_warnings; the concern text moved to the source's limitations."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "ctdnameth-20261009-protocol-sun2024-cfmethyl-detection-auc",
+        "ctdnameth-20261009-protocol-sun2024-hcc-wgbs-detection-auc",
+        "ctdnameth-20261009-claim-sun2024-auc-definition",
+        "use-case-mapping-ctdna-methylation-20261009-sun2024-cfmethyl",
+        "use-case-mapping-ctdna-methylation-20261009-sun2024-hcc-wgbs"
+      ],
+      "message": "Locator P41 (sequencing-depth filters) corrected to P49 (random forest ROC-AUC definition)."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "ctdnameth-20261009-claim-nguyen2023-too-features"
+      ],
+      "message": "Locator Results P9 corrected to Results P18 and Methods P47, P49."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "ctdnameth-20261009-data-giuili2025-wgbs-tt-in-silico-mixtures",
+        "ctdnameth-20261009-data-giuili2025-rrbs-tt-in-silico-mixtures",
+        "ctdnameth-20261009-data-giuili2025-rrbs-cl-in-silico-mixtures"
+      ],
+      "message": "Mixture-count note extended: abstract and Methods 3,690; Results 3,630; Methods arithmetic 3,740; RRBS-CL design gives 550, Results prints 440."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-ctdna-methylation-20261009-nguyen2023-too-validation",
+        "ctdnameth-20261009-protocol-nguyen2023-spotmas-too-validation"
+      ],
+      "message": "Added limitation: the GCNN was trained transductively with validation-cohort samples as graph nodes (Methods P51)."
+    },
+    {
+      "status": "open",
+      "record_ids": [
+        "ctdnameth-20261009-source-giuili2025"
+      ],
+      "message": "Pinned PDF hash cannot be reproduced by re-download (per-download stamps); recorded in hash_scope."
+    },
+    {
+      "status": "open",
+      "record_ids": [
+        "use-case-plasma-ctdna-methylation"
+      ],
+      "message": "Use case exclusions and output still exclude tissue of origin and describe only the cfMethyl-Seq result; they must be updated before the SPOT-MAS judgements are published, which will withhold use-case-mapping-amp-20261007-issue16 until it is re-pinned."
+    },
+    {
+      "status": "open",
+      "record_ids": [],
+      "message": "tests/omics-data.test.ts expects 106 scope-audit entries; this pass adds seven (113). Update the count at integration."
+    }
+  ],
+  "files": {
+    "batch.jsonl": "8193323b1e333a2f6d6ff0c12148e817160ad16822770b845750fe7db45730c2",
+    "claims.csv": "62feeac01d8f02718f41892e9082be595691438a1caff0295d35b2031edb5c25",
+    "coverage.json": "e91e5adfd3217ee92c2bd7296c5e8c89c6874b0d73f36853cbd38ea0c1e9d302",
+    "research.md": "3a5982926b3e789a0a7372c60fab61f67ddd24b4aac3fd03d566937f3f76521f",
+    "retrieval-log.md": "0cb14699920c9c189f7737ed65f8e1a2fa1b209f0e3f5dd624a1f700b723928c",
+    "sources.md": "b3ec0691dab1b96fa0d55ac3956d65be34908e2ed23575f3d4ee2163944ce879",
+    "artifacts/nguyen2023-article.xml.gz": "abe995e469349c3313640efad96348c82394cfe52f340f218675309404e00eda",
+    "artifacts/nguyen2023-supplementary-file-1.xlsx.gz": "0edbb20352f7306824f11e41e9c6e9da0f5259a1b018d9349f75ce00f58fb299",
+    "extract/extract_ctdna_methylation.py": "a7cf94e7d368c72504fb8b300424d661dc444ade43bbecc86baefb88c25696da",
+    "extract/rawxlsx.py": "81aa5a418143431976749abe8273a45f37c8bde0fe4c1ce25a449221ae512726"
+  }
+}
