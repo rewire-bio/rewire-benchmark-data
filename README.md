@@ -14,7 +14,7 @@ The website and API that display this data live in [rewire-database](https://git
 | [docs/evidence-tables.md](docs/evidence-tables.md) | The per-claim evidence export |
 | [docs/refresh.md](docs/refresh.md) | The bounded monthly refresh cycle |
 | [docs/release.md](docs/release.md) | When and how to cut a release |
-| [docs/linked-data.md](docs/linked-data.md) | Ontology mapping, JSON-LD context and the N-Quads export |
+| [docs/linked-data.md](docs/linked-data.md) | Ontology mapping, vocabulary, inference and the knowledge-graph bundle for MCP clients |
 | [docs/serving-contract.md](docs/serving-contract.md) | Prepared release file the website and API read (issue #31) |
 | [docs/reviews/](docs/reviews/README.md) | Dated evidence reviews: search logs and value-by-value checks |
 
@@ -32,7 +32,7 @@ data/
   entities/                            canonical records, one JSONL file per kind (models, benchmarks, sources, ...)
   evidence/                            evaluations, results and claims
   provenance/records.jsonl             per-record hash, originating batch and reviewed changes
-  ontology/                            RDF mapping and JSON-LD context for the records
+  ontology/                            RDF mapping, JSON-LD context, vocabulary, pinned imports and SHACL shapes
   omics/
     <batch folders>/                   evidence for each extraction: receipts, retrieval logs, archived sources
     use-cases/                         use-case definitions and mappings
@@ -56,12 +56,13 @@ Records are edited only through the store: `npm run records -- add` appends a re
 
 ## Build and validate
 
-Requires Node 22 or newer and Python 3.
+Requires Node 22 or newer, Python 3 and [uv](https://docs.astral.sh/uv/) (for the knowledge-graph build).
 
 ```sh
 npm ci
 npm test
 npm run test:python
+npm run test:kg
 npm run typecheck
 npm run build
 ```

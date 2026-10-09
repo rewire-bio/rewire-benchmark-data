@@ -17,7 +17,8 @@ export type Mapping = {
   graph: string;
   prefixes: Record<string, string>;
   classes: Record<string, { types: string[] }>;
-  relations: Record<string, { property: string }>;
+  /** by_kind overrides the property where a relation means something else on that kind of record. */
+  relations: Record<string, { property: string; by_kind?: Record<string, { property: string }> }>;
   fields: Record<string, Term>;
   facets: Record<string, Term>;
   attributes: Record<string, Term>;
@@ -101,7 +102,7 @@ export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
   for (const link of record.links) {
     const relation = mapping.relations[link.relation];
     if (!relation) throw new Error(`No property mapping for relation ${link.relation}`);
-    add(relation.property, iri(mapping.base + link.target_id));
+    add(relation.by_kind?.[record.kind]?.property ?? relation.property, iri(mapping.base + link.target_id));
   }
   for (const [name, t] of Object.entries(mapping.attributes)) {
     const object = literal(record.attributes[name], t);

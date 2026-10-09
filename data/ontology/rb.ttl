@@ -1,0 +1,303 @@
+# Rewire benchmark vocabulary: the classes and properties used by data/ontology/mapping.json,
+# with the axioms the knowledge-graph build reasons over (OWL 2 RL).
+#
+# Rules this file must keep (checked by scripts/kg/tests):
+# - No owl:sameAs, and rb:aliasOf is neither symmetric nor transitive: aliases never merge records.
+# - rb:evaluatedSubject, rb:evaluation and mls:hasValue have no superproperty chains into them and
+#   are never inferred. Results attach only to what was actually evaluated.
+# - Links whose meaning depends on the kind of record (a baseline's evaluation, model and
+#   configuration links; a dataset subset's benchmark link) use their own properties via
+#   by_kind in mapping.json, so the generalised links below only ever start from evaluations.
+# - rb:usesModel, rb:family and rb:variantOf are not transitive, not subproperties of
+#   rb:testedSystem and not part of any property chain: a pipeline's or variant's result is never
+#   a result of the model it uses or belongs to.
+# - No rdfs:domain or rdfs:range on rb: properties, so no record gets a type from a link.
+# Changes to this file are reviewed like record changes.
+
+@prefix rb: <https://benchmarks.rewire.it/vocab#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix mls: <http://www.w3.org/ns/mls#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix schema: <https://schema.org/> .
+@prefix obo: <http://purl.obolibrary.org/obo/> .
+
+<https://benchmarks.rewire.it/vocab> a owl:Ontology ;
+    dcterms:title "Rewire benchmark vocabulary" ;
+    dcterms:description "Classes and properties for reviewed biological benchmark records: what was evaluated, on what, with which data, the reported results and their sources." ;
+    owl:versionInfo "1.0" ;
+    rdfs:seeAlso <https://github.com/rewire-bio/rewire-benchmark-data/blob/main/docs/linked-data.md> .
+
+# Classes ---------------------------------------------------------------------------------
+
+rb:System a owl:Class ;
+    rdfs:label "system" ;
+    rdfs:comment "Something an evaluation can test: a method, model, configuration, pipeline or service." .
+
+rb:Assessment a owl:Class ;
+    rdfs:label "assessment" ;
+    rdfs:comment "What an evaluation is measured against: a benchmark, task or protocol." .
+
+rb:Method a owl:Class ; rdfs:subClassOf mls:Algorithm, rb:System ;
+    rdfs:label "method" ;
+    rdfs:comment "An algorithm or scientific procedure, independent of a trained artifact." .
+
+rb:Model a owl:Class ; rdfs:subClassOf mls:Implementation, rb:System ;
+    rdfs:label "model" ;
+    rdfs:comment "A named biological model or verified model family as released." .
+
+rb:Configuration a owl:Class ; rdfs:subClassOf mls:Model, rb:System ;
+    rdfs:label "configuration" ;
+    rdfs:comment "The exact checkpoint, settings or adaptation that produced scores." .
+
+rb:Pipeline a owl:Class ; rdfs:subClassOf mls:Implementation, rb:System ;
+    rdfs:label "pipeline" ;
+    rdfs:comment "A composed workflow. Its results are not results of any model it uses." .
+
+rb:Service a owl:Class ; rdfs:subClassOf schema:WebAPI, rb:System ;
+    rdfs:label "service" ;
+    rdfs:comment "A hosted interface with its own terms and limits; not equivalent to the model behind it." .
+
+rb:Benchmark a owl:Class ; rdfs:subClassOf rb:Assessment ;
+    rdfs:label "benchmark" ;
+    rdfs:comment "A top-level suite or challenge." .
+
+rb:Task a owl:Class ; rdfs:subClassOf rb:Assessment ;
+    rdfs:label "task" ;
+    rdfs:comment "A biological question or capability, independent of one evaluation implementation." .
+
+rb:Protocol a owl:Class ; rdfs:subClassOf obo:OBI_0000272, rb:Assessment ;
+    rdfs:label "protocol" ;
+    rdfs:comment "A concrete assessment procedure: data, split, inputs, adaptation and scoring." .
+
+rb:Evaluator a owl:Class ; rdfs:subClassOf mls:Implementation ;
+    rdfs:label "evaluator" ;
+    rdfs:comment "Software or a procedure that scores predictions." .
+
+rb:Dataset a owl:Class ; rdfs:subClassOf dcat:Dataset ;
+    rdfs:label "dataset" ;
+    rdfs:comment "Biological observations, assays or reference collections." .
+
+rb:DatasetSubset a owl:Class ; rdfs:subClassOf rb:Dataset ;
+    rdfs:label "dataset subset" ;
+    rdfs:comment "An explicitly identified evaluation cohort or subset. A subset is itself a dataset." .
+
+rb:Baseline a owl:Class ;
+    rdfs:label "baseline" ;
+    rdfs:comment "A task-specific reference or control procedure." .
+
+rb:Evaluation a owl:Class ; rdfs:subClassOf mls:Run ;
+    rdfs:label "evaluation" ;
+    rdfs:comment "One reported execution of a system under an assessment on data." .
+
+rb:Result a owl:Class ; rdfs:subClassOf mls:ModelEvaluation ;
+    rdfs:label "result" ;
+    rdfs:comment "One reported measurement of an evaluation, with provenance and review status." .
+
+rb:Source a owl:Class ; rdfs:subClassOf schema:CreativeWork ;
+    rdfs:label "source" ;
+    rdfs:comment "A versioned paper, supplement, repository file or web page." .
+
+rb:Claim a owl:Class ;
+    rdfs:label "claim" ;
+    rdfs:comment "One sourced assertion about another record." .
+
+# Links between records (asserted) ------------------------------------------------------------
+
+rb:evaluation a owl:ObjectProperty ;
+    rdfs:label "evaluation" ;
+    rdfs:comment "Result to its evaluation." .
+
+rb:evaluatedSubject a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedSystem ;
+    rdfs:label "evaluated subject" ;
+    rdfs:comment "Evaluation to the configuration, model, method or pipeline actually evaluated. Not inherited by families." .
+
+rb:configuration a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedSystem ;
+    rdfs:label "configuration" ;
+    rdfs:comment "Evaluation to an exact configuration (the typed form of the subject link)." .
+
+rb:method a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedSystem ;
+    rdfs:label "method" ;
+    rdfs:comment "Link to a method (the typed form of the subject link)." .
+
+rb:pipeline a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedSystem ;
+    rdfs:label "pipeline" ;
+    rdfs:comment "Link to a pipeline (the typed form of the subject link)." .
+
+rb:service a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedSystem ;
+    rdfs:label "service" ;
+    rdfs:comment "Link to a service (the typed form of the subject link)." .
+
+rb:evaluatedOn a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedOn ;
+    rdfs:label "evaluated on" ;
+    rdfs:comment "Evaluation to the task or protocol used." .
+
+rb:protocol a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedOn ;
+    rdfs:label "protocol" ;
+    rdfs:comment "Link to a protocol (the typed form of the assessment link)." .
+
+rb:task a owl:ObjectProperty ; rdfs:subPropertyOf rb:testedOn ;
+    rdfs:label "task" ;
+    rdfs:comment "Link to a task (the typed form of the assessment link)." .
+
+rb:evaluator a owl:ObjectProperty ;
+    rdfs:label "evaluator" ;
+    rdfs:comment "Link to scoring software." .
+
+rb:dataset a owl:ObjectProperty ;
+    rdfs:label "dataset" ;
+    rdfs:comment "Link to the dataset or dataset subset used." .
+
+rb:datasetSubset a owl:ObjectProperty ; rdfs:subPropertyOf rb:dataset ;
+    rdfs:label "dataset subset" ;
+    rdfs:comment "Link to a dataset subset. A subset is a dataset, so this is also a dataset link." .
+
+rb:measuredIn a owl:ObjectProperty ;
+    rdfs:label "measured in" ;
+    rdfs:comment "Baseline to an evaluation that measured it as a comparator. The values belong to that evaluation's results; a baseline is not a result." .
+
+rb:implementedBy a owl:ObjectProperty ;
+    rdfs:label "implemented by" ;
+    rdfs:comment "Baseline to the configuration, model or method that implements it. A baseline is not an evaluation, so this is not rb:testedSystem." .
+
+rb:usedIn a owl:ObjectProperty ;
+    rdfs:label "used in" ;
+    rdfs:comment "Dataset subset to the protocol that uses it." .
+
+rb:baseline a owl:ObjectProperty ;
+    rdfs:label "baseline" ;
+    rdfs:comment "Link to a baseline." .
+
+rb:family a owl:ObjectProperty ;
+    rdfs:label "family" ;
+    rdfs:comment "Configuration or variant to its model family. Results roll up only when a claim backs the link; the build infers nothing from it." .
+
+rb:variantOf a owl:ObjectProperty ;
+    rdfs:label "variant of" ;
+    rdfs:comment "A model variant. Not transitive." .
+
+rb:aliasOf a owl:ObjectProperty ;
+    rdfs:label "alias of" ;
+    rdfs:comment "Same identity under another ID. Deliberately not owl:sameAs, which would merge results without review." .
+
+rb:usesModel a owl:ObjectProperty ;
+    rdfs:label "uses model" ;
+    rdfs:comment "A pipeline or service depends on a model. Not transitive and not a subproperty of rb:testedSystem: pipeline results are never results of the model." .
+
+rb:evaluatesTask a owl:ObjectProperty ;
+    rdfs:label "evaluates task" ;
+    rdfs:comment "Resource to the task it evaluates." .
+
+rb:parent a owl:ObjectProperty ; rdfs:subPropertyOf rb:within ;
+    rdfs:label "parent" ;
+    rdfs:comment "Hierarchy within a benchmark." .
+
+rb:originalEvaluation a owl:ObjectProperty ;
+    rdfs:label "original evaluation" ;
+    rdfs:comment "A copied result to the evaluation it was copied from." .
+
+rb:subject a owl:ObjectProperty ;
+    rdfs:label "subject" ;
+    rdfs:comment "Claim to the record it is about." .
+
+rb:applicableTo a owl:ObjectProperty ;
+    rdfs:label "applicable to" ;
+    rdfs:comment "Candidate applicability; not evidence of performance." .
+
+rb:sameDataAs a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:label "same data as" ;
+    rdfs:comment "Informational data reuse, in either direction; never merges results." .
+
+rb:link a owl:ObjectProperty ;
+    rdfs:label "link" ;
+    rdfs:comment "A link object in the JSON-LD view of a record." .
+
+rb:relation a owl:ObjectProperty ;
+    rdfs:label "relation" ;
+    rdfs:comment "The relation of a link object in the JSON-LD view of a record." .
+
+rb:target a owl:ObjectProperty ;
+    rdfs:label "target" ;
+    rdfs:comment "The target record of a link object in the JSON-LD view of a record." .
+
+dcterms:isPartOf rdfs:subPropertyOf rb:within .
+
+# Generalised and inferred links ------------------------------------------------------------
+
+rb:testedSystem a owl:ObjectProperty ;
+    rdfs:label "tested system" ;
+    rdfs:comment "The system an evaluation tested, whichever link style the record uses (evaluatedSubject or a typed configuration, method, pipeline or service link). Inferred." .
+
+rb:testedIn a owl:ObjectProperty ; owl:inverseOf rb:testedSystem ;
+    rdfs:label "tested in" ;
+    rdfs:comment "System to the evaluations that tested it directly. Inferred." .
+
+rb:testedOn a owl:ObjectProperty ;
+    rdfs:label "tested on" ;
+    rdfs:comment "The task or protocol an evaluation used, whichever link style the record uses. Inferred." .
+
+rb:within a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:label "within" ;
+    rdfs:comment "Part of a benchmark or suite, directly or through intermediate parts. Inferred from dcterms:isPartOf and rb:parent." .
+
+rb:contains a owl:ObjectProperty ; owl:inverseOf rb:within ;
+    rdfs:label "contains" ;
+    rdfs:comment "Benchmark or suite to every task and protocol inside it. Inferred." .
+
+rb:hasResult a owl:ObjectProperty ; owl:inverseOf rb:evaluation ;
+    rdfs:label "has result" ;
+    rdfs:comment "Evaluation to its results. Inferred." .
+
+rb:resultFor a owl:ObjectProperty ;
+    owl:propertyChainAxiom ( rb:evaluation rb:testedSystem ) ;
+    rdfs:label "result for" ;
+    rdfs:comment "Result to the system its evaluation tested. Never extends to model families or models a pipeline uses. Inferred." .
+
+rb:resultOn a owl:ObjectProperty ;
+    owl:propertyChainAxiom ( rb:evaluation rb:testedOn ) ;
+    rdfs:label "result on" ;
+    rdfs:comment "Result to the task or protocol its evaluation used. Inferred." .
+
+rb:resultOnDataset a owl:ObjectProperty ;
+    owl:propertyChainAxiom ( rb:evaluation rb:dataset ) ;
+    rdfs:label "result on dataset" ;
+    rdfs:comment "Result to the dataset or subset its evaluation used. Inferred." .
+
+rb:testedWithin a owl:ObjectProperty ;
+    owl:propertyChainAxiom ( rb:testedOn rb:within ) ;
+    rdfs:label "tested within" ;
+    rdfs:comment "Evaluation to each benchmark or suite containing the task or protocol it used. Inferred." .
+
+rb:resultWithin a owl:ObjectProperty ;
+    owl:propertyChainAxiom ( rb:evaluation rb:testedWithin ) ;
+    rdfs:label "result within" ;
+    rdfs:comment "Result to each benchmark or suite containing the task or protocol of its evaluation. Inferred." .
+
+# Values ------------------------------------------------------------------------------------
+
+rb:status a owl:DatatypeProperty ; rdfs:label "status" ; rdfs:comment "Review status of the record." .
+rb:area a owl:DatatypeProperty ; rdfs:label "area" ; rdfs:comment "Biological area facet." .
+rb:taskFacet a owl:DatatypeProperty ; rdfs:label "task facet" ; rdfs:comment "Task facet used for browsing." .
+rb:context a owl:DatatypeProperty ; rdfs:label "context" ; rdfs:comment "Context facet used for browsing." .
+rb:methodType a owl:DatatypeProperty ; rdfs:label "method type" ; rdfs:comment "Method type facet." .
+rb:domain a owl:DatatypeProperty ; rdfs:label "domain" ; rdfs:comment "Domain facet." .
+rb:entityLevel a owl:DatatypeProperty ; rdfs:label "entity level" ; rdfs:comment "Whether a record is a model, method, configuration or other level." .
+rb:doi a owl:DatatypeProperty ; rdfs:label "DOI" ; rdfs:comment "Digital Object Identifier of a source." .
+rb:retrievedAt a owl:DatatypeProperty ; rdfs:label "retrieved at" ; rdfs:comment "When a source was retrieved." .
+rb:artifactSha256 a owl:DatatypeProperty ; rdfs:label "artifact SHA-256" ; rdfs:comment "SHA-256 of the retrieved source artifact." .
+rb:publicationStatus a owl:DatatypeProperty ; rdfs:label "publication status" ; rdfs:comment "Publication status of a source, such as peer reviewed or preprint." .
+rb:origin a owl:DatatypeProperty ; rdfs:label "origin" ; rdfs:comment "Where a record came from, such as a paper or a local run." .
+rb:metric a owl:DatatypeProperty ; rdfs:label "metric" ; rdfs:comment "Name of the metric a result reports." .
+rb:metricDirection a owl:DatatypeProperty ; rdfs:label "metric direction" ; rdfs:comment "Whether higher or lower values are better." .
+rb:unit a owl:DatatypeProperty ; rdfs:label "unit" ; rdfs:comment "Unit of a result value." .
+rb:printedValue a owl:DatatypeProperty ; rdfs:label "printed value" ; rdfs:comment "The value exactly as printed in the source." .
+rb:uncertainty a owl:DatatypeProperty ; rdfs:label "uncertainty" ; rdfs:comment "Reported uncertainty of a result." .
+rb:sourceLocator a owl:DatatypeProperty ; rdfs:label "source locator" ; rdfs:comment "Where in the source the value or statement appears (table, row, page)." .
+rb:claimField a owl:DatatypeProperty ; rdfs:label "claim field" ; rdfs:comment "The field of the subject record a claim supports." .
+rb:split a owl:DatatypeProperty ; rdfs:label "split" ; rdfs:comment "Data split a result was measured on." .
+rb:reviewMethod a owl:DatatypeProperty ; rdfs:label "review method" ; rdfs:comment "How a record was reviewed, such as automated or AI-assisted source review." .
+rb:reviewedBy a owl:DatatypeProperty ; rdfs:label "reviewed by" ; rdfs:comment "Who or what reviewed a record." .
+rb:reviewDate a owl:DatatypeProperty ; rdfs:label "review date" ; rdfs:comment "When a record was reviewed." .

@@ -9,10 +9,13 @@ permissions:
 concurrency:
   group: benchmark-data-${{ github.ref }}
   cancel-in-progress: true
+env:
+  # The release of rdf-kg-mcp whose bundle format the knowledge graph must satisfy.
+  RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.1.0
 jobs:
   data:
     runs-on: ubuntu-latest
-    # Write access only so main pushes can publish the immutable prepared release asset.
+    # Write access only so main pushes can publish the immutable prepared release and knowledge-graph assets.
     permissions:
       contents: write
     env:
@@ -24,12 +27,14 @@ jobs:
           # Match the website image: the prepared SQLite file's bytes depend on Node's bundled SQLite.
           node-version: 24
           cache: npm
+      - uses: astral-sh/setup-uv@v6
       - run: npm ci
       - run: npm run verify:package
       - run: npm test
       - run: npm run test:python
+      - run: npm run test:kg
       - run: npm run typecheck
-      - name: Reproduce the current release and prepared website artifact
+      - name: Reproduce the current release, knowledge graph and prepared website artifact
         run: npm run build
       - name: Require reviewed prepared artifacts
         run: npm run verify:package && git diff --exit-code -- data website
@@ -40,3 +45,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: npm run serving:publish
+      - name: Check the knowledge-graph bundle against the bundle format
+        run: uvx --from "$RDF_KG_MCP" rdf-kg-mcp verify public/kg
+      - name: Publish the knowledge-graph bundle (main only; never replaces an existing asset)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run kg:publish

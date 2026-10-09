@@ -1,0 +1,70 @@
+# SHACL shapes the knowledge-graph build checks against the asserted and inferred graphs together.
+# A violation fails the build. They encode what the release validation already guarantees, plus
+# the guarantees the inferred links must keep (one system, one assessment and one dataset per
+# result). Changes are reviewed like record changes.
+
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rb: <https://benchmarks.rewire.it/vocab#> .
+@prefix rbs: <https://benchmarks.rewire.it/shapes#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix mls: <http://www.w3.org/ns/mls#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+rbs:Record a sh:NodeShape ;
+    sh:targetSubjectsOf rb:status ;
+    rdfs:comment "Every exported record has one label and one public status. Excluded records never enter the graph." ;
+    sh:property [
+        sh:path rdfs:label ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ;
+    ] , [
+        sh:path rb:status ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:in ( "discovered" "needs_review" "source_checked" "reproduced" "disputed" "superseded" ) ;
+    ] .
+
+rbs:Evaluation a sh:NodeShape ;
+    sh:targetClass rb:Evaluation ;
+    rdfs:comment "An evaluation tests exactly one system, under one assessment, on one dataset." ;
+    sh:property [
+        sh:path rb:testedSystem ; sh:minCount 1 ; sh:maxCount 1 ; sh:class rb:System ;
+    ] , [
+        sh:path rb:testedOn ; sh:minCount 1 ; sh:maxCount 1 ; sh:class rb:Assessment ;
+    ] , [
+        sh:path rb:dataset ; sh:minCount 1 ; sh:maxCount 1 ; sh:class rb:Dataset ;
+    ] .
+
+rbs:Result a sh:NodeShape ;
+    sh:targetClass rb:Result ;
+    rdfs:comment "A result belongs to one evaluation, reports one metric and printed value, and is sourced. Its inferred links point to exactly one system, assessment and dataset." ;
+    sh:property [
+        sh:path rb:evaluation ; sh:minCount 1 ; sh:maxCount 1 ; sh:class rb:Evaluation ;
+    ] , [
+        sh:path rb:metric ; sh:minCount 1 ; sh:maxCount 1 ;
+    ] , [
+        sh:path rb:printedValue ; sh:minCount 1 ; sh:maxCount 1 ;
+    ] , [
+        sh:path mls:hasValue ; sh:maxCount 1 ; sh:datatype xsd:decimal ;
+    ] , [
+        sh:path prov:wasDerivedFrom ; sh:minCount 1 ;
+    ] , [
+        sh:path rb:resultFor ; sh:minCount 1 ; sh:maxCount 1 ; sh:class rb:System ;
+    ] , [
+        sh:path rb:resultOn ; sh:minCount 1 ; sh:maxCount 1 ; sh:class rb:Assessment ;
+    ] , [
+        sh:path rb:resultOnDataset ; sh:minCount 1 ; sh:maxCount 1 ; sh:class rb:Dataset ;
+    ] .
+
+rbs:Claim a sh:NodeShape ;
+    sh:targetClass rb:Claim ;
+    rdfs:comment "A claim is about at least one record and cites at least one source." ;
+    sh:property [
+        sh:path rb:subject ; sh:minCount 1 ;
+    ] , [
+        sh:path prov:wasDerivedFrom ; sh:minCount 1 ;
+    ] .
+
+rbs:Source a sh:NodeShape ;
+    sh:targetClass rb:Source ;
+    rdfs:comment "A source has at most one artifact checksum, as 64 hex characters." ;
+    sh:property [
+        sh:path rb:artifactSha256 ; sh:maxCount 1 ; sh:pattern "^[0-9a-f]{64}$" ;
+    ] .
