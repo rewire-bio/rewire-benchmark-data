@@ -7,7 +7,7 @@ import {
   type RecordEntry,
 } from "../scripts/omics/schema";
 import { buildRelease } from "../scripts/omics/release";
-import { records as storeRecords } from "./helpers/records";
+import { movedAttributes, records as storeRecords } from "./helpers/records";
 import { parseCsv } from "../lib/benchmark-literature";
 import { extensionsSchema } from "../scripts/omics/extensions";
 // Integrity checks run over the whole canonical store; later batches supply
@@ -25,7 +25,7 @@ describe("omics publication integrity", () => {
     for (const cells of rows) {
       const original = Object.fromEntries(header.map((k, i) => [k, cells[i]]));
       const record = records.find((r) => r.id === original.id);
-      expect(record?.attributes.legacy_row).toEqual(original);
+      expect(movedAttributes(original.id).legacy_row).toEqual(original);
       expect(record?.attributes.numeric_value).toBe(original.value);
     }
     expect(rows).toHaveLength(149);
@@ -68,7 +68,7 @@ describe("omics publication integrity", () => {
       (r) =>
         r.kind === "model" &&
         r.id.startsWith("reported-model-") &&
-        r.attributes.version === null,
+        (r.attributes.missing_metadata as Record<string, unknown> | undefined)?.version !== undefined,
     )) {
       expect(r.attributes.entity_level).toBe("method");
       expect(r.attributes.missing_metadata).toHaveProperty("version");

@@ -7,6 +7,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { recordSchema, validateRecords, type RecordEntry } from "./schema";
 import { loadSchemes, validateVocabularies } from "./vocab";
+import { validateAttributes } from "../../shared/omics/attributes";
 
 /** The mapping and vocabularies are repository configuration, not store content: a store under
  * another root (as in tests) is validated against this repository's schemes. */
@@ -71,6 +72,7 @@ export function loadRecords(root = "."): RecordEntry[] {
   if (provenance.size !== records.length)
     throw new Error(`${provenanceFile} lists ${provenance.size} records; the store holds ${records.length}`);
   validateVocabularies(readMapping(), records, loadSchemes());
+  validateAttributes(records);
   return validateRecords(records.sort((a, b) => (a.id < b.id ? -1 : 1)));
 }
 
@@ -103,6 +105,7 @@ export function addBatch(batchFile: string, batchDir: string, root = "."): numbe
     });
   }
   validateVocabularies(readMapping(), additions, loadSchemes());
+  validateAttributes(additions);
   validateRecords([...existing, ...additions]);
   writeStore([...existing, ...additions], provenance, root);
   return additions.length;

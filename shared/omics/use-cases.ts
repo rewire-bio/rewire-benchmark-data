@@ -1,4 +1,4 @@
-import { normalizeRecords } from "./relations.js";
+import { currentRecords } from "./current.js";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { assertNoPrivateFields } from "./private-fields.js";
@@ -239,7 +239,7 @@ export function useCaseDeclaration(value: UseCaseInputs): UseCaseDeclaration {
 
 function index(input: CatalogueSnapshot) {
   // Archived catalogues written before single-meaning relations are read under current names.
-  const snapshot = { ...input, records: normalizeRecords(input.records) };
+  const snapshot = { ...input, records: currentRecords(input.records) };
   const records = new Map(snapshot.records.map((r) => [r.id, r]));
   const results = new Map<string, CatalogueRecord[]>();
   const claims = new Map<string, CatalogueRecord[]>();

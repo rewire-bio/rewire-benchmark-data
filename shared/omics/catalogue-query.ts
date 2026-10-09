@@ -1,4 +1,4 @@
-import { normalizeRecords } from "./relations.js";
+import { currentRecords } from "./current.js";
 import {
   type EntityKind,
   isModelSubject,
@@ -582,7 +582,7 @@ export function createCatalogueQuery(snapshot: CatalogueSnapshot) {
   const readiness = () => researchReadiness ||= deriveResearchReadiness(snapshot);
   const readinessById = () => researchReadinessById ||= new Map(readiness().map(item => [item.record_id, item]));
   // Releases written before single-meaning relations are read under the current names.
-  const records = normalizeRecords(snapshot.records)
+  const records = currentRecords(snapshot.records)
     .filter((r) => r.status !== "excluded")
     .sort((a, b) => a.id.localeCompare(b.id));
   const byId = new Map(records.map((r) => [r.id, r]));

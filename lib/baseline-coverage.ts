@@ -1,4 +1,4 @@
-import { normalizeRecords } from "../shared/omics/relations";
+import { currentRecords } from "../shared/omics/current";
 import { isModelSubject } from "../shared/omics/entity-kinds";
 import type { OmicsCatalogue, OmicsRecord } from "./omics";
 
@@ -199,7 +199,7 @@ export function candidateRule(
 /** Derived audit only: never modifies scientific records or promotes metadata review. */
 export function buildBaselineAudit(catalogue: OmicsCatalogue): BaselineAudit {
   // Releases written before single-meaning relations are read under the current names.
-  catalogue = { ...catalogue, records: normalizeRecords(catalogue.records) };
+  catalogue = { ...catalogue, records: currentRecords(catalogue.records) };
   const records = [...catalogue.records]
     .filter((r) => r.status !== "excluded")
     .sort((a, b) => a.id.localeCompare(b.id));

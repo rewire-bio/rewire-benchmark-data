@@ -5,7 +5,8 @@ import {
   validateDatasetReuseLink,
   legacyKinds,
 } from "./entity-kinds.js";
-import { normalizeRecords, relationAllows, relations, type Relation } from "./relations.js";
+import { relationAllows, relations, type Relation } from "./relations.js";
+import { currentRecords } from "./current.js";
 import { profileSchema } from "./profile-schema.js";
 import { validateSourceIdentity } from "./source-identity.js";
 import { z } from "zod";
@@ -151,19 +152,20 @@ export const snapshotSchema = z
   })
   .strict();
 export type CatalogueRecord = z.infer<typeof recordSchema>;
-/** Releases written before single-meaning relations are validated under the current names. */
-function withCurrentRelations(input: unknown): unknown {
+/** Releases written before single-meaning relations and declared attributes are validated in
+ * the current shapes. */
+function withCurrentRecords(input: unknown): unknown {
   const records = (input as { records?: unknown } | null)?.records;
   if (!Array.isArray(records)) return input;
   try {
-    return { ...(input as object), records: normalizeRecords(records) };
+    return { ...(input as object), records: currentRecords(records as never[]) };
   } catch {
     return input; // malformed records: let the schema report them
   }
 }
 export function validateSnapshot(input: unknown) {
   assertPublicCatalogue(input);
-  const snapshot = snapshotSchema.parse(withCurrentRelations(input));
+  const snapshot = snapshotSchema.parse(withCurrentRecords(input));
   if (snapshot.research) validateResearchData(snapshot.research, snapshot);
   const records = new Map(
     snapshot.records.map((record) => [record.id, record]),
