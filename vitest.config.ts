@@ -1,2 +1,4 @@
 import { defineConfig } from "vitest/config";
-export default defineConfig({test:{environment:"node", maxWorkers:2,minWorkers:1,exclude:["node_modules/**","workbench/**"]}});
+// Workers default to the available cores; most test files load the full record store, so
+// parallel files matter more than anything inside a test.
+export default defineConfig({test:{environment:"node", exclude:["node_modules/**","workbench/**"]}});
