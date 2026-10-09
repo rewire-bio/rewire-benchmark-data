@@ -1,0 +1,679 @@
+{
+  "use_case_id": "use-case-diagnostic-genomics-model-execution",
+  "bounds": {
+    "cutoff_date": "2026-10-09",
+    "query_budget": 25,
+    "queries_used": 8,
+    "source_budget": 3,
+    "sources_extracted": 3
+  },
+  "existing_reused": [
+    "cnv-20261009-method-dragen"
+  ],
+  "existing_reuse_note": "The DRAGEN v4.2 configuration of Samarakoon et al. 2025 links configuration_of to the existing DRAGEN method record. No method from the somatic batch is reused; the CPU somatic-caller configurations of O'Connell et al. have no method link, and the integrator may link them to somatic-20261009-method-lofreq, -muse, -mutect2 and -somaticsniper once both batches are in the store.",
+  "vocabulary_additions": {
+    "files": [
+      "data/vocab/metric.ttl",
+      "data/vocab/unit.ttl"
+    ],
+    "metric": [
+      "compute-cost",
+      "cost-saving",
+      "speedup"
+    ],
+    "unit": [
+      "minute",
+      "us-dollar"
+    ],
+    "note": "No existing concept held cost, relative cost saving, speedup, minutes or US dollars. minute and us-dollar carry skos:exactMatch to QUDT unit:MIN and unit:USDollar after checking their QUDT labels and types (2026-10-09). The three metrics are rewire-only concepts with definitions; no STATO or QUDT term with the same meaning was identified. These need review like a record change."
+  },
+  "new_record_counts": {
+    "claim": 15,
+    "configuration": 19,
+    "dataset": 5,
+    "evaluation": 91,
+    "method": 3,
+    "protocol": 13,
+    "result": 488,
+    "source": 5
+  },
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-franzoso2025-wes",
+      "protocol_id": "model-execution-20261009-protocol-franzoso2025-wes-gcp",
+      "relevance": "direct",
+      "comparison_group": "franzoso2025-gcp",
+      "stratum_label": "WES",
+      "stratum_order": 1,
+      "headline_metric": "runtime",
+      "endpoint": "Elapsed FASTQ-to-VCF runtime and GCP cost per sample for Sentieon DNASeq v202308 and Parabricks Germline v4.0.1-1 on five WES samples",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-franzoso2025-parabricks-germline-4-0-1-1-gcp-t4-wes",
+        "model-execution-20261009-eval-franzoso2025-sentieon-dnaseq-202308-gcp-64vcpu-wes"
+      ],
+      "limitations": [
+        "One run per sample and pipeline; no repeats.",
+        "The two VMs were chosen for similar hourly cost (1.79 and 1.65 USD), not similar hardware.",
+        "Costs exclude the Sentieon licence fee (Discussion paragraph 10).",
+        "Accuracy of the calls is not reported."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-franzoso2025-wgs",
+      "protocol_id": "model-execution-20261009-protocol-franzoso2025-wgs-gcp",
+      "relevance": "direct",
+      "comparison_group": "franzoso2025-gcp",
+      "stratum_label": "WGS",
+      "stratum_order": 2,
+      "headline_metric": "runtime",
+      "endpoint": "Elapsed FASTQ-to-VCF runtime and GCP cost per sample for Sentieon DNASeq v202308 and Parabricks Germline v4.0.1-1 on five WGS samples",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-franzoso2025-parabricks-germline-4-0-1-1-gcp-t4-wgs",
+        "model-execution-20261009-eval-franzoso2025-sentieon-dnaseq-202308-gcp-64vcpu-wgs"
+      ],
+      "limitations": [
+        "One run per sample and pipeline; no repeats.",
+        "The two VMs were chosen for similar hourly cost (1.79 and 1.65 USD), not similar hardware.",
+        "Costs exclude the Sentieon licence fee (Discussion paragraph 10).",
+        "Accuracy of the calls is not reported.",
+        "Two runtime cells (ERR1955532 Sentieon 0:03:21, ERR1955539 Parabricks 0:04:41) disagree with the WGS ranges in Results and are flagged on the results."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-oconnell2023-deepvariant",
+      "protocol_id": "model-execution-20261009-protocol-oconnell2023-deepvariant",
+      "relevance": "direct",
+      "comparison_group": "oconnell2023-germline",
+      "stratum_label": "DeepVariant",
+      "stratum_order": 1,
+      "headline_metric": "runtime",
+      "endpoint": "Wall-clock time, cost per sample, speedup and cost saving for DeepVariant on CPU and 2, 4 and 8 GPU machines on AWS, GCP and a DGX",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-oconnell2023-aws-c6i-8xlarge-deepvariant",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu2-deepvariant",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu4-deepvariant",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu8-deepvariant",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu2-deepvariant",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu4-deepvariant",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu8-deepvariant",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu2-deepvariant",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu4-deepvariant",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu8-deepvariant",
+        "model-execution-20261009-eval-oconnell2023-gcp-n2-standard-32-deepvariant"
+      ],
+      "limitations": [
+        "One recorded run per configuration (Methods: 'we recorded the time of our final workflow run'); no repeats printed.",
+        "Costs are on-demand cloud prices at the time of the study and exclude storage and licences; DGX rows have no cost.",
+        "Authors are from Deloitte Consulting, an NVIDIA, AWS and Google alliance partner (Competing interests).",
+        "Table 1 footnote says the AWS GPU rows are the p3 family with V100 GPUs, but Results 'GPU performance across cloud platforms' paragraph 2 attributes the AWS savings printed in Table 1 (for example 63% for HaplotypeCaller with 4 GPUs) to the p4 machine with A100 GPUs and the p3 results to Additional file 1 Table S1.",
+        "Germline pipelines run from FASTQ to unfiltered VCF; accuracy is not reported."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-oconnell2023-haplotypecaller",
+      "protocol_id": "model-execution-20261009-protocol-oconnell2023-haplotypecaller",
+      "relevance": "direct",
+      "comparison_group": "oconnell2023-germline",
+      "stratum_label": "HaplotypeCaller",
+      "stratum_order": 2,
+      "headline_metric": "runtime",
+      "endpoint": "Wall-clock time, cost per sample, speedup and cost saving for HaplotypeCaller on CPU and 2, 4 and 8 GPU machines on AWS, GCP and a DGX",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-oconnell2023-aws-c6i-8xlarge-haplotypecaller",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu2-haplotypecaller",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu4-haplotypecaller",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu8-haplotypecaller",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu2-haplotypecaller",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu4-haplotypecaller",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu8-haplotypecaller",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu2-haplotypecaller",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu4-haplotypecaller",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu8-haplotypecaller",
+        "model-execution-20261009-eval-oconnell2023-gcp-n2-standard-32-haplotypecaller"
+      ],
+      "limitations": [
+        "One recorded run per configuration (Methods: 'we recorded the time of our final workflow run'); no repeats printed.",
+        "Costs are on-demand cloud prices at the time of the study and exclude storage and licences; DGX rows have no cost.",
+        "Authors are from Deloitte Consulting, an NVIDIA, AWS and Google alliance partner (Competing interests).",
+        "Table 1 footnote says the AWS GPU rows are the p3 family with V100 GPUs, but Results 'GPU performance across cloud platforms' paragraph 2 attributes the AWS savings printed in Table 1 (for example 63% for HaplotypeCaller with 4 GPUs) to the p4 machine with A100 GPUs and the p3 results to Additional file 1 Table S1.",
+        "Germline pipelines run from FASTQ to unfiltered VCF; accuracy is not reported."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-oconnell2023-lofreq",
+      "protocol_id": "model-execution-20261009-protocol-oconnell2023-lofreq",
+      "relevance": "direct",
+      "comparison_group": "oconnell2023-somatic",
+      "stratum_label": "LoFreq",
+      "stratum_order": 1,
+      "headline_metric": "runtime",
+      "endpoint": "Wall-clock time, cost per sample, speedup and cost saving for LoFreq on CPU and 2, 4 and 8 GPU machines on AWS, GCP and a DGX",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-oconnell2023-aws-c6i-8xlarge-lofreq",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu2-lofreq",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu4-lofreq",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu8-lofreq",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu2-lofreq",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu4-lofreq",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu8-lofreq",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu2-lofreq",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu4-lofreq",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu8-lofreq",
+        "model-execution-20261009-eval-oconnell2023-gcp-n2-standard-32-lofreq"
+      ],
+      "limitations": [
+        "One recorded run per configuration (Methods: 'we recorded the time of our final workflow run'); no repeats printed.",
+        "Costs are on-demand cloud prices at the time of the study and exclude storage and licences; DGX rows have no cost.",
+        "Authors are from Deloitte Consulting, an NVIDIA, AWS and Google alliance partner (Competing interests).",
+        "Table 1 footnote says the AWS GPU rows are the p3 family with V100 GPUs, but Results 'GPU performance across cloud platforms' paragraph 2 attributes the AWS savings printed in Table 1 (for example 63% for HaplotypeCaller with 4 GPUs) to the p4 machine with A100 GPUs and the p3 results to Additional file 1 Table S1.",
+        "Somatic callers run from a prepared BAM; accuracy on the 198 added SNVs is not reported."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-oconnell2023-muse",
+      "protocol_id": "model-execution-20261009-protocol-oconnell2023-muse",
+      "relevance": "direct",
+      "comparison_group": "oconnell2023-somatic",
+      "stratum_label": "Muse",
+      "stratum_order": 2,
+      "headline_metric": "runtime",
+      "endpoint": "Wall-clock time, cost per sample, speedup and cost saving for Muse on CPU and 2, 4 and 8 GPU machines on AWS, GCP and a DGX",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-oconnell2023-aws-c6i-8xlarge-muse",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu2-muse",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu4-muse",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu8-muse",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu2-muse",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu4-muse",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu8-muse",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu2-muse",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu4-muse",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu8-muse",
+        "model-execution-20261009-eval-oconnell2023-gcp-n2-standard-32-muse"
+      ],
+      "limitations": [
+        "One recorded run per configuration (Methods: 'we recorded the time of our final workflow run'); no repeats printed.",
+        "Costs are on-demand cloud prices at the time of the study and exclude storage and licences; DGX rows have no cost.",
+        "Authors are from Deloitte Consulting, an NVIDIA, AWS and Google alliance partner (Competing interests).",
+        "Table 1 footnote says the AWS GPU rows are the p3 family with V100 GPUs, but Results 'GPU performance across cloud platforms' paragraph 2 attributes the AWS savings printed in Table 1 (for example 63% for HaplotypeCaller with 4 GPUs) to the p4 machine with A100 GPUs and the p3 results to Additional file 1 Table S1.",
+        "Somatic callers run from a prepared BAM; accuracy on the 198 added SNVs is not reported."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-oconnell2023-mutect2",
+      "protocol_id": "model-execution-20261009-protocol-oconnell2023-mutect2",
+      "relevance": "direct",
+      "comparison_group": "oconnell2023-somatic",
+      "stratum_label": "Mutect2",
+      "stratum_order": 3,
+      "headline_metric": "runtime",
+      "endpoint": "Wall-clock time, cost per sample, speedup and cost saving for Mutect2 on CPU and 2, 4 and 8 GPU machines on AWS, GCP and a DGX",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-oconnell2023-aws-c6i-8xlarge-mutect2",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu2-mutect2",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu4-mutect2",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu8-mutect2",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu2-mutect2",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu4-mutect2",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu8-mutect2",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu2-mutect2",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu4-mutect2",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu8-mutect2",
+        "model-execution-20261009-eval-oconnell2023-gcp-n2-standard-32-mutect2"
+      ],
+      "limitations": [
+        "One recorded run per configuration (Methods: 'we recorded the time of our final workflow run'); no repeats printed.",
+        "Costs are on-demand cloud prices at the time of the study and exclude storage and licences; DGX rows have no cost.",
+        "Authors are from Deloitte Consulting, an NVIDIA, AWS and Google alliance partner (Competing interests).",
+        "Table 1 footnote says the AWS GPU rows are the p3 family with V100 GPUs, but Results 'GPU performance across cloud platforms' paragraph 2 attributes the AWS savings printed in Table 1 (for example 63% for HaplotypeCaller with 4 GPUs) to the p4 machine with A100 GPUs and the p3 results to Additional file 1 Table S1.",
+        "Somatic callers run from a prepared BAM; accuracy on the 198 added SNVs is not reported.",
+        "Results 'CPU baseline across cloud platforms' gives AWS Mutect2 CPU as 16.9 h; Table 1 prints 6.91 h."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-oconnell2023-somaticsniper",
+      "protocol_id": "model-execution-20261009-protocol-oconnell2023-somaticsniper",
+      "relevance": "direct",
+      "comparison_group": "oconnell2023-somatic",
+      "stratum_label": "SomaticSniper",
+      "stratum_order": 4,
+      "headline_metric": "runtime",
+      "endpoint": "Wall-clock time, cost per sample, speedup and cost saving for SomaticSniper on CPU and 2, 4 and 8 GPU machines on AWS, GCP and a DGX",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-oconnell2023-aws-c6i-8xlarge-somaticsniper",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu2-somaticsniper",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu4-somaticsniper",
+        "model-execution-20261009-eval-oconnell2023-aws-gpu8-somaticsniper",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu2-somaticsniper",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu4-somaticsniper",
+        "model-execution-20261009-eval-oconnell2023-dgx-gpu8-somaticsniper",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu2-somaticsniper",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu4-somaticsniper",
+        "model-execution-20261009-eval-oconnell2023-gcp-a2-gpu8-somaticsniper",
+        "model-execution-20261009-eval-oconnell2023-gcp-n2-standard-32-somaticsniper"
+      ],
+      "limitations": [
+        "One recorded run per configuration (Methods: 'we recorded the time of our final workflow run'); no repeats printed.",
+        "Costs are on-demand cloud prices at the time of the study and exclude storage and licences; DGX rows have no cost.",
+        "Authors are from Deloitte Consulting, an NVIDIA, AWS and Google alliance partner (Competing interests).",
+        "Table 1 footnote says the AWS GPU rows are the p3 family with V100 GPUs, but Results 'GPU performance across cloud platforms' paragraph 2 attributes the AWS savings printed in Table 1 (for example 63% for HaplotypeCaller with 4 GPUs) to the p4 machine with A100 GPUs and the p3 results to Additional file 1 Table S1.",
+        "Somatic callers run from a prepared BAM; accuracy on the 198 added SNVs is not reported."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-samarakoon2025-dv-version-h100",
+      "protocol_id": "model-execution-20261009-protocol-samarakoon2025-dv-version-h100",
+      "relevance": "direct",
+      "comparison_group": "samarakoon2025-dv-version",
+      "stratum_label": null,
+      "stratum_order": null,
+      "headline_metric": "runtime",
+      "endpoint": "Wall-clock minutes for Parabricks DeepVariant v4.1.0-1 and v4.3.0-1 on the same 8 H100 GPUs and three samples",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-samarakoon2025-parabricks-4-3-0-1-8xh100-dv-version",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-8xh100-dv-version"
+      ],
+      "limitations": [
+        "Three high-coverage samples, one run each.",
+        "Version 4.3.0-1 was slower on all three samples; the authors do not give a cause."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-samarakoon2025-mapping",
+      "protocol_id": "model-execution-20261009-protocol-samarakoon2025-mapping",
+      "relevance": "direct",
+      "comparison_group": "samarakoon2025-wgs-stages",
+      "stratum_label": "Read mapping",
+      "stratum_order": 1,
+      "headline_metric": "runtime",
+      "endpoint": "Wall-clock minutes for the read mapping stage on ten WGS samples for CPU-only GATK, Parabricks on L4, A100 and H100 GPUs, and DRAGEN v4.2",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-samarakoon2025-cpu-epyc7702-mapping",
+        "model-execution-20261009-eval-samarakoon2025-dragen42-server-v2-mapping",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-4xa100-mapping",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-4xl4-mapping",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-8xh100-mapping"
+      ],
+      "limitations": [
+        "One run per sample and configuration; no repeats or variance printed.",
+        "Hardware differs between columns (CPU cluster, two GCP VMs, an HPC GPU node and a DRAGEN server), so differences mix software and hardware.",
+        "CPU-only nodes were shared with other users; GCP VMs ran in a multi-tenant environment (Table S2 notes).",
+        "DRAGEN mapping time was assembled from three process logs because its processes run concurrently (Methods 2.4)."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-samarakoon2025-hc",
+      "protocol_id": "model-execution-20261009-protocol-samarakoon2025-hc",
+      "relevance": "direct",
+      "comparison_group": "samarakoon2025-wgs-stages",
+      "stratum_label": "HaplotypeCaller or GSVC calling",
+      "stratum_order": 2,
+      "headline_metric": "runtime",
+      "endpoint": "Wall-clock minutes for the HaplotypeCaller or DRAGEN GSVC calling stage on ten WGS samples for CPU-only GATK, Parabricks on L4, A100 and H100 GPUs, and DRAGEN v4.2",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-samarakoon2025-cpu-epyc7702-hc",
+        "model-execution-20261009-eval-samarakoon2025-dragen42-server-v2-hc",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-4xa100-hc",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-4xl4-hc",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-8xh100-hc"
+      ],
+      "limitations": [
+        "One run per sample and configuration; no repeats or variance printed.",
+        "Hardware differs between columns (CPU cluster, two GCP VMs, an HPC GPU node and a DRAGEN server), so differences mix software and hardware.",
+        "CPU-only nodes were shared with other users; GCP VMs ran in a multi-tenant environment (Table S2 notes)."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-samarakoon2025-dv",
+      "protocol_id": "model-execution-20261009-protocol-samarakoon2025-dv",
+      "relevance": "direct",
+      "comparison_group": "samarakoon2025-wgs-stages",
+      "stratum_label": "DeepVariant calling",
+      "stratum_order": 3,
+      "headline_metric": "runtime",
+      "endpoint": "Wall-clock minutes for the DeepVariant calling stage on ten WGS samples for CPU-only DeepVariant and Parabricks DeepVariant on L4, A100 and H100 GPUs",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-samarakoon2025-cpu-epyc7702-dv",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-4xa100-dv",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-4xl4-dv",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-8xh100-dv"
+      ],
+      "limitations": [
+        "One run per sample and configuration; no repeats or variance printed.",
+        "Hardware differs between columns (CPU cluster, two GCP VMs, an HPC GPU node and a DRAGEN server), so differences mix software and hardware.",
+        "CPU-only nodes were shared with other users; GCP VMs ran in a multi-tenant environment (Table S2 notes).",
+        "DRAGEN has no DeepVariant stage; its column prints NA and has no evaluation."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261009-samarakoon2025-total",
+      "protocol_id": "model-execution-20261009-protocol-samarakoon2025-total",
+      "relevance": "direct",
+      "comparison_group": "samarakoon2025-wgs-stages",
+      "stratum_label": "Mapping plus HaplotypeCaller or GSVC",
+      "stratum_order": 4,
+      "headline_metric": "runtime",
+      "endpoint": "Wall-clock minutes for the total of read mapping and HaplotypeCaller or DRAGEN GSVC on ten WGS samples for CPU-only GATK, Parabricks on L4, A100 and H100 GPUs, and DRAGEN v4.2",
+      "evaluation_ids": [
+        "model-execution-20261009-eval-samarakoon2025-cpu-epyc7702-total",
+        "model-execution-20261009-eval-samarakoon2025-dragen42-server-v2-total",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-4xa100-total",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-4xl4-total",
+        "model-execution-20261009-eval-samarakoon2025-parabricks-8xh100-total"
+      ],
+      "limitations": [
+        "One run per sample and configuration; no repeats or variance printed.",
+        "Hardware differs between columns (CPU cluster, two GCP VMs, an HPC GPU node and a DRAGEN server), so differences mix software and hardware.",
+        "CPU-only nodes were shared with other users; GCP VMs ran in a multi-tenant environment (Table S2 notes).",
+        "Total is the sum of read mapping and HaplotypeCaller or GSVC stages; DeepVariant is excluded. The NA12778 L4 total (117.59) does not equal its stage values (26.02 + 5.92)."
+      ]
+    }
+  ],
+  "use_case_changes": {
+    "add_links": [
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-franzoso2025-wes-gcp"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-franzoso2025-wgs-gcp"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-oconnell2023-deepvariant"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-oconnell2023-haplotypecaller"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-oconnell2023-lofreq"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-oconnell2023-muse"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-oconnell2023-mutect2"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-oconnell2023-somaticsniper"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-samarakoon2025-dv-version-h100"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-samarakoon2025-mapping"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-samarakoon2025-hc"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-samarakoon2025-dv"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "model-execution-20261009-protocol-samarakoon2025-total"
+      }
+    ],
+    "add_source_ids": [
+      "model-execution-20261009-source-samarakoon2025",
+      "model-execution-20261009-source-samarakoon2025-supplement",
+      "model-execution-20261009-source-oconnell2023",
+      "model-execution-20261009-source-franzoso2025",
+      "model-execution-20261009-source-franzoso2025-table-s2"
+    ],
+    "add_citation_locators": [
+      {
+        "source_id": "model-execution-20261009-source-samarakoon2025-supplement",
+        "locator": "Supplementary Tables S3-S4; see data/omics/use-case-coverage-model-execution-20261009/claims.csv"
+      },
+      {
+        "source_id": "model-execution-20261009-source-oconnell2023",
+        "locator": "Table 1; see data/omics/use-case-coverage-model-execution-20261009/claims.csv"
+      },
+      {
+        "source_id": "model-execution-20261009-source-franzoso2025-table-s2",
+        "locator": "Table S2; see data/omics/use-case-coverage-model-execution-20261009/claims.csv"
+      }
+    ],
+    "evidence_gaps_add": [
+      "No linked study prints measured peak host or GPU memory; Samarakoon et al. 2025 and Franzoso et al. 2025 show memory use only in figures.",
+      "No linked study repeats runs, so run-to-run variation of runtime or of variant calls is not measured; Samarakoon et al. 2025 compare Parabricks on two A100 clusters only in a figure.",
+      "No linked study reports accuracy in the same printed table as runtime; Samarakoon et al. 2025 show accuracy and CPU concordance in Figure 5 only.",
+      "No study of a genomic foundation model's inference runtime, memory or cost was found in this pass.",
+      "Costs are cloud list prices or authors' estimates at the time of each study and exclude storage and software licences unless stated."
+    ],
+    "evidence_gaps_keep": [
+      "No peak-memory endpoint is reported.",
+      "No runtime repeat/variance (CI) is reported.",
+      "A separate ~2-hour joint-aggregation figure over 3,202 genomes at concurrency 200 is a different operation and is not assigned to this single-sample runtime."
+    ],
+    "exclusions_note": "The peak-memory exclusion stays: no source in this pass prints measured peak memory. The foundation-model exclusion text ('none is ingested in this bounded intake') remains true. No exclusion change is proposed.",
+    "setting_proposed": "Germline WGS and WES execution benchmarks on the same inputs: CPU-only GATK, Parabricks on L4, A100 and H100 GPUs and DRAGEN v4.2 on ten WGS samples (Samarakoon et al. 2025); six callers on CPU and 2, 4 and 8 GPU cloud and DGX machines on HG002 30x (O'Connell et al. 2023); Sentieon DNASeq and Parabricks Germline on cost-matched Google Cloud machines (Franzoso et al. 2025); plus the DRAGEN 4.2 developer runtime baseline on HG002.",
+    "decision_proposed": "Inspect per-sample wall-clock runtime and cost for the CPU, GPU and FPGA execution set-ups that match the team's hardware and sequencing type before budgeting a workflow; none of these is a foundation-model execution benchmark.",
+    "output_proposed": "Sourced per-sample runtime, cost, speedup and cost-saving values for exact pipeline, version and hardware configurations, with the limits of each comparison; no foundation-model execution benchmark and no clinical turnaround claim.",
+    "pin_warning": "Changing setting, decision or output alters fields pinned by the reviewed judgement use-case-mapping-amp-20261007-issue18, which would then be withheld until re-reviewed and re-pinned. Adding links, gaps, sources and citations does not."
+  },
+  "summary_proposal": {
+    "id": "use-case-summary-diagnostic-genomics-model-execution",
+    "field": "summary",
+    "status": "needs_review",
+    "value": "Three execution benchmarks are linked, alongside the existing DRAGEN developer baseline (HG002 full pipeline 1,838.5 seconds). None prints repeated runs, measured peak memory or accuracy next to runtime, and hardware differs within each comparison, so differences mix software and hardware. On ten WGS samples run by a University of Oslo group (Samarakoon et al. 2025), read mapping plus HaplotypeCaller for NA12878 (47.55x) took 2,317.7 minutes on a CPU-only GATK pipeline, 123.45 minutes with Parabricks on four L4 GPUs, 78.12 on four A100 GPUs, 54.22 on eight H100 GPUs and 60.29 on DRAGEN v4.2. On the same H100 machine, Parabricks DeepVariant took 14.58 minutes for NA12878 with version 4.1.0-1 and 16.05 with version 4.3.0-1. On one HG002 30x genome in the cloud (O'Connell et al. 2023; the authors' firm is an NVIDIA, AWS and Google alliance partner), HaplotypeCaller took 36.26 hours and cost 49.32 USD on a 32-vCPU AWS machine, and 0.59 hours and 17.5 USD on eight A100 GPUs on GCP. Some somatic callers cost more on GPUs: LoFreq cost 4.1 USD on the AWS CPU machine and 19 to 30.1 USD on GPU machines. On cost-matched Google Cloud machines (Franzoso et al. 2025), Sentieon DNASeq took 14 to 16 minutes per exome and 3:00 to 3:50 per genome, and Parabricks Germline on one T4 GPU 10 to 14 minutes and 4:06 to 4:40, at 0.71 to 1.03 USD per exome and 8.02 to 10.7 USD per genome, excluding the Sentieon licence; two genome runtime cells appear mis-entered and are left out of these ranges. No linked study measures the execution of a genomic foundation model.",
+    "source_ids": [
+      "amp-source-dragen-supplementary-tables",
+      "model-execution-20261009-source-samarakoon2025-supplement",
+      "model-execution-20261009-source-oconnell2023",
+      "model-execution-20261009-source-franzoso2025-table-s2"
+    ],
+    "source_locator": "model-execution-20261009-source-samarakoon2025-supplement: Supplementary Tables S3c and S4; model-execution-20261009-source-oconnell2023: Table 1; model-execution-20261009-source-franzoso2025-table-s2: Table S2; amp-source-dragen-supplementary-tables: Table S1 cell AE20",
+    "traceability": [
+      {
+        "statement": "DRAGEN developer baseline 1,838.5 s",
+        "record_id": "amp-result-dragen-hg002-phase4-runtime",
+        "printed_value": "1838.5"
+      },
+      {
+        "statement": "CPU total NA12878 2317.7",
+        "record_id": "model-execution-20261009-result-samarakoon2025-cpu-epyc7702-total-na12878",
+        "printed_value": "2317.7"
+      },
+      {
+        "statement": "L4 total NA12878 123.45",
+        "record_id": "model-execution-20261009-result-samarakoon2025-parabricks-4xl4-total-na12878",
+        "printed_value": "123.45"
+      },
+      {
+        "statement": "A100 total NA12878 78.12",
+        "record_id": "model-execution-20261009-result-samarakoon2025-parabricks-4xa100-total-na12878",
+        "printed_value": "78.12"
+      },
+      {
+        "statement": "H100 total NA12878 54.22",
+        "record_id": "model-execution-20261009-result-samarakoon2025-parabricks-8xh100-total-na12878",
+        "printed_value": "54.22"
+      },
+      {
+        "statement": "DRAGEN total NA12878 60.29",
+        "record_id": "model-execution-20261009-result-samarakoon2025-dragen42-server-v2-total-na12878",
+        "printed_value": "60.29"
+      },
+      {
+        "statement": "DV 4.1.0-1 NA12878 14.58",
+        "record_id": "model-execution-20261009-result-samarakoon2025-parabricks-8xh100-dv-version-na12878",
+        "printed_value": "14.58"
+      },
+      {
+        "statement": "DV 4.3.0-1 NA12878 16.05",
+        "record_id": "model-execution-20261009-result-samarakoon2025-parabricks-4-3-0-1-8xh100-dv-version-na12878",
+        "printed_value": "16.05"
+      },
+      {
+        "statement": "HC AWS CPU 36.26 h",
+        "record_id": "model-execution-20261009-result-oconnell2023-aws-c6i-8xlarge-haplotypecaller-runtime-hours",
+        "printed_value": "36.26"
+      },
+      {
+        "statement": "HC AWS CPU 49.32 USD",
+        "record_id": "model-execution-20261009-result-oconnell2023-aws-c6i-8xlarge-haplotypecaller-compute-cost",
+        "printed_value": "49.32"
+      },
+      {
+        "statement": "HC GCP 8xA100 0.59 h",
+        "record_id": "model-execution-20261009-result-oconnell2023-gcp-a2-gpu8-haplotypecaller-runtime-hours",
+        "printed_value": "0.59"
+      },
+      {
+        "statement": "HC GCP 8xA100 17.5 USD",
+        "record_id": "model-execution-20261009-result-oconnell2023-gcp-a2-gpu8-haplotypecaller-compute-cost",
+        "printed_value": "17.5"
+      },
+      {
+        "statement": "LoFreq AWS CPU 4.1 USD",
+        "record_id": "model-execution-20261009-result-oconnell2023-aws-c6i-8xlarge-lofreq-compute-cost",
+        "printed_value": "4.1"
+      },
+      {
+        "statement": "LoFreq GPU min 19 USD (GCP 2 GPU)",
+        "record_id": "model-execution-20261009-result-oconnell2023-gcp-a2-gpu2-lofreq-compute-cost",
+        "printed_value": "19"
+      },
+      {
+        "statement": "LoFreq GPU max 30.1 USD (GCP 8 GPU)",
+        "record_id": "model-execution-20261009-result-oconnell2023-gcp-a2-gpu8-lofreq-compute-cost",
+        "printed_value": "30.1"
+      },
+      {
+        "statement": "Sentieon exome min 0:14:00",
+        "record_id": "model-execution-20261009-result-franzoso2025-sentieon-dnaseq-202308-gcp-64vcpu-srr11012403-runtime",
+        "printed_value": "0:14:00"
+      },
+      {
+        "statement": "Sentieon exome max 0:16:00",
+        "record_id": "model-execution-20261009-result-franzoso2025-sentieon-dnaseq-202308-gcp-64vcpu-srr11012408-runtime",
+        "printed_value": "0:16:00"
+      },
+      {
+        "statement": "Sentieon genome min 3:00:00",
+        "record_id": "model-execution-20261009-result-franzoso2025-sentieon-dnaseq-202308-gcp-64vcpu-err1955536-runtime",
+        "printed_value": "3:00:00"
+      },
+      {
+        "statement": "Sentieon genome max 3:50:00",
+        "record_id": "model-execution-20261009-result-franzoso2025-sentieon-dnaseq-202308-gcp-64vcpu-err1955541-runtime",
+        "printed_value": "3:50:00"
+      },
+      {
+        "statement": "Parabricks exome min 0:10:00",
+        "record_id": "model-execution-20261009-result-franzoso2025-parabricks-germline-4-0-1-1-gcp-t4-srr11012406-runtime",
+        "printed_value": "0:10:00"
+      },
+      {
+        "statement": "Parabricks exome max 0:14:00",
+        "record_id": "model-execution-20261009-result-franzoso2025-parabricks-germline-4-0-1-1-gcp-t4-srr11012408-runtime",
+        "printed_value": "0:14:00"
+      },
+      {
+        "statement": "Parabricks genome min 4:06:00",
+        "record_id": "model-execution-20261009-result-franzoso2025-parabricks-germline-4-0-1-1-gcp-t4-err1955540-runtime",
+        "printed_value": "4:06:00"
+      },
+      {
+        "statement": "Parabricks genome max 4:40:00",
+        "record_id": "model-execution-20261009-result-franzoso2025-parabricks-germline-4-0-1-1-gcp-t4-err1955541-runtime",
+        "printed_value": "4:40:00"
+      },
+      {
+        "statement": "Exome cost min 0.71",
+        "record_id": "model-execution-20261009-result-franzoso2025-parabricks-germline-4-0-1-1-gcp-t4-srr11012404-compute-cost",
+        "printed_value": "0.71"
+      },
+      {
+        "statement": "Exome cost max 1.03",
+        "record_id": "model-execution-20261009-result-franzoso2025-sentieon-dnaseq-202308-gcp-64vcpu-srr11012405-compute-cost",
+        "printed_value": "1.03"
+      },
+      {
+        "statement": "Genome cost min 8.02",
+        "record_id": "model-execution-20261009-result-franzoso2025-sentieon-dnaseq-202308-gcp-64vcpu-err1955540-compute-cost",
+        "printed_value": "8.02"
+      },
+      {
+        "statement": "Genome cost max 10.7",
+        "record_id": "model-execution-20261009-result-franzoso2025-sentieon-dnaseq-202308-gcp-64vcpu-err1955536-compute-cost",
+        "printed_value": "10.7"
+      }
+    ],
+    "note": "Franzoso ranges exclude the two flagged cells (ERR1955532 Sentieon 0:03:21; ERR1955539 Parabricks 0:04:41). Costs are as printed in USD."
+  },
+  "concerns_for_reviewer": [
+    {
+      "source_id": "model-execution-20261009-source-samarakoon2025-supplement",
+      "locator": "Supplementary Table S3c row NA12778, column L4",
+      "message": "Printed total 117.59 minutes; the stage values for the same sample and GPU are 26.02 and 5.92 (sum 31.94). All other totals equal their stage sums. Recorded as printed with source_discrepancy."
+    },
+    {
+      "source_id": "model-execution-20261009-source-samarakoon2025",
+      "locator": "Methods 2.3 versus Supplementary Table S4",
+      "message": "Methods give Parabricks version 4.3.0-1; Table S4 calls 4.1.0-1 the version implemented in the pipeline, and its 4.1.0-1 DeepVariant values equal Table S3 b.2 H100. Parabricks configuration versions are recorded as conflicting."
+    },
+    {
+      "source_id": "model-execution-20261009-source-oconnell2023",
+      "locator": "Table 1 footnote versus Results 'GPU performance across cloud platforms' paragraph 2",
+      "message": "The footnote says AWS GPU rows are p3 V100 machines; the text attributes the Table 1 AWS savings to p4 A100 machines and the V100 results to Table S1. AWS GPU hardware identity is unresolved and noted on the configurations."
+    },
+    {
+      "source_id": "model-execution-20261009-source-oconnell2023",
+      "locator": "Results 'CPU baseline across cloud platforms' versus Table 1 row 45",
+      "message": "Text gives AWS Mutect2 CPU runtime 16.9 h; Table 1 prints 414.51 min (6.91 h)."
+    },
+    {
+      "source_id": "model-execution-20261009-source-oconnell2023",
+      "locator": "Competing interests",
+      "message": "Authors are from Deloitte Consulting, an alliance partner of NVIDIA, AWS and Google; origin is recorded as independent_paper because they did not develop Parabricks or the callers."
+    },
+    {
+      "source_id": "model-execution-20261009-source-franzoso2025-table-s2",
+      "locator": "Table S2 C13 and C18",
+      "message": "Two WGS runtimes print as 0:03:21 (Sentieon, ERR1955532) and 0:04:41 (Parabricks, ERR1955539), outside the ranges in Results (3 to 3.8 h and 4.1 to 4.7 h). Likely entered as minutes:seconds; kept as printed with source_anomaly."
+    }
+  ],
+  "concerns_note": "Not written as source evidence_concerns, because a concern on a source withholds every judgement that cites it. The reviewer decides.",
+  "gaps": [
+    "Samarakoon et al. 2025 Supplementary Text 01 tables (Parabricks HC run-partition and NextFlow-optimised workflows) and the cost tables of Supplementary Text 03 are not extracted as results; the cost summary is a descriptive claim.",
+    "O'Connell et al. 2023 Additional file 1 Table S1 (AWS A100 runs) not retrieved.",
+    "Accuracy for these pipelines is figure-only in Samarakoon et al. 2025 and not reported in O'Connell et al. 2023 or Franzoso et al. 2025.",
+    "No rerun reproducibility study with printed values found.",
+    "No foundation-model or deep-learning model inference runtime benchmark for diagnostic genomics found beyond DeepVariant within these pipelines."
+  ],
+  "leads": [
+    {
+      "doi": "10.1038/s41598-022-26181-3",
+      "pmcid": "PMC9748128",
+      "note": "Betschart et al. 2022: DRAGEN 3.8.4, GATK 4.2.4.1 and DeepVariant 1.1.0 on HG002 sequenced 70 times; runtime as pairwise mean differences with 95% CI (Supplementary Table S1) and variant-count mean and SD across runs (Table 1)."
+    },
+    {
+      "doi": "10.1038/s41598-020-77218-4",
+      "pmcid": "PMC7678823",
+      "note": "Zhao et al. 2020: GATK, DRAGEN and DeepVariant accuracy tables; runtime in Figure 4 only."
+    },
+    {
+      "doi": "10.1093/bib/bbag001",
+      "pmcid": "PMC12832024",
+      "note": "GeNePi GPU WGS pipeline (developer); not opened."
+    },
+    {
+      "doi": "10.1093/bioinformatics/btag181",
+      "pmcid": "PMC13141153",
+      "note": "Accelerated Clair3 long-read calling (developer); not opened."
+    }
+  ]
+}
