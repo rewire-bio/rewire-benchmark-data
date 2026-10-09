@@ -1,0 +1,367 @@
+{
+  "use_case_id": "use-case-splicing-follow-up",
+  "cutoff_date": "2026-10-09",
+  "query_budget": {
+    "budgeted": 25,
+    "used": 5
+  },
+  "existing_reused": [
+    "catalog-model-spliceai",
+    "catalog-model-pangolin",
+    "rewire-mfass-v2-dataset"
+  ],
+  "existing_judgements_unchanged": [
+    "use-case-mapping-20260930-339-25925e279972",
+    "use-case-mapping-amp-20261007-feng-splice-acceptor",
+    "use-case-mapping-amp-20261007-feng-splice-donor",
+    "use-case-mapping-splicing-mfass-matched-v1"
+  ],
+  "new_record_counts": {
+    "claim": 14,
+    "configuration": 24,
+    "dataset": 9,
+    "evaluation": 84,
+    "method": 15,
+    "protocol": 10,
+    "result": 522,
+    "source": 4
+  },
+  "vocabulary_additions": {
+    "data/vocab/metric.ttl": [
+      "negative-predictive-value (block copied byte for byte from the rewire-benchmark-data-rna-pathogen branch)",
+      "true-negative-count (exactMatch STATO_0000597, checked through the OLS API)"
+    ],
+    "note": "true-negative-count is new on every branch and needs review; it follows the existing true-positive-count and false-negative-count concepts."
+  },
+  "cross_branch_duplicates": "The patient-RNA splicing batch (branch claude/uc-rna-splicing) creates rna-splicing-20261009-method-squirls; this batch creates splicing-follow-up-20261009-method-squirls and an MMSplice and SPANR method that the other branch does not have. If both merge, the integrator should keep one SQUIRLS method and point the other branch's configurations at it.",
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-splicing-follow-up-20261009-riepe2021-abca4-di",
+      "protocol_id": "splicing-follow-up-20261009-protocol-riepe2021-abca4-di",
+      "relevance": "proxy",
+      "comparison_group": "riepe2021-minigene",
+      "stratum_label": "ABCA4 deep-intronic variants",
+      "headline_metric": "matthews-correlation-coefficient",
+      "evaluation_ids": [
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-di-alamut-consensus",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-di-cadd-1-6",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-di-dssp",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-di-genesplicer",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-di-maxentscan",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-di-nnsplice",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-di-spliceai-1-3-1",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-di-splicerover",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-di-splicesitefinder-like"
+      ],
+      "endpoint": "Confusion matrix, accuracy, PPV, sensitivity, specificity, NPV and MCC for up to 11 splice predictors on 81 ABCA4 deep-intronic variants tested in mini- or midigene assays",
+      "limitations": [
+        "Variants were selected for testing with Alamut tools (ABCA4) or MaxEntScan (MYBPC3), which can favour those tools and their relatives.",
+        "Cutoffs appear to be tuned on the same data set (Table 2 ROC-optimal thresholds); Tables 3-5 do not state the cutoff, so values may be optimistic.",
+        "Small single-gene sets with strong class imbalance (ABCA4 NCSS 90% positive, ABCA4 DI 26% positive).",
+        "Variants are from patients but splicing was measured in mini- or midigene assays in HEK293T, not in patient tissue."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-splicing-follow-up-20261009-riepe2021-abca4-ncss",
+      "protocol_id": "splicing-follow-up-20261009-protocol-riepe2021-abca4-ncss",
+      "relevance": "proxy",
+      "comparison_group": "riepe2021-minigene",
+      "stratum_label": "ABCA4 noncanonical splice-site variants",
+      "headline_metric": "matthews-correlation-coefficient",
+      "evaluation_ids": [
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-ncss-alamut-consensus",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-ncss-cadd-1-6",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-ncss-dssp",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-ncss-genesplicer",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-ncss-maxentscan",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-ncss-mmsplice-2-0-0",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-ncss-nnsplice",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-ncss-spidex-1-0",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-ncss-spliceai-1-3-1",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-ncss-splicerover",
+        "splicing-follow-up-20261009-eval-riepe2021-abca4-ncss-splicesitefinder-like"
+      ],
+      "endpoint": "Confusion matrix, accuracy, PPV, sensitivity, specificity, NPV and MCC for up to 11 splice predictors on 71 ABCA4 noncanonical splice-site variants tested in mini- or midigene assays",
+      "limitations": [
+        "Variants were selected for testing with Alamut tools (ABCA4) or MaxEntScan (MYBPC3), which can favour those tools and their relatives.",
+        "Cutoffs appear to be tuned on the same data set (Table 2 ROC-optimal thresholds); Tables 3-5 do not state the cutoff, so values may be optimistic.",
+        "Small single-gene sets with strong class imbalance (ABCA4 NCSS 90% positive, ABCA4 DI 26% positive).",
+        "Variants are from patients but splicing was measured in mini- or midigene assays in HEK293T, not in patient tissue."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-splicing-follow-up-20261009-riepe2021-mybpc3-ncss",
+      "protocol_id": "splicing-follow-up-20261009-protocol-riepe2021-mybpc3-ncss",
+      "relevance": "proxy",
+      "comparison_group": "riepe2021-minigene",
+      "stratum_label": "MYBPC3 noncanonical splice-site variants",
+      "headline_metric": "matthews-correlation-coefficient",
+      "evaluation_ids": [
+        "splicing-follow-up-20261009-eval-riepe2021-mybpc3-ncss-alamut-consensus",
+        "splicing-follow-up-20261009-eval-riepe2021-mybpc3-ncss-cadd-1-6",
+        "splicing-follow-up-20261009-eval-riepe2021-mybpc3-ncss-dssp",
+        "splicing-follow-up-20261009-eval-riepe2021-mybpc3-ncss-genesplicer",
+        "splicing-follow-up-20261009-eval-riepe2021-mybpc3-ncss-maxentscan",
+        "splicing-follow-up-20261009-eval-riepe2021-mybpc3-ncss-mmsplice-2-0-0",
+        "splicing-follow-up-20261009-eval-riepe2021-mybpc3-ncss-nnsplice",
+        "splicing-follow-up-20261009-eval-riepe2021-mybpc3-ncss-spidex-1-0",
+        "splicing-follow-up-20261009-eval-riepe2021-mybpc3-ncss-spliceai-1-3-1",
+        "splicing-follow-up-20261009-eval-riepe2021-mybpc3-ncss-splicerover",
+        "splicing-follow-up-20261009-eval-riepe2021-mybpc3-ncss-splicesitefinder-like"
+      ],
+      "endpoint": "Confusion matrix, accuracy, PPV, sensitivity, specificity, NPV and MCC for up to 11 splice predictors on 61 MYBPC3 noncanonical splice-site variants tested in mini- or midigene assays",
+      "limitations": [
+        "Variants were selected for testing with Alamut tools (ABCA4) or MaxEntScan (MYBPC3), which can favour those tools and their relatives.",
+        "Cutoffs appear to be tuned on the same data set (Table 2 ROC-optimal thresholds); Tables 3-5 do not state the cutoff, so values may be optimistic.",
+        "Small single-gene sets with strong class imbalance (ABCA4 NCSS 90% positive, ABCA4 DI 26% positive).",
+        "Variants are from patients but splicing was measured in mini- or midigene assays in HEK293T, not in patient tissue."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-splicing-follow-up-20261009-smith2023-brca1-sge",
+      "protocol_id": "splicing-follow-up-20261009-protocol-smith2023-brca1-sge-tn10",
+      "relevance": "proxy",
+      "comparison_group": "smith2023-mpsa-tn10",
+      "stratum_label": "BRCA1 saturation genome editing, synonymous and intronic SNVs",
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "splicing-follow-up-20261009-eval-smith2023-brca1-sge-conspliceml",
+        "splicing-follow-up-20261009-eval-smith2023-brca1-sge-hal",
+        "splicing-follow-up-20261009-eval-smith2023-brca1-sge-mmsplice-2-2-0",
+        "splicing-follow-up-20261009-eval-smith2023-brca1-sge-pangolin-1-0-2",
+        "splicing-follow-up-20261009-eval-smith2023-brca1-sge-s-cap",
+        "splicing-follow-up-20261009-eval-smith2023-brca1-sge-spanr-spidex",
+        "splicing-follow-up-20261009-eval-smith2023-brca1-sge-spliceai-1-3-1",
+        "splicing-follow-up-20261009-eval-smith2023-brca1-sge-squirls-1-0-0"
+      ],
+      "endpoint": "Sensitivity for BRCA1 saturation genome editing, synonymous and intronic SNVs splice-disruptive SNVs at thresholds calling 10% of 500,000 background SNVs, for HAL, S-Cap, MMSplice, SQUIRLS, SPANR, SpliceAI, Pangolin and ConSpliceML, overall and by variant class",
+      "limitations": [
+        "Sensitivity only: the threshold fixes a genome-wide call rate, not specificity on the benchmark, so precision is not measured.",
+        "Per-dataset SDV and neutral counts are not printed in Table S2.",
+        "Blank cells (HAL intronic rows, FAS intronic columns) are not results and are not stored.",
+        "Masking setting for SpliceAI and Pangolin in Table S2 is not stated."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-splicing-follow-up-20261009-smith2023-fas-exon6-mpsa",
+      "protocol_id": "splicing-follow-up-20261009-protocol-smith2023-fas-exon6-mpsa-tn10",
+      "relevance": "proxy",
+      "comparison_group": "smith2023-mpsa-tn10",
+      "stratum_label": "FAS exon 6 saturation MPSA",
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "splicing-follow-up-20261009-eval-smith2023-fas-exon6-mpsa-conspliceml",
+        "splicing-follow-up-20261009-eval-smith2023-fas-exon6-mpsa-hal",
+        "splicing-follow-up-20261009-eval-smith2023-fas-exon6-mpsa-mmsplice-2-2-0",
+        "splicing-follow-up-20261009-eval-smith2023-fas-exon6-mpsa-pangolin-1-0-2",
+        "splicing-follow-up-20261009-eval-smith2023-fas-exon6-mpsa-s-cap",
+        "splicing-follow-up-20261009-eval-smith2023-fas-exon6-mpsa-spanr-spidex",
+        "splicing-follow-up-20261009-eval-smith2023-fas-exon6-mpsa-spliceai-1-3-1",
+        "splicing-follow-up-20261009-eval-smith2023-fas-exon6-mpsa-squirls-1-0-0"
+      ],
+      "endpoint": "Sensitivity for FAS exon 6 saturation MPSA splice-disruptive SNVs at thresholds calling 10% of 500,000 background SNVs, for HAL, S-Cap, MMSplice, SQUIRLS, SPANR, SpliceAI, Pangolin and ConSpliceML, overall and by variant class",
+      "limitations": [
+        "Sensitivity only: the threshold fixes a genome-wide call rate, not specificity on the benchmark, so precision is not measured.",
+        "Per-dataset SDV and neutral counts are not printed in Table S2.",
+        "Blank cells (HAL intronic rows, FAS intronic columns) are not results and are not stored.",
+        "Masking setting for SpliceAI and Pangolin in Table S2 is not stated."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-splicing-follow-up-20261009-smith2023-mlh1-curated",
+      "protocol_id": "splicing-follow-up-20261009-protocol-smith2023-mlh1-curated-tn10",
+      "relevance": "outside_scope",
+      "comparison_group": "smith2023-mpsa-tn10",
+      "stratum_label": "MLH1 curated clinical splicing variants",
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "splicing-follow-up-20261009-eval-smith2023-mlh1-curated-conspliceml",
+        "splicing-follow-up-20261009-eval-smith2023-mlh1-curated-hal",
+        "splicing-follow-up-20261009-eval-smith2023-mlh1-curated-mmsplice-2-2-0",
+        "splicing-follow-up-20261009-eval-smith2023-mlh1-curated-pangolin-1-0-2",
+        "splicing-follow-up-20261009-eval-smith2023-mlh1-curated-s-cap",
+        "splicing-follow-up-20261009-eval-smith2023-mlh1-curated-spanr-spidex",
+        "splicing-follow-up-20261009-eval-smith2023-mlh1-curated-spliceai-1-3-1",
+        "splicing-follow-up-20261009-eval-smith2023-mlh1-curated-squirls-1-0-0"
+      ],
+      "endpoint": "Sensitivity for MLH1 curated clinical splicing variants splice-disruptive SNVs at thresholds calling 10% of 500,000 background SNVs, for HAL, S-Cap, MMSplice, SQUIRLS, SPANR, SpliceAI, Pangolin and ConSpliceML, overall and by variant class",
+      "limitations": [
+        "Sensitivity only: the threshold fixes a genome-wide call rate, not specificity on the benchmark, so precision is not measured.",
+        "Per-dataset SDV and neutral counts are not printed in Table S2.",
+        "Blank cells (HAL intronic rows, FAS intronic columns) are not results and are not stored.",
+        "Masking setting for SpliceAI and Pangolin in Table S2 is not stated.",
+        "Labels include patient RNA and pathogenicity-based calls."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-splicing-follow-up-20261009-smith2023-mst1r-exon11-mpsa",
+      "protocol_id": "splicing-follow-up-20261009-protocol-smith2023-mst1r-exon11-mpsa-tn10",
+      "relevance": "proxy",
+      "comparison_group": "smith2023-mpsa-tn10",
+      "stratum_label": "MST1R (RON) exon 11 saturation MPSA",
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "splicing-follow-up-20261009-eval-smith2023-mst1r-exon11-mpsa-conspliceml",
+        "splicing-follow-up-20261009-eval-smith2023-mst1r-exon11-mpsa-hal",
+        "splicing-follow-up-20261009-eval-smith2023-mst1r-exon11-mpsa-mmsplice-2-2-0",
+        "splicing-follow-up-20261009-eval-smith2023-mst1r-exon11-mpsa-pangolin-1-0-2",
+        "splicing-follow-up-20261009-eval-smith2023-mst1r-exon11-mpsa-s-cap",
+        "splicing-follow-up-20261009-eval-smith2023-mst1r-exon11-mpsa-spanr-spidex",
+        "splicing-follow-up-20261009-eval-smith2023-mst1r-exon11-mpsa-spliceai-1-3-1",
+        "splicing-follow-up-20261009-eval-smith2023-mst1r-exon11-mpsa-squirls-1-0-0"
+      ],
+      "endpoint": "Sensitivity for MST1R (RON) exon 11 saturation MPSA splice-disruptive SNVs at thresholds calling 10% of 500,000 background SNVs, for HAL, S-Cap, MMSplice, SQUIRLS, SPANR, SpliceAI, Pangolin and ConSpliceML, overall and by variant class",
+      "limitations": [
+        "Sensitivity only: the threshold fixes a genome-wide call rate, not specificity on the benchmark, so precision is not measured.",
+        "Per-dataset SDV and neutral counts are not printed in Table S2.",
+        "Blank cells (HAL intronic rows, FAS intronic columns) are not results and are not stored.",
+        "Masking setting for SpliceAI and Pangolin in Table S2 is not stated."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-splicing-follow-up-20261009-smith2023-pou1f1-exon2-mpsa",
+      "protocol_id": "splicing-follow-up-20261009-protocol-smith2023-pou1f1-exon2-mpsa-tn10",
+      "relevance": "proxy",
+      "comparison_group": "smith2023-mpsa-tn10",
+      "stratum_label": "POU1F1 exon 2 saturation MPSA",
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "splicing-follow-up-20261009-eval-smith2023-pou1f1-exon2-mpsa-conspliceml",
+        "splicing-follow-up-20261009-eval-smith2023-pou1f1-exon2-mpsa-hal",
+        "splicing-follow-up-20261009-eval-smith2023-pou1f1-exon2-mpsa-mmsplice-2-2-0",
+        "splicing-follow-up-20261009-eval-smith2023-pou1f1-exon2-mpsa-pangolin-1-0-2",
+        "splicing-follow-up-20261009-eval-smith2023-pou1f1-exon2-mpsa-s-cap",
+        "splicing-follow-up-20261009-eval-smith2023-pou1f1-exon2-mpsa-spanr-spidex",
+        "splicing-follow-up-20261009-eval-smith2023-pou1f1-exon2-mpsa-spliceai-1-3-1",
+        "splicing-follow-up-20261009-eval-smith2023-pou1f1-exon2-mpsa-squirls-1-0-0"
+      ],
+      "endpoint": "Sensitivity for POU1F1 exon 2 saturation MPSA splice-disruptive SNVs at thresholds calling 10% of 500,000 background SNVs, for HAL, S-Cap, MMSplice, SQUIRLS, SPANR, SpliceAI, Pangolin and ConSpliceML, overall and by variant class",
+      "limitations": [
+        "Sensitivity only: the threshold fixes a genome-wide call rate, not specificity on the benchmark, so precision is not measured.",
+        "Per-dataset SDV and neutral counts are not printed in Table S2.",
+        "Blank cells (HAL intronic rows, FAS intronic columns) are not results and are not stored.",
+        "Masking setting for SpliceAI and Pangolin in Table S2 is not stated."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-splicing-follow-up-20261009-smith2023-wt1-exon9-mpsa",
+      "protocol_id": "splicing-follow-up-20261009-protocol-smith2023-wt1-exon9-mpsa-tn10",
+      "relevance": "proxy",
+      "comparison_group": "smith2023-mpsa-tn10",
+      "stratum_label": "WT1 exon 9 saturation MPSA",
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "splicing-follow-up-20261009-eval-smith2023-wt1-exon9-mpsa-conspliceml",
+        "splicing-follow-up-20261009-eval-smith2023-wt1-exon9-mpsa-hal",
+        "splicing-follow-up-20261009-eval-smith2023-wt1-exon9-mpsa-mmsplice-2-2-0",
+        "splicing-follow-up-20261009-eval-smith2023-wt1-exon9-mpsa-pangolin-1-0-2",
+        "splicing-follow-up-20261009-eval-smith2023-wt1-exon9-mpsa-s-cap",
+        "splicing-follow-up-20261009-eval-smith2023-wt1-exon9-mpsa-spanr-spidex",
+        "splicing-follow-up-20261009-eval-smith2023-wt1-exon9-mpsa-spliceai-1-3-1",
+        "splicing-follow-up-20261009-eval-smith2023-wt1-exon9-mpsa-squirls-1-0-0"
+      ],
+      "endpoint": "Sensitivity for WT1 exon 9 saturation MPSA splice-disruptive SNVs at thresholds calling 10% of 500,000 background SNVs, for HAL, S-Cap, MMSplice, SQUIRLS, SPANR, SpliceAI, Pangolin and ConSpliceML, overall and by variant class",
+      "limitations": [
+        "Sensitivity only: the threshold fixes a genome-wide call rate, not specificity on the benchmark, so precision is not measured.",
+        "Per-dataset SDV and neutral counts are not printed in Table S2.",
+        "Blank cells (HAL intronic rows, FAS intronic columns) are not results and are not stored.",
+        "Masking setting for SpliceAI and Pangolin in Table S2 is not stated."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-splicing-follow-up-20261009-znabu2026-mfass",
+      "protocol_id": "splicing-follow-up-20261009-protocol-znabu2026-mfass-full-cohort",
+      "relevance": "proxy",
+      "comparison_group": "znabu2026-mfass",
+      "stratum_label": null,
+      "headline_metric": "average-precision",
+      "evaluation_ids": [
+        "splicing-follow-up-20261009-eval-znabu2026-mmsplice",
+        "splicing-follow-up-20261009-eval-znabu2026-pangolin",
+        "splicing-follow-up-20261009-eval-znabu2026-spanr",
+        "splicing-follow-up-20261009-eval-znabu2026-spliceai",
+        "splicing-follow-up-20261009-eval-znabu2026-splicetransformer"
+      ],
+      "endpoint": "AUROC and average precision (with bootstrap 95% intervals) for Pangolin, SpliceAI, SpliceTransformer, MMSplice and SPANR on all 27,733 labelled MFASS SNVs",
+      "limitations": [
+        "Preprint, not peer reviewed; independent authors.",
+        "Whole labelled cohort, not a held-out split; SPANR scored 27,663 variants.",
+        "The 27,733 count matches rewire-mfass-v2-dataset; variant-level identity was not checked.",
+        "Reporter exon inclusion, not patient RNA or pathogenicity."
+      ],
+      "status": "needs_review"
+    }
+  ],
+  "use_case_changes": {
+    "add_links": [
+      {
+        "relation": "assessed_by",
+        "target_id": "splicing-follow-up-20261009-protocol-riepe2021-abca4-di"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "splicing-follow-up-20261009-protocol-riepe2021-abca4-ncss"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "splicing-follow-up-20261009-protocol-riepe2021-mybpc3-ncss"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "splicing-follow-up-20261009-protocol-smith2023-brca1-sge-tn10"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "splicing-follow-up-20261009-protocol-smith2023-fas-exon6-mpsa-tn10"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "splicing-follow-up-20261009-protocol-smith2023-mlh1-curated-tn10"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "splicing-follow-up-20261009-protocol-smith2023-mst1r-exon11-mpsa-tn10"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "splicing-follow-up-20261009-protocol-smith2023-pou1f1-exon2-mpsa-tn10"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "splicing-follow-up-20261009-protocol-smith2023-wt1-exon9-mpsa-tn10"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "splicing-follow-up-20261009-protocol-znabu2026-mfass-full-cohort"
+      }
+    ],
+    "evidence_gaps_add": [
+      "Smith and Kitzman 2023 report sensitivity at transcriptome-normalised thresholds; precision and prAUC per tool and dataset are figure-only (Figure 3), and the 5% and 20% call-rate sheets and the sensitivity-AUC sheet of Table S2 are not extracted.",
+      "Riepe et al. 2021 Tables 3-5 do not state the cutoff applied; Table 2 cutoffs were optimised on the same data sets, so values may be optimistic.",
+      "Znabu et al. 2026 is a preprint scoring the whole labelled MFASS cohort; it is not comparable with the matched-annotation or v2 held-out MFASS protocols.",
+      "CAGI5 Vex-seq and MaPSy assessments (Mount et al. 2019) print per-submission values for challenge entries, most of which are not released tools; not extracted.",
+      "No independent printed comparison on Vex-seq or MaPSy for current tools (SpliceAI, Pangolin, SpliceTransformer) was found.",
+      "OpenSplice (bioRxiv 2026.05.22.727141) and SeqSplice BRCA1/BRCA2 (Genome Res 2025) are leads not screened for per-tool tables."
+    ],
+    "exclusions_change": null,
+    "decision_inputs_output_setting_change": "Not proposed. The current decision and setting refer only to the matched MFASS study; describing these comparisons would need edits that withhold the four reviewed judgements until re-review and re-pinning."
+  },
+  "summary_proposal": "Three independent comparisons were added, each of several splice predictors on experimentally measured splicing of human SNVs. Znabu et al. (2026, preprint) scored all 27,733 labelled MFASS reporter SNVs (1,050 splice-disrupting): average precision was 0.421 for Pangolin (bootstrap 95% interval 0.386 to 0.454), 0.321 for SpliceAI, 0.317 for SpliceTransformer, 0.256 for MMSplice and 0.228 for SPANR, with AUROC 0.888, 0.819, 0.786, 0.758 and 0.748. This is a different MFASS population from the existing matched and v2 held-out protocols and is not pooled with them. Smith and Kitzman (2023) set each tool's threshold so that it flags 10% of 500,000 random exonic and near-exonic SNVs and measured sensitivity on saturation assays: SpliceAI detected 0.982 of splice-disruptive variants in the BRCA1 saturation genome-editing set, 0.885 in POU1F1 exon 2, 0.860 in WT1 exon 9, 0.539 in FAS exon 6 and 0.237 in MST1R exon 11; Pangolin detected 0.982, 0.948, 0.667, 0.487 and 0.330 (Table S2, rounded to three decimals). Sensitivity depends strongly on the exon, and precision is not measured at these thresholds. A curated MLH1 column is recorded but judged outside scope because its labels include patient RNA and pathogenicity rules. Riepe et al. (2021) tested up to 11 tools on ABCA4 and MYBPC3 variants assayed in mini- or midigenes: MCC for SpliceAI was 0.42 (ABCA4 noncanonical splice sites), 0.84 (ABCA4 deep intronic) and 0.35 (MYBPC3), where the Alamut 3/4 consensus reached 0.53. Variants were chosen for testing with Alamut or MaxEntScan, and the cutoffs appear to be tuned on the same data. All values are transcribed from the publications, not reproduced. Reporter and minigene endpoints do not establish patient-RNA effects or pathogenicity, and results from different sources must not be pooled. This summary describes evidence and does not recommend a method.",
+  "gaps": [
+    "Smith and Kitzman Table S2 sheets 'Sensitivity 5% SDV', 'Sensitivity 20% SDV' and 'Sensitivity AUC' not extracted; Table S3 (optimal thresholds) not extracted; prAUC is figure-only.",
+    "Riepe et al. Table 2 (optimal thresholds) and Figure 2 AUCs not extracted; GitHub analysis scripts not read.",
+    "CAGI5 splicing assessment (PMC6744318) retrieved through NCBI efetch (author manuscript, fair-use licence) and screened; not extracted.",
+    "Genome Biol 2026 distillation paper (PMC13495316) has tables only in its Additional file; not opened.",
+    "PLoS One 2026 SpliceAI-family comparison includes a Riepe-derived benchmark; not extracted (SpliceAI-family only).",
+    "No result is comparable across sources: assays, labels, thresholds and populations differ."
+  ]
+}
