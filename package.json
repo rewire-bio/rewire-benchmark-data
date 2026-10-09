@@ -6,7 +6,7 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "build": "npm run omics:release && npm run kg -- export && npm run kg:build && npm run serving && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
+    "build": "npm run omics:release && npm run kg -- export && node scripts/parallel.mjs kg:build serving && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
     "build:check": "npm run omics:release && npm run kg -- export && npm run serving && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
     "omics:release": "tsx scripts/omics/release.ts",
     "validate:benchmark-literature": "node scripts/validate-benchmark-literature.mjs",
