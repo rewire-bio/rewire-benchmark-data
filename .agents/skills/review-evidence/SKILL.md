@@ -15,7 +15,7 @@ Follow [docs/collection.md](../../../docs/collection.md), section 5.
 ## Steps
 
 1. Re-retrieve each source or open the archived copy, and check its SHA-256 against the `source` record. A mismatch is a finding, not something to fix by updating the hash.
-2. For every result, check `printed_value`, `numeric_value`, `source_locator`, metric, direction, unit, uncertainty, denominator and the configuration and protocol it is attached to. Check that every `null` is genuinely unstated in the source.
+2. For every result, check `printed_value`, `numeric_value`, `source_locator`, metric concept and qualifier, direction, unit concept, uncertainty, denominator and the configuration and protocol it is attached to. Check that every `null` is genuinely unstated in the source.
 3. Check descriptive `claim` records the same way.
 4. Fill each result's `review`: `method` (plain description of how it was checked), `reviewer` (the actual actor, e.g. "Codex research agent; no human review claimed"), `date`, `artifact_sha256`, `retrieval_url`, `notes`.
 5. For problems:

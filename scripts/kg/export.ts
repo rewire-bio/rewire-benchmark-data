@@ -9,8 +9,10 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { loadRecords } from "../omics/records";
 import { publicRecords, type RecordEntry } from "../omics/schema";
+import { schemeIri } from "../omics/vocab";
 
-type Term = { property: string; iri?: boolean; datatype?: string };
+/** scheme: the value is a concept key in data/vocab/<scheme>.ttl, exported as the concept IRI. */
+type Term = { property: string; iri?: boolean; datatype?: string; scheme?: string };
 export type Mapping = {
   base: string;
   vocab: string;
@@ -38,7 +40,10 @@ export function expand(mapping: Mapping, curie: string): string {
 
 /** JSON-LD 1.1 context for the canonical JSONL records. */
 export function buildContext(mapping: Mapping) {
-  const term = (t: Term) => ({ "@id": t.property, ...(t.iri ? { "@type": "@id" } : t.datatype ? { "@type": t.datatype } : {}) });
+  const term = (t: Term) =>
+    t.scheme
+      ? { "@id": t.property, "@type": "@vocab", "@context": { "@vocab": schemeIri(t.scheme) } }
+      : { "@id": t.property, ...(t.iri ? { "@type": "@id" } : t.datatype ? { "@type": t.datatype } : {}) };
   return {
     "@context": {
       "@version": 1.1,
@@ -74,6 +79,21 @@ function decodeURISafe(value: string) {
   try { return decodeURI(value); } catch { return value; }
 }
 
+/** The xsd:decimal lexical form of a number written with or without an exponent, without
+ * floating-point rounding ("1.39e-16" becomes "0.000000000000000139"). */
+export function canonicalDecimal(text: string): string | undefined {
+  const match = /^([-+]?)(\d+)(?:\.(\d+))?(?:[eE]([-+]?\d+))?$/.exec(text.trim());
+  if (!match) return undefined;
+  const [, sign, whole, fraction = "", exponent = "0"] = match;
+  let digits = whole + fraction;
+  let point = whole.length + Number(exponent);
+  if (point <= 0) { digits = "0".repeat(1 - point) + digits; point = 1; }
+  if (point > digits.length) digits = digits + "0".repeat(point - digits.length);
+  const integer = digits.slice(0, point).replace(/^0+(?=\d)/, "");
+  const decimals = digits.slice(point);
+  return `${sign === "-" ? "-" : ""}${integer}${decimals ? "." + decimals : ""}`;
+}
+
 /** One N-Quads line per statement; records are projected, never altered. */
 export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
   const graph = iri(mapping.graph);
@@ -83,9 +103,15 @@ export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
   const literal = (value: unknown, t: Term): string | undefined => {
     if (value === null || value === undefined || typeof value === "object") return undefined;
     const text = String(value);
+    if (t.scheme) return iri(schemeIri(t.scheme) + text);
     if (t.iri) return /^https?:\/\//.test(text) ? iri(text) : undefined;
-    if (t.datatype === "xsd:decimal" && !/^-?\d+(\.\d+)?([eE][-+]?\d+)?$/.test(text)) return `"${escapeLiteral(text)}"`;
-    return t.datatype ? `"${escapeLiteral(text)}"^^${iri(expand(mapping, t.datatype))}` : `"${escapeLiteral(text)}"`;
+    if (t.datatype === "xsd:decimal") {
+      const decimal = canonicalDecimal(text);
+      return decimal === undefined ? `"${escapeLiteral(text)}"` : `"${decimal}"^^${iri(expand(mapping, "xsd:decimal"))}`;
+    }
+    // A date without a time is a valid xsd:date, not an xsd:dateTime.
+    const datatype = t.datatype === "xsd:dateTime" && /^\d{4}-\d{2}-\d{2}$/.test(text) ? "xsd:date" : t.datatype;
+    return datatype ? `"${escapeLiteral(text)}"^^${iri(expand(mapping, datatype))}` : `"${escapeLiteral(text)}"`;
   };
   const kind = mapping.classes[record.kind];
   if (!kind) throw new Error(`No class mapping for kind ${record.kind}`);
@@ -97,7 +123,11 @@ export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
   for (const id of record.source_ids) add(mapping.fields.source_ids.property, iri(mapping.base + id));
   for (const [facet, values] of Object.entries(record.facets)) {
     const t = mapping.facets[facet];
-    if (t) for (const value of values) add(t.property, `"${escapeLiteral(value)}"`);
+    if (t)
+      for (const value of values) {
+        const object = literal(value, t);
+        if (object) add(t.property, object);
+      }
   }
   for (const link of record.links) {
     const relation = mapping.relations[link.relation];

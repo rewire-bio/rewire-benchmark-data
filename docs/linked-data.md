@@ -7,10 +7,12 @@ The canonical records can be read as RDF. Each release also produces a knowledge
 | `data/ontology/mapping.json` | Maps each record kind to classes, each link relation to a property, and selected fields and attributes to properties. Each external term carries the reason it fits. Status: proposed. |
 | `data/ontology/context.jsonld` | JSON-LD 1.1 context generated from the mapping. With it, every line of `data/entities/*.jsonl` and `data/evidence/*.jsonl` is a JSON-LD node. |
 | `data/ontology/rb.ttl` | The rewire vocabulary: every `rb:` class and property, with labels, definitions and the axioms the build reasons over. |
-| `data/ontology/imports/` | Pinned copies of ML Schema, PROV-O and DCAT, and extracted subsets of OBI and schema.org. `sources.json` records where each came from, its version, licence and checksum. |
+| `data/ontology/imports/` | Pinned copies of ML Schema and DCAT, and extracted subsets of OBI and schema.org. `sources.json` records where each came from, its version, licence and checksum. |
 | `data/ontology/shapes.ttl` | SHACL shapes the build validates against. |
+| `data/vocab/<scheme>.ttl` | SKOS concept schemes for controlled fields: metrics (matched to STATO), units (QUDT), areas (EDAM), method types, contexts, publication status, origin, metric direction, entity level, baseline and configuration types, review methods, agents and record status. Records store concept keys. |
+| `data/vocab/migration/` | The reviewed lookup from every former free-text value to its concepts, and per-record corrections. See [the 2026-10-09 review](reviews/2026-10-09-controlled-vocabularies.md). |
 
-Identifiers are `https://benchmarks.rewire.it/id/<record id>`; the vocabulary is `https://benchmarks.rewire.it/vocab#`. External terms come from W3C ML Schema (`mls:`), DCAT, Dublin Core, PROV-O, schema.org and OBI, only where their meaning matches. Everything else stays in the rewire vocabulary.
+Identifiers are `https://benchmarks.rewire.it/id/<record id>`; the vocabulary is `https://benchmarks.rewire.it/vocab#`; concepts are `https://benchmarks.rewire.it/vocab/<scheme>/<key>`. A controlled field stores the key (`"metric": "auprc"`), and the JSON-LD context and the export expand it to the concept IRI, so each record line is linked data as stored. External terms come from W3C ML Schema (`mls:`), DCAT, Dublin Core, schema.org and OBI, only where their meaning matches; concepts match STATO, QUDT and EDAM. Everything else stays in the rewire vocabulary.
 
 ## Rules
 
@@ -23,7 +25,7 @@ Identifiers are `https://benchmarks.rewire.it/id/<record id>`; the vocabulary is
 
 ## Inference
 
-The build runs the OWL 2 RL rules over the asserted graph and the vocabulary, and keeps the new statements about records that are in the rewire vocabulary: `rb:` links and `rb:` types. Superclasses and superproperties from the imported vocabularies (such as `prov:Entity` or `prov:wasInfluencedBy`) are not restated for every record; they follow from the ontology graph for any consumer that wants them. For the current release this adds about 103,000 statements to the 392,000 asserted ones.
+The build runs the OWL 2 RL rules over the asserted graph and the vocabulary, and keeps the new statements about records that are in the rewire vocabulary: `rb:` links and `rb:` types. Superclasses and superproperties from the imported vocabularies (such as `mls:InformationEntity` or `schema:Thing`) are not restated for every record; they follow from the ontology graph for any consumer that wants them. For the current release this adds about 103,000 statements to the 392,000 asserted ones.
 
 | Inferred property | Meaning | From |
 | --- | --- | --- |
@@ -67,7 +69,7 @@ To update a pinned vocabulary, download it, re-run the extraction command in `da
 | --- | --- | --- |
 | `asserted.nq` | `https://benchmarks.rewire.it/graph/asserted` | The public records |
 | `inferred.nq` | `https://benchmarks.rewire.it/graph/inferred` | Inferred statements about records |
-| `ontology/` | `https://benchmarks.rewire.it/graph/ontology` | `rb.ttl` and the pinned imports |
+| `ontology/` | `https://benchmarks.rewire.it/graph/ontology` | `rb.ttl`, the pinned imports and the concept schemes (`ontology/vocab/`) |
 | `manifest.json` | | Checksums, counts, graph roles, prefixes, reasoner and SHACL details, example queries |
 
 When a push to `main` builds a release that has no bundle yet, CI runs `npm run kg:publish`. It packs a byte-reproducible `kg-<release id>.tar.gz` and publishes it with the manifest on a GitHub release tagged `kg/<release id>`. An existing asset must be byte-identical and is never replaced (`npm run kg:publish -- --check` verifies it). To query it from Claude Code:

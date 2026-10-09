@@ -10,7 +10,6 @@
     "mls": "http://www.w3.org/ns/mls#",
     "dcat": "http://www.w3.org/ns/dcat#",
     "dcterms": "http://purl.org/dc/terms/",
-    "prov": "http://www.w3.org/ns/prov#",
     "schema": "https://schema.org/",
     "obo": "http://purl.obolibrary.org/obo/",
     "id": "@id",
@@ -43,15 +42,23 @@
       "@id": "dcterms:description"
     },
     "status": {
-      "@id": "rb:status"
+      "@id": "rb:status",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/status/"
+      }
     },
     "source_ids": {
-      "@id": "prov:wasDerivedFrom",
+      "@id": "dcterms:source",
       "@type": "@id"
     },
     "facets": "@nest",
     "areas": {
       "@id": "rb:area",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/area/"
+      },
       "@nest": "facets"
     },
     "tasks": {
@@ -60,14 +67,18 @@
     },
     "contexts": {
       "@id": "rb:context",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/context/"
+      },
       "@nest": "facets"
     },
     "method_types": {
       "@id": "rb:methodType",
-      "@nest": "facets"
-    },
-    "domain": {
-      "@id": "rb:domain",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/method-type/"
+      },
       "@nest": "facets"
     },
     "attributes": "@nest",
@@ -77,6 +88,10 @@
     },
     "entity_level": {
       "@id": "rb:entityLevel",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/entity-level/"
+      },
       "@nest": "attributes"
     },
     "url": {
@@ -99,22 +114,42 @@
     },
     "publication_status": {
       "@id": "rb:publicationStatus",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/publication-status/"
+      },
       "@nest": "attributes"
     },
     "origin": {
       "@id": "rb:origin",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/origin/"
+      },
       "@nest": "attributes"
     },
     "metric": {
       "@id": "rb:metric",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/metric/"
+      },
       "@nest": "attributes"
     },
     "metric_direction": {
       "@id": "rb:metricDirection",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/direction/"
+      },
       "@nest": "attributes"
     },
     "unit": {
       "@id": "rb:unit",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/unit/"
+      },
       "@nest": "attributes"
     },
     "printed_value": {
@@ -142,6 +177,38 @@
       "@id": "rb:split",
       "@nest": "attributes"
     },
+    "method_type": {
+      "@id": "rb:methodType",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/method-type/"
+      },
+      "@nest": "attributes"
+    },
+    "baseline_type": {
+      "@id": "rb:baselineType",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/baseline-type/"
+      },
+      "@nest": "attributes"
+    },
+    "configuration_type": {
+      "@id": "rb:configurationType",
+      "@type": "@vocab",
+      "@context": {
+        "@vocab": "https://benchmarks.rewire.it/vocab/configuration-type/"
+      },
+      "@nest": "attributes"
+    },
+    "unit_detail": {
+      "@id": "rb:unitDetail",
+      "@nest": "attributes"
+    },
+    "metric_qualifier": {
+      "@id": "rb:metricQualifier",
+      "@nest": "attributes"
+    },
     "links": {
       "@id": "rb:link"
     },
@@ -166,13 +233,13 @@
         "variant_of": "rb:variantOf",
         "alias_of": "rb:aliasOf",
         "uses_model": "rb:usesModel",
-        "part_of": "dcterms:isPartOf",
+        "part_of": "rb:partOf",
         "evaluates_task": "rb:evaluatesTask",
         "parent": "rb:parent",
         "supersedes": "dcterms:replaces",
         "original_evaluation": "rb:originalEvaluation",
         "subject": "rb:subject",
-        "source": "prov:wasDerivedFrom",
+        "source": "dcterms:source",
         "applicable_to": "rb:applicableTo",
         "same_data_as": "rb:sameDataAs"
       }

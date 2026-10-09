@@ -66,10 +66,10 @@ describe("reviewed extraction corrections", () => {
 
   it("labels DART-Eval correlations consistently, including negative correlations", () => {
     const correlations = results("dart-eval").filter((record) =>
-      ["pearson_r", "spearman_r"].includes(String(record.attributes.metric)),
+      ["pearson-correlation", "spearman-correlation"].includes(String(record.attributes.metric)),
     );
     expect(correlations).toHaveLength(91);
-    expect(correlations.every((record) => record.attributes.unit === "correlation")).toBe(true);
+    expect(correlations.every((record) => record.attributes.unit === "unitless")).toBe(true);
     expect(correlations.some((record) => Number(record.attributes.numeric_value) < 0)).toBe(true);
   });
 

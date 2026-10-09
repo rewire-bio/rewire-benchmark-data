@@ -2,14 +2,14 @@
 
 Reviewed JSONL records are the publication source. The release builder writes the catalogue snapshot and versioned JSONL/CSV exports for each release. This is a public-data contract; email addresses, submission tokens, and private correspondence must never be exported.
 
-Each record is an object:
+Each record is an object. Fields marked as concept keys hold the last segment of a concept IRI from a SKOS scheme in `data/vocab/`; the JSON-LD context (`data/ontology/context.jsonld`) expands them to IRIs such as `https://benchmarks.rewire.it/vocab/metric/auprc`. Validation rejects any other value.
 
 - `id`: stable lowercase slug, unique across kinds.
 - `kind`: one of `model`, `method`, `configuration`, `pipeline`, `service`, `benchmark`, `task`, `protocol`, `evaluator`, `dataset`, `dataset_subset`, `baseline`, `evaluation`, `result`, `source`, `claim`. The list and the allowed link relations are defined in `services/omics/src/entity-kinds.ts`.
 - `name`: display name.
 - `description`: plain text.
 - `status`: `discovered`, `needs_review`, `source_checked`, `reproduced`, `disputed`, `superseded`, or `excluded`. Source-checked is not reproduced.
-- `facets`: object mapping facet names (e.g. `areas`, `tasks`, `modalities`, `organisms`, `method_types`) to arrays of strings. No closed domain enum.
+- `facets`: object mapping facet names to arrays. `areas`, `method_types` and `contexts` hold concept keys from `data/vocab/area.ttl`, `method-type.ttl` and `context.ttl`; `tasks` is free text.
 - `source_ids`: IDs of source records supporting this entity.
 - `links`: array of `{ "relation": "...", "target_id": "..." }`. Allowed relations are listed in `services/omics/src/entity-kinds.ts` (for example `model`, `benchmark`, `dataset`, `variant_of`, `alias_of`, `part_of`, `supersedes`, `source`). References resolve within a release.
 - `attributes`: kind-specific JSON object. Explicit unknown metadata uses null and `missing_metadata` reasons, never invented values.
@@ -20,7 +20,7 @@ A `benchmark` has `entity_level` (`suite`, `protocol`, `task`, `challenge`, `eva
 A `dataset` has `version`, `split`, `missing_metadata`, optional assay/context/accession metadata.
 A `baseline` has `baseline_type`, `applicability` (`proposed` or `source_supported`), `requirements`, `missing_metadata`.
 An `evaluation` has `origin` (`author_reported`, `independent_paper`, `paper_compilation`, `rewire_run`, `unreported`), `protocol`, `version`, `comparison` object, `missing_metadata`, links to model/benchmark/dataset, and optional `original_evaluation` link. Comparison fields: `protocol_id`, `dataset_version`, `split`, `population`, `inputs`, `adaptation`, `metric_implementation`, `aggregation`, `budget`; unknown fields are null and block automatic comparison.
-A `result` links to exactly one evaluation. Attributes: `printed_value` (string), `numeric_value` (string decimal or null), `metric`, `metric_direction` (`higher`, `lower`, `unknown`), `unit`, `uncertainty` (string or null), `source_locator`, `review` (object with `method`, `reviewer`, `reviewed_at`, `notes`), `missing_metadata`, optional `legacy_id`. Retain original paper IDs and result IDs for migration. Reviewed results need a precise locator and source.
+A `result` links to exactly one evaluation. Attributes: `printed_value` (string), `numeric_value` (string decimal or null), `metric` (concept key, `data/vocab/metric.ttl`), optional `metric_qualifier` (what distinguishes results that share a metric concept: class, setting, scope, cutoff or aggregation), `metric_direction` (`higher`, `lower`, `unknown`), `unit` (concept key, `data/vocab/unit.ttl`), optional `unit_detail`, `uncertainty` (string or null), `source_locator`, `review` (object with `method` (concept key or keys, `review-method.ttl`), optional `method_note`, `reviewer` (concept key or keys, `agent.ttl`), optional `reviewer_note`, `date`, `reviewed_at`, `notes`), `missing_metadata`, optional `legacy_id`. Comparisons require the same metric, qualifier, unit and direction. Retain original paper IDs and result IDs for migration. Reviewed results need a precise locator and source.
 A `claim` links to a `subject` and has `field`, `value`, `source_locator`, `review` and supporting source IDs. A checked score does not mark all metadata as checked.
 
 Snapshot JSON: `{ "schema_version": "1.0", "release_id": "...", "released_at": "UTC ISO date", "records": [...], "coverage": {...} }`. Manifest: schema/release/time, record counts, input digests, file hashes and changelog. All records sorted by ID; release building is deterministic given the records and explicit timestamp. Excluded records remain in the archive but are absent from public catalogue pages.

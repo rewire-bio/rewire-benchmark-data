@@ -89,12 +89,14 @@ Write records following [record-contract.md](record-contract.md). Search existin
 - One `result` per printed cell, with:
   - `printed_value`: the string exactly as printed, including `%`, `±` and rounding
   - `numeric_value`: decimal string, or `null` if not numeric
-  - `metric`, `metric_direction` (`higher`, `lower` or `unknown`), `unit`, `uncertainty`
+  - `metric`, `metric_direction` (`higher`, `lower` or `unknown`), `unit` and `uncertainty`. `metric` and `unit` are concept keys from [data/vocab/metric.ttl](../data/vocab/metric.ttl) and [data/vocab/unit.ttl](../data/vocab/unit.ttl), not the source's wording. When the source's metric carries more than the concept (a class, a setting such as zero-shot, a scope such as SNV only, a cutoff, or an aggregation such as median over targets), put it in `metric_qualifier`, phrased the same way as existing qualifiers. Detail a unit concept cannot hold (the counted entity, a printed scale) goes in `unit_detail`.
   - `source_locator`: precise enough to find the cell again, for example `Table 2, row "ESM-2 650M", column "Spearman"` or `Figure S10, Panel B (page 15 of 18), row "SVMrejection", test set ALM`
   - `review`: see [step 5](#5-review)
 - `claim` records for descriptive facts about a model or benchmark (training data, licence, input type), each with its own `source_locator`.
 
 The full list of kinds is in `services/omics/src/entity-kinds.ts`; allowed link relations are in the same file.
+
+Controlled fields hold concept keys from the SKOS vocabularies in `data/vocab/` (`<scheme>.ttl`): metric, unit, metric direction, areas, method types, contexts, publication status, origin, entity level, baseline type, configuration type, review method and reviewer (`agent`). `npm run records -- add` rejects any other value. If no concept fits, add one to the scheme in the same PR, with a definition and an external match (STATO, QUDT or EDAM) where one exists, and get it reviewed like a record change. Never add a concept that only respells an existing one.
 
 Every record carries `source_ids`. Missing results stay missing: never record a blank cell as zero.
 

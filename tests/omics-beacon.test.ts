@@ -104,7 +104,8 @@ describe("BEACON Table 3 batch", () => {
     for (const result of of("result")) {
       const lower = result.id.includes("-vdp-");
       expect(attr(result, "metric_direction")).toBe(lower ? "lower" : "higher");
-      expect(attr(result, "unit")).toBe(lower ? "error" : "percent");
+      // VDP reports an error in unstated target units; the unit concept records that.
+      expect(attr(result, "unit")).toBe(lower ? "unit-unreported" : "percent");
     }
   });
 
