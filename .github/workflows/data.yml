@@ -14,20 +14,52 @@ env:
   RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.1.0
   NODE_OPTIONS: --max-old-space-size=8192
 
+# Every job starts at once on its own machine. Pull requests run the fast test set; main runs
+# all tests. A release (a change to data/omics/release-config.json) is also rebuilt, without
+# inference on pull requests and with it on main; main then publishes once everything passed.
 jobs:
-  # A release is cut by changing data/omics/release-config.json. Data pull requests only run
-  # the checks job. Release runs also rebuild the release, on a separate machine at the same
-  # time as the checks; main release runs then publish once both have passed.
-  mode:
+  checks:
+    runs-on: ubuntu-latest
+    name: checks (${{ matrix.task }})
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [store, types, python, kg, tests-1, tests-2, tests-3, tests-4, tests-5, tests-6]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: astral-sh/setup-uv@v6
+        if: matrix.task == 'kg'
+      - run: npm ci
+      - name: Validate the record store, vocabularies and provenance
+        if: matrix.task == 'store'
+        run: npm run records -- check
+      - if: matrix.task == 'types'
+        run: npm run typecheck
+      - if: matrix.task == 'python'
+        run: npm run test:python
+      - if: matrix.task == 'kg'
+        run: npm run test:kg
+      - name: Tests, ${{ matrix.task }} of 6 (fast set on pull requests, all on main)
+        if: startsWith(matrix.task, 'tests-')
+        env:
+          SHARD: ${{ matrix.task }}
+          SCRIPT: ${{ github.event_name == 'pull_request' && 'test:fast' || 'test' }}
+        run: npm run "$SCRIPT" -- --shard="${SHARD#tests-}/6"
+
+  release:
     runs-on: ubuntu-latest
     outputs:
       release: ${{ steps.mode.outputs.release }}
-      main: ${{ steps.mode.outputs.main }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      - id: mode
+      - name: Decide whether this run cuts a release
+        id: mode
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
@@ -39,60 +71,32 @@ jobs:
           else
             git diff --quiet HEAD^1 HEAD -- data/omics/release-config.json && release=false || release=true
           fi
-          main=false
-          [ "$GITHUB_EVENT_NAME" != pull_request ] && main=true
           echo "release=$release" >> "$GITHUB_OUTPUT"
-          echo "main=$main" >> "$GITHUB_OUTPUT"
-          echo "Release run: $release; main or manual: $main"
-
-  checks:
-    needs: mode
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+          echo "Release run: $release"
       - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - uses: astral-sh/setup-uv@v6
-      - run: npm ci
-      - name: Validate the record store, vocabularies and provenance
-        run: npm run records -- check
-      - name: Tests (fast set on pull requests, all on main)
-        run: npm run ${{ needs.mode.outputs.main == 'true' && 'test' || 'test:fast' }}
-      - run: npm run test:python
-      - run: npm run test:kg
-      - run: npm run typecheck
-
-  release:
-    needs: mode
-    if: needs.mode.outputs.release == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+        if: steps.mode.outputs.release == 'true'
         with:
           # Match the website image: the prepared SQLite file's bytes depend on Node's bundled SQLite.
           node-version: 24
           cache: npm
       - uses: astral-sh/setup-uv@v6
-      - run: npm ci
-      - run: npm run verify:package
+        if: steps.mode.outputs.release == 'true'
+      - if: steps.mode.outputs.release == 'true'
+        run: npm ci
       - name: Reproduce the release and prepared website artifact (pull requests, no inference)
-        if: needs.mode.outputs.main != 'true'
+        if: steps.mode.outputs.release == 'true' && github.event_name == 'pull_request'
         run: npm run build:check
       - name: Reproduce the release, knowledge graph and prepared website artifact
-        if: needs.mode.outputs.main == 'true'
+        if: steps.mode.outputs.release == 'true' && github.event_name != 'pull_request'
         run: npm run build
       - name: Require reviewed prepared artifacts
+        if: steps.mode.outputs.release == 'true'
         run: npm run verify:package && git diff --exit-code -- data website
-      - name: Check the prepared release file against the live query engine
-        run: npm run serving:parity
-      - name: Check the knowledge-graph bundle against the bundle format
-        if: needs.mode.outputs.main == 'true'
-        run: uvx --from "$RDF_KG_MCP" rdf-kg-mcp verify public/kg
+      - name: Check the prepared file against the live query engine (and the bundle format on main)
+        if: steps.mode.outputs.release == 'true'
+        run: node scripts/parallel.mjs serving:parity ${{ github.event_name != 'pull_request' && 'kg:verify' || '' }}
       - name: Keep the prepared file and bundle for publishing
-        if: needs.mode.outputs.main == 'true'
+        if: steps.mode.outputs.release == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: release-outputs
@@ -102,9 +106,9 @@ jobs:
           retention-days: 3
 
   publish:
-    # Runs only on main release pushes, and only after the tests and the release rebuild pass.
-    needs: [mode, checks, release]
-    if: needs.mode.outputs.release == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Runs only on main release pushes, and only after every check and the release rebuild pass.
+    needs: [checks, release]
+    if: needs.release.outputs.release == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -120,11 +124,7 @@ jobs:
         with:
           name: release-outputs
           path: public
-      - name: Publish the prepared release file (never replaces an existing asset)
+      - name: Publish the prepared release file and the knowledge-graph bundle (never replaces an existing asset)
         env:
           GH_TOKEN: ${{ github.token }}
-        run: npm run serving:publish
-      - name: Publish the knowledge-graph bundle (never replaces an existing asset)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: npm run kg:publish
+        run: node scripts/parallel.mjs serving:publish kg:publish

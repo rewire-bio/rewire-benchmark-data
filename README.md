@@ -70,7 +70,7 @@ npm run build
 
 The build rebuilds the current release from the inputs and fails if any byte differs from the frozen copy in `data/omics/releases/`.
 
-CI keeps data pull requests fast. Every run validates the store (`npm run records -- check`) and runs the KG rule tests, the Python tests and type checking; pull requests run the fast test set (`npm run test:fast`), main runs everything (`npm test`). Only runs that cut a release (a change to `data/omics/release-config.json`) rebuild the release, in a separate job that runs at the same time as the checks: release pull requests without inference (`npm run build:check`), main with inference (`npm run build`, which runs inference and the prepared SQLite file side by side), followed by the parity and bundle checks. On main, a publish job then waits for both jobs to pass before publishing. A failure that `npm run build` would catch therefore shows up in the release PR, not in each evidence PR.
+CI runs every task at the same time on its own machine: the store check, type checking, the Python and KG tests, and the test suite split into six shards. Pull requests run the fast test set (`npm run test:fast`); main runs everything (`npm test`). Runs that cut a release (a change to `data/omics/release-config.json`) also rebuild the release in a parallel job: release pull requests without inference (`npm run build:check`), main with inference (`npm run build`, which runs inference and the prepared SQLite file side by side), followed by the parity and bundle checks. On main, a publish job waits for all of them to pass before publishing. A failure that `npm run build` would catch shows up in the release PR, not in each evidence PR.
 
 ## How the website consumes releases
 
