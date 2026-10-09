@@ -9,8 +9,10 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { loadRecords } from "../omics/records";
 import { publicRecords, type RecordEntry } from "../omics/schema";
+import { schemeIri } from "../omics/vocab";
 
-type Term = { property: string; iri?: boolean; datatype?: string };
+/** scheme: the value is a concept key in data/vocab/<scheme>.ttl, exported as the concept IRI. */
+type Term = { property: string; iri?: boolean; datatype?: string; scheme?: string };
 export type Mapping = {
   base: string;
   vocab: string;
@@ -38,7 +40,10 @@ export function expand(mapping: Mapping, curie: string): string {
 
 /** JSON-LD 1.1 context for the canonical JSONL records. */
 export function buildContext(mapping: Mapping) {
-  const term = (t: Term) => ({ "@id": t.property, ...(t.iri ? { "@type": "@id" } : t.datatype ? { "@type": t.datatype } : {}) });
+  const term = (t: Term) =>
+    t.scheme
+      ? { "@id": t.property, "@type": "@vocab", "@context": { "@vocab": schemeIri(t.scheme) } }
+      : { "@id": t.property, ...(t.iri ? { "@type": "@id" } : t.datatype ? { "@type": t.datatype } : {}) };
   return {
     "@context": {
       "@version": 1.1,
@@ -98,6 +103,7 @@ export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
   const literal = (value: unknown, t: Term): string | undefined => {
     if (value === null || value === undefined || typeof value === "object") return undefined;
     const text = String(value);
+    if (t.scheme) return iri(schemeIri(t.scheme) + text);
     if (t.iri) return /^https?:\/\//.test(text) ? iri(text) : undefined;
     if (t.datatype === "xsd:decimal") {
       const decimal = canonicalDecimal(text);

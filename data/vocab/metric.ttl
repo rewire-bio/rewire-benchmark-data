@@ -1,0 +1,1515 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rb: <https://benchmarks.rewire.it/vocab#> .
+@prefix mls: <http://www.w3.org/ns/mls#> .
+@prefix : <https://benchmarks.rewire.it/vocab/metric/> .
+
+<https://benchmarks.rewire.it/vocab/metric/> a skos:ConceptScheme ;
+    skos:prefLabel "Evaluation metrics"@en ;
+    skos:definition "The quantity a result reports. Concepts are mls:EvaluationMeasure, matched to STATO where the definitions agree."@en ;
+    dcterms:source <https://github.com/rewire-bio/rewire-benchmark-data/blob/main/data/vocab/migration/metric.csv> .
+
+:absolute-spearman-correlation a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Absolute Spearman rank correlation"@en ;
+    skos:altLabel "|Spearman rho|"@en ;
+    skos:definition "The absolute value of Spearman's rho, used when the sign of the predictor is arbitrary. Not comparable with signed Spearman values."@en ;
+    skos:broader :spearman-correlation ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Accuracy"@en ;
+    skos:altLabel "ACC"@en ;
+    skos:altLabel "ACC (%)"@en ;
+    skos:altLabel "Absolute accuracy"@en ;
+    skos:altLabel "Accur."@en ;
+    skos:altLabel "Cell-type accuracy"@en ;
+    skos:altLabel "absolute_accuracy"@en ;
+    skos:altLabel "accuracy"@en ;
+    skos:altLabel "overall_accuracy"@en ;
+    skos:definition "Proportion of predictions that are correct over all predictions (binary or multiclass)."@en ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000415> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:adjusted-rand-index a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Adjusted Rand index (ARI)"@en ;
+    skos:altLabel "ARI"@en ;
+    skos:altLabel "Adjusted Rand Index"@en ;
+    skos:altLabel "Adjusted Rand index (seq)"@en ;
+    skos:definition "Rand index of agreement between two partitions, adjusted for chance agreement."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000593> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:adjusted-rand-index-bp a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Base-pair-weighted adjusted Rand index"@en ;
+    skos:altLabel "Adjusted Rand index (bp)"@en ;
+    skos:definition "Adjusted Rand index between bins and genomes in which each sequence is weighted by its length in base pairs."@en ;
+    skos:broader :adjusted-rand-index ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-accuracy-bp a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Binning accuracy (bp)"@en ;
+    skos:altLabel "Accuracy (bp)"@en ;
+    skos:definition "Fraction of all base pairs assigned to a bin whose majority genome is their true genome."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-accuracy-seq a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Binning accuracy (seq)"@en ;
+    skos:altLabel "Accuracy (seq)"@en ;
+    skos:definition "Fraction of all sequences assigned to a bin whose majority genome is their true genome."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-average-completeness-bp a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Average completeness (bp)"@en ;
+    skos:definition "Mean over predicted bins of per-bin completeness, measured in base pairs of the majority genome."@en ;
+    skos:broader :recall ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-average-completeness-seq a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Average completeness (seq)"@en ;
+    skos:definition "Mean over predicted bins of per-bin completeness, measured in sequence counts."@en ;
+    skos:broader :recall ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-average-purity-bp a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Average purity (bp)"@en ;
+    skos:definition "Mean over predicted bins of per-bin purity, measured in base pairs."@en ;
+    skos:broader :precision ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-average-purity-seq a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Average purity (seq)"@en ;
+    skos:definition "Mean over predicted bins of per-bin purity, measured in sequence counts."@en ;
+    skos:broader :precision ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-binned-bp-fraction a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Percentage of binned bp"@en ;
+    skos:definition "Fraction of all input base pairs assigned to any bin."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-binned-sequence-fraction a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Percentage of binned sequences"@en ;
+    skos:definition "Fraction of all input sequences assigned to any bin."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-completeness-bp a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Completeness (bp)"@en ;
+    skos:definition "Sample-level completeness: base pairs of each genome assigned to its majority bin summed over genomes, divided by all genome base pairs."@en ;
+    skos:broader :recall ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-completeness-seq a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Completeness (seq)"@en ;
+    skos:definition "Sample-level completeness measured in sequence counts."@en ;
+    skos:broader :recall ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-f1-bp a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Binning F1 (bp)"@en ;
+    skos:altLabel "F1 score (bp)"@en ;
+    skos:definition "Harmonic mean of average purity (bp) and average completeness (bp)."@en ;
+    skos:broader :f1-score ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-f1-seq a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Binning F1 (seq)"@en ;
+    skos:altLabel "F1 score (seq)"@en ;
+    skos:definition "Harmonic mean of average purity (seq) and average completeness (seq)."@en ;
+    skos:broader :f1-score ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-purity-bp a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Purity (bp)"@en ;
+    skos:definition "Sample-level purity: base pairs belonging to each bin's majority genome summed over bins, divided by all binned base pairs."@en ;
+    skos:broader :precision ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:amber-purity-seq a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Purity (seq)"@en ;
+    skos:definition "Sample-level purity measured in sequence counts."@en ;
+    skos:broader :precision ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CAMI II (AMBER)"@en .
+
+:auprc a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Area under the precision-recall curve (AUPRC)"@en ;
+    skos:altLabel "AUPR"@en ;
+    skos:altLabel "AUPRC"@en ;
+    skos:altLabel "AUPRC (%)"@en ;
+    skos:altLabel "Area under precision-recall curve"@en ;
+    skos:altLabel "auPRC"@en ;
+    skos:altLabel "auprc"@en ;
+    skos:definition "Area under the precision-recall curve, by any integration rule unless a narrower concept is used."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000691> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:auprc-ratio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "AUPRC ratio"@en ;
+    skos:altLabel "AUPRC Ratio"@en ;
+    skos:definition "AUPRC of an inferred gene regulatory network divided by the AUPRC of a random predictor (the network density)."@en ;
+    skos:broader :auprc ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by BEELINE"@en .
+
+:auroc a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Area under the ROC curve (AUROC)"@en ;
+    skos:altLabel "AUC-ROC"@en ;
+    skos:altLabel "AUROC"@en ;
+    skos:altLabel "ROC AUC"@en ;
+    skos:altLabel "auc"@en ;
+    skos:altLabel "auroc"@en ;
+    skos:definition "Area under the receiver operating characteristic curve (true positive rate against false positive rate)."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000608> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:auspc a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Area under the SPECTRA performance curve (AUSPC)"@en ;
+    skos:altLabel "AUSPC"@en ;
+    skos:altLabel "AUSPC (Area Under the SPECTRA Performance Curve of MSE)"@en ;
+    skos:definition "Area under the curve of test MSE plotted against SPECTRA train-test sparsification (spectral) splits; summarises performance as distribution shift increases."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by PertEval-scFM"@en .
+
+:average-precision a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Average precision"@en ;
+    skos:altLabel "AP"@en ;
+    skos:altLabel "average_precision"@en ;
+    skos:altLabel "average_precision_sklearn"@en ;
+    skos:definition "Step-wise AUPRC estimator: sum over ranks of precision at each rank weighted by the increase in recall (scikit-learn average_precision_score)."@en ;
+    skos:broader :auprc ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000691> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:balanced-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Balanced accuracy"@en ;
+    skos:altLabel "BA"@en ;
+    skos:definition "Unweighted mean of per-class recall."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:beeline-stability a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Stability across datasets"@en ;
+    skos:altLabel "Stability Across Datasets"@en ;
+    skos:definition "Median pairwise Jaccard index of the top-k predicted edge sets across datasets simulated from the same network."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by BEELINE"@en .
+
+:bond-angle-rmsd a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Bond angle RMSD"@en ;
+    skos:altLabel "angle_rmsd"@en ;
+    skos:definition "RMSD of predicted ligand bond angles against reference values."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:bond-length-rmsd a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Bond length RMSD"@en ;
+    skos:altLabel "bond_rmsd"@en ;
+    skos:definition "RMSD of predicted ligand bond lengths against reference values."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:candidates-per-case a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Candidates per case"@en ;
+    skos:altLabel "candidates_per_proband"@en ;
+    skos:definition "Mean number of candidate variants flagged for review per case (analyst workload)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:candidates-per-diagnosis a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Candidates per diagnosis"@en ;
+    skos:altLabel "candidates_per_recovered_diagnosis"@en ;
+    skos:definition "Number of candidate variants flagged per recovered diagnosis (analyst workload per diagnosis)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:capri-acceptable-target-count a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Targets with acceptable or better model"@en ;
+    skos:definition "Number of targets with at least one model of CAPRI acceptable or better quality among the top N models."@en ;
+    skos:broader :count ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:capri-high-target-count a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Targets with high-quality model"@en ;
+    skos:definition "Number of targets with at least one model of CAPRI high quality among the top N models."@en ;
+    skos:broader :count ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:capri-interface-rmsd a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Interface RMSD (iRMSD)"@en ;
+    skos:altLabel "iRMS"@en ;
+    skos:altLabel "iRMSD"@en ;
+    skos:altLabel "irms"@en ;
+    skos:altLabel "irmsd"@en ;
+    skos:definition "CAPRI interface backbone RMSD after superposition of interface residues."@en ;
+    skos:broader :rmsd ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:capri-ligand-rmsd a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Ligand-chain RMSD (LRMSD)"@en ;
+    skos:altLabel "LRMS"@en ;
+    skos:altLabel "LRMSD"@en ;
+    skos:altLabel "lrms"@en ;
+    skos:altLabel "lrmsd"@en ;
+    skos:definition "CAPRI ligand RMSD: backbone RMSD of the smaller partner chain after superposition on the receptor chain."@en ;
+    skos:broader :rmsd ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:capri-medium-target-count a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Targets with medium or better model"@en ;
+    skos:definition "Number of targets with at least one model of CAPRI medium or better quality among the top N models."@en ;
+    skos:broader :count ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:capri-top-10-success-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CAPRI acceptable top-10 success rate"@en ;
+    skos:altLabel "success_at_10"@en ;
+    skos:definition "Proportion of targets with at least one model of CAPRI acceptable or better quality among the top 10 models."@en ;
+    skos:broader :success-rate ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:capri-top-30-success-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CAPRI acceptable top-30 success rate"@en ;
+    skos:altLabel "success_at_30"@en ;
+    skos:definition "Proportion of targets with at least one model of CAPRI acceptable or better quality among the top 30 models."@en ;
+    skos:broader :success-rate ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:casf-docking-top-1-success a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CASF docking power top-1 success rate"@en ;
+    skos:altLabel "Top 1 success"@en ;
+    skos:definition "Proportion of complexes where the native-like pose (RMSD < 2 Å) is ranked first by the scoring function."@en ;
+    skos:broader :success-rate ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CASF-2016"@en .
+
+:casf-docking-top-2-success a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CASF docking power top-2 success rate"@en ;
+    skos:altLabel "Top 2 success"@en ;
+    skos:definition "Proportion of complexes where a native-like pose (RMSD < 2 Å) is among the 2 best-scored poses."@en ;
+    skos:broader :success-rate ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CASF-2016"@en .
+
+:casf-docking-top-3-success a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CASF docking power top-3 success rate"@en ;
+    skos:altLabel "Top 3 success"@en ;
+    skos:definition "Proportion of complexes where a native-like pose (RMSD < 2 Å) is among the 3 best-scored poses."@en ;
+    skos:broader :success-rate ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CASF-2016"@en .
+
+:casf-screening-success-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CASF forward screening success rate"@en ;
+    skos:definition "Proportion of targets for which the highest-affinity true binder is ranked within the top fraction (1%, 5% or 10%) of candidate ligands."@en ;
+    skos:broader :success-rate ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CASF-2016"@en .
+
+:casp-sum-z-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Sum of Z-scores for GDT-TS and TM-score"@en ;
+    skos:altLabel "sum_z_gdt_ts_tm_score"@en ;
+    skos:definition "Sum of the per-target Z-scores of GDT-TS and TM-score relative to all CASP submissions for that target."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by CASP15"@en .
+
+:chirality-consistency a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Chirality consistency"@en ;
+    skos:altLabel "chirality"@en ;
+    skos:definition "Percentage of molecules whose predicted stereocentres match the reference chirality."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:coefficient-of-determination a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Coefficient of determination (R²)"@en ;
+    skos:altLabel "R-squared"@en ;
+    skos:altLabel "R2"@en ;
+    skos:altLabel "R²"@en ;
+    skos:altLabel "r2"@en ;
+    skos:definition "One minus the residual sum of squares divided by the total sum of squares of the observed values (R²). Can be negative for poor predictors."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000564> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:cohens-d a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Cohen's d"@en ;
+    skos:definition "Standardised mean difference between the score distributions of two groups (for example positive and control variants), divided by the pooled standard deviation."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000618> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:composition-l1-distance a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "L1 distance between compositions"@en ;
+    skos:altLabel "L1 abundance error"@en ;
+    skos:altLabel "L1 error"@en ;
+    skos:definition "Sum of absolute differences between predicted and true proportions over all components of a composition (for example strain abundances or cell-state proportions)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:correlation a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Correlation coefficient (type unspecified)"@en ;
+    skos:definition "A correlation coefficient between predicted and observed values whose type (Pearson, Spearman or other) is not stated by the source."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000611> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:cosine-similarity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Cosine similarity"@en ;
+    skos:altLabel "Fingerprint cosine similarity"@en ;
+    skos:altLabel "fingerprint_cosine_similarity"@en ;
+    skos:definition "Cosine of the angle between predicted and reference vectors (for example spectra or fingerprints)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:count a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Count"@en ;
+    skos:definition "Number of items meeting a criterion stated by the source. A descriptive tally rather than a normalised performance measure."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000047> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:cppc-mean-cell-state-l1 a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Mean summed cell-state L1 error"@en ;
+    skos:altLabel "mean-summed-cell-state-l1"@en ;
+    skos:definition "Challenge 1 score: for each knockout, the L1 distance between predicted and observed cell-state proportion vectors, averaged over the scored knockouts."@en ;
+    skos:broader :composition-l1-distance ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by Cancer Immunotherapy Data Science Challenge (CPPC)"@en .
+
+:cppc-topk-overlap-auc a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-k overlap AUC"@en ;
+    skos:altLabel "robust-topk-overlap-auc"@en ;
+    skos:definition "Challenge 2 score: area under the curve of overlap between the predicted and observed top-k target rankings across k."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by Cancer Immunotherapy Data Science Challenge (CPPC)"@en .
+
+:designability a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Designability"@en ;
+    skos:altLabel "designability"@en ;
+    skos:definition "Proportion of generated backbones for which a designed sequence refolds to within 2 Å scRMSD."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:diagnostic-yield a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Diagnostic yield"@en ;
+    skos:definition "Proportion of tested cases that receive a diagnosis."@en ;
+    skos:broader :proportion ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000621> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:dockq a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "DockQ"@en ;
+    skos:altLabel "dockq"@en ;
+    skos:definition "DockQ score for protein-protein interface quality combining Fnat, iRMSD and LRMSD (0 to 1)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:early-precision-ratio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Early precision ratio (EPR)"@en ;
+    skos:altLabel "EPR"@en ;
+    skos:altLabel "Early Precision Ratio"@en ;
+    skos:definition "Precision among the top-k predicted edges, where k is the number of edges in the reference network, divided by that of a random predictor."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by BEELINE"@en .
+
+:f1-max a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Maximum F1 over thresholds (Fmax)"@en ;
+    skos:altLabel "F1-max"@en ;
+    skos:altLabel "Fmax"@en ;
+    skos:definition "Maximum of the F1 score over all decision thresholds, as in the CAFA protein-centric Fmax."@en ;
+    skos:broader :f1-score ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:f1-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "F1 score"@en ;
+    skos:altLabel "F-measure"@en ;
+    skos:altLabel "F-score"@en ;
+    skos:altLabel "F1"@en ;
+    skos:altLabel "F1 Score"@en ;
+    skos:altLabel "F1-Score"@en ;
+    skos:altLabel "F1-score"@en ;
+    skos:altLabel "binary F1"@en ;
+    skos:definition "Harmonic mean of precision and recall at a fixed decision threshold. Averaging across classes is unspecified unless a narrower concept is used."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000628> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:false-negative-count a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Number of false negatives"@en ;
+    skos:altLabel "FN"@en ;
+    skos:definition "Number of positive items wrongly predicted as negative."@en ;
+    skos:broader :count ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000598> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:false-positive-count a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Number of false positives"@en ;
+    skos:altLabel "FP"@en ;
+    skos:definition "Number of negative items wrongly predicted as positive."@en ;
+    skos:broader :count ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000596> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:false-positive-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "False positive rate"@en ;
+    skos:altLabel "FPR"@en ;
+    skos:altLabel "FPR (%)"@en ;
+    skos:definition "False positives divided by all actual negatives (1 - specificity)."@en ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000053> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:fnat a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Fraction of native contacts (Fnat)"@en ;
+    skos:altLabel "fnat"@en ;
+    skos:definition "Fraction of native interface residue contacts reproduced in the model."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:foldbench-success-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "FoldBench success rate"@en ;
+    skos:altLabel "success-rate"@en ;
+    skos:definition "Proportion of assessable targets meeting the FoldBench success criterion for the interaction category (for example DockQ at least 0.23 for antibody-antigen)."@en ;
+    skos:broader :success-rate ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by FoldBench"@en .
+
+:gdt-ts a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "GDT-TS"@en ;
+    skos:altLabel "GDT_TS"@en ;
+    skos:altLabel "gdt-ts"@en ;
+    skos:definition "Global distance test total score: mean fraction of residues within 1, 2, 4 and 8 Å of the reference after superposition (reported on 0-1 or 0-100 scales)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:genie-diversity-tm-0-5 a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Diversity at TM-score 0.5"@en ;
+    skos:altLabel "Diversity, TM < 0.5"@en ;
+    skos:altLabel "diversity_tm_05"@en ;
+    skos:definition "Number of structure clusters at a TM-score threshold of 0.5 divided by the number of designable structures, as reported by Genie 3."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by Genie 3"@en .
+
+:genie-diversity-tm-0-6 a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Diversity at TM-score 0.6"@en ;
+    skos:altLabel "Diversity, TM < 0.6"@en ;
+    skos:altLabel "diversity_tm_06"@en ;
+    skos:definition "Number of structure clusters at a TM-score threshold of 0.6 divided by the number of designable structures, as reported by Genie 3."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by Genie 3"@en .
+
+:genie-novelty-afdb a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Novelty against AFDB"@en ;
+    skos:altLabel "Novelty, AFDB"@en ;
+    skos:altLabel "novelty_afdb"@en ;
+    skos:definition "Proportion of designable structures that are novel relative to AlphaFold DB under the Genie 3 TM-score criterion."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by Genie 3"@en .
+
+:genie-novelty-pdb a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Novelty against PDB"@en ;
+    skos:altLabel "Novelty, PDB"@en ;
+    skos:altLabel "novelty_pdb"@en ;
+    skos:definition "Proportion of designable structures that are novel relative to the PDB under the Genie 3 TM-score criterion."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by Genie 3"@en .
+
+:inference-throughput a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Inference throughput"@en ;
+    skos:altLabel "inference-throughput"@en ;
+    skos:definition "Number of samples processed per second at inference."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:interaction-network-fidelity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Interaction network fidelity (INF)"@en ;
+    skos:altLabel "INF"@en ;
+    skos:definition "Geometric mean of base-pair precision (PPV) and sensitivity for RNA secondary structure prediction, INF = sqrt(PPV x STY)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:jensen-shannon-divergence a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Jensen-Shannon divergence"@en ;
+    skos:altLabel "JSD"@en ;
+    skos:altLabel "jsd"@en ;
+    skos:definition "Jensen-Shannon divergence between predicted and observed normalised profiles or distributions."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:jensen-shannon-similarity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Jensen-Shannon similarity"@en ;
+    skos:definition "One minus the Jensen-Shannon divergence between predicted and reference spectra."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by MassSpecGym"@en .
+
+:kendall-tau a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Kendall rank correlation coefficient"@en ;
+    skos:altLabel "Kendall tau"@en ;
+    skos:altLabel "Kendall's tau"@en ;
+    skos:definition "Kendall's tau between predicted and observed rankings, based on concordant and discordant pairs."@en ;
+    skos:broader :correlation ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000240> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:lddt a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "lDDT"@en ;
+    skos:altLabel "LDDT"@en ;
+    skos:altLabel "lddt"@en ;
+    skos:definition "Local distance difference test: superposition-free fraction of preserved inter-atomic distances within an inclusion radius."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:lddt-lp a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "lDDT-LP"@en ;
+    skos:altLabel "LDDT-LP"@en ;
+    skos:definition "lDDT of the ligand-binding pocket residues, as reported by FoldBench."@en ;
+    skos:broader :lddt ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by FoldBench"@en .
+
+:lddt-pli a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "lDDT-PLI"@en ;
+    skos:altLabel "LDDT-PLI"@en ;
+    skos:altLabel "lddt-pli"@en ;
+    skos:definition "lDDT restricted to protein-ligand interface contacts."@en ;
+    skos:broader :lddt ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:ligand-pass-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Ligand pass rate"@en ;
+    skos:definition "Percentage of ligands whose predicted pose passes the Runs N' Poses success criteria."@en ;
+    skos:broader :success-rate ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by Runs N' Poses"@en .
+
+:ligand-rmsd a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Ligand RMSD"@en ;
+    skos:altLabel "ligand_rmsd"@en ;
+    skos:definition "Symmetry-corrected RMSD of small-molecule ligand heavy atoms after superposition on the receptor."@en ;
+    skos:broader :rmsd ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:ligand-rmsd-1a-pb-valid-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Ligand RMSD ≤ 1 Å and PoseBusters-valid rate"@en ;
+    skos:altLabel "RMSD ≤1 Å and PB-valid success"@en ;
+    skos:definition "Proportion of complexes whose selected pose has ligand RMSD at most 1 Å and passes all PoseBusters validity checks."@en ;
+    skos:broader :success-rate ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:ligand-rmsd-under-2a-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Ligand RMSD < 2 Å success rate"@en ;
+    skos:altLabel "Success rate, ligand all-atom RMSD <2 Å"@en ;
+    skos:altLabel "Top-1 ligand RMSD <2 Å rate"@en ;
+    skos:definition "Proportion of complexes whose top-ranked predicted ligand pose has heavy-atom RMSD below 2 Å."@en ;
+    skos:broader :success-rate ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:likelihood-ratio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Likelihood ratio"@en ;
+    skos:altLabel "LR"@en ;
+    skos:definition "Ratio of the proportion of pathogenic variants to the proportion of benign variants falling in a score interval (evidence strength of that interval)."@en ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000409> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:log-loss a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Log loss"@en ;
+    skos:altLabel "Log-Loss"@en ;
+    skos:altLabel "cross-entropy"@en ;
+    skos:definition "Mean negative log-likelihood of the true labels under the predicted class probabilities (binary or categorical cross-entropy)."@en ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000550> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:macro-average-precision a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Macro-averaged average precision"@en ;
+    skos:altLabel "macro AveP"@en ;
+    skos:definition "Unweighted mean over classes of per-class average precision."@en ;
+    skos:broader :average-precision ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:macro-f1 a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Macro-averaged F1"@en ;
+    skos:altLabel "Macro F1"@en ;
+    skos:altLabel "Macro F1 score"@en ;
+    skos:altLabel "Macro-F1"@en ;
+    skos:altLabel "f1-macro"@en ;
+    skos:altLabel "macro-f1"@en ;
+    skos:altLabel "macro_f1"@en ;
+    skos:definition "Unweighted mean of per-class F1 scores."@en ;
+    skos:broader :f1-score ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:macro-mcc a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Macro-averaged Matthews correlation coefficient"@en ;
+    skos:altLabel "Macro-MCC"@en ;
+    skos:altLabel "macro_mcc"@en ;
+    skos:definition "Unweighted mean of per-class (one-versus-rest) Matthews correlation coefficients."@en ;
+    skos:broader :matthews-correlation-coefficient ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:matthews-correlation-coefficient a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Matthews correlation coefficient"@en ;
+    skos:altLabel "MCC"@en ;
+    skos:altLabel "mcc"@en ;
+    skos:definition "Matthews correlation coefficient (phi) computed from the binary or multiclass confusion matrix."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000524> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:mean-absolute-error a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Mean absolute error (MAE)"@en ;
+    skos:altLabel "MAE"@en ;
+    skos:altLabel "mae"@en ;
+    skos:altLabel "mean_absolute_error"@en ;
+    skos:definition "Mean of absolute differences between predicted and observed values."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:mean-columnwise-rmse a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Mean columnwise RMSE (MCRMSE)"@en ;
+    skos:altLabel "MCRMSE"@en ;
+    skos:altLabel "mcrmse"@en ;
+    skos:definition "RMSE computed separately for each target column and then averaged over columns, as in the Stanford OpenVaccine mRNA degradation task."@en ;
+    skos:broader :root-mean-squared-error ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:mean-squared-error a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Mean squared error (MSE)"@en ;
+    skos:altLabel "MSE"@en ;
+    skos:altLabel "Mean squared error"@en ;
+    skos:altLabel "mse"@en ;
+    skos:definition "Mean of squared differences between predicted and observed values."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:median-absolute-error a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Median absolute error"@en ;
+    skos:altLabel "median_absolute_error"@en ;
+    skos:definition "Median of absolute differences between predicted and observed values."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:median-f1 a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Median per-class F1"@en ;
+    skos:altLabel "median-f1"@en ;
+    skos:definition "Median of per-class F1 scores across classes (for example cell populations)."@en ;
+    skos:broader :f1-score ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:micro-f1 a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Micro-averaged F1"@en ;
+    skos:altLabel "Micro F1"@en ;
+    skos:altLabel "micro_f1"@en ;
+    skos:definition "F1 computed from true positive, false positive and false negative counts pooled over all classes."@en ;
+    skos:broader :f1-score ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:ndcg a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Normalised discounted cumulative gain (NDCG)"@en ;
+    skos:altLabel "NDCG"@en ;
+    skos:definition "Discounted cumulative gain of the predicted ranking divided by that of the ideal ranking. Cutoff unspecified unless a narrower concept is used."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:ndcg-at-10-percent a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "NDCG at top 10%"@en ;
+    skos:altLabel "NDCG"@en ;
+    skos:altLabel "NDCG@10%"@en ;
+    skos:definition "NDCG computed over the top 10% of variants ranked by the model, using DMS scores as gains."@en ;
+    skos:broader :ndcg ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by ProteinGym"@en .
+
+:normalized-mutual-information a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Normalised mutual information (NMI)"@en ;
+    skos:altLabel "NMI"@en ;
+    skos:definition "Mutual information between cluster assignments and labels, normalised to [0, 1]."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:paired-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Paired accuracy"@en ;
+    skos:altLabel "paired_accuracy"@en ;
+    skos:definition "Proportion of matched element/control sequence pairs in which the model scores the regulatory element above its matched control."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by DART-Eval"@en .
+
+:partial-label-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Partial-label accuracy"@en ;
+    skos:definition "Accuracy with partial credit for predicting a subset of the components of a combined label (cell type, perturbation, dose), as defined by Cell2Sentence."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by Cell2Sentence"@en .
+
+:pearson-correlation a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Pearson correlation coefficient"@en ;
+    skos:altLabel "PCC"@en ;
+    skos:altLabel "Pearson R"@en ;
+    skos:altLabel "Pearson correlation"@en ;
+    skos:altLabel "Pearson r"@en ;
+    skos:altLabel "R"@en ;
+    skos:altLabel "pearson"@en ;
+    skos:altLabel "pearson_r"@en ;
+    skos:altLabel "pearsonr"@en ;
+    skos:definition "Pearson product-moment correlation between predicted and observed values: covariance divided by the product of the standard deviations."@en ;
+    skos:broader :correlation ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000280> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:pearson-delta a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Pearson correlation of expression change"@en ;
+    skos:altLabel "Pearson correlation of differential expression"@en ;
+    skos:altLabel "Pearson delta"@en ;
+    skos:altLabel "pearson_delta_expression"@en ;
+    skos:definition "Pearson correlation between predicted and observed post-perturbation expression change relative to control (delta), computed per perturbation over genes and then averaged."@en ;
+    skos:broader :pearson-correlation ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by GEARS"@en .
+
+:pearson-r-squared a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Squared Pearson correlation"@en ;
+    skos:altLabel "pearson_r_squared"@en ;
+    skos:definition "The square of the Pearson correlation coefficient between predicted and observed values. Equals the coefficient of determination only for an ordinary least-squares fit of observed on predicted."@en ;
+    skos:broader :pearson-correlation ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000564> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:percent-agreement a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Percent agreement"@en ;
+    skos:altLabel "agreement rate"@en ;
+    skos:altLabel "concordance"@en ;
+    skos:altLabel "concordance_rate"@en ;
+    skos:definition "Proportion of items for which two classifications (for example a tool and a curated reference or expert panel) assign the same class. Not chance-corrected."@en ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000623> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:perplexity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Perplexity"@en ;
+    skos:altLabel "PPL"@en ;
+    skos:altLabel "ppl"@en ;
+    skos:definition "Exponential of the mean per-token negative log-likelihood of generated sequences under a reference language model."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:perturbench-cosine-logfc a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Cosine similarity of log fold change"@en ;
+    skos:altLabel "cosine_logfc"@en ;
+    skos:definition "Cosine similarity between predicted and observed log fold changes (perturbed versus control), averaged over perturbations."@en ;
+    skos:broader :cosine-similarity ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by PerturBench"@en .
+
+:perturbench-cosine-logfc-rank a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Cosine log fold change rank"@en ;
+    skos:altLabel "Cosine LogFC rank"@en ;
+    skos:altLabel "cosine_logfc_rank"@en ;
+    skos:definition "Normalised rank of the true perturbation when predictions are ranked by cosine similarity of log fold change; 0 is perfect."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by PerturBench"@en .
+
+:perturbench-rmse-of-mean a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "RMSE of the mean expression profile"@en ;
+    skos:altLabel "RMSE of the mean"@en ;
+    skos:altLabel "rmse_mean"@en ;
+    skos:definition "RMSE between the predicted and observed mean expression profiles of each perturbation, averaged over perturbations."@en ;
+    skos:broader :root-mean-squared-error ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by PerturBench"@en .
+
+:perturbench-rmse-rank a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "RMSE mean rank"@en ;
+    skos:altLabel "rmse_mean_rank"@en ;
+    skos:definition "Normalised rank of the true perturbation among all perturbations when predictions are ranked by RMSE to the observed profile; 0 is perfect."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by PerturBench"@en .
+
+:plddt a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "pLDDT"@en ;
+    skos:altLabel "plddt"@en ;
+    skos:definition "Predicted lDDT confidence from a structure predictor (ESMFold or AlphaFold2) averaged over residues, used as a designability proxy."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:precision a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Precision (positive predictive value)"@en ;
+    skos:altLabel "PPV"@en ;
+    skos:altLabel "PRE"@en ;
+    skos:altLabel "PRE (%)"@en ;
+    skos:altLabel "Prec."@en ;
+    skos:altLabel "Precision"@en ;
+    skos:altLabel "precision"@en ;
+    skos:definition "True positives divided by all predicted positives."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000416> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:precision-at-100 a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Precision at 100"@en ;
+    skos:altLabel "P@100"@en ;
+    skos:altLabel "precision_at_100"@en ;
+    skos:altLabel "precision_at_capacity"@en ;
+    skos:definition "Precision among the 100 highest-scored items."@en ;
+    skos:broader :precision ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:precision-at-50-percent-recall a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Precision at 50% recall"@en ;
+    skos:altLabel "precision at 50% recall"@en ;
+    skos:definition "Precision at the decision threshold where recall first reaches 50%."@en ;
+    skos:broader :precision ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:precision-at-70-percent-recall a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Precision at 70% recall"@en ;
+    skos:altLabel "precision-at-70-recall"@en ;
+    skos:definition "Precision at the decision threshold where recall first reaches 70%."@en ;
+    skos:broader :precision ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:precision-at-l a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-L contact precision"@en ;
+    skos:altLabel "P@L"@en ;
+    skos:altLabel "Top L Precision"@en ;
+    skos:altLabel "precision_at_l"@en ;
+    skos:definition "Precision of the L highest-scored residue or nucleotide contacts, where L is the sequence length."@en ;
+    skos:broader :precision ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:precision-at-l-5 a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-L/5 contact precision"@en ;
+    skos:altLabel "P@L/5"@en ;
+    skos:altLabel "precision at L/5"@en ;
+    skos:definition "Precision of the L/5 highest-scored contacts, where L is the sequence length."@en ;
+    skos:broader :precision ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:predictive-index a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Predictive index"@en ;
+    skos:altLabel "PI"@en ;
+    skos:altLabel "Predictive Index"@en ;
+    skos:definition "Pearlman and Charifson predictive index: a pairwise ranking-agreement statistic weighted by the experimental activity difference of each pair, ranging from -1 to 1. Used for CASF ranking power."@en ;
+    skos:broader :correlation ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:proportion a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Proportion"@en ;
+    skos:altLabel "fraction"@en ;
+    skos:altLabel "share"@en ;
+    skos:definition "Fraction of a stated population having a stated property. A descriptive quantity whose desirable direction depends on the property."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000607> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:proteinbench-binding-energy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Binding energy"@en ;
+    skos:altLabel "Binding Energy"@en ;
+    skos:altLabel "binding-energy"@en ;
+    skos:definition "Rosetta-computed antibody-antigen binding energy (ddG); more negative is stronger binding."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-ca-break a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CA break rate"@en ;
+    skos:definition "Percentage of consecutive C-alpha pairs whose distance exceeds the chain-break threshold."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-ca-clash a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CA clash rate"@en ;
+    skos:definition "Percentage of non-adjacent C-alpha pairs closer than the clash threshold."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-clashes-inner a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Inner clashes"@en ;
+    skos:altLabel "Clashes-inner"@en ;
+    skos:altLabel "clashes-inner"@en ;
+    skos:definition "Number of atomic clashes within the designed antibody."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-clashes-outer a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Outer clashes"@en ;
+    skos:altLabel "Clashes-outer"@en ;
+    skos:altLabel "clashes-outer"@en ;
+    skos:definition "Number of atomic clashes between the designed antibody and the antigen."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-cn-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CN-score"@en ;
+    skos:definition "Contact-number score for designed CDRs, as defined by ProteinBench."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-max-clust a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Max Clust."@en ;
+    skos:altLabel "max-clust"@en ;
+    skos:definition "Number of structure clusters among generated backbones divided by the number of generated backbones."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-max-tm a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Max TM-score to known structures"@en ;
+    skos:altLabel "Max TM"@en ;
+    skos:altLabel "max-tm"@en ;
+    skos:definition "Mean over generated backbones of the maximum TM-score to any structure in the reference database; lower means more novel."@en ;
+    skos:broader :tm-score ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-pairwise-tm a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Pairwise TM-score"@en ;
+    skos:altLabel "pairwise TM"@en ;
+    skos:altLabel "pairwise-tm"@en ;
+    skos:definition "Mean pairwise TM-score among generated backbones; lower means more diverse."@en ;
+    skos:broader :tm-score ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-pepbond-break a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Peptide bond break rate"@en ;
+    skos:definition "Percentage of peptide bonds whose length deviates beyond the break threshold."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-phr a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Hydrophobic residue percentage (PHR)"@en ;
+    skos:altLabel "PHR"@en ;
+    skos:altLabel "phr"@en ;
+    skos:definition "Percentage of hydrophobic residues in designed CDRs."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-seqnat a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Sequence naturalness (SeqNat)"@en ;
+    skos:altLabel "SeqNat"@en ;
+    skos:altLabel "seqnat"@en ;
+    skos:definition "Antibody language-model log-likelihood of designed CDR sequences."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-seqsim-inner a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "SeqSim-inner"@en ;
+    skos:altLabel "seqsim-inner"@en ;
+    skos:definition "Mean sequence similarity among CDRs designed for the same antigen."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-seqsim-outer a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "SeqSim-outer"@en ;
+    skos:altLabel "seqsim-outer"@en ;
+    skos:definition "Mean sequence similarity between CDRs designed for different antigens; lower means more antigen-specific."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:proteinbench-total-energy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Total energy"@en ;
+    skos:altLabel "Total Energy"@en ;
+    skos:altLabel "total-energy"@en ;
+    skos:definition "Rosetta total energy of the designed antibody-antigen complex."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by ProteinBench"@en .
+
+:recall a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Recall (sensitivity)"@en ;
+    skos:altLabel "REC"@en ;
+    skos:altLabel "REC (%)"@en ;
+    skos:altLabel "Recall"@en ;
+    skos:altLabel "SN"@en ;
+    skos:altLabel "Sensitivity"@en ;
+    skos:altLabel "TPR"@en ;
+    skos:altLabel "known_diagnosis_recovery"@en ;
+    skos:altLabel "sensitivity"@en ;
+    skos:definition "True positives divided by all actual positives (true positive rate, sensitivity). Also used for positive percent agreement against a reference test."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000233> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:recall-at-100 a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Recall at 100"@en ;
+    skos:altLabel "R@100"@en ;
+    skos:definition "Fraction of all positives found among the 100 highest-scored items."@en ;
+    skos:broader :recall ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:rmsd a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Root mean square deviation of atomic positions (RMSD)"@en ;
+    skos:altLabel "RMSD"@en ;
+    skos:altLabel "rmsd"@en ;
+    skos:definition "Root mean square distance between corresponding atoms of a predicted and reference structure after superposition. Atom set as stated by the source."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:root-mean-squared-error a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Root mean squared error (RMSE)"@en ;
+    skos:altLabel "RMSE"@en ;
+    skos:altLabel "rmse"@en ;
+    skos:definition "Square root of the mean squared error."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:runtime a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Runtime"@en ;
+    skos:definition "Wall-clock time to complete a stated computation (training, inference, pipeline run or query response)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:scib-asw-batch a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Batch ASW"@en ;
+    skos:altLabel "ASW_label/batch"@en ;
+    skos:definition "One minus the absolute batch silhouette width per cell-type label, averaged; higher means better batch mixing."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by scIB"@en .
+
+:scib-asw-label a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Cell-type ASW"@en ;
+    skos:altLabel "ASW_label"@en ;
+    skos:definition "Average silhouette width of cell-type labels in the integrated embedding, rescaled to [0, 1]."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by scIB"@en .
+
+:scib-cell-cycle-conservation a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Cell-cycle conservation"@en ;
+    skos:altLabel "cell_cycle_conservation"@en ;
+    skos:definition "Conservation of cell-cycle score variance after integration."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by scIB"@en .
+
+:scib-clisi a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Cell-type LISI (cLISI)"@en ;
+    skos:altLabel "cLISI"@en ;
+    skos:definition "Graph local inverse Simpson's index of cell-type labels, rescaled so higher means better label separation."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by scIB"@en .
+
+:scib-graph-connectivity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Graph connectivity"@en ;
+    skos:altLabel "graph_conn"@en ;
+    skos:definition "Mean over cell types of the fraction of cells in the largest connected component of the kNN graph restricted to that cell type."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by scIB"@en .
+
+:scib-hvg-overlap a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "HVG overlap"@en ;
+    skos:altLabel "hvg_overlap"@en ;
+    skos:definition "Overlap of highly variable genes per batch before and after integration."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by scIB"@en .
+
+:scib-ilisi a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Integration LISI (iLISI)"@en ;
+    skos:altLabel "iLISI"@en ;
+    skos:definition "Graph local inverse Simpson's index of batch labels, rescaled; higher means better batch mixing."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by scIB"@en .
+
+:scib-isolated-label-f1 a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Isolated label F1"@en ;
+    skos:altLabel "isolated_label_F1"@en ;
+    skos:definition "F1 of clustering for labels present in the fewest batches."@en ;
+    skos:broader :f1-score ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by scIB"@en .
+
+:scib-isolated-label-silhouette a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Isolated label silhouette"@en ;
+    skos:altLabel "isolated_label_silhouette"@en ;
+    skos:definition "Silhouette width of labels present in the fewest batches, rescaled."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by scIB"@en .
+
+:scib-kbet a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "kBET acceptance rate"@en ;
+    skos:altLabel "kBET"@en ;
+    skos:definition "k-nearest-neighbour batch effect test acceptance rate, averaged over cell types."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by scIB"@en .
+
+:scib-pcr-batch a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Principal component regression (batch)"@en ;
+    skos:altLabel "PCR_batch"@en ;
+    skos:definition "Reduction in variance explained by batch in principal component regression after integration."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by scIB"@en .
+
+:scrmsd a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Self-consistency RMSD (scRMSD)"@en ;
+    skos:altLabel "scRMSD"@en ;
+    skos:altLabel "scrmsd"@en ;
+    skos:definition "RMSD between a generated backbone and the structure predicted for a sequence designed onto it."@en ;
+    skos:broader :rmsd ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:sctm a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Self-consistency TM-score (scTM)"@en ;
+    skos:altLabel "scTM"@en ;
+    skos:altLabel "sctm"@en ;
+    skos:definition "TM-score between a generated backbone and the structure predicted for a sequence designed onto it."@en ;
+    skos:broader :tm-score ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:sensitivity-at-97-9-percent-specificity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Sensitivity at 97.9% specificity"@en ;
+    skos:altLabel "sensitivity_at_97_9_percent_specificity"@en ;
+    skos:definition "Recall at the decision threshold that gives 97.9% specificity."@en ;
+    skos:broader :recall ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:sensitivity-at-98-percent-specificity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Sensitivity at 98% specificity"@en ;
+    skos:altLabel "sensitivity_at_reported_98_percent_specificity"@en ;
+    skos:definition "Recall at the decision threshold that gives 98% specificity."@en ;
+    skos:broader :recall ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:sequence-recovery a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Sequence recovery"@en ;
+    skos:altLabel "AAR"@en ;
+    skos:altLabel "aar"@en ;
+    skos:altLabel "amino acid recovery"@en ;
+    skos:altLabel "sequence recovery"@en ;
+    skos:definition "Fraction of positions where the designed residue or nucleotide equals the native one (amino acid recovery, AAR)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:spearman-correlation a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Spearman rank correlation coefficient"@en ;
+    skos:altLabel "Spearman"@en ;
+    skos:altLabel "Spearman Corr"@en ;
+    skos:altLabel "Spearman correlation"@en ;
+    skos:altLabel "Spearman r"@en ;
+    skos:altLabel "Spearman rho"@en ;
+    skos:altLabel "Spearman ρ"@en ;
+    skos:altLabel "Spearman's rho"@en ;
+    skos:altLabel "spearman"@en ;
+    skos:altLabel "spearman_corr"@en ;
+    skos:altLabel "spearman_r"@en ;
+    skos:altLabel "spearman_rho"@en ;
+    skos:altLabel "spearmanr"@en ;
+    skos:definition "Spearman's rank correlation (rho) between predicted and observed values: the Pearson correlation of their ranks."@en ;
+    skos:broader :correlation ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000201> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:specificity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Specificity"@en ;
+    skos:altLabel "SP"@en ;
+    skos:altLabel "TNR"@en ;
+    skos:definition "True negatives divided by all actual negatives (true negative rate)."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000134> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:splice-top-k-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-k accuracy (k = number of true sites)"@en ;
+    skos:altLabel "Top-k ACC"@en ;
+    skos:altLabel "top_k_accuracy"@en ;
+    skos:definition "SpliceAI-style top-k accuracy: fraction of true sites among the k highest-scored positions, where k equals the number of true sites (equivalent to R-precision)."@en ;
+    skos:broader :precision ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:success-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Success rate"@en ;
+    skos:definition "Proportion of cases that meet a task-specific success criterion stated by the source."@en ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000607> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:tm-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "TM-score"@en ;
+    skos:altLabel "TMscore"@en ;
+    skos:altLabel "tm-score"@en ;
+    skos:definition "Template modelling score between a predicted and reference structure after optimal superposition, normalised by reference length (0 to 1)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:top-1-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-1 accuracy"@en ;
+    skos:altLabel "Hit rate @1"@en ;
+    skos:altLabel "Recall@1"@en ;
+    skos:altLabel "Retrieval accuracy@1"@en ;
+    skos:altLabel "accuracy_at_1"@en ;
+    skos:altLabel "case_recovery_top1"@en ;
+    skos:altLabel "recall_at_1"@en ;
+    skos:definition "Fraction of queries whose correct answer is ranked first. For single-answer retrieval this equals hit rate@1 and recall@1."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:top-1-mces a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-1 MCES distance"@en ;
+    skos:altLabel "MCES @1"@en ;
+    skos:altLabel "MCES@1"@en ;
+    skos:altLabel "Top-1 MCES"@en ;
+    skos:definition "Maximum common edge subgraph edit distance between the top-ranked (retrieved or generated) molecule and the true molecule."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by MassSpecGym"@en .
+
+:top-1-tanimoto a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-1 Tanimoto similarity"@en ;
+    skos:altLabel "Top-1 Tanimoto"@en ;
+    skos:definition "Tanimoto similarity between the fingerprint of the top-ranked candidate molecule and the true molecule."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by MassSpecGym"@en .
+
+:top-10-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-10 accuracy"@en ;
+    skos:altLabel "Retrieval accuracy@10"@en ;
+    skos:altLabel "accuracy_at_10"@en ;
+    skos:altLabel "case_recovery_top10"@en ;
+    skos:definition "Fraction of queries whose correct answer is among the 10 highest-ranked candidates."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:top-10-mces a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-10 MCES distance"@en ;
+    skos:altLabel "Top-10 MCES"@en ;
+    skos:definition "Minimum MCES distance between the true molecule and any of the 10 top-ranked candidate molecules."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by MassSpecGym"@en .
+
+:top-10-percent-recall a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top 10% recall"@en ;
+    skos:altLabel "Top_recall"@en ;
+    skos:altLabel "recall"@en ;
+    skos:definition "Fraction of the top 10% of variants by DMS score that are also in the model's top 10%."@en ;
+    skos:broader :recall ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by ProteinGym"@en .
+
+:top-10-tanimoto a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-10 Tanimoto similarity"@en ;
+    skos:altLabel "Top-10 Tanimoto"@en ;
+    skos:definition "Maximum Tanimoto similarity between the true molecule and any of the 10 top-ranked candidates."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by MassSpecGym"@en .
+
+:top-100-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-100 accuracy"@en ;
+    skos:altLabel "Retrieval accuracy@100"@en ;
+    skos:altLabel "accuracy_at_100"@en ;
+    skos:definition "Fraction of queries whose correct answer is among the 100 highest-ranked candidates."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:top-20-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-20 accuracy"@en ;
+    skos:altLabel "Hit rate @20"@en ;
+    skos:altLabel "Recall@20"@en ;
+    skos:altLabel "Retrieval accuracy@20"@en ;
+    skos:altLabel "accuracy_at_20"@en ;
+    skos:altLabel "recall_at_20"@en ;
+    skos:definition "Fraction of queries whose correct answer is among the 20 highest-ranked candidates."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:top-200-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-200 accuracy"@en ;
+    skos:altLabel "Retrieval accuracy@200"@en ;
+    skos:altLabel "accuracy_at_200"@en ;
+    skos:definition "Fraction of queries whose correct answer is among the 200 highest-ranked candidates."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:top-5-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-5 accuracy"@en ;
+    skos:altLabel "Hit rate @5"@en ;
+    skos:altLabel "Recall@5"@en ;
+    skos:altLabel "Retrieval accuracy@5"@en ;
+    skos:altLabel "accuracy_at_5"@en ;
+    skos:altLabel "case_recovery_top5"@en ;
+    skos:altLabel "recall_at_5"@en ;
+    skos:definition "Fraction of queries whose correct answer is among the 5 highest-ranked candidates."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:top-50-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Top-50 accuracy"@en ;
+    skos:altLabel "Retrieval accuracy@50"@en ;
+    skos:altLabel "accuracy_at_50"@en ;
+    skos:definition "Fraction of queries whose correct answer is among the 50 highest-ranked candidates."@en ;
+    skos:broader :accuracy ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:true-positive-count a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Number of true positives"@en ;
+    skos:altLabel "TP"@en ;
+    skos:definition "Number of items correctly predicted as positive."@en ;
+    skos:broader :count ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000595> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:unassigned-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Unassigned rate"@en ;
+    skos:altLabel "pct-unlabeled"@en ;
+    skos:altLabel "rejection rate"@en ;
+    skos:definition "Proportion of items (for example cells) a classifier with a rejection option leaves unlabelled. Must be read together with the accuracy on the assigned items."@en ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000607> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:v-measure a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "V-measure"@en ;
+    skos:altLabel "v_measure"@en ;
+    skos:definition "Harmonic mean of clustering homogeneity and completeness."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:vcc-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Virtual Cell Challenge overall score"@en ;
+    skos:altLabel "score_avg"@en ;
+    skos:definition "Virtual Cell Challenge 2026 overall leaderboard score (score_avg): average of the challenge's component scores, each calibrated against baseline and split-half experimental references. Negative values are worse than the baseline. Exact component formula set by the organisers."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by Virtual Cell Challenge 2026"@en .
+
+:weighted-f1 a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Support-weighted F1"@en ;
+    skos:altLabel "Weighted F1"@en ;
+    skos:definition "Mean of per-class F1 scores weighted by class support."@en ;
+    skos:broader :f1-score ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .

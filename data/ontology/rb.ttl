@@ -278,28 +278,37 @@ rb:resultWithin a owl:ObjectProperty ;
     rdfs:comment "Result to each benchmark or suite containing the task or protocol of its evaluation. Inferred." .
 
 # Values ------------------------------------------------------------------------------------
+# Controlled fields hold concepts from the SKOS schemes in data/vocab/; free-text fields are literals.
 
-rb:status a owl:DatatypeProperty ; rdfs:label "status" ; rdfs:comment "Review status of the record." .
-rb:area a owl:DatatypeProperty ; rdfs:label "area" ; rdfs:comment "Biological area facet." .
-rb:taskFacet a owl:DatatypeProperty ; rdfs:label "task facet" ; rdfs:comment "Task facet used for browsing." .
-rb:context a owl:DatatypeProperty ; rdfs:label "context" ; rdfs:comment "Context facet used for browsing." .
-rb:methodType a owl:DatatypeProperty ; rdfs:label "method type" ; rdfs:comment "Method type facet." .
-rb:domain a owl:DatatypeProperty ; rdfs:label "domain" ; rdfs:comment "Domain facet." .
-rb:entityLevel a owl:DatatypeProperty ; rdfs:label "entity level" ; rdfs:comment "Whether a record is a model, method, configuration or other level." .
+rb:status a owl:ObjectProperty ; rdfs:label "status" ; rdfs:comment "Review status of the record (vocab/status)." .
+rb:area a owl:ObjectProperty ; rdfs:label "area" ; rdfs:comment "Research area (vocab/area)." .
+rb:methodType a owl:ObjectProperty ; rdfs:label "method type" ; rdfs:comment "Broad kind of method or model (vocab/method-type)." .
+rb:context a owl:ObjectProperty ; rdfs:label "context" ; rdfs:comment "Use context (vocab/context)." .
+rb:entityLevel a owl:ObjectProperty ; rdfs:label "entity level" ; rdfs:comment "The level of identity a record describes (vocab/entity-level)." .
+rb:publicationStatus a owl:ObjectProperty ; rdfs:label "publication status" ; rdfs:comment "Publication status of a source (vocab/publication-status)." .
+rb:origin a owl:ObjectProperty ; rdfs:label "origin" ; rdfs:comment "Who reported an evaluation (vocab/origin)." .
+rb:baselineType a owl:ObjectProperty ; rdfs:label "baseline type" ; rdfs:comment "Kind of baseline or comparator (vocab/baseline-type)." .
+rb:configurationType a owl:ObjectProperty ; rdfs:label "configuration type" ; rdfs:comment "How a configuration record was established (vocab/configuration-type)." .
+rb:metric a owl:ObjectProperty ; rdfs:subPropertyOf mls:specifiedBy ; rdfs:label "metric" ;
+    rdfs:comment "The evaluation measure a result reports (vocab/metric, each an mls:EvaluationMeasure)." .
+rb:metricQualifier a owl:DatatypeProperty ; rdfs:label "metric qualifier" ;
+    rdfs:comment "What distinguishes results that share a metric concept: a class, setting, scope, cutoff or aggregation." .
+rb:unit a owl:ObjectProperty ; rdfs:label "unit" ; rdfs:comment "Unit of a result value (vocab/unit, matched to QUDT)." .
+rb:metricDirection a owl:ObjectProperty ; rdfs:label "metric direction" ; rdfs:comment "Whether higher or lower values are better for this result (vocab/direction)." .
+rb:defaultDirection a owl:ObjectProperty ; rdfs:label "default direction" ; rdfs:comment "A metric concept's usual direction (vocab/direction)." .
+rb:reviewMethod a owl:ObjectProperty ; rdfs:label "review method" ; rdfs:comment "How a record's values were checked (vocab/review-method)." .
+rb:reviewedBy a owl:ObjectProperty ; rdfs:label "reviewed by" ; rdfs:comment "The agent that reviewed or extracted a record (vocab/agent)." .
+rb:unitDetail a owl:DatatypeProperty ; rdfs:label "unit detail" ; rdfs:comment "What the unit concept cannot hold: the counted entity, a printed scale or an unreported base unit." .
+rb:reviewMethodNote a owl:DatatypeProperty ; rdfs:label "review method note" ; rdfs:comment "Details of the review beyond its method concept." .
+rb:reviewerNote a owl:DatatypeProperty ; rdfs:label "reviewer note" ; rdfs:comment "The reviewer's role, and statements such as no human review." .
+rb:taskFacet a owl:DatatypeProperty ; rdfs:label "task facet" ; rdfs:comment "Free-text task label used for browsing." .
 rb:doi a owl:DatatypeProperty ; rdfs:label "DOI" ; rdfs:comment "Digital Object Identifier of a source." .
-rb:retrievedAt a owl:DatatypeProperty ; rdfs:label "retrieved at" ; rdfs:comment "When a source was retrieved." .
+rb:retrievedAt a owl:DatatypeProperty ; rdfs:label "retrieved at" ; rdfs:comment "When a source was retrieved (xsd:date or xsd:dateTime)." .
 rb:artifactSha256 a owl:DatatypeProperty ; rdfs:label "artifact SHA-256" ; rdfs:comment "SHA-256 of the retrieved source artifact." .
-rb:publicationStatus a owl:DatatypeProperty ; rdfs:label "publication status" ; rdfs:comment "Publication status of a source, such as peer reviewed or preprint." .
-rb:origin a owl:DatatypeProperty ; rdfs:label "origin" ; rdfs:comment "Where a record came from, such as a paper or a local run." .
-rb:metric a owl:DatatypeProperty ; rdfs:label "metric" ; rdfs:comment "Name of the metric a result reports." .
-rb:metricDirection a owl:DatatypeProperty ; rdfs:label "metric direction" ; rdfs:comment "Whether higher or lower values are better." .
-rb:unit a owl:DatatypeProperty ; rdfs:label "unit" ; rdfs:comment "Unit of a result value." .
 rb:printedValue a owl:DatatypeProperty ; rdfs:label "printed value" ; rdfs:comment "The value exactly as printed in the source." .
 rb:uncertainty a owl:DatatypeProperty ; rdfs:label "uncertainty" ; rdfs:comment "Reported uncertainty of a result." .
 rb:sourceLocator a owl:DatatypeProperty ; rdfs:label "source locator" ; rdfs:comment "Where in the source the value or statement appears (table, row, page)." .
 rb:claimField a owl:DatatypeProperty ; rdfs:label "claim field" ; rdfs:comment "The field of the subject record a claim supports." .
 rb:split a owl:DatatypeProperty ; rdfs:label "split" ; rdfs:comment "Data split a result was measured on." .
-rb:reviewMethod a owl:DatatypeProperty ; rdfs:label "review method" ; rdfs:comment "How a record was reviewed, such as automated or AI-assisted source review." .
-rb:reviewedBy a owl:DatatypeProperty ; rdfs:label "reviewed by" ; rdfs:comment "Who or what reviewed a record." .
 rb:reviewDate a owl:DatatypeProperty ; rdfs:label "review date" ; rdfs:comment "The date a record was reviewed (xsd:date)." .
 rb:reviewedAt a owl:DatatypeProperty ; rdfs:label "reviewed at" ; rdfs:comment "The time a review completed (xsd:dateTime), recorded separately from the review date by some intakes." .

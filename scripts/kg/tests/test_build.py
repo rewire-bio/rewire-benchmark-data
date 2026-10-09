@@ -22,6 +22,7 @@ RB = build.RB
 ID = rdflib.Namespace(build.ID)
 DCT = rdflib.Namespace("http://purl.org/dc/terms/")
 MLS = rdflib.Namespace("http://www.w3.org/ns/mls#")
+V = lambda scheme, key: URIRef(f"https://benchmarks.rewire.it/vocab/{scheme}/{key}")
 LINK_ONLY = [RB.usesModel, RB.family, RB.variantOf, RB.aliasOf, RB.measuredIn, RB.implementedBy, RB.usedIn]
 
 
@@ -84,7 +85,7 @@ class VocabularyTest(unittest.TestCase):
 def record(graph: rdflib.Graph, node: URIRef, kind: URIRef, **links: URIRef | list[URIRef]) -> None:
     graph.add((node, RDF.type, kind))
     graph.add((node, RDFS.label, Literal(str(node).rsplit("/", 1)[-1])))
-    graph.add((node, RB.status, Literal("source_checked")))
+    graph.add((node, RB.status, V("status", "source_checked")))
     for name, targets in links.items():
         for target in targets if isinstance(targets, list) else [targets]:
             predicate = DCT.source if name == "source" else RB[name]
@@ -111,7 +112,9 @@ def fixture() -> rdflib.Graph:
     record(g, ID.result1, RB.Result, evaluation=ID.eval1, source=ID.paper)
     record(g, ID.result2, RB.Result, evaluation=ID.eval2, source=ID.paper)
     for result in (ID.result1, ID.result2):
-        g.add((result, RB.metric, Literal("AUROC")))
+        g.add((result, RB.metric, V("metric", "auroc")))
+        g.add((result, RB.unit, V("unit", "unitless")))
+        g.add((result, RB.metricDirection, V("direction", "higher")))
         g.add((result, RB.printedValue, Literal("0.91")))
         g.add((result, MLS.hasValue, Literal("0.91", datatype=rdflib.XSD.decimal)))
     record(g, ID.baseline, RB.Baseline, measuredIn=ID.eval2, implementedBy=ID.config)
@@ -191,7 +194,7 @@ class InferenceTest(unittest.TestCase):
 
     def test_shacl_rejects_excluded_records(self) -> None:
         broken = fixture()
-        broken.set((ID.claim, RB.status, Literal("excluded")))
+        broken.set((ID.claim, RB.status, V("status", "excluded")))
         conforms, _ = build.validate(broken, build.infer(broken, self.ontology))
         self.assertFalse(conforms)
 
@@ -211,6 +214,14 @@ class InferenceTest(unittest.TestCase):
         self.assertFalse(conforms)
         self.assertIn("reviewDate", report)
         self.assertIn("retrievedAt", report)
+
+    def test_shacl_rejects_values_outside_their_scheme(self) -> None:
+        broken = fixture()
+        broken.set((ID.result1, RB.metric, V("unit", "unitless")))  # a unit is not a metric
+        broken.add((ID.model, RB.area, Literal("genomics")))  # free text, not a concept
+        conforms, report = build.validate(broken, build.infer(broken, self.ontology))
+        self.assertFalse(conforms)
+        self.assertIn("vocab/metric/", report)
 
     def test_check_rejects_a_result_moved_to_another_system(self) -> None:
         moved = set(self.inferred) | {(ID.result1, RB.resultFor, ID.model)}

@@ -39,6 +39,7 @@ ONTOLOGY_DIR = ROOT / "data" / "ontology"
 VOCABULARY = ONTOLOGY_DIR / "rb.ttl"
 IMPORTS = ONTOLOGY_DIR / "imports"
 SHAPES = ONTOLOGY_DIR / "shapes.ttl"
+VOCAB_DIR = ROOT / "data" / "vocab"
 MAPPING = ONTOLOGY_DIR / "mapping.json"
 
 RB = rdflib.Namespace("https://benchmarks.rewire.it/vocab#")
@@ -87,7 +88,19 @@ class BuildError(Exception):
 
 
 def ontology_files() -> list[Path]:
-    return [VOCABULARY, *sorted(p for p in IMPORTS.iterdir() if p.suffix in (".ttl", ".nt"))]
+    """The vocabulary, pinned imports and controlled vocabularies (SKOS schemes)."""
+    return [
+        VOCABULARY,
+        *sorted(p for p in IMPORTS.iterdir() if p.suffix in (".ttl", ".nt")),
+        *sorted(VOCAB_DIR.glob("*.ttl")),
+    ]
+
+
+def bundle_path(path: Path) -> str:
+    """Where an ontology file sits in the bundle: ontology/rb.ttl, ontology/imports/..., ontology/vocab/..."""
+    if path.is_relative_to(VOCAB_DIR):
+        return f"ontology/vocab/{path.relative_to(VOCAB_DIR).as_posix()}"
+    return f"ontology/{path.relative_to(ONTOLOGY_DIR).as_posix()}"
 
 
 def load_ontology() -> rdflib.Graph:
@@ -162,12 +175,16 @@ def check_inferred(asserted: rdflib.Graph, inferred: set[tuple]) -> None:
 
 
 def validate(asserted: rdflib.Graph, inferred: set[tuple]) -> tuple[bool, str]:
+    """SHACL over the asserted and inferred statements, with the concept schemes mixed in so
+    shapes can check that each controlled value is a concept of the right scheme."""
     data = rdflib.Graph()
     for triple in asserted:
         data.add(triple)
     for triple in inferred:
         data.add(triple)
     shapes = rdflib.Graph().parse(SHAPES, format="turtle")
+    for path in sorted(VOCAB_DIR.glob("*.ttl")):
+        data.parse(path, format="turtle")
     conforms, _, report = pyshacl.validate(data, shacl_graph=shapes, inference="none", advanced=False)
     return bool(conforms), str(report)
 
@@ -256,14 +273,14 @@ def build(kg_dir: Path) -> dict:
     files: dict[str, dict] = {"asserted.nq": exported["files"]["asserted.nq"]}
     files["inferred.nq"] = {"sha256": sha256(kg_dir / "inferred.nq"), "quads": len(inferred)}
     for path in ontology_files():
-        relative = path.relative_to(ONTOLOGY_DIR).as_posix()
-        dest = target / relative
+        relative = bundle_path(path)
+        dest = kg_dir / relative
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(path, dest)
         entry: dict = {"graph": GRAPHS["ontology"], "sha256": sha256(dest)}
         if path.suffix == ".nt":
             entry["triples"] = count_lines(dest)
-        files[f"ontology/{relative}"] = entry
+        files[relative] = entry
 
     mapping = json.loads(MAPPING.read_text("utf-8"))
     by_predicate = Counter(str(p) for _, p, _ in inferred)
@@ -279,8 +296,13 @@ def build(kg_dir: Path) -> dict:
         "homepage": "https://github.com/rewire-bio/rewire-benchmark-data",
         "graphs": GRAPHS,
         "files": dict(sorted(files.items())),
-        "prefixes": {**mapping["prefixes"], "id": ID},
-        "label_predicates": ["rdfs:label"],
+        "prefixes": {
+            **mapping["prefixes"],
+            "id": ID,
+            "skos": "http://www.w3.org/2004/02/skos/core#",
+            **{p.stem: f"https://benchmarks.rewire.it/vocab/{p.stem}/" for p in sorted(VOCAB_DIR.glob("*.ttl"))},
+        },
+        "label_predicates": ["rdfs:label", "skos:prefLabel", "skos:altLabel"],
         "mapping_sha256": exported["mapping_sha256"],
         "inferred": {
             "reasoner": {"name": "owlrl", "version": importlib.metadata.version("owlrl"), "profile": "OWL 2 RL"},

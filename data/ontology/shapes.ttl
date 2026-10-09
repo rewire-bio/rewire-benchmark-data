@@ -10,6 +10,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix mls: <http://www.w3.org/ns/mls#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 
 rbs:Record a sh:NodeShape ;
     sh:targetSubjectsOf rb:status ;
@@ -18,7 +19,7 @@ rbs:Record a sh:NodeShape ;
         sh:path rdfs:label ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ;
     ] , [
         sh:path rb:status ; sh:minCount 1 ; sh:maxCount 1 ;
-        sh:in ( "discovered" "needs_review" "source_checked" "reproduced" "disputed" "superseded" ) ;
+        sh:not [ sh:hasValue <https://benchmarks.rewire.it/vocab/status/excluded> ] ;
     ] .
 
 rbs:TestedLinks a sh:NodeShape ;
@@ -57,6 +58,10 @@ rbs:Result a sh:NodeShape ;
     ] , [
         sh:path rb:printedValue ; sh:minCount 1 ; sh:maxCount 1 ;
     ] , [
+        sh:path rb:unit ; sh:minCount 1 ; sh:maxCount 1 ;
+    ] , [
+        sh:path rb:metricDirection ; sh:minCount 1 ; sh:maxCount 1 ;
+    ] , [
         sh:path mls:hasValue ; sh:maxCount 1 ; sh:datatype xsd:decimal ;
     ] , [
         sh:path dcterms:source ; sh:minCount 1 ;
@@ -86,3 +91,66 @@ rbs:Source a sh:NodeShape ;
     ] , [
         sh:path rb:artifactSha256 ; sh:maxCount 1 ; sh:pattern "^[0-9a-f]{64}$" ;
     ] .
+
+# Controlled values: every value of these properties is a concept of the named scheme in
+# data/vocab/. The build mixes the schemes into the data graph for this check.
+
+rbs:StatusConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:status ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/status/> ; sh:minCount 1 ] .
+
+rbs:AreaConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:area ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/area/> ; sh:minCount 1 ] .
+
+rbs:MethodTypeConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:methodType ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/method-type/> ; sh:minCount 1 ] .
+
+rbs:ContextConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:context ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/context/> ; sh:minCount 1 ] .
+
+rbs:EntityLevelConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:entityLevel ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/entity-level/> ; sh:minCount 1 ] .
+
+rbs:PublicationStatusConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:publicationStatus ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/publication-status/> ; sh:minCount 1 ] .
+
+rbs:OriginConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:origin ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/origin/> ; sh:minCount 1 ] .
+
+rbs:BaselineTypeConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:baselineType ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/baseline-type/> ; sh:minCount 1 ] .
+
+rbs:ConfigurationTypeConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:configurationType ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/configuration-type/> ; sh:minCount 1 ] .
+
+rbs:MetricConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:metric ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/metric/> ; sh:minCount 1 ] .
+
+rbs:UnitConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:unit ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/unit/> ; sh:minCount 1 ] .
+
+rbs:MetricDirectionConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:metricDirection ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/direction/> ; sh:minCount 1 ] .
+
+rbs:DefaultDirectionConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:defaultDirection ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/direction/> ; sh:minCount 1 ] .
+
+rbs:ReviewMethodConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:reviewMethod ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/review-method/> ; sh:minCount 1 ] .
+
+rbs:ReviewedByConcept a sh:NodeShape ;
+    sh:targetObjectsOf rb:reviewedBy ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/agent/> ; sh:minCount 1 ] .
