@@ -21,7 +21,6 @@ import extract_terms  # noqa: E402
 RB = build.RB
 ID = rdflib.Namespace(build.ID)
 DCT = rdflib.Namespace("http://purl.org/dc/terms/")
-PROV = rdflib.Namespace("http://www.w3.org/ns/prov#")
 MLS = rdflib.Namespace("http://www.w3.org/ns/mls#")
 LINK_ONLY = [RB.usesModel, RB.family, RB.variantOf, RB.aliasOf, RB.measuredIn, RB.implementedBy, RB.usedIn]
 
@@ -88,7 +87,7 @@ def record(graph: rdflib.Graph, node: URIRef, kind: URIRef, **links: URIRef | li
     graph.add((node, RB.status, Literal("source_checked")))
     for name, targets in links.items():
         for target in targets if isinstance(targets, list) else [targets]:
-            predicate = DCT.isPartOf if name == "isPartOf" else PROV.wasDerivedFrom if name == "source" else RB[name]
+            predicate = DCT.source if name == "source" else RB[name]
             graph.add((node, predicate, target))
 
 
@@ -102,9 +101,9 @@ def fixture() -> rdflib.Graph:
     record(g, ID.pipeline, RB.Pipeline, usesModel=ID.model)
     record(g, ID.config, RB.Configuration, family=ID.family, variantOf=ID.model)
     record(g, ID.suite, RB.Benchmark)
-    record(g, ID.bench, RB.Benchmark, isPartOf=ID.suite)
-    record(g, ID.task, RB.Task, isPartOf=ID.bench)
-    record(g, ID.protocol, RB.Protocol, isPartOf=ID.bench)
+    record(g, ID.bench, RB.Benchmark, partOf=ID.suite)
+    record(g, ID.task, RB.Task, partOf=ID.bench)
+    record(g, ID.protocol, RB.Protocol, partOf=ID.bench)
     record(g, ID.data, RB.Dataset)
     record(g, ID.subset, RB.DatasetSubset, usedIn=ID.protocol)
     record(g, ID.eval1, RB.Evaluation, evaluatedSubject=ID.pipeline, evaluatedOn=ID.task, datasetSubset=ID.subset)
@@ -195,6 +194,23 @@ class InferenceTest(unittest.TestCase):
         broken.set((ID.claim, RB.status, Literal("excluded")))
         conforms, _ = build.validate(broken, build.infer(broken, self.ontology))
         self.assertFalse(conforms)
+
+    def test_shacl_rejects_a_typed_subject_link_outside_an_evaluation(self) -> None:
+        broken = fixture()
+        broken.add((ID.config, RB.method, ID.model))  # would make the configuration "test" the model
+        conforms, report = build.validate(broken, build.infer(broken, self.ontology))
+        self.assertFalse(conforms)
+        self.assertIn("Evaluation", report)
+
+    def test_shacl_checks_review_and_retrieval_dates(self) -> None:
+        broken = fixture()
+        broken.add((ID.result1, RB.reviewDate, Literal("2026-10-09", datatype=rdflib.XSD.date)))
+        broken.add((ID.result1, RB.reviewDate, Literal("2026-10-08", datatype=rdflib.XSD.date)))
+        broken.add((ID.paper, RB.retrievedAt, Literal("yesterday")))
+        conforms, report = build.validate(broken, build.infer(broken, self.ontology))
+        self.assertFalse(conforms)
+        self.assertIn("reviewDate", report)
+        self.assertIn("retrievedAt", report)
 
     def test_check_rejects_a_result_moved_to_another_system(self) -> None:
         moved = set(self.inferred) | {(ID.result1, RB.resultFor, ID.model)}

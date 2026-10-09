@@ -9,7 +9,7 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix mls: <http://www.w3.org/ns/mls#> .
-@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 
 rbs:Record a sh:NodeShape ;
     sh:targetSubjectsOf rb:status ;
@@ -19,6 +19,21 @@ rbs:Record a sh:NodeShape ;
     ] , [
         sh:path rb:status ; sh:minCount 1 ; sh:maxCount 1 ;
         sh:in ( "discovered" "needs_review" "source_checked" "reproduced" "disputed" "superseded" ) ;
+    ] .
+
+rbs:TestedLinks a sh:NodeShape ;
+    sh:targetSubjectsOf rb:testedSystem, rb:testedOn ;
+    rdfs:comment "Only evaluations test a system or use an assessment. A typed subject or assessment link on any other kind of record must get its own property in the mapping." ;
+    sh:class rb:Evaluation .
+
+rbs:Review a sh:NodeShape ;
+    sh:targetSubjectsOf rb:reviewDate, rb:reviewedAt ;
+    rdfs:comment "One review date and one review time at most, each correctly typed." ;
+    sh:property [
+        sh:path rb:reviewDate ; sh:maxCount 1 ; sh:datatype xsd:date ;
+    ] , [
+        sh:path rb:reviewedAt ; sh:maxCount 1 ;
+        sh:or ( [ sh:datatype xsd:dateTime ] [ sh:datatype xsd:date ] ) ;
     ] .
 
 rbs:Evaluation a sh:NodeShape ;
@@ -44,7 +59,7 @@ rbs:Result a sh:NodeShape ;
     ] , [
         sh:path mls:hasValue ; sh:maxCount 1 ; sh:datatype xsd:decimal ;
     ] , [
-        sh:path prov:wasDerivedFrom ; sh:minCount 1 ;
+        sh:path dcterms:source ; sh:minCount 1 ;
     ] , [
         sh:path rb:resultFor ; sh:minCount 1 ; sh:maxCount 1 ; sh:class rb:System ;
     ] , [
@@ -59,12 +74,15 @@ rbs:Claim a sh:NodeShape ;
     sh:property [
         sh:path rb:subject ; sh:minCount 1 ;
     ] , [
-        sh:path prov:wasDerivedFrom ; sh:minCount 1 ;
+        sh:path dcterms:source ; sh:minCount 1 ;
     ] .
 
 rbs:Source a sh:NodeShape ;
     sh:targetClass rb:Source ;
-    rdfs:comment "A source has at most one artifact checksum, as 64 hex characters." ;
+    rdfs:comment "A source has at most one artifact checksum, as 64 hex characters, and one typed retrieval date." ;
     sh:property [
+        sh:path rb:retrievedAt ; sh:maxCount 1 ;
+        sh:or ( [ sh:datatype xsd:dateTime ] [ sh:datatype xsd:date ] ) ;
+    ] , [
         sh:path rb:artifactSha256 ; sh:maxCount 1 ; sh:pattern "^[0-9a-f]{64}$" ;
     ] .

@@ -73,8 +73,8 @@ SUBJECT_LINKS = [RB.evaluatedSubject, RB.configuration, RB.method, RB.pipeline, 
 def in_vocabulary(predicate: URIRef, obj: object) -> bool:
     """Keep only facts stated in the rewire vocabulary: rb: links and rb: types.
 
-    Superclasses and superproperties from the imported vocabularies (prov:Entity,
-    prov:wasInfluencedBy, mls:InformationEntity, ...) follow from the ontology graph for any
+    Superclasses and superproperties from the imported vocabularies (mls:InformationEntity,
+    schema:Thing, obo:IAO_0000030, ...) follow from the ontology graph for any
     consumer that wants them; materialising them would restate every record in vaguer terms.
     """
     if predicate == RDF.type:
@@ -218,7 +218,7 @@ EXAMPLE_QUERIES = [
     {
         "title": "Sources behind a result",
         "query": "SELECT ?result ?source ?url ?locator WHERE {\n"
-        "  ?result a rb:Result ; prov:wasDerivedFrom ?source ; rb:sourceLocator ?locator .\n"
+        "  ?result a rb:Result ; dcterms:source ?source ; rb:sourceLocator ?locator .\n"
         "  OPTIONAL { ?source schema:url ?url }\n"
         "} LIMIT 20",
     },

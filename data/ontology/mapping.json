@@ -12,7 +12,6 @@
     "mls": "http://www.w3.org/ns/mls#",
     "dcat": "http://www.w3.org/ns/dcat#",
     "dcterms": "http://purl.org/dc/terms/",
-    "prov": "http://www.w3.org/ns/prov#",
     "schema": "https://schema.org/",
     "obo": "http://purl.obolibrary.org/obo/"
   },
@@ -26,17 +25,15 @@
     },
     "model": {
       "types": [
-        "rb:Model",
-        "mls:Implementation"
+        "rb:Model"
       ],
-      "basis": "A named model or model family as released; ML Schema Implementation is an executable realisation of an algorithm."
+      "basis": "A named model or model family as released. Most model records are families, which are neither executable implementations (mls:Implementation) nor trained artifacts (mls:Model), so no external class is asserted."
     },
     "configuration": {
       "types": [
-        "rb:Configuration",
-        "mls:Model"
+        "rb:Configuration"
       ],
-      "basis": "The exact trained setup that produced scores; ML Schema Model is the output of training with specific settings."
+      "basis": "The exact setup that produced scores. Many are reported labels, paper comparators or score-threshold schemes rather than trained artifacts, so mls:Model is not asserted."
     },
     "pipeline": {
       "types": [
@@ -74,9 +71,9 @@
     "evaluator": {
       "types": [
         "rb:Evaluator",
-        "mls:Implementation"
+        "schema:SoftwareApplication"
       ],
-      "basis": "Scoring software."
+      "basis": "Scoring software such as AMBER, OPAL or PoseBusters; not an implementation of a machine-learning algorithm."
     },
     "dataset": {
       "types": [
@@ -123,7 +120,7 @@
       "types": [
         "rb:Claim"
       ],
-      "basis": "One sourced assertion about another record; provenance via prov:wasDerivedFrom."
+      "basis": "One sourced assertion about another record; its sources via dcterms:source."
     }
   },
   "relations": {
@@ -220,8 +217,8 @@
       "basis": "A pipeline or service depends on a model. Not transitive and not a subproperty of rb:evaluatedSubject: pipeline results are never results of the model."
     },
     "part_of": {
-      "property": "dcterms:isPartOf",
-      "basis": "Component of a suite."
+      "property": "rb:partOf",
+      "basis": "Component of a suite. A subproperty of dcterms:isPartOf and of the transitive rb:within, so the transitivity applies only to rewire part-of links."
     },
     "evaluates_task": {
       "property": "rb:evaluatesTask",
@@ -244,7 +241,7 @@
       "basis": "Claim to the record it is about."
     },
     "source": {
-      "property": "prov:wasDerivedFrom",
+      "property": "dcterms:source",
       "basis": "Record to a source it is derived from."
     },
     "applicable_to": {
@@ -267,8 +264,9 @@
       "property": "rb:status"
     },
     "source_ids": {
-      "property": "prov:wasDerivedFrom",
-      "iri": true
+      "property": "dcterms:source",
+      "iri": true,
+      "basis": "The source the record (a description) is taken from. prov:wasDerivedFrom would make every described thing, including evaluation runs, a prov:Entity derived from a paper."
     }
   },
   "facets": {
@@ -355,10 +353,12 @@
       "property": "rb:reviewedBy"
     },
     "date": {
-      "property": "rb:reviewDate"
+      "property": "rb:reviewDate",
+      "datatype": "xsd:date"
     },
     "reviewed_at": {
-      "property": "rb:reviewDate"
+      "property": "rb:reviewedAt",
+      "datatype": "xsd:dateTime"
     }
   },
   "graph": "https://benchmarks.rewire.it/graph/asserted"

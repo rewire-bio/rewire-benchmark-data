@@ -21,7 +21,6 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix mls: <http://www.w3.org/ns/mls#> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
-@prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix schema: <https://schema.org/> .
 @prefix obo: <http://purl.obolibrary.org/obo/> .
 
@@ -45,13 +44,13 @@ rb:Method a owl:Class ; rdfs:subClassOf mls:Algorithm, rb:System ;
     rdfs:label "method" ;
     rdfs:comment "An algorithm or scientific procedure, independent of a trained artifact." .
 
-rb:Model a owl:Class ; rdfs:subClassOf mls:Implementation, rb:System ;
+rb:Model a owl:Class ; rdfs:subClassOf rb:System ;
     rdfs:label "model" ;
-    rdfs:comment "A named biological model or verified model family as released." .
+    rdfs:comment "A named biological model or verified model family as released. Most are families, which are neither executable implementations nor trained artifacts." .
 
-rb:Configuration a owl:Class ; rdfs:subClassOf mls:Model, rb:System ;
+rb:Configuration a owl:Class ; rdfs:subClassOf rb:System ;
     rdfs:label "configuration" ;
-    rdfs:comment "The exact checkpoint, settings or adaptation that produced scores." .
+    rdfs:comment "The exact checkpoint, settings or adaptation that produced scores. Often a label reported by a paper or challenge rather than a trained artifact." .
 
 rb:Pipeline a owl:Class ; rdfs:subClassOf mls:Implementation, rb:System ;
     rdfs:label "pipeline" ;
@@ -73,7 +72,7 @@ rb:Protocol a owl:Class ; rdfs:subClassOf obo:OBI_0000272, rb:Assessment ;
     rdfs:label "protocol" ;
     rdfs:comment "A concrete assessment procedure: data, split, inputs, adaptation and scoring." .
 
-rb:Evaluator a owl:Class ; rdfs:subClassOf mls:Implementation ;
+rb:Evaluator a owl:Class ; rdfs:subClassOf schema:SoftwareApplication ;
     rdfs:label "evaluator" ;
     rdfs:comment "Software or a procedure that scores predictions." .
 
@@ -223,7 +222,9 @@ rb:target a owl:ObjectProperty ;
     rdfs:label "target" ;
     rdfs:comment "The target record of a link object in the JSON-LD view of a record." .
 
-dcterms:isPartOf rdfs:subPropertyOf rb:within .
+rb:partOf a owl:ObjectProperty ; rdfs:subPropertyOf dcterms:isPartOf, rb:within ;
+    rdfs:label "part of" ;
+    rdfs:comment "A task or protocol to the benchmark or suite it is a component of." .
 
 # Generalised and inferred links ------------------------------------------------------------
 
@@ -241,7 +242,7 @@ rb:testedOn a owl:ObjectProperty ;
 
 rb:within a owl:ObjectProperty, owl:TransitiveProperty ;
     rdfs:label "within" ;
-    rdfs:comment "Part of a benchmark or suite, directly or through intermediate parts. Inferred from dcterms:isPartOf and rb:parent." .
+    rdfs:comment "Part of a benchmark or suite, directly or through intermediate parts. Inferred from rb:partOf and rb:parent." .
 
 rb:contains a owl:ObjectProperty ; owl:inverseOf rb:within ;
     rdfs:label "contains" ;
@@ -300,4 +301,5 @@ rb:claimField a owl:DatatypeProperty ; rdfs:label "claim field" ; rdfs:comment "
 rb:split a owl:DatatypeProperty ; rdfs:label "split" ; rdfs:comment "Data split a result was measured on." .
 rb:reviewMethod a owl:DatatypeProperty ; rdfs:label "review method" ; rdfs:comment "How a record was reviewed, such as automated or AI-assisted source review." .
 rb:reviewedBy a owl:DatatypeProperty ; rdfs:label "reviewed by" ; rdfs:comment "Who or what reviewed a record." .
-rb:reviewDate a owl:DatatypeProperty ; rdfs:label "review date" ; rdfs:comment "When a record was reviewed." .
+rb:reviewDate a owl:DatatypeProperty ; rdfs:label "review date" ; rdfs:comment "The date a record was reviewed (xsd:date)." .
+rb:reviewedAt a owl:DatatypeProperty ; rdfs:label "reviewed at" ; rdfs:comment "The time a review completed (xsd:dateTime), recorded separately from the review date by some intakes." .

@@ -74,6 +74,21 @@ function decodeURISafe(value: string) {
   try { return decodeURI(value); } catch { return value; }
 }
 
+/** The xsd:decimal lexical form of a number written with or without an exponent, without
+ * floating-point rounding ("1.39e-16" becomes "0.000000000000000139"). */
+export function canonicalDecimal(text: string): string | undefined {
+  const match = /^([-+]?)(\d+)(?:\.(\d+))?(?:[eE]([-+]?\d+))?$/.exec(text.trim());
+  if (!match) return undefined;
+  const [, sign, whole, fraction = "", exponent = "0"] = match;
+  let digits = whole + fraction;
+  let point = whole.length + Number(exponent);
+  if (point <= 0) { digits = "0".repeat(1 - point) + digits; point = 1; }
+  if (point > digits.length) digits = digits + "0".repeat(point - digits.length);
+  const integer = digits.slice(0, point).replace(/^0+(?=\d)/, "");
+  const decimals = digits.slice(point);
+  return `${sign === "-" ? "-" : ""}${integer}${decimals ? "." + decimals : ""}`;
+}
+
 /** One N-Quads line per statement; records are projected, never altered. */
 export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
   const graph = iri(mapping.graph);
@@ -84,8 +99,13 @@ export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
     if (value === null || value === undefined || typeof value === "object") return undefined;
     const text = String(value);
     if (t.iri) return /^https?:\/\//.test(text) ? iri(text) : undefined;
-    if (t.datatype === "xsd:decimal" && !/^-?\d+(\.\d+)?([eE][-+]?\d+)?$/.test(text)) return `"${escapeLiteral(text)}"`;
-    return t.datatype ? `"${escapeLiteral(text)}"^^${iri(expand(mapping, t.datatype))}` : `"${escapeLiteral(text)}"`;
+    if (t.datatype === "xsd:decimal") {
+      const decimal = canonicalDecimal(text);
+      return decimal === undefined ? `"${escapeLiteral(text)}"` : `"${decimal}"^^${iri(expand(mapping, "xsd:decimal"))}`;
+    }
+    // A date without a time is a valid xsd:date, not an xsd:dateTime.
+    const datatype = t.datatype === "xsd:dateTime" && /^\d{4}-\d{2}-\d{2}$/.test(text) ? "xsd:date" : t.datatype;
+    return datatype ? `"${escapeLiteral(text)}"^^${iri(expand(mapping, datatype))}` : `"${escapeLiteral(text)}"`;
   };
   const kind = mapping.classes[record.kind];
   if (!kind) throw new Error(`No class mapping for kind ${record.kind}`);
