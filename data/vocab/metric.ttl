@@ -400,17 +400,15 @@
 
 :correlation a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
-    skos:prefLabel "Correlation coefficient (type unspecified)"@en ;
-    skos:definition "A correlation coefficient between predicted and observed values whose type (Pearson, Spearman or other) is not stated by the source."@en ;
-    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000611> ;
+    skos:prefLabel "Correlation coefficient"@en ;
+    skos:definition "A correlation coefficient between predicted and observed values. Parent of Pearson, Spearman and Kendall; used directly when the source does not state the type."@en ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000611> ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :cosine-similarity a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Cosine similarity"@en ;
-    skos:altLabel "Fingerprint cosine similarity"@en ;
-    skos:altLabel "fingerprint_cosine_similarity"@en ;
-    skos:definition "Cosine of the angle between predicted and reference vectors (for example spectra or fingerprints)."@en ;
+    skos:definition "Cosine of the angle between predicted and reference vectors. Parent of the spectrum and fingerprint forms, which measure different quantities."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :count a skos:Concept, mls:EvaluationMeasure ;
@@ -427,15 +425,15 @@
     skos:definition "Challenge 1 score: for each knockout, the L1 distance between predicted and observed cell-state proportion vectors, averaged over the scored knockouts."@en ;
     skos:broader :composition-l1-distance ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
-    skos:scopeNote "Defined by Cancer Immunotherapy Data Science Challenge (CPPC)"@en .
+    skos:scopeNote "Defined by Cancer Immunotherapy Machine Learning Competition, Cell Perturbation Prediction Challenge (CPPC)"@en .
 
 :cppc-topk-overlap-auc a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Top-k overlap AUC"@en ;
     skos:altLabel "robust-topk-overlap-auc"@en ;
-    skos:definition "Challenge 2 score: area under the curve of overlap between the predicted and observed top-k target rankings across k."@en ;
+    skos:definition "Challenge 2 score: area under the curve of overlap between predicted and observed top-k target rankings across k, computed for the filtered and unfiltered Screen 2 and scored as the minimum of the two averaged scores."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
-    skos:scopeNote "Defined by Cancer Immunotherapy Data Science Challenge (CPPC)"@en .
+    skos:scopeNote "Defined by Cancer Immunotherapy Machine Learning Competition, Cell Perturbation Prediction Challenge (CPPC)"@en .
 
 :designability a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -518,6 +516,14 @@
     skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000053> ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
 
+:fingerprint-cosine-similarity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Fingerprint cosine similarity"@en ;
+    skos:altLabel "fingerprint_cosine_similarity"@en ;
+    skos:definition "Cosine similarity between a predicted and a reference molecular fingerprint."@en ;
+    skos:broader :cosine-similarity ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
 :fnat a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Fraction of native contacts (Fnat)"@en ;
@@ -547,7 +553,7 @@
     skos:prefLabel "Diversity at TM-score 0.5"@en ;
     skos:altLabel "Diversity, TM < 0.5"@en ;
     skos:altLabel "diversity_tm_05"@en ;
-    skos:definition "Number of structure clusters at a TM-score threshold of 0.5 divided by the number of designable structures, as reported by Genie 3."@en ;
+    skos:definition "Number of unique structure clusters at a TM-score threshold of 0.5, reported by Genie 3 per 100 trials."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by Genie 3"@en .
 
@@ -556,7 +562,7 @@
     skos:prefLabel "Diversity at TM-score 0.6"@en ;
     skos:altLabel "Diversity, TM < 0.6"@en ;
     skos:altLabel "diversity_tm_06"@en ;
-    skos:definition "Number of structure clusters at a TM-score threshold of 0.6 divided by the number of designable structures, as reported by Genie 3."@en ;
+    skos:definition "Number of unique structure clusters at a TM-score threshold of 0.6, reported by Genie 3 per 100 trials."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by Genie 3"@en .
 
@@ -565,7 +571,7 @@
     skos:prefLabel "Novelty against AFDB"@en ;
     skos:altLabel "Novelty, AFDB"@en ;
     skos:altLabel "novelty_afdb"@en ;
-    skos:definition "Proportion of designable structures that are novel relative to AlphaFold DB under the Genie 3 TM-score criterion."@en ;
+    skos:definition "Genie 3 novelty score of designable structures against AlphaFold DB, computed from each structure's closest FoldSeek hit, with a maximum of 1 when there is no hit."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by Genie 3"@en .
 
@@ -574,7 +580,7 @@
     skos:prefLabel "Novelty against PDB"@en ;
     skos:altLabel "Novelty, PDB"@en ;
     skos:altLabel "novelty_pdb"@en ;
-    skos:definition "Proportion of designable structures that are novel relative to the PDB under the Genie 3 TM-score criterion."@en ;
+    skos:definition "Genie 3 novelty score of designable structures against the PDB, computed from each structure's closest FoldSeek hit, with a maximum of 1 when there is no hit."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by Genie 3"@en .
 
@@ -690,7 +696,7 @@
     skos:altLabel "Log-Loss"@en ;
     skos:altLabel "cross-entropy"@en ;
     skos:definition "Mean negative log-likelihood of the true labels under the predicted class probabilities (binary or categorical cross-entropy)."@en ;
-    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000550> ;
+    skos:relatedMatch <http://purl.obolibrary.org/obo/STATO_0000550> ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
 
 :macro-average-precision a skos:Concept, mls:EvaluationMeasure ;
@@ -729,7 +735,7 @@
     skos:altLabel "MCC"@en ;
     skos:altLabel "mcc"@en ;
     skos:definition "Matthews correlation coefficient (phi) computed from the binary or multiclass confusion matrix."@en ;
-    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000524> ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000524> ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :mean-absolute-error a skos:Concept, mls:EvaluationMeasure ;
@@ -800,6 +806,13 @@
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by ProteinGym"@en .
 
+:new-candidates-per-1000-cases-per-cycle a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "New candidates per 1000 cases per reanalysis cycle"@en ;
+    skos:altLabel "new_candidates_per_1000"@en ;
+    skos:definition "Number of new candidate variants raised per 1000 cases in one reanalysis cycle. A rate with a different denominator and period from candidates per case."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
 :normalized-mutual-information a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Normalised mutual information (NMI)"@en ;
@@ -857,7 +870,7 @@
     skos:altLabel "pearson_r_squared"@en ;
     skos:definition "The square of the Pearson correlation coefficient between predicted and observed values. Equals the coefficient of determination only for an ordinary least-squares fit of observed on predicted."@en ;
     skos:broader :pearson-correlation ;
-    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000564> ;
+    skos:relatedMatch <http://purl.obolibrary.org/obo/STATO_0000564> ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :percent-agreement a skos:Concept, mls:EvaluationMeasure ;
@@ -867,7 +880,7 @@
     skos:altLabel "concordance"@en ;
     skos:altLabel "concordance_rate"@en ;
     skos:definition "Proportion of items for which two classifications (for example a tool and a curated reference or expert panel) assign the same class. Not chance-corrected."@en ;
-    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000623> ;
+    skos:broadMatch <http://purl.obolibrary.org/obo/STATO_0000623> ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :perplexity a skos:Concept, mls:EvaluationMeasure ;
@@ -1002,7 +1015,7 @@
     skos:prefLabel "Binding energy"@en ;
     skos:altLabel "Binding Energy"@en ;
     skos:altLabel "binding-energy"@en ;
-    skos:definition "Rosetta-computed antibody-antigen binding energy (ddG); more negative is stronger binding."@en ;
+    skos:definition "Rosetta InterfaceAnalyzer binding energy between the designed CDR-H3 and the antigen; more negative is stronger binding (ProteinBench, appendix B.1.4)."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
     skos:scopeNote "Defined by ProteinBench"@en .
 
@@ -1041,7 +1054,7 @@
 :proteinbench-cn-score a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "CN-score"@en ;
-    skos:definition "Contact-number score for designed CDRs, as defined by ProteinBench."@en ;
+    skos:definition "The average density of the lengths of all peptide bonds in a generated antibody under the distribution of natural peptide-bond lengths (ProteinBench, appendix B.1.4)."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by ProteinBench"@en .
 
@@ -1094,7 +1107,7 @@
     skos:prefLabel "Sequence naturalness (SeqNat)"@en ;
     skos:altLabel "SeqNat"@en ;
     skos:altLabel "seqnat"@en ;
-    skos:definition "Antibody language-model log-likelihood of designed CDR sequences."@en ;
+    skos:definition "Naturalness of designed CDR sequences from the AntiBERTy language model. The appendix gives the pseudo-log-likelihood; the main text says inverse perplexity."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by ProteinBench"@en .
 
@@ -1119,7 +1132,7 @@
     skos:prefLabel "Total energy"@en ;
     skos:altLabel "Total Energy"@en ;
     skos:altLabel "total-energy"@en ;
-    skos:definition "Rosetta total energy of the designed antibody-antigen complex."@en ;
+    skos:definition "The sum of the Rosetta total energy of all CDR-H3 residues of the designed antibody (ProteinBench, appendix B.1.4)."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
     skos:scopeNote "Defined by ProteinBench"@en .
 
@@ -1330,6 +1343,15 @@
     skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000134> ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
+:spectrum-cosine-similarity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Spectrum cosine similarity"@en ;
+    skos:altLabel "Cosine similarity"@en ;
+    skos:definition "Cosine similarity between a predicted and an observed mass spectrum."@en ;
+    skos:broader :cosine-similarity ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by MassSpecGym"@en .
+
 :splice-top-k-accuracy a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Top-k accuracy (k = number of true sites)"@en ;
@@ -1343,7 +1365,7 @@
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Success rate"@en ;
     skos:definition "Proportion of cases that meet a task-specific success criterion stated by the source."@en ;
-    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000607> ;
+    skos:broadMatch <http://purl.obolibrary.org/obo/STATO_0000607> ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :tm-score a skos:Concept, mls:EvaluationMeasure ;
@@ -1488,7 +1510,7 @@
     skos:altLabel "pct-unlabeled"@en ;
     skos:altLabel "rejection rate"@en ;
     skos:definition "Proportion of items (for example cells) a classifier with a rejection option leaves unlabelled. Must be read together with the accuracy on the assigned items."@en ;
-    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000607> ;
+    skos:broadMatch <http://purl.obolibrary.org/obo/STATO_0000607> ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
 
 :v-measure a skos:Concept, mls:EvaluationMeasure ;
@@ -1502,7 +1524,7 @@
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Virtual Cell Challenge overall score"@en ;
     skos:altLabel "score_avg"@en ;
-    skos:definition "Virtual Cell Challenge 2026 overall leaderboard score (score_avg): average of the challenge's component scores, each calibrated against baseline and split-half experimental references. Negative values are worse than the baseline. Exact component formula set by the organisers."@en ;
+    skos:definition "Virtual Cell Challenge 2026 overall leaderboard score: an organiser-defined composite. Negative values are worse than the baseline."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by Virtual Cell Challenge 2026"@en .
 

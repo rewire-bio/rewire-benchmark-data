@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { migrated } from "./helpers/vocab";
 import { describe, it, expect } from "vitest";
 import { batchRecords } from "./helpers/records";
 import { profileSchema } from "../services/omics/src/profile-schema";
@@ -46,8 +47,9 @@ describe("reviewed acquisition graph and scientific scope", () => {
       const c = candidateFor(r);
       expect(r.attributes.printed_value, r.id).toBe(c.printed_value);
       expect(Number(r.attributes.numeric_value), r.id).toBe(c.numeric_value);
-      expect(r.attributes.unit, r.id).toBe(c.unit);
-      expect(r.attributes.metric, r.id).toBe(c.metric);
+      // Units and metrics are concept keys now; the batch keeps the source wording.
+      expect(r.attributes.metric, r.id).toBe(migrated("metric", c.metric));
+      expect(r.attributes.unit, r.id).toBe(migrated("unit", c.unit));
       expect(r.attributes.uncertainty, r.id).toEqual(c.uncertainty);
       expect(evalFor(r).kind).toBe("evaluation");
       expect(protocolFor(r).links).toContainEqual({
@@ -160,7 +162,7 @@ describe("reviewed acquisition graph and scientific scope", () => {
       expect(evalFor(r).attributes.conditions.gold_standard_reference).toBe(
         true,
       );
-    const means = rs.filter((r) => r.attributes.metric.startsWith("Average "));
+    const means = rs.filter((r) => candidateFor(r).metric.startsWith("Average "));
     expect(means).toHaveLength(64);
     for (const r of means) {
       expect(r.attributes.uncertainty.kind).toBe("standard_error");

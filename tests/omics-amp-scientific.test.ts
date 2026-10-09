@@ -90,7 +90,9 @@ describe("AMP primary-source scientific regressions", () => {
       const match = results.filter(r => {
         const e = linked(r, "evaluation"); const c = linked(e, "configuration");
         return c.attributes.reported_name === cell.model && taskOf(e) === cell.task &&
-          r.attributes.unit === cell.metric && String(r.attributes.source_locator).startsWith(`Table ${cell.table},`);
+          // The source labelled these columns AUC and Cohen's d; they are metric concepts now.
+          r.attributes.metric === (cell.metric === "Cohen's d" ? "cohens-d" : "auroc") &&
+          String(r.attributes.source_locator).startsWith(`Table ${cell.table},`);
       });
       expect(match, JSON.stringify(cell)).toHaveLength(1);
       const r = match[0];

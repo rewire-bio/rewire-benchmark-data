@@ -8,7 +8,9 @@ import crypto from "node:crypto";
 import { recordSchema, validateRecords, type RecordEntry } from "./schema";
 import { loadSchemes, validateVocabularies } from "./vocab";
 
-const readMapping = (root = ".") => JSON.parse(fs.readFileSync(path.join(root, "data/ontology/mapping.json"), "utf8"));
+/** The mapping and vocabularies are repository configuration, not store content: a store under
+ * another root (as in tests) is validated against this repository's schemes. */
+const readMapping = () => JSON.parse(fs.readFileSync("data/ontology/mapping.json", "utf8"));
 
 export const evidenceKinds = ["evaluation", "result", "claim"] as const;
 export const provenanceFile = "data/provenance/records.jsonl";
@@ -68,7 +70,7 @@ export function loadRecords(root = "."): RecordEntry[] {
   }
   if (provenance.size !== records.length)
     throw new Error(`${provenanceFile} lists ${provenance.size} records; the store holds ${records.length}`);
-  validateVocabularies(readMapping(root), records, loadSchemes(root));
+  validateVocabularies(readMapping(), records, loadSchemes());
   return validateRecords(records.sort((a, b) => (a.id < b.id ? -1 : 1)));
 }
 
@@ -100,7 +102,7 @@ export function addBatch(batchFile: string, batchDir: string, root = "."): numbe
       id: record.id, sha256: recordSha256(record), added_in: batchDir, added_by: "records:add", changed_by: [],
     });
   }
-  validateVocabularies(readMapping(root), additions, loadSchemes(root));
+  validateVocabularies(readMapping(), additions, loadSchemes());
   validateRecords([...existing, ...additions]);
   writeStore([...existing, ...additions], provenance, root);
   return additions.length;

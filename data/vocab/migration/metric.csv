@@ -9,7 +9,7 @@ F1-max,f1-max,exact,,CAFA Fmax
 auroc,auroc,exact,,
 Early Precision Ratio,early-precision-ratio,normalised,,
 auc,auroc,normalised,,"Generic 'auc'; all uses are NABench, ProteinGym and BEACON, which report ROC AUC"
-ndcg,ndcg,uncertain,,Mixed cutoffs: 21 ProteinGym ZS-SUB-NDCG rows are NDCG@10% and should be remapped per record to ndcg-at-10-percent; NABench and FLIP2 cutoff not stated
+ndcg,ndcg,uncertain,cutoff not stated,Mixed cutoffs: 21 ProteinGym ZS-SUB-NDCG rows are NDCG@10% and should be remapped per record to ndcg-at-10-percent; NABench and FLIP2 cutoff not stated; ProteinGym ZS-SUB rows are remapped to ndcg-at-10-percent in metric-by-record.csv
 f1,f1-score,uncertain,,"Mixed averaging: Open Problems label projection 'F1 score' is believed to be support-weighted F1; BEACON, GUE and PFMBench averaging not recorded"
 f1-macro,macro-f1,normalised,,
 AUPRC Ratio,auprc-ratio,normalised,,
@@ -137,7 +137,7 @@ novelty_afdb,genie-novelty-afdb,normalised,,
 novelty_pdb,genie-novelty-pdb,normalised,,
 SP,specificity,exact,,
 SN,recall,exact,,
-reimplemented-best-topk-overlap-auc,cppc-topk-overlap-auc,uncertain,,String drops 'robust' and names the reimplemented best model; not confirmed that it is the same robust variant as robust-topk-overlap-auc
+reimplemented-best-topk-overlap-auc,cppc-topk-overlap-auc,uncertain,reimplemented model; scoring rule unconfirmed,String drops 'robust' and names the reimplemented best model; not confirmed that it is the same robust variant as robust-topk-overlap-auc
 Max Clust.,proteinbench-max-clust,exact,,
 Max TM,proteinbench-max-tm,normalised,,
 eQTL AUC,auroc,uncertain,task: eqtl,Feng 'AUC' without curve type; assumed ROC.
@@ -179,14 +179,14 @@ Recall@5,top-5-accuracy,normalised,,MSAlign R@5 on MassSpecGym retrieval
 Macro F1 score,macro-f1,normalised,,
 pairwise TM,proteinbench-pairwise-tm,normalised,,
 Prec.,precision,normalised,,
-Cosine similarity,cosine-similarity,exact,,MassSpecGym spectrum cosine similarity
+Cosine similarity,spectrum-cosine-similarity,normalised,,MassSpecGym spectrum cosine similarity
 Jensen-Shannon similarity,jensen-shannon-similarity,exact,,
 Log-Loss,log-loss,normalised,,
 Accur.,accuracy,normalised,,
 binding-energy,proteinbench-binding-energy,normalised,,
 clashes-inner,proteinbench-clashes-inner,normalised,,
 clashes-outer,proteinbench-clashes-outer,normalised,,
-cn-score,proteinbench-cn-score,uncertain,,ProteinBench CN-score definition not extracted from the source
+cn-score,proteinbench-cn-score,normalised,,Definition checked against ProteinBench appendix B.1.4
 seqnat,proteinbench-seqnat,normalised,,
 total-energy,proteinbench-total-energy,normalised,,
 phr,proteinbench-phr,normalised,,
@@ -267,7 +267,7 @@ median-f1,median-f1,exact,,Median F1 across cell populations (Abdelaal et al. 20
 precision-at-70-recall,precision-at-70-percent-recall,normalised,,
 Pearson r,pearson-correlation,exact,,
 AAR,sequence-recovery,exact,,
-fingerprint_cosine_similarity,cosine-similarity,normalised,,Fingerprint cosine similarity (MIST)
+fingerprint_cosine_similarity,fingerprint-cosine-similarity,normalised,,Fingerprint cosine similarity (MIST)
 Weighted F1,weighted-f1,exact,,
 Val Accuracy,accuracy,normalised,validation split,
 AUSPC,auspc,normalised,,
@@ -425,10 +425,10 @@ oncogenic_sensitivity,recall,normalised,class: oncogenic,
 truncating_concordance,percent-agreement,normalised,variant type: truncating,
 tsg_concordance,percent-agreement,normalised,gene role: tumour suppressor,
 expert_concordance,percent-agreement,normalised,vs expert reassessment,Agreement with expert reassessment
-score_correlation,correlation,uncertain,,Correlation type (Pearson or Spearman) not recorded; computed on concordant variants only
+score_correlation,correlation,uncertain,correlation type not stated,Correlation type (Pearson or Spearman) not recorded; computed on concordant variants only
 appropriate_retrieval_rate_postcutoff,success-rate,normalised,"appropriate passage retrieved, post-cutoff entries","Manually judged appropriate passage retrieval, post-cutoff entries"
 roc-auc,auroc,normalised,known vs unknown cell type,Known versus unknown cell type from ensemble uncertainty
-Fingerprint cosine similarity,cosine-similarity,normalised,,Fingerprint cosine similarity (MIST)
+Fingerprint cosine similarity,fingerprint-cosine-similarity,normalised,,Fingerprint cosine similarity (MIST)
 Retrieval accuracy@1,top-1-accuracy,normalised,,MIST CANOPUS retrieval
 Retrieval accuracy@10,top-10-accuracy,normalised,,MIST CANOPUS retrieval
 Retrieval accuracy@100,top-100-accuracy,normalised,,MIST CANOPUS retrieval
@@ -455,7 +455,7 @@ TM-score,tm-score,exact,,
 Binding Energy,proteinbench-binding-energy,normalised,,
 Clashes-inner,proteinbench-clashes-inner,normalised,,
 Clashes-outer,proteinbench-clashes-outer,normalised,,
-CN-score,proteinbench-cn-score,uncertain,,ProteinBench CN-score definition not extracted from the source
+CN-score,proteinbench-cn-score,normalised,,Definition checked against ProteinBench appendix B.1.4
 SeqNat,proteinbench-seqnat,normalised,,
 Total Energy,proteinbench-total-energy,normalised,,
 PHR,proteinbench-phr,normalised,,
@@ -525,7 +525,7 @@ improved_analysis_diagnoses,count,normalised,diagnoses: improved analysis,Diagno
 improved_analysis_share,proportion,normalised,diagnoses: improved analysis,Share of diagnoses from improved analysis; descriptive
 later_cycle_diagnoses,count,normalised,diagnoses: later cycles,Diagnoses in later cycles
 later_cycle_share,proportion,normalised,diagnoses: later cycles,Share of diagnoses made in later cycles; descriptive
-new_candidates_per_1000,candidates-per-case,uncertain,per 1000 cases per cycle,"Rate per 1000 cases per reanalysis cycle, not per case; unit and scope differ"
+new_candidates_per_1000,new-candidates-per-1000-cases-per-cycle,exact,,"Rate per 1000 cases per reanalysis cycle, not per case; unit and scope differ"
 new_confirmed_diagnoses,count,normalised,diagnoses: new confirmed,New confirmed diagnoses
 new_gene_disease_diagnoses,count,normalised,diagnoses: new gene-disease evidence,Diagnoses from new gene-disease evidence
 new_gene_disease_share,proportion,normalised,diagnoses: new gene-disease evidence,Share of diagnoses from new gene-disease evidence; descriptive

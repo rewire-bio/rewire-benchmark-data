@@ -18,7 +18,13 @@ export const migrationDir = "data/vocab/migration";
 /** keep_detail: text a concept cannot hold, kept in a note field. qualifier (metric table only):
  * what distinguishes rows that share a metric concept, kept in attributes.metric_qualifier. */
 type Row = { source_string: string; concept: string; match: string; keep_detail: string; note: string; qualifier?: string };
-type StoreRecord = { id: string; kind: string; facets: Record<string, string[]>; attributes: Record<string, unknown> };
+type StoreRecord = {
+  id: string;
+  kind: string;
+  facets: Record<string, string[]>;
+  links: { relation: string; target_id: string }[];
+  attributes: Record<string, unknown>;
+};
 
 /** Minimal RFC 4180 reader: quoted fields, doubled quotes, commas and newlines inside quotes. */
 export function readCsv(text: string): Record<string, string>[] {
@@ -61,7 +67,8 @@ const single = (keys: string[]) => (keys.length === 1 ? keys[0] : keys);
 export function migrateRecord(
   record: StoreRecord,
   tables: Map<string, Map<string, Row>>,
-  overrides: { unit: Override[]; area: Override[] },
+  overrides: { unit: Override[]; area: Override[]; metric: Override[]; direction: Override[] },
+  assessments: (record: StoreRecord) => string[] = () => [],
 ): boolean {
   const before = JSON.stringify(record);
   const a = record.attributes;
@@ -102,11 +109,19 @@ export function migrateRecord(
 
   // The metric comes first: unit overrides are keyed by the migrated metric.
   if (a.metric !== null && a.metric !== undefined) {
-    const row = lookup("metric", a.metric, "metric");
-    if (row) {
-      a.metric = single(conceptsOf(row));
-      if (row.qualifier) a.metric_qualifier = row.qualifier;
+    const source = a.metric;
+    const row = lookup("metric", source, "metric");
+    a.metric = single(conceptsOf(row));
+    let qualifier = row.qualifier ?? "";
+    // Per-record corrections where the same string means different things in different assessments.
+    const rule = overrides.metric.find(
+      (o) => o.source_string === source && assessments(record).some((id) => id.startsWith(o.assessment_prefix)),
+    );
+    if (rule) {
+      if (rule.concept) a.metric = rule.concept;
+      qualifier = rule.qualifier;
     }
+    if (qualifier) a.metric_qualifier = qualifier;
   }
   if (a.unit !== null && a.unit !== undefined) {
     const unitText = a.unit;
@@ -117,6 +132,8 @@ export function migrateRecord(
     } else scalar("unit", "unit", "unit_detail");
   }
   scalar("direction", "metric_direction");
+  const direction = overrides.direction.find((o) => o.id === record.id);
+  if (direction) a.metric_direction = direction.metric_direction;
   facet("area", "areas");
   facet("method-type", "method_types");
   facet("context", "contexts");
@@ -159,15 +176,33 @@ if (process.argv[1]?.endsWith("migrate-vocab.ts")) {
     for (const row of table.values())
       for (const key of conceptsOf(row))
         if (!validKeys.get(scheme)!.has(key)) throw new Error(`${scheme}.csv maps to unknown concept ${key}`);
-  const overrides = { unit: readOverrides("unit-by-metric"), area: readOverrides("area-by-record") };
+  const overrides = {
+    unit: readOverrides("unit-by-metric"),
+    area: readOverrides("area-by-record"),
+    metric: readOverrides("metric-by-record"),
+    direction: readOverrides("direction-by-record"),
+  };
+  for (const o of overrides.metric)
+    if (o.concept && !validKeys.get("metric")!.has(o.concept)) throw new Error(`metric-by-record.csv maps to unknown concept ${o.concept}`);
+  for (const o of overrides.direction)
+    if (!validKeys.get("direction")!.has(o.metric_direction)) throw new Error(`direction-by-record.csv uses unknown direction ${o.metric_direction}`);
   const changed = new Set<string>();
   const files = new Map(recordFiles().map((file) => [
     file,
     fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as StoreRecord),
   ]));
   const byId = new Map([...files.values()].flat().map((record) => [record.id, record]));
+  // The assessment (task or protocol) a result's evaluation used, read before any record changes.
+  const assessmentsOf = new Map<string, string[]>();
+  for (const record of byId.values()) {
+    if (record.kind !== "result") continue;
+    const links = record.links;
+    const evaluation = byId.get(links.find((l) => l.relation === "evaluation")?.target_id ?? "");
+    const evaluationLinks = evaluation?.links ?? [];
+    assessmentsOf.set(record.id, evaluationLinks.filter((l) => ["benchmark", "protocol", "task"].includes(l.relation)).map((l) => l.target_id));
+  }
   for (const record of byId.values())
-    if (migrateRecord(record, tables, overrides)) changed.add(record.id);
+    if (migrateRecord(record, tables, overrides, (r) => assessmentsOf.get(r.id) ?? [])) changed.add(record.id);
   // Curated panels name the metric, unit and qualifier of the results they show; take them
   // from those migrated results so a panel and its rows always agree.
   for (const record of byId.values()) {
