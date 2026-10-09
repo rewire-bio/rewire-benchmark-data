@@ -1,6 +1,7 @@
 /** Publish the prepared release file as an immutable GitHub Release asset.
  * Tag `serving/<release_id>` holds `catalogue-<release_id>.sqlite` and its
- * receipt. An existing asset must be byte-identical; it is never replaced.
+ * receipt. An existing asset is never replaced. A build by the same generator
+ * must be byte-identical to it.
  *   npm run serving:publish            publish (requires gh with write access)
  *   npm run serving:publish -- --check verify the published asset only
  */
@@ -24,13 +25,17 @@ const gh = (...args: string[]) => execFileSync("gh", args, { encoding: "utf8", s
 let exists = true;
 try { gh("release", "view", tag, "--repo", repository, "--json", "tagName"); } catch { exists = false; }
 if (exists) {
+  // Compare receipts rather than downloading the file. A published asset is never
+  // replaced: the same generator must reproduce it exactly, and a later generator
+  // leaves it in place until the next release.
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "serving-"));
-  gh("release", "download", tag, "--repo", repository, "--pattern", receipt.file, "--dir", directory);
-  const published = sha256(fs.readFileSync(path.join(directory, receipt.file)));
+  gh("release", "download", tag, "--repo", repository, "--pattern", receiptFile, "--dir", directory);
+  const published = JSON.parse(fs.readFileSync(path.join(directory, receiptFile), "utf8"));
   fs.rmSync(directory, { recursive: true, force: true });
-  if (published !== receipt.sha256)
-    throw new Error(`Published ${receipt.file} (${published}) differs from this build (${receipt.sha256}); releases are immutable`);
-  console.log(`${tag} already published and byte-identical (${receipt.sha256}).`);
+  if (published.sha256 === receipt.sha256) console.log(`${tag} already published and byte-identical (${receipt.sha256}).`);
+  else if (published.generator_sha256 === receipt.generator_sha256)
+    throw new Error(`Published ${receipt.file} (${published.sha256}) differs from this build (${receipt.sha256}) with the same generator; the build is not deterministic`);
+  else console.log(`${tag} was published by generator ${published.generator_sha256}; this build's generator ${receipt.generator_sha256} differs, so the published asset stays.`);
 } else if (check) {
   throw new Error(`${tag} is not published`);
 } else {
