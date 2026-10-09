@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T23:00:00Z",
+  "scope": "Independent review of the splicing follow-up batch for use-case-splicing-follow-up: 680 records after review (522 results, 84 evaluations, 24 configurations, 13 methods, 14 claims including 10 relevance judgements, 10 protocols, 9 datasets, 4 sources). All four source artifacts were re-downloaded and matched their recorded SHA-256; the archived artifacts/*.gz decompress to the same bytes. All 522 results were re-read from the pinned cells with a separate parser (the extractor's scripts were not run) and match in value, metric, qualifier, direction, configuration, protocol and dataset; every Riepe et al. rate and MCC was recomputed from its confusion matrix. The batch depends on rna-splicing-20261009-method-squirls (patient RNA splicing batch) and somatic-oncogenicity-20261009-method-cadd (somatic oncogenicity batch). See docs/reviews/use-cases/splicing-follow-up-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any predictor.",
+    "Figures were not checked; Smith and Kitzman prAUC values are figure-only.",
+    "Riepe et al. cutoffs for Tables 3 to 5 are unstated and tuned on the same data; the authors' analysis scripts were not read.",
+    "The masking setting behind Smith and Kitzman Table S2 and the settings of the SpliceAI 1.3 precomputed background scores are unstated.",
+    "Znabu et al. variant-level identity with rewire-mfass-v2-dataset was not checked.",
+    "Relevance judgement pins are left unset for the integrator; the dry run loaded the store, the patient RNA splicing batch and the somatic oncogenicity batch first and derived all 14 judgements as active after pinning, with the four existing judgements re-pinned."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "splicing-follow-up-20261009-method-squirls",
+        "splicing-follow-up-20261009-config-smith2023-squirls-1-0-0"
+      ],
+      "message": "Duplicate SQUIRLS method removed; the configuration now points at the reviewed rna-splicing-20261009-method-squirls."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "splicing-follow-up-20261009-method-cadd",
+        "splicing-follow-up-20261009-config-riepe2021-cadd-1-6"
+      ],
+      "message": "Duplicate CADD method removed; the configuration now points at the reviewed somatic-oncogenicity-20261009-method-cadd. A replacement for that record's too-narrow description is proposed in the dated review (Follow-up corrections)."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "12 Smith and Kitzman results with raw cell 1 or 0"
+      ],
+      "message": "printed_value and numeric_value 1.0 and 0.0 changed to 1 and 0, the stored and displayed cell text; claims.csv synced. No value changed."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "10 Znabu et al. AUROC and average-precision results"
+      ],
+      "message": "unit fraction changed to unitless, the store's convention for these metrics."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "splicing-follow-up-20261009-source-smith2023"
+      ],
+      "message": "version_note said the stored evidence-expansion-splice-evaluation-6960a140 has the same URL; it pins the bioRxiv preprint (PMC10187268), a different version. Both records kept; the note now says so."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "splicing-follow-up-20261009-source-znabu2026"
+      ],
+      "message": "hash_scope said a re-download gives different bytes; the review re-download matched. Text corrected."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "splicing-follow-up-20261009-claim-riepe2021-mmsplice-spidex-di-excluded"
+      ],
+      "message": "source_locator paragraph 3 corrected to paragraph 7 (the last) of Methods 'In silico splice prediction tools'; claims.csv synced."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-splicing-follow-up-20261009-smith2023-mlh1-curated"
+      ],
+      "message": "outside_scope judgement no longer takes a stratum in the Smith and Kitzman comparison group; the other five strata renumbered 1 to 5."
+    }
+  ],
+  "files": {
+    "artifacts/smith2023-article.xml.gz": "208784c07a8df62c06170cea09f2fa9d3efe4d4c7b11d6fc8841a191f7abfc16",
+    "artifacts/smith2023-table-s2.xlsx.gz": "0588a7a69ad6a02769023e0f42a2b3f3b34f03dd74d56fc7ff54ac7a6f0f6c81",
+    "artifacts/znabu2026-preprint.pdf.gz": "c2e4679943c8cd7d4f56a943d48ed6fe916f1aafd01ba5ac183257cd42dd2bac",
+    "batch.jsonl": "0d0542bc43ab3098e2533bd1db2b2c42d28f498e2310dad96b883486ac48fae3",
+    "claims.csv": "65cbdd41eb334854f1b0ddca000d7862b85e3c86230adb182bd22f42b5ce3ec5",
+    "coverage.json": "064a25f43e868e62b96bec3728bffcd6d09639fa458520de068de95191a6ed29",
+    "extract/extract_splicing_follow_up.py": "a3fee47ba4ab083cb0982cdf6abd4648aba04cb6859fcdce75cc096e946c3a2e",
+    "extract/rawxlsx.py": "81aa5a418143431976749abe8273a45f37c8bde0fe4c1ce25a449221ae512726",
+    "research.md": "18f74b79ba48c98f7dcfe52410397149cfe283840e8239a9bbc438cc940841f6",
+    "retrieval-log.md": "43dbb96d1c027d31bea4c6bec2621eddd510006c98f4c7bb5ae9c2afc6695e30",
+    "sources.md": "ffd44042672dba3ef9332495556f4be355898b2ded590ec9926ab36b624ea6e1"
+  }
+}
