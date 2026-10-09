@@ -74,6 +74,15 @@ describe("N-Quads export", () => {
     expect(lines.some((l) => l.includes("http://www.w3.org/ns/mls#Run"))).toBe(true);
   });
 
+  it("exports controlled values, including facets, as concept IRIs", () => {
+    const result = records.find((r) => r.kind === "result" && r.status === "source_checked")!;
+    const withArea = records.find((r) => (r.facets.areas ?? []).length > 0)!;
+    const lines = [...recordQuads(mapping, result), ...recordQuads(mapping, withArea)];
+    expect(lines.some((l) => l.includes(`<${RB}metric> <https://benchmarks.rewire.it/vocab/metric/${result.attributes.metric}>`))).toBe(true);
+    expect(lines.some((l) => l.includes(`<${RB}area> <https://benchmarks.rewire.it/vocab/area/${withArea.facets.areas[0]}>`))).toBe(true);
+    expect(lines.some((l) => /<https:\/\/benchmarks\.rewire\.it\/vocab#(metric|area|status|unit)> "/.test(l))).toBe(false);
+  });
+
   it("gives links that mean something else on baselines and subsets their own properties", () => {
     const baseline = records.find((r) => r.kind === "baseline" && r.links.some((l) => l.relation === "evaluation"))!;
     const lines = recordQuads(mapping, baseline);

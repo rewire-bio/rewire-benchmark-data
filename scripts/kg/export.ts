@@ -123,7 +123,11 @@ export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
   for (const id of record.source_ids) add(mapping.fields.source_ids.property, iri(mapping.base + id));
   for (const [facet, values] of Object.entries(record.facets)) {
     const t = mapping.facets[facet];
-    if (t) for (const value of values) add(t.property, `"${escapeLiteral(value)}"`);
+    if (t)
+      for (const value of values) {
+        const object = literal(value, t);
+        if (object) add(t.property, object);
+      }
   }
   for (const link of record.links) {
     const relation = mapping.relations[link.relation];
