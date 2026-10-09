@@ -129,15 +129,33 @@
   "relations": {
     "evaluation": {
       "property": "rb:evaluation",
-      "basis": "Result to its evaluation."
+      "basis": "Result to its evaluation.",
+      "by_kind": {
+        "baseline": {
+          "property": "rb:measuredIn",
+          "basis": "Baseline to an evaluation that measured it as a comparator. The measured values belong to that evaluation's results, so this is not rb:evaluation."
+        }
+      }
     },
     "model": {
       "property": "rb:evaluatedSubject",
-      "basis": "Evaluation to the configuration, model or pipeline actually evaluated. Not inherited by families."
+      "basis": "Evaluation to the configuration, model, method or pipeline actually evaluated. Not inherited by families.",
+      "by_kind": {
+        "baseline": {
+          "property": "rb:implementedBy",
+          "basis": "Baseline to the model or method that implements it. A baseline is not an evaluation, so this is not rb:evaluatedSubject."
+        }
+      }
     },
     "configuration": {
       "property": "rb:configuration",
-      "basis": "Link to an exact configuration."
+      "basis": "Link to an exact configuration.",
+      "by_kind": {
+        "baseline": {
+          "property": "rb:implementedBy",
+          "basis": "Baseline to the configuration that implements it."
+        }
+      }
     },
     "method": {
       "property": "rb:method",
@@ -153,7 +171,13 @@
     },
     "benchmark": {
       "property": "rb:evaluatedOn",
-      "basis": "Evaluation to the benchmark or protocol used."
+      "basis": "Evaluation to the task or protocol used.",
+      "by_kind": {
+        "dataset_subset": {
+          "property": "rb:usedIn",
+          "basis": "Dataset subset to the protocol that uses it. A subset is not evaluated, so this is not rb:evaluatedOn."
+        }
+      }
     },
     "protocol": {
       "property": "rb:protocol",

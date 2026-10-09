@@ -73,4 +73,15 @@ describe("N-Quads export", () => {
     expect(lines.some((l) => l.includes(`<${RB}evaluatedSubject> <${ID}${subject}>`))).toBe(true);
     expect(lines.some((l) => l.includes("http://www.w3.org/ns/mls#Run"))).toBe(true);
   });
+
+  it("gives links that mean something else on baselines and subsets their own properties", () => {
+    const baseline = records.find((r) => r.kind === "baseline" && r.links.some((l) => l.relation === "evaluation"))!;
+    const lines = recordQuads(mapping, baseline);
+    expect(lines.some((l) => l.includes(`<${RB}measuredIn>`))).toBe(true);
+    expect(lines.some((l) => l.includes(`<${RB}evaluation>`) || l.includes(`<${RB}evaluatedSubject>`))).toBe(false);
+    const subset = records.find((r) => r.kind === "dataset_subset" && r.links.some((l) => l.relation === "benchmark"))!;
+    const subsetLines = recordQuads(mapping, subset);
+    expect(subsetLines.some((l) => l.includes(`<${RB}usedIn>`))).toBe(true);
+    expect(subsetLines.some((l) => l.includes(`<${RB}evaluatedOn>`))).toBe(false);
+  });
 });
