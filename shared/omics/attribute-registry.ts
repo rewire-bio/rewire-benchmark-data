@@ -45,10 +45,13 @@ export const attributeRegistry = {
   claim: {
     // Relevance judgements (links:assessed_by:<protocol>) carry the judgement keys below.
     citation_locators: "json",
+    comparison_group: "text",
+    comparison_title: "text",
     constraints: "texts",
     endpoint: "text",
     excluded_evaluations: "json",
     field: "text",
+    headline_metric: "concept:metric",
     limitations: "texts",
     pins: "json",
     previous_value: "text",
@@ -58,6 +61,8 @@ export const attributeRegistry = {
     review: "review",
     revision: "integer",
     source_locator: "text",
+    stratum_label: "text",
+    stratum_order: "integer",
     target_id: "record-id",
     task_id: "record-id",
     value: "text",

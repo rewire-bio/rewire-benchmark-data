@@ -93,10 +93,26 @@ if (process.argv[1]?.endsWith("migrate-use-cases.ts")) {
   for (const r of store) if (r.kind === "evaluation")
     for (const l of r.links) if (l.relation === "assessment") onProtocol.set(l.target_id, [...(onProtocol.get(l.target_id) || []), r.id]);
   const titles = new Map(inputs.use_cases.map((u) => [u.id, u.title]));
+  // Optional page grouping per judgement and draft summaries per use case (presentation.json).
+  const presentationFile = path.join(dir, "presentation.json");
+  const presentation = fs.existsSync(presentationFile)
+    ? JSON.parse(fs.readFileSync(presentationFile, "utf8")) as {
+        judgements?: Record<string, Record<string, unknown>>;
+        summaries?: Record<string, { id: string; text: string; source_ids: string[]; source_locator: string }>;
+      }
+    : {};
   const claims = inputs.mappings
     .filter((m) => !["withdrawn", "superseded"].includes(m.lifecycle))
-    .map((m) => judgementClaim(m, titles.get(m.use_case_id)!, byId, onProtocol.get(m.protocol_id!) || []));
-  const batch = [...useCaseRecords, ...claims].sort((a, b) => a.id.localeCompare(b.id));
+    .map((m) => judgementClaim(m, titles.get(m.use_case_id)!, byId, onProtocol.get(m.protocol_id!) || []))
+    .map((c) => ({ ...c, attributes: { ...c.attributes, ...(presentation.judgements?.[c.id] || {}) } }));
+  const summaries = Object.entries(presentation.summaries || {}).map(([useCaseId, s]) => ({
+    id: s.id, kind: "claim", name: `Evidence summary: ${titles.get(useCaseId) ?? useCaseId}`,
+    description: "Plain-language summary of what the reviewed evidence shows. Draft until reviewed.",
+    status: "needs_review", facets: {}, source_ids: s.source_ids,
+    links: [{ relation: "subject", target_id: useCaseId }],
+    attributes: { field: "summary", value: s.text, source_locator: s.source_locator },
+  }));
+  const batch = [...useCaseRecords, ...claims, ...summaries].sort((a, b) => a.id.localeCompare(b.id));
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "batch.jsonl"), batch.map((r) => JSON.stringify(r) + "\n").join(""));
   console.log(`Wrote ${useCaseRecords.length} use cases and ${claims.length} relevance judgements to ${dir}/batch.jsonl`);

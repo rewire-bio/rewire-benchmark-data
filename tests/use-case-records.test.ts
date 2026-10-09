@@ -48,13 +48,25 @@ describe("use cases as records", () => {
   });
 
   it("withholds a judgement when a cited source gains an evidence concern", () => {
-    const source = store.find((r) => r.id === mapping(store).citations[0].source_id)!;
-    const m = mapping(edit(source.id, (r) => ({ ...r, attributes: { ...r.attributes, evidence_concerns: [{ message: "test" }] } })));
+    const sourceId = mapping(store).citations[0].source_id;
+    const m = mapping(edit(sourceId, (r) => ({ ...r, attributes: { ...r.attributes, evidence_concerns: [{ message: "test" }] } })));
     expect(m.lifecycle).toBe("needs_review");
   });
 
   it("treats an unreviewed judgement as a draft", () => {
     expect(mapping(edit(mappingId, (r) => ({ ...r, status: "needs_review" }))).lifecycle).toBe("draft");
+  });
+
+  it("groups strata of one comparison in order and carries the draft summary", () => {
+    const inputs = derive(store);
+    const bins = inputs.mappings
+      .filter((m) => m.presentation?.group === "behera2024-hg002-deletions")
+      .sort((a, b) => (a.presentation!.stratum_order ?? 0) - (b.presentation!.stratum_order ?? 0));
+    expect(bins.map((m) => m.presentation!.stratum_label)).toEqual(["1 to 5 kb", "5 to 10 kb", "10 to 20 kb", "20 to 50 kb", "Over 50 kb"]);
+    expect(new Set(bins.map((m) => m.presentation!.headline_metric))).toEqual(new Set(["f1-score"]));
+    const cnv = inputs.use_cases.find((u) => u.id === "use-case-cnv-detection-characterisation")!;
+    expect(cnv.summary?.status).toBe("draft");
+    expect(inputs.use_cases.filter((u) => u.summary)).toHaveLength(1);
   });
 
   it("rejects an assessed_by link that no judgement backs", () => {

@@ -1,9 +1,11 @@
 # Use cases moved into the record store, 2026-10-09
 
-Issue #42, use-case stage. `batch.jsonl` holds 126 records written by `npm run use-cases:migrate -- data/omics/use-case-records-20261009` from `data/omics/use-cases/inputs.json` as it stood on `main` at the start of this branch:
+Issue #42, use-case stage. `batch.jsonl` holds 127 records written by `npm run use-cases:migrate -- data/omics/use-case-records-20261009` from `data/omics/use-cases/inputs.json` as it stood on `main` at the start of this branch:
 
 - 26 `use_case` records, one per use case, with the same IDs. Every field of the old entry is kept. Citations become `source_ids` plus `citation_locators`, and the review becomes a record review whose `reviewer_note` keeps the original free-text actor verbatim. Each use case links `assessed_by` every protocol it was mapped to.
 - 100 relevance judgement claims, one per mapping, with the mapping's ID. Each keeps relevance, endpoint, rationale, constraints, limitations, revision, reason, citations and review, adds `pins` computed against the store at migration time, and lists in `excluded_evaluations` the evaluations on its protocol that the mapping did not include. Only two mappings excluded any (`use-case-mapping-20260930-339-25925e279972`: 3; `use-case-mapping-20260930-349-1af09c2e0e0f`: 2).
+
+`presentation.json` adds page grouping to the CNV judgements (`comparison_group`, `comparison_title`, `stratum_label`, `stratum_order`, `headline_metric`), so the five DRAGEN Table S4 deletion bins show as one comparison in size order, and one draft summary claim (`use-case-summary-cnv-detection-characterisation`, status `needs_review`). Other use cases fall back to one table per protocol until their judgements carry grouping.
 
 Mappings that were `active` become `source_checked` claims; drafts become `needs_review` claims. No mapping was withdrawn or superseded, so there are no tombstones.
 

@@ -35,6 +35,8 @@ const useCaseSchema = z.object({
     baselines: texts.min(1), outcomes: texts.min(1),
     validation_requirements: texts.min(1), next_step: text,
   }).strict().optional(),
+  // A reviewed or draft plain-language summary of what the evidence shows (a claim on the use case).
+  summary: z.object({ text, status: z.enum(["reviewed", "draft"]) }).strict().optional(),
   planned_work: z.array(z.object({
     title: text, url: z.string().url().refine((s) => {
       const u = new URL(s);
@@ -54,6 +56,12 @@ const mappingSchema = z.object({
   rationale: text.optional(), constraints: texts, limitations: texts,
   citations: z.array(citationSchema).max(100), review: reviewSchema.optional(),
   evidence_sha256: digest.optional(),
+  // How the use-case page groups and orders this protocol: protocols with the same group are
+  // strata of one comparison (for example deletion size bins), shown as columns in order.
+  presentation: z.object({
+    group: id, title: text, stratum_label: text.optional(),
+    stratum_order: z.number().int().optional(), headline_metric: z.string().min(1).max(120).optional(),
+  }).strict().optional(),
 }).strict();
 const inputsSchema = z.object({
   schema_version: z.literal("1.0"),
@@ -448,8 +456,14 @@ function evaluationBlocker(ix: Index, protocolId: string, evaluation: CatalogueR
 export function deriveUseCaseInputs(input: { records: CatalogueRecord[] }): UseCaseInputs {
   const ix = index({ records: input.records } as CatalogueSnapshot);
   const all = [...ix.records.values()];
+  // A use case's summary is a claim on it with field "summary"; reviewed when source-checked.
+  const summaries = new Map<string, CatalogueRecord>();
+  for (const r of all)
+    if (r.kind === "claim" && r.attributes.field === "summary" && typeof r.attributes.value === "string" && !inactive(r))
+      for (const l of r.links) if (l.relation === "subject") summaries.set(l.target_id, r);
   const useCases: UseCase[] = all.filter((r) => r.kind === "use_case" && r.status !== "excluded").map((r) => {
     const a = r.attributes;
+    const summary = summaries.get(r.id);
     const review = mappingReview(a.review);
     if (!review) throw Error(`Use case ${r.id} needs a review with reviewer_note, note and a review time`);
     return {
@@ -460,6 +474,7 @@ export function deriveUseCaseInputs(input: { records: CatalogueRecord[] }): UseC
       setting: asText(a.setting), exclusions: asTexts(a.exclusions), clinical_scope: asText(a.clinical_scope),
       evidence_gaps: asTexts(a.evidence_gaps), citations: (a.citation_locators || []) as Citation[], review,
       ...(a.collection_plan ? { collection_plan: a.collection_plan as UseCase["collection_plan"] } : {}),
+      ...(summary ? { summary: { text: String(summary.attributes.value), status: checked(summary) ? "reviewed" as const : "draft" as const } } : {}),
       planned_work: (a.planned_work || []) as UseCase["planned_work"],
     };
   });
@@ -487,6 +502,12 @@ export function deriveUseCaseInputs(input: { records: CatalogueRecord[] }): UseC
       endpoint: asText(a.endpoint), relevance, rationale: asText(a.rationale),
       constraints: asTexts(a.constraints), limitations: asTexts(a.limitations),
       citations: (a.citation_locators || []) as Citation[],
+      ...(a.comparison_group ? { presentation: {
+        group: String(a.comparison_group), title: asText(a.comparison_title) || String(a.comparison_group),
+        ...(a.stratum_label ? { stratum_label: String(a.stratum_label) } : {}),
+        ...(typeof a.stratum_order === "number" ? { stratum_order: a.stratum_order } : {}),
+        ...(a.headline_metric ? { headline_metric: String(a.headline_metric) } : {}),
+      } } : {}),
     };
     const review = mappingReview(a.review);
     const candidates = isPositive
