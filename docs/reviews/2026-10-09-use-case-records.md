@@ -145,3 +145,74 @@ The probes below use `use-case-map-gears-norman-table6-mse` unless another recor
 - Finding 3: correct the summary text.
 - Finding 4: decide whether draft summaries ship.
 - Findings 5 and 6 are small fixes and should go in with this change. The rest can follow.
+
+## Re-review of the fixes, commit df7e245
+
+Same reviewer: a separate Claude review agent that did not write the fixes. No human review is claimed. All checks were rerun with this review's own scripts against `origin/main` `1ebc8b5`.
+
+### Verdict
+
+The fixes hold. Findings 1 to 10 and 12 are resolved. Finding 11 is unchanged by decision; `reviewer_note` keeps the full text. One gap from finding 2 remains, recorded below as a new low finding. It does not block merge. The corrected CNV summary is supported by the sources, and I have marked it reviewed and pinned it.
+
+### Checks and results
+
+- **Round trip.** 26 of 26 use cases and 100 of 100 mappings match `origin/main` `inputs.json`, ignoring `presentation` (9 CNV judgements) and the order of `evaluation_ids` (37 mappings). The derived output has 97 active and 3 draft mappings. The summary no longer appears while it is a draft.
+- **Record fidelity.** The earlier field checks pass unchanged. In all 100 judgements, `reviewed_evaluations` equals the old mapping's `evaluation_ids`. All 97 reviewed judgements carry pins, and the 3 drafts carry none.
+- **Gate probes**, on an in-memory copy of the store, running both `deriveUseCaseInputs` and `buildUseCaseArtifact`. Unless another record is named, the target is `use-case-map-gears-norman-table6-mse`.
+  - These changes now withhold the judgement:
+    - a disputed evaluation or configuration;
+    - a changed result value;
+    - a new result on a reviewed evaluation;
+    - a change to the protocol's description;
+    - a protocol relation changing from `part_of` to `supersedes`;
+    - a change to the use case's contexts or setting;
+    - a changed artifact hash on a cited source that is not a protocol source;
+    - an evidence concern on a source the use case cites;
+    - a disputed task (on `use-case-mapping-splicing-mfass-matched-v1`);
+    - a disputed judgement.
+  - None of these probes makes the build throw any more.
+  - A new evaluation on the protocol is added and the judgement stays active, as designed.
+  - A change to the use case's evidence gaps does not withhold the judgement, as designed.
+  - An excluded judgement whose `assessed_by` link is still in place is dropped without an error.
+  - A reviewed judgement set back to `needs_review` becomes a draft.
+  - A summary set to `source_checked` but not yet pinned is not published.
+- **`repin`.** By default it pins only reviewed claims that have no pins. Named claim IDs must be reviewed judgement or summary claims. `--all` cannot be combined with claim IDs.
+- **`next.mjs withheld`.** It now flags any served mapping that is no longer active, and any served mapping that is missing from the next release unless its claim is `excluded` or `superseded`. I read the code; I did not run it against two releases.
+- **Schema.** No use-case artifact in the repository uses `not_assessed`, so removing it from the schema does not break any archive.
+- **Ontology wording.** The new `rb:assessedBy`, `rb:RelevanceJudgement` and `mapping.json` text is accurate, including the domain of SEPIO has_evidence.
+- **Commands.**
+  - `npm run records -- check`: 29,444 records match their provenance.
+  - `npm run typecheck`: exit 0.
+  - `npx vitest run tests/use-case-records.test.ts`: 14 tests pass before the summary review. After it, "publishes a summary only once it is reviewed and pinned" fails, because it asserts the stored summary is unpublished (finding 15). `npm test`: 498 of 499, the same test.
+  - `npm run test:kg`: OK.
+
+### CNV summary against the sources
+
+I re-downloaded the DRAGEN supplementary XLSX from its recorded URL. Its SHA-256 is `c8d66e8373f22382f1c5e4a576d2c85825a18232a14767d239966bc8ab56c3d9`, equal to the `artifact_sha256` recorded in the result reviews. I read sheet "S4 CNV benchmarking", rows 6 to 10, with openpyxl.
+
+The Gabrielaite Table S2 workbook in `data/omics/use-case-coverage-cnv-20261009/artifacts/` decompresses to SHA-256 `eb4bb389b248508531ca371ba80e004a573f4e85029583cff336f217307fde85`, equal to the source record. I read its `GB-WGS-NA12878` rows.
+
+Every cell matches the stored results.
+
+| Statement | Source values | Verdict |
+| --- | --- | --- |
+| DRAGEN 4.2 CNV+SV found 87 to 100% in every size bin | recall 0.873, 0.933, 0.888, 0.909, 1.0 | Supported |
+| precision 0.99 to 1.00 | 0.986, 1.0, 1.0, 1.0, 1.0 | Supported |
+| the developers' own benchmark | The judgements record "Author-run comparison (DRAGEN developers)" | Supported by the records |
+| CNVnator matched it above 10 kb | F-score 0.976, 0.949, 0.99 against 0.941, 0.952, 1.0 | Supported |
+| CNVnator found only 26% of 1 to 5 kb and 51% of 5 to 10 kb | recall 0.264, 0.505 | Supported (0.505 rounds to 51%) |
+| LUMPY, DELLY and Manta recovered 88 to 94% | recall 0.9408, 0.9037, 0.8752 | Supported |
+| only 20 to 33% of their calls matched | precision 0.31, 0.1988, 0.3262 | Supported |
+| Manta and CNVnator were used to build this truth set | Protocol limitation, citing Results 3.7 | Supported by the record |
+| the other callers recovered 1 to 43% | CLC 0.0116, Control-FREEC 0.1069, cn.MOPS 0.1696, GATK gCNV 0.2322, CNVnator 0.4345 | Supported |
+| none of the comparisons shown reports duplications separately | Behera S4 covers deletions only. Gabrielaite S2 gives call counts by type (`N_DEL`, `N_DUP`) but pools precision and recall | Supported for the reviewed comparisons |
+
+The last statement depends on draft judgements not being shown as evidence. The De La Vega HG002 protocol, still a draft, does report duplications. When any further judgement on this use case is reviewed, the summary's pins change and the summary is withheld until it is re-reviewed. That covers this case.
+
+I set `use-case-summary-cnv-detection-characterisation` to `source_checked` with a review, recorded the change with `npm run records -- change`, and pinned it with `npm run use-cases:repin -- docs/reviews/2026-10-09-use-case-records.md use-case-summary-cnv-detection-characterisation`.
+
+### New findings
+
+13. **Low. Configuration and dataset records are not pinned.** Disputing a configuration withholds the judgement, but a change to its name or attributes (for example its version) leaves the judgement active. A change to a dataset's description also leaves it active. The evaluation pin covers its links, so swapping in a different configuration or dataset is caught; editing that configuration or dataset in place is not. Consider pinning the reviewed evaluations' configurations (name, status, attributes) and datasets (name, description, status).
+14. **Low. One code comment is slightly inaccurate.** `judgementPinFields` says a new result never stales a judgement. A new result on a reviewed evaluation does withhold it (probe above). That is the safe direction, but the comment and `docs/use-cases.md` should say so.
+15. **Low. One test needs updating now that the summary is reviewed.** `tests/use-case-records.test.ts`, "publishes a summary only once it is reviewed and pinned", expects the stored summary to be unpublished (`expect(cnv(store).summary).toBeUndefined()`). It should start from a `needs_review` copy of the summary instead. I did not edit the test because it is outside this review's scope.

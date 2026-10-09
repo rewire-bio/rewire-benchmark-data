@@ -72,8 +72,10 @@ describe("use cases as records", () => {
   it("publishes a summary only once it is reviewed and pinned", () => {
     const summaryId = "use-case-summary-cnv-detection-characterisation";
     const cnv = (records: CatalogueRecord[]) => derive(records).use_cases.find((u) => u.id === "use-case-cnv-detection-characterisation")!;
-    expect(cnv(store).summary).toBeUndefined();
+    const draft = edit(summaryId, (r) => ({ ...r, status: "needs_review" as const, attributes: { ...r.attributes, pins: undefined } }));
+    expect(cnv(draft).summary).toBeUndefined();
     const byId = new Map(store.map((r) => [r.id, r]));
+    expect(cnv(store).summary?.status).toBe("reviewed");
     const reviewed = edit(summaryId, (r) => {
       const next = { ...r, status: "source_checked" as const };
       return { ...next, attributes: { ...next.attributes, pins: claimPins(byId, next) } };

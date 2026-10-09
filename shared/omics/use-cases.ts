@@ -390,10 +390,11 @@ function validateEntries(ix: Index, inputs: UseCaseInputs) {
 export const judgementField = (protocolId: string) => `links:assessed_by:${protocolId}`;
 
 /** What a reviewed judgement relies on, per record kind. Any change withholds it until it is
- * reviewed again. Relation names are pinned as normalised by currentRecords, so a rename such as
- * #50 changes nothing while a change of relation or target does. "attributes" pins every
- * attribute except the review block. Results are pinned only for the reviewed evaluations, so a
- * new evaluation or result on the protocol never stales a judgement, but a changed one does. */
+ * reviewed again. "links" pins each relation and target, so a relation rename needs a reviewed
+ * re-pin. "attributes" pins every attribute except the review block. Results are pinned for the
+ * reviewed evaluations only: a new evaluation on the protocol does not withhold a judgement, but a
+ * new, changed or removed result on a reviewed evaluation does. Configurations and datasets are
+ * not pinned; swapping or disputing one is caught through the evaluation's links and gates. */
 export const judgementPinFields: Record<string, string[]> = {
   // Only what defines the decision: adding evidence (assessed_by links, gaps, citations) to a use
   // case must not withhold its other judgements. Its cited sources are gated live instead.

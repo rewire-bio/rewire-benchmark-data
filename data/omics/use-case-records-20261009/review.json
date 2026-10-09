@@ -11,7 +11,7 @@
   ],
   "reviewer": "claude",
   "reviewer_note": "Separate Claude review agent, independent of the author of the migration; no human review claimed",
-  "reviewed_at": "2026-10-09T19:24:31Z",
+  "reviewed_at": "2026-10-09T20:15:00Z",
   "scope": "Branch claude/use-case-records at 8a81eb7 over origin/main 1ebc8b5: batch data/omics/use-case-records-20261009 (26 use_case records, 100 relevance judgement claims, 1 draft summary claim) and presentation.json; deriveUseCaseInputs and judgementPins in shared/omics/use-cases.ts; migrate-use-cases.ts; repin-use-cases.ts; docs/use-cases.md; rb.ttl, mapping.json, relevance.ttl, context.ttl, sepio-subset.nt and its sources.json entry, scripts/kg/build.py PROTECTED and scripts/kg/export.ts. Baseline: origin/main data/omics/use-cases/inputs.json and sources.json.",
   "results": {
     "round_trip": "26 of 26 use cases and 100 of 100 mappings identical to origin/main inputs.json, ignoring presentation (9 mappings), summary (1 use case) and evaluation_ids order (37 mappings)",
@@ -34,19 +34,19 @@
   ],
   "errors": [
     {
-      "status": "open",
+      "status": "resolved",
       "severity": "high",
       "record_ids": [],
       "message": "Evaluation set is live: a disputed evaluation or configuration is dropped and the judgement stays active (probe: use-case-map-gears-norman-table6-mse, 4 to 3 evaluations). Old evidence_sha256 withheld it. shared/omics/use-cases.ts deriveUseCaseInputs."
     },
     {
-      "status": "open",
+      "status": "resolved",
       "severity": "high",
       "record_ids": [],
       "message": "Pin set misses meaning-bearing fields: protocol name, description, metric, metric_direction, dataset, task, facets; use case name, description, setting, clinical_scope, intended_users, contexts; relation names; 12 judgements cite unpinned sources. 23 of 98 mapped protocols have neither attributes.protocol nor attributes.version. shared/omics/use-cases.ts judgementPinFields."
     },
     {
-      "status": "open",
+      "status": "resolved",
       "severity": "high",
       "record_ids": [
         "use-case-summary-cnv-detection-characterisation"
@@ -54,7 +54,7 @@
       "message": "Draft summary: 'missed half or more of the deletions under 10 kb' is false for 5-10 kb (CNVnator recall 0.505); 'depth-only callers 11 to 43%' omits CLC (0.012) and no record classifies callers by signal; omits the truth-set bias in favour of Manta and CNVnator; the duplication statement needs checking."
     },
     {
-      "status": "open",
+      "status": "resolved",
       "severity": "medium",
       "record_ids": [
         "use-case-summary-cnv-detection-characterisation"
@@ -62,7 +62,7 @@
       "message": "The needs_review summary is emitted into use-cases.json as status draft, and a reviewed summary has no pins or source gate."
     },
     {
-      "status": "open",
+      "status": "resolved",
       "severity": "medium",
       "record_ids": [
         "use-case-mapping-splicing-mfass-matched-v1"
@@ -70,19 +70,19 @@
       "message": "Task becoming inactive, or a use-case citation gaining an evidence concern, now makes buildUseCaseArtifact throw instead of withholding."
     },
     {
-      "status": "open",
+      "status": "resolved",
       "severity": "medium",
       "record_ids": [],
       "message": "scripts/omics/repin-use-cases.ts re-pins every mismatched source_checked judgement, so using it for a new judgement (docs/use-cases.md step 3) would re-activate withheld judgements without review."
     },
     {
-      "status": "open",
+      "status": "resolved",
       "severity": "medium",
       "record_ids": [],
       "message": "Withdrawn, superseded or disputed judgements vanish from the artifact without a tombstone; next.mjs withheld does not detect a removed mapping; derive throws while the assessed_by link remains."
     },
     {
-      "status": "open",
+      "status": "resolved",
       "severity": "low",
       "record_ids": [
         "use-case-mapping-20260930-337-fa51fe46268a"
@@ -90,33 +90,69 @@
       "message": "evaluation_ids silently truncated at 100; this mapping has 97."
     },
     {
-      "status": "open",
+      "status": "resolved",
       "severity": "low",
       "record_ids": [],
       "message": "Ontology wording: rb:assessedBy says reviewed-only but 3 draft links are asserted; RelevanceJudgement comment does not fit outside_scope; 'other claims are study findings' is inaccurate; SEPIO has_evidence domain is proposition or assertion."
     },
     {
-      "status": "open",
+      "status": "resolved",
       "severity": "low",
       "record_ids": [],
       "message": "not_assessed allowed by mappingSchema but absent from data/vocab/relevance.ttl."
     },
     {
-      "status": "open",
+      "status": "accepted",
       "severity": "low",
       "record_ids": [],
       "message": "reviewer keys include workers as well as reviewers in 29 records; reviewer_note keeps the full text."
     },
     {
-      "status": "open",
+      "status": "resolved",
       "severity": "low",
       "record_ids": [],
       "message": "README says mappings are identical in every field; they now also carry presentation and one use case a summary."
+    },
+    {
+      "status": "open",
+      "severity": "low",
+      "record_ids": [],
+      "message": "Configuration and dataset records of reviewed evaluations are not pinned: editing a configuration's name or attributes, or a dataset's description, leaves the judgement active. Disputing them withholds it."
+    },
+    {
+      "status": "open",
+      "severity": "low",
+      "record_ids": [],
+      "message": "judgementPinFields comment and docs/use-cases.md say a new result never stales a judgement; a new result on a reviewed evaluation does withhold it."
+    },
+    {
+      "status": "open",
+      "severity": "low",
+      "record_ids": [
+        "use-case-summary-cnv-detection-characterisation"
+      ],
+      "message": "tests/use-case-records.test.ts 'publishes a summary only once it is reviewed and pinned' asserts the stored summary is unpublished; it fails now that the summary is reviewed and pinned. The test should start from a needs_review copy."
     }
   ],
   "files": {
-    "batch.jsonl": "98ea6592554f850c131f39cbe1d801546e766543a57b341f45bcb2215c8aae9a",
-    "README.md": "de1e8f9eb3f614fa11a7d480f0054f5f4efcbbaa1e75891a2b4f98dfb8f6e8a8",
-    "presentation.json": "0268851c6e71e5b8849cbefeff167c4b9e7ffdc9bc595e7c1e2cbd5bb5e1fd73"
+    "batch.jsonl": "cc7f9af61fd10422d8607eb3d13e6a5a4bb9ff0d1e7e93cee22ae4d964d00a7f",
+    "README.md": "7ecc2281732ab6272dedac6a68b7dac9a15eafa655e7be095a4f59d4033a402d",
+    "presentation.json": "7c6117a3978a8bdd90d445d4cfbd55a40d30d99396723f403fb6ce5a702d4b48"
+  },
+  "re_review": {
+    "commit": "df7e245",
+    "reviewed_at": "2026-10-09T20:15:00Z",
+    "verdict": "Findings 1-10 and 12 resolved, 11 accepted; two new low findings; corrected CNV summary supported by the sources and marked source_checked and pinned.",
+    "summary_sources": {
+      "dragen-supplementary-xlsx_sha256": "c8d66e8373f22382f1c5e4a576d2c85825a18232a14767d239966bc8ab56c3d9",
+      "gabrielaite2021-table-s2.xlsx_sha256": "eb4bb389b248508531ca371ba80e004a573f4e85029583cff336f217307fde85"
+    },
+    "commands": {
+      "records check": "29444 records match provenance",
+      "typecheck": "pass",
+      "tests/use-case-records.test.ts": "14 passed before the summary was reviewed; 1 test now fails because it asserts the summary is unreviewed",
+      "npm test": "498 of 499 after the summary review (the same test)",
+      "test:kg": "pass"
+    }
   }
 }
