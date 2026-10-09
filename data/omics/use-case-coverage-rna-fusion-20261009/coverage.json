@@ -1,0 +1,400 @@
+{
+  "use_case_id": "use-case-tumour-rna-fusion-detection",
+  "bounds": {
+    "cutoff_date": "2026-10-09",
+    "query_budget": 25,
+    "queries_used": 6,
+    "source_budget": 3,
+    "sources_extracted": 2
+  },
+  "existing_reused": [],
+  "existing_not_reused": {
+    "amp-oncology-rna-20261007-issue-11-config-arriba": "Configuration of Arriba v1.2.0 in a different evaluation, with no method link; the new rna-fusion-20261009-method-arriba family could be linked to it by a reviewed change. The same applies to the AMP STAR-Fusion configurations."
+  },
+  "new_record_counts": {
+    "claim": 7,
+    "configuration": 16,
+    "dataset": 3,
+    "evaluation": 56,
+    "method": 13,
+    "protocol": 6,
+    "result": 320,
+    "source": 3
+  },
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-rna-fusion-20261009-lin2026-high-depth",
+      "protocol_id": "rna-fusion-20261009-protocol-lin2026-high-depth",
+      "relevance": "direct",
+      "comparison_group": "lin2026-longread",
+      "stratum_label": "High depth (11.2 M reads)",
+      "stratum_order": 1,
+      "headline_metric": "recall",
+      "endpoint": "Per-sample sensitivity, specificity, precision and F1 for FusionSeeker, JAFFAL, LongGF and FUSILLI on nanopore WTS, high-depth cohort",
+      "evaluation_ids": [
+        "rna-fusion-20261009-eval-lin2026-fusilli-high-depth",
+        "rna-fusion-20261009-eval-lin2026-fusionseeker-high-depth",
+        "rna-fusion-20261009-eval-lin2026-jaffal-high-depth",
+        "rna-fusion-20261009-eval-lin2026-longgf-high-depth"
+      ],
+      "limitations": [
+        "One caller (FUSILLI) was developed by the authors; the others were run by them.",
+        "Per-sample classification by the dominant B-ALL fusion only; secondary fusions are not scored.",
+        "Truth is the clinical genomic subtype from cytogenetics, FISH and short-read RNA-seq (CICERO, FusionCatcher and manual review).",
+        "Paediatric B-ALL only; PAX5::ZCCHC7 excluded from scoring.",
+        "Caller versions are not printed."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-rna-fusion-20261009-lin2026-low-depth",
+      "protocol_id": "rna-fusion-20261009-protocol-lin2026-low-depth",
+      "relevance": "direct",
+      "comparison_group": "lin2026-longread",
+      "stratum_label": "Low depth (1.4 M reads)",
+      "stratum_order": 2,
+      "headline_metric": "recall",
+      "endpoint": "Per-sample sensitivity, specificity, precision and F1 for FusionSeeker, JAFFAL, LongGF and FUSILLI on nanopore WTS, low-depth cohort",
+      "evaluation_ids": [
+        "rna-fusion-20261009-eval-lin2026-fusilli-low-depth",
+        "rna-fusion-20261009-eval-lin2026-fusionseeker-low-depth",
+        "rna-fusion-20261009-eval-lin2026-jaffal-low-depth",
+        "rna-fusion-20261009-eval-lin2026-longgf-low-depth"
+      ],
+      "limitations": [
+        "One caller (FUSILLI) was developed by the authors; the others were run by them.",
+        "Per-sample classification by the dominant B-ALL fusion only; secondary fusions are not scored.",
+        "Truth is the clinical genomic subtype from cytogenetics, FISH and short-read RNA-seq (CICERO, FusionCatcher and manual review).",
+        "Paediatric B-ALL only; PAX5::ZCCHC7 excluded from scoring.",
+        "Caller versions are not printed."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-rna-fusion-20261009-tamura2026-all-conventional",
+      "protocol_id": "rna-fusion-20261009-protocol-tamura2026-all-conventional",
+      "relevance": "proxy",
+      "comparison_group": "tamura2026-all",
+      "stratum_label": "Conventional RNA-seq",
+      "stratum_order": 1,
+      "headline_metric": "f1-score",
+      "endpoint": "TP, FP, FN, TPR, PPV and F1 for all fusions on conventional RNA-seq of haematologic cell lines for 12 algorithms",
+      "evaluation_ids": [
+        "rna-fusion-20261009-eval-tamura2026-arriba-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-ericscript-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-fusioncatcher-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-genomon-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-infusion-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-jaffa-direct-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-pizzly-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-star-fusion-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-starchip-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-c-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-d-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-uc-all-conventional"
+      ],
+      "limitations": [
+        "Truth is consensus among the other algorithms, without orthogonal validation except for driver fusions, so it favours callers that agree with the majority.",
+        "False positives are fusions called by one algorithm only; some may be real.",
+        "Truth-set size differs by algorithm (printed per row).",
+        "Haematologic cell lines only; not solid tumours or clinical specimens."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-rna-fusion-20261009-tamura2026-all-targeted",
+      "protocol_id": "rna-fusion-20261009-protocol-tamura2026-all-targeted",
+      "relevance": "proxy",
+      "comparison_group": "tamura2026-all",
+      "stratum_label": "Targeted RNA-seq",
+      "stratum_order": 2,
+      "headline_metric": "f1-score",
+      "endpoint": "TP, FP, FN, TPR, PPV and F1 for all fusions on targeted RNA-seq of haematologic cell lines for 12 algorithms",
+      "evaluation_ids": [
+        "rna-fusion-20261009-eval-tamura2026-arriba-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-ericscript-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-fusioncatcher-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-genomon-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-infusion-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-jaffa-direct-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-pizzly-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-star-fusion-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-starchip-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-c-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-d-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-uc-all-targeted"
+      ],
+      "limitations": [
+        "Truth is consensus among the other algorithms, without orthogonal validation except for driver fusions, so it favours callers that agree with the majority.",
+        "False positives are fusions called by one algorithm only; some may be real.",
+        "Truth-set size differs by algorithm (printed per row).",
+        "Haematologic cell lines only; not solid tumours or clinical specimens."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-rna-fusion-20261009-tamura2026-driver-conventional",
+      "protocol_id": "rna-fusion-20261009-protocol-tamura2026-driver-conventional",
+      "relevance": "direct",
+      "comparison_group": "tamura2026-driver",
+      "stratum_label": "Conventional RNA-seq",
+      "stratum_order": 1,
+      "headline_metric": "recall",
+      "endpoint": "TP, FP, FN, TPR, PPV and F1 for driver fusions on conventional RNA-seq of haematologic cell lines for 12 algorithms",
+      "evaluation_ids": [
+        "rna-fusion-20261009-eval-tamura2026-arriba-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-ericscript-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-fusioncatcher-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-genomon-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-infusion-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-jaffa-direct-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-pizzly-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-star-fusion-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-starchip-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-c-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-d-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-uc-driver-conventional"
+      ],
+      "limitations": [
+        "Driver fusions in haematologic cell lines only; sensitivity for other fusions and tumour types is not measured.",
+        "Truth pairs were first selected among calls by at least four algorithms (plus a few literature-reported pairs), so fusions missed by most callers are under-represented.",
+        "Few false positives are possible by construction, so precision is less informative than sensitivity (Results paragraph 4).",
+        "Haematologic cell lines only; not solid tumours or clinical specimens."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-rna-fusion-20261009-tamura2026-driver-targeted",
+      "protocol_id": "rna-fusion-20261009-protocol-tamura2026-driver-targeted",
+      "relevance": "direct",
+      "comparison_group": "tamura2026-driver",
+      "stratum_label": "Targeted RNA-seq",
+      "stratum_order": 2,
+      "headline_metric": "recall",
+      "endpoint": "TP, FP, FN, TPR, PPV and F1 for driver fusions on targeted RNA-seq of haematologic cell lines for 12 algorithms",
+      "evaluation_ids": [
+        "rna-fusion-20261009-eval-tamura2026-arriba-driver-targeted",
+        "rna-fusion-20261009-eval-tamura2026-ericscript-driver-targeted",
+        "rna-fusion-20261009-eval-tamura2026-fusioncatcher-driver-targeted",
+        "rna-fusion-20261009-eval-tamura2026-genomon-driver-targeted",
+        "rna-fusion-20261009-eval-tamura2026-infusion-driver-targeted",
+        "rna-fusion-20261009-eval-tamura2026-jaffa-direct-driver-targeted",
+        "rna-fusion-20261009-eval-tamura2026-pizzly-driver-targeted",
+        "rna-fusion-20261009-eval-tamura2026-star-fusion-driver-targeted",
+        "rna-fusion-20261009-eval-tamura2026-starchip-driver-targeted",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-c-driver-targeted",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-d-driver-targeted",
+        "rna-fusion-20261009-eval-tamura2026-trinityfusion-uc-driver-targeted"
+      ],
+      "limitations": [
+        "Driver fusions in haematologic cell lines only; sensitivity for other fusions and tumour types is not measured.",
+        "Truth pairs were first selected among calls by at least four algorithms (plus a few literature-reported pairs), so fusions missed by most callers are under-represented.",
+        "Few false positives are possible by construction, so precision is less informative than sensitivity (Results paragraph 4).",
+        "Haematologic cell lines only; not solid tumours or clinical specimens."
+      ]
+    }
+  ],
+  "use_case_changes": {
+    "add_links": [
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-fusion-20261009-protocol-lin2026-high-depth"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-fusion-20261009-protocol-lin2026-low-depth"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-fusion-20261009-protocol-tamura2026-all-conventional"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-fusion-20261009-protocol-tamura2026-all-targeted"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-fusion-20261009-protocol-tamura2026-driver-conventional"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-fusion-20261009-protocol-tamura2026-driver-targeted"
+      }
+    ],
+    "add_source_ids": [
+      "rna-fusion-20261009-source-tamura2026",
+      "rna-fusion-20261009-source-tamura2026-supplementary",
+      "rna-fusion-20261009-source-lin2026"
+    ],
+    "add_citation_locators": [
+      {
+        "source_id": "rna-fusion-20261009-source-tamura2026-supplementary",
+        "locator": "Supplementary Tables 1, 3 and 5; see data/omics/use-case-coverage-rna-fusion-20261009/claims.csv"
+      },
+      {
+        "source_id": "rna-fusion-20261009-source-lin2026",
+        "locator": "Tables 3, 5 and 6; see data/omics/use-case-coverage-rna-fusion-20261009/claims.csv"
+      }
+    ],
+    "evidence_gaps_add": [
+      "No linked comparison of several callers on adult solid tumours or FFPE tissue with printed per-caller values; Br J Cancer 2026 (1,233 FFPE solid tumours) reports Arriba and DRAGEN against panel assays only in figures.",
+      "Driver-fusion truth sets in Tamura et al. 2026 were selected mostly from fusions called by at least four algorithms, so sensitivity for fusions most callers miss is not measured.",
+      "Per-caller results on 165 clinical haematologic samples in Tamura et al. 2026 are shown only in a figure.",
+      "The DREAM SMC-RNA fusion challenge results (Cell Systems 2021) were not retrieved, and Haas et al. 2019 prints per-method accuracy only in figures.",
+      "No linked study reports interval estimates for per-caller sensitivity or precision."
+    ],
+    "exclusions_note": "No exclusion change is proposed. The new evidence is haematologic cell lines and paediatric B-ALL, not adult solid tumours, so it does not support narrowing 'Adult solid-tumour cohorts outside the transcribed NCH cohort'. Novel-fusion discovery stays excluded: neither source scores fusions outside a predefined list except Tamura's consensus analysis, which has no orthogonal truth.",
+    "setting_proposed": "A 14-fusion Seraseq reference and a 229-sample paediatric NCH cohort (Arriba, STAR-Fusion, EnFusion); 12 short-read callers on conventional and targeted RNA-seq of haematologic cancer cell lines against validated driver fusions and a consensus truth set (Tamura et al. 2026); and four long-read callers on paediatric B-ALL nanopore whole-transcriptome sequencing at two depths (Lin et al. 2026).",
+    "decision_proposed": "Inspect per-caller sensitivity for validated driver fusions and the single-caller call counts that drive review burden, matched to the intended specimen type and sequencing (short or long read, conventional or targeted), before selecting a workflow.",
+    "pin_warning": "Changing setting, decision or exclusions alters fields pinned by the two reviewed judgements on this use case (the EnFusion Seraseq and NCH clinical protocols), which would be withheld until re-reviewed and re-pinned. Adding links, gaps, sources and citations does not."
+  },
+  "summary_proposal": {
+    "id": "use-case-summary-tumour-rna-fusion-detection",
+    "field": "summary",
+    "status": "needs_review",
+    "value": "Two new comparisons join the existing Seraseq and paediatric NCH evidence. Values cannot be pooled across studies. On 61 validated driver fusions in conventional RNA-seq of 170 haematologic cancer cell lines, run by a group that wrote none of the 12 callers (Tamura et al. 2026), Arriba detected all 61 (TPR 1), FusionCatcher 0.98, STAR-Fusion 0.93 and STARChip 0.41. On 24 driver fusions in targeted RNA-seq of 26 cell lines, Arriba again reached 1 and STAR-Fusion 0.92, while InFusion reached 0.17 and STARChip 0. These truth pairs were mostly chosen from fusions that at least four callers found, which favours widely shared calls. Counting all fusions against a consensus of the other callers, the review burden differed widely: in conventional RNA-seq STAR-Fusion made 1,061 single-caller calls (PPV 0.39), Arriba 9,567 (PPV 0.08), FusionCatcher 22,445 and Pizzly 695,295. On nanopore long reads from 51 paediatric B-ALL samples (Lin et al. 2026), JAFFAL found 0.76 of known fusions, LongGF 0.70 and FusionSeeker 0.63, with precision 0.79 to 0.95; the authors' own FUSILLI found 0.81. At about one tenth of the depth, sensitivity fell to 0.09 to 0.27. No linked comparison covers adult solid tumours, FFPE tissue or novel-fusion discovery.",
+    "source_ids": [
+      "rna-fusion-20261009-source-tamura2026-supplementary",
+      "rna-fusion-20261009-source-lin2026"
+    ],
+    "source_locator": "rna-fusion-20261009-source-tamura2026-supplementary: Supplementary Tables 3 and 5; rna-fusion-20261009-source-lin2026: Tables 3 and 6",
+    "traceability": [
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-arriba-driver-conventional-recall",
+        "printed_value": "1"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-fusioncatcher-driver-conventional-recall",
+        "printed_value": "0.98"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-star-fusion-driver-conventional-recall",
+        "printed_value": "0.93"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-starchip-driver-conventional-recall",
+        "printed_value": "0.41"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-arriba-driver-targeted-recall",
+        "printed_value": "1"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-star-fusion-driver-targeted-recall",
+        "printed_value": "0.92"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-infusion-driver-targeted-recall",
+        "printed_value": "0.17"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-starchip-driver-targeted-recall",
+        "printed_value": "0"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-star-fusion-all-conventional-false-positive-count",
+        "printed_value": "1,061"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-star-fusion-all-conventional-precision",
+        "printed_value": "0.39"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-arriba-all-conventional-false-positive-count",
+        "printed_value": "9,567"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-arriba-all-conventional-precision",
+        "printed_value": "0.08"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-fusioncatcher-all-conventional-false-positive-count",
+        "printed_value": "22,445"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-tamura2026-pizzly-all-conventional-false-positive-count",
+        "printed_value": "695,295"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-lin2026-jaffal-high-depth-recall",
+        "printed_value": "0.76"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-lin2026-longgf-high-depth-recall",
+        "printed_value": "0.70"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-lin2026-fusionseeker-high-depth-recall",
+        "printed_value": "0.63"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-lin2026-jaffal-high-depth-precision",
+        "printed_value": "0.79"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-lin2026-longgf-high-depth-precision",
+        "printed_value": "0.95"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-lin2026-fusilli-high-depth-recall",
+        "printed_value": "0.81"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-lin2026-fusionseeker-low-depth-recall",
+        "printed_value": "0.09"
+      },
+      {
+        "record_id": "rna-fusion-20261009-result-lin2026-fusilli-low-depth-recall",
+        "printed_value": "0.27"
+      }
+    ],
+    "note": "Counts 61 and 24 are the driver truth-set sizes on the protocols (denominator). Lin et al. sample count 51 and 'about one tenth of the depth' (11.2 M versus 1.4 M mean reads) are from Tables 1-2 and the Results text, recorded on the dataset."
+  },
+  "concerns_for_reviewer": [
+    {
+      "source_id": "rna-fusion-20261009-source-tamura2026-supplementary",
+      "locator": "Supplementary Table 3 'Targeted RNA-seq of cell lines', row STARChip",
+      "message": "STARChip prints 0 TP and 0 FP with PPV and F1 'na'; recorded as printed with numeric_value null."
+    },
+    {
+      "source_id": "rna-fusion-20261009-source-tamura2026",
+      "locator": "Methods 'Comparison of detection algorithms' paragraph 2",
+      "message": "Driver truth pairs must be detected by four or more algorithms, and unlike the all-fusion analysis the evaluated algorithm is not excluded, so callers that agree with others are favoured."
+    },
+    {
+      "source_id": "rna-fusion-20261009-source-lin2026",
+      "locator": "Materials and Methods 'Fusion Performance Evaluations'",
+      "message": "FUSILLI is the authors' tool and is evaluated only for B-ALL fusion genes listed in its own BED file; comparators are general-purpose callers. FUSILLI evaluations are author_reported."
+    },
+    {
+      "source_id": "rna-fusion-20261009-source-tamura2026",
+      "locator": "Licence",
+      "message": "CC BY-NC-ND 4.0 (Tamura) and CC BY-NC 4.0 (Lin): artifacts are pinned by hash but not archived in the batch, following the CNV batch practice for NC licences."
+    }
+  ],
+  "concerns_note": "Not written as source evidence_concerns; the reviewer decides.",
+  "gaps": [
+    "Tamura et al. 2026 clinical-sample results are figure-only.",
+    "Lin et al. 2026 Table 5 computational cost is a descriptive claim, not results.",
+    "No adult solid-tumour or FFPE multi-caller comparison with printed values.",
+    "DREAM SMC-RNA not retrieved; Haas 2019 figure-only.",
+    "No short-read and long-read callers on the same samples."
+  ],
+  "leads": [
+    {
+      "doi": "10.1016/j.cels.2021.05.021",
+      "pmcid": "PMC8376800",
+      "note": "DREAM SMC-RNA challenge; not open access through Europe PMC."
+    },
+    {
+      "doi": "10.1186/s13059-019-1842-9",
+      "pmcid": "PMC6802306",
+      "note": "Haas et al. 2019; 23 methods; accuracy in figures, prediction lists in Additional file 1."
+    },
+    {
+      "doi": "10.1038/s41416-025-03307-8",
+      "pmcid": "PMC12996614",
+      "note": "Adult FFPE solid tumours, Arriba and DRAGEN against Archer and TSO500; figure-level results."
+    },
+    {
+      "doi": "10.1101/gr.279200.124",
+      "pmcid": "PMC12047241",
+      "note": "CTAT-LR-Fusion developer benchmark of long-read callers; figure-level results."
+    }
+  ]
+}
