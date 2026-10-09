@@ -1,0 +1,819 @@
+{
+  "use_case_id": "use-case-tumour-dna-somatic-variant-detection",
+  "bounds": {
+    "cutoff_date": "2026-10-09",
+    "query_budget": 25,
+    "queries_used": 16,
+    "source_budget": 3,
+    "sources_extracted": 2
+  },
+  "existing_reused": [],
+  "existing_not_reused": {
+    "amp-oncology-rna-20261007-issue-10-config-lancet": "Configuration of a different evaluation with unextracted version; new method record somatic-20261009-method-lancet created. The AMP configuration has no configuration_of link; the integrator may add one through a reviewed change.",
+    "amp-oncology-rna-20261007-issue-10-config-strelka2": "Same reason; somatic-20261009-method-strelka created.",
+    "cnv-20261009-method-dragen": "Checked for reuse; DRAGEN rows are not in the extracted Table S7, so no DRAGEN configuration was added."
+  },
+  "new_record_counts": {
+    "claim": 18,
+    "configuration": 41,
+    "dataset": 9,
+    "evaluation": 213,
+    "method": 19,
+    "protocol": 15,
+    "result": 918,
+    "source": 5
+  },
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-guille2025-seqc2-fd-wes-snv",
+      "protocol_id": "somatic-20261009-protocol-guille2025-seqc2-fd-wes-snv",
+      "relevance": "direct",
+      "comparison_group": "guille2025-seqc2-fd-wes",
+      "stratum_label": "Snvs",
+      "stratum_order": 1,
+      "headline_metric": "f1-score",
+      "endpoint": "TP, FP, recall, false-positive rate, precision and F1 for somatic SNVs on a held-out SEQC2 HCC1395 WES sample for 16 individual callers and 2 retained voting ensembles",
+      "evaluation_ids": [
+        "somatic-20261009-eval-guille2025-deepsomatic-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-freebayes-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-lancet-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-lofreq-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-muse-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-mutect-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-mutect2-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-neusomatic-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-seurat-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-shimmer-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-somaticsniper-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-strelka-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-vardict-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-varnet-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-varscan2-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-virmid-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-vote-3snv-min2-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-vote-6snv-min3-seqc2-fd-wes-snv"
+      ],
+      "limitations": [
+        "Single WES sample of one cell line; no replicate or interval estimates.",
+        "Truth limited to SEQC2 high-confidence regions within the exome.",
+        "Ensembles were chosen on the four development datasets by the same authors; the individual callers were not tuned on this sample.",
+        "Post-alignment procedure for Table S7 is not stated (Table S1-S2 compare four procedures on the development datasets).",
+        "NeuSomatic used a SEQC2 HCC1395 WGS checkpoint (supplementary methods), so its row may not be held out."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-guille2025-seqc2-fd-wes-indel",
+      "protocol_id": "somatic-20261009-protocol-guille2025-seqc2-fd-wes-indel",
+      "relevance": "direct",
+      "comparison_group": "guille2025-seqc2-fd-wes",
+      "stratum_label": "Indels",
+      "stratum_order": 2,
+      "headline_metric": "f1-score",
+      "endpoint": "TP, FP, recall, false-positive rate, precision and F1 for somatic indels on a held-out SEQC2 HCC1395 WES sample for 13 individual callers and 2 retained voting ensembles",
+      "evaluation_ids": [
+        "somatic-20261009-eval-guille2025-deepsomatic-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-freebayes-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-lancet-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-lofreq-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-mutect2-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-neusomatic-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-pindel-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-scalpel-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-seurat-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-strelka-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-vardict-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-varnet-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-varscan2-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-vote-3indel-min2-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-vote-4indel-min2-seqc2-fd-wes-indel"
+      ],
+      "limitations": [
+        "Single WES sample of one cell line; no replicate or interval estimates.",
+        "Small truth set (50 indels) in high-confidence regions.",
+        "Ensembles were chosen on the four development datasets by the same authors; the individual callers were not tuned on this sample.",
+        "Post-alignment procedure for Table S7 is not stated (Table S1-S2 compare four procedures on the development datasets).",
+        "NeuSomatic used a SEQC2 HCC1395 WGS checkpoint (supplementary methods), so its row may not be held out."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-dream-set3-indel",
+      "protocol_id": "somatic-20261009-protocol-wang2020-dream-set3-indel",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-indel",
+      "stratum_label": "DREAM Set3",
+      "stratum_order": 1,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic indels on DREAM Set3 WGS for 12 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-strelka-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-vardict-standalone-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-varscan-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-vote-3callers-min1-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-vote-3callers-min2-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-vote-5callers-min2-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-vote-5callers-min3-dream-set3-indel"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Synthetic tumour made by spiking simulated mutations into real reads; may not reproduce real tumour artefacts.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently.",
+        "The NeuSomatic model used (NeuSomatic_v0.1.3_ensemble_DREAM3.pth) is named for DREAM stage 3, so the NeuSomatic rows on this dataset may not be held out."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-dream-set4-indel",
+      "protocol_id": "somatic-20261009-protocol-wang2020-dream-set4-indel",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-indel",
+      "stratum_label": "DREAM Set4",
+      "stratum_order": 2,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic indels on DREAM Set4 WGS for 12 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-dream-set4-indel",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-dream-set4-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-dream-set4-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-dream-set4-indel",
+        "somatic-20261009-eval-wang2020-strelka-dream-set4-indel",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-dream-set4-indel",
+        "somatic-20261009-eval-wang2020-vardict-standalone-dream-set4-indel",
+        "somatic-20261009-eval-wang2020-varscan-dream-set4-indel",
+        "somatic-20261009-eval-wang2020-vote-3callers-min1-dream-set4-indel",
+        "somatic-20261009-eval-wang2020-vote-3callers-min2-dream-set4-indel",
+        "somatic-20261009-eval-wang2020-vote-5callers-min2-dream-set4-indel",
+        "somatic-20261009-eval-wang2020-vote-5callers-min3-dream-set4-indel"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Synthetic tumour made by spiking simulated mutations into real reads; may not reproduce real tumour artefacts.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-cll-indel",
+      "protocol_id": "somatic-20261009-protocol-wang2020-cll-indel",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-indel",
+      "stratum_label": "CLL",
+      "stratum_order": 3,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic indels on CLL WGS for 12 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-cll-indel",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-cll-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-cll-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-cll-indel",
+        "somatic-20261009-eval-wang2020-strelka-cll-indel",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-cll-indel",
+        "somatic-20261009-eval-wang2020-vardict-standalone-cll-indel",
+        "somatic-20261009-eval-wang2020-varscan-cll-indel",
+        "somatic-20261009-eval-wang2020-vote-3callers-min1-cll-indel",
+        "somatic-20261009-eval-wang2020-vote-3callers-min2-cll-indel",
+        "somatic-20261009-eval-wang2020-vote-5callers-min2-cll-indel",
+        "somatic-20261009-eval-wang2020-vote-5callers-min3-cll-indel"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Truth set completeness is unclear, especially for low-VAF sites (Results 'Datasets for evaluation'); precision against an incomplete truth set is a lower bound.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-mb-indel",
+      "protocol_id": "somatic-20261009-protocol-wang2020-mb-indel",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-indel",
+      "stratum_label": "MB",
+      "stratum_order": 4,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic indels on MB WGS for 12 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-mb-indel",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-mb-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-mb-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-mb-indel",
+        "somatic-20261009-eval-wang2020-strelka-mb-indel",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-mb-indel",
+        "somatic-20261009-eval-wang2020-vardict-standalone-mb-indel",
+        "somatic-20261009-eval-wang2020-varscan-mb-indel",
+        "somatic-20261009-eval-wang2020-vote-3callers-min1-mb-indel",
+        "somatic-20261009-eval-wang2020-vote-3callers-min2-mb-indel",
+        "somatic-20261009-eval-wang2020-vote-5callers-min2-mb-indel",
+        "somatic-20261009-eval-wang2020-vote-5callers-min3-mb-indel"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Truth set completeness is unclear, especially for low-VAF sites (Results 'Datasets for evaluation'); precision against an incomplete truth set is a lower bound.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-colo829-indel",
+      "protocol_id": "somatic-20261009-protocol-wang2020-colo829-indel",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-indel",
+      "stratum_label": "COLO829",
+      "stratum_order": 5,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic indels on COLO WGS for 12 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-colo829-indel",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-colo829-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-colo829-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-colo829-indel",
+        "somatic-20261009-eval-wang2020-strelka-colo829-indel",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-colo829-indel",
+        "somatic-20261009-eval-wang2020-vardict-standalone-colo829-indel",
+        "somatic-20261009-eval-wang2020-varscan-colo829-indel",
+        "somatic-20261009-eval-wang2020-vote-3callers-min1-colo829-indel",
+        "somatic-20261009-eval-wang2020-vote-3callers-min2-colo829-indel",
+        "somatic-20261009-eval-wang2020-vote-5callers-min2-colo829-indel",
+        "somatic-20261009-eval-wang2020-vote-5callers-min3-colo829-indel"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Truth set completeness is unclear, especially for low-VAF sites (Results 'Datasets for evaluation'); precision against an incomplete truth set is a lower bound.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-dream-set1-snv",
+      "protocol_id": "somatic-20261009-protocol-wang2020-dream-set1-snv",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-snv",
+      "stratum_label": "DREAM Set1",
+      "stratum_order": 1,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic SNVs on DREAM Set1 WGS for 15 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-muse-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-mutect-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-somaticsniper-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-strelka-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-vardict-standalone-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-varscan-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min2-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min3-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min3-dream-set1-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min4-dream-set1-snv"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Synthetic tumour made by spiking simulated mutations into real reads; may not reproduce real tumour artefacts.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-dream-set2-snv",
+      "protocol_id": "somatic-20261009-protocol-wang2020-dream-set2-snv",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-snv",
+      "stratum_label": "DREAM Set2",
+      "stratum_order": 2,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic SNVs on DREAM Set2 WGS for 15 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-muse-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-mutect-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-somaticsniper-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-strelka-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-vardict-standalone-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-varscan-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min2-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min3-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min3-dream-set2-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min4-dream-set2-snv"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Synthetic tumour made by spiking simulated mutations into real reads; may not reproduce real tumour artefacts.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-dream-set3-snv",
+      "protocol_id": "somatic-20261009-protocol-wang2020-dream-set3-snv",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-snv",
+      "stratum_label": "DREAM Set3",
+      "stratum_order": 3,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic SNVs on DREAM Set3 WGS for 15 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-muse-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-mutect-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-somaticsniper-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-strelka-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-vardict-standalone-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-varscan-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min2-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min3-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min3-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min4-dream-set3-snv"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Synthetic tumour made by spiking simulated mutations into real reads; may not reproduce real tumour artefacts.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently.",
+        "The NeuSomatic model used (NeuSomatic_v0.1.3_ensemble_DREAM3.pth) is named for DREAM stage 3, so the NeuSomatic rows on this dataset may not be held out."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-dream-set4-snv",
+      "protocol_id": "somatic-20261009-protocol-wang2020-dream-set4-snv",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-snv",
+      "stratum_label": "DREAM Set4",
+      "stratum_order": 4,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic SNVs on DREAM Set4 WGS for 15 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-muse-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-mutect-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-somaticsniper-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-strelka-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-vardict-standalone-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-varscan-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min2-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min3-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min3-dream-set4-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min4-dream-set4-snv"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Synthetic tumour made by spiking simulated mutations into real reads; may not reproduce real tumour artefacts.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-cll-snv",
+      "protocol_id": "somatic-20261009-protocol-wang2020-cll-snv",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-snv",
+      "stratum_label": "CLL",
+      "stratum_order": 5,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic SNVs on CLL WGS for 15 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-cll-snv",
+        "somatic-20261009-eval-wang2020-muse-cll-snv",
+        "somatic-20261009-eval-wang2020-mutect-cll-snv",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-cll-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-cll-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-cll-snv",
+        "somatic-20261009-eval-wang2020-somaticsniper-cll-snv",
+        "somatic-20261009-eval-wang2020-strelka-cll-snv",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-cll-snv",
+        "somatic-20261009-eval-wang2020-vardict-standalone-cll-snv",
+        "somatic-20261009-eval-wang2020-varscan-cll-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min2-cll-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min3-cll-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min3-cll-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min4-cll-snv"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Truth set completeness is unclear, especially for low-VAF sites (Results 'Datasets for evaluation'); precision against an incomplete truth set is a lower bound.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-aml-snv",
+      "protocol_id": "somatic-20261009-protocol-wang2020-aml-snv",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-snv",
+      "stratum_label": "AML",
+      "stratum_order": 6,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic SNVs on AML WGS for 15 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-aml-snv",
+        "somatic-20261009-eval-wang2020-muse-aml-snv",
+        "somatic-20261009-eval-wang2020-mutect-aml-snv",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-aml-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-aml-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-aml-snv",
+        "somatic-20261009-eval-wang2020-somaticsniper-aml-snv",
+        "somatic-20261009-eval-wang2020-strelka-aml-snv",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-aml-snv",
+        "somatic-20261009-eval-wang2020-vardict-standalone-aml-snv",
+        "somatic-20261009-eval-wang2020-varscan-aml-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min2-aml-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min3-aml-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min3-aml-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min4-aml-snv"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Truth set completeness is unclear, especially for low-VAF sites (Results 'Datasets for evaluation'); precision against an incomplete truth set is a lower bound.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-mb-snv",
+      "protocol_id": "somatic-20261009-protocol-wang2020-mb-snv",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-snv",
+      "stratum_label": "MB",
+      "stratum_order": 7,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic SNVs on MB WGS for 15 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-mb-snv",
+        "somatic-20261009-eval-wang2020-muse-mb-snv",
+        "somatic-20261009-eval-wang2020-mutect-mb-snv",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-mb-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-mb-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-mb-snv",
+        "somatic-20261009-eval-wang2020-somaticsniper-mb-snv",
+        "somatic-20261009-eval-wang2020-strelka-mb-snv",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-mb-snv",
+        "somatic-20261009-eval-wang2020-vardict-standalone-mb-snv",
+        "somatic-20261009-eval-wang2020-varscan-mb-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min2-mb-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min3-mb-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min3-mb-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min4-mb-snv"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Truth set completeness is unclear, especially for low-VAF sites (Results 'Datasets for evaluation'); precision against an incomplete truth set is a lower bound.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-20261009-wang2020-colo829-snv",
+      "protocol_id": "somatic-20261009-protocol-wang2020-colo829-snv",
+      "relevance": "direct",
+      "comparison_group": "wang2020-wgs-snv",
+      "stratum_label": "COLO829",
+      "stratum_order": 8,
+      "headline_metric": "f1-score",
+      "endpoint": "Recall, precision, F1 and call count for somatic SNVs on COLO WGS for 15 caller and consensus configurations",
+      "evaluation_ids": [
+        "somatic-20261009-eval-wang2020-lofreq-colo829-snv",
+        "somatic-20261009-eval-wang2020-muse-colo829-snv",
+        "somatic-20261009-eval-wang2020-mutect-colo829-snv",
+        "somatic-20261009-eval-wang2020-mutect2-gatk3-7-colo829-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-colo829-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-colo829-snv",
+        "somatic-20261009-eval-wang2020-somaticsniper-colo829-snv",
+        "somatic-20261009-eval-wang2020-strelka-colo829-snv",
+        "somatic-20261009-eval-wang2020-vardict-bcbio-colo829-snv",
+        "somatic-20261009-eval-wang2020-vardict-standalone-colo829-snv",
+        "somatic-20261009-eval-wang2020-varscan-colo829-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min2-colo829-snv",
+        "somatic-20261009-eval-wang2020-vote-4callers-min3-colo829-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min3-colo829-snv",
+        "somatic-20261009-eval-wang2020-vote-7callers-min4-colo829-snv"
+      ],
+      "limitations": [
+        "Single tumour-normal pair; no replicate or interval estimates.",
+        "Truth set completeness is unclear, especially for low-VAF sites (Results 'Datasets for evaluation'); precision against an incomplete truth set is a lower bound.",
+        "Caller versions are those listed in Methods (for example MuTect2 from GATK v3.7-0, Strelka v2.7.1); later releases may behave differently."
+      ]
+    }
+  ],
+  "use_case_changes": {
+    "add_links": [
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-guille2025-seqc2-fd-wes-snv"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-guille2025-seqc2-fd-wes-indel"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-dream-set3-indel"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-dream-set4-indel"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-cll-indel"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-mb-indel"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-colo829-indel"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-dream-set1-snv"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-dream-set2-snv"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-dream-set3-snv"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-dream-set4-snv"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-cll-snv"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-aml-snv"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-mb-snv"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-20261009-protocol-wang2020-colo829-snv"
+      }
+    ],
+    "add_source_ids": [
+      "somatic-20261009-source-wang2020",
+      "somatic-20261009-source-wang2020-tables",
+      "somatic-20261009-source-guille2025",
+      "somatic-20261009-source-guille2025-table-s7",
+      "somatic-20261009-source-guille2025-supplementary-methods"
+    ],
+    "add_citation_locators": [
+      {
+        "source_id": "somatic-20261009-source-wang2020-tables",
+        "locator": "Supplementary Tables S1-S2; see data/omics/use-case-coverage-somatic-20261009/claims.csv"
+      },
+      {
+        "source_id": "somatic-20261009-source-guille2025-table-s7",
+        "locator": "Supplementary Table S7; see data/omics/use-case-coverage-somatic-20261009/claims.csv"
+      }
+    ],
+    "evidence_gaps_add": [
+      "No linked comparison covers tumour-only calling, FFPE tissue, ctDNA or targeted panels.",
+      "No peer-reviewed HG008 small-variant caller comparison was found; the GIAB HG008 somatic small-variant benchmark is a draft.",
+      "SEQC2 HCC1395 whole-genome caller comparisons (Xiao et al. 2021; NeuSomatic 2022 Additional file 2) were not extracted: the first is not open access through Europe PMC and the second prints its tables only in a PDF with rotated headers.",
+      "Guille et al. 2025 Tables S1-S2 (four development datasets, including PERMED-01 clinical breast cancer exomes, under four post-alignment procedures) and Wang et al. 2020 Tables S3-S8 (deep targeted and exome dilution series) are not transcribed in this bounded intake.",
+      "No linked study reports interval estimates for per-caller precision, recall or F1.",
+      "Caller versions differ between studies (for example MuTect2 from GATK v3.7-0 in Wang et al. 2020 and Mutect2 4.2.2.0 in Guille et al. 2025); no study evaluates current releases of every caller."
+    ],
+    "evidence_gaps_keep": [
+      "Individual-condition confidence intervals are unreported in the source tables.",
+      "Exact caller release versions are not extracted from the primary article.",
+      "No foundation-model component is evaluated in this bounded intake."
+    ],
+    "evidence_gaps_note": "The first two kept gaps describe the Lancet paper only; the integrator may prefix them with 'Lancet paper:'. DeepSomatic, NeuSomatic and VarNet are supervised deep-learning callers, not foundation models, so the third gap still holds.",
+    "exclusions_proposed": [
+      "FFPE samples, targeted panels, ctDNA, tumour-only calling, copy-number and structural variation",
+      "Callers other than Lancet/Strelka2 not transcribed in this bounded intake (Strelka, MuTect, MuTect2, LoFreq rows exist in the source but are not all ingested; LoFreq/MuTect2 unselected rows are internally inconsistent in the source and are excluded)"
+    ],
+    "exclusions_note": "The first current exclusion lists 'Real clinical tumour specimens'. Wang et al. 2020 adds real tumour WGS (CLL, AML, MB) scored against curated research truth sets, so the proposal drops that phrase and keeps clinical validation out of scope through clinical_scope. The second exclusion is unchanged.",
+    "setting_proposed": "Published tumour-normal comparisons: a real-read virtual-tumour spike-in (Lancet paper, 80x/40x WGS), four simulated DREAM WGS pairs and four real tumour or cell-line WGS pairs with curated truth sets (Wang et al. 2020), and a held-out SEQC2 HCC1395 exome sample (Guille et al. 2025), each measuring per-caller SNV and indel precision, recall and F1.",
+    "decision_proposed": "Inspect the per-dataset precision, recall and F1 of the callers and ensembles in the linked comparisons, matched to the intended sequencing type, coverage and normal-sample regime, before selecting a caller and designing a validation protocol.",
+    "pin_warning": "Changing exclusions, setting or decision alters fields pinned by the reviewed judgement use-case-mapping-amp-20261007-issue10-lancet-virtual-tumor, which would then be withheld until it is re-reviewed and re-pinned (npm run use-cases:repin). Adding assessed_by links, evidence gaps, source_ids and citation locators does not withhold it."
+  },
+  "summary_proposal": {
+    "id": "use-case-summary-tumour-dna-somatic-variant-detection",
+    "field": "summary",
+    "status": "needs_review",
+    "value": "Three comparisons are linked, and their values cannot be pooled: truth sets, sequencing and caller versions differ. Values below are rounded to two decimals. On a held-out SEQC2 HCC1395 exome sample, an academic group that did not develop the callers (Guille et al. 2025) found that DeepSomatic had the highest F1 of 16 single callers for SNVs (0.90) and of 13 for indels (0.81). Mutect and Mutect2 reached 0.85 and 0.83 for SNVs; Strelka reached 0.64, with precision 0.51. The authors' own voting ensembles reached 0.88 and 0.88 for SNVs and 0.75 and 0.74 for indels. The indel truth set has 50 variants, the model type of the DeepSomatic run is unclear, and the NeuSomatic model used was trained on the same cell line. On eight whole-genome tumour-normal pairs (Wang et al. 2020, caller versions from that study), a majority vote of four or seven callers had the highest SNV F1 on seven of the eight pairs. The best non-ensemble configuration reached SNV F1 0.92 to 0.96 on simulated DREAM sets 1 to 3, but 0.70 to 0.81 on three real tumours, where most callers had precision below 0.6 against curated truth sets that may be incomplete. Indel F1 on the real tumours and the COLO829 cell line was at most 0.72 for every configuration. In the Lancet developers' own virtual-tumour test, Lancet and Strelka2 both reached SNV F1 0.85, with indel F1 0.81 and 0.77. None of the linked studies covers FFPE tissue, ctDNA, tumour-only calling or targeted panels.",
+    "source_ids": [
+      "amp-oncology-rna-20261007-source-pmc6123722",
+      "somatic-20261009-source-wang2020-tables",
+      "somatic-20261009-source-guille2025-table-s7"
+    ],
+    "source_locator": "somatic-20261009-source-guille2025-table-s7: sheet 'Results' rows 4-36; somatic-20261009-source-wang2020-tables: sheets 'S1 WGS SNVs' and 'S2 WGS INDELs'; amp-oncology-rna-20261007-source-pmc6123722: Table 1",
+    "traceability": [
+      {
+        "statement": "DeepSomatic SNV F1 0.90; 16 single SNV callers",
+        "record_id": "somatic-20261009-result-guille2025-deepsomatic-seqc2-fd-wes-snv-f1-score",
+        "printed_value": "0.900552486187845"
+      },
+      {
+        "statement": "DeepSomatic indel F1 0.81; 13 single indel callers",
+        "record_id": "somatic-20261009-result-guille2025-deepsomatic-seqc2-fd-wes-indel-f1-score",
+        "printed_value": "0.811881188118812"
+      },
+      {
+        "statement": "Mutect SNV F1 0.85",
+        "record_id": "somatic-20261009-result-guille2025-mutect-seqc2-fd-wes-snv-f1-score",
+        "printed_value": "0.853085210577865"
+      },
+      {
+        "statement": "Mutect2 SNV F1 0.83",
+        "record_id": "somatic-20261009-result-guille2025-mutect2-seqc2-fd-wes-snv-f1-score",
+        "printed_value": "0.832674571805007"
+      },
+      {
+        "statement": "Strelka SNV F1 0.64",
+        "record_id": "somatic-20261009-result-guille2025-strelka-seqc2-fd-wes-snv-f1-score",
+        "printed_value": "0.639486356340289"
+      },
+      {
+        "statement": "Strelka SNV precision 0.51",
+        "record_id": "somatic-20261009-result-guille2025-strelka-seqc2-fd-wes-snv-precision",
+        "printed_value": "0.509462915601023"
+      },
+      {
+        "statement": "Ensemble SNV F1 0.88 (6 callers)",
+        "record_id": "somatic-20261009-result-guille2025-vote-6snv-min3-seqc2-fd-wes-snv-f1-score",
+        "printed_value": "0.880514705882353"
+      },
+      {
+        "statement": "Ensemble SNV F1 0.88 (3 callers)",
+        "record_id": "somatic-20261009-result-guille2025-vote-3snv-min2-seqc2-fd-wes-snv-f1-score",
+        "printed_value": "0.875281404772625"
+      },
+      {
+        "statement": "Ensemble indel F1 0.75",
+        "record_id": "somatic-20261009-result-guille2025-vote-4indel-min2-seqc2-fd-wes-indel-f1-score",
+        "printed_value": "0.752475247524752"
+      },
+      {
+        "statement": "Ensemble indel F1 0.74",
+        "record_id": "somatic-20261009-result-guille2025-vote-3indel-min2-seqc2-fd-wes-indel-f1-score",
+        "printed_value": "0.74468085106383"
+      },
+      {
+        "statement": "Majority vote highest SNV F1 on 7 of 8 pairs (exception DREAM set 4: NeuSomatic_Pass 0.859)",
+        "record_id": "somatic-20261009-result-wang2020-neusomatic-pass-dream-set4-snv-f1-score",
+        "printed_value": "0.859"
+      },
+      {
+        "statement": "Best non-ensemble DREAM set 1: LoFreq 0.963",
+        "record_id": "somatic-20261009-result-wang2020-lofreq-dream-set1-snv-f1-score",
+        "printed_value": "0.963"
+      },
+      {
+        "statement": "Best non-ensemble DREAM set 2: LoFreq 0.96",
+        "record_id": "somatic-20261009-result-wang2020-lofreq-dream-set2-snv-f1-score",
+        "printed_value": "0.96"
+      },
+      {
+        "statement": "Best non-ensemble DREAM set 3: MuSE 0.918",
+        "record_id": "somatic-20261009-result-wang2020-muse-dream-set3-snv-f1-score",
+        "printed_value": "0.918"
+      },
+      {
+        "statement": "Best non-ensemble CLL: LoFreq 0.702",
+        "record_id": "somatic-20261009-result-wang2020-lofreq-cll-snv-f1-score",
+        "printed_value": "0.702"
+      },
+      {
+        "statement": "Best non-ensemble AML: NeuSomatic_Pass 0.799",
+        "record_id": "somatic-20261009-result-wang2020-neusomatic-pass-aml-snv-f1-score",
+        "printed_value": "0.799"
+      },
+      {
+        "statement": "Best non-ensemble MB: MuSE 0.806",
+        "record_id": "somatic-20261009-result-wang2020-muse-mb-snv-f1-score",
+        "printed_value": "0.806"
+      },
+      {
+        "statement": "Indel F1 at most 0.72 on CLL, MB, COLO829 (max: MB 5callers (>=3))",
+        "record_id": "somatic-20261009-result-wang2020-vote-5callers-min3-mb-indel-f1-score",
+        "printed_value": "0.716894977169"
+      },
+      {
+        "statement": "Lancet SNV F1 0.85",
+        "record_id": "amp-oncology-rna-20261007-issue-10-result-lancet-snv-f1-score",
+        "printed_value": "0.85"
+      },
+      {
+        "statement": "Strelka2 SNV F1 0.85",
+        "record_id": "amp-oncology-rna-20261007-issue-10-result-strelka2-snv-f1-score",
+        "printed_value": "0.85"
+      },
+      {
+        "statement": "Lancet indel F1 0.81",
+        "record_id": "amp-oncology-rna-20261007-issue-10-result-lancet-indel-f1-score",
+        "printed_value": "0.81"
+      },
+      {
+        "statement": "Strelka2 indel F1 0.77",
+        "record_id": "amp-oncology-rna-20261007-issue-10-result-strelka2-indel-f1-score",
+        "printed_value": "0.77"
+      }
+    ],
+    "note": "Other statements are counts over the linked results: majority vote highest SNV F1 on 7 of 8 Wang pairs; non-ensemble precision below 0.6 for 10 of 11 configurations on CLL, 7 of 11 on AML and 9 of 11 on MB. The summary's source_ids include the source that the existing Lancet results cite; a summary citing sources with evidence concerns is not published."
+  },
+  "concerns_for_reviewer": [
+    {
+      "source_id": "somatic-20261009-source-guille2025",
+      "locator": "Results 'Validation' paragraph 2 versus Supplementary Table S7 H17, H32",
+      "message": "The prose says the retained ensembles surpass 'the best individual tool' by 2.7% (SNV F1 0.880) and 10.2% (indel F1 0.752), but Table S7 prints higher single-caller F1 for DeepSomatic-WES (SNV 0.9006, indel 0.8119). The stated gains match Mutect (0.853) and Mutect2 (0.650), so the prose appears to compare against classic callers only. Table values are recorded."
+    },
+    {
+      "source_id": "somatic-20261009-source-guille2025",
+      "locator": "Results 'Comparison of performances' paragraph 3 versus tables6_bbae697.xls C32 (not extracted; member SHA-256 2654481cd6c36f53b349782f45309634efc50b12e16dfdcfa9d8ba501e9fd7ed)",
+      "message": "The prose gives DeepSomatic a mean indel F1 of 0.807, second to NeuSomatic; Table S6 prints a mean indel F1 of 0.564317438055166 for DeepSomatic. Table S6 was not extracted, so no stored value depends on this."
+    },
+    {
+      "source_id": "somatic-20261009-source-guille2025-supplementary-methods",
+      "locator": "Supplementary methods '#DeepSomatic' versus Table S7 rows 17 and 32",
+      "message": "Table S7 labels the rows DeepSomatic-WES, but the supplementary command uses --model_type=WGS. Recorded on the configuration (model_identity_note) and as claim somatic-20261009-claim-guille2025-deepsomatic-model-type."
+    },
+    {
+      "source_id": "somatic-20261009-source-guille2025-supplementary-methods",
+      "locator": "Supplementary methods '#NeuSomatic'",
+      "message": "NeuSomatic used checkpoint NeuSomatic_v0.1.4_standalone_SEQC-WGS-GT50-SpikeWGS10.pth, a SEQC2 HCC1395 WGS model, on an HCC1395 validation sample. The NeuSomatic evaluations may not be held out."
+    },
+    {
+      "source_id": "somatic-20261009-source-wang2020",
+      "locator": "Methods 'Somatic variant calling' paragraph 2",
+      "message": "NeuSomatic was run with NeuSomatic_v0.1.3_ensemble_DREAM3.pth on all WGS datasets, including DREAM set 3. Recorded on the DREAM set 3 protocols and as claim somatic-20261009-claim-wang2020-neusomatic-dream3-model."
+    },
+    {
+      "source_id": "somatic-20261009-source-guille2025",
+      "locator": "Table 2 row 'SEQC2-FD' versus Methods 'SEQC2 dataset'",
+      "message": "Table 2 gives the validation sample as SRX4728489 sequenced on Illumina HiSeq 4000; Methods name run SRR7890879 'obtained from a different platform (Fudan University)'. Both are recorded on the dataset."
+    }
+  ],
+  "concerns_note": "These were not written as source evidence_concerns, because any concern on a source withholds every judgement that cites it. The reviewer decides whether any of them should block comparison.",
+  "gaps": [
+    "Guille et al. 2025 Tables S1-S6 not extracted (S1-S2: 3,276 cells; S3-S5: ensemble searches; S6: means across datasets).",
+    "Wang et al. 2020 Tables S3-S9 not extracted (deep targeted and WES NA12878 dilution series; ML features).",
+    "NeuSomatic SEQC2 2022 Tables S2-S9 (SEQC2 WGS replicates, tumour purity and coverage titrations, FFPE, library preparation) not extracted.",
+    "Xiao et al. 2021 SEQC2 best-practice paper not retrieved (not open access via Europe PMC).",
+    "Lancet2 2026 supplementary files not retrieved (HTTP 500); results are mainly in figures.",
+    "Research Square preprint rs-11210923 (HG008 external evaluation of DeepSomatic, Mutect2 and Strelka2) not readable.",
+    "No tumour-only, FFPE, ctDNA or targeted-panel comparison extracted.",
+    "No uncertainty intervals in any extracted table."
+  ],
+  "leads": [
+    {
+      "doi": "10.1186/s13059-021-02592-9",
+      "pmcid": "PMC8740374",
+      "note": "NeuSomatic on SEQC2 (developer paper); Additional file 2 Tables S2-S9 print F1 for VarDict, SomaticSniper, MuSE, DRAGEN, Octopus, MuTect2, Lancet, Strelka2 and NeuSomatic models across 21 WGS replicate pairs, purity and coverage titrations and FFPE."
+    },
+    {
+      "doi": "10.1093/bib/bbae697",
+      "pmcid": "PMC11790059",
+      "note": "Guille et al. 2025 Tables S1-S2 for the four development datasets, including PERMED-01 clinical exomes and DRAGEN and TNScope rows."
+    },
+    {
+      "doi": "10.1038/s41467-025-67842-x",
+      "pmcid": "PMC12852940",
+      "note": "ctDNA caller benchmark with patient-derived dilution series; Source data XLSX. Needs a scope change to include ctDNA."
+    },
+    {
+      "doi": "10.1093/nargab/lqag036",
+      "pmcid": "PMC13064521",
+      "note": "Lancet2 developer benchmark with Illumina plus Nanopore truth sets for four cell lines."
+    },
+    {
+      "doi": "10.1186/s12859-024-05742-5",
+      "pmcid": "PMC10958848",
+      "note": "SEQC2 WES replicate-consensus study; Table 1 and Additional file 1 Tables S1-S7."
+    },
+    {
+      "doi": "10.3389/fgene.2022.979928",
+      "pmcid": "PMC9705725",
+      "note": "Five-pipeline WES spike-in comparison by the FANSe developers."
+    },
+    {
+      "doi": "10.1038/s41467-025-65654-7",
+      "pmcid": "PMC12661053",
+      "note": "FFPE WGS in clinical oncology; not opened."
+    },
+    {
+      "doi": "10.3389/fbinf.2026.1858375",
+      "pmcid": "PMC13422537",
+      "note": "Synth4bench synthetic tumour-only benchmark; not opened."
+    },
+    {
+      "doi": "10.21203/rs.3.rs-11210923/v1",
+      "note": "HG008 external evaluation preprint; content not readable with the tools used."
+    }
+  ]
+}
