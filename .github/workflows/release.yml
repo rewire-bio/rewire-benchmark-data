@@ -6,8 +6,12 @@ name: Cut and publish a release
 # deploys it. Evidence reaches main only through reviewed pull requests; this
 # workflow only packages what is already there. Its own release commit does not
 # start it again (pushes made with the workflow token start no workflows).
+# Runs after "Benchmark data checks" passes on main, so it never repeats those checks, and
+# never runs for a commit that failed them.
 on:
-  push:
+  workflow_run:
+    workflows: ["Benchmark data checks"]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 permissions:
@@ -21,6 +25,7 @@ env:
 
 jobs:
   release:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -38,7 +43,8 @@ jobs:
         id: candidate
         run: |
           previous=$(node scripts/release/next.mjs prepare)
-          npm run build
+          # No inference here: whether anything changed is decided by the release itself.
+          npm run build:check
           next=$(node scripts/release/next.mjs latest)
           echo "previous=$previous" >> "$GITHUB_OUTPUT"
           echo "next=$next" >> "$GITHUB_OUTPUT"
@@ -61,14 +67,11 @@ jobs:
         run: |
           npm run release:prune
           npm run build
-      - name: Check the store, types, tests, packaging, prepared file and bundle
+      # Types, tests, Python and KG tests already passed in "Benchmark data checks" for this commit.
+      - name: Check the store, packaging, prepared file and bundle
         if: steps.pending.outputs.release == 'true'
         run: |
           npm run records -- check
-          npm run typecheck
-          npm test
-          npm run test:python
-          npm run test:kg
           # The packaging check reads the git index, so stage the new release files first.
           git add -A data website
           npm run verify:package

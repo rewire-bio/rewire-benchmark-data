@@ -500,6 +500,16 @@ export async function packageWebsite(options = {}) {
     if (fs.existsSync(temporaryManifest)) fs.unlinkSync(temporaryManifest);
   }
 
+  // A current-only package lists only the current release, so files that earlier packages left
+  // under website/files are no longer read by anything. Remove them rather than carry them.
+  if (currentOnly) {
+    const listed = new Set(manifestFiles.map((entry) => entry.source));
+    for (const file of collectRegularFiles(filesOutputDir)) {
+      const rel = path.relative(dataDir, file).split(path.sep).join('/');
+      if (!listed.has(rel)) fs.unlinkSync(file);
+    }
+  }
+
   return {
     manifest,
     manifestPath,
