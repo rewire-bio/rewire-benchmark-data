@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T20:58:00Z",
+  "scope": "Independent review of the tumour RNA fusion use-case batch for use-case-tumour-rna-fusion-detection: 425 records after review (320 results, 56 evaluations, 16 configurations, 13 methods, 8 claims, 6 protocols, 3 datasets, 3 sources; one claim added by the reviewer). All three pinned artifacts were re-downloaded and matched their recorded SHA-256 (no archived copies; NC licences). All 320 results were re-read from the pinned tables with the reviewer's own parsers (the extractor's script was not run) and match in printed and numeric value, metric, qualifier, unit, direction, locator, configuration and protocol; TPR, PPV and F1 recompute from TP, FP and FN within rounding on every Tamura row, and F1 from sensitivity and precision on every Lin row. No number changed. Corrections, concern decisions, judgement review and approved use-case changes are in docs/reviews/use-cases/tumour-rna-fusion-detection-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any caller.",
+    "The Tamura PDF text layer was read with pdftotext, the same tool the extractor used; arithmetic checks guard against column misreads.",
+    "Figures and Lin Supplemental Tables S1 to S11 were not checked.",
+    "No archived copies are kept, so later re-verification depends on the publisher and Europe PMC still serving the same bytes.",
+    "SHACL shapes and npm run build were not run; npm test and npm run typecheck passed, and an in-memory addBatch and deriveUseCaseInputs dry run passed with all six new and both existing judgements active."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rna-fusion-20261009-eval-tamura2026-genomon-all-conventional",
+        "rna-fusion-20261009-eval-tamura2026-genomon-all-targeted",
+        "rna-fusion-20261009-eval-tamura2026-genomon-driver-conventional",
+        "rna-fusion-20261009-eval-tamura2026-genomon-driver-targeted"
+      ],
+      "message": "Origin independent_paper corrected to author_reported: co-author Yuichi Shiraishi is first author of the cited Genomon fusion paper (reference 25). Added claim rna-fusion-20261009-claim-tamura2026-genomon-developer."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "13 rna-fusion-20261009-method-* records"
+      ],
+      "message": "Method descriptions stated facts not in either source; replaced with Tamura Supplementary Table 1 alignment methods and Lin Methods text."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "4 STARChip 'na' results"
+      ],
+      "message": "undefined_reason reworded: the footnote defines 'na' for PPV only; F1 is undefined through its Methods definition."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rna-fusion-20261009-data-lin2026-ball-nanopore"
+      ],
+      "message": "Population now records the Methods (79) versus Results (81) count of low-depth samples with known fusions or subtypes."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "6 rna-fusion-20261009-protocol-* records",
+        "6 use-case-mapping-rna-fusion-20261009-* claims"
+      ],
+      "message": "Limitations rewritten from the sources (driver-truth circularity, consensus FP definition, Genomon origin, default parameters, FUSILLI tuning and scoring, per-run scoring, abstract versus Table 6); rationales and citation locators corrected."
+    }
+  ],
+  "files": {
+    "batch.jsonl": "1c611c3be1b1a093eab8c74ea4fdc2642f2ad633c924ee0b9ec55f9156efc843",
+    "claims.csv": "6d4497f2656ff72da6ce76a94d2d6b6a9ab3b71531419428a78bc9a7e82ebdf1",
+    "coverage.json": "5070ecb4bc49ba170e3b6f54cdf7ee82ddbdea4aafcdda44c272db67eee900c4",
+    "extract/extract_rna_fusion.py": "b3fcc65041b64e4e083e3ba1ac5a5371174d0e3f9c5f822b95abfec6ea4935fe",
+    "research.md": "5c4123fcd6e0f4273b8d3adc6d541eda5c86f2d239f34979496867db77370082",
+    "retrieval-log.md": "00766af6ca6f3aa6835688983d21d1f849159747352b5f02dc513fbcc48e64d1",
+    "sources.md": "375c26d1eaa05761508f1146533e4e20c6ca4bc5ebc90473f639e6c77f1c1c9d"
+  }
+}
