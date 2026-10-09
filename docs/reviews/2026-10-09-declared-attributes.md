@@ -19,6 +19,8 @@ Issue #42, stage 3 (requirements R4 and R5). Record attributes were an open bag:
 
 `normalizeAttributes` is the only conversion: the migration (`npm run attributes:migrate`) and every reader (`shared/omics/current.ts`, used wherever snapshots load) apply it, so archived releases read the same as new ones. Strict checks run on the store, not on archived releases. Profile enrichment no longer renames `missing_metadata`. Importers convert new batches with `npm run attributes:migrate -- --batch <file>` before review; the two Python run importers no longer write the dropped keys and write coverage as an object. The website reads the new shapes through rewire-bio/rewire-database#126, which must merge first.
 
+The conversion rewrites records that the 92 active use-case mappings fingerprint, so their `evidence_sha256` is re-pinned with `npm run use-cases:repin`, as in `2026-10-09-use-case-evidence-repin.md`; a local release build serves all 92.
+
 Not in this change (stage 3b): exporting every declared attribute to RDF with its datatype and structured uncertainty as a node, per-kind SHACL shapes generated from the registry, and running SHACL at `records -- add`.
 
 ## Independent review
