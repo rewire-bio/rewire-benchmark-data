@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T21:00:00Z",
+  "scope": "Independent review of the plasma ctDNA fragmentomics batch for use-case-plasma-ctdna-fragmentomics: 772 records (593 results, 103 evaluations, 32 configurations, 13 methods, 12 claims including 10 relevance judgements, 10 protocols, 5 datasets, 4 sources). All four source artifacts were re-downloaded and matched their recorded SHA-256; the archived artifacts/*.gz decompress to the same bytes. All 593 results were re-read from the pinned cells with a separate parser (the extractor's scripts were not run) and match in value, printed form, metric, qualifier, unit, direction, interval, denominator, configuration, protocol and dataset. Hou et al. Table S2 was cross-checked against Tables S7, S8, S9 and S10; UNITE STATS sheets were recomputed from the per-fold RAW sheets. See docs/reviews/use-cases/plasma-ctdna-fragmentomics-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any classifier.",
+    "Figures were not checked in either article.",
+    "The Hou et al. Table S2 conflicts and the UNITE ichorCNA-TF fixed-specificity failures are unresolved at the source; the 55 affected results are kept as printed with status disputed.",
+    "Hou et al. per-cancer Table S2 sensitivities and Table S3 values have no second table to check against.",
+    "UNITE STATS_lr 98% rows have no per-fold values in RAW_lr and could not be recomputed.",
+    "Relevance judgement pins are left unset for the integrator; the judgements were simulated active against an in-memory copy of the store with the approved use-case changes, and use-case-mapping-amp-20261007-issue15 must be re-pinned in the same change."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "ctdnafrag-20261009-source-hou2024-supporting-information",
+        "20 Table S2 pan-cancer sensitivity results",
+        "20 Table S2 liver cancer sensitivity results"
+      ],
+      "message": "Source-level evidence concern narrowed to the affected values. Table S9 is right: in Table S2's pan-cancer block the column labelled 85% specificity holds the Table S9 values at 95% (supported by Table S10 and by Table S7 against Table S10). The Table S2 liver block prints near-identical values in both columns. The 40 results are disputed with source_warnings; the concern text moved to the source's limitations."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "9 ichorCNA-TF (0.1, 1] fixed-specificity results",
+        "6 ichorCNA-TF [0, 0.03] fixed-specificity accuracy and F1 results",
+        "ctdnafrag-20261009-source-wang2026-data-file-s2"
+      ],
+      "message": "Fixed-specificity values that contradict the per-fold data in RAW_lr are disputed with source_warnings: a perfect classifier printed with sensitivity 0 at 95% to 99% specificity, and accuracy and F1 that require no true positives in folds reporting non-zero sensitivity. Facts recorded in the source's limitations."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "7 ctdnafrag-20261009-eval-hou2024-*-ifs-* evaluations"
+      ],
+      "message": "origin independent_paper changed to author_reported: IFS was defined in Zhou et al. 2022, whose first author is Hou et al.'s corresponding author with the same affiliation."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "ctdnafrag-20261009-data-wang2026-unite-cross-validation",
+        "ctdnafrag-20261009-data-hou2024-jiang2018-lihc",
+        "ctdnafrag-20261009-data-hou2024-zhou2022-lihc",
+        "4 UNITE protocols",
+        "10 relevance judgements"
+      ],
+      "message": "Cohort overlaps recorded: the UNITE cross-validation set draws 352 Cristiano et al. 2019 and 86 Jiang et al. FinaleDB samples (Data file S1 sheet s13); the Zhou cohort was published by Hou et al.'s corresponding author."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "coverage.json use_case_changes.evidence_gaps_proposed"
+      ],
+      "message": "The proposed gap that no fragmentomic sensitivity at 98% or 99% specificity within a low tumour-fraction stratum is printed is wrong: Data file S2 sheet STATS_xgb_all_feat prints them (not extracted). The approved gap text in the dated review states this; coverage.json is the collector's note and was not edited."
+    }
+  ],
+  "files": {
+    "artifacts/hou2024-article.xml.gz": "cac58f7aa06ffe301b4c4a7e6e7fb04ad85880ceba25bbc5b7d32e15cb0ec7a2",
+    "artifacts/hou2024-supporting-information.xlsx.gz": "e004099899c3f7e96be8cd011410dd94dc69c624bc12b776cbeb736d42de652a",
+    "artifacts/wang2026-article.xml.gz": "7ac25165b4eb001a58f41272aa4d5b706edbcf5d8df65cc6ca41753b29630713",
+    "batch.jsonl": "8c55101d2788ee2dfc2862a16ace8f4b1658fb726cf443fadebec84261654287",
+    "claims.csv": "b0d3429070b3e5b4ea2371659fd668e8e21b666a9d836dd22472be9625c93089",
+    "coverage.json": "5d49e194a953c3d18476a16beeb0201f4adf21196b88bb26a633d80554ec8efc",
+    "extract/extract_ctdna_fragmentomics.py": "5e4517bc1b4524acae2a91af7925ed78674cd30af4d9e841608a582f5cf32e04",
+    "extract/rawxlsx.py": "81aa5a418143431976749abe8273a45f37c8bde0fe4c1ce25a449221ae512726",
+    "research.md": "07612cacfd2fce226eb0a2f1f38b4339937d4d0caf6d105744c8cc419e3a2990",
+    "retrieval-log.md": "5a9e341d4a46fabfea709dff2185e56f46e953cd1d53c7acfb281e4ecdb298f0",
+    "sources.md": "92a0aaefabf8725cee13a4d24018a8f0477fead0fa2835f49282f8333f5d43d4"
+  }
+}
