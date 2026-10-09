@@ -1,0 +1,137 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T20:36:00Z",
+  "scope": "Independent review of the tumour somatic SNV and indel use-case batch for use-case-tumour-dna-somatic-variant-detection: 1,238 records (918 results, 213 evaluations, 41 configurations, 19 methods, 18 claims, 15 protocols, 9 datasets, 5 sources). All five pinned artifacts were re-downloaded and matched their recorded SHA-256; the archived artifacts/*.gz decompress to the same bytes. All 918 results were re-read from the pinned cells with the reviewer's own OOXML and BIFF8 readers (the extractor's scripts were not run) and match in raw value, printed form, numeric value, metric, qualifier, unit, direction, configuration, protocol and truth count; F1 recomputes from precision and recall (Wang) and TPR, PPV and F1 from TP, FP and P (Guille). No number changed. Descriptive corrections, the relevance review of the 15 judgements and the nine excluded evaluations are listed in docs/reviews/use-cases/tumour-dna-somatic-variant-detection-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any caller.",
+    "Figures were not checked.",
+    "Two facts used to resolve concerns come from documents that are not pinned in this batch: the NeuSomatic SEQC2 paper (PMC8740374; training of the SEQC-WGS-GT50-SpikeWGS10 checkpoint) and ENA run metadata for SRR7890879.",
+    "The Europe PMC supplementaryFiles zip is rebuilt per request, so its container hash cannot be re-verified; the two pinned member files were verified.",
+    "Guille Tables S2 and S6 were read only to resolve the DeepSomatic 0.807 conflict; they are not extracted.",
+    "SHACL shapes and npm run build were not run; npm test and npm run typecheck passed, and an in-memory addBatch and deriveUseCaseInputs dry run passed with all 15 judgements active."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "18 somatic-20261009-method-* records"
+      ],
+      "message": "Method descriptions stated facts not in either source; replaced with the algorithm types in Guille Table 1 and the Methods text."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "somatic-20261009-data-guille2025-seqc2-fd-wes"
+      ],
+      "message": "split did not say that the validation sample is a replicate of the development cell line with the same truth set; accession clarified as run SRR7890879 in experiment SRX4728489."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "15 somatic-20261009-protocol-* records",
+        "15 use-case-mapping-somatic-20261009-* claims"
+      ],
+      "message": "Limitations rewritten from the sources: training overlap, ensemble selection on the same cell line, classic-only prose comparison, synthetic DREAM wording, VAF limits and truth-set completeness."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "somatic-20261009-claim-guille2025-neusomatic-checkpoint"
+      ],
+      "message": "Name said training_overlap while the field is checkpoint."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "somatic-20261009-claim-wang2020-neusomatic-dream3-model"
+      ],
+      "message": "Added the authors' statement that the model was trained by DREAM set 3; claims.csv locator updated."
+    },
+    {
+      "status": "excluded_from_judgement",
+      "record_ids": [
+        "somatic-20261009-eval-guille2025-deepsomatic-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-neusomatic-seqc2-fd-wes-indel",
+        "somatic-20261009-eval-guille2025-deepsomatic-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-guille2025-neusomatic-seqc2-fd-wes-snv",
+        "somatic-20261009-eval-wang2020-vardict-standalone-colo829-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-dream-set3-indel",
+        "somatic-20261009-eval-wang2020-neusomatic-lowqual-dream-set3-snv",
+        "somatic-20261009-eval-wang2020-neusomatic-pass-dream-set3-snv"
+      ],
+      "message": "Nine evaluations excluded from their judgements with reasons: DeepSomatic and NeuSomatic on SEQC2 HCC1395 and NeuSomatic on DREAM set 3 (training overlap), and Wang Table S1 row 111 (internally inconsistent)."
+    }
+  ],
+  "excluded_evaluations": [
+    {
+      "judgement": "use-case-mapping-somatic-20261009-guille2025-seqc2-fd-wes-indel",
+      "evaluation": "somatic-20261009-eval-guille2025-deepsomatic-seqc2-fd-wes-indel",
+      "reason": "Not held out: Guille et al. state that DeepSomatic 'used WES from the SEQC2 consortium to build his WES pre-trained model' (Discussion paragraph 5), and the validation sample is a SEQC2 HCC1395 WES replicate scored against the same truth set. The supplementary command also uses --model_type=WGS while the row is labelled DeepSomatic-WES, so which model produced the row is unresolved."
+    },
+    {
+      "judgement": "use-case-mapping-somatic-20261009-guille2025-seqc2-fd-wes-indel",
+      "evaluation": "somatic-20261009-eval-guille2025-neusomatic-seqc2-fd-wes-indel",
+      "reason": "Not held out: the supplementary methods call NeuSomatic with checkpoint NeuSomatic_v0.1.4_standalone_SEQC-WGS-GT50-SpikeWGS10.pth. The NeuSomatic SEQC2 paper (Sahraeian et al. 2022, Genome Biology, PMC8740374, not pinned in this batch) says this model was trained on HCC1395 ground-truth somatic mutations in 50% of the genome; Guille et al. scored the whole exome target against the same HCC1395 truth set."
+    },
+    {
+      "judgement": "use-case-mapping-somatic-20261009-guille2025-seqc2-fd-wes-snv",
+      "evaluation": "somatic-20261009-eval-guille2025-deepsomatic-seqc2-fd-wes-snv",
+      "reason": "Not held out: Guille et al. state that DeepSomatic 'used WES from the SEQC2 consortium to build his WES pre-trained model' (Discussion paragraph 5), and the validation sample is a SEQC2 HCC1395 WES replicate scored against the same truth set. The supplementary command also uses --model_type=WGS while the row is labelled DeepSomatic-WES, so which model produced the row is unresolved."
+    },
+    {
+      "judgement": "use-case-mapping-somatic-20261009-guille2025-seqc2-fd-wes-snv",
+      "evaluation": "somatic-20261009-eval-guille2025-neusomatic-seqc2-fd-wes-snv",
+      "reason": "Not held out: the supplementary methods call NeuSomatic with checkpoint NeuSomatic_v0.1.4_standalone_SEQC-WGS-GT50-SpikeWGS10.pth. The NeuSomatic SEQC2 paper (Sahraeian et al. 2022, Genome Biology, PMC8740374, not pinned in this batch) says this model was trained on HCC1395 ground-truth somatic mutations in 50% of the genome; Guille et al. scored the whole exome target against the same HCC1395 truth set."
+    },
+    {
+      "judgement": "use-case-mapping-somatic-20261009-wang2020-colo829-snv",
+      "evaluation": "somatic-20261009-eval-wang2020-vardict-standalone-colo829-snv",
+      "reason": "Row is internally inconsistent in Table S1 (row 111): recall 0.806 of 35,543 truth SNVs gives about 28,650 true positives, but precision 0.558 of 63,263 calls gives about 35,300. Every other S1 and S2 row agrees to within rounding. Which printed value is wrong cannot be told from the source. VarDict (bcbio), the configuration the authors use in their Results, is kept."
+    },
+    {
+      "judgement": "use-case-mapping-somatic-20261009-wang2020-dream-set3-indel",
+      "evaluation": "somatic-20261009-eval-wang2020-neusomatic-lowqual-dream-set3-indel",
+      "reason": "Not held out: Wang et al. ran NeuSomatic with NeuSomatic_v0.1.3_ensemble_DREAM3.pth (Methods 'Somatic variant calling' paragraph 2) and state that this model was trained on DREAM set 3 (Results 'Evaluation of our consensus approach' paragraph 2)."
+    },
+    {
+      "judgement": "use-case-mapping-somatic-20261009-wang2020-dream-set3-indel",
+      "evaluation": "somatic-20261009-eval-wang2020-neusomatic-pass-dream-set3-indel",
+      "reason": "Not held out: Wang et al. ran NeuSomatic with NeuSomatic_v0.1.3_ensemble_DREAM3.pth (Methods 'Somatic variant calling' paragraph 2) and state that this model was trained on DREAM set 3 (Results 'Evaluation of our consensus approach' paragraph 2)."
+    },
+    {
+      "judgement": "use-case-mapping-somatic-20261009-wang2020-dream-set3-snv",
+      "evaluation": "somatic-20261009-eval-wang2020-neusomatic-lowqual-dream-set3-snv",
+      "reason": "Not held out: Wang et al. ran NeuSomatic with NeuSomatic_v0.1.3_ensemble_DREAM3.pth (Methods 'Somatic variant calling' paragraph 2) and state that this model was trained on DREAM set 3 (Results 'Evaluation of our consensus approach' paragraph 2)."
+    },
+    {
+      "judgement": "use-case-mapping-somatic-20261009-wang2020-dream-set3-snv",
+      "evaluation": "somatic-20261009-eval-wang2020-neusomatic-pass-dream-set3-snv",
+      "reason": "Not held out: Wang et al. ran NeuSomatic with NeuSomatic_v0.1.3_ensemble_DREAM3.pth (Methods 'Somatic variant calling' paragraph 2) and state that this model was trained on DREAM set 3 (Results 'Evaluation of our consensus approach' paragraph 2)."
+    }
+  ],
+  "files": {
+    "artifacts/guille2025-article.xml.gz": "3af933bafa3109a3334c0436f19badbb0868fad793ed1799b11830e07cff8add",
+    "artifacts/guille2025-supplementary-methods.docx.gz": "b52fe35565efd599c029111e4ba79892ab1cb32206ea2856ccaeb3442b39b975",
+    "artifacts/guille2025-table-s7.xls.gz": "3dbb73436ce41c15001be42ffce31a2b01d87500d3c4a80fc41cf18ae50b2734",
+    "artifacts/wang2020-article.xml.gz": "dc88008f5a29cb5edee6b0915578f2866a85dc32ca50e3204bdd8261ad5c32f5",
+    "artifacts/wang2020-supplementary-tables.xlsx.gz": "1d6fa20bf9f3efe7f42bd5dca2ea84af13f4e6d099f1d6639305c1b16d34d1a5",
+    "batch.jsonl": "4053e239d8ad7866857f5332fb5e39415a48246a7aa77bcb927e069522b30ec3",
+    "claims.csv": "22fb3b137255714e1695c47b52d6e2a514768f8fb9142d388d362f8a344fd6b4",
+    "coverage.json": "d4a8b3f54918cefee932792390f4143bb37274057f675ae7f13442bc5c556941",
+    "extract/extract_somatic.py": "cd7630d18284ffd72430c85af85c0f60f42ff47d65cd8ceaa86cdd4f56285a8b",
+    "extract/rawxls.py": "8cdb03925b8a4177f4e1210b0e9531a3b54032b5bcf66077512dad47b97ffba1",
+    "extract/rawxlsx.py": "81aa5a418143431976749abe8273a45f37c8bde0fe4c1ce25a449221ae512726",
+    "research.md": "3170b540658d846783fbd945f48601e1f798e8613b33982096d31b99e563f2b1",
+    "retrieval-log.md": "18519cb163736eb21197c38769a399bac475a0ced1fb941722b570aaf2dc1e5a",
+    "sources.md": "f57b4b0bef36e4ca5a300ab3861c0305299e024e2e59d0dd48ae372253f38062"
+  }
+}
