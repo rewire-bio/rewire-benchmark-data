@@ -1,8 +1,8 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { validateSnapshot } from "../../services/omics/src/validation";
-import { createCatalogueQuery } from "../../services/omics/src/catalogue-query";
+import { validateSnapshot } from "../../shared/omics/validation";
+import { createCatalogueQuery } from "../../shared/omics/catalogue-query";
 
 // Exact reviewed record closure; see fixtures/README.md for archive provenance.
 // This fixture works before export and in current-only builds without producer access.

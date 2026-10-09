@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { CatalogueSnapshot } from "../../services/omics/src/catalogue-query";
-import { deriveResearchReadiness, validateResearchData, validateResearchManifest, type ResearchData } from "../../services/omics/src/research";
+import type { CatalogueSnapshot } from "../../shared/omics/catalogue-query";
+import { deriveResearchReadiness, validateResearchData, validateResearchManifest, type ResearchData } from "../../shared/omics/research";
 import { validateInvestigationBundle } from "./research-import";
 
 export const researchInputFiles = ["data/research/manifests.json", "data/research/investigations.json"];

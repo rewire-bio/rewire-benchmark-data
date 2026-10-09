@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
-import { researchInvestigationSchema, researchOperationSchema, researchSpecSchema, validateResearchManifest, type ResearchSpec } from "../services/omics/src/research";
-import { researchHash, validateResearchIntegrity } from "../services/omics/src/research-integrity";
+import { researchInvestigationSchema, researchOperationSchema, researchSpecSchema, validateResearchManifest, type ResearchSpec } from "../shared/omics/research";
+import { researchHash, validateResearchIntegrity } from "../shared/omics/research-integrity";
 
 // These fixtures are generated and tested by the Python runner. Keep the copies
 // identical when the shared interchange contract changes.

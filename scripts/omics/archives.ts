@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { gunzipSync } from "node:zlib";
 import { createHash } from "node:crypto";
-import { validateUseCaseArtifact } from "../../services/omics/src/use-cases";
+import { validateUseCaseArtifact } from "../../shared/omics/use-cases";
 import { parseUseCaseSourceDeclaration, writeUseCaseSourceCopies } from "./use-cases";
 
 function expectedFiles(manifest: any): string[] {

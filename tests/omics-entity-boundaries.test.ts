@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildRelease } from "../scripts/omics/release";
-import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
+import { createCatalogueQuery } from "../shared/omics/catalogue-query";
 import { compareResults, parseCatalogue } from "../lib/omics";
 import { fixture } from "./fixtures/catalogue";
 

@@ -6,7 +6,7 @@ import {
   createEvidenceIndex,
   evidenceCsvLines,
   evidenceJsonlLines,
-} from "../services/omics/src/evidence-table";
+} from "../shared/omics/evidence-table";
 import {
   chunksSha256,
   fileSha256,

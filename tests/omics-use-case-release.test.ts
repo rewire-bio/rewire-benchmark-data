@@ -13,7 +13,7 @@ import {
 import {
   createUseCaseQuery, mappingEvidenceHash,
   useCaseDeclaration, validateUseCaseArtifact, type UseCaseInputs,
-} from "../services/omics/src/use-cases";
+} from "../shared/omics/use-cases";
 import type { RecordEntry } from "../scripts/omics/schema";
 
 const sha = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");

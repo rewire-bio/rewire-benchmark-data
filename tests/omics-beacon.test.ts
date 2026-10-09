@@ -10,10 +10,10 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import { batchRecords, records } from "./helpers/records";
 import { buildRelease } from "../scripts/omics/release";
-import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
+import { createCatalogueQuery } from "../shared/omics/catalogue-query";
 import { benchmarkCoverage } from "../scripts/omics/audit-benchmark-evidence";
 import { BENCHMARK_ID, TASK_ORDER } from "../scripts/omics/extract-beacon";
-import { relationAcceptsKind } from "../services/omics/src/entity-kinds";
+import { relationAcceptsKind } from "../shared/omics/entity-kinds";
 import { type RecordEntry } from "../scripts/omics/schema";
 
 const batch = batchRecords("data/omics/reviewed/beacon-2026.jsonl");

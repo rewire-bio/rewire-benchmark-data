@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { Parser } from "n3";
 import { buildContext, contextFile, exportQuads, readMapping, recordQuads } from "../scripts/kg/export";
 import { kinds } from "../scripts/omics/schema";
-import { catalogueRelations } from "../services/omics/src/entity-kinds";
+import { catalogueRelations } from "../shared/omics/entity-kinds";
 import { records, recordsById } from "./helpers/records";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const jsonld = require("jsonld");

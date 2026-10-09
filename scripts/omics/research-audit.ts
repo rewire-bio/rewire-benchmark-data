@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseCatalogue } from "../../lib/omics";
-import { deriveResearchReadiness, researchCapabilities, validateResearchManifest, type ResearchManifest } from "../../services/omics/src/research";
-import type { CatalogueSnapshot } from "../../services/omics/src/catalogue-query";
+import { deriveResearchReadiness, researchCapabilities, validateResearchManifest, type ResearchManifest } from "../../shared/omics/research";
+import type { CatalogueSnapshot } from "../../shared/omics/catalogue-query";
 
 export function auditResearchReadiness(snapshot: CatalogueSnapshot, manifests?: ResearchManifest[]) {
   manifests?.forEach(manifest => validateResearchManifest(manifest, snapshot));

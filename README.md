@@ -45,7 +45,7 @@ data/
   research/                            research investigation inputs (see its README)
 docs/                                  procedures and dated reviews
 scripts/omics/                         record store, extraction, acquisition, audit and release code
-services/omics/src/                    record validation, query engine and prepared-file reader, mirrored by the website
+shared/omics/                          record validation, query engine and prepared-file reader, mirrored by the website
 lib/                                   rendering helpers shared with the website
 maintenance/                           refresh schedule, attempt records and reports
 website/                               packaged inputs pinned by the website
@@ -53,7 +53,7 @@ website/                               packaged inputs pinned by the website
 
 Records are edited only through the store: `npm run records -- add` appends a reviewed batch, `npm run records -- change` records a reviewed edit, and `npm run records -- check` verifies every record against its provenance. See [docs/collection.md](docs/collection.md).
 
-`services/omics/src/` is the source of truth for the code the website mirrors in its `shared/omics/` (its tests are in `tests/shared/`); there is no running service here. The website copies it with `npm run shared:sync` when it adopts a release. The folder keeps its name because release IDs hash some of these files' bytes, so renaming it means a new release; do it alongside the next real one. Changes to shared schemas need compatibility checks in both repositories.
+`shared/omics/` is the source of truth for the code the website mirrors at the same path (its tests are in `tests/shared/`); there is no running service here. The website copies it with `npm run shared:sync` when it adopts a release. Changes to shared schemas need compatibility checks in both repositories.
 
 ## Build and validate
 

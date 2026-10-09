@@ -4,15 +4,15 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { gzipSync } from "node:zlib";
 import { afterEach, describe, expect, it } from "vitest";
-import { createCatalogueQuery, type CatalogueSnapshot } from "../services/omics/src/catalogue-query";
-import { deriveResearchReadiness, getResearch, validateResearchData, validateResearchManifest, type ResearchData, type ResearchInvestigation, type ResearchManifest, type ResearchSpec } from "../services/omics/src/research";
+import { createCatalogueQuery, type CatalogueSnapshot } from "../shared/omics/catalogue-query";
+import { deriveResearchReadiness, getResearch, validateResearchData, validateResearchManifest, type ResearchData, type ResearchInvestigation, type ResearchManifest, type ResearchSpec } from "../shared/omics/research";
 import { buildRelease } from "../scripts/omics/release";
 import { researchFiles, loadResearchInputs } from "../scripts/omics/research-release";
 import { loadPinnedResearchSnapshot, withResearchPins } from "../scripts/omics/research-snapshot";
 import { canonicalResearchJson, researchHash, stageResearchBundle, validateInvestigationBundle } from "../scripts/omics/research-import";
 import { restoreReleaseBundles } from "../scripts/omics/archives";
 import { parseCatalogue } from "../lib/omics";
-import { validateSnapshot } from "../services/omics/src/validation";
+import { validateSnapshot } from "../shared/omics/validation";
 import type { RecordEntry } from "../scripts/omics/schema";
 
 const sourceRelease = "2026-09-20-0123456789ab";

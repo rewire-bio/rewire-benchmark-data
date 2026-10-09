@@ -10,8 +10,8 @@ import {
   type ResolvedMapping,
   type UseCaseArtifact,
   type UseCaseDeclaration,
-} from "../../services/omics/src/use-cases";
-import type { CatalogueSnapshot } from "../../services/omics/src/catalogue-query";
+} from "../../shared/omics/use-cases";
+import type { CatalogueSnapshot } from "../../shared/omics/catalogue-query";
 
 export type MappingAudit = {
   mapping_id: string;

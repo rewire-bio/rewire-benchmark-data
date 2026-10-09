@@ -18,7 +18,7 @@ const extractedBatches = [
 import { benchmarkCoverage } from "../scripts/omics/audit-benchmark-evidence";
 import { buildRelease } from "../scripts/omics/release";
 import { type RecordEntry } from "../scripts/omics/schema";
-import { relationAcceptsKind } from "../services/omics/src/entity-kinds";
+import { relationAcceptsKind } from "../shared/omics/entity-kinds";
 import {
   arrowDirection,
   headedBlocks,

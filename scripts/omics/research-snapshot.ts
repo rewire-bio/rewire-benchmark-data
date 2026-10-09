@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { gunzipSync } from "node:zlib";
 import { createHash } from "node:crypto";
-import type { CatalogueSnapshot } from "../../services/omics/src/catalogue-query";
+import type { CatalogueSnapshot } from "../../shared/omics/catalogue-query";
 
 /** Authenticate a pinned snapshot without expanding its other historical files. */
 export function readPinnedResearchSnapshot(root: string, releaseId: string): Buffer {
