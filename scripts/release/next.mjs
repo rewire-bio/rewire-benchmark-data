@@ -1,6 +1,9 @@
 // Automated release support (.github/workflows/release.yml).
 //   node scripts/release/next.mjs prepare   set released_at to now; print the current release ID
 //   node scripts/release/next.mjs latest    print the newest release whose files are present
+//   node scripts/release/next.mjs withheld <previous-id> <next-id>
+//       exit 4 if the next release automatically withholds use-case mappings
+//       that the previous release serves (their evidence changed since review)
 //   node scripts/release/next.mjs pending <previous-id> <next-id>
 //       exit 0 if the next release differs from the previous one in anything but
 //       its release ID and date (new or changed records, evidence, audits, use
@@ -48,6 +51,19 @@ if (command === 'latest') {
   config.released_at = new Date(Math.floor(Date.now() / 1000) * 1000).toISOString();
   fs.writeFileSync(configFile, JSON.stringify(config, null, 2) + '\n');
   console.log(current);
+} else if (command === 'withheld') {
+  if (!previous || !next) throw new Error('Usage: next.mjs withheld <previous-id> <next-id>');
+  const useCases = id => {
+    const file = path.join(releases, id, 'use-cases.json.gz');
+    return fs.existsSync(file) ? JSON.parse(zlib.gunzipSync(fs.readFileSync(file)).toString('utf8')) : null;
+  };
+  const before = useCases(previous), after = useCases(next);
+  const live = new Set((before?.mappings || []).filter(mapping => mapping.lifecycle === 'active').map(mapping => mapping.id));
+  const withheld = (after?.mappings || []).filter(mapping => live.has(mapping.id) && mapping.lifecycle !== 'active' && mapping.stale_from).map(mapping => mapping.id);
+  if (withheld.length) {
+    console.log(`::error::${next} withholds ${withheld.length} use-case mappings that ${previous} serves, because their evidence changed since review: ${withheld.slice(0, 10).join(', ')}. Re-review them (update their evidence_sha256 in data/omics/use-cases/inputs.json after review) before releasing.`);
+    process.exitCode = 4;
+  } else console.log(`No use-case mapping that ${previous} serves is withheld by ${next}.`);
 } else if (command === 'pending') {
   if (!previous || !next) throw new Error('Usage: next.mjs pending <previous-id> <next-id>');
   const a = releaseOf(previous), b = releaseOf(next);
@@ -62,5 +78,5 @@ if (command === 'latest') {
     process.exitCode = 3;
   }
 } else {
-  throw new Error('Usage: next.mjs prepare | latest | pending <previous-id> <next-id>');
+  throw new Error('Usage: next.mjs prepare | latest | withheld <previous-id> <next-id> | pending <previous-id> <next-id>');
 }
