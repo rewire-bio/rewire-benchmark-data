@@ -1848,8 +1848,11 @@
       "decision": "Inspect the DRAGEN 4.2 CNV/SV benchmarking F-score evidence for 1-5 kb deletions before selecting a workflow; evidence-visualisation usability is not addressed by this bounded intake.",
       "evidence_gaps": [
         "Unreported per-bin counts behind the printed F-score.",
-        "No duplication, tumour-CNV or clinical-reporting endpoint is ingested in this bounded intake.",
-        "No foundation-model applicability is established for this task."
+        "No foundation-model applicability is established for this task.",
+        "Duplication evidence is limited to 10 HG002 duplication truth events in one source (De La Vega et al. 2025).",
+        "No tumour or somatic CNV result with printed per-caller values was found; the SEQC2 HCC1395 benchmark reports accuracy in figures only.",
+        "Results are not comparable across sources: each uses its own truth set, matching rule and input data.",
+        "The De La Vega et al. 2025 and Nardone et al. 2025 mappings are held as drafts because their sources carry evidence concerns (prose and tables disagree; Nardone input conditions are unresolved)."
       ],
       "exclusions": [
         "Duplications, larger/smaller size strata, and tumour CNV (not ingested in this bounded intake)",
@@ -1883,7 +1886,7 @@
       "search_terms": [
         "cnv detection characterisation"
       ],
-      "setting": "DRAGEN 4.2's CNV/SV benchmarking (HG002, GIAB SV truth set) reports an F-score for 1-5 kb deletion detection (selected Table S4 cells, sheet CNVbenchmarking, H6=.926, L6=.391).",
+      "setting": "DRAGEN 4.2's CNV/SV benchmarking (HG002, GIAB SV truth set) reports an F-score for 1-5 kb deletion detection (selected Table S4 cells, sheet CNVbenchmarking, H6=.926, L6=.391). The 2026-10-09 pass adds the rest of DRAGEN Table S4 (CNV-only DRAGEN and CNVnator across five deletion bins), Gabrielaite et al. 2021 (eight WGS callers on NA12878), and as drafts De La Vega et al. 2025 (eight WGS caller configurations including the deep-learning caller Cue) and Nardone et al. 2025 (ten short-read callers on HG002 deletions).",
       "slug": "cnv-detection-characterisation",
       "title": "Select a copy-number variant detection and characterisation workflow"
     },
@@ -5409,33 +5412,34 @@
       ],
       "constraints": [
         "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
-        "Do not combine this mapping's evaluations with any other protocol's results."
+        "Do not combine this mapping's evaluations with any other protocol's results; truth sets, matching rules and inputs differ between sources."
       ],
-      "endpoint": "F-score for 1-5 kb deletion detection (DRAGEN 4.2 CNV/SV benchmarking, HG002) against the GIAB SV truth set",
+      "endpoint": "Recall, precision and F-score for 1-5 kb deletions on HG002 (GIAB SV v0.6) for DRAGEN 4.2 CNV+SV, DRAGEN 4.2 CNV-only and CNVnator",
       "evaluation_ids": [
-        "amp-eval-dragen-cnv-sv-1-5kb-fscore"
+        "amp-eval-dragen-cnv-sv-1-5kb-fscore",
+        "cnv-20261009-eval-behera2024-cnvnator-1-5kb",
+        "cnv-20261009-eval-behera2024-dragen42-cnv-1-5kb"
       ],
-      "evidence_sha256": "8017b85117e6fca3555a505ccc173c20798c8d79ef3963c5c1d45a5243df7bbb",
+      "evidence_sha256": "bc9494c6bc7c098e0aa7c3a656c49c610339a56e33f1f16699987f3ce1188be5",
       "id": "use-case-mapping-amp-20261007-issue17",
       "lifecycle": "active",
       "limitations": [
-        "Unreported per-bin counts",
-        "No duplication/tumourCNV/clinical endpoint",
-        "No visualisation usability",
-        "CNVnator table/prose conflict",
-        "No foundation-model applicability"
+        "Single sample; per-bin counts unreported",
+        "DRAGEN CNV-only F-score printed NaN (recall and precision 0)",
+        "CNVnator table/prose conflict from the AMP intake retained",
+        "No duplication, tumour CNV or visualisation endpoint"
       ],
       "protocol_id": "amp-protocol-hg002-cnv-1-5kb",
       "rationale": "F-score for 1-5 kb deletion detection against a GIAB truth set directly measures the declared CNV-detection endpoint; it does not cover visualisation usability.",
-      "reason": "Add Codex-checked primary-source protocol evidence from the bounded AMP intake (rewire.it#365).",
+      "reason": "Add the DRAGEN CNV-only and CNVnator comparators and the recall and precision cells from the same Table S4 row (CNV use-case pass 2026-10-09).",
       "relevance": "direct",
       "review": {
-        "actor": "Claude Sonnet AMP-integration worker, bounded transcription of Codex-checked primary values; independently reviewed by Codex (workbench/amp-supervision/primary-review.md, integration-review-corrections.md)",
+        "actor": "Claude (Opus 5.5) research agent extracted; a separate Claude review agent checked every value against the pinned sources (data/omics/use-case-coverage-cnv-20261009/review.json)",
         "method": "automated_source_review",
-        "note": "Bounded primary-source transcription, independently Codex-checked. No new model execution, independent experimental reproduction, qualified human scientific review or clinical validation.",
-        "reviewed_at": "2026-10-07T13:38:59Z"
+        "note": "Bounded primary-source transcription with independent automated cell check. No execution, reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-09T16:30:00Z"
       },
-      "revision": 1,
+      "revision": 2,
       "use_case_id": "use-case-cnv-detection-characterisation"
     },
     {
@@ -5877,6 +5881,354 @@
       },
       "revision": 1,
       "use_case_id": "use-case-regulatory-variant-gene-follow-up"
+    },
+    {
+      "citations": [
+        {
+          "source_id": "amp-source-dragen",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        },
+        {
+          "source_id": "amp-source-dragen-supplementary-tables",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results; truth sets, matching rules and inputs differ between sources."
+      ],
+      "endpoint": "Recall, precision and F-score for 5-10 kb deletions on HG002 (GIAB SV v0.6), DRAGEN 4.2 CNV+SV, CNV-only and CNVnator",
+      "evaluation_ids": [
+        "cnv-20261009-eval-behera2024-cnvnator-5-10kb",
+        "cnv-20261009-eval-behera2024-dragen42-cnv-5-10kb",
+        "cnv-20261009-eval-behera2024-dragen42-cnv-sv-5-10kb"
+      ],
+      "id": "use-case-mapping-cnv-20261009-behera2024-del-5-10kb",
+      "lifecycle": "active",
+      "limitations": [
+        "Single sample; per-bin counts unreported",
+        "Deletions only",
+        "Author-run comparison (DRAGEN developers)"
+      ],
+      "protocol_id": "cnv-20261009-protocol-behera2024-hg002-cnv-del-5-10kb",
+      "rationale": "Sensitivity/recall and precision of CNV calls against a reference truth set directly measure the detection part of the declared endpoint; they do not cover characterisation or visualisation usability.",
+      "reason": "Add independently checked primary-source CNV caller comparison evidence from the CNV use-case pass 2026-10-09.",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude (Opus 5.5) research agent extracted; a separate Claude review agent checked every value against the pinned sources (data/omics/use-case-coverage-cnv-20261009/review.json)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription with independent automated cell check. No execution, reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-09T16:30:00Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-cnv-detection-characterisation",
+      "evidence_sha256": "ae90fc00f5f3026011dbda1bb33c5e602d7582f9f2f303d9475a7e45021e24ef"
+    },
+    {
+      "citations": [
+        {
+          "source_id": "amp-source-dragen",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        },
+        {
+          "source_id": "amp-source-dragen-supplementary-tables",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results; truth sets, matching rules and inputs differ between sources."
+      ],
+      "endpoint": "Recall, precision and F-score for 10-20 kb deletions on HG002 (GIAB SV v0.6), DRAGEN 4.2 CNV+SV, CNV-only and CNVnator",
+      "evaluation_ids": [
+        "cnv-20261009-eval-behera2024-cnvnator-10-20kb",
+        "cnv-20261009-eval-behera2024-dragen42-cnv-10-20kb",
+        "cnv-20261009-eval-behera2024-dragen42-cnv-sv-10-20kb"
+      ],
+      "id": "use-case-mapping-cnv-20261009-behera2024-del-10-20kb",
+      "lifecycle": "active",
+      "limitations": [
+        "Single sample; per-bin counts unreported",
+        "Deletions only",
+        "Author-run comparison (DRAGEN developers)"
+      ],
+      "protocol_id": "cnv-20261009-protocol-behera2024-hg002-cnv-del-10-20kb",
+      "rationale": "Sensitivity/recall and precision of CNV calls against a reference truth set directly measure the detection part of the declared endpoint; they do not cover characterisation or visualisation usability.",
+      "reason": "Add independently checked primary-source CNV caller comparison evidence from the CNV use-case pass 2026-10-09.",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude (Opus 5.5) research agent extracted; a separate Claude review agent checked every value against the pinned sources (data/omics/use-case-coverage-cnv-20261009/review.json)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription with independent automated cell check. No execution, reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-09T16:30:00Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-cnv-detection-characterisation",
+      "evidence_sha256": "3d0e1fea52f6572100613cbfbf935ac31e442be201288fb798f98766597e5a62"
+    },
+    {
+      "citations": [
+        {
+          "source_id": "amp-source-dragen",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        },
+        {
+          "source_id": "amp-source-dragen-supplementary-tables",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results; truth sets, matching rules and inputs differ between sources."
+      ],
+      "endpoint": "Recall, precision and F-score for 20-50 kb deletions on HG002 (GIAB SV v0.6), DRAGEN 4.2 CNV+SV, CNV-only and CNVnator",
+      "evaluation_ids": [
+        "cnv-20261009-eval-behera2024-cnvnator-20-50kb",
+        "cnv-20261009-eval-behera2024-dragen42-cnv-20-50kb",
+        "cnv-20261009-eval-behera2024-dragen42-cnv-sv-20-50kb"
+      ],
+      "id": "use-case-mapping-cnv-20261009-behera2024-del-20-50kb",
+      "lifecycle": "active",
+      "limitations": [
+        "Single sample; per-bin counts unreported",
+        "Deletions only",
+        "Author-run comparison (DRAGEN developers)"
+      ],
+      "protocol_id": "cnv-20261009-protocol-behera2024-hg002-cnv-del-20-50kb",
+      "rationale": "Sensitivity/recall and precision of CNV calls against a reference truth set directly measure the detection part of the declared endpoint; they do not cover characterisation or visualisation usability.",
+      "reason": "Add independently checked primary-source CNV caller comparison evidence from the CNV use-case pass 2026-10-09.",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude (Opus 5.5) research agent extracted; a separate Claude review agent checked every value against the pinned sources (data/omics/use-case-coverage-cnv-20261009/review.json)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription with independent automated cell check. No execution, reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-09T16:30:00Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-cnv-detection-characterisation",
+      "evidence_sha256": "cbb89a939df3e3fa6bdab6496251100efd30fc766e9d3f1d0227014def715ac3"
+    },
+    {
+      "citations": [
+        {
+          "source_id": "amp-source-dragen",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        },
+        {
+          "source_id": "amp-source-dragen-supplementary-tables",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results; truth sets, matching rules and inputs differ between sources."
+      ],
+      "endpoint": "Recall, precision and F-score for over 50 kb deletions on HG002 (GIAB SV v0.6), DRAGEN 4.2 CNV+SV, CNV-only and CNVnator",
+      "evaluation_ids": [
+        "cnv-20261009-eval-behera2024-cnvnator-gt50kb",
+        "cnv-20261009-eval-behera2024-dragen42-cnv-gt50kb",
+        "cnv-20261009-eval-behera2024-dragen42-cnv-sv-gt50kb"
+      ],
+      "id": "use-case-mapping-cnv-20261009-behera2024-del-gt50kb",
+      "lifecycle": "active",
+      "limitations": [
+        "Single sample; per-bin counts unreported",
+        "Deletions only",
+        "Author-run comparison (DRAGEN developers)"
+      ],
+      "protocol_id": "cnv-20261009-protocol-behera2024-hg002-cnv-del-gt50kb",
+      "rationale": "Sensitivity/recall and precision of CNV calls against a reference truth set directly measure the detection part of the declared endpoint; they do not cover characterisation or visualisation usability.",
+      "reason": "Add independently checked primary-source CNV caller comparison evidence from the CNV use-case pass 2026-10-09.",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude (Opus 5.5) research agent extracted; a separate Claude review agent checked every value against the pinned sources (data/omics/use-case-coverage-cnv-20261009/review.json)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription with independent automated cell check. No execution, reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-09T16:30:00Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-cnv-detection-characterisation",
+      "evidence_sha256": "695906a1d10219343550b8b6e2175c21639cb8701b7f3aa27788bbcdbf8a2f09"
+    },
+    {
+      "citations": [
+        {
+          "source_id": "cnv-20261009-source-delavega2025",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        },
+        {
+          "source_id": "cnv-20261009-source-delavega2025-table-s3",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results; truth sets, matching rules and inputs differ between sources."
+      ],
+      "endpoint": "Sensitivity and precision by deletion/duplication and length, scored by coding-exon overlap, for eight WGS CNV caller configurations including Cue (deep learning) and three DRAGEN modes",
+      "evaluation_ids": [
+        "cnv-20261009-eval-delavega2025-cnvnator",
+        "cnv-20261009-eval-delavega2025-cue-v2",
+        "cnv-20261009-eval-delavega2025-delly",
+        "cnv-20261009-eval-delavega2025-dragen42-default",
+        "cnv-20261009-eval-delavega2025-dragen42-hs",
+        "cnv-20261009-eval-delavega2025-dragen42-hs-filters",
+        "cnv-20261009-eval-delavega2025-lumpy",
+        "cnv-20261009-eval-delavega2025-parliament2"
+      ],
+      "id": "use-case-mapping-cnv-20261009-delavega2025-hg002",
+      "lifecycle": "draft",
+      "limitations": [
+        "Single HG002 sample with synthetic gene models; 60 DEL and 10 DUP truth events",
+        "Some strata have no true positives (printed NA)",
+        "DRAGEN default and HS-F rows identical in 17 of 22 cells",
+        "Delly version conflict (v1.1.6 vs v1.6)",
+        "Tempus and Illumina authors"
+      ],
+      "protocol_id": "cnv-20261009-protocol-delavega2025-hg002-exon-overlap",
+      "rationale": "Sensitivity/recall and precision of CNV calls against a reference truth set directly measure the detection part of the declared endpoint; they do not cover characterisation or visualisation usability.",
+      "reason": "Recorded from the CNV use-case pass 2026-10-09. Held as draft: the article source carries an evidence concern (Results 3.1 prose disagrees with Supplemental Table 3 on CNVnator 1-5 kb detection and on which caller has the lowest precision), which blocks active applicability.",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude (Opus 5.5) research agent extracted; a separate Claude review agent checked every value against the pinned sources (data/omics/use-case-coverage-cnv-20261009/review.json)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription with independent automated cell check. No execution, reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-09T16:30:00Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-cnv-detection-characterisation"
+    },
+    {
+      "citations": [
+        {
+          "source_id": "cnv-20261009-source-delavega2025",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results; truth sets, matching rules and inputs differ between sources."
+      ],
+      "endpoint": "Precision of DRAGEN HS and HS-F calls within a 184-gene clinical virtual panel across 25 Coriell cell lines, by exons spanned and event length",
+      "evaluation_ids": [
+        "cnv-20261009-eval-delavega2025-dragen42-hs-coriell-panel",
+        "cnv-20261009-eval-delavega2025-dragen42-hs-filters-coriell-panel"
+      ],
+      "id": "use-case-mapping-cnv-20261009-delavega2025-coriell-panel",
+      "lifecycle": "draft",
+      "limitations": [
+        "Precision only in Table 1",
+        "Truth partly curated by visual inspection of the same data",
+        "HS-F filters tuned on these genes (possible overfitting)"
+      ],
+      "protocol_id": "cnv-20261009-protocol-delavega2025-coriell-virtual-panel",
+      "rationale": "Sensitivity/recall and precision of CNV calls against a reference truth set directly measure the detection part of the declared endpoint; they do not cover characterisation or visualisation usability.",
+      "reason": "Recorded from the CNV use-case pass 2026-10-09. Held as draft: the article source carries an evidence concern (Results 3.1 prose disagrees with Supplemental Table 3 on CNVnator 1-5 kb detection and on which caller has the lowest precision), which blocks active applicability.",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude (Opus 5.5) research agent extracted; a separate Claude review agent checked every value against the pinned sources (data/omics/use-case-coverage-cnv-20261009/review.json)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription with independent automated cell check. No execution, reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-09T16:30:00Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-cnv-detection-characterisation"
+    },
+    {
+      "citations": [
+        {
+          "source_id": "cnv-20261009-source-gabrielaite2021",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        },
+        {
+          "source_id": "cnv-20261009-source-gabrielaite2021-table-s2",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results; truth sets, matching rules and inputs differ between sources."
+      ],
+      "endpoint": "Recall and precision of eight WGS CNV callers on NA12878 against the Haraksingh et al. 2017 gold-standard set (1 bp overlap)",
+      "evaluation_ids": [
+        "cnv-20261009-eval-gabrielaite2021-clc-genomics-workbench-na12878-wgs",
+        "cnv-20261009-eval-gabrielaite2021-cn-mops-na12878-wgs",
+        "cnv-20261009-eval-gabrielaite2021-cnvnator-na12878-wgs",
+        "cnv-20261009-eval-gabrielaite2021-control-freec-na12878-wgs",
+        "cnv-20261009-eval-gabrielaite2021-delly-na12878-wgs",
+        "cnv-20261009-eval-gabrielaite2021-gatk-gcnv-na12878-wgs",
+        "cnv-20261009-eval-gabrielaite2021-lumpy-na12878-wgs",
+        "cnv-20261009-eval-gabrielaite2021-manta-na12878-wgs"
+      ],
+      "id": "use-case-mapping-cnv-20261009-gabrielaite2021-na12878",
+      "lifecycle": "active",
+      "limitations": [
+        "Single sample",
+        "Manta and CNVnator were used to build the truth set",
+        "1 bp overlap match",
+        "Most tool versions unreported"
+      ],
+      "protocol_id": "cnv-20261009-protocol-gabrielaite2021-na12878-wgs-overlap",
+      "rationale": "Sensitivity/recall and precision of CNV calls against a reference truth set directly measure the detection part of the declared endpoint; they do not cover characterisation or visualisation usability.",
+      "reason": "Add independently checked primary-source CNV caller comparison evidence from the CNV use-case pass 2026-10-09.",
+      "relevance": "direct",
+      "review": {
+        "actor": "Claude (Opus 5.5) research agent extracted; a separate Claude review agent checked every value against the pinned sources (data/omics/use-case-coverage-cnv-20261009/review.json)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription with independent automated cell check. No execution, reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-09T16:30:00Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-cnv-detection-characterisation",
+      "evidence_sha256": "bc11cde303133732686ddc8ae46cc4b87703356e2393914a607b999f752ddc7f"
+    },
+    {
+      "citations": [
+        {
+          "source_id": "cnv-20261009-source-nardone2025",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        },
+        {
+          "source_id": "cnv-20261009-source-nardone2025-table-s1",
+          "locator": "See data/omics/use-case-coverage-cnv-20261009/claims.csv and sources.md"
+        }
+      ],
+      "constraints": [
+        "Inspect every linked evaluation's source locator and preserved conflicts before citing a result.",
+        "Do not combine this mapping's evaluations with any other protocol's results; truth sets, matching rules and inputs differ between sources."
+      ],
+      "endpoint": "Precision, recall and F1 for ten short-read SV callers on HG002 GIAB v0.6 Tier 1 deletions by length bin (CNV-sized bins from 1 kb)",
+      "evaluation_ids": [
+        "cnv-20261009-eval-nardone2025-cnvnator",
+        "cnv-20261009-eval-nardone2025-delly",
+        "cnv-20261009-eval-nardone2025-dragen-4-0",
+        "cnv-20261009-eval-nardone2025-dragen-4-2",
+        "cnv-20261009-eval-nardone2025-ingap",
+        "cnv-20261009-eval-nardone2025-lumpy",
+        "cnv-20261009-eval-nardone2025-manta",
+        "cnv-20261009-eval-nardone2025-matchclip",
+        "cnv-20261009-eval-nardone2025-softsv",
+        "cnv-20261009-eval-nardone2025-wham"
+      ],
+      "id": "use-case-mapping-cnv-20261009-nardone2025-hg002-deletions",
+      "lifecycle": "draft",
+      "limitations": [
+        "SV deletion benchmark, not CNV-specific; deletions only",
+        "Depth and aligner conflict across Methods, Results and Data Availability (evidence concern)",
+        "Prose and table disagree for inGAP 5-10 kb (evidence concern)"
+      ],
+      "protocol_id": "cnv-20261009-protocol-nardone2025-hg002-del-wittyer",
+      "rationale": "Deletion calls of 1 kb and above overlap the CNV endpoint, but this is a general structural-variant benchmark with unresolved input conditions.",
+      "reason": "Recorded from the CNV use-case pass 2026-10-09. Held as draft: the source carries evidence concerns (input depth and aligner conflict; prose and table disagree), which block active applicability.",
+      "relevance": "proxy",
+      "review": {
+        "actor": "Claude (Opus 5.5) research agent extracted; a separate Claude review agent checked every value against the pinned sources (data/omics/use-case-coverage-cnv-20261009/review.json)",
+        "method": "automated_source_review",
+        "note": "Bounded primary-source transcription with independent automated cell check. No execution, reproduction, qualified human scientific review or clinical validation.",
+        "reviewed_at": "2026-10-09T16:30:00Z"
+      },
+      "revision": 1,
+      "use_case_id": "use-case-cnv-detection-characterisation"
     }
   ]
 }

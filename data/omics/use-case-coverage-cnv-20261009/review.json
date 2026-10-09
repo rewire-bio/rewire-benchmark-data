@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T15:56:41Z",
+  "scope": "Independent review of the CNV detection use-case batch for use-case-cnv-detection-characterisation: 598 records (488 results, 42 evaluations, 28 configurations, 15 methods, 8 protocols, 7 sources, 6 datasets, 3 claims, 1 benchmark). All seven new source artifacts and the reused amp-source-dragen-supplementary-tables XLSX were re-downloaded and matched their recorded SHA-256; the archived artifacts/*.gz decompress to the same bytes. All 488 results were re-read from the pinned cells with a separate parser (the extractor's scripts were not run) and match in value, printed form, metric, qualifier, unit, direction, configuration, protocol and scoring counts. 59 descriptive fields were corrected without changing any number; they are listed in docs/reviews/use-cases/cnv-detection-characterisation-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any caller.",
+    "Figures were not checked, so prose-versus-figure questions in De La Vega Results 3.1 are unresolved.",
+    "SEQC2 Additional file 1 and the DRAGEN article text (amp-source-dragen) were not re-read.",
+    "Europe PMC outer supplementaryFiles zips are rebuilt per request, so their recorded container hashes cannot be re-verified; the inner files and inner publisher zips were verified.",
+    "Store-form files (batch.store.jsonl, store-form.md, extract/registry_fit.py) were reviewed later than the rest; see store_form_review."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "7 Nardone NA results (cells I13, G61, I61, G62, I62, G63, I63)"
+      ],
+      "message": "missing_metadata.value cited a table footnote that Nardone Table S1 does not have."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "24 De La Vega NA results",
+        "2 DRAGEN NaN results"
+      ],
+      "message": "uncertainty null without a missing_metadata reason; added 'Unreported'."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "cnv-20261009-protocol-nardone2025-hg002-del-wittyer",
+        "10 cnv-20261009-eval-nardone2025-* evaluations"
+      ],
+      "message": "Witty.er version recorded as unreported; Methods 2.4 names v0.5.2."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "10 cnv-20261009-eval-nardone2025-* evaluations",
+        "cnv-20261009-data-nardone2025-hg002-giab-sv06-tier1-del-hg38"
+      ],
+      "message": "Population gave 5,414 truth deletions; Table S1 scores 4,159 (TP+FN) for every caller. Both now recorded."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "cnv-20261009-config-nardone2025-dragen-4-0"
+      ],
+      "message": "Discussion names DRAGEN v4.1 where Methods and tables print v4.0; version_note added."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "cnv-20261009-claim-na12878-truth-built-with-manta-cnvnator"
+      ],
+      "message": "source_locator Results 3.7 paragraph 3 corrected to paragraph 4 (and Discussion paragraph 3); claims.csv updated."
+    },
+    {
+      "status": "concern_added",
+      "record_ids": [
+        "cnv-20261009-source-delavega2025"
+      ],
+      "message": "Results 3.1 prose on CNVnator 1-5 kb detection and on lowest precision disagrees with Supplemental Table 3."
+    },
+    {
+      "status": "resolved",
+      "record_ids": [
+        "amp-eval-dragen-cnv-sv-1-5kb-fscore",
+        "amp-result-dragen-cnv-sv-1-5kb-fscore",
+        "cnv-20261009-eval-behera2024-cnvnator-1-5kb",
+        "cnv-20261009-eval-behera2024-dragen42-cnv-1-5kb"
+      ],
+      "message": "metric_qualifier, dataset_version, population and inputs strings differ between the stored 1-5 kb CNV+SV F-score and the new 1-5 kb records on the same protocol, so the mapped 1-5 kb comparison will not group. Needs a decision on which side to align.",
+      "resolution": "Post-review edit by the lead, re-checked by this reviewer at 2026-10-09T15:56:41Z: the two new 1-5 kb evaluations' attributes.comparison now equals the stored amp-eval-dragen-cnv-sv-1-5kb-fscore comparison exactly, and the 8 new results on the three 1-5 kb evaluations no longer carry metric_qualifier, matching amp-result-dragen-cnv-sv-1-5kb-fscore. Diff against the reviewed batch.jsonl (8a2ae65fd57f348b1a9a925b10985b4c342bcf0d7dab44cd1a1e9068a5339e07) shows only those 10 lines changed; the independent cell check still matches 488 of 488."
+    }
+  ],
+  "files": {
+    "artifacts/delavega2025-article.xml.gz": "8dff71a628c7dd6d3f346f9ae69be7714b2026d0ced51017bb21aa31be8cb223",
+    "artifacts/delavega2025-supplemental-table-3.xlsx.gz": "e996551634a2459df7df16614647cc6e05263c455acc296fc6cc15eb945583d8",
+    "artifacts/gabrielaite2021-article.xml.gz": "4867db2675ab103d52035e41315b807d40c9331240017d5da14a90b366d155eb",
+    "artifacts/gabrielaite2021-table-s2.xlsx.gz": "1d28586794ad54d0401d52f512b1e79d320714ed8cd66955ec7d9500ac87cdba",
+    "artifacts/nardone2025-article.xml.gz": "d7ceb3d5fa446c594f7224185d188637393656e5410d6dbd7cd0e2ff522d7d14",
+    "artifacts/nardone2025-table-s1.xlsx.gz": "640abb6f7cb6504a44457bacce473e85ae4eaa810f3e08154c4f85c57ba78fa8",
+    "artifacts/seqc2-somatic-cnv-2024-article.xml.gz": "d26beb81379661b79b75fb4080e5f34d0589755840b1f011af70877d53c49fcd",
+    "batch.jsonl": "ecedbef04be8d0ef324e5254066abd8e4b354ef1ec5cc37fe2df67ddcfd81446",
+    "batch.store.jsonl": "2b57950eebf38140e49303be16fa5e699cda860bf9f5d9d0adf4b7f52bc8d662",
+    "claims.csv": "657f8710900fa39baff8a1da67608b38759a1242991820c877a2ceba67ffc6e2",
+    "coverage.json": "53b18842bd193140b9a509ca372091f00ec474c698bbb62c58119493af96a01e",
+    "extract/extract_cnv.py": "2d4108f21cc297b5e03afbedfe0a5fdbabf6de52d70964be09812340fd6a689a",
+    "extract/rawxlsx.py": "81aa5a418143431976749abe8273a45f37c8bde0fe4c1ce25a449221ae512726",
+    "extract/registry_fit.py": "f1deccfdc6576b0d91007c527d67263d906de9f22e3f79524994dcd47bf4002e",
+    "research.md": "3c8ee7d6e7e1908c168441b7fdda59e4db9531cb2c2029b6fffa2966e9ab7f17",
+    "retrieval-log.md": "8873cefee7a45812bfc9e5b9a90b6b1d6a10b58ac1441ba74a4dc19278da84ea",
+    "sources.md": "6395a035b09d1a430cb468b7eacb42649456cc2872d5c7594c1ab5075c8caf46",
+    "store-form.md": "422862b1dc83b007e1eefe5de0aa102fda693767f344e1289cf9f5ee265b9284"
+  },
+  "store_form_review": {
+    "reviewed_at": "2026-10-09T17:33:35Z",
+    "files": {
+      "batch.store.jsonl": "2b57950eebf38140e49303be16fa5e699cda860bf9f5d9d0adf4b7f52bc8d662",
+      "store-form.md": "422862b1dc83b007e1eefe5de0aa102fda693767f344e1289cf9f5ee265b9284",
+      "extract/registry_fit.py": "f1deccfdc6576b0d91007c527d67263d906de9f22e3f79524994dcd47bf4002e"
+    },
+    "note": "These three files were added after the original review and checked later by the same review agent. batch.store.jsonl is the store form of the unchanged reviewed batch.jsonl: relation renames (normalizeRecords), attribute shapes (normalizeAttributes) and the key moves listed in store-form.md, re-derived with the reviewer's own script rather than registry_fit.py. No value, ID, link target or source changed; the only text lost is the 'Not resolved' conflict note on cnv-20261009-config-delavega2025-delly (both version strings remain in version). The 598 stored records are byte-identical to batch.store.jsonl. See the Store form section of the dated review."
+  }
+}

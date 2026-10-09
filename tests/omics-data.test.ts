@@ -139,7 +139,7 @@ describe("omics publication integrity", () => {
       .trim()
       .split("\n")
       .map((x) => JSON.parse(x));
-    expect(scope).toHaveLength(100);
+    expect(scope).toHaveLength(106);
     expect(
       scope.every(
         (x) => x.reason && ["included", "excluded"].includes(x.decision),
