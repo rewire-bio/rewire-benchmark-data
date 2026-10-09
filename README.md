@@ -15,7 +15,7 @@ The website and API that display this data live in [rewire-database](https://git
 | [docs/refresh.md](docs/refresh.md) | The bounded monthly refresh cycle |
 | [docs/release.md](docs/release.md) | When and how to cut a release |
 | [docs/linked-data.md](docs/linked-data.md) | Ontology mapping, JSON-LD context and the N-Quads export |
-| [docs/serving-contract.md](docs/serving-contract.md) | Prepared page data for the website (issue #31) |
+| [docs/serving-contract.md](docs/serving-contract.md) | Prepared release file the website and API read (issue #31) |
 | [docs/reviews/](docs/reviews/README.md) | Dated evidence reviews: search logs and value-by-value checks |
 
 Agent skills in [.agents/skills/](.agents/skills) (also linked from `.claude/skills`):
