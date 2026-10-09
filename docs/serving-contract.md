@@ -23,13 +23,14 @@ The data is read-only and changes about once a month. One file gives indexed loo
 | `result_rows` | gzipped full result row per result |
 | `result_index` | each record's result IDs in the engine's order |
 | `evidence` | gzipped evidence-table rows per record |
-| `blobs` | gzipped list entries (search text, readiness, row origins, counts), research readiness, research data, inactive assessment IDs, and the use-case state |
+| `audit_checks` | gzipped audit checks per audited record, in index order |
+| `blobs` | gzipped list entries (search text, readiness, row origins, counts), research readiness, research data, inactive assessment IDs, the use-case state, the homepage summary, reviewed association keys, and the audit index, runs and resolutions |
 
-For release `2026-10-07-061436ccd3b9`: 28,677 records, 12,487 result rows, 77,369 result memberships, 306 MB, built in about 40 s. Same inputs and Node version give a byte-identical file.
+For release `2026-10-07-061436ccd3b9`: 28,677 records, 12,487 result rows, 77,369 result memberships and 113,042 audit checks; 369 MB, built in under a minute. Same inputs and Node version give a byte-identical file.
 
 ## Reading it
 
-`services/omics/src/prepared-catalogue.ts` opens the file read-only and exposes the engine's methods: `release`, `record`, `get`, `comparison`, `results`, `evidence`, `list`, `compare`, `researchReadiness`, `investigations` and `useCases()`. Each uses the same exported functions as `createCatalogueQuery` (`resultPage`, `evidencePage`, `listPage`, `compareResults`, `readinessPage`, `investigationsPage`, `useCaseQueryFrom`), so filters, facet counts, ordering and cursors cannot drift. Cursors remain release-bound and interchangeable with the live engine's.
+`services/omics/src/prepared-catalogue.ts` opens the file read-only and exposes the engine's methods: `release`, `record`, `get`, `comparison`, `results`, `evidence`, `list`, `compare`, `researchReadiness`, `investigations`, `useCases()`, `homeSummary`, `verifiedAssociation`, `research`, `auditRuns`, `auditRecords` and `auditChecks`. Each uses the same exported functions as `createCatalogueQuery` (`resultPage`, `evidencePage`, `listPage`, `compareResults`, `readinessPage`, `investigationsPage`, `useCaseQueryFrom`), so filters, facet counts, ordering and cursors cannot drift. Cursors remain release-bound and interchangeable with the live engine's.
 
 `serving_contract_version` changes major version when a table or meaning changes incompatibly; the reader refuses an unsupported major version.
 

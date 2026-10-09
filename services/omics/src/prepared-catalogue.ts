@@ -19,6 +19,15 @@ import {
 } from "./catalogue-query.js";
 import { useCaseQueryFrom, type UseCaseState } from "./use-cases.js";
 import type { ResearchData, ResearchReadiness } from "./research.js";
+import type { AuditCheck } from "./audit.js";
+import {
+  auditChecksPage,
+  auditRecordsPage,
+  auditRunsPage,
+  type AuditChecksInput,
+  type AuditRecordsInput,
+  type AuditTable,
+} from "./audit-query.js";
 // Loaded at runtime so bundlers never try to resolve the built-in.
 const { DatabaseSync } = process.getBuiltinModule("node:sqlite");
 
@@ -55,6 +64,9 @@ export function openPreparedCatalogue(file: string) {
   const inactive = lazy(() => new Set(blob<string[]>("inactive_assessment_dataset_ids")));
   const entries = lazy(() => blob<ListEntry[]>("list_entries"));
   const useCases = lazy(() => useCaseQueryFrom(blob<UseCaseState>("use_cases")));
+  const audit = lazy(() => blob<AuditTable>("audit"));
+  const associations = lazy(() => new Set(blob<string[]>("association_keys")));
+  const auditStatement = db.prepare("SELECT gz FROM audit_checks WHERE record_id = ?");
 
   const recordStatement = db.prepare("SELECT json FROM records WHERE id = ?");
   const record = (id: string): CatalogueRecord | null => {
@@ -125,6 +137,25 @@ export function openPreparedCatalogue(file: string) {
     researchReadiness: (input: ReadinessInput = {}) => readinessPage(release_id, readiness(), input),
     investigations: (input: InvestigationsInput = {}) => investigationsPage(release_id, research(), input),
     useCases: () => useCases(),
+    /** Homepage counts and benchmark coverage (raw labels). */
+    homeSummary: () => blob<{
+      records: number; external: number; own: number;
+      kinds: { label: string; value: number }[]; areas: { label: string; value: number }[];
+      coverage: { name: string; evaluations: number }[]; covered: number; benchmarks: number;
+    }>("home_summary"),
+    /** Whether a reviewed claim backs `subject`'s link `relation` to `target` (the rollup gate). */
+    verifiedAssociation: (subject: string, relation: string, target: string) =>
+      associations().has(`${subject}|links:${relation}:${target}`),
+    research: () => research(),
+    auditRuns: (input: { release_id: string; cursor?: string; limit?: number }) => auditRunsPage(audit(), input),
+    auditRecords: (input: AuditRecordsInput) => auditRecordsPage(audit(), input),
+    auditChecks(input: AuditChecksInput) {
+      const row = auditStatement.get(input.record_id) as { gz: Uint8Array } | undefined;
+      const checks = row ? (JSON.parse(gunzipSync(row.gz).toString("utf8")) as AuditCheck[]) : [];
+      const sources = new Map<string, unknown>();
+      for (const id of [...new Set(checks.flatMap((check) => check.source_ids))]) sources.set(id, record(id) ?? undefined);
+      return auditChecksPage(audit(), input, checks, record(input.record_id) ?? undefined, sources);
+    },
     close: () => db.close(),
   };
 }
