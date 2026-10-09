@@ -1,4 +1,4 @@
-import { normalizeRecords } from "../../shared/omics/relations";
+import { currentRecords } from "../../shared/omics/current";
 import { benchmarkCoverage as benchmarkPageCoverage } from "../../shared/omics/benchmark-coverage";
 import { validateSnapshot } from "../../shared/omics/validation";
 import { writeBaselineAudit } from "./baseline-coverage";
@@ -49,7 +49,7 @@ export function buildRelease(
   research?: ResearchData,
 ) {
   // Records written with older relation names are released under the current ones.
-  const records = normalizeRecords(input);
+  const records = currentRecords(input);
   if (useCases) {
     validateUseCaseHistory(useCases);
     const declaration = useCaseDeclaration(useCases);

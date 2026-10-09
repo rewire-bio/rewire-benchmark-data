@@ -153,8 +153,10 @@ describe("complete AlphaGenome primary-table batch", () => {
       12,
     );
     expect(mfass.benchmarks[0].id).toBe("alphagenome-2026-t4-protocol-7");
-    expect(mfass.result.attributes.scored_count).toBeNull();
-    expect(mfass.result.attributes.uncertainty).toBeNull();
+    expect(mfass.result.attributes.scored_count).toBeUndefined();
+    expect(mfass.result.attributes.uncertainty).toBeUndefined();
+    expect(mfass.result.attributes.missing_metadata).toHaveProperty("scored_count");
+    expect(mfass.result.attributes.missing_metadata).toHaveProperty("uncertainty");
     expect(
       query.compare({
         ids: [mfass.result.id, occurrence(4, 8, "comparator").result_id],

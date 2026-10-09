@@ -53,20 +53,6 @@ export function enrichProfiles<T extends OmicsRecord>(
   return records.map((record) => {
     const profile = profiles.get(record.id);
     if (!profile) return record;
-    const { missing_metadata, ...attributes } = record.attributes;
-    return {
-      ...record,
-      attributes: {
-        ...attributes,
-        ...(missing_metadata !== undefined
-          ? {
-              historical_missing_metadata: missing_metadata,
-              metadata_review_scope:
-                "historical_missing_metadata preserves the original discovery state. Current descriptive evidence and missingness are recorded in profile.facts; numerical-result review is separate.",
-            }
-          : {}),
-        profile,
-      },
-    };
+    return { ...record, attributes: { ...record.attributes, profile } };
   });
 }

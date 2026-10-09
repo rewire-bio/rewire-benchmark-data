@@ -111,11 +111,11 @@ for key, suite, label in configs:
                       aggregation='single assay' if suite=='proteingym' else 'all held-out test rows of the selected target',
                       budget='one local CPU evaluation; no hyperparameter search outside training')
     put(rid, 'evaluation', label + ' on ' + title, description, [sid], dict(
-        origin='rewire_run', execution_scope='complete_selected_evaluation', published_score_reproduction=False,
+        origin='rewire_run', execution_scope='complete_selected_evaluation',
         protocol=title, version=report['protocol_version'], source_locator='metrics; coverage; protocol_results',
         original_sdk_scope=report['scope'], original_sdk_completion=report['completion'],
         eligible_count=report['coverage']['denominator'], scored_count=report['coverage']['scored'], missing_count=0,
-        coverage=f"{report['coverage']['scored']}/{report['coverage']['denominator']}", suite_complete=False,
+        coverage=dict(scored=report['coverage']['scored'], eligible=report['coverage']['denominator']),
         comparison=comparison, input_information=report.get('input_information'),
         model_configuration=report.get('model_configuration',{}), provenance=provenance,
         predictions_sha256=report.get('predictions_sha256'), prepared_sha256=report.get('prepared_sha256'),

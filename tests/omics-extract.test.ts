@@ -61,7 +61,7 @@ describe("reviewed extraction corrections", () => {
     const tdc = results("tdc");
     expect(tdc).toHaveLength(66);
     for (const record of tdc)
-      expect(record.attributes.uncertainty).toMatchObject({ type: "reported_plus_minus_type_unresolved" });
+      expect(record.attributes.uncertainty).toMatchObject({ type: "unresolved_spread" });
   });
 
   it("labels DART-Eval correlations consistently, including negative correlations", () => {

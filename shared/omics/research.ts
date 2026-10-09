@@ -1,4 +1,4 @@
-import { normalizeRecords } from "./relations.js";
+import { currentRecords } from "./current.js";
 import { z } from "zod";
 import type { CatalogueSnapshot, CatalogueRecord } from "./catalogue-query.js";
 import { assertNoPrivateFields } from "./private-fields.js";
@@ -222,7 +222,7 @@ export function validateResearchManifest(input: unknown, snapshot?: CatalogueSna
   if (manifest.semantics.join_key === manifest.semantics.outcome)
     throw new Error("Research outcome cannot be the join identifier");
   if (snapshot) {
-    const records = new Map(normalizeRecords(snapshot.records).map(record => [record.id, record]));
+    const records = new Map(currentRecords(snapshot.records).map(record => [record.id, record]));
     if (!["dataset", "dataset_subset"].includes(records.get(manifest.dataset_id)?.kind || ""))
       throw new Error("Research dataset reference is unavailable");
     const protocol = records.get(manifest.protocol_id);

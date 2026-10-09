@@ -11,6 +11,13 @@ export function batchRecords(addedIn: string): RecordEntry[] {
     .map((row) => recordsById.get(row.id)!);
 }
 
+/** Scaffolding attributes a record carried before the declared-attributes migration. */
+const moved = new Map(
+  require("node:fs").readFileSync("data/provenance/moved-attributes.jsonl", "utf8").split("\n").filter(Boolean)
+    .map((line: string) => JSON.parse(line)).map((row: { id: string; attributes: Record<string, unknown> }) => [row.id, row.attributes]),
+);
+export const movedAttributes = (id: string): Record<string, any> => (moved.get(id) as Record<string, any>) ?? {};
+
 export function readJsonl<T = unknown>(file: string): T[] {
   return require("node:fs").readFileSync(file, "utf8").split("\n").filter(Boolean).map((line: string) => JSON.parse(line));
 }

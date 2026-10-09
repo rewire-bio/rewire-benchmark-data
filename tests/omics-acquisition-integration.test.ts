@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import { migrated } from "./helpers/vocab";
 import { describe, it, expect } from "vitest";
-import { batchRecords } from "./helpers/records";
+import { batchRecords, movedAttributes } from "./helpers/records";
+import { convertUncertainty } from "../shared/omics/attributes";
 import { profileSchema } from "../shared/omics/profile-schema";
 import type { RecordEntry } from "../scripts/omics/schema";
 const root = "data/omics/acquisition/2026-09-19";
@@ -29,7 +30,7 @@ const protocolFor = (r: any) =>
     evalFor(r).links.find((l: any) => l.relation === "assessment").target_id,
   )!;
 const candidateFor = (r: any) =>
-  byCandidate.get(r.attributes.acquisition_candidate_id)!;
+  byCandidate.get(movedAttributes(r.id).acquisition_candidate_id)!;
 describe("reviewed acquisition graph and scientific scope", () => {
   it("does not promote incomplete scientific metadata using numerical transcription checks", () => {
     for (const r of records.filter((r) =>
@@ -50,7 +51,9 @@ describe("reviewed acquisition graph and scientific scope", () => {
       // Units and metrics are concept keys now; the batch keeps the source wording.
       expect(r.attributes.metric, r.id).toBe(migrated("metric", c.metric, r.id, "attributes.metric"));
       expect(r.attributes.unit, r.id).toBe(migrated("unit", c.unit, r.id, "attributes.unit"));
-      expect(r.attributes.uncertainty, r.id).toEqual(c.uncertainty);
+      const { uncertainty, missing } = convertUncertainty(c.uncertainty);
+      expect(r.attributes.uncertainty, r.id).toEqual(uncertainty);
+      if (missing) expect(r.attributes.missing_metadata.uncertainty.reason, r.id).toBe(missing.reason);
       expect(evalFor(r).kind).toBe("evaluation");
       expect(protocolFor(r).links).toContainEqual({
         relation: "part_of",
@@ -147,7 +150,7 @@ describe("reviewed acquisition graph and scientific scope", () => {
       )!;
       expect(m.name).toMatch(/^CAFA3 /);
       expect(m.links).toEqual([]);
-      expect(m.attributes.missing_metadata.model_family).toBe("unextracted");
+      expect(m.attributes.missing_metadata.model_family.reason).toBe("unextracted");
     }
   });
   it("preserves CAMI gold-standard reference identity and explicitly reported standard errors", () => {
@@ -165,7 +168,7 @@ describe("reviewed acquisition graph and scientific scope", () => {
     const means = rs.filter((r) => candidateFor(r).metric.startsWith("Average "));
     expect(means).toHaveLength(64);
     for (const r of means) {
-      expect(r.attributes.uncertainty.kind).toBe("standard_error");
+      expect(r.attributes.uncertainty.type).toBe("standard_error");
       expect(r.attributes.uncertainty.source_column).toContain(
         "Std error of av.",
       );

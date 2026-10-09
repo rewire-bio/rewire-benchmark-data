@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { profileSchema, validateProfileSources } from "../lib/omics-profile";
 import { buildRelease } from "../scripts/omics/release";
 import { createCatalogueQuery } from "../shared/omics/catalogue-query";
-import { records, recordsById } from "./helpers/records";
+import { movedAttributes, records, recordsById } from "./helpers/records";
 
 const sources = new Map(records.filter((record) => record.kind === "source").map((record) => [record.id, record]));
 
@@ -29,11 +29,10 @@ describe("evidence completion", () => {
     ).toThrow("missing source");
     expect(profile.facts.find((fact) => fact.label === "Parameters")?.status).toBe("unreported");
   });
-  it("labels original discovery gaps as historical once reviewed profile facts exist", () => {
+  it("keeps original discovery gaps in provenance once reviewed profile facts exist", () => {
     const current = recordsById.get("discovery-model-dnabert-2")!;
-    expect(current.attributes.missing_metadata).toBeUndefined();
-    expect(current.attributes.historical_missing_metadata).toBeTruthy();
-    expect(current.attributes.metadata_review_scope).toContain("profile.facts");
+    expect(current.attributes.historical_missing_metadata).toBeUndefined();
+    expect(movedAttributes(current.id).historical_missing_metadata).toBeTruthy();
   });
   it("keeps hosted service restrictions distinct from the local model and logs identity corrections", () => {
     expect(recordsById.get("catalog-model-alphafold-3-server")!.attributes.entity_level).toBe("service");

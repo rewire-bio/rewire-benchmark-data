@@ -1,4 +1,4 @@
-import { normalizeRecords } from "../shared/omics/relations";
+import { currentRecords } from "../shared/omics/current";
 import { catalogueText } from "./catalogue-text";
 import { assertNoPrivateFields } from "../shared/omics/private-fields";
 import { validateResearchData, type ResearchData } from "../shared/omics/research";
@@ -68,7 +68,7 @@ export function parseCatalogue(value: unknown): OmicsCatalogue {
   return {
     ...catalogue,
     // Releases written before single-meaning relations are read under the current names.
-    records: normalizeRecords(catalogue.records).filter((record) => record.status !== "excluded"),
+    records: currentRecords(catalogue.records).filter((record) => record.status !== "excluded"),
   };
 }
 export const recordHref = (record: Pick<OmicsRecord, "kind" | "id">) =>
@@ -170,7 +170,7 @@ export function compareResults(
   results: OmicsRecord[],
   input: OmicsRecord[],
 ): { compatible: boolean; reasons: string[] } {
-  const records = normalizeRecords(input);
+  const records = currentRecords(input);
   const reasons = new Set<string>();
   if (results.length < 2) reasons.add("Choose at least two results.");
   const evaluations = results.map((result) =>

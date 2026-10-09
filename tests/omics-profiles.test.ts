@@ -231,9 +231,7 @@ describe("source-backed profile publication", () => {
     expect(
       resultIds(family).filter((id) => pipelineResults.includes(id)),
     ).toEqual([]);
-    expect(query.get({ id: pipeline })!.record.attributes.entity_level).toBe(
-      "method",
-    );
+    expect(query.get({ id: pipeline })!.record.kind).toBe("pipeline");
     expect(query.get({ id: family })!.record.attributes.entity_level).toBe(
       "family",
     );
