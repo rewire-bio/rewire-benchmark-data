@@ -69,8 +69,17 @@ PROTECTED = {
 }
 # The asserted links whose targets are what an evaluation tested.
 SUBJECT_LINKS = [RB.evaluatedSubject, RB.configuration, RB.method, RB.pipeline, RB.service]
-# Generic types every resource gets under OWL 2 RL; they carry no information.
-TRIVIAL_TYPES = {OWL.Thing, RDFS.Resource, OWL.NamedIndividual}
+
+def in_vocabulary(predicate: URIRef, obj: object) -> bool:
+    """Keep only facts stated in the rewire vocabulary: rb: links and rb: types.
+
+    Superclasses and superproperties from the imported vocabularies (prov:Entity,
+    prov:wasInfluencedBy, mls:InformationEntity, ...) follow from the ontology graph for any
+    consumer that wants them; materialising them would restate every record in vaguer terms.
+    """
+    if predicate == RDF.type:
+        return isinstance(obj, URIRef) and str(obj).startswith(str(RB))
+    return str(predicate).startswith(str(RB))
 
 
 class BuildError(Exception):
@@ -131,7 +140,7 @@ def infer(asserted: rdflib.Graph, ontology: rdflib.Graph) -> set[tuple]:
             continue  # membership of anonymous restriction classes
         if p == OWL.sameAs and s == o:
             continue
-        if p == RDF.type and o in TRIVIAL_TYPES:
+        if not in_vocabulary(p, o):
             continue
         inferred.add((s, p, o))
     return inferred
@@ -277,8 +286,9 @@ def build(kg_dir: Path) -> dict:
             "reasoner": {"name": "owlrl", "version": importlib.metadata.version("owlrl"), "profile": "OWL 2 RL"},
             "rdflib": importlib.metadata.version("rdflib"),
             "vocabulary_sha256": sha256(VOCABULARY),
-            "kept": "New statements whose subject is a record; excludes blank nodes, owl:Thing typing and "
-            "reflexive owl:sameAs. Protected links are never inferred.",
+            "kept": "New statements about records in the rewire vocabulary: rb: links and rb: types. "
+            "Superclasses and superproperties from imported vocabularies are left to the ontology graph. "
+            "Protected links are never inferred.",
             "by_predicate": dict(sorted(by_predicate.items())),
         },
         "shacl": {

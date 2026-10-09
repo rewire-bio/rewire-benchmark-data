@@ -23,7 +23,7 @@ Identifiers are `https://benchmarks.rewire.it/id/<record id>`; the vocabulary is
 
 ## Inference
 
-The build runs the OWL 2 RL rules over the asserted graph and the vocabulary, and keeps the new statements whose subject is a record. Statements about blank nodes, `owl:Thing` typing and reflexive `owl:sameAs` are dropped. For the current release this adds about 220,000 statements to the 392,000 asserted ones.
+The build runs the OWL 2 RL rules over the asserted graph and the vocabulary, and keeps the new statements about records that are in the rewire vocabulary: `rb:` links and `rb:` types. Superclasses and superproperties from the imported vocabularies (such as `prov:Entity` or `prov:wasInfluencedBy`) are not restated for every record; they follow from the ontology graph for any consumer that wants them. For the current release this adds about 103,000 statements to the 392,000 asserted ones.
 
 | Inferred property | Meaning | From |
 | --- | --- | --- |
@@ -34,8 +34,7 @@ The build runs the OWL 2 RL rules over the asserted graph and the vocabulary, an
 | `rb:resultFor`, `rb:resultOn`, `rb:resultOnDataset` | Result to the system, assessment and dataset of its evaluation | chains through `rb:evaluation` |
 | `rb:testedWithin`, `rb:resultWithin` | Evaluation or result to every benchmark containing its task or protocol | chains through `rb:within` |
 | `rb:hasResult`, `rb:testedIn` | The reverse of `rb:evaluation` and `rb:testedSystem` | inverses |
-| `rdf:type` | Superclasses, such as `rb:System`, `rb:Assessment`, `rb:Dataset` for subsets, `mls:Run`, `prov:Entity` | the class hierarchy and PROV-O |
-| `prov:wasInfluencedBy`, `prov:influenced` | PROV-O generalisations of `prov:wasDerivedFrom` | PROV-O |
+| `rdf:type` | `rb:System`, `rb:Assessment`, and `rb:Dataset` for subsets | the class hierarchy |
 
 The build fails, and nothing is published, if:
 

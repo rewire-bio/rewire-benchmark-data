@@ -155,17 +155,19 @@ class InferenceTest(unittest.TestCase):
         self.assertIn(RB.Dataset, self.objects(ID.subset, RDF.type))
         self.assertIn(RB.System, self.objects(ID.pipeline, RDF.type))
         self.assertIn(RB.Assessment, self.objects(ID.protocol, RDF.type))
-        self.assertIn(URIRef("http://purl.obolibrary.org/obo/OBI_0000272"), self.objects(ID.protocol, RDF.type))
+        # Imported superclasses stay in the ontology graph rather than being restated per record.
+        self.assertNotIn(URIRef("http://purl.obolibrary.org/obo/OBI_0000272"), self.objects(ID.protocol, RDF.type))
         self.assertNotIn(OWL.Thing, self.objects(ID.pipeline, RDF.type))
 
     def test_baselines_are_not_results_or_evaluations(self) -> None:
-        self.assertEqual({p for s, p, _ in self.inferred if s == ID.baseline} - {RDF.type, PROV.wasInfluencedBy}, set())
+        self.assertEqual({p for s, p, _ in self.inferred if s == ID.baseline}, set())
         self.assertNotIn(ID.baseline, self.objects(ID.eval2, RB.hasResult))
         self.assertEqual(self.objects(ID.config, RB.testedIn), {ID.eval2})
 
-    def test_keeps_only_record_statements(self) -> None:
+    def test_keeps_only_record_statements_in_the_vocabulary(self) -> None:
         for s, p, o in self.inferred:
             self.assertTrue(str(s).startswith(build.ID), s)
+            self.assertTrue(build.in_vocabulary(p, o), (p, o))
             self.assertNotIsInstance(o, BNode)
             self.assertNotIn(p, build.PROTECTED)
 
