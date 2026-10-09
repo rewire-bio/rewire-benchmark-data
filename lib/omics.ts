@@ -1,3 +1,4 @@
+import { normalizeRecords } from "../shared/omics/relations";
 import { catalogueText } from "./catalogue-text";
 import { assertNoPrivateFields } from "../shared/omics/private-fields";
 import { validateResearchData, type ResearchData } from "../shared/omics/research";
@@ -66,7 +67,8 @@ export function parseCatalogue(value: unknown): OmicsCatalogue {
   if (catalogue.research) validateResearchData(catalogue.research, catalogue);
   return {
     ...catalogue,
-    records: catalogue.records.filter((record) => record.status !== "excluded"),
+    // Releases written before single-meaning relations are read under the current names.
+    records: normalizeRecords(catalogue.records).filter((record) => record.status !== "excluded"),
   };
 }
 export const recordHref = (record: Pick<OmicsRecord, "kind" | "id">) =>
@@ -166,8 +168,9 @@ function canonical(value: unknown): string {
 }
 export function compareResults(
   results: OmicsRecord[],
-  records: OmicsRecord[],
+  input: OmicsRecord[],
 ): { compatible: boolean; reasons: string[] } {
+  const records = normalizeRecords(input);
   const reasons = new Set<string>();
   if (results.length < 2) reasons.add("Choose at least two results.");
   const evaluations = results.map((result) =>
@@ -189,14 +192,7 @@ export function compareResults(
       reasons.add("An evaluation record is missing.");
     const subjects =
       evaluations[index]?.links
-        .filter((link) =>
-          (
-            [
-              ...benchmarkSubjectKinds,
-              ...datasetSubjectKinds,
-            ] as readonly string[]
-          ).includes(link.relation),
-        )
+        .filter((link) => link.relation === "assessment" || link.relation === "data")
         .flatMap((link) =>
           records.filter((record) => record.id === link.target_id),
         ) || [];
@@ -227,9 +223,7 @@ export function compareResults(
   const datasetIds = evaluations.map(
     (evaluation) =>
       evaluation?.links
-        .filter((link) =>
-          (datasetSubjectKinds as readonly string[]).includes(link.relation),
-        )
+        .filter((link) => link.relation === "data")
         .map((link) => link.target_id)
         .sort() || [],
   );

@@ -18,8 +18,7 @@ Identifiers are `https://benchmarks.rewire.it/id/<record id>`; the vocabulary is
 
 - Record IDs and values are never changed by the projection. Unmapped attributes are left out of the export, not renamed.
 - `alias_of` maps to `rb:aliasOf`, not `owl:sameAs`, so a reasoner cannot merge records or their results without a review.
-- An evaluation links to what was actually evaluated through `rb:evaluatedSubject`. `uses_model` (`rb:usesModel`) is not a subproperty of it and not transitive: a pipeline's result is never a result of a model it uses.
-- Some relations mean something different depending on the record kind. `by_kind` in the mapping gives those links their own property: on a baseline, `evaluation` is `rb:measuredIn` and `model` or `configuration` is `rb:implementedBy`; on a dataset subset, `benchmark` is `rb:usedIn`. The JSON-LD context keeps the relation name for these links.
+- Every relation has one meaning (`shared/omics/relations.ts`) and maps to one property. An evaluation links to what was actually evaluated through `system` (`rb:testedSystem`). `uses_model` (`rb:usesModel`) is not a subproperty of it and not transitive: a pipeline's result is never a result of a model it uses.
 - Only public records are exported. Excluded, quarantined and private data never enter the graph.
 - Mapping and vocabulary changes are reviewed like record changes. After editing `mapping.json`, run `npm run kg -- context` and commit the regenerated context.
 
@@ -29,10 +28,7 @@ The build runs the OWL 2 RL rules over the asserted graph and the vocabulary, an
 
 | Inferred property | Meaning | From |
 | --- | --- | --- |
-| `rb:testedSystem` | Evaluation to the system it tested, whichever link style the record uses | `rb:evaluatedSubject`, or the typed `rb:configuration`, `rb:method`, `rb:pipeline`, `rb:service` links |
-| `rb:testedOn` | Evaluation to the task or protocol it used | `rb:evaluatedOn`, `rb:protocol`, `rb:task` |
-| `rb:dataset` | Evaluation to its dataset, including subsets | `rb:datasetSubset` |
-| `rb:within`, `rb:contains` | Task or protocol inside a benchmark or suite, transitively, and the reverse | `dcterms:isPartOf`, `rb:parent` |
+| `rb:within`, `rb:contains` | Task or protocol inside a benchmark or suite, transitively, and the reverse | `rb:partOf`, `rb:parent` |
 | `rb:resultFor`, `rb:resultOn`, `rb:resultOnDataset` | Result to the system, assessment and dataset of its evaluation | chains through `rb:evaluation` |
 | `rb:testedWithin`, `rb:resultWithin` | Evaluation or result to every benchmark containing its task or protocol | chains through `rb:within` |
 | `rb:hasResult`, `rb:testedIn` | The reverse of `rb:evaluation` and `rb:testedSystem` | inverses |
@@ -42,7 +38,7 @@ The build fails, and nothing is published, if:
 
 - the reasoner finds an inconsistency, or a record is typed `owl:Nothing`;
 - `owl:sameAs` is inferred between records;
-- a protected link is inferred: `rb:evaluation`, `rb:evaluatedSubject`, the typed subject links, `rb:family`, `rb:variantOf`, `rb:aliasOf`, `rb:usesModel`, `rb:status` or `mls:hasValue`;
+- a protected link is inferred: `rb:evaluation`, `rb:testedSystem`, `rb:testedOn`, `rb:dataset`, `rb:family`, `rb:variantOf`, `rb:configurationOf`, `rb:aliasOf`, `rb:usesModel`, `rb:status` or `mls:hasValue`;
 - a result's inferred `rb:resultFor` is not what its evaluation tested;
 - SHACL validation fails. Among other checks, every evaluation has exactly one tested system, assessment and dataset, and every result exactly one evaluation, system, assessment and dataset.
 

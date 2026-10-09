@@ -61,7 +61,7 @@ describe("omics publication integrity", () => {
         target_id: records.find((r) => r.kind === "source")!.id,
       },
     ];
-    expect(() => validateRecords(broken)).toThrow("Invalid result evaluation");
+    expect(() => validateRecords(broken)).toThrow(/Relationship evaluation cannot link result .* to source/);
   });
   it("does not turn missing model versions into invented checkpoints", () => {
     for (const r of records.filter(

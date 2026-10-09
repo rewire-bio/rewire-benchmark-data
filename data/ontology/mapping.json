@@ -124,81 +124,41 @@
     }
   },
   "relations": {
+    "system": {
+      "property": "rb:testedSystem",
+      "basis": "Evaluation to the configuration, model, method, pipeline or service it evaluated. Not inherited by families."
+    },
+    "assessment": {
+      "property": "rb:testedOn",
+      "basis": "Evaluation to the task, protocol or benchmark it was assessed on."
+    },
+    "data": {
+      "property": "rb:dataset",
+      "basis": "Evaluation to the dataset or dataset subset it used."
+    },
     "evaluation": {
       "property": "rb:evaluation",
-      "basis": "Result to its evaluation.",
-      "by_kind": {
-        "baseline": {
-          "property": "rb:measuredIn",
-          "basis": "Baseline to an evaluation that measured it as a comparator. The measured values belong to that evaluation's results, so this is not rb:evaluation."
-        }
-      }
+      "basis": "Result to its evaluation."
     },
-    "model": {
-      "property": "rb:evaluatedSubject",
-      "basis": "Evaluation to the configuration, model, method or pipeline actually evaluated. Not inherited by families.",
-      "by_kind": {
-        "baseline": {
-          "property": "rb:implementedBy",
-          "basis": "Baseline to the model or method that implements it. A baseline is not an evaluation, so this is not rb:evaluatedSubject."
-        }
-      }
+    "original_evaluation": {
+      "property": "rb:originalEvaluation",
+      "basis": "A copied result to the evaluation it was copied from."
     },
-    "configuration": {
-      "property": "rb:configuration",
-      "basis": "Link to an exact configuration.",
-      "by_kind": {
-        "baseline": {
-          "property": "rb:implementedBy",
-          "basis": "Baseline to the configuration that implements it."
-        }
-      }
+    "implemented_by": {
+      "property": "rb:implementedBy",
+      "basis": "Baseline to the configuration, model or method that implements it."
     },
-    "method": {
-      "property": "rb:method",
-      "basis": "Link to a method."
+    "measured_in": {
+      "property": "rb:measuredIn",
+      "basis": "Baseline to an evaluation that measured it as a comparator; the values belong to that evaluation's results."
     },
-    "pipeline": {
-      "property": "rb:pipeline",
-      "basis": "Link to a pipeline."
+    "uses_data": {
+      "property": "rb:usesData",
+      "basis": "Task, protocol or baseline to the data it uses."
     },
-    "service": {
-      "property": "rb:service",
-      "basis": "Link to a service."
-    },
-    "benchmark": {
-      "property": "rb:evaluatedOn",
-      "basis": "Evaluation to the task or protocol used.",
-      "by_kind": {
-        "dataset_subset": {
-          "property": "rb:usedIn",
-          "basis": "Dataset subset to the protocol that uses it. A subset is not evaluated, so this is not rb:evaluatedOn."
-        }
-      }
-    },
-    "protocol": {
-      "property": "rb:protocol",
-      "basis": "Link to a protocol."
-    },
-    "task": {
-      "property": "rb:task",
-      "basis": "Link to a task."
-    },
-    "evaluator": {
-      "property": "rb:evaluator",
-      "basis": "Link to scoring software."
-    },
-    "dataset": {
-      "property": "rb:dataset",
-      "basis": "Link to a dataset."
-    },
-    "dataset_subset": {
-      "property": "rb:datasetSubset",
-      "basis": "Link to a dataset subset."
-    },
-    "baseline": {
-      "property": "rb:baseline",
-      "basis": "Link to a baseline."
+    "used_in": {
+      "property": "rb:usedIn",
+      "basis": "Dataset subset to the protocol that uses it."
     },
     "family": {
       "property": "rb:family",
@@ -206,7 +166,11 @@
     },
     "variant_of": {
       "property": "rb:variantOf",
-      "basis": "A model variant."
+      "basis": "Model to the model it is a variant of. Not transitive."
+    },
+    "configuration_of": {
+      "property": "rb:configurationOf",
+      "basis": "Configuration to the model, method or pipeline it configures."
     },
     "alias_of": {
       "property": "rb:aliasOf",
@@ -220,29 +184,13 @@
       "property": "rb:partOf",
       "basis": "Component of a suite. A subproperty of dcterms:isPartOf and of the transitive rb:within, so the transitivity applies only to rewire part-of links."
     },
-    "evaluates_task": {
-      "property": "rb:evaluatesTask",
-      "basis": "Resource to the task it evaluates."
-    },
     "parent": {
       "property": "rb:parent",
       "basis": "Hierarchy within a benchmark."
     },
-    "supersedes": {
-      "property": "dcterms:replaces",
-      "basis": "A newer record replacing an older one."
-    },
-    "original_evaluation": {
-      "property": "rb:originalEvaluation",
-      "basis": "A copied result to the evaluation it was copied from."
-    },
-    "subject": {
-      "property": "rb:subject",
-      "basis": "Claim to the record it is about."
-    },
-    "source": {
-      "property": "dcterms:source",
-      "basis": "Record to a source it is derived from."
+    "evaluates_task": {
+      "property": "rb:evaluatesTask",
+      "basis": "Resource to the task it evaluates."
     },
     "applicable_to": {
       "property": "rb:applicableTo",
@@ -251,6 +199,18 @@
     "same_data_as": {
       "property": "rb:sameDataAs",
       "basis": "Informational data reuse; never merges results."
+    },
+    "supersedes": {
+      "property": "dcterms:replaces",
+      "basis": "A newer record replacing an older one."
+    },
+    "subject": {
+      "property": "rb:subject",
+      "basis": "Claim to the record it is about."
+    },
+    "source": {
+      "property": "dcterms:source",
+      "basis": "Record to a source it is derived from."
     }
   },
   "fields": {

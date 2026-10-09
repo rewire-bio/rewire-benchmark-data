@@ -20,7 +20,7 @@ test("service rejects schema 1.1 entity kinds labelled as schema 1.0", () => {
   assert.throws(() => validateSnapshot(snapshot), /require schema version 1.1/);
 });
 
-test("service accepts schema 1.1 entities with historical and exact typed role names", () => {
+test("service accepts schema 1.1 entities with historical, typed and current role names", () => {
   assert.doesNotThrow(() => validateSnapshot(fixture()));
   const snapshot = typedFixture();
   assert.doesNotThrow(() => validateSnapshot(snapshot));
@@ -31,15 +31,26 @@ test("service accepts schema 1.1 entities with historical and exact typed role n
     { relation: "dataset_subset", target_id: "dataset-one" },
   ];
   assert.doesNotThrow(() => validateSnapshot(snapshot));
+  evaluation.links = [
+    { relation: "system", target_id: "model-one" },
+    { relation: "assessment", target_id: "benchmark-one" },
+    { relation: "data", target_id: "dataset-one" },
+  ];
+  assert.doesNotThrow(() => validateSnapshot(snapshot));
 });
 
-for (const role of ["model", "benchmark", "dataset"]) {
+for (const role of ["system", "assessment", "data"]) {
   test(`service rejects missing and duplicated ${role} evaluation roles`, () => {
     for (const mode of ["missing", "duplicate"]) {
       const snapshot = typedFixture();
       const evaluation = snapshot.records.find(
         (r: any) => r.kind === "evaluation",
       );
+      evaluation.links = [
+        { relation: "system", target_id: "model-one" },
+        { relation: "assessment", target_id: "benchmark-one" },
+        { relation: "data", target_id: "dataset-one" },
+      ];
       if (mode === "missing") {
         evaluation.links = evaluation.links.filter(
           (link: any) => link.relation !== role,
@@ -64,15 +75,17 @@ test("service rejects two different relation names for the same evaluation subje
   snapshot.records
     .find((r: any) => r.kind === "evaluation")
     .links.push({ relation: "configuration", target_id: "model-one" });
-  assert.throws(() => validateSnapshot(snapshot), /Invalid evaluation model/);
+  // An older typed name and the legacy role name both mean "system": two subjects.
+  assert.throws(() => validateSnapshot(snapshot), /Invalid evaluation system/);
 });
 
-test("service rejects a typed role pointing to another kind within its broad role", () => {
+test("service rejects a relationship used from a kind its rules do not allow", () => {
   const snapshot = typedFixture();
-  snapshot.records.find((r: any) => r.kind === "evaluation").links[0].relation =
-    "method";
+  snapshot.records
+    .find((r: any) => r.kind === "evaluation")
+    .links.push({ relation: "measured_in", target_id: "evaluation-one" });
   assert.throws(
     () => validateSnapshot(snapshot),
-    /Incorrect relationship type/,
+    /Relationship measured_in cannot link evaluation/,
   );
 });

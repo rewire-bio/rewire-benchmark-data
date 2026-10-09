@@ -68,7 +68,7 @@ function linked(r: RecordEntry, relation: string): RecordEntry {
   return target!;
 }
 function taskOf(e: RecordEntry): string {
-  const p = linked(e, "protocol");
+  const p = linked(e, "assessment");
   const task = String(p.attributes.task);
   for (const q of ["ipaQTL", "paQTL", "sQTL", "eQTL"]) if (task.includes(q)) return q;
   if (/pathogenic/i.test(task)) return "variant";
@@ -88,7 +88,7 @@ describe("AMP primary-source scientific regressions", () => {
     const consumed = new Set<string>();
     for (const cell of expected) {
       const match = results.filter(r => {
-        const e = linked(r, "evaluation"); const c = linked(e, "configuration");
+        const e = linked(r, "evaluation"); const c = linked(e, "system");
         return c.attributes.reported_name === cell.model && taskOf(e) === cell.task &&
           // The source labelled these columns AUC and Cohen's d; they are metric concepts now.
           r.attributes.metric === (cell.metric === "Cohen's d" ? "cohens-d" : "auroc") &&
@@ -110,7 +110,7 @@ describe("AMP primary-source scientific regressions", () => {
     const protocolTasks = new Map<string, Set<string>>(); const configTasks = new Map<string, Set<string>>();
     for (const e of evaluations) {
       const task = taskOf(e); counts[task] = (counts[task] ?? 0) + 1;
-      const p = linked(e, "protocol"); const c = linked(e, "configuration"); linked(e, "dataset");
+      const p = linked(e, "assessment"); const c = linked(e, "system"); linked(e, "data");
       for (const [map, id] of [[protocolTasks, p.id], [configTasks, c.id]] as const) {
         if (!map.has(id)) map.set(id, new Set()); map.get(id)!.add(task);
       }
@@ -128,7 +128,7 @@ describe("AMP primary-source scientific regressions", () => {
     const prefilter: Record<string, number> = { eQTL: 1896, sQTL: 540, paQTL: 142, ipaQTL: 116 };
     for (const [task, count] of Object.entries(prefilter)) {
       const group = evaluations.filter(e => taskOf(e) === task);
-      const datasets = [...new Set(group.map(e => linked(e, "dataset").id))];
+      const datasets = [...new Set(group.map(e => linked(e, "data").id))];
       expect(datasets, task).toHaveLength(2); // AlphaGenome crops the long population; no third scored population.
       for (const id of datasets) {
         const d = byId.get(id)!; const description = compact(prose(d));
@@ -138,11 +138,11 @@ describe("AMP primary-source scientific regressions", () => {
         expect(description).toMatch(/chromosom/i);
         expect(description).toMatch(/post[- ](?:window[- ])?filter|scored denominator/i);
       }
-      const alpha = group.find(e => linked(e, "configuration").attributes.reported_name === "AlphaGenome, output tracks*")!;
-      const enformer = group.find(e => linked(e, "configuration").attributes.reported_name === "Enformer, output tracks*")!;
-      expect(linked(alpha, "dataset").id).toBe(linked(enformer, "dataset").id);
-      expect(compact(prose(linked(alpha, "dataset")))).toContain("196608");
-      const modelMetadata = compact(prose(linked(alpha, "configuration")) + prose(alpha));
+      const alpha = group.find(e => linked(e, "system").attributes.reported_name === "AlphaGenome, output tracks*")!;
+      const enformer = group.find(e => linked(e, "system").attributes.reported_name === "Enformer, output tracks*")!;
+      expect(linked(alpha, "data").id).toBe(linked(enformer, "data").id);
+      expect(compact(prose(linked(alpha, "data")))).toContain("196608");
+      const modelMetadata = compact(prose(linked(alpha, "system")) + prose(alpha));
       expect(modelMetadata).toMatch(/(?:input|consum)[^\.]{0,100}131072|131072[^\.]{0,100}(?:input|consum)/i);
       expect(modelMetadata).toMatch(/(?:output|averag|aggregation)[^\.]{0,100}2048|2048[^\.]{0,100}(?:output|averag|aggregation)/i);
       expect(modelMetadata).not.toMatch(/Actual consumed central window: 2048/);
@@ -151,7 +151,7 @@ describe("AMP primary-source scientific regressions", () => {
 
   it("retains the source's specialised genomic comparator roles", () => {
     for (const e of evaluations) {
-      const c = linked(e, "configuration"); const model = String(c.attributes.reported_name);
+      const c = linked(e, "system"); const model = String(c.attributes.reported_name);
       const comparator = /^(Sei|Enformer|AlphaGenome)/.test(model);
       expect(c.attributes.foundation_model_eligible, model).toBe(!comparator);
       if (comparator) expect(c.facets.method_types ?? []).not.toContain("foundation_model");

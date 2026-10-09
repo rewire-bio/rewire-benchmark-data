@@ -18,7 +18,7 @@ const extractedBatches = [
 import { benchmarkCoverage } from "../scripts/omics/audit-benchmark-evidence";
 import { buildRelease } from "../scripts/omics/release";
 import { type RecordEntry } from "../scripts/omics/schema";
-import { relationAcceptsKind } from "../shared/omics/entity-kinds";
+import { relationAllows } from "../shared/omics/relations";
 import {
   arrowDirection,
   headedBlocks,
@@ -93,19 +93,15 @@ describe.each(batches)("$key batch", ({ key, records, receipt }) => {
   const attr = (record: RecordEntry, name: string) =>
     String(record.attributes[name] ?? "");
 
-  it("gives every evaluation one resolvable model, benchmark and dataset", () => {
+  it("gives every evaluation one resolvable system, assessment and data", () => {
     expect(of("evaluation").length).toBeGreaterThan(0);
     for (const evaluation of of("evaluation")) {
       const links = evaluation.links || [];
-      expect(links.map((l) => l.relation).sort()).toEqual([
-        "benchmark",
-        "dataset",
-        "model",
-      ]);
+      expect(links.map((l) => l.relation).sort()).toEqual(["assessment", "data", "system"]);
       for (const link of links) {
         const target = byId.get(link.target_id);
         expect(target, `${evaluation.id} -> ${link.target_id}`).toBeDefined();
-        expect(relationAcceptsKind(link.relation, target!.kind)).toBe(true);
+        expect(relationAllows(link.relation, evaluation.kind, target!.kind)).toBe(true);
       }
     }
   });
@@ -130,7 +126,7 @@ describe.each(batches)("$key batch", ({ key, records, receipt }) => {
       );
       const evaluation = byId.get(task!.target_id)!;
       const benchmark = (evaluation.links || []).find(
-        (l) => l.relation === "benchmark",
+        (l) => l.relation === "assessment",
       )!.target_id;
       const shape = [
         attr(result, "metric"),

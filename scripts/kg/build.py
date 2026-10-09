@@ -56,21 +56,20 @@ MLS_HAS_VALUE = URIRef("http://www.w3.org/ns/mls#hasValue")
 # records (families, aliases, models used by pipelines) without review.
 PROTECTED = {
     RB.evaluation,
-    RB.evaluatedSubject,
-    RB.configuration,
-    RB.method,
-    RB.pipeline,
-    RB.service,
+    RB.testedSystem,
+    RB.testedOn,
+    RB.dataset,
     RB.family,
     RB.variantOf,
+    RB.configurationOf,
     RB.aliasOf,
     RB.usesModel,
     RB.status,
     MLS_HAS_VALUE,
     OWL.sameAs,
 }
-# The asserted links whose targets are what an evaluation tested.
-SUBJECT_LINKS = [RB.evaluatedSubject, RB.configuration, RB.method, RB.pipeline, RB.service]
+# The asserted link whose target is what an evaluation tested.
+SUBJECT_LINKS = [RB.testedSystem]
 
 def in_vocabulary(predicate: URIRef, obj: object) -> bool:
     """Keep only facts stated in the rewire vocabulary: rb: links and rb: types.

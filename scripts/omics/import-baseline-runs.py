@@ -118,7 +118,7 @@ for entry in entries:
          'execution': report['execution'], 'timing_seconds': report['timing_seconds'], 'environment': report['environment'],
          'run_url': url(pin['report']['path']), 'reproduction_url': url(path),
          'reproduction_note': 'The linked pinned scripts describe this exact execution. No generic suite recipe is claimed to reproduce it; this review only checked existing artifacts.',
-         'limitations': entry['limitations']}, [link('configuration', mid), link('protocol', pid), link('dataset', did)], area)
+         'limitations': entry['limitations']}, [link('system', mid), link('assessment', pid), link('data', did)], area)
     metrics = {k: v for k, v in entry['metrics'].items() if k in (['auroc', 'average_precision_sklearn', 'precision_at_capacity'] if is_mfass else ['spearman', 'ndcg'] if not is_pg else list(entry['metrics']))}
     metric_path = '.'.join(entry['metric_path'])
     for metric, value in metrics.items():

@@ -11,7 +11,15 @@ Each record is an object. Fields marked as concept keys hold the last segment of
 - `status`: `discovered`, `needs_review`, `source_checked`, `reproduced`, `disputed`, `superseded`, or `excluded`. Source-checked is not reproduced.
 - `facets`: object mapping facet names to arrays. `areas`, `method_types` and `contexts` hold concept keys from `data/vocab/area.ttl`, `method-type.ttl` and `context.ttl`; `tasks` is free text.
 - `source_ids`: IDs of source records supporting this entity.
-- `links`: array of `{ "relation": "...", "target_id": "..." }`. Allowed relations are listed in `shared/omics/entity-kinds.ts` (for example `model`, `benchmark`, `dataset`, `variant_of`, `alias_of`, `part_of`, `supersedes`, `source`). References resolve within a release.
+- `links`: array of `{ "relation": "...", "target_id": "..." }`. Each relation has one meaning and a fixed set of record kinds it may link from and to, listed in `shared/omics/relations.ts`:
+  - evaluation: `system` (what was evaluated: a configuration, model, method, pipeline or service), `assessment` (the task, protocol or benchmark) and `data` (the dataset or subset), exactly one each; optional `original_evaluation`;
+  - result: `evaluation`; claim: `subject`;
+  - baseline: `implemented_by`, `measured_in`, `uses_data`, `applicable_to`;
+  - task and protocol: `part_of`, `parent`, `evaluates_task`, `uses_data`; dataset subset: `used_in`, `same_data_as`;
+  - model and configuration identity: `family`, `variant_of` (model to model), `configuration_of` (configuration to what it configures), `alias_of`, `uses_model`;
+  - any record: `supersedes`, `source`.
+
+  References resolve within a release. Releases written before October 2026 used other names (`model`, `benchmark`, `dataset` and typed names on evaluations, and the same names with other meanings on baselines and subsets); readers translate them with `normalizeRecords`.
 - `attributes`: kind-specific JSON object. Explicit unknown metadata uses null and `missing_metadata` reasons, never invented values.
 
 A `source` has attributes `url`, `version`, `retrieved_at`, optional `doi`, `publication_status`, `artifact_sha256`, `locator` and `licence`.
@@ -19,7 +27,7 @@ A `model` has `entity_level` (`family`, `checkpoint`, `method`, `service`), `ver
 A `benchmark` has `entity_level` (`suite`, `protocol`, `task`, `challenge`, `evaluator`), `version`, `task`, `scope_note`, `missing_metadata`.
 A `dataset` has `version`, `split`, `missing_metadata`, optional assay/context/accession metadata.
 A `baseline` has `baseline_type`, `applicability` (`proposed` or `source_supported`), `requirements`, `missing_metadata`.
-An `evaluation` has `origin` (`author_reported`, `independent_paper`, `paper_compilation`, `rewire_run`, `unreported`), `protocol`, `version`, `comparison` object, `missing_metadata`, links to model/benchmark/dataset, and optional `original_evaluation` link. Comparison fields: `protocol_id`, `dataset_version`, `split`, `population`, `inputs`, `adaptation`, `metric_implementation`, `aggregation`, `budget`; unknown fields are null and block automatic comparison.
+An `evaluation` has `origin` (`author_reported`, `independent_paper`, `paper_compilation`, `rewire_run`, `unreported`), `protocol`, `version`, `comparison` object, `missing_metadata`, links `system`, `assessment` and `data`, and an optional `original_evaluation` link. Comparison fields: `protocol_id`, `dataset_version`, `split`, `population`, `inputs`, `adaptation`, `metric_implementation`, `aggregation`, `budget`; unknown fields are null and block automatic comparison.
 A `result` links to exactly one evaluation. Attributes: `printed_value` (string), `numeric_value` (string decimal or null), `metric` (concept key, `data/vocab/metric.ttl`), optional `metric_qualifier` (what distinguishes results that share a metric concept: class, setting, scope, cutoff or aggregation), `metric_direction` (`higher`, `lower`, `unknown`), `unit` (concept key, `data/vocab/unit.ttl`), optional `unit_detail`, `uncertainty` (string or null), `source_locator`, `review` (object with `method` (concept key or keys, `review-method.ttl`), optional `method_note`, `reviewer` (concept key or keys, `agent.ttl`), optional `reviewer_note`, `date`, `reviewed_at`, `notes`), `missing_metadata`, optional `legacy_id`. Comparisons require the same metric, qualifier, unit and direction. Retain original paper IDs and result IDs for migration. Reviewed results need a precise locator and source.
 A `claim` links to a `subject` and has `field`, `value`, `source_locator`, `review` and supporting source IDs. A checked score does not mark all metadata as checked.
 
@@ -33,7 +41,7 @@ Snapshot JSON: `{ "schema_version": "1.0", "release_id": "...", "released_at": "
 
 Model and benchmark explanations are validated enrichment inputs merged into `attributes.profile`. They contain a summary, evidence-cited sections and facts, strengths, limitations, optional diagram steps, coverage, gaps and an explicit automated review note. Current summaries include `summary_source_ids` and `summary_source_locator`; both are optional for historical releases but must occur together. Current facts include an explicit `status`: `source_checked`, `unreported`, `unextracted`, `unavailable` or `inapplicable`. Coverage `reviewed` describes the explanatory claims only; `limited` records a specific evidence limitation. Neither changes scientific result review status or establishes independent reproduction.
 
-`variant_of`, `family` and `alias_of` describe supported model relationships. `part_of` links benchmark components to suites; `evaluates_task` connects a concrete resource to a task. These edges participate in result navigation only when backed by source-checked association claims. `uses_model` identifies a service or separately evaluated pipeline's dependency and does not assign its result to the base model. Retain exact configuration identity and legacy detail URLs.
+`variant_of`, `configuration_of`, `family` and `alias_of` describe supported model relationships. `part_of` links benchmark components to suites; `evaluates_task` connects a concrete resource to a task. These edges participate in result navigation only when backed by source-checked association claims. `uses_model` identifies a service or separately evaluated pipeline's dependency and does not assign its result to the base model. Retain exact configuration identity and legacy detail URLs.
 
 Hosted services retain their own operational limits and terms rather than inheriting a downloadable checkpoint’s licence or configuration. Source warnings under `attributes.evidence_concerns` preserve the original transcription status while preventing affected results from supporting automatic comparisons. Every warning has an artifact hash, precise locator and review date.
 

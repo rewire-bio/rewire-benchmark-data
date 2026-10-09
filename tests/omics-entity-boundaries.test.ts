@@ -71,7 +71,7 @@ describe("comparison assessment and dataset identities", () => {
   it.each(["dataset", "dataset_subset"])(
     "supports %s targets via legacy and typed relations",
     (kind) => {
-      for (const relation of ["dataset", kind]) {
+      for (const relation of ["data", "dataset", kind]) {
         const snapshot = pair();
         snapshot.records.find((r: any) => r.id === "dataset-one").kind = kind;
         for (const evaluation of snapshot.records.filter(
