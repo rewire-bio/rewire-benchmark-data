@@ -72,7 +72,7 @@ The build rebuilds the current release from the inputs and fails if any byte dif
 
 ## How the website consumes releases
 
-`website/manifest.json` lists the prepared website inputs with destination, size and SHA-256. The website pins this manifest and a full git revision in its `benchmark-data.lock.json`, then verifies and unpacks the files without running any build step from here. No change in this repository reaches the live site until a website PR updates that lock.
+`website/manifest.json` lists the prepared website inputs with destination, size and SHA-256. Each release also has a prepared SQLite file, published as the GitHub release asset `serving/<release-id>` (see [docs/serving-contract.md](docs/serving-contract.md)); the website's pages and public API read only that file. The website pins the manifest, a full git revision and the prepared file's SHA-256 in its `benchmark-data.lock.json`, verifies them and builds the file into its image, without running any build step from here. No change in this repository reaches the live site until a website PR updates that lock (see [docs/release.md](docs/release.md)).
 
 ## Provenance
 
