@@ -6,12 +6,15 @@ import { validateUseCaseArtifact } from "../../shared/omics/use-cases";
 import { parseUseCaseSourceDeclaration, writeUseCaseSourceCopies } from "./use-cases";
 
 function expectedFiles(manifest: any): string[] {
+  // Releases before 2026-10-10 also carried CSV copies of the JSONL exports; accept them when
+  // an archived manifest lists them, never require them.
+  const csv = (name: string) => (manifest.files?.[name] ? [name] : []);
   const names = [
     "catalogue.json",
-    "records.csv",
+    ...csv("records.csv"),
     "records.jsonl",
     ...(manifest.coverage?.evidence_table_version === "1.0"
-      ? ["evidence.csv", "evidence.jsonl"]
+      ? [...csv("evidence.csv"), "evidence.jsonl"]
       : []),
     ...(manifest.coverage?.use_cases !== undefined ? ["use-cases.json"] : []),
   ];
@@ -30,7 +33,7 @@ function expectedFiles(manifest: any): string[] {
       "audit-runs.json",
       "audit-resolutions.json",
       "audit-checks.jsonl",
-      "audit-checks.csv",
+      ...csv("audit-checks.csv"),
     );
     const chunks = Object.keys(manifest.files)
       .filter((n) => /^audit-checks-[0-9]{6}\.json$/.test(n))

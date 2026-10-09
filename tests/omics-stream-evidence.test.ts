@@ -44,7 +44,7 @@ describe("bounded evidence exports", () => {
         JSON.stringify(legacy.manifest),
       );
       expect(streamed.files["evidence.jsonl"]).toBeUndefined();
-      for (const name of ["evidence.jsonl", "evidence.csv"]) {
+      for (const name of ["evidence.jsonl"]) {
         expect(fs.readFileSync(path.join(dir, name), "utf8")).toBe(
           legacy.files[name],
         );

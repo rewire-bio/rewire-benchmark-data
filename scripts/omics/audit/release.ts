@@ -140,38 +140,6 @@ export function auditFiles(bundle: AuditBundle, releaseId?: string) {
   files["audit-index.json"] = JSON.stringify(index) + "\n";
   files["audit-checks.jsonl"] =
     bundle.checks.map((c) => JSON.stringify(c)).join("\n") + "\n";
-  const cols = [
-    "id",
-    "run_id",
-    "record_id",
-    "record_kind",
-    "record_name",
-    "field_paths",
-    "category",
-    "outcome",
-    "checked_at",
-    "target_sha256",
-    "recorded_value_json",
-    "observed_value_json",
-    "source_fingerprints",
-    "source_ids",
-    "source_locators",
-    "source_hashes",
-    "receipt_ids",
-    "explanation",
-    "prior_check_ids",
-  ] as const;
-  const quote = (v: unknown) => {
-    const s = typeof v === "string" ? v : JSON.stringify(v ?? null);
-    return (
-      '"' + (/^[=+@\-\t\r]/.test(s) ? "'" : "") + s.replace(/"/g, '""') + '"'
-    );
-  };
-  files["audit-checks.csv"] =
-    [
-      cols.join(","),
-      ...bundle.checks.map((c) => cols.map((k) => quote(c[k])).join(",")),
-    ].join("\n") + "\n";
   return {
     files,
     coverage: {

@@ -21,8 +21,6 @@ import { legacyKinds } from "../../shared/omics/entity-kinds";
 import { assertNoPrivateFields } from "../../shared/omics/private-fields";
 import {
   createEvidenceIndex,
-  evidenceCsv,
-  evidenceCsvLines,
   evidenceJsonlLines,
 } from "../../shared/omics/evidence-table";
 import fs from "node:fs";
@@ -134,30 +132,9 @@ export function buildRelease(
   };
   if (snapshot.research) snapshot.research = { ...snapshot.research, readiness: deriveResearchReadiness(snapshot) };
   assertNoPrivateFields(snapshot);
-  const quote = (v: unknown) => '"' + String(v ?? "").replace(/"/g, '""') + '"';
-  const csv =
-    [
-      "id,kind,name,status,description,facets,source_ids,links,attributes",
-      ...visible.map((r) =>
-        [
-          r.id,
-          r.kind,
-          r.name,
-          r.status,
-          r.description,
-          JSON.stringify(r.facets),
-          JSON.stringify(r.source_ids),
-          JSON.stringify(r.links),
-          JSON.stringify(r.attributes),
-        ]
-          .map(quote)
-          .join(","),
-      ),
-    ].join("\n") + "\n";
   const files: Record<string, string> = {
     "catalogue.json": JSON.stringify(snapshot, null, 2) + "\n",
     "records.jsonl": visible.map((r) => JSON.stringify(r)).join("\n") + "\n",
-    "records.csv": csv,
     ...researchFiles(snapshot),
   };
   const streamedHashes: Record<string, string> = {};
@@ -168,15 +145,10 @@ export function buildRelease(
       path.join(dir, "evidence.jsonl"),
       evidenceJsonlLines(index.iterate()),
     );
-    streamedHashes["evidence.csv"] = writeImmutableChunks(
-      path.join(dir, "evidence.csv"),
-      evidenceCsvLines(index.iterate()),
-    );
   } else if (extraCoverage.evidence_table_version === "1.0") {
     const evidence = createEvidenceIndex(snapshot).all();
     files["evidence.jsonl"] =
       evidence.map((row) => JSON.stringify(row)).join("\n") + "\n";
-    files["evidence.csv"] = evidenceCsv(evidence);
   }
   if (extraCoverage.audit_history)
     Object.assign(files, auditFiles(loadAudits(), releaseId).files);
@@ -198,7 +170,7 @@ export function buildRelease(
     files: Object.fromEntries([
       ...Object.entries(files).flatMap(([name, data]) => [
         [name, sha(data)],
-        ...(name === "records.csv" ? Object.entries(streamedHashes) : []),
+        ...(name === "records.jsonl" ? Object.entries(streamedHashes) : []),
       ]),
     ]),
     changelog: Array.isArray(extraCoverage.changelog)

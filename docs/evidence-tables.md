@@ -1,6 +1,6 @@
 # Evidence tables
 
-The release generator publishes `evidence.csv` and `evidence.jsonl` beside the existing records and catalogue exports. Their SHA-256 checksums are in the immutable release manifest. The table is generated from reviewed records; it is not a separate editable source of scientific assertions. The source JSONL inputs, profile review receipts and pinned artifacts remain authoritative.
+The release generator publishes `evidence.jsonl` beside the records and catalogue exports. Releases before 2026-10-10 also carried CSV copies of the evidence, records and audit-check exports; they are no longer written, to keep releases small. Their SHA-256 checksums are in the immutable release manifest. The table is generated from reviewed records; it is not a separate editable source of scientific assertions. The source JSONL inputs, profile review receipts and pinned artifacts remain authoritative.
 
 `coverage.evidence_table_version = "1.0"` identifies the new export contract. A generator fingerprint in coverage binds the compiler, profile schema and privacy boundary to the release ID. Older releases retain their original three exported files and exact checksums. The record-envelope schema remains 1.0.
 
