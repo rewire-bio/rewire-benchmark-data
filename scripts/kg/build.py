@@ -13,6 +13,9 @@ if a result's inferred system differs from what its evaluation tested, or if SHA
 validation fails.
 
 Usage: npm run kg:build   (or: python scripts/kg/build.py [--kg-dir public/kg])
+       python scripts/kg/build.py --shapes-only [--kg-dir public/kg]
+         SHACL over the asserted graph and the vocabulary only, without inference: the
+         check `npm run records -- add` and pull requests run on the exported store.
 """
 
 from __future__ import annotations
@@ -40,10 +43,13 @@ ONTOLOGY_DIR = ROOT / "data" / "ontology"
 VOCABULARY = ONTOLOGY_DIR / "rb.ttl"
 IMPORTS = ONTOLOGY_DIR / "imports"
 SHAPES = ONTOLOGY_DIR / "shapes.ttl"
+ATTRIBUTE_SHAPES = ONTOLOGY_DIR / "attribute-shapes.ttl"
+ATTRIBUTE_DECLARATIONS = ONTOLOGY_DIR / "rb-attributes.ttl"
 VOCAB_DIR = ROOT / "data" / "vocab"
 MAPPING = ONTOLOGY_DIR / "mapping.json"
 
 RB = rdflib.Namespace("https://benchmarks.rewire.it/vocab#")
+SH = rdflib.Namespace("http://www.w3.org/ns/shacl#")
 ID = "https://benchmarks.rewire.it/id/"
 GRAPHS = {
     "asserted": "https://benchmarks.rewire.it/graph/asserted",
@@ -91,6 +97,7 @@ def ontology_files() -> list[Path]:
     """The vocabulary, pinned imports and controlled vocabularies (SKOS schemes)."""
     return [
         VOCABULARY,
+        ATTRIBUTE_DECLARATIONS,
         *sorted(p for p in IMPORTS.iterdir() if p.suffix in (".ttl", ".nt")),
         *sorted(VOCAB_DIR.glob("*.ttl")),
     ]
@@ -200,15 +207,30 @@ def check_inferred(asserted: rdflib.Graph, inferred: set[tuple]) -> None:
             raise BuildError(f"{result} was inferred to be a result for {system}, which its evaluation did not test")
 
 
-def validate(asserted: rdflib.Graph, inferred: set[tuple]) -> tuple[bool, str]:
+def without_inferred_paths(shapes: rdflib.Graph) -> rdflib.Graph:
+    """Drop property shapes on links only the reasoner creates (property chains and inverses),
+    for validating the asserted graph alone."""
+    vocabulary = rdflib.Graph().parse(VOCABULARY, format="turtle")
+    derived = set(vocabulary.subjects(OWL.propertyChainAxiom, None)) | set(vocabulary.subjects(OWL.inverseOf, None))
+    for shape, prop in list(shapes.subject_objects(SH.property)):
+        if shapes.value(prop, SH.path) in derived:
+            shapes.remove((shape, SH.property, prop))
+    return shapes
+
+
+def validate(asserted: rdflib.Graph, inferred: set[tuple], asserted_only: bool = False) -> tuple[bool, str]:
     """SHACL over the asserted and inferred statements, with the concept schemes mixed in so
-    shapes can check that each controlled value is a concept of the right scheme."""
+    shapes can check that each controlled value is a concept of the right scheme, and the
+    vocabulary mixed in so sh:class sees subclasses without running the reasoner."""
     data = rdflib.Graph()
     for triple in asserted:
         data.add(triple)
     for triple in inferred:
         data.add(triple)
-    shapes = rdflib.Graph().parse(SHAPES, format="turtle")
+    shapes = rdflib.Graph().parse(SHAPES, format="turtle").parse(ATTRIBUTE_SHAPES, format="turtle")
+    if asserted_only:
+        shapes = without_inferred_paths(shapes)
+    data.parse(VOCABULARY, format="turtle")
     for path in sorted(VOCAB_DIR.glob("*.ttl")):
         data.parse(path, format="turtle")
     conforms, _, report = pyshacl.validate(data, shacl_graph=shapes, inference="none", advanced=False)
@@ -344,6 +366,8 @@ def build(kg_dir: Path) -> dict:
             "engine": f"pyshacl {importlib.metadata.version('pyshacl')}",
             "shapes": "data/ontology/shapes.ttl",
             "shapes_sha256": sha256(SHAPES),
+            "attribute_shapes": "data/ontology/attribute-shapes.ttl",
+            "attribute_shapes_sha256": sha256(ATTRIBUTE_SHAPES),
         },
         "example_queries": EXAMPLE_QUERIES,
     }
@@ -359,8 +383,16 @@ def build(kg_dir: Path) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--kg-dir", default=str(ROOT / "public" / "kg"))
+    parser.add_argument("--shapes-only", action="store_true", help="SHACL on the asserted graph, no inference")
     args = parser.parse_args()
     try:
+        if args.shapes_only:
+            started = time.monotonic()
+            conforms, report = validate(load_asserted(Path(args.kg_dir) / "asserted.nq"), set(), asserted_only=True)
+            if not conforms:
+                raise BuildError("SHACL validation failed:\n" + report[:5000])
+            print(f"Records conform to the shapes ({time.monotonic() - started:.0f}s)", file=sys.stderr)
+            return
         build(Path(args.kg_dir))
     except BuildError as error:
         print(f"Knowledge-graph build failed: {error}", file=sys.stderr)

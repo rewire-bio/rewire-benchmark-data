@@ -3,13 +3,16 @@
  *            record line readable as JSON-LD 1.1
  *   export:  write the public records as sorted N-Quads, with a manifest,
  *            to public/kg/ (the asserted graph of a knowledge-graph bundle)
- * Usage: npm run kg -- context | export */
+ *   terms:   write data/ontology/rb-attributes.ttl and attribute-shapes.ttl, the property
+ *            declarations and per-kind shapes for declared attributes (attribute-terms.ts)
+ * Usage: npm run kg -- context | export | terms */
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { loadRecords } from "../omics/records";
 import { publicRecords, type RecordEntry } from "../omics/schema";
 import { schemeIri } from "../omics/vocab";
+import { attributeProperty, declarationsTurtle, encoding, missing, nodes, notExported, registry, shapesTurtle } from "./attribute-terms";
 
 /** scheme: the value is a concept key in data/vocab/<scheme>.ttl, exported as the concept IRI. */
 type Term = { property: string; iri?: boolean; datatype?: string; scheme?: string };
@@ -28,6 +31,8 @@ export type Mapping = {
 
 export const mappingFile = "data/ontology/mapping.json";
 export const contextFile = "data/ontology/context.jsonld";
+export const attributeDeclarationsFile = "data/ontology/rb-attributes.ttl";
+export const attributeShapesFile = "data/ontology/attribute-shapes.ttl";
 export const readMapping = (): Mapping => JSON.parse(fs.readFileSync(mappingFile, "utf8"));
 
 export function expand(mapping: Mapping, curie: string): string {
@@ -35,6 +40,35 @@ export function expand(mapping: Mapping, curie: string): string {
   const ns = mapping.prefixes[prefix];
   if (!ns || local === undefined) throw new Error(`Unknown prefix in ${curie}`);
   return ns + local;
+}
+
+/** Context terms for every declared attribute. A key whose type differs between kinds gets
+ * no type here; the N-Quads export, which knows each record's kind, is authoritative. */
+function attributeContext(mapping: Mapping): Record<string, unknown> {
+  const types = new Map<string, Set<string>>();
+  for (const keys of Object.values(registry))
+    for (const [key, type] of Object.entries(keys)) types.set(key, (types.get(key) ?? new Set()).add(type));
+  const scalar = (datatype?: string) => (datatype ? { "@type": datatype } : {});
+  const fieldContext = (fields: Record<string, { property: string; datatype?: string; scheme?: string }>) =>
+    Object.fromEntries(Object.entries(fields).map(([name, f]) => [name, {
+      "@id": f.property,
+      ...(f.scheme ? { "@type": "@vocab", "@context": { "@vocab": schemeIri(f.scheme) } } : scalar(f.datatype)),
+    }]));
+  const out: Record<string, unknown> = {};
+  for (const [key, set] of [...types].sort(([a], [b]) => (a < b ? -1 : 1))) {
+    if (notExported.has(key)) continue;
+    const id = attributeProperty(mapping, key);
+    const e = set.size === 1 ? encoding([...set][0]) : undefined;
+    out[key] = { "@id": id, "@nest": "attributes", ...(
+      !e ? {} :
+      e.kind === "missing" ? { "@id": missing.property, "@container": "@index", "@index": missing.field,
+        "@context": { reason: { "@id": missing.reason, "@type": "@vocab", "@context": { "@vocab": schemeIri("missingness") } }, note: missing.note } } :
+      e.kind === "node" ? { "@context": fieldContext(nodes[e.node].fields) } :
+      e.kind === "concept" ? { "@type": "@vocab", "@context": { "@vocab": schemeIri(e.scheme) } } :
+      e.kind === "iri" || e.kind === "record" ? { "@type": "@id" } :
+      e.datatype === "rdf:JSON" ? { "@type": "@json" } : scalar(e.datatype)) };
+  }
+  return out;
 }
 
 /** JSON-LD 1.1 context for the canonical JSONL records. */
@@ -59,6 +93,7 @@ export function buildContext(mapping: Mapping) {
       facets: "@nest",
       ...Object.fromEntries(Object.entries(mapping.facets).map(([k, t]) => [k, { ...term(t), "@nest": "facets" }])),
       attributes: "@nest",
+      ...attributeContext(mapping),
       ...Object.fromEntries(Object.entries(mapping.attributes).map(([k, t]) => [k, { ...term(t), "@nest": "attributes" }])),
       links: { "@id": "rb:link" },
       relation: {
@@ -91,6 +126,14 @@ export function canonicalDecimal(text: string): string | undefined {
   const integer = digits.slice(0, point).replace(/^0+(?=\d)/, "");
   const decimals = digits.slice(point);
   return `${sign === "-" ? "-" : ""}${integer}${decimals ? "." + decimals : ""}`;
+}
+
+/** JSON with object keys sorted, so the same value always gives the same rdf:JSON literal. */
+export function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value && typeof value === "object")
+    return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${canonicalJson((value as Record<string, unknown>)[k])}`).join(",")}}`;
+  return JSON.stringify(value);
 }
 
 /** One N-Quads line per statement; records are projected, never altered. */
@@ -140,7 +183,49 @@ export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
       if (object) add(t.property, object);
     }
   };
-  for (const [name, t] of Object.entries(mapping.attributes)) addValue(record.attributes[name], t);
+  const declared = registry[record.kind] ?? {};
+  const node = (path: string) => iri(`${mapping.base}${record.id}/${path}`);
+  const addTo = (subject: string, predicate: string, object: string) =>
+    lines.push(`${subject} ${iri(expand(mapping, predicate))} ${object} ${graph} .`);
+  const nodeLiteral = (value: unknown, datatype?: string, scheme?: string) =>
+    literal(typeof value === "number" ? String(value) : value, { property: "", datatype, scheme });
+  for (const [key, value] of Object.entries(record.attributes)) {
+    const type = declared[key];
+    if (!type || notExported.has(key) || value === undefined) continue;
+    const e = encoding(type);
+    const property = attributeProperty(mapping, key);
+    if (e.kind === "missing") {
+      for (const [field, entry] of Object.entries(value as Record<string, { reason: string; note?: string }>)) {
+        const subject = node(`missing/${field}`);
+        add(missing.property, subject);
+        addTo(subject, "rdf:type", iri(expand(mapping, missing.class)));
+        addTo(subject, missing.field, `"${escapeLiteral(field)}"`);
+        addTo(subject, missing.reason, iri(schemeIri("missingness") + entry.reason));
+        if (entry.note) addTo(subject, missing.note, `"${escapeLiteral(entry.note)}"`);
+      }
+    } else if (e.kind === "node") {
+      const spec = nodes[e.node];
+      const subject = node(key);
+      add(property, subject);
+      addTo(subject, "rdf:type", iri(expand(mapping, spec.class)));
+      const fields = { ...(value as Record<string, unknown>) };
+      const split = fields.train_validation_test;
+      if (Array.isArray(split)) [fields.train, fields.validation, fields.test] = split;
+      for (const [field, f] of Object.entries(spec.fields)) {
+        const object = fields[field] === undefined ? undefined : nodeLiteral(fields[field], f.datatype, f.scheme);
+        if (object) addTo(subject, f.property, object);
+      }
+    } else if (e.kind === "literal" && e.datatype === "rdf:JSON") {
+      add(property, `"${escapeLiteral(canonicalJson(value))}"^^${iri(expand(mapping, "rdf:JSON"))}`);
+    } else {
+      const term: Term = e.kind === "concept" ? { property, scheme: e.scheme } : e.kind === "iri" ? { property, iri: true }
+        : e.kind === "record" ? { property } : { property, datatype: e.datatype };
+      for (const item of Array.isArray(value) ? value : [value]) {
+        const object = e.kind === "record" ? iri(mapping.base + String(item)) : literal(typeof item === "number" ? String(item) : item, term);
+        if (object) add(property, object);
+      }
+    }
+  }
   const review = record.attributes.review;
   if (review && typeof review === "object" && !Array.isArray(review))
     for (const [name, t] of Object.entries(mapping.review)) addValue((review as Record<string, unknown>)[name], t);
@@ -160,7 +245,9 @@ if (process.argv[1]?.endsWith("export.ts")) {
     console.log(`Wrote ${contextFile}`);
   } else if (command === "export") {
     const nquads = exportQuads(mapping, loadRecords());
-    const release = JSON.parse(fs.readFileSync("public/omics/manifest.json", "utf8"));
+    // Before a release is cut (at intake, or on a pull request) the graph is labelled unreleased.
+    const releaseManifest = "public/omics/manifest.json";
+    const release = fs.existsSync(releaseManifest) ? JSON.parse(fs.readFileSync(releaseManifest, "utf8")) : { release_id: "unreleased" };
     const sha = (value: string | Buffer) => crypto.createHash("sha256").update(value).digest("hex");
     fs.mkdirSync("public/kg", { recursive: true });
     fs.writeFileSync(path.join("public/kg", "asserted.nq"), nquads);
@@ -175,8 +262,14 @@ if (process.argv[1]?.endsWith("export.ts")) {
     };
     fs.writeFileSync(path.join("public/kg", "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
     console.log(`Wrote ${manifest.files["asserted.nq"].quads} quads for ${release.release_id} to public/kg/`);
+  } else if (command === "terms") {
+    const rb = fs.readFileSync("data/ontology/rb.ttl", "utf8");
+    const declared = new Set([...rb.matchAll(/^(rb:[A-Za-z0-9]+) a /gm)].map((m) => m[1]));
+    fs.writeFileSync(attributeDeclarationsFile, declarationsTurtle(mapping, declared));
+    fs.writeFileSync(attributeShapesFile, shapesTurtle(mapping));
+    console.log(`Wrote ${attributeDeclarationsFile} and ${attributeShapesFile}`);
   } else {
-    console.error("Usage: npm run kg -- context | export");
+    console.error("Usage: npm run kg -- context | export | terms");
     process.exit(1);
   }
 }

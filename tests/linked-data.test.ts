@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { Parser } from "n3";
-import { buildContext, contextFile, exportQuads, readMapping, recordQuads } from "../scripts/kg/export";
+import { attributeDeclarationsFile, attributeShapesFile, buildContext, contextFile, exportQuads, readMapping, recordQuads } from "../scripts/kg/export";
+import { declarationsTurtle, shapesTurtle } from "../scripts/kg/attribute-terms";
 import { kinds } from "../scripts/omics/schema";
 import { relations as catalogueRelations } from "../shared/omics/relations";
 import { records, recordsById } from "./helpers/records";
@@ -27,6 +28,13 @@ describe("ontology mapping", () => {
 
   it("keeps the committed JSON-LD context in step with the mapping", () => {
     expect(JSON.parse(fs.readFileSync(contextFile, "utf8"))).toEqual(buildContext(mapping));
+  });
+
+  it("keeps the generated attribute declarations and shapes in step with the registry (npm run kg -- terms)", () => {
+    const rb = fs.readFileSync("data/ontology/rb.ttl", "utf8");
+    const declared = new Set([...rb.matchAll(/^(rb:[A-Za-z0-9]+) a /gm)].map((m) => m[1]));
+    expect(fs.readFileSync(attributeDeclarationsFile, "utf8")).toBe(declarationsTurtle(mapping, declared));
+    expect(fs.readFileSync(attributeShapesFile, "utf8")).toBe(shapesTurtle(mapping));
   });
 });
 
@@ -82,6 +90,18 @@ describe("N-Quads export", () => {
     expect(lines.some((l) => l.includes(`<${RB}metric> <https://benchmarks.rewire.it/vocab/metric/${result.attributes.metric}>`))).toBe(true);
     expect(lines.some((l) => l.includes(`<${RB}area> <https://benchmarks.rewire.it/vocab/area/${withArea.facets.areas[0]}>`))).toBe(true);
     expect(lines.some((l) => /<https:\/\/benchmarks\.rewire\.it\/vocab#(metric|area|status|unit)> "/.test(l))).toBe(false);
+  });
+
+  it("exports declared attributes with their datatypes, and structured values as nodes", () => {
+    const result = records.find((r) => r.kind === "result" && (r.attributes.uncertainty as { type?: string })?.type === "confidence_interval" && r.attributes.missing_metadata)!;
+    const lines = recordQuads(mapping, result);
+    const node = `<${ID}${result.id}/uncertainty>`;
+    expect(lines.some((l) => l.startsWith(`<${ID}${result.id}> <${RB}uncertainty> ${node}`))).toBe(true);
+    expect(lines.some((l) => l.startsWith(`${node} <${RB}uncertaintyType> <https://benchmarks.rewire.it/vocab/uncertainty-type/confidence_interval>`))).toBe(true);
+    const field = Object.keys(result.attributes.missing_metadata as object)[0];
+    expect(lines.some((l) => l.startsWith(`<${ID}${result.id}/missing/${field}> <${RB}missingReason> <https://benchmarks.rewire.it/vocab/missingness/`))).toBe(true);
+    const counted = records.find((r) => r.kind === "evaluation" && typeof r.attributes.scored_count === "number")!;
+    expect(recordQuads(mapping, counted).some((l) => l.includes(`<${RB}scoredCount> "${counted.attributes.scored_count}"^^<http://www.w3.org/2001/XMLSchema#integer>`))).toBe(true);
   });
 
   it("exports each review method and reviewer in a list", () => {
