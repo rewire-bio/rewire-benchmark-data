@@ -1,37 +1,38 @@
-/** Re-pin the evidence fingerprint (evidence_sha256) of every active use-case mapping to the
- * current built snapshot (public/omics/catalogue.json; run npm run omics:release first).
- * For changes that only alter how records are written, not what they say, such as the
- * issue #42 migrations. Name the review that justifies it.
+/** Re-pin reviewed relevance judgements to the store as it is now.
+ *
+ * A judgement claim pins the fields of its use case, protocol and protocol sources that it relies
+ * on (shared/omics/use-cases.ts judgementPinFields). When a reviewed change alters how those
+ * records are written but not what they say, such as an issue #42 migration, re-pin the
+ * judgements it touched and name the review that justifies it. Each changed claim is recorded in
+ * data/provenance/records.jsonl. Judgements that still match are left alone.
  *   npm run use-cases:repin -- <review.md> */
 import fs from "node:fs";
-import crypto from "node:crypto";
-import { mappingEvidenceHash, parseUseCaseInputs } from "../../shared/omics/use-cases";
-import type { CatalogueSnapshot } from "../../shared/omics/catalogue-query";
+import { judgementPins, useCaseHash, type JudgementPin } from "../../shared/omics/use-cases";
+import type { CatalogueRecord } from "../../shared/omics/catalogue-query";
+import { recordChanges, recordFile } from "./records";
 
 const review = process.argv[2];
 if (!review || !fs.existsSync(review)) {
   console.error("Usage: npm run use-cases:repin -- <review.md>  (the review must exist)");
   process.exit(1);
 }
-const file = "data/omics/use-cases/inputs.json";
-const snapshot: CatalogueSnapshot = JSON.parse(fs.readFileSync("public/omics/catalogue.json", "utf8"));
-const raw = JSON.parse(fs.readFileSync(file, "utf8"));
-const useCases = new Map(parseUseCaseInputs(raw).use_cases.map((u) => [u.id, u]));
+const read = (kind: string) =>
+  fs.readFileSync(recordFile(kind), "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as CatalogueRecord);
+const byId = new Map(["use_case", "protocol", "source"].flatMap(read).map((r) => [r.id, r]));
+const claims = read("claim");
 const repinned: string[] = [];
-raw.mappings = raw.mappings.map((m: { id: string; use_case_id: string; lifecycle: string; evidence_sha256?: string }) => {
-  if (m.lifecycle !== "active") return m;
-  const hash = mappingEvidenceHash(snapshot, useCases.get(m.use_case_id)!, m as never);
-  if (hash === m.evidence_sha256) return m;
-  repinned.push(m.id);
-  return { ...m, evidence_sha256: hash };
+const next = claims.map((claim) => {
+  const field = claim.attributes.field;
+  if (typeof field !== "string" || !field.startsWith("links:assessed_by:") || claim.status !== "source_checked") return claim;
+  const subject = claim.links.find((l) => l.relation === "subject")!.target_id;
+  const pins = judgementPins(byId, subject, field.slice("links:assessed_by:".length));
+  if (useCaseHash(pins) === useCaseHash(claim.attributes.pins as JudgementPin[])) return claim;
+  repinned.push(claim.id);
+  return { ...claim, attributes: { ...claim.attributes, pins } };
 });
-const text = JSON.stringify(raw, null, 2) + "\n";
-fs.writeFileSync(file, text);
-// The use-case review receipt pins inputs.json; record the re-pin there.
-const receiptFile = "data/omics/use-cases/review.json";
-const receipt = JSON.parse(fs.readFileSync(receiptFile, "utf8"));
-receipt.files["inputs.json"] = crypto.createHash("sha256").update(text).digest("hex");
-if (repinned.length)
-  receipt.limitations.push(`${new Date().toISOString().slice(0, 10)}: ${repinned.length} active mappings had evidence_sha256 re-pinned after record migrations, without re-reading the mappings; see ${review}.`);
-fs.writeFileSync(receiptFile, JSON.stringify(receipt, null, 2) + "\n");
-console.log(`Re-pinned ${repinned.length} active mappings (${review}).`);
+if (repinned.length) {
+  fs.writeFileSync(recordFile("claim"), next.map((r) => JSON.stringify(r) + "\n").join(""));
+  recordChanges(repinned, "shared/omics/use-cases.ts judgementPins", review);
+}
+console.log(`Re-pinned ${repinned.length} relevance judgements against ${review}.`);
+for (const id of repinned) console.log(`  ${id}`);

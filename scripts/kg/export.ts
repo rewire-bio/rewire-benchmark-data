@@ -158,6 +158,10 @@ export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
   const kind = mapping.classes[record.kind];
   if (!kind) throw new Error(`No class mapping for kind ${record.kind}`);
   for (const type of kind.types) add("rdf:type", iri(expand(mapping, type)));
+  // A claim backing a use case's assessed_by link is a relevance judgement (a SEPIO assertion).
+  // Asserted from the claim's own field, not inferred from a link.
+  if (record.kind === "claim" && String(record.attributes.field ?? "").startsWith("links:assessed_by:"))
+    add("rdf:type", iri(expand(mapping, "rb:RelevanceJudgement")));
   for (const field of ["name", "description", "status"] as const) {
     const object = literal(record[field], mapping.fields[field]);
     if (object && record[field] !== "") add(mapping.fields[field].property, object);

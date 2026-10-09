@@ -59,9 +59,12 @@ if (command === 'latest') {
   };
   const before = useCases(previous), after = useCases(next);
   const live = new Set((before?.mappings || []).filter(mapping => mapping.lifecycle === 'active').map(mapping => mapping.id));
-  const withheld = (after?.mappings || []).filter(mapping => live.has(mapping.id) && mapping.lifecycle !== 'active' && mapping.stale_from).map(mapping => mapping.id);
+  // A withheld mapping is one the previous release served that is now needs_review: older
+  // releases mark it with stale_from, newer ones derive it from its relevance judgement.
+  const withheld = (after?.mappings || []).filter(mapping => live.has(mapping.id) && mapping.lifecycle === 'needs_review');
   if (withheld.length) {
-    console.log(`::error::${next} withholds ${withheld.length} use-case mappings that ${previous} serves, because their evidence changed since review: ${withheld.slice(0, 10).join(', ')}. Re-review them (update their evidence_sha256 in data/omics/use-cases/inputs.json after review) before releasing.`);
+    const detail = withheld.slice(0, 10).map(mapping => `${mapping.id} (${mapping.reason})`).join('; ');
+    console.log(`::error::${next} withholds ${withheld.length} use-case mappings that ${previous} serves: ${detail}. Re-review their relevance judgements, or run npm run use-cases:repin -- <review> when only the record form changed, before releasing.`);
     process.exitCode = 4;
   } else console.log(`No use-case mapping that ${previous} serves is withheld by ${next}.`);
 } else if (command === 'pending') {

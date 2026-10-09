@@ -14,7 +14,7 @@ Before activation, complete and inspect a full manual pilot, confirm operator an
 
 Read the configured scope at the start of every cycle. The current search ledger contains nine research lanes: `cells-spatial`, `genomics`, `interactions`, `microbial`, `networks-mechanistic`, `other-omics`, `protein-fitness`, `rna`, and `structure-design`. Also cover `scope-screen` and `source-resolution`, plus the `existing-sources` and `use-cases` scopes.
 
-For `use-cases`, enumerate every current ID from `data/omics/use-cases/inputs.json`. There are currently 17; enumerate the file again when running rather than preserving that count in code. Examine active mappings, exact endpoints/protocols, conventional baselines, source revisions, review fingerprints, and remaining direct/proxy evidence gaps. A source-level change can affect multiple use cases, which must remain explicit.
+For `use-cases`, enumerate every current ID from `data/entities/use-cases.jsonl`. Enumerate the file again when running rather than preserving a count in code. Examine active relevance judgements, exact endpoints/protocols, conventional baselines, source revisions, review fingerprints, and remaining direct/proxy evidence gaps. A source-level change can affect multiple use cases, which must remain explicit.
 
 Each cycle includes:
 

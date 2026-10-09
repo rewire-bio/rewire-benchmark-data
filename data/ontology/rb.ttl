@@ -104,6 +104,14 @@ rb:Claim a owl:Class ;
     rdfs:label "claim" ;
     rdfs:comment "One sourced assertion about another record." .
 
+rb:RelevanceJudgement a owl:Class ; rdfs:subClassOf rb:Claim, obo:SEPIO_0000001 ;
+    rdfs:label "relevance judgement" ;
+    rdfs:comment "A claim that a protocol's evaluations are evidence for a use case, with the relevance, endpoint, rationale and caveats of that judgement. A SEPIO assertion: a statement made by a particular agent on a particular occasion, based on evaluating evidence. Other claims are study findings and stay rb:Claim only." .
+
+rb:UseCase a owl:Class ;
+    rdfs:label "use case" ;
+    rdfs:comment "A research or clinical decision question with its intended users, available inputs, desired output and setting. No external class matches: IAO objective and plan specifications are directives realised by processes, schema:Question is a Comment, and NCIT Use Case is a software interaction script." .
+
 # Links between records (asserted) ------------------------------------------------------------
 
 rb:evaluation a owl:ObjectProperty ;
@@ -173,6 +181,10 @@ rb:originalEvaluation a owl:ObjectProperty ;
 rb:subject a owl:ObjectProperty ;
     rdfs:label "subject" ;
     rdfs:comment "Claim to the record it is about." .
+
+rb:assessedBy a owl:ObjectProperty ;
+    rdfs:label "assessed by" ;
+    rdfs:comment "Use case to a protocol whose evaluations a reviewed relevance judgement rates as evidence for it. Asserted only, never inferred, and in no property chain, so no result becomes a result of a use case." .
 
 rb:applicableTo a owl:ObjectProperty ;
     rdfs:label "applicable to" ;

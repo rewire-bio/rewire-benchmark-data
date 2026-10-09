@@ -3,7 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import os from "node:os";
 import { z } from "zod";
-import { loadUseCases } from "../omics/use-cases";
+import { loadUseCaseReview } from "../omics/use-cases";
 
 const iso = z.string().datetime({ offset: true });
 const id = z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,100}$/);
@@ -239,10 +239,23 @@ export class RefreshStore {
     id.parse(runId);
     return Run.parse(this.read(`maintenance/runs/${runId}.json`));
   }
+  /** Use cases are store records; their judgements are claims citing links:assessed_by. */
+  private useCaseLines() {
+    const read = (p: string) =>
+      fs.existsSync(this.file(p))
+        ? fs.readFileSync(this.file(p), "utf8").split("\n").filter(Boolean)
+        : [];
+    return {
+      cases: read("data/entities/use-cases.jsonl"),
+      judgements: read("data/evidence/claims.jsonl").filter((line) =>
+        line.includes('"field":"links:assessed_by:'),
+      ),
+    };
+  }
   cases() {
-    return this.read("data/omics/use-cases/inputs.json").use_cases.map(
-      (c: { id: string }) => c.id,
-    ) as string[];
+    return this.useCaseLines().cases.map(
+      (line) => (JSON.parse(line) as { id: string }).id,
+    );
   }
   caseHash() {
     const base = this.file("data/omics/use-cases");
@@ -256,13 +269,16 @@ export class RefreshStore {
           const p = path.join(dir, entry.name);
           return entry.isDirectory() ? walk(p) : [p];
         });
+    const { cases, judgements } = this.useCaseLines();
     return digest(
-      JSON.stringify(
-        walk(base).map((p) => [
+      JSON.stringify([
+        ...(fs.existsSync(base) ? walk(base) : []).map((p) => [
           path.relative(base, p),
           digest(fs.readFileSync(p)),
         ]),
-      ),
+        ["records", digest(cases.join("\n"))],
+        ["judgements", digest(judgements.join("\n"))],
+      ]),
     );
   }
   link(runId: string) {
@@ -417,12 +433,11 @@ export class RefreshStore {
           "data/omics/use-cases/review.json"
         )
           throw Error("Use the native use-case review receipt");
-        const reviewed = loadUseCases(this.file("data/omics/use-cases"));
+        const reviewed = loadUseCaseReview(this.file("data/omics/use-cases"));
         if (
           !reviewed ||
-          Date.parse(reviewed.review.reviewed_at) <
-            Date.parse(run.started_at) ||
-          Date.parse(reviewed.review.reviewed_at) > Date.parse(now)
+          Date.parse(reviewed.reviewed_at) < Date.parse(run.started_at) ||
+          Date.parse(reviewed.reviewed_at) > Date.parse(now)
         )
           throw Error("Explicit re-review must be dated within this attempt");
         reviewHash = digest(

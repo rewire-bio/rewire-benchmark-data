@@ -1,45 +1,46 @@
 # Research and clinical use cases
 
-Use-case pages define important user decisions and the evidence needed to answer
-them. The collection has 17 questions. The [30 September coverage audit](reviews/use-cases/coverage-audit-2026-09-30.md)
-adds primary-source protocols, measurements, baselines and exact configurations,
-with explicit remaining gaps for every question. The original 28 September collection
-had seven questions with scoped mappings and ten with collection plans.
-Questions can be published before comparative evidence
-is available. They do not add measurements, expand numeric comparison groups or
-recommend clinical care. The initial splicing and protein-stability mappings and
-the [five-question expansion](reviews/use-cases/expansion-2026-09-28.md) are preserved.
-The [priority publication brief](reviews/use-cases/priorities-2026-09-28.md) describes the
-ten new definitions and how they lead evidence acquisition.
+A use case is a decision someone needs to make, such as "which workflow detects copy-number changes accurately?", with the evidence that bears on it. There are 26. Use-case pages show the question, what the user brings and needs, the reviewed evidence, and what is still missing. They never recommend clinical care.
+
+## How use cases are stored
+
+Use cases are records in the store, like models and benchmarks.
+
+| Record | Where | What it holds |
+| --- | --- | --- |
+| `use_case` | `data/entities/use-cases.jsonl` | The question, intended users, decision, inputs, desired output, setting, exclusions, clinical scope, evidence gaps, collection plan and planned work. Areas and settings are facets. Links `assessed_by` each protocol judged to bear on it. |
+| relevance judgement (`claim`) | `data/evidence/claims.jsonl` | One per use case and protocol: subject the use case, `field` `links:assessed_by:<protocol>`, `value` the protocol. Records `relevance` (`direct`, `proxy` or `outside_scope`; scheme `data/vocab/relevance.ttl`), `endpoint`, `rationale`, `constraints`, `limitations`, the sources it rests on (`source_ids`, `citation_locators`), its review, and `pins`. |
+
+A judgement is a decision, not a fact from a source: someone read the protocol and the question and decided how closely one answers the other. The agent that makes it (usually the one extracting the evidence) records its reasoning in the claim with status `needs_review`. A different worker reviews it with `review-evidence`, as for any other claim. In the knowledge graph a judgement is `rb:RelevanceJudgement`, a subclass of SEPIO assertion (`obo:SEPIO_0000001`); `rb:UseCase` and `rb:assessedBy` are rewire terms because no external term matches (see the basis notes in `data/ontology/mapping.json`).
+
+The evaluations behind a judgement are not listed in it. They are every evaluation on the protocol, minus any the judgement excludes with a reason (`excluded_evaluations`), that pass the usual evidence gates: reviewed evaluation and configuration, at least one reviewed result, clean sources. A new tool run on a mapped protocol therefore appears on the use-case page without a new judgement.
+
+## When a judgement is shown
+
+`deriveUseCaseInputs` in `shared/omics/use-cases.ts` turns the records into the use-case artifact (`use-cases.json`) that releases publish and the website reads. A judgement is:
+
+- **draft** while its claim is `needs_review`: recorded, not shown as evidence;
+- **active** when its claim is reviewed, its pins match, its sources are clean, the use case links `assessed_by` the protocol and at least one evaluation is eligible;
+- **withheld** (`needs_review` in the artifact, with the reason) when any of those fails.
+
+**Pins.** A judgement pins the fields it relies on: the use case's question, decision, inputs, output and exclusions; the protocol's status, link targets, `protocol` and `version`; and its sources' status and artifact hash (`judgementPinFields`). If any of these changes, the judgement is withheld until it is reviewed again. Link relation names are not pinned, so a rename such as #50 changes nothing, and results are not pinned, because each result is gated by its own review. When a reviewed migration changes only how pinned fields are written, `npm run use-cases:repin -- <review.md>` refreshes the pins and records the change in provenance. The release workflow refuses a release that withholds a judgement the previous release served (`scripts/release/next.mjs withheld`).
 
 ## Content and evidence ownership
 
-- Codex authored and performed the initial automated source curation for issue
-  [#65](https://github.com/rewire-bio/rewire-database/issues/65), followed by separate
-  curation and cross-review of the expansion. The recorded actor
-  and method mean automated review, not human domain review or independent
-  experimental replication.
-- Engineering and release responsibility remains with the repository maintainers
-  through the existing review, CI, release and deployment process. A passing
-  source receipt does not publish a feature or approve a scientific claim.
-- Human scientific review is unassigned. That gap stays visible on both seed
-  pages and every added question, and is part of the scientific-review work tracked in
-  [#31](https://github.com/rewire-bio/rewire-database/issues/31).
-- At each release, evidence fingerprints are checked automatically. Maintainers
-  should review active mappings monthly and when a cited protocol, source or
-  result changes. This is a maintenance cadence, not a newly scheduled job.
+- Use cases and their first judgements were curated by Codex and Claude research agents with independent automated cross-review. Recorded actors and methods mean automated review, not human domain review or experimental replication.
+- Engineering and release responsibility stays with the repository maintainers through review, CI, release and deployment.
+- Human scientific review is unassigned, tracked in [#31](https://github.com/rewire-bio/rewire-database/issues/31).
 
-The input receipt is `data/omics/use-cases/review.json`; it binds the exact
-curation and source bytes. `inputs.json` contains the 17 use cases and their
-reviewed protocol mappings. The 30 September literature intake has a separate
-hash-bound receipt under `data/omics/use-case-coverage-20260930/review.json`.
-`sources.json` supplies four documentation source records: the two
-initial pinned documents and two authored, sourced workflow briefs. All 26,124
-records in baseline release `2026-09-28-f9f5770cef26` remain unchanged; the two
-new documentation records brought that historical total to 26,126. The coverage
-audit appends new scientific records without replacing that inventory.
-Scientific result values are resolved from evaluation IDs rather than copied
-into these inputs.
+## Adding or changing a use case
+
+1. Add or edit the `use_case` record through a batch (`npm run records -- add`) or a reviewed change (`npm run records -- change`).
+2. For each protocol that bears on it, add the `assessed_by` link and a relevance judgement claim with status `needs_review`. Use `excluded_evaluations` only for evaluations on the protocol that do not apply, each with a reason.
+3. A different worker reviews the judgement (`review-evidence`), sets it to `source_checked`, and records its pins with `npm run use-cases:repin -- <review.md>`.
+4. To withdraw a judgement, set its claim to `excluded` (or `superseded`, with a `supersedes` link from its replacement). Earlier releases keep the evidence they served.
+
+The documentation sources that some use cases cite keep their reviewed bytes in `data/omics/use-cases/sources/`, bound by `data/omics/use-cases/review.json`; releases publish them at `/omics/sources/<sha256>.md`.
+
+The move from the old `inputs.json` file to records is batch `data/omics/use-case-records-20261009/`: all 26 use cases and 100 mappings round-trip to the same artifact.
 
 ## Initial review boundaries
 
@@ -72,79 +73,12 @@ They are exact copies, not newly written evidence or republished measurements.
 
 ## Release contract
 
-The catalogue remains schema 1.1. A release with use cases has an optional
-`coverage.use_cases` declaration and `use-cases.json` in `manifest.files`.
-The declaration includes schema version 1.0, input SHA-256, use-case count and
-mapping count. Its logical digest is included before the release ID is derived;
-the exported artifact then embeds that release ID and has a separate byte hash.
-Old releases with no declaration remain valid and return an empty collection.
-Declared-but-missing or inconsistent artifacts fail release/import validation.
+A release with use cases has a `coverage.use_cases` declaration (schema version 1.0, input SHA-256, use-case count, mapping count) and `use-cases.json` in `manifest.files`. The input SHA-256 is the logical digest of the artifact derived from the use-case records and judgements, and it is fixed before the release ID is derived. Old releases with no declaration remain valid and return an empty collection. Declared-but-missing or inconsistent artifacts fail release and import validation.
 
-`coverage.use_case_sources` declares each `use-case-source-<sha256>.md` file and
-its digest. Those bytes are archived alongside the sidecar. Archive restoration
-reconstructs their stable public aliases and refuses unsafe filenames, changed
-bytes or alias collisions. The content-addressed URL avoids a circular
-dependency between source records and the containing release ID.
+`coverage.use_case_sources` declares each `use-case-source-<sha256>.md` file and its digest. Archive restoration reconstructs their public aliases and refuses unsafe filenames, changed bytes or alias collisions.
 
-The same resolver serves static pages and the release-pinned API. The sidecar
-does not introduce entity kinds or graph edges. Only explicitly listed, reviewed
-evaluations support an active mapping. Model backlinks identify the tested
-configurations and require reviewed relationships; they do not imply that every
-configuration in a model family applies. Legacy evaluation roles `benchmark` and
-`model` are accepted only when the existing target already has kind `protocol`
-or `configuration`, respectively. This preserves exact reviewed identities; it
-does not promote tasks, suites, model families, methods or pipelines. These
-targets and their source and relationship dependencies enter the same stale
-evidence checks as canonical roles.
+The artifact keeps the shape it had before use cases became records, so the website and the release-pinned API read it unchanged. Each judgement becomes one mapping with the claim's ID; its `evaluation_ids` are the derived list and its `evidence_sha256` is computed at build time. `validateUseCaseArtifact` rebuilds the artifact from the snapshot and refuses any difference. Model backlinks identify the tested configurations and require reviewed relationships; they do not imply that every configuration in a model family applies.
 
-Release generation calls `loadUseCases`, which verifies the frozen receipt.
-`buildRelease` accepts reviewed inputs as its optional fifth argument and the
-reviewed public source bytes as its sixth, derives the declarations and builds
-the artifact. It never computes replacement reviewed
-fingerprints. A changed referenced record, source or membership claim moves an
-active mapping to `needs_review`, withholding active evidence and backlinks.
-The artifact retains the original lifecycle and reason in build-generated
-`stale_from` metadata. Validation reconstructs the reviewed inputs and checks
-their logical digest, then verifies that automatic demotion is the only change.
-Curated inputs cannot supply this generated metadata.
+Historical tombstones in archived releases are still checked by `validateUseCaseHistory`.
 
-## Reviewing a change
-
-1. Read the exact source version, its retrieval record and existing limitations.
-   Keep user decision, assay endpoint and transfer assumptions separate.
-2. Update the scoped mapping and increment its revision. Record why it changed,
-   the reviewer, the actual review method and the review time. Do not convert a
-   discovered task into reviewed evidence merely by linking it.
-3. During that explicit review, compute `mappingEvidenceHash(snapshot, useCase,
-   mapping)` against the intended release's public records. Store the returned
-   digest as the reviewed `evidence_sha256` in the input. This is a curator action,
-   not a release-build step.
-4. Review the final input bytes and refresh the receipt's `files` hashes. Source
-   changes also require verified new source bytes and corresponding source
-   metadata; do not edit an archived source or release.
-5. Generate a new release. Check the unchanged-record inventory and run the
-   repository tests, type checks and build before publication.
-
-For withdrawal, retain a mapping tombstone with its ID, use-case ID, lifecycle,
-revision, reason and `prior_release_id`. Remove current protocol, task,
-evaluation, citation and claim fields. Prior release downloads retain the full
-historical evidence. A superseding revision uses a new mapping ID and points at
-the prior superseded mapping. Neither tombstones nor stale mappings support
-current evidence or active backlinks.
-Earlier release files are no longer stored in this repository, so before
-withdrawing a mapping, restore that release's `catalogue.json.gz` and
-`use-cases.json.gz` from git history into `data/omics/releases/<id>/`.
-Release assembly verifies the referenced historical catalogue and sidecar against
-their immutable receipt. The historical mapping must retain scoped evidence for
-the same mapping ID and use case, at a revision no greater than the tombstone's.
-An equal revision is permitted when withdrawing that exact identity. A tombstone
-kept in later releases retains its original evidence-release pointer; another
-empty tombstone is not sufficient history.
-
-## Freezing a reviewed release
-
-See [release.md](release.md).
-
-Do not add patient inputs, private contributor fields, automated clinical
-recommendations or automatically published AI-generated mappings. Proposed
-future mappings enter the normal review process.
+Do not add patient inputs, private contributor fields, automated clinical recommendations or unreviewed AI-generated judgements as active evidence. Freezing a release is described in [release.md](release.md).

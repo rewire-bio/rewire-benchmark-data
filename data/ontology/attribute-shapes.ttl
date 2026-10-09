@@ -58,11 +58,21 @@ rbs:BenchmarkAttributes a sh:NodeShape ;
 rbs:ClaimAttributes a sh:NodeShape ;
     sh:targetClass rb:Claim ;
     sh:property
+        [ sh:path rb:citationLocators ; sh:maxCount 1 ; sh:datatype rdf:JSON ] ,
+        [ sh:path rb:constraints ; sh:datatype xsd:string ] ,
+        [ sh:path rb:endpoint ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:excludedEvaluations ; sh:maxCount 1 ; sh:datatype rdf:JSON ] ,
         [ sh:path rb:claimField ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
         [ sh:path rb:limitations ; sh:datatype xsd:string ] ,
+        [ sh:path rb:pins ; sh:maxCount 1 ; sh:datatype rdf:JSON ] ,
         [ sh:path rb:previousValue ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:rationale ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:reason ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:relevance ; sh:maxCount 1 ; sh:node [ sh:class skos:Concept ; sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/relevance/> ; sh:minCount 1 ] ] ] ,
+        [ sh:path rb:revision ; sh:maxCount 1 ; sh:datatype xsd:integer ] ,
         [ sh:path rb:sourceLocator ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
         [ sh:path rb:targetId ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:taskId ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
         [ sh:path rb:value ; sh:maxCount 1 ; sh:datatype xsd:string ] .
 
 rbs:ConfigurationAttributes a sh:NodeShape ;
@@ -660,6 +670,25 @@ rbs:TaskAttributes a sh:NodeShape ;
         [ sh:path rb:task ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
         [ sh:path rb:taskType ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
         [ sh:path schema:version ; sh:maxCount 1 ; sh:datatype xsd:string ] .
+
+rbs:UseCaseAttributes a sh:NodeShape ;
+    sh:targetClass rb:UseCase ;
+    sh:property
+        [ sh:path rb:citationLocators ; sh:maxCount 1 ; sh:datatype rdf:JSON ] ,
+        [ sh:path rb:clinicalScope ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:collectionPlan ; sh:maxCount 1 ; sh:datatype rdf:JSON ] ,
+        [ sh:path rb:decision ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:evidenceGaps ; sh:datatype xsd:string ] ,
+        [ sh:path rb:exclusions ; sh:datatype xsd:string ] ,
+        [ sh:path rb:inputs ; sh:datatype xsd:string ] ,
+        [ sh:path rb:intendedUsers ; sh:datatype xsd:string ] ,
+        [ sh:path rb:missingValue ; sh:node rbs:MissingValue ] ,
+        [ sh:path rb:output ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:plannedWork ; sh:maxCount 1 ; sh:datatype rdf:JSON ] ,
+        [ sh:path rb:question ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:searchTerms ; sh:datatype xsd:string ] ,
+        [ sh:path rb:setting ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:slug ; sh:maxCount 1 ; sh:datatype xsd:string ] .
 
 rbs:Uncertainty a sh:NodeShape ;
     sh:class rb:Uncertainty ;
