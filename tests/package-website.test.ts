@@ -117,13 +117,13 @@ describe('prepared website package', () => {
     expect(fs.existsSync(path.join(root, `website/files/public/omics/releases/${historical}/catalogue.json.gz`))).toBe(false);
   });
 
-  it('keeps current-only packages scoped while retaining historical preservation receipts', async () => {
+  it('keeps current-only packages scoped to the current release and its receipt', async () => {
     const { root } = fixture();
     fs.rmSync(path.join(root, `public/omics/releases/${historical}`), { recursive: true });
     const { manifest: raw } = await packageWebsite({ dataDir: root, currentOnly: true });
     const manifest = raw as PreparedManifest;
     expect(manifest.files.every(row => row.scope === 'current')).toBe(true);
-    expect(manifest.files.some(row => row.destination === `data/omics/releases/${historical}.json`)).toBe(true);
+    expect(manifest.files.some(row => row.destination === `data/omics/releases/${historical}.json`)).toBe(false);
     expect(manifest.files.some(row => row.destination.startsWith(`public/omics/releases/${historical}/`))).toBe(false);
     await expect(packageWebsite({ dataDir: root, currentOnly: false })).rejects.toThrow('Incomplete historical release');
   });

@@ -263,7 +263,7 @@ async function streamGzipAndHash(sourcePath, targetGzPath, expectedSha256) {
  * @param {object} [options]
  * @param {string} [options.dataDir] - Root of the benchmark data repository
  * @param {string} [options.outputDir] - Directory where website package should be written (default: <dataDir>/website)
- * @param {boolean} [options.currentOnly] - If true, skip historical public outputs (keep receipts)
+ * @param {boolean} [options.currentOnly] - If true, skip historical public outputs and earlier receipts
  * @returns {Promise<{ manifest: object, manifestPath: string, filesCount: number }>}
  */
 export async function packageWebsite(options = {}) {
@@ -368,14 +368,16 @@ export async function packageWebsite(options = {}) {
   const needsCurrentReceipt = !fs.existsSync(currentReceipt);
   if (needsCurrentReceipt) items.push({ filePath: currentReceipt, destination: `data/omics/releases/${releaseId}.json`, scope: 'current' });
 
-  // 5. Include all data/omics/releases/*.json receipts
+  // 5. Include data/omics/releases/*.json receipts. A current-only package lists
+  // only the current receipt: the website requires every listed receipt's files,
+  // and earlier releases' files are no longer kept.
   const receiptsDir = path.join(dataDir, 'data', 'omics', 'releases');
   assertNoSymlinkPath(receiptsDir);
   if (fs.existsSync(receiptsDir)) {
     const receiptEntries = fs.readdirSync(receiptsDir, { withFileTypes: true });
     for (const entry of receiptEntries) {
       if (entry.isSymbolicLink()) throw new Error(`Symlink receipt rejected: ${entry.name}`);
-      if (entry.isFile() && entry.name.endsWith('.json')) {
+      if (entry.isFile() && entry.name.endsWith('.json') && (!currentOnly || entry.name === `${releaseId}.json`)) {
         const fullPath = path.join(receiptsDir, entry.name);
         const stat = fs.lstatSync(fullPath);
         if (stat.isSymbolicLink() || !stat.isFile()) {
