@@ -69,6 +69,8 @@ jobs:
           npm test
           npm run test:python
           npm run test:kg
+          # The packaging check reads the git index, so stage the new release files first.
+          git add -A data website
           npm run verify:package
           node scripts/parallel.mjs serving:parity kg:verify
       - name: Commit the release to main
