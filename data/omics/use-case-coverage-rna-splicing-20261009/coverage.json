@@ -1,0 +1,248 @@
+{
+  "use_case_id": "use-case-patient-rna-splicing-validation",
+  "cutoff_date": "2026-10-09",
+  "query_budget": {
+    "budgeted": 25,
+    "used": 12
+  },
+  "existing_reused": [
+    "catalog-model-spliceai",
+    "catalog-model-pangolin",
+    "amp-oncology-rna-20261007-dataset-kremer-patient-rna"
+  ],
+  "existing_judgement_unchanged": "use-case-mapping-amp-20261007-issue12-fraser-kremer",
+  "new_record_counts": {
+    "claim": 11,
+    "configuration": 21,
+    "dataset": 4,
+    "evaluation": 37,
+    "method": 9,
+    "protocol": 7,
+    "result": 348,
+    "source": 4
+  },
+  "vocabulary_additions": {
+    "data/vocab/metric.ttl": [
+      "event-detected",
+      "known-gene-rank",
+      "negative-predictive-value (exactMatch STATO_0000619)",
+      "z-score (exactMatch STATO_0000104)"
+    ],
+    "note": "Needed for Table S4 'Neg Pred Value', the Yes/No cells of Segarra-Casas Table 2, the OUTRIDER z-scores and the Segers rank table. STATO definitions were checked through the OLS API before matching. Review like a record change."
+  },
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-rna-splicing-20261009-drost2025-cagi6",
+      "protocol_id": "rna-splicing-20261009-protocol-drost2025-cagi6",
+      "relevance": "direct",
+      "comparison_group": "drost2025-rna-validated-variants",
+      "stratum_label": "CAGI6 Splicing VUS variants",
+      "headline_metric": "auroc",
+      "evaluation_ids": [
+        "rna-splicing-20261009-eval-drost2025-cagi6-al1",
+        "rna-splicing-20261009-eval-drost2025-cagi6-al2",
+        "rna-splicing-20261009-eval-drost2025-cagi6-al3",
+        "rna-splicing-20261009-eval-drost2025-cagi6-al4",
+        "rna-splicing-20261009-eval-drost2025-cagi6-pangolin",
+        "rna-splicing-20261009-eval-drost2025-cagi6-spip",
+        "rna-splicing-20261009-eval-drost2025-cagi6-spliceai",
+        "rna-splicing-20261009-eval-drost2025-cagi6-squirls"
+      ],
+      "endpoint": "The same metrics on the 56 CAGI6 Splicing VUS variants",
+      "limitations": [
+        "Ascertainment: 87% of in-house variants were sent for RNA testing because Alamut predicted a splicing change, so negatives are mostly predicted-but-unconfirmed variants.",
+        "Restricted to variants scorable by all four tools; per-tool missing scores are not counted as negatives.",
+        "Variant-level splicing effect, not pathogenicity; tissue was chosen per gene (blood, fibroblasts or exon trapping), not modelled by the predictors.",
+        "Literature thresholds, not tuned on this set; AUROC/AUPRC have no printed uncertainty.",
+        "Small stratum: 56 variants; Table S4 prints identical values for Pangolin, SPiP and SpliceAI in this block."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rna-splicing-20261009-drost2025-inhouse",
+      "protocol_id": "rna-splicing-20261009-protocol-drost2025-inhouse",
+      "relevance": "direct",
+      "comparison_group": "drost2025-rna-validated-variants",
+      "stratum_label": "In-house diagnostic variants",
+      "headline_metric": "auroc",
+      "evaluation_ids": [
+        "rna-splicing-20261009-eval-drost2025-inhouse-al1",
+        "rna-splicing-20261009-eval-drost2025-inhouse-al2",
+        "rna-splicing-20261009-eval-drost2025-inhouse-al3",
+        "rna-splicing-20261009-eval-drost2025-inhouse-al4",
+        "rna-splicing-20261009-eval-drost2025-inhouse-pangolin",
+        "rna-splicing-20261009-eval-drost2025-inhouse-spip",
+        "rna-splicing-20261009-eval-drost2025-inhouse-spliceai",
+        "rna-splicing-20261009-eval-drost2025-inhouse-squirls"
+      ],
+      "endpoint": "The same metrics on the in-house diagnostic variants tested in patient RNA or exon trapping",
+      "limitations": [
+        "Ascertainment: 87% of in-house variants were sent for RNA testing because Alamut predicted a splicing change, so negatives are mostly predicted-but-unconfirmed variants.",
+        "Restricted to variants scorable by all four tools; per-tool missing scores are not counted as negatives.",
+        "Variant-level splicing effect, not pathogenicity; tissue was chosen per gene (blood, fibroblasts or exon trapping), not modelled by the predictors.",
+        "Literature thresholds, not tuned on this set; AUROC/AUPRC have no printed uncertainty."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rna-splicing-20261009-drost2025-merged",
+      "protocol_id": "rna-splicing-20261009-protocol-drost2025-merged-243",
+      "relevance": "direct",
+      "comparison_group": "drost2025-rna-validated-variants",
+      "stratum_label": "All 243 scorable variants",
+      "headline_metric": "auroc",
+      "evaluation_ids": [
+        "rna-splicing-20261009-eval-drost2025-merged-al1",
+        "rna-splicing-20261009-eval-drost2025-merged-al2",
+        "rna-splicing-20261009-eval-drost2025-merged-al3",
+        "rna-splicing-20261009-eval-drost2025-merged-al4",
+        "rna-splicing-20261009-eval-drost2025-merged-pangolin",
+        "rna-splicing-20261009-eval-drost2025-merged-spip",
+        "rna-splicing-20261009-eval-drost2025-merged-spliceai",
+        "rna-splicing-20261009-eval-drost2025-merged-squirls"
+      ],
+      "endpoint": "AUROC and AUPRC from continuous scores, and sensitivity, specificity, precision, F1, PPV and NPV at literature thresholds, for SpliceAI, Pangolin, SPiP, SQUIRLS and at-least-N consensus rules on 243 clinically ascertained variants with experimental splicing results",
+      "limitations": [
+        "Ascertainment: 87% of in-house variants were sent for RNA testing because Alamut predicted a splicing change, so negatives are mostly predicted-but-unconfirmed variants.",
+        "Restricted to variants scorable by all four tools; per-tool missing scores are not counted as negatives.",
+        "Variant-level splicing effect, not pathogenicity; tissue was chosen per gene (blood, fibroblasts or exon trapping), not modelled by the predictors.",
+        "Literature thresholds, not tuned on this set; AUROC/AUPRC have no printed uncertainty."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rna-splicing-20261009-segarracasas2025-outrider",
+      "protocol_id": "rna-splicing-20261009-protocol-segarracasas2025-outrider-zscore",
+      "relevance": "proxy",
+      "comparison_group": "segarracasas2025-muscle",
+      "stratum_label": "Aberrant expression (OUTRIDER)",
+      "headline_metric": "z-score",
+      "evaluation_ids": [
+        "rna-splicing-20261009-eval-segarracasas2025-outrider"
+      ],
+      "endpoint": "OUTRIDER expression z-score of the affected gene at each of the 16 known pathogenic splicing events, with bold marking an outlier call",
+      "limitations": [
+        "Single configuration, no comparator for expression.",
+        "In-frame events are not expected to change expression.",
+        "Outlier threshold not printed in the table."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rna-splicing-20261009-segarracasas2025-splicing",
+      "protocol_id": "rna-splicing-20261009-protocol-segarracasas2025-known-event-detection",
+      "relevance": "direct",
+      "comparison_group": "segarracasas2025-muscle",
+      "stratum_label": "Aberrant-splicing callers",
+      "headline_metric": "event-detected",
+      "evaluation_ids": [
+        "rna-splicing-20261009-eval-segarracasas2025-fraser01",
+        "rna-splicing-20261009-eval-segarracasas2025-fraser03",
+        "rna-splicing-20261009-eval-segarracasas2025-fraser2",
+        "rna-splicing-20261009-eval-segarracasas2025-leafcutter",
+        "rna-splicing-20261009-eval-segarracasas2025-rmats"
+      ],
+      "endpoint": "Per-event detection (Yes/No) of 16 known pathogenic splicing alterations in clinical muscle RNA-seq by FRASER (|dPSI| > 0.1 and > 0.3), FRASER2, LeafCutterMD and rMATS-turbo",
+      "limitations": [
+        "Independent clinical comparison, 16 events in one tissue (skeletal muscle); no confidence intervals.",
+        "Events were established partly with the same callers; recall is on events at least one method revealed.",
+        "Per-run sample count not printed in Table 2; FRASER2 case 2 detected only with the full cohort.",
+        "No false-positive or workload counts in the table (Figure 2A only)."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rna-splicing-20261009-segers2026-kremer-expression",
+      "protocol_id": "rna-splicing-20261009-protocol-segers2026-kremer-expression-rank",
+      "relevance": "proxy",
+      "comparison_group": "segers2026-kremer",
+      "stratum_label": "Aberrant expression",
+      "headline_metric": "known-gene-rank",
+      "evaluation_ids": [
+        "rna-splicing-20261009-eval-segers2026-outrider-auto",
+        "rna-splicing-20261009-eval-segers2026-outrider-pca",
+        "rna-splicing-20261009-eval-segers2026-outsingle",
+        "rna-splicing-20261009-eval-segers2026-saser-expr"
+      ],
+      "endpoint": "Rank of the same 12 disease genes for saseR, OutSingle, OUTRIDER autoencoder and OUTRIDER PCA aberrant-expression scores",
+      "limitations": [
+        "Developer comparison (saseR authors ran OUTRIDER and OutSingle); no uncertainty.",
+        "Same 12 genes and cohort as the splicing stratum."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rna-splicing-20261009-segers2026-kremer-splicing",
+      "protocol_id": "rna-splicing-20261009-protocol-segers2026-kremer-splicing-rank",
+      "relevance": "direct",
+      "comparison_group": "segers2026-kremer",
+      "stratum_label": "Aberrant splicing",
+      "headline_metric": "known-gene-rank",
+      "evaluation_ids": [
+        "rna-splicing-20261009-eval-segers2026-fraser2-auto",
+        "rna-splicing-20261009-eval-segers2026-fraser2-pca",
+        "rna-splicing-20261009-eval-segers2026-saser-junc"
+      ],
+      "endpoint": "Rank of 12 reported disease genes within the patient sample for saseR-junctions, FRASER 2.0 autoencoder and FRASER 2.0 PCA on the 119-sample Kremer fibroblast cohort",
+      "limitations": [
+        "Developer comparison (saseR authors ran FRASER 2.0); no uncertainty.",
+        "12 genes include expression and mono-allelic-expression cases, so not all are splicing defects.",
+        "Retrospective genes reported in earlier analyses of the same cohort."
+      ],
+      "status": "needs_review"
+    }
+  ],
+  "use_case_changes": {
+    "add_links": [
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-splicing-20261009-protocol-drost2025-cagi6"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-splicing-20261009-protocol-drost2025-inhouse"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-splicing-20261009-protocol-drost2025-merged-243"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-splicing-20261009-protocol-segarracasas2025-outrider-zscore"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-splicing-20261009-protocol-segarracasas2025-known-event-detection"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-splicing-20261009-protocol-segers2026-kremer-expression-rank"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rna-splicing-20261009-protocol-segers2026-kremer-splicing-rank"
+      }
+    ],
+    "evidence_gaps_add": [
+      "AbSplice (Wagner et al. 2023, Nat Genet) and its tissue-aware comparison with SpliceAI, MMSplice, SQUIRLS and CADD-Splice report per-method values only in figures and prose; no table was found, so no tissue-aware DNA predictor comparison is stored.",
+      "FRASER 2.0 (Scheller et al. 2023, AJHG) comparison with FRASER, LeafCutterMD and SPOT on patient cohorts was not retrievable as XML (publisher restriction) and is figure-based; not extracted.",
+      "No independent table compares MMSplice, CADD-Splice or AbSplice against RNA-validated variants; Drost et al. cover SpliceAI, Pangolin, SPiP and SQUIRLS only.",
+      "Drost et al. variant-type strata (Data S1 Tables S5 and S6) are not extracted.",
+      "No RNA-seq caller comparison reports false positives per sample in a table; outlier workload is figure-only in Segarra-Casas et al.",
+      "Minigene or MFASS-style proxies beyond the existing MFASS mapping were not added in this pass."
+    ],
+    "exclusions_change": null,
+    "decision_inputs_output_setting_change": "Not proposed here. The current decision, inputs and setting name only FRASER on Kremer and the Feng proxy. Describing the DNA-predictor and multi-caller evidence would need edits to decision, inputs and setting, and any such edit withholds the reviewed FRASER judgement (use-case-mapping-amp-20261007-issue12-fraser-kremer) until it is re-reviewed and re-pinned. Suggested later wording for inputs: add 'DNA variant calls for predictor scoring' and 'patient tissue RNA-seq cohort (fibroblast, muscle or blood)'."
+  },
+  "summary_proposal": "Three published comparisons were added. Drost et al. (2025) scored 243 clinically ascertained variants, each tested for a splicing effect in patient RNA or by exon trapping, with four DNA-based predictors; the authors are a diagnostic laboratory, not the tool developers. On all 243 variants AUROC was 0.895 for SpliceAI, 0.885 for Pangolin, 0.830 for SPiP and 0.806 for SQUIRLS (Data S1 Table S3, rounded to three decimals). At literature thresholds sensitivity was 0.871, 0.858, 0.832 and 0.800 and specificity 0.750, 0.773, 0.761 and 0.591 (Table S4); requiring at least two of the four tools gave sensitivity 0.916 and specificity 0.727. Most in-house variants were sent for testing because another predictor (Alamut) flagged them, so negatives are mostly predicted-but-unconfirmed variants, and the article prose and Table S3 disagree on one AUPRC value. Segarra-Casas et al. (2025), independent of the tool developers, recorded which callers reported 16 known pathogenic splicing events in clinical muscle RNA-seq: FRASER with |dPSI| > 0.1 reported 13, FRASER with |dPSI| > 0.3 reported 9, FRASER2 10 (and one more only with the full cohort), rMATS-turbo 7 and LeafCutterMD 4 (Table 2). The events were established partly with these callers. Segers et al. (2026), the saseR developers, ranked 12 reported disease genes in the 119-sample Kremer fibroblast cohort: the gene ranked within the top 10 in 9 of 12 samples for saseR-junctions, in 6 of 12 for FRASER 2.0 with the autoencoder and in 7 of 12 for FRASER 2.0 with PCA (Table 2). This is the same cohort as the existing FRASER known-event recovery judgement, and several of the 12 genes are expression rather than splicing defects. All values are transcribed from the publications, not reproduced; none is a diagnostic-yield estimate, and results from different sources measure different endpoints and must not be pooled. This summary describes evidence and does not recommend a clinical workflow.",
+  "gaps": [
+    "AbSplice tissue-aware comparison figure-only (Nat Genet 2023 and bioRxiv 2022.06.13.495326).",
+    "FRASER 2.0 AJHG 2023 full text not available as XML from Europe PMC or PMC (publisher restriction).",
+    "Drost Data S1 Tables S5 and S6 (variant-type strata) not extracted to keep the batch lean.",
+    "Segers Additional file 1 Table S2 (FRASER donor/acceptor metrics and saseR Jaccard offsets) not extracted.",
+    "Segarra-Casas File S1 caller settings not read.",
+    "PLoS One 2026 (SpliceAI-family predictors on Riepe, SPiP and Barbosa benchmarks) not extracted; lead.",
+    "Genome Med 2024 heart-specific splice model (myocardial RNA outliers) not extracted; lead.",
+    "No result is comparable across sources: truth sets, inputs and metrics differ."
+  ]
+}
