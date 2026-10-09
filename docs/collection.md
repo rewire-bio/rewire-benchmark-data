@@ -185,7 +185,7 @@ Audits are append-only checks on a specific catalogue release, stored in `data/o
 npm run records -- add data/omics/<batch>/batch.jsonl data/omics/<batch>
 ```
 
-This appends each record to the right canonical file, keeps the files sorted, and writes its provenance line. It refuses any ID that already exists; to change an existing record, use `records -- change` (step 5). `npm run records -- check` confirms the whole store matches its provenance.
+This appends each record to the right canonical file, keeps the files sorted, and writes its provenance line. It then exports the store to RDF and validates it against the SHACL shapes (`npm run kg:shapes`, which needs [uv](https://docs.astral.sh/uv/) and takes about a minute); if any record fails, the store is put back as it was. It refuses any ID that already exists; to change an existing record, use `records -- change` (step 5). `npm run records -- check` confirms the whole store matches its provenance.
 
 For use-case work, also add or update the mapping in `data/omics/use-cases/inputs.json` that links a use case to the new protocol, evaluation and result IDs. Mappings carry an evidence fingerprint that the build checks against the records.
 
