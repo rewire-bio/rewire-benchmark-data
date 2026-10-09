@@ -34,7 +34,7 @@ Evidence PRs leave `release-config.json` alone. Several merged batches can go ou
 
 4. Run `npm run build` again. It restores the frozen release first, so this confirms a fresh clone rebuilds it byte for byte.
 5. Open the PR with the config change, receipt, archive and updated `website/` files. Review scientific changes separately from packaging.
-6. After merge, CI publishes the knowledge-graph bundle as a GitHub release tagged `kg-<release-id>` (see [linked-data.md](linked-data.md#bundle)). Then open a PR in [rewire-database](https://github.com/rewire-bio/rewire-database) updating `benchmark-data.lock.json` (revision, manifest digest and release ID). The website verifies the artifact and renders it; its own deployment checks control activation.
+6. After merge, CI publishes the knowledge-graph bundle as a GitHub release tagged `kg/<release-id>` (see [linked-data.md](linked-data.md#bundle)). Then open a PR in [rewire-database](https://github.com/rewire-bio/rewire-database) updating `benchmark-data.lock.json` (revision, manifest digest and release ID). The website verifies the artifact and renders it; its own deployment checks control activation.
 7. Once the release is live, record it with `npm run refresh -- record-publication` and `npm run refresh -- export` (see [refresh.md](refresh.md#review-prs-and-publication)).
 
 Never edit a frozen release in place. Corrections always go into a new release.

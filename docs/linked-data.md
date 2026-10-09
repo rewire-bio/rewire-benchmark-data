@@ -70,11 +70,11 @@ To update a pinned vocabulary, download it, re-run the extraction command in `da
 | `ontology/` | `https://benchmarks.rewire.it/graph/ontology` | `rb.ttl` and the pinned imports |
 | `manifest.json` | | Checksums, counts, graph roles, prefixes, reasoner and SHACL details, example queries |
 
-When a push to `main` builds a release that has no bundle yet, CI publishes it as `kg-bundle.tar.gz` on a GitHub release tagged `kg-<release id>`. An existing release is never replaced. To query it from Claude Code:
+When a push to `main` builds a release that has no bundle yet, CI runs `npm run kg:publish`. It packs a byte-reproducible `kg-<release id>.tar.gz` and publishes it with the manifest on a GitHub release tagged `kg/<release id>`. An existing asset must be byte-identical and is never replaced (`npm run kg:publish -- --check` verifies it). To query it from Claude Code:
 
 ```sh
 claude mcp add rewire-benchmarks -- uvx --from git+https://github.com/rewire-bio/rdf-kg-mcp@v0.1.0 \
-  rdf-kg-mcp serve https://github.com/rewire-bio/rewire-benchmark-data/releases/download/kg-<release id>/kg-bundle.tar.gz
+  rdf-kg-mcp serve https://github.com/rewire-bio/rewire-benchmark-data/releases/download/kg/<release id>/kg-<release id>.tar.gz
 ```
 
 Or serve a local build with `rdf-kg-mcp serve public/kg`.
