@@ -65,6 +65,15 @@ export function openPreparedCatalogue(file: string) {
   const entries = lazy(() => blob<ListEntry[]>("list_entries"));
   const useCases = lazy(() => useCaseQueryFrom(blob<UseCaseState>("use_cases")));
   const audit = lazy(() => blob<AuditTable>("audit"));
+  const homeSummary = lazy(() => blob<{
+      records: number; external: number; own: number;
+      kinds: { label: string; value: number }[]; areas: { label: string; value: number }[];
+      coverage: { name: string; evaluations: number }[]; covered: number; benchmarks: number;
+    }>("home_summary"));
+  const baselineAudit = lazy(() => blob<unknown>("baseline_audit"));
+  const evidenceSummary = lazy(() => blob<{
+    rows: number; by_scope: Record<string, number>; facts: number; facts_by_status: Record<string, number>;
+  }>("evidence_summary"));
   const associations = lazy(() => new Set(blob<string[]>("association_keys")));
   const auditStatement = db.prepare("SELECT gz FROM audit_checks WHERE record_id = ?");
 
@@ -138,11 +147,11 @@ export function openPreparedCatalogue(file: string) {
     investigations: (input: InvestigationsInput = {}) => investigationsPage(release_id, research(), input),
     useCases: () => useCases(),
     /** Homepage counts and benchmark coverage (raw labels). */
-    homeSummary: () => blob<{
-      records: number; external: number; own: number;
-      kinds: { label: string; value: number }[]; areas: { label: string; value: number }[];
-      coverage: { name: string; evaluations: number }[]; covered: number; benchmarks: number;
-    }>("home_summary"),
+    homeSummary: () => homeSummary(),
+    /** The baseline coverage audit (lib/baseline-coverage.ts) for this release. */
+    baselineAudit: <T = unknown>() => baselineAudit() as T,
+    /** Counts the evidence guide shows. */
+    evidenceSummary: () => evidenceSummary(),
     /** Whether a reviewed claim backs `subject`'s link `relation` to `target` (the rollup gate). */
     verifiedAssociation: (subject: string, relation: string, target: string) =>
       associations().has(`${subject}|links:${relation}:${target}`),

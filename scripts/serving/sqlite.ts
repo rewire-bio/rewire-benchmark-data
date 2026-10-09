@@ -15,6 +15,7 @@ import { useCaseState, type UseCaseArtifact, type UseCaseDeclaration } from "../
 import { PREPARED_CONTRACT_VERSION } from "../../services/omics/src/prepared-catalogue";
 import { isBenchmarkSubject, isDatasetSubject } from "../../services/omics/src/entity-kinds";
 import { benchmarkCoverage } from "../omics/audit-benchmark-evidence";
+import { buildBaselineAudit } from "../../lib/baseline-coverage";
 import type { CatalogueRecord } from "../../services/omics/src/catalogue-query";
 import type { AuditCheck, AuditIndexRow } from "../../services/omics/src/audit";
 const { DatabaseSync } = process.getBuiltinModule("node:sqlite");
@@ -25,6 +26,7 @@ export const generatorFiles = [
   "services/omics/src/audit-query.ts",
   "services/omics/src/audit.ts",
   "scripts/omics/audit-benchmark-evidence.ts",
+  "lib/baseline-coverage.ts",
   "services/omics/src/evidence-table.ts",
   "services/omics/src/prepared-catalogue.ts",
   "services/omics/src/published-comparisons.ts",
@@ -51,6 +53,18 @@ export function homeSummary(records: readonly CatalogueRecord[]) {
     covered: coverage.filter((entry) => entry.evaluations > 0).length,
     benchmarks: coverage.length,
   };
+}
+
+/** Counts the evidence guide shows: rows by scope, and unique profile facts by review status. */
+export function evidenceSummary(rows: readonly { evidence_scope: string; field_path: string; record_id: string; review_status: string }[]) {
+  const byScope: Record<string, number> = {};
+  for (const row of rows) byScope[row.evidence_scope] = (byScope[row.evidence_scope] || 0) + 1;
+  const facts = new Map<string, (typeof rows)[number]>();
+  for (const row of rows)
+    if (/\.profile\.facts\.\d+\.value$/.test(row.field_path)) facts.set(`${row.record_id}:${row.field_path}`, row);
+  const factsByStatus: Record<string, number> = {};
+  for (const row of facts.values()) factsByStatus[row.review_status] = (factsByStatus[row.review_status] || 0) + 1;
+  return { rows: rows.length, by_scope: byScope, facts: facts.size, facts_by_status: factsByStatus };
 }
 
 /** Reviewed association claims, as `subject|field` keys (the rollup gate). */
@@ -145,6 +159,8 @@ export function buildPreparedCatalogue(input: {
   }
   blob.run("list_entries", gz(query.listEntries()));
   blob.run("home_summary", gz(homeSummary(snapshot.records)));
+  blob.run("baseline_audit", gz(buildBaselineAudit(snapshot as never)));
+  blob.run("evidence_summary", gz(evidenceSummary(evidence.all())));
   blob.run("association_keys", gz(associationKeys(snapshot.records)));
   // Audit history: the index, runs and resolutions, and each record's checks in index order.
   const audit = input.audit || { index: [], runs: [], resolutions: [], chunks: new Map<string, AuditCheck[]>() };
