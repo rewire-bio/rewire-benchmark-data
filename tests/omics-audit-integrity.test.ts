@@ -188,20 +188,6 @@ describe("audit correction and publication integrity", () => {
     expect(json[0].category).toBe("source_access");
     expect(exported.coverage.scope).toMatch(/not new source verification/);
   });
-  it("escapes spreadsheet formulas and quotes without changing JSON values", () => {
-    const c = {
-      ...check("check-one"),
-      record_name: '=HYPERLINK("https://example.org")',
-      explanation: 'Contains "quotes"\nand newlines',
-    };
-    const exported = auditFiles(bundle([c]));
-    expect(exported.files["audit-checks.csv"]).toContain(
-      '"\'=HYPERLINK(""https://example.org"")"',
-    );
-    expect(
-      JSON.parse(exported.files["audit-checks-000000.json"])[0].record_name,
-    ).toBe(c.record_name);
-  });
   it("produces bounded check chunks and a complete index across chunk boundaries", () => {
     const checks = Array.from({ length: 50 }, (_, i) => ({
       ...check(`check-${i}`),

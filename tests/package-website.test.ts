@@ -335,21 +335,24 @@ describe('historical public coverage export preservation on clean builds', () =>
   }
   const rewrite = (f: Awaited<ReturnType<typeof prepared>>) => fs.writeFileSync(f.inventoryPath, JSON.stringify(f.inventory));
 
-  it.each([false, true])('reconstructs the prior coverage bytes and reproduces the exact inventory (currentOnly=%s)', async currentOnly => {
+  it('reconstructs the prior coverage bytes and reproduces the exact inventory in a full package', async () => {
     const f = await prepared();
-    if (currentOnly) {
-      // A current-only build keeps its historical-scope releases out, but must still carry the reviewed coverage entry.
-      f.inventory.files = f.inventory.files.filter(row => row.scope === 'current');
-      rewrite(f);
-    }
-    const { manifest } = await packageWebsite({ dataDir: f.root, currentOnly });
+    const { manifest } = await packageWebsite({ dataDir: f.root, currentOnly: false });
     expect(fs.readFileSync(f.oldFile)).toEqual(f.oldBytes);
     expect(manifest.files.find(row => row.destination === coverageFile(historical))).toEqual(f.entry);
-    if (!currentOnly) expect(fs.readFileSync(f.inventoryPath)).toEqual(f.inventoryBytes);
+    expect(fs.readFileSync(f.inventoryPath)).toEqual(f.inventoryBytes);
     const before = fs.statSync(f.oldFile);
-    await packageWebsite({ dataDir: f.root, currentOnly });
+    await packageWebsite({ dataDir: f.root, currentOnly: false });
     expect(fs.statSync(f.oldFile).ino).toBe(before.ino);
     expect(fs.statSync(f.oldFile).mtimeMs).toBe(before.mtimeMs);
+  });
+
+  it('leaves earlier releases\' coverage out of a current-only package', async () => {
+    const f = await prepared();
+    const { manifest } = await packageWebsite({ dataDir: f.root, currentOnly: true });
+    expect(fs.existsSync(f.oldFile)).toBe(false);
+    expect(manifest.files.some(row => row.destination === coverageFile(historical))).toBe(false);
+    expect(manifest.files.some(row => row.destination === coverageFile(current))).toBe(true);
   });
 
   it('never restores a missing current coverage export from an old package', async () => {

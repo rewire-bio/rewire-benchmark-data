@@ -296,8 +296,12 @@ export async function packageWebsite(options = {}) {
     throw new Error(`Invalid or missing release_id in ${omicsManifestPath}`);
   }
 
-  restoreHistoricalBaselineAudits(dataDir, releaseId);
-  restoreHistoricalCoverageExports(dataDir, releaseId);
+  // The website reads only the current release's coverage and baseline audit, so a
+  // current-only package does not carry every earlier release's copies forward.
+  if (!currentOnly) {
+    restoreHistoricalBaselineAudits(dataDir, releaseId);
+    restoreHistoricalCoverageExports(dataDir, releaseId);
+  }
 
   /** @type {Array<{ filePath: string, destination: string, scope: 'current' | 'historical' }>} */
   const items = [];

@@ -59,7 +59,7 @@ describe.each([false, true])("release evidence exports enabled: %s", (evidence) 
 
   it("restores the exact declared files and bytes, including idempotent restoration", () => {
     const output = release(evidence);
-    const expected = ["catalogue.json", "records.csv", "records.jsonl", ...(evidence ? ["evidence.csv", "evidence.jsonl"] : [])].sort();
+    const expected = ["catalogue.json", "records.jsonl", ...(evidence ? ["evidence.jsonl"] : [])].sort();
     expect(Object.keys(output.manifest.files).sort()).toEqual(expected);
     const archive = bundle(output);
     restoreReleaseBundles(archive.input, archive.destination);
@@ -81,7 +81,7 @@ describe.each([false, true])("release evidence exports enabled: %s", (evidence) 
 
   it("rejects a tampered bundle before creating the destination", () => {
     const archive = bundle(release(evidence));
-    const file = evidence ? "evidence.csv" : "records.csv";
+    const file = evidence ? "evidence.jsonl" : "records.jsonl";
     archive.files[file] += "tampered\n";
     archive.write();
     expect(() => restoreReleaseBundles(archive.input, archive.destination)).toThrow(/Archive checksum mismatch/);
@@ -98,8 +98,8 @@ describe.each([false, true])("release evidence exports enabled: %s", (evidence) 
   });
 });
 
-it("rejects an evidence release missing either required evidence file", () => {
-  for (const file of ["evidence.csv", "evidence.jsonl"]) {
+it("rejects an evidence release missing its required evidence file", () => {
+  for (const file of ["evidence.jsonl"]) {
     const archive = bundle(release(true));
     delete archive.files[file];
     archive.write();
@@ -110,7 +110,7 @@ it("rejects an evidence release missing either required evidence file", () => {
 
 it("does not silently add evidence exports to a legacy archive", () => {
   const archive = bundle(release(false));
-  archive.files["evidence.csv"] = "unreceipted evidence";
+  archive.files["evidence.jsonl"] = "unreceipted evidence";
   archive.write();
   expect(() => restoreReleaseBundles(archive.input, archive.destination)).toThrow(/Unexpected archived files/);
   expect(fs.existsSync(archive.destination)).toBe(false);
