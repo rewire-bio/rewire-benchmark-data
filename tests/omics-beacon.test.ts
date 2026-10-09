@@ -104,8 +104,11 @@ describe("BEACON Table 3 batch", () => {
     for (const result of of("result")) {
       const lower = result.id.includes("-vdp-");
       expect(attr(result, "metric_direction")).toBe(lower ? "lower" : "higher");
-      // VDP reports an error in unstated target units; the unit concept records that.
-      expect(attr(result, "unit")).toBe(lower ? "unit-unreported" : "percent");
+      // VDP reports an error in unstated target units. Scores are percentages, except
+      // correlations and R2 printed x100, which are unitless with that detail.
+      if (lower) expect(attr(result, "unit")).toBe("unit-unreported");
+      else if (attr(result, "unit") === "unitless") expect(attr(result, "unit_detail")).toBe("printed x100");
+      else expect(attr(result, "unit")).toBe("percent");
     }
   });
 
