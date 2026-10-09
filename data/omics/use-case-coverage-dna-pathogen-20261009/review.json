@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T20:16:54Z",
+  "scope": "Independent review of the DNA pathogen-identification use-case batch for use-case-diagnostic-dna-pathogen-identification: 926 records (744 results, 102 evaluations, 24 configurations, 16 claims including 12 relevance judgements, 12 datasets, 12 protocols, 10 methods, 3 sources, 2 benchmarks, 1 service). The three article XMLs were re-downloaded from Europe PMC and match their recorded SHA-256; the archived artifacts decompress to the same bytes. All 744 results were re-read with a separate table parser (the extractor's script was not run) and match in printed and numeric value, locator, metric, qualifier, unit, direction, intervals and the linked configuration, protocol and dataset. All records are set to source_checked; the 12 judgements list their checked evaluations in reviewed_evaluations and are left unpinned for the integrator. Corrections and the evidence concern are listed in docs/reviews/use-cases/dna-pathogen-identification-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review, not reproduction of any classifier and not clinical validation.",
+    "Figures were not checked, including Song et al. 2025 Figure 1 (the BLAST e-value optimisation).",
+    "Supplementary tables of Portik et al. 2022 (Additional file 1) and Hall and Coin 2024 (Tables S1-S12) were not opened.",
+    "The screened-but-not-extracted sources in research.md (for example Lao et al. 2024) were not re-read.",
+    "Judgement pins are not set; they are computed by the integrator after the records are in the store."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "dna-pathogen-20261009-config-hall2024-minimap2-clockwork",
+        "dna-pathogen-20261009-config-hall2024-minimap2-mtb",
+        "dna-pathogen-20261009-config-hall2024-minimap2-myco"
+      ],
+      "message": "version 2.26 was taken from the human read removal methods; the classification methods do not restate it. Now unreported with the 2.26 statement in the note, as for the kraken configurations."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "dna-pathogen-20261009-config-song2025-metaphlan-native-db-galaxy"
+      ],
+      "message": "parameters omitted the 90% minimum sequence similarity that Methods 'Data Analysis' applies to all software where it is not the default."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "12 relevance judgements"
+      ],
+      "message": "limitations did not carry several source caveats (Portik detection threshold, sourmash authorship, ONT length filtering; Hall reference overlap and genus-level misses; Song validity rule, specimen type and Table 1 omissions). Added."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "data/vocab/metric.ttl youden-index"
+      ],
+      "message": "definition gave the range as 0 to 1; Youden's index ranges from -1 to 1."
+    },
+    {
+      "status": "concern_added",
+      "record_ids": [
+        "dna-pathogen-20261009-source-song2025"
+      ],
+      "message": "Table 1 Kraken values 5.17E-10 to 5.17E-12 are too small to be read fractions; the Kraken column and its eta squared should not be compared. This withholds both Song judgements."
+    }
+  ],
+  "files": {
+    "artifacts/hall2024-article.xml.gz": "661f64e6621d81841cc38c7a378127b3ad678adecfca1fde100ac426758297a3",
+    "artifacts/portik2022-article.xml.gz": "5f1599ff4ca8eadc7851efddc378f1ad54f082eaa1ea367cc1dcde6d1b69be0a",
+    "artifacts/song2025-article.xml.gz": "90a1721f9cf900b1ca74b8e6b4aca006abd182abc71d59697b67dbb19f4a6194",
+    "batch.jsonl": "8f9fecb6d675e96ff8ca2ad1d87e872cdbe80bf09c08ec4f03e3195e5db409d7",
+    "claims.csv": "d62f2b0af87d75e0f8e17b95f43a6863c39e4ac6893d054bcf5beea78483da0a",
+    "coverage.json": "6651df1099c62b72dc80ac0c67b9a5e46bfc849c388c4a16eea1eaaf5b758381",
+    "extract/extract_pathogen.py": "4710538a5f10fa91ca75a4f313d027fa7e98cd41f51ecfc49ce8b70c7aa6cde7",
+    "extract/judgements.json": "a8d4d2906f6d5715387b07b4c1ac5c5f820c2b7c17c133b6a191c470e73e83d0",
+    "research.md": "03e9aaf995da72d5d476237e1bf2a75fe2145b9963df2194752b9b9b75599c8d",
+    "retrieval-log.md": "bb68bb5e1f62471eb39d570143ba01a4f4ae996a05c8efca974e61f3762b7124",
+    "sources.md": "f7df1194bc96b291c98a5bcb9464b31a0fd2271badf11c36efa10625f246427e"
+  }
+}
