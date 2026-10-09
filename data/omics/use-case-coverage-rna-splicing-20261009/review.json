@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T20:57:42Z",
+  "scope": "Independent review of the patient-RNA splicing use-case batch for use-case-patient-rna-splicing-validation: 441 records (348 results, 37 evaluations, 21 configurations, 11 claims including 7 relevance judgements, 9 methods, 7 protocols, 4 datasets, 4 sources). The three article XMLs and the Drost Data S1 workbook were re-downloaded and match their recorded SHA-256; the two archived copies decompress to the same bytes. All 348 results were re-read with a separate parser (the extractor's scripts were not run) and match. Changes are listed in docs/reviews/use-cases/patient-rna-splicing-validation-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review, not reproduction of any tool and not clinical validation.",
+    "Figures, Drost Data S1 Tables S1, S2, S5 and S6, and Segers Additional file 1 were not checked.",
+    "The AbSplice preprint and other screened sources in research.md were not re-read.",
+    "Judgement pins are not set; they are computed by the integrator after the records are in the store."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rna-splicing-20261009-source-drost2025"
+      ],
+      "message": "Source-wide evidence concern (prose SQUIRLS AUPRC 0.888 against Table S3 0.8815; Table S3 cited for Table S4 values) replaced by a limitation: no stored value depends on the prose."
+    },
+    {
+      "status": "verified",
+      "record_ids": [
+        "Drost Table S4 CAGI6 rows 20-22"
+      ],
+      "message": "Identical Pangolin, SPiP and SpliceAI rows are consistent: Entire minus In House gives the same CAGI6 counts (32 TP, 16 TN) for all three. Not disputed."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "3 Drost judgements",
+        "segers2026-kremer-splicing judgement"
+      ],
+      "message": "relevance direct changed to proxy (DNA-only predictors, which the use case's output keeps as a separate proxy; Segers gene ranks mix expression and splicing defects and are developer-run)."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "7 judgements"
+      ],
+      "message": "source caveats added to limitations (truth method, author-devised consensus rule, prose slips, Pangolin version, Segers truth-set origin and developer-run comparators, Segarra-Casas cohort size and 66.6% figure)."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rna-splicing-20261009-claim-segarracasas2025-leafcuttermd-intron-retention",
+        "rna-splicing-20261009-claim-segarracasas2025-prose-detection-rates"
+      ],
+      "message": "source_locator paragraph numbers corrected (Discussion paragraph 5; Discussion paragraphs 5 and 10); claims.csv updated."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rna-splicing-20261009-config-drost2025-pangolin"
+      ],
+      "message": "model_identity_note added: printed 'version 4.3.1' may not identify the splicing model's release."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "data/vocab/metric.ttl negative-predictive-value"
+      ],
+      "message": "block made byte-identical to the RNA pathogen branch (extra altLabel 'Neg Pred Value' removed)."
+    }
+  ],
+  "files": {
+    "artifacts/drost2025-article.xml.gz": "33e83a7a110a2c83166612b9a304697c3fc8b13c0f7a500f8c9d713bd947e48d",
+    "artifacts/drost2025-data-s1.xlsx.gz": "868e1e124e5b1477a953f024c0bd13b9c0c6dfce4bc819fa37ffd87d9f3ecaf5",
+    "batch.jsonl": "ebfe555acfdd3f0e4eeacb44c5de57775914a139a34e7d84c6d6a3d729943890",
+    "claims.csv": "6220ef31e88077cb7469ca6a9f6370fc3777389dc4e831cecd047bdccab460e1",
+    "coverage.json": "e1834171b10a3de53e8a19b86c08404b7ade892e922e3c116f878df7cfae89a5",
+    "extract/extract_rna_splicing.py": "4174800df200bcfe5c2f6c5e2cb95fa00bbc0011965b5687c9f99398e7fa43eb",
+    "extract/rawxlsx.py": "81aa5a418143431976749abe8273a45f37c8bde0fe4c1ce25a449221ae512726",
+    "research.md": "0c0ed8e9c70ff79bf1f6dfad2e1cc318901ead98e2adb4834a2198e768724310",
+    "retrieval-log.md": "f3d650832ae41d7b387b4a23bb742045e4329cbeca1d60a96b388aa7978013af",
+    "sources.md": "a35f245e171d08b0c4cb670608d328836842061300af62a4bbd6084a92e3a567"
+  }
+}
