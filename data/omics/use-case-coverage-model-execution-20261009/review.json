@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "pdf-text-parse",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the collector and extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T20:46:48Z",
+  "scope": "Independent review of the diagnostic genomics model execution batch for use-case-diagnostic-genomics-model-execution: 639 records (488 results, 91 evaluations, 19 configurations, 15 claims including 13 relevance judgements, 13 protocols, 5 datasets, 5 sources, 3 methods). All five source artifacts were re-downloaded and matched their recorded SHA-256; the archived artifacts/*.gz decompress to the same bytes. All 488 results were re-read from the pinned cells with a separate parser (the extractor's scripts were not run) and match in printed value, numeric value, metric, qualifier, unit, direction, locator, configuration and protocol. Derived totals, hours, fold accelerations and cost savings were recomputed. Three results are disputed with source_warnings, the O'Connell judgements were changed to proxy, and descriptive fields were corrected without changing any number; all are listed in docs/reviews/use-cases/diagnostic-genomics-model-execution-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any pipeline.",
+    "Figures were not read; memory, accuracy and concordance results shown only in figures are unchecked.",
+    "O'Connell Additional file 1 was not retrieved, so the AWS GPU model (V100 or A100) in Table 1 is unresolved.",
+    "Europe PMC supplementaryFiles zips are assembled per request, so only the member files and the Samarakoon publisher zip are verified by hash.",
+    "Relevance judgements are reviewed but not pinned; the lead records pins with npm run use-cases:repin after the use-case change.",
+    "The SHACL step of records add and npm run build were not run; a dry-run addBatch against a scratch copy of the store accepted all 639 records."
+  ],
+  "errors": [],
+  "findings": [
+    {
+      "status": "disputed",
+      "record_ids": [
+        "model-execution-20261009-result-samarakoon2025-parabricks-4xl4-total-na12778"
+      ],
+      "message": "Table S3c prints 117.59 min; the stage values sum to 31.94. Disputed with source_warnings; no corrected value recorded."
+    },
+    {
+      "status": "disputed",
+      "record_ids": [
+        "model-execution-20261009-result-franzoso2025-sentieon-dnaseq-202308-gcp-64vcpu-err1955532-runtime",
+        "model-execution-20261009-result-franzoso2025-parabricks-germline-4-0-1-1-gcp-t4-err1955539-runtime"
+      ],
+      "message": "Table S2 C13 and C18 render 0:03:21 and 0:04:41 for WGS runs of 3 to 4.7 h. Disputed with source_warnings; no corrected value recorded."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "91 model-execution-20261009-eval-* evaluations"
+      ],
+      "message": "comparison.budget held each configuration's hardware, which made every comparison differ in budget; now the execution budget shared by each protocol."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "6 use-case-mapping-model-execution-20261009-oconnell2023-* judgements"
+      ],
+      "message": "relevance direct changed to proxy: one genome, one recorded run, vendor-adjacent authors, unresolved AWS GPU model."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "model-execution-20261009-config-samarakoon2025-parabricks-4-3-0-1-8xh100",
+        "model-execution-20261009-claim-samarakoon2025-parabricks-version"
+      ],
+      "message": "Discussion paragraph 10 names the updated DeepVariant version 4.3.1-1; recorded alongside the printed 4.3.0-1."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "model-execution-20261009-config-oconnell2023-aws-gpu2",
+        "model-execution-20261009-config-oconnell2023-aws-gpu4",
+        "model-execution-20261009-config-oconnell2023-aws-gpu8"
+      ],
+      "message": "hardware.description presented the footnote's V100 reading; now states the GPU model is unresolved, with the cost arithmetic."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "model-execution-20261009-data-franzoso2025-wes",
+        "model-execution-20261009-protocol-samarakoon2025-mapping",
+        "model-execution-20261009-claim-samarakoon2025-cost-summary",
+        "model-execution-20261009-config-samarakoon2025-parabricks-4xl4"
+      ],
+      "message": "Float artefacts in population, a stray bracket in a protocol name, the scope of the disk-cost exclusion, and the 192 or 196 GB L4 memory note."
+    }
+  ],
+  "files": {
+    "artifacts/franzoso2025-article.xml.gz": "21e836ad4416bc7ad7ea7b9b202bf63e87c2614be629973ef6654b73ccd66873",
+    "artifacts/franzoso2025-table-s1.xlsx.gz": "723fe214d36c3062f24d04fbbdfbb14de7c1913784fc095d124b58ab30f3705d",
+    "artifacts/franzoso2025-table-s2.xlsx.gz": "b5bf2fbe4b528c00bf515ece5ac36e7cfc0b4cd3a5fdc4cddef7c483918b1e90",
+    "artifacts/oconnell2023-article.xml.gz": "adde655d5eac0bbfdd85046d3168c2b3c72d546bc3670854bf5f0605346d2f4c",
+    "artifacts/samarakoon2025-article.xml.gz": "6126ca9f2243f046cdf774a950db6059f5c81ae9cee1aa7acee8c28e71b5926b",
+    "artifacts/samarakoon2025-supplementary-data.zip.gz": "a5e539da9c3d7322d69d32165d2dbd8905a5d42775661a443e382ffcbd94e8e4",
+    "batch.jsonl": "0ad04a2dbcc52bf453b489c0c3c7e23196161f24d14ae9c6d950db025c2e5183",
+    "claims.csv": "39958cb7d51fdd82df2c693d02d383242f422b2434fd8fb7a74b6bbe59677eca",
+    "coverage.json": "d52b3a9171854c8020f0e96a9a9955c50bf423c3286261e224bde2f96838f758",
+    "extract/extract_model_execution.py": "06277a1fecf7d0e5e4ae57bce60157960dc3ba3066f72b9965d95b69b0fa4a96",
+    "extract/rawxlsx.py": "81aa5a418143431976749abe8273a45f37c8bde0fe4c1ce25a449221ae512726",
+    "research.md": "a0a0062a7cd7eebb2906e828af2c5a38f6a18ec7bf33dce142c40f805b1de533",
+    "retrieval-log.md": "c4bdf9e4186c7a6f765ec319e26d09b0ec6224e1d72a239109c9eef87211c917",
+    "sources.md": "bd60f1c0627fd42fa5a415c98aad44c9bd4cfa3d10ed92ef98f0f02be07273cc"
+  }
+}
