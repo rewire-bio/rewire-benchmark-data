@@ -139,7 +139,9 @@ describe("omics publication integrity", () => {
       .trim()
       .split("\n")
       .map((x) => JSON.parse(x));
-    expect(scope).toHaveLength(106);
+    // Each collection batch appends its decisions, so this counts the original papers' floor only.
+    expect(scope.length).toBeGreaterThanOrEqual(106);
+    expect(new Set(scope.map((x) => JSON.stringify(x))).size).toBe(scope.length);
     expect(
       scope.every(
         (x) => x.reason && ["included", "excluded"].includes(x.decision),
