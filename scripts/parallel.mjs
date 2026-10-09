@@ -3,7 +3,7 @@
  * Usage: node scripts/parallel.mjs <script> [<script> ...] */
 import { spawn } from "node:child_process";
 
-const scripts = process.argv.slice(2);
+const scripts = process.argv.slice(2).filter(Boolean);
 const codes = await Promise.all(
   scripts.map(
     (name) =>
