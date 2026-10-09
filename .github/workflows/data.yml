@@ -22,6 +22,28 @@ jobs:
       NODE_OPTIONS: --max-old-space-size=8192
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Decide what this run checks
+        id: mode
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          # A release is cut by changing data/omics/release-config.json. Only release runs rebuild
+          # the release; only release runs on main run inference and publish. Data PRs stay fast.
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            release=true
+          elif [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            git fetch --quiet --depth=1 origin "$BASE_REF"
+            git diff --quiet "origin/$BASE_REF" HEAD -- data/omics/release-config.json && release=false || release=true
+          else
+            git diff --quiet HEAD^1 HEAD -- data/omics/release-config.json && release=false || release=true
+          fi
+          main=false
+          [ "$GITHUB_EVENT_NAME" != pull_request ] && main=true
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "main=$main" >> "$GITHUB_OUTPUT"
+          echo "Release run: $release; main or manual: $main"
       - uses: actions/setup-node@v4
         with:
           # Match the website image: the prepared SQLite file's bytes depend on Node's bundled SQLite.
@@ -29,26 +51,38 @@ jobs:
           cache: npm
       - uses: astral-sh/setup-uv@v6
       - run: npm ci
-      - run: npm run verify:package
-      - run: npm test
+      - name: Validate the record store, vocabularies and provenance
+        run: npm run records -- check
+      - name: Tests (fast set on pull requests, all on main)
+        run: npm run ${{ steps.mode.outputs.main == 'true' && 'test' || 'test:fast' }}
       - run: npm run test:python
       - run: npm run test:kg
       - run: npm run typecheck
-      - name: Reproduce the current release, knowledge graph and prepared website artifact
+      - name: Check prepared artifacts are tracked
+        if: steps.mode.outputs.release == 'true'
+        run: npm run verify:package
+      - name: Reproduce the release and prepared website artifact (release pull requests, no inference)
+        if: steps.mode.outputs.release == 'true' && steps.mode.outputs.main != 'true'
+        run: npm run build:check
+      - name: Reproduce the release, knowledge graph and prepared website artifact
+        if: steps.mode.outputs.release == 'true' && steps.mode.outputs.main == 'true'
         run: npm run build
       - name: Require reviewed prepared artifacts
+        if: steps.mode.outputs.release == 'true'
         run: npm run verify:package && git diff --exit-code -- data website
       - name: Check the prepared release file against the live query engine
+        if: steps.mode.outputs.release == 'true'
         run: npm run serving:parity
+      - name: Check the knowledge-graph bundle against the bundle format
+        if: steps.mode.outputs.release == 'true' && steps.mode.outputs.main == 'true'
+        run: uvx --from "$RDF_KG_MCP" rdf-kg-mcp verify public/kg
       - name: Publish the prepared release file (main only; never replaces an existing asset)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: steps.mode.outputs.release == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: npm run serving:publish
-      - name: Check the knowledge-graph bundle against the bundle format
-        run: uvx --from "$RDF_KG_MCP" rdf-kg-mcp verify public/kg
       - name: Publish the knowledge-graph bundle (main only; never replaces an existing asset)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: steps.mode.outputs.release == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: npm run kg:publish

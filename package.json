@@ -7,10 +7,12 @@
   },
   "scripts": {
     "build": "npm run omics:release && npm run kg -- export && npm run kg:build && npm run serving && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
+    "build:check": "npm run omics:release && npm run kg -- export && npm run serving && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
     "omics:release": "tsx scripts/omics/release.ts",
     "validate:benchmark-literature": "node scripts/validate-benchmark-literature.mjs",
     "export:benchmark-literature": "node scripts/export-benchmark-literature.mjs",
     "test": "vitest run",
+    "test:fast": "TEST_SCOPE=fast vitest run",
     "typecheck": "tsc --noEmit",
     "test:python": "python3 -m unittest discover -s scripts/omics/tests -p \"test_*.py\"",
     "verify:package": "node scripts/verify-package-tracking.mjs",

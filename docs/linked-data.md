@@ -57,7 +57,7 @@ npm run kg:build        # inference, checks and SHACL; writes inferred.nq, ontol
 npm run test:kg         # vocabulary and inference tests
 ```
 
-`npm run build` runs the export and the KG build after the release. The KG build needs [uv](https://docs.astral.sh/uv/), which installs the pinned Python dependencies in `scripts/kg/requirements.txt`. It takes about three minutes and 1.5 GB of memory. The output is sorted and deterministic: the same release, mapping and vocabulary give byte-identical files.
+`npm run build` runs the export and the KG build after the release. The KG build needs [uv](https://docs.astral.sh/uv/), which installs the pinned Python dependencies in `scripts/kg/requirements.txt`. It takes about a minute locally and 1.5 GB of memory. The output is sorted and deterministic: the same release, mapping and vocabulary give byte-identical files.
 
 To update a pinned vocabulary, download it, re-run the extraction command in `data/ontology/imports/sources.json` where one is listed, update the checksum there, and review the change in the inferred graph.
 

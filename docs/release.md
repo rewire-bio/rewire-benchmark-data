@@ -32,7 +32,7 @@ Evidence PRs leave `release-config.json` alone. Several merged batches can go ou
    npm run release:prune
    ```
 
-4. Run `npm run build` again. It restores the frozen release first, so this confirms a fresh clone rebuilds it byte for byte.
+4. Run `npm run build` again. It restores the frozen release first, so this confirms a fresh clone rebuilds it byte for byte. CI on the release PR repeats this without inference (`npm run build:check`); after merge, CI on main runs the full build with inference and publishes.
 5. Open the PR with the config change, receipt, archive and updated `website/` files. Review scientific changes separately from packaging.
 6. After merge, CI publishes the knowledge-graph bundle as a GitHub release tagged `kg/<release-id>` (see [linked-data.md](linked-data.md#bundle)). Then open a PR in [rewire-database](https://github.com/rewire-bio/rewire-database) updating `benchmark-data.lock.json` (revision, manifest digest and release ID). The website verifies the artifact and renders it; its own deployment checks control activation.
 7. Once the release is live, record it with `npm run refresh -- record-publication` and `npm run refresh -- export` (see [refresh.md](refresh.md#review-prs-and-publication)).
