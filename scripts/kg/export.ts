@@ -133,17 +133,17 @@ export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
     if (!relation) throw new Error(`No property mapping for relation ${link.relation}`);
     add(relation.property, iri(mapping.base + link.target_id));
   }
-  for (const [name, t] of Object.entries(mapping.attributes)) {
-    const object = literal(record.attributes[name], t);
-    if (object) add(t.property, object);
-  }
-  const review = record.attributes.review;
-  if (review && typeof review === "object" && !Array.isArray(review)) {
-    for (const [name, t] of Object.entries(mapping.review)) {
-      const object = literal((review as Record<string, unknown>)[name], t);
+  // A list value (review methods and reviewers, for example) gives one statement per item.
+  const addValue = (value: unknown, t: Term) => {
+    for (const item of Array.isArray(value) ? value : [value]) {
+      const object = literal(item, t);
       if (object) add(t.property, object);
     }
-  }
+  };
+  for (const [name, t] of Object.entries(mapping.attributes)) addValue(record.attributes[name], t);
+  const review = record.attributes.review;
+  if (review && typeof review === "object" && !Array.isArray(review))
+    for (const [name, t] of Object.entries(mapping.review)) addValue((review as Record<string, unknown>)[name], t);
   return lines;
 }
 

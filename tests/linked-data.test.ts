@@ -84,6 +84,14 @@ describe("N-Quads export", () => {
     expect(lines.some((l) => /<https:\/\/benchmarks\.rewire\.it\/vocab#(metric|area|status|unit)> "/.test(l))).toBe(false);
   });
 
+  it("exports each review method and reviewer in a list", () => {
+    const reviewed = records.find((r) => ((r.attributes.review as { method?: string[] } | undefined)?.method?.length ?? 0) > 1)!;
+    const methods = (reviewed.attributes.review as { method: string[] }).method;
+    const lines = recordQuads(mapping, reviewed);
+    for (const method of methods)
+      expect(lines.some((l) => l.includes(`<${RB}reviewMethod> <https://benchmarks.rewire.it/vocab/review-method/${method}>`)), method).toBe(true);
+  });
+
   it("gives baselines and dataset subsets their own relations, distinct from evaluations'", () => {
     const baseline = records.find((r) => r.kind === "baseline" && r.links.some((l) => l.relation === "measured_in"))!;
     const lines = recordQuads(mapping, baseline);
