@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadRecords } from "../scripts/omics/records";
 import { claimPins, deriveUseCaseInputs, useCaseHash, type JudgementPin } from "../shared/omics/use-cases";
@@ -12,12 +13,16 @@ const edit = (id: string, change: (r: CatalogueRecord) => CatalogueRecord) =>
   store.map((r) => (r.id === id ? change(structuredClone(r)) : r));
 
 describe("use cases as records", () => {
-  it("derives every use case and relevance judgement from the store", () => {
+  it("derives every migrated use case and relevance judgement from the store", () => {
+    // Later collection batches add judgements, so count only the ones the migration wrote.
+    const migrated = new Set(fs.readFileSync("data/omics/use-case-records-20261009/batch.jsonl", "utf8")
+      .split("\n").filter(Boolean).map((line) => JSON.parse(line).id as string));
     const inputs = derive(store);
-    expect(inputs.use_cases).toHaveLength(26);
-    expect(inputs.mappings).toHaveLength(100);
-    expect(inputs.mappings.filter((m) => m.lifecycle === "active")).toHaveLength(97);
-    expect(inputs.mappings.filter((m) => m.lifecycle === "draft").map((m) => m.id).sort()).toEqual([
+    const mappings = inputs.mappings.filter((m) => migrated.has(m.id));
+    expect(inputs.use_cases.filter((u) => migrated.has(u.id))).toHaveLength(26);
+    expect(mappings).toHaveLength(100);
+    expect(mappings.filter((m) => m.lifecycle === "active")).toHaveLength(97);
+    expect(mappings.filter((m) => m.lifecycle === "draft").map((m) => m.id).sort()).toEqual([
       "use-case-mapping-cnv-20261009-delavega2025-coriell-panel",
       "use-case-mapping-cnv-20261009-delavega2025-hg002",
       "use-case-mapping-cnv-20261009-nardone2025-hg002-deletions",
