@@ -72,7 +72,11 @@ export function judgementClaim(m: Mapping, title: string, records: Map<string, C
         ? excluded.map((id) => ({ id, reason: `Not in the reviewed mapping's evaluation list when use cases moved into the store (${migratedAt}).` }))
         : undefined,
       review: m.review ? recordReview(m.review) : undefined,
-      pins: judgementPins(records, m.use_case_id, protocol),
+      // The evaluations this judgement was reviewed with; one dropping out withholds it.
+      reviewed_evaluations: [...m.evaluation_ids].sort(),
+      pins: status === "source_checked"
+        ? judgementPins(records, { useCaseId: m.use_case_id, protocolId: protocol, sourceIds: [...new Set(m.citations.map((c) => c.source_id))], evaluationIds: m.evaluation_ids })
+        : undefined,
     }),
   };
 }

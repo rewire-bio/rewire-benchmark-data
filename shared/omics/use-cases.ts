@@ -51,8 +51,8 @@ const mappingSchema = z.object({
   revision: z.number().int().positive(), reason: text,
   prior_release_id: releaseId.optional(), supersedes_id: id.optional(),
   protocol_id: id.optional(), task_id: id.optional(),
-  evaluation_ids: z.array(id).max(100), endpoint: text.optional(),
-  relevance: z.enum(["direct", "proxy", "outside_scope", "not_assessed"]).optional(),
+  evaluation_ids: z.array(id).max(500), endpoint: text.optional(),
+  relevance: z.enum(["direct", "proxy", "outside_scope"]).optional(),
   rationale: text.optional(), constraints: texts, limitations: texts,
   citations: z.array(citationSchema).max(100), review: reviewSchema.optional(),
   evidence_sha256: digest.optional(),
@@ -389,19 +389,26 @@ function validateEntries(ix: Index, inputs: UseCaseInputs) {
  * the website already use, so the public contract does not change. */
 export const judgementField = (protocolId: string) => `links:assessed_by:${protocolId}`;
 
-/** The fields of each record a judgement relies on. A change to any of them withholds the
- * judgement until it is reviewed again. Link relation names are not pinned, only link targets,
- * so renaming a relation (as in #50) is not a change of meaning. Results are not pinned: they
- * are gated live by their own review status, so new results never stale a judgement. */
+/** What a reviewed judgement relies on, per record kind. Any change withholds it until it is
+ * reviewed again. Relation names are pinned as normalised by currentRecords, so a rename such as
+ * #50 changes nothing while a change of relation or target does. "attributes" pins every
+ * attribute except the review block. Results are pinned only for the reviewed evaluations, so a
+ * new evaluation or result on the protocol never stales a judgement, but a changed one does. */
 export const judgementPinFields: Record<string, string[]> = {
-  use_case: ["status", "attributes.question", "attributes.decision", "attributes.inputs", "attributes.output", "attributes.exclusions"],
-  protocol: ["status", "link_targets", "attributes.protocol", "attributes.version"],
+  // Only what defines the decision: adding evidence (assessed_by links, gaps, citations) to a use
+  // case must not withhold its other judgements. Its cited sources are gated live instead.
+  use_case: ["status", "name", "description", "facets", "attributes.question", "attributes.decision", "attributes.inputs",
+    "attributes.output", "attributes.exclusions", "attributes.setting", "attributes.clinical_scope", "attributes.intended_users"],
+  protocol: ["status", "name", "description", "facets", "source_ids", "links", "attributes"],
   source: ["status", "attributes.artifact_sha256"],
+  evaluation: ["status", "links", "attributes.origin", "attributes.comparison"],
+  result: ["status", "attributes.metric", "attributes.metric_qualifier", "attributes.printed_value", "attributes.numeric_value"],
 };
 export type JudgementPin = { record_id: string; fields: string[]; sha256: string };
 
 function pinValue(record: CatalogueRecord, field: string): unknown {
-  if (field === "link_targets") return [...new Set(record.links.map((l) => l.target_id))].sort();
+  if (field === "links") return record.links.map((l) => [l.relation, l.target_id]).sort((x, y) => x.join("|").localeCompare(y.join("|")));
+  if (field === "attributes") return Object.fromEntries(Object.entries(record.attributes).filter(([k]) => k !== "review"));
   return field.split(".").reduce<unknown>(
     (value, key) => (value && typeof value === "object" ? (value as Record<string, unknown>)[key] : undefined),
     record,
@@ -411,11 +418,55 @@ function pinFor(record: CatalogueRecord): JudgementPin {
   const fields = judgementPinFields[record.kind] || ["status"];
   return { record_id: record.id, fields, sha256: useCaseHash(fields.map((f) => [f, pinValue(record, f) ?? null])) };
 }
-/** Pins for a judgement on (use case, protocol): the use case, the protocol and its sources. */
-export function judgementPins(records: Map<string, CatalogueRecord>, useCaseId: string, protocolId: string): JudgementPin[] {
-  const protocol = records.get(protocolId);
-  const ids = [useCaseId, protocolId, ...(protocol?.source_ids || [])];
-  return [...new Set(ids)].sort().flatMap((id) => { const r = records.get(id); return r ? [pinFor(r)] : []; });
+const resultIndex = new WeakMap<Map<string, CatalogueRecord>, Map<string, string[]>>();
+function resultsOf(records: Map<string, CatalogueRecord>, evaluationId: string): string[] {
+  let index = resultIndex.get(records);
+  if (!index) {
+    index = new Map();
+    for (const r of records.values()) if (r.kind === "result")
+      for (const l of r.links) if (l.relation === "evaluation") index.set(l.target_id, [...(index.get(l.target_id) || []), r.id]);
+    resultIndex.set(records, index);
+  }
+  return index.get(evaluationId) || [];
+}
+/** Pins for a judgement or summary: the use case, the protocol (if any), the protocol's and the
+ * claim's sources, and the reviewed evaluations with their results. */
+export function judgementPins(
+  records: Map<string, CatalogueRecord>,
+  input: { useCaseId: string; protocolId?: string; sourceIds?: string[]; evaluationIds?: string[] },
+): JudgementPin[] {
+  const protocol = input.protocolId ? records.get(input.protocolId) : undefined;
+  const evaluations = input.evaluationIds || [];
+  const ids = [
+    input.useCaseId, ...(input.protocolId ? [input.protocolId] : []),
+    ...(protocol?.source_ids || []), ...(input.sourceIds || []),
+    ...evaluations, ...evaluations.flatMap((id) => resultsOf(records, id)),
+  ];
+  return [...new Set(ids)].sort().map((id) => {
+    const r = records.get(id);
+    return r ? pinFor(r) : { record_id: id, fields: [], sha256: "missing" };
+  });
+}
+/** Record ids whose pinned fields differ from the stored pins (or that were added or removed). */
+export function changedPins(stored: JudgementPin[] | undefined, current: JudgementPin[]): string[] {
+  const before = new Map((stored || []).map((p) => [p.record_id, p.sha256]));
+  const after = new Map(current.map((p) => [p.record_id, p.sha256]));
+  return [...new Set([...before.keys(), ...after.keys()])].filter((id) => before.get(id) !== after.get(id)).sort();
+}
+
+/** The pins a reviewed judgement or summary claim should carry against the store as it is now.
+ * Summaries rest on the reviewed evaluations of the use case's reviewed judgements. */
+export function claimPins(records: Map<string, CatalogueRecord>, claim: CatalogueRecord): JudgementPin[] | undefined {
+  const field = claim.attributes.field;
+  const useCaseId = claim.links.find((l) => l.relation === "subject")?.target_id;
+  if (!useCaseId || typeof field !== "string") return undefined;
+  if (field.startsWith("links:assessed_by:"))
+    return judgementPins(records, { useCaseId, protocolId: field.slice("links:assessed_by:".length), sourceIds: claim.source_ids, evaluationIds: reviewedEvaluations(claim) });
+  if (field !== "summary") return undefined;
+  const evaluationIds = [...records.values()].filter((c) => c.kind === "claim" && checked(c)
+    && typeof c.attributes.field === "string" && c.attributes.field.startsWith("links:assessed_by:")
+    && c.links.some((l) => l.relation === "subject" && l.target_id === useCaseId)).flatMap(reviewedEvaluations);
+  return judgementPins(records, { useCaseId, sourceIds: claim.source_ids, evaluationIds });
 }
 
 type RecordReview = { method?: string[]; reviewer?: string[]; reviewer_note?: string; reviewed_at?: string; date?: string; note?: string };
@@ -453,17 +504,31 @@ function evaluationBlocker(ix: Index, protocolId: string, evaluation: CatalogueR
 }
 
 /** Build the use-case inputs from use_case records and their relevance judgement claims. */
+export const MAX_JUDGEMENT_EVALUATIONS = 500;
+function reviewedEvaluations(claim: CatalogueRecord): string[] {
+  return (Array.isArray(claim.attributes.reviewed_evaluations) ? claim.attributes.reviewed_evaluations : []).map(String);
+}
+
 export function deriveUseCaseInputs(input: { records: CatalogueRecord[] }): UseCaseInputs {
   const ix = index({ records: input.records } as CatalogueSnapshot);
   const all = [...ix.records.values()];
-  // A use case's summary is a claim on it with field "summary"; reviewed when source-checked.
-  const summaries = new Map<string, CatalogueRecord>();
-  for (const r of all)
-    if (r.kind === "claim" && r.attributes.field === "summary" && typeof r.attributes.value === "string" && !inactive(r))
-      for (const l of r.links) if (l.relation === "subject") summaries.set(l.target_id, r);
+  const claimsBySubject = new Map<string, CatalogueRecord[]>();
+  for (const r of all) if (r.kind === "claim")
+    for (const l of r.links) if (l.relation === "subject") claimsBySubject.set(l.target_id, [...(claimsBySubject.get(l.target_id) || []), r]);
+  const judgementsOf = (useCaseId: string) => (claimsBySubject.get(useCaseId) || [])
+    .filter((c) => typeof c.attributes.field === "string" && c.attributes.field.startsWith("links:assessed_by:"));
+  // A use case's summary is published only once it is reviewed, its sources are clean and nothing it
+  // rests on has changed: the use case, its sources and the reviewed evaluations of its judgements.
+  function reviewedSummary(useCaseId: string): string | undefined {
+    const summary = (claimsBySubject.get(useCaseId) || []).find((c) => c.attributes.field === "summary" && typeof c.attributes.value === "string");
+    if (!summary || !checked(summary) || !summary.source_ids.every((id) => cleanSource(ix.records.get(id)))) return undefined;
+    const evaluationIds = judgementsOf(useCaseId).filter(checked).flatMap(reviewedEvaluations);
+    const current = judgementPins(ix.records, { useCaseId, sourceIds: summary.source_ids, evaluationIds });
+    return changedPins(summary.attributes.pins as JudgementPin[] | undefined, current).length ? undefined : String(summary.attributes.value);
+  }
   const useCases: UseCase[] = all.filter((r) => r.kind === "use_case" && r.status !== "excluded").map((r) => {
     const a = r.attributes;
-    const summary = summaries.get(r.id);
+    const summary = reviewedSummary(r.id);
     const review = mappingReview(a.review);
     if (!review) throw Error(`Use case ${r.id} needs a review with reviewer_note, note and a review time`);
     return {
@@ -474,7 +539,7 @@ export function deriveUseCaseInputs(input: { records: CatalogueRecord[] }): UseC
       setting: asText(a.setting), exclusions: asTexts(a.exclusions), clinical_scope: asText(a.clinical_scope),
       evidence_gaps: asTexts(a.evidence_gaps), citations: (a.citation_locators || []) as Citation[], review,
       ...(a.collection_plan ? { collection_plan: a.collection_plan as UseCase["collection_plan"] } : {}),
-      ...(summary ? { summary: { text: String(summary.attributes.value), status: checked(summary) ? "reviewed" as const : "draft" as const } } : {}),
+      ...(summary ? { summary: { text: summary, status: "reviewed" as const } } : {}),
       planned_work: (a.planned_work || []) as UseCase["planned_work"],
     };
   });
@@ -485,6 +550,7 @@ export function deriveUseCaseInputs(input: { records: CatalogueRecord[] }): UseC
       evaluationsByProtocol.set(l.target_id, [...(evaluationsByProtocol.get(l.target_id) || []), r]);
   const entries = new Map(useCases.map((u) => [u.id, u]));
   const mappings: Mapping[] = [];
+  const recorded = new Set<string>();
   for (const claim of all) {
     const field = claim.attributes.field;
     if (claim.kind !== "claim" || typeof field !== "string" || !field.startsWith("links:assessed_by:")) continue;
@@ -493,6 +559,10 @@ export function deriveUseCaseInputs(input: { records: CatalogueRecord[] }): UseC
     const a = claim.attributes;
     const protocolId = field.slice("links:assessed_by:".length);
     if (a.value !== protocolId) throw Error(`Relevance judgement ${claim.id} value must equal its protocol`);
+    recorded.add(`${subject}|${protocolId}`);
+    // Excluded or superseded judgements are withdrawn: they no longer appear, and the release guard
+    // reports any that the previous release served.
+    if (claim.status === "excluded" || claim.status === "superseded") continue;
     const relevance = a.relevance as Mapping["relevance"];
     const isPositive = relevance === "direct" || relevance === "proxy";
     const excluded = new Set(((a.excluded_evaluations || []) as { id: string }[]).map((e) => e.id));
@@ -514,36 +584,44 @@ export function deriveUseCaseInputs(input: { records: CatalogueRecord[] }): UseC
       ? (evaluationsByProtocol.get(protocolId) || []).filter((e) => !excluded.has(e.id)).sort((x, y) => x.id.localeCompare(y.id))
       : [];
     if (claim.status === "needs_review" || claim.status === "discovered") {
-      mappings.push({ ...base, lifecycle: "draft", reason: asText(a.reason), evaluation_ids: candidates.map((e) => e.id).slice(0, 100), ...(review ? { review } : {}) });
+      mappings.push({ ...base, lifecycle: "draft", reason: asText(a.reason), evaluation_ids: candidates.map((e) => e.id).slice(0, MAX_JUDGEMENT_EVALUATIONS), ...(review ? { review } : {}) });
       continue;
     }
-    if (claim.status === "excluded" || claim.status === "superseded" || claim.status === "disputed") continue;
     const blockers: string[] = [];
+    if (claim.status === "disputed") blockers.push("the judgement is disputed");
     const useCase = ix.records.get(subject)!;
     if (!useCase.links.some((l) => l.relation === "assessed_by" && l.target_id === protocolId)) blockers.push("the use case has no assessed_by link to this protocol");
-    const stored = (a.pins || []) as JudgementPin[];
-    const current = judgementPins(ix.records, subject, protocolId);
-    const changed = current.filter((p) => !stored.some((s) => s.record_id === p.record_id && s.sha256 === p.sha256)).map((p) => p.record_id);
-    if (changed.length || stored.length !== current.length)
-      blockers.push(`pinned evidence changed since review (${changed.join(", ") || "pinned record set"})`);
+    const reviewed = reviewedEvaluations(claim);
+    if (isPositive && !reviewed.length) blockers.push("the judgement records no reviewed evaluation set");
+    const changed = changedPins(a.pins as JudgementPin[] | undefined,
+      judgementPins(ix.records, { useCaseId: subject, protocolId, sourceIds: claim.source_ids, evaluationIds: reviewed }));
+    if (changed.length) blockers.push(`pinned evidence changed since review (${changed.slice(0, 5).join(", ")}${changed.length > 5 ? ` and ${changed.length - 5} more` : ""})`);
     if (!claim.source_ids.length || !claim.source_ids.every((id) => cleanSource(ix.records.get(id)))) blockers.push("a cited source is unchecked or has evidence concerns");
+    if (isPositive && useCase.source_ids.some((id) => !cleanSource(ix.records.get(id)))) blockers.push("a source the use case cites is unchecked or has evidence concerns");
     const protocol = ix.records.get(protocolId);
     if (!protocol || protocol.kind !== "protocol" || !checked(protocol) || inactive(protocol)) blockers.push("the protocol is not reviewed");
     else if (protocol.source_ids.some((id) => !cleanSource(ix.records.get(id)))) blockers.push("protocol evidence is disputed or unchecked");
-    if (a.task_id && protocol && !ix.reviewedAssociation(protocol, "evaluates_task", String(a.task_id))) blockers.push("task membership is not reviewed");
+    if (a.task_id) {
+      const task = ix.records.get(String(a.task_id));
+      if (!task || task.kind !== "task" || inactive(task)) blockers.push("the task is unavailable, disputed or superseded");
+      else if (protocol && !ix.reviewedAssociation(protocol, "evaluates_task", String(a.task_id))) blockers.push("task membership is not reviewed");
+    }
     const eligible = candidates.filter((e) => evaluationBlocker(ix, protocolId, e) === null);
+    const eligibleIds = new Set(eligible.map((e) => e.id));
+    const dropped = reviewed.filter((id) => !eligibleIds.has(id));
+    if (dropped.length) blockers.push(`a reviewed evaluation is no longer eligible (${dropped.slice(0, 5).join(", ")})`);
     if (isPositive && !eligible.length) blockers.push("no evaluation on the protocol is eligible evidence");
+    if (eligible.length > MAX_JUDGEMENT_EVALUATIONS) blockers.push(`more than ${MAX_JUDGEMENT_EVALUATIONS} eligible evaluations; split the protocol`);
     if (!review) blockers.push("the judgement has no recorded review");
-    const draft: Mapping = { ...base, lifecycle: "active", reason: asText(a.reason), evaluation_ids: eligible.map((e) => e.id).slice(0, 100), ...(review ? { review } : {}) };
+    const draft: Mapping = { ...base, lifecycle: "active", reason: asText(a.reason), evaluation_ids: eligible.map((e) => e.id).slice(0, MAX_JUDGEMENT_EVALUATIONS), ...(review ? { review } : {}) };
     if (blockers.length) {
       mappings.push({ ...draft, lifecycle: "needs_review", reason: `Withheld: ${blockers.join("; ")}.` });
       continue;
     }
     mappings.push({ ...draft, evidence_sha256: evidenceHash(ix, entries.get(subject)!, draft) });
   }
-  const judged = new Set(mappings.map((m) => `${m.use_case_id}|${m.protocol_id}`));
   for (const r of all) if (r.kind === "use_case")
-    for (const l of r.links) if (l.relation === "assessed_by" && !judged.has(`${r.id}|${l.target_id}`))
+    for (const l of r.links) if (l.relation === "assessed_by" && !recorded.has(`${r.id}|${l.target_id}`))
       throw Error(`Use case ${r.id} links assessed_by ${l.target_id} with no relevance judgement claim`);
   return parseUseCaseInputs({ schema_version: "1.0", use_cases: useCases, mappings });
 }

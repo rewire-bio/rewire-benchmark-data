@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadRecords } from "../scripts/omics/records";
-import { deriveUseCaseInputs } from "../shared/omics/use-cases";
+import { claimPins, deriveUseCaseInputs, useCaseHash, type JudgementPin } from "../shared/omics/use-cases";
 import type { CatalogueRecord } from "../shared/omics/catalogue-query";
 
 const store = loadRecords() as unknown as CatalogueRecord[];
@@ -30,9 +30,12 @@ describe("use cases as records", () => {
     expect(m.reason).toContain("pinned evidence changed");
   });
 
-  it("does not withhold a judgement when only a relation name changes", () => {
+  it("withholds on a link change, and a re-pin after review restores it", () => {
     const renamed = edit(protocolId, (r) => ({ ...r, links: r.links.map((l) => ({ ...l, relation: l.relation === "uses_data" ? "used_in" : l.relation })) }));
-    expect(mapping(renamed).lifecycle).toBe("active");
+    expect(mapping(renamed).lifecycle).toBe("needs_review");
+    const byId = new Map(renamed.map((r) => [r.id, r]));
+    const repinned = renamed.map((r) => (r.id === mappingId ? { ...r, attributes: { ...r.attributes, pins: claimPins(byId, r) } } : r));
+    expect(mapping(repinned).lifecycle).toBe("active");
   });
 
   it("includes a new reviewed evaluation on the protocol without a new judgement", () => {
@@ -57,16 +60,65 @@ describe("use cases as records", () => {
     expect(mapping(edit(mappingId, (r) => ({ ...r, status: "needs_review" }))).lifecycle).toBe("draft");
   });
 
-  it("groups strata of one comparison in order and carries the draft summary", () => {
+  it("groups strata of one comparison in order", () => {
     const inputs = derive(store);
     const bins = inputs.mappings
       .filter((m) => m.presentation?.group === "behera2024-hg002-deletions")
       .sort((a, b) => (a.presentation!.stratum_order ?? 0) - (b.presentation!.stratum_order ?? 0));
     expect(bins.map((m) => m.presentation!.stratum_label)).toEqual(["1 to 5 kb", "5 to 10 kb", "10 to 20 kb", "20 to 50 kb", "Over 50 kb"]);
     expect(new Set(bins.map((m) => m.presentation!.headline_metric))).toEqual(new Set(["f1-score"]));
-    const cnv = inputs.use_cases.find((u) => u.id === "use-case-cnv-detection-characterisation")!;
-    expect(cnv.summary?.status).toBe("draft");
-    expect(inputs.use_cases.filter((u) => u.summary)).toHaveLength(1);
+  });
+
+  it("publishes a summary only once it is reviewed and pinned", () => {
+    const summaryId = "use-case-summary-cnv-detection-characterisation";
+    const cnv = (records: CatalogueRecord[]) => derive(records).use_cases.find((u) => u.id === "use-case-cnv-detection-characterisation")!;
+    expect(cnv(store).summary).toBeUndefined();
+    const byId = new Map(store.map((r) => [r.id, r]));
+    const reviewed = edit(summaryId, (r) => {
+      const next = { ...r, status: "source_checked" as const };
+      return { ...next, attributes: { ...next.attributes, pins: claimPins(byId, next) } };
+    });
+    expect(cnv(reviewed).summary?.status).toBe("reviewed");
+    const evaluationId = mapping(store).evaluation_ids[0];
+    const resultId = store.find((r) => r.kind === "result" && r.links.some((l) => l.target_id === evaluationId))!.id;
+    const changed = reviewed.map((r) => (r.id === resultId ? { ...r, attributes: { ...r.attributes, printed_value: "0.999" } } : r));
+    expect(cnv(changed).summary).toBeUndefined();
+  });
+
+  it("stores pins that match the store for every reviewed judgement", () => {
+    const byId = new Map(store.map((r) => [r.id, r]));
+    const stale = store.filter((r) => r.kind === "claim" && r.status === "source_checked" && String(r.attributes.field).startsWith("links:assessed_by:"))
+      .filter((r) => useCaseHash(claimPins(byId, r)!) !== useCaseHash(r.attributes.pins as JudgementPin[]));
+    expect(stale.map((r) => r.id)).toEqual([]);
+  });
+
+  it("withholds a judgement when a reviewed result changes value", () => {
+    const evaluationId = mapping(store).evaluation_ids[0];
+    const resultId = store.find((r) => r.kind === "result" && r.links.some((l) => l.target_id === evaluationId))!.id;
+    const m = mapping(edit(resultId, (r) => ({ ...r, attributes: { ...r.attributes, numeric_value: "0.999" } })));
+    expect(m.lifecycle).toBe("needs_review");
+    expect(m.reason).toContain(resultId);
+  });
+
+  it("withholds the whole judgement when a reviewed evaluation drops out, rather than shrinking it", () => {
+    const evaluationId = mapping(store).evaluation_ids[0];
+    const m = mapping(edit(evaluationId, (r) => ({ ...r, status: "disputed" })));
+    expect(m.lifecycle).toBe("needs_review");
+    expect(m.reason).toContain("no longer eligible");
+  });
+
+  it("withholds rather than fails on a disputed judgement or a use-case source concern", () => {
+    expect(mapping(edit(mappingId, (r) => ({ ...r, status: "disputed" }))).lifecycle).toBe("needs_review");
+    const useCase = store.find((r) => r.id === "use-case-cnv-detection-characterisation")!;
+    if (useCase.source_ids.length) {
+      const m = mapping(edit(useCase.source_ids[0], (r) => ({ ...r, attributes: { ...r.attributes, evidence_concerns: [{ message: "test" }] } })));
+      expect(m.lifecycle).toBe("needs_review");
+    }
+  });
+
+  it("does not withhold judgements when the use case gains a gap", () => {
+    const grown = edit("use-case-cnv-detection-characterisation", (r) => ({ ...r, attributes: { ...r.attributes, evidence_gaps: [...(r.attributes.evidence_gaps as string[]), "A new gap"] } }));
+    expect(mapping(grown).lifecycle).toBe("active");
   });
 
   it("rejects an assessed_by link that no judgement backs", () => {

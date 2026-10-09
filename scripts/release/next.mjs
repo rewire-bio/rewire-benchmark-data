@@ -2,8 +2,9 @@
 //   node scripts/release/next.mjs prepare   set released_at to now; print the current release ID
 //   node scripts/release/next.mjs latest    print the newest release whose files are present
 //   node scripts/release/next.mjs withheld <previous-id> <next-id>
-//       exit 4 if the next release automatically withholds use-case mappings
-//       that the previous release serves (their evidence changed since review)
+//       exit 4 if the next release withholds or drops use-case mappings that the
+//       previous release serves, unless the judgement was withdrawn on purpose
+//       (its claim is excluded or superseded in data/evidence/claims.jsonl)
 //   node scripts/release/next.mjs pending <previous-id> <next-id>
 //       exit 0 if the next release differs from the previous one in anything but
 //       its release ID and date (new or changed records, evidence, audits, use
@@ -61,12 +62,17 @@ if (command === 'latest') {
   const live = new Set((before?.mappings || []).filter(mapping => mapping.lifecycle === 'active').map(mapping => mapping.id));
   // A withheld mapping is one the previous release served that is now needs_review: older
   // releases mark it with stale_from, newer ones derive it from its relevance judgement.
-  const withheld = (after?.mappings || []).filter(mapping => live.has(mapping.id) && mapping.lifecycle === 'needs_review');
+  const withheld = (after?.mappings || []).filter(mapping => live.has(mapping.id) && !['active', 'withdrawn', 'superseded'].includes(mapping.lifecycle));
+  // A served mapping missing from the next release counts too, unless its judgement was withdrawn.
+  const present = new Set((after?.mappings || []).map(mapping => mapping.id));
+  const withdrawn = new Set(fs.readFileSync('data/evidence/claims.jsonl', 'utf8').split('\n').filter(Boolean)
+    .map(line => JSON.parse(line)).filter(claim => ['excluded', 'superseded'].includes(claim.status)).map(claim => claim.id));
+  for (const id of live) if (!present.has(id) && !withdrawn.has(id)) withheld.push({ id, reason: 'missing from the release without a withdrawn judgement' });
   if (withheld.length) {
     const detail = withheld.slice(0, 10).map(mapping => `${mapping.id} (${mapping.reason})`).join('; ');
-    console.log(`::error::${next} withholds ${withheld.length} use-case mappings that ${previous} serves: ${detail}. Re-review their relevance judgements, or run npm run use-cases:repin -- <review> when only the record form changed, before releasing.`);
+    console.log(`::error::${next} withholds ${withheld.length} use-case mappings that ${previous} serves: ${detail}. Re-review their relevance judgements and re-pin them (npm run use-cases:repin -- <review> <claim-id>...), or withdraw them by excluding the claim, before releasing.`);
     process.exitCode = 4;
-  } else console.log(`No use-case mapping that ${previous} serves is withheld by ${next}.`);
+  } else console.log(`No use-case mapping that ${previous} serves is withheld or dropped by ${next}.`);
 } else if (command === 'pending') {
   if (!previous || !next) throw new Error('Usage: next.mjs pending <previous-id> <next-id>');
   const a = releaseOf(previous), b = releaseOf(next);

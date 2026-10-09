@@ -13,7 +13,9 @@ Use cases are records in the store, like models and benchmarks.
 
 A judgement is a decision, not a fact from a source: someone read the protocol and the question and decided how closely one answers the other. The agent that makes it (usually the one extracting the evidence) records its reasoning in the claim with status `needs_review`. A different worker reviews it with `review-evidence`, as for any other claim. In the knowledge graph a judgement is `rb:RelevanceJudgement`, a subclass of SEPIO assertion (`obo:SEPIO_0000001`); `rb:UseCase` and `rb:assessedBy` are rewire terms because no external term matches (see the basis notes in `data/ontology/mapping.json`).
 
-The evaluations behind a judgement are not listed in it. They are every evaluation on the protocol, minus any the judgement excludes with a reason (`excluded_evaluations`), that pass the usual evidence gates: reviewed evaluation and configuration, at least one reviewed result, clean sources. A new tool run on a mapped protocol therefore appears on the use-case page without a new judgement.
+A reviewed judgement lists the evaluations its reviewer checked (`reviewed_evaluations`). The release shows every evaluation on the protocol, minus any the judgement excludes with a reason (`excluded_evaluations`), that passes the usual evidence gates: reviewed evaluation and configuration, at least one reviewed result, clean sources. A new tool run on a mapped protocol therefore appears without a new judgement. If a reviewed evaluation stops passing the gates, the whole judgement is withheld, so a comparison never silently loses a member. A protocol with more than 500 eligible evaluations is withheld until it is split.
+
+Each use case can also carry a summary claim (`field` `summary`): a short, descriptive account of what the evidence shows, never a recommendation. It is published only once it is reviewed, its sources are clean and its pins match; a draft summary is not published.
 
 ## When a judgement is shown
 
@@ -21,9 +23,12 @@ The evaluations behind a judgement are not listed in it. They are every evaluati
 
 - **draft** while its claim is `needs_review`: recorded, not shown as evidence;
 - **active** when its claim is reviewed, its pins match, its sources are clean, the use case links `assessed_by` the protocol and at least one evaluation is eligible;
-- **withheld** (`needs_review` in the artifact, with the reason) when any of those fails.
+- **withheld** (`needs_review` in the artifact, with the reason) when any of those fails, or when the claim is `disputed`, a source the use case cites has concerns, or its task is disputed or unreviewed;
+- **dropped** when its claim is `excluded` or `superseded`.
 
-**Pins.** A judgement pins the fields it relies on: the use case's question, decision, inputs, output and exclusions; the protocol's status, link targets, `protocol` and `version`; and its sources' status and artifact hash (`judgementPinFields`). If any of these changes, the judgement is withheld until it is reviewed again. Link relation names are not pinned, so a rename such as #50 changes nothing, and results are not pinned, because each result is gated by its own review. When a reviewed migration changes only how pinned fields are written, `npm run use-cases:repin -- <review.md>` refreshes the pins and records the change in provenance. The release workflow refuses a release that withholds a judgement the previous release served (`scripts/release/next.mjs withheld`).
+**Pins.** A reviewed judgement or summary pins the records it rests on (`judgementPinFields`, `claimPins`): the use case's status, name, description, facets and decision fields (question, decision, inputs, output, exclusions, setting, scope, users); the protocol's status, name, description, facets, sources, links and attributes; the status and artifact hash of the protocol's and the claim's sources; and each reviewed evaluation (status, links, origin, comparison) with its results (status, metric, qualifier, printed and numeric value). If any of these changes, the claim is withheld until it is reviewed again. Adding a judgement, gap or citation to a use case does not withhold its other judgements; its cited sources are checked live instead.
+
+`npm run use-cases:repin -- <review.md>` pins reviewed claims that have no pins yet. After a re-review, name the claims: `npm run use-cases:repin -- <review.md> <claim-id>...`. Only a reviewed change of form that alters no meaning, such as a vocabulary relabel or a relation rename, justifies `--all`. Each pinned claim is recorded in provenance. The release workflow refuses a release that withholds or drops a judgement the previous release served, unless its claim was excluded or superseded (`scripts/release/next.mjs withheld`).
 
 ## Content and evidence ownership
 
@@ -35,12 +40,12 @@ The evaluations behind a judgement are not listed in it. They are every evaluati
 
 1. Add or edit the `use_case` record through a batch (`npm run records -- add`) or a reviewed change (`npm run records -- change`).
 2. For each protocol that bears on it, add the `assessed_by` link and a relevance judgement claim with status `needs_review`. Use `excluded_evaluations` only for evaluations on the protocol that do not apply, each with a reason.
-3. A different worker reviews the judgement (`review-evidence`), sets it to `source_checked`, and records its pins with `npm run use-cases:repin -- <review.md>`.
+3. A different worker reviews the judgement (`review-evidence`), lists the evaluations it checked in `reviewed_evaluations`, sets it to `source_checked`, and records its pins with `npm run use-cases:repin -- <review.md> <claim-id>...`. Summaries are reviewed and pinned the same way, after the judgements they describe.
 4. To withdraw a judgement, set its claim to `excluded` (or `superseded`, with a `supersedes` link from its replacement). Earlier releases keep the evidence they served.
 
 The documentation sources that some use cases cite keep their reviewed bytes in `data/omics/use-cases/sources/`, bound by `data/omics/use-cases/review.json`; releases publish them at `/omics/sources/<sha256>.md`.
 
-The move from the old `inputs.json` file to records is batch `data/omics/use-case-records-20261009/`: all 26 use cases and 100 mappings round-trip to the same artifact.
+The move from the old `inputs.json` file to records is batch `data/omics/use-case-records-20261009/`: all 26 use cases and 100 mappings round-trip to the same artifact, apart from the new presentation fields.
 
 ## Initial review boundaries
 

@@ -59,6 +59,7 @@ export const attributeRegistry = {
     reason: "text",
     relevance: "concept:relevance",
     review: "review",
+    reviewed_evaluations: "record-ids",
     revision: "integer",
     source_locator: "text",
     stratum_label: "text",
