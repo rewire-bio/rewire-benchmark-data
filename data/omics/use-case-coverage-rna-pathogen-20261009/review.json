@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T20:41:44Z",
+  "scope": "Independent review of the RNA pathogen-detection use-case batch for use-case-diagnostic-rna-pathogen-detection: 1,177 records (994 results, 97 evaluations, 39 configurations, 18 methods, 10 claims including 7 relevance judgements, 7 protocols, 6 sources, 3 datasets, 3 services). All six pinned artifacts were re-downloaded and match their recorded SHA-256; the three archived copies decompress to the same bytes. All 994 results were re-read with a separate OOXML reader (the extractor's script was not run) and match in printed and numeric value, locator, metric, unit, direction and the linked configuration, protocol and dataset. Corrections, the replacement of two source-wide concerns by row-level disputes, and the relevance changes are listed in docs/reviews/use-cases/diagnostic-rna-pathogen-detection-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review, not reproduction of any pipeline and not clinical validation.",
+    "The Carbo et al. supplement and all de Vries et al. values come from medRxiv preprint version 1; the published supplementary files were not retrieved in either pass.",
+    "Figures, de Vries et al. Tables 1 and 2 (images), and CAMI II Supplementary Fig. 16 were not checked.",
+    "Brinkmann et al. 2019 and the other screened sources in research.md were not re-read.",
+    "Judgement pins are not set; they are computed by the integrator after the records are in the store."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rna-pathogen-20261009-source-devries2021-supp"
+      ],
+      "message": "Source-wide evidence concern replaced: the 14th row ('DIAMOND pipeline 3A') is disputed with its evaluation and 15 results and excluded from the sample-level judgement; the Abstract 80% versus 77% conflict is a limitation on the article source and the judgements."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rna-pathogen-20261009-source-meyer2022-supp"
+      ],
+      "message": "Source-wide evidence concern replaced: the two Bracken evaluations and their 4 results are disputed and excluded from the CAMI II judgement; the conflict is a limitation."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "3 Carbo species and genus judgements"
+      ],
+      "message": "relevance direct changed to proxy: operating point chosen from the ROC on the same cohort, total-nucleic-acid library rather than DNase-treated RNA."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "4 Carbo judgements"
+      ],
+      "message": "limitation said four 10000 cells for every protocol; the counts are 6 (family), 2 (species cut-off 10) and 0 (species cut-off 0, genus)."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "7 judgements"
+      ],
+      "message": "source caveats added to limitations (preprint status, ROC-selected operating point, library preparation, dry-lab design, PPV definition, CCHFV causality, curation per Table 39)."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rna-pathogen-20261009-claim-devries2021-negative-control"
+      ],
+      "message": "the fetal bovine serum attribution now applies to BVDV only, as in the source; claims.csv updated."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "data/vocab/metric.ttl negative-predictive-value"
+      ],
+      "message": "added skos:exactMatch STATO_0000619 after checking its published definition."
+    }
+  ],
+  "files": {
+    "artifacts/carbo2022-article.xml.gz": "7c1c12cb42d9035926ff3f12186a86bb5ea3bdb486eadbef9aa6315345f3507a",
+    "artifacts/meyer2022-article.xml.gz": "1fe06987d9ab6afd81e22428443a999e9b362beb57fe880df63022138bc18b4c",
+    "artifacts/meyer2022-supplementary-tables.xlsx.gz": "4a6eb7b4b96bf8cf961214194263f040203ae2fdf8ef0e54596852bb86741ba8",
+    "batch.jsonl": "49b42634c1169325668fae3a976055fc01b6d812974603a034bc498f2e8b08ee",
+    "claims.csv": "e8db20121c05411aa4a49a98c61eb74a4552a06c42f7d6b833db4ce04cab2534",
+    "coverage.json": "6bce3428859f74af7c1dbf817c5cc9cf67c710747efda064dd95cf616fb44276",
+    "extract/extract_rna_pathogen.py": "4aa3f1e6db4c79cb77595ef0f5952f95d05b1b65a6537f668e2b2f4251665ae3",
+    "extract/judgements.json": "2b82861795052b26e332b1c9f88a910c6aa557912f624f8d044ea688a626e1b4",
+    "research.md": "387ed875b73d15eccbc83e3055480b5486469ee83a39c8ddbd627f412a8bfe67",
+    "retrieval-log.md": "7ad0fd59f4f61a7fae1c1bdb2d0cb740a106f807d0f7906d5fdcacf664d86c56",
+    "sources.md": "9ee3e14c79855fa3ba0b497fa475f96585fcc6c6b1e270c9a92db8e7b554d3d7"
+  }
+}
