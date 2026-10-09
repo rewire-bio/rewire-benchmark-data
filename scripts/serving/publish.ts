@@ -39,7 +39,7 @@ if (exists) {
 } else if (check) {
   throw new Error(`${tag} is not published`);
 } else {
-  gh("release", "create", tag, file, path.join("public/serving", receiptFile), "--repo", repository,
+  gh("release", "create", tag, ...(process.env.RELEASE_TARGET_SHA ? ["--target", process.env.RELEASE_TARGET_SHA] : []), file, path.join("public/serving", receiptFile), "--repo", repository,
     "--title", `Prepared release ${receipt.release_id}`,
     "--notes", `Prepared serving file for release ${receipt.release_id}.\n\nsha256: ${receipt.sha256}\nserving contract: ${receipt.serving_contract_version}\ngenerator: ${receipt.generator_sha256}`);
   console.log(`Published ${tag}: ${receipt.file} (${receipt.sha256}).`);

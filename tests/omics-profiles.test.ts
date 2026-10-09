@@ -3,7 +3,7 @@ import { profileSchema } from "../lib/omics-profile";
 import { buildRelease } from "../scripts/omics/release";
 import { loadRecords } from "../scripts/omics/records";
 import { publicRecords, validateRecords, type RecordEntry } from "../scripts/omics/schema";
-import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
+import { createCatalogueQuery } from "../shared/omics/catalogue-query";
 
 const records = loadRecords();
 const profiles = records

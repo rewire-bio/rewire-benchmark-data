@@ -1,10 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import { canonicalResearchJson, researchHash, validateResearchIntegrity } from "../../services/omics/src/research-integrity";
-export { canonicalResearchJson, researchHash } from "../../services/omics/src/research-integrity";
-import type { CatalogueSnapshot } from "../../services/omics/src/catalogue-query";
-import { assertPublicResearch, researchInvestigationSchema, validateResearchManifest, type ResearchInvestigation } from "../../services/omics/src/research";
+import { canonicalResearchJson, researchHash, validateResearchIntegrity } from "../../shared/omics/research-integrity";
+export { canonicalResearchJson, researchHash } from "../../shared/omics/research-integrity";
+import type { CatalogueSnapshot } from "../../shared/omics/catalogue-query";
+import { assertPublicResearch, researchInvestigationSchema, validateResearchManifest, type ResearchInvestigation } from "../../shared/omics/research";
 
 /** Validate against the exact source snapshot before accepting local work. */
 export function validateInvestigationBundle(input: unknown, manifestInput: unknown, snapshot: CatalogueSnapshot): ResearchInvestigation {

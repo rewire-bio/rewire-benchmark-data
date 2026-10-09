@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { benchmarkCoverage } from "../services/omics/src/benchmark-coverage";
-import { createCatalogueQuery, type CatalogueRecord, type CatalogueSnapshot } from "../services/omics/src/catalogue-query";
-import type { PublishedComparison } from "../services/omics/src/published-comparisons";
+import { benchmarkCoverage } from "../shared/omics/benchmark-coverage";
+import { createCatalogueQuery, type CatalogueRecord, type CatalogueSnapshot } from "../shared/omics/catalogue-query";
+import type { PublishedComparison } from "../shared/omics/published-comparisons";
 
 const record = (
   id: string,

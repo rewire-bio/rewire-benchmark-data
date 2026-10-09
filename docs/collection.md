@@ -94,7 +94,7 @@ Write records following [record-contract.md](record-contract.md). Search existin
   - `review`: see [step 5](#5-review)
 - `claim` records for descriptive facts about a model or benchmark (training data, licence, input type), each with its own `source_locator`.
 
-The full list of kinds is in `services/omics/src/entity-kinds.ts`; allowed link relations are in the same file.
+The full list of kinds is in `shared/omics/entity-kinds.ts`; allowed link relations are in the same file.
 
 Controlled fields hold concept keys from the SKOS vocabularies in `data/vocab/` (`<scheme>.ttl`): metric, unit, metric direction, areas, method types, contexts, publication status, origin, entity level, baseline type, configuration type, review method and reviewer (`agent`). `npm run records -- add` rejects any other value. If no concept fits, add one to the scheme in the same PR, with a definition and an external match (STATO, QUDT or EDAM) where one exists, and get it reviewed like a record change. Never add a concept that only respells an existing one.
 
@@ -176,7 +176,7 @@ Audits are append-only checks on a specific catalogue release, stored in `data/o
 
 1. Freeze the release and retrieve primary sources with `scripts/omics/audit/check-sources.py`, recording hashes and access failures.
 2. Run independent source-cell and metadata checks. A parser rerun, an HTTP 200 or an old review date is not a new verification.
-3. Write the run, checks and resolutions in the audit format defined in `services/omics/src/audit.ts`, under a new run ID. Existing audit files cannot be overwritten with different bytes. (The generators for the September 2026 runs were tied to releases that are no longer stored; their output remains in `data/omics/audits/`.)
+3. Write the run, checks and resolutions in the audit format defined in `shared/omics/audit.ts`, under a new run ID. Existing audit files cannot be overwritten with different bytes. (The generators for the September 2026 runs were tied to releases that are no longer stored; their output remains in `data/omics/audits/`.)
 4. Resolve confirmed errors through a reviewed record change and a linked follow-up check. Never erase a contradictory finding.
 
 ## 6. Add the batch to the store

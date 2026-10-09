@@ -57,7 +57,7 @@ if (exists) {
       `https://github.com/${repository}/releases/download/${tag}/${name}`,
     "```",
   ].join("\n");
-  gh("release", "create", tag, archive, manifestFile, "--repo", repository,
+  gh("release", "create", tag, ...(process.env.RELEASE_TARGET_SHA ? ["--target", process.env.RELEASE_TARGET_SHA] : []), archive, manifestFile, "--repo", repository,
     "--title", `Knowledge graph ${manifest.release_id}`, "--notes", notes);
   console.log(`Published ${tag}: ${name} (${built}).`);
 }

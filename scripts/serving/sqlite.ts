@@ -8,31 +8,31 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { gzipSync } from "node:zlib";
-import { createCatalogueQuery, type CatalogueSnapshot } from "../../services/omics/src/catalogue-query";
-import { createEvidenceIndex } from "../../services/omics/src/evidence-table";
-import { deriveResearchReadiness, getResearch } from "../../services/omics/src/research";
-import { useCaseState, type UseCaseArtifact, type UseCaseDeclaration } from "../../services/omics/src/use-cases";
-import { PREPARED_CONTRACT_VERSION } from "../../services/omics/src/prepared-catalogue";
-import { isBenchmarkSubject, isDatasetSubject } from "../../services/omics/src/entity-kinds";
+import { createCatalogueQuery, type CatalogueSnapshot } from "../../shared/omics/catalogue-query";
+import { createEvidenceIndex } from "../../shared/omics/evidence-table";
+import { deriveResearchReadiness, getResearch } from "../../shared/omics/research";
+import { useCaseState, type UseCaseArtifact, type UseCaseDeclaration } from "../../shared/omics/use-cases";
+import { PREPARED_CONTRACT_VERSION } from "../../shared/omics/prepared-catalogue";
+import { isBenchmarkSubject, isDatasetSubject } from "../../shared/omics/entity-kinds";
 import { benchmarkCoverage } from "../omics/audit-benchmark-evidence";
 import { buildBaselineAudit } from "../../lib/baseline-coverage";
-import type { CatalogueRecord } from "../../services/omics/src/catalogue-query";
-import type { AuditCheck, AuditIndexRow } from "../../services/omics/src/audit";
+import type { CatalogueRecord } from "../../shared/omics/catalogue-query";
+import type { AuditCheck, AuditIndexRow } from "../../shared/omics/audit";
 const { DatabaseSync } = process.getBuiltinModule("node:sqlite");
 
 export const generatorFiles = [
   "scripts/serving/sqlite.ts",
-  "services/omics/src/catalogue-query.ts",
-  "services/omics/src/audit-query.ts",
-  "services/omics/src/audit.ts",
+  "shared/omics/catalogue-query.ts",
+  "shared/omics/audit-query.ts",
+  "shared/omics/audit.ts",
   "scripts/omics/audit-benchmark-evidence.ts",
   "lib/baseline-coverage.ts",
-  "services/omics/src/evidence-table.ts",
-  "services/omics/src/prepared-catalogue.ts",
-  "services/omics/src/published-comparisons.ts",
-  "services/omics/src/research.ts",
-  "services/omics/src/source-identity.ts",
-  "services/omics/src/use-cases.ts",
+  "shared/omics/evidence-table.ts",
+  "shared/omics/prepared-catalogue.ts",
+  "shared/omics/published-comparisons.ts",
+  "shared/omics/research.ts",
+  "shared/omics/source-identity.ts",
+  "shared/omics/use-cases.ts",
 ];
 /** Catalogue-wide counts shown on the homepage, prepared once per release.
  * Labels stay raw; the website formats them. */

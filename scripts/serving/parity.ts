@@ -6,9 +6,9 @@
  */
 import fs from "node:fs";
 import assert from "node:assert/strict";
-import { createCatalogueQuery, type CatalogueSnapshot } from "../../services/omics/src/catalogue-query";
-import { openPreparedCatalogue } from "../../services/omics/src/prepared-catalogue";
-import { createUseCaseQuery } from "../../services/omics/src/use-cases";
+import { createCatalogueQuery, type CatalogueSnapshot } from "../../shared/omics/catalogue-query";
+import { openPreparedCatalogue } from "../../shared/omics/prepared-catalogue";
+import { createUseCaseQuery } from "../../shared/omics/use-cases";
 
 type Query = Record<string, (input?: unknown) => unknown>;
 

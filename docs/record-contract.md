@@ -5,13 +5,13 @@ Reviewed JSONL records are the publication source. The release builder writes th
 Each record is an object. Fields marked as concept keys hold the last segment of a concept IRI from a SKOS scheme in `data/vocab/`; the JSON-LD context (`data/ontology/context.jsonld`) expands them to IRIs such as `https://benchmarks.rewire.it/vocab/metric/auprc`. Validation rejects any other value.
 
 - `id`: stable lowercase slug, unique across kinds.
-- `kind`: one of `model`, `method`, `configuration`, `pipeline`, `service`, `benchmark`, `task`, `protocol`, `evaluator`, `dataset`, `dataset_subset`, `baseline`, `evaluation`, `result`, `source`, `claim`. The list and the allowed link relations are defined in `services/omics/src/entity-kinds.ts`.
+- `kind`: one of `model`, `method`, `configuration`, `pipeline`, `service`, `benchmark`, `task`, `protocol`, `evaluator`, `dataset`, `dataset_subset`, `baseline`, `evaluation`, `result`, `source`, `claim`. The list and the allowed link relations are defined in `shared/omics/entity-kinds.ts`.
 - `name`: display name.
 - `description`: plain text.
 - `status`: `discovered`, `needs_review`, `source_checked`, `reproduced`, `disputed`, `superseded`, or `excluded`. Source-checked is not reproduced.
 - `facets`: object mapping facet names to arrays. `areas`, `method_types` and `contexts` hold concept keys from `data/vocab/area.ttl`, `method-type.ttl` and `context.ttl`; `tasks` is free text.
 - `source_ids`: IDs of source records supporting this entity.
-- `links`: array of `{ "relation": "...", "target_id": "..." }`. Allowed relations are listed in `services/omics/src/entity-kinds.ts` (for example `model`, `benchmark`, `dataset`, `variant_of`, `alias_of`, `part_of`, `supersedes`, `source`). References resolve within a release.
+- `links`: array of `{ "relation": "...", "target_id": "..." }`. Allowed relations are listed in `shared/omics/entity-kinds.ts` (for example `model`, `benchmark`, `dataset`, `variant_of`, `alias_of`, `part_of`, `supersedes`, `source`). References resolve within a release.
 - `attributes`: kind-specific JSON object. Explicit unknown metadata uses null and `missing_metadata` reasons, never invented values.
 
 A `source` has attributes `url`, `version`, `retrieved_at`, optional `doi`, `publication_status`, `artifact_sha256`, `locator` and `licence`.

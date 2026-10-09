@@ -1,6 +1,6 @@
 # Cutting a release
 
-A release is an immutable, content-addressed snapshot of every reviewed record. Its ID is `<date>-<hash>`, derived from the records, the `released_at` time in `data/omics/release-config.json` and the release coverage. The coverage includes hashes of some generator source files (for example `lib/baseline-coverage.ts` and the evidence-table and research modules in `services/omics/src/`), so changing those files' bytes, even only an import path, changes the ID of a rebuilt release. CI rebuilds the current release and fails if its ID changes, so make such changes together with a new release. The website pins one release. Only the current release's files are kept in the repository; earlier releases keep their receipts.
+A release is an immutable, content-addressed snapshot of every reviewed record. Its ID is `<date>-<hash>`, derived from the records, the `released_at` time in `data/omics/release-config.json` and the release coverage. The coverage includes hashes of some generator source files (for example `lib/baseline-coverage.ts` and the evidence-table and research modules in `shared/omics/`), so changing those files' bytes, even only an import path, changes the ID of a rebuilt release. CI rebuilds the current release and fails if its ID changes, so make such changes together with a new release. The website pins one release. Only the current release's files are kept in the repository; earlier releases keep their receipts.
 
 ## When
 
@@ -10,6 +10,14 @@ Cut a release deliberately, not on every evidence PR:
 - after a reviewed batch that should reach the website before the next refresh.
 
 Evidence PRs leave `release-config.json` alone. Several merged batches can go out in one release. A no-change refresh does not create a release.
+
+## Automated releases
+
+`.github/workflows/release.yml` runs on every push to `main` and on demand (Actions, "Cut and publish a release"). It builds a candidate release dated now and compares it with the current release, ignoring only the release ID and date (`scripts/release/next.mjs`). If nothing else differs it stops, so pushes that change no data cost one build and nothing else. Otherwise it keeps only the new release, rebuilds it to confirm it reproduces, runs every check (store, types, all tests, Python and KG tests, packaging, prepared-file parity, bundle format), commits it to `main` as `Cut release <id>`, publishes `serving/<id>` and `kg/<id>` tagged at that commit, and dispatches `data-release` to rewire-database. That starts its adopt-data-release workflow, which checks and deploys the release. A release cut by hand and merged as a pull request is published by `data.yml` and dispatched the same way.
+
+The dispatch needs the repository secret `WEBSITE_DISPATCH_TOKEN`: a fine-grained personal access token (or GitHub App token) for `rewire-bio/rewire-database` with Contents read and write. GitHub's workflow token cannot reach another repository. Without the secret the release is still published, and the workflow warns that the website must adopt it by hand.
+
+The workflow only packages what reviewed pull requests have already merged. It writes no release notes; add one to `scripts/omics/release.ts` in an evidence PR when a change needs it. Cut a release by hand, with the steps below, when you want it reviewed as a pull request first.
 
 ## Steps
 

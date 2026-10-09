@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { currentReleaseDir } from "./helpers/records";
-import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
+import { createCatalogueQuery } from "../shared/omics/catalogue-query";
 import { benchmarkCoverage, assertCoverageFloor } from "../scripts/omics/audit-benchmark-evidence";
 const snapshot = JSON.parse(gunzipSync(fs.readFileSync(`${currentReleaseDir()}/catalogue.json.gz`)).toString());
 const query = createCatalogueQuery(snapshot);

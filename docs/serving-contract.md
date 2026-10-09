@@ -30,7 +30,7 @@ For release `2026-10-07-061436ccd3b9`: 28,677 records, 12,487 result rows, 77,36
 
 ## Reading it
 
-`services/omics/src/prepared-catalogue.ts` opens the file read-only and exposes the engine's methods: `release`, `record`, `get`, `comparison`, `results`, `evidence`, `list`, `compare`, `researchReadiness`, `investigations`, `useCases()`, `homeSummary`, `evidenceSummary`, `baselineAudit`, `verifiedAssociation`, `research`, `auditRuns`, `auditRecords` and `auditChecks`. Each uses the same exported functions as `createCatalogueQuery` (`resultPage`, `evidencePage`, `listPage`, `compareResults`, `readinessPage`, `investigationsPage`, `useCaseQueryFrom`), so filters, facet counts, ordering and cursors cannot drift. Cursors remain release-bound and interchangeable with the live engine's.
+`shared/omics/prepared-catalogue.ts` opens the file read-only and exposes the engine's methods: `release`, `record`, `get`, `comparison`, `results`, `evidence`, `list`, `compare`, `researchReadiness`, `investigations`, `useCases()`, `homeSummary`, `evidenceSummary`, `baselineAudit`, `verifiedAssociation`, `research`, `auditRuns`, `auditRecords` and `auditChecks`. Each uses the same exported functions as `createCatalogueQuery` (`resultPage`, `evidencePage`, `listPage`, `compareResults`, `readinessPage`, `investigationsPage`, `useCaseQueryFrom`), so filters, facet counts, ordering and cursors cannot drift. Cursors remain release-bound and interchangeable with the live engine's.
 
 `serving_contract_version` changes major version when a table or meaning changes incompatibly; the reader refuses an unsupported major version.
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { profileSchema, validateProfileSources } from "../lib/omics-profile";
 import { buildRelease } from "../scripts/omics/release";
-import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
+import { createCatalogueQuery } from "../shared/omics/catalogue-query";
 import { records, recordsById } from "./helpers/records";
 
 const sources = new Map(records.filter((record) => record.kind === "source").map((record) => [record.id, record]));

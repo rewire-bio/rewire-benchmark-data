@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { loadRecords } from "../scripts/omics/records";
 import { buildRelease } from "../scripts/omics/release";
 import { type RecordEntry } from "../scripts/omics/schema";
-import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
+import { createCatalogueQuery } from "../shared/omics/catalogue-query";
 
 const release = buildRelease(
   loadRecords(),

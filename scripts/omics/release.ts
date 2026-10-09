@@ -1,5 +1,5 @@
-import { benchmarkCoverage as benchmarkPageCoverage } from "../../services/omics/src/benchmark-coverage";
-import { validateSnapshot } from "../../services/omics/src/validation";
+import { benchmarkCoverage as benchmarkPageCoverage } from "../../shared/omics/benchmark-coverage";
+import { validateSnapshot } from "../../shared/omics/validation";
 import { writeBaselineAudit } from "./baseline-coverage";
 import { writeImmutableChunks } from "./stream-files";
 import { loadUseCases, useCaseInputFiles, useCaseSourceDeclaration, writeUseCaseSourceCopies, validateUseCaseHistory } from "./use-cases";
@@ -9,21 +9,21 @@ import {
   useCaseDeclaration,
   useCaseHash,
   type UseCaseInputs,
-} from "../../services/omics/src/use-cases";
+} from "../../shared/omics/use-cases";
 
 import { loadResearchInputs, researchFiles, researchInputFiles } from "./research-release";
 import { withResearchPins } from "./research-snapshot";
-import { deriveResearchReadiness, validateResearchData, type ResearchData } from "../../services/omics/src/research";
+import { deriveResearchReadiness, validateResearchData, type ResearchData } from "../../shared/omics/research";
 import { auditFiles, loadAudits, auditInputFiles } from "./audit/release";
 import { benchmarkCoverage } from "./audit-benchmark-evidence";
-import { legacyKinds } from "../../services/omics/src/entity-kinds";
-import { assertNoPrivateFields } from "../../services/omics/src/private-fields";
+import { legacyKinds } from "../../shared/omics/entity-kinds";
+import { assertNoPrivateFields } from "../../shared/omics/private-fields";
 import {
   createEvidenceIndex,
   evidenceCsv,
   evidenceCsvLines,
   evidenceJsonlLines,
-} from "../../services/omics/src/evidence-table";
+} from "../../shared/omics/evidence-table";
 import fs from "node:fs";
 import { restoreReleaseBundles } from "./archives";
 import { loadRecords, recordFiles, provenanceFile } from "./records";
@@ -305,13 +305,13 @@ function main() {
         note: "Source-reviewed instructions and exact applicability links; execution receipts do not establish reproduction of published scores. Production contributions remain disabled.",
       },
       evidence_table_version: "1.0",
-      ...(research ? { research_generator_sha256: sha(["services/omics/src/research.ts", "services/omics/src/research-integrity.ts", "scripts/omics/research-release.ts"].map(file => fs.readFileSync(file, "utf8")).join("\n")) } : {}),
+      ...(research ? { research_generator_sha256: sha(["shared/omics/research.ts", "shared/omics/research-integrity.ts", "scripts/omics/research-release.ts"].map(file => fs.readFileSync(file, "utf8")).join("\n")) } : {}),
       evidence_table_generator_sha256: sha(
         [
-          "services/omics/src/evidence-table.ts",
-          "services/omics/src/run-recipe.ts",
-          "services/omics/src/profile-schema.ts",
-          "services/omics/src/private-fields.ts",
+          "shared/omics/evidence-table.ts",
+          "shared/omics/run-recipe.ts",
+          "shared/omics/profile-schema.ts",
+          "shared/omics/private-fields.ts",
         ]
           .map((file) => fs.readFileSync(file, "utf8"))
           .join("\n"),

@@ -4,8 +4,8 @@ import {
   createCatalogueQuery,
   type CatalogueRecord,
   type CatalogueSnapshot,
-} from "../../services/omics/src/catalogue-query";
-import type { PublishedComparison } from "../../services/omics/src/published-comparisons";
+} from "../../shared/omics/catalogue-query";
+import type { PublishedComparison } from "../../shared/omics/published-comparisons";
 
 function record(
   id: string,

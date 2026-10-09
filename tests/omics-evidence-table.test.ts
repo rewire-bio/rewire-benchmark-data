@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   createEvidenceIndex,
   evidenceCsv,
-} from "../services/omics/src/evidence-table";
+} from "../shared/omics/evidence-table";
 import {
   createCatalogueQuery,
   type CatalogueRecord,
   type CatalogueSnapshot,
-} from "../services/omics/src/catalogue-query";
+} from "../shared/omics/catalogue-query";
 import { loadRecords, readProvenance } from "../scripts/omics/records";
 import type { OmicsProfile } from "../lib/omics-profile";
 import { buildRelease } from "../scripts/omics/release";

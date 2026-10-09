@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { recordSchema as websiteRecord, validateRecords } from "../scripts/omics/schema";
-import { recordSchema as serviceRecord, validateSnapshot } from "../services/omics/src/validation";
-import { catalogueRelations } from "../services/omics/src/entity-kinds";
+import { recordSchema as serviceRecord, validateSnapshot } from "../shared/omics/validation";
+import { catalogueRelations } from "../shared/omics/entity-kinds";
 import { recordsById } from "./helpers/records";
 
 const source = recordsById.get("rewire-dataset-proteingym-amfr-random-v13")!;

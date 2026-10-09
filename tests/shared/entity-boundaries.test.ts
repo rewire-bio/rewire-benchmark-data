@@ -1,6 +1,6 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
-import { validateSnapshot } from "../../services/omics/src/validation";
+import { validateSnapshot } from "../../shared/omics/validation";
 import { fixture } from "../fixtures/catalogue";
 
 function typedFixture() {

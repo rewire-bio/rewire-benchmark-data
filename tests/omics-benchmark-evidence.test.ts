@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { describe, it, expect } from "vitest";
 import { records, recordsById as byId, readJsonl } from "./helpers/records";
 import { publicRecords, type RecordEntry } from "../scripts/omics/schema";
-import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
+import { createCatalogueQuery } from "../shared/omics/catalogue-query";
 const visible = publicRecords(records);
 const query = createCatalogueQuery({
   schema_version: "1.0",

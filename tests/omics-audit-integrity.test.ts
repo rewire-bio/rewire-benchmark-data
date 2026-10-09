@@ -7,7 +7,7 @@ import {
   validateAudit,
   type AuditBundle,
   type AuditCheck,
-} from "../services/omics/src/audit";
+} from "../shared/omics/audit";
 import { auditFiles } from "../scripts/omics/audit/release";
 const record = {
   id: "record-one",

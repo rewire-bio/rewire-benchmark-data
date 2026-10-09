@@ -10,8 +10,8 @@ import {
   validateUseCaseArtifact,
   type UseCaseInputs,
   type UseCaseArtifact,
-} from "../../services/omics/src/use-cases";
-import { validateSnapshot } from "../../services/omics/src/validation";
+} from "../../shared/omics/use-cases";
+import { validateSnapshot } from "../../shared/omics/validation";
 
 export const useCaseRoot = "data/omics/use-cases";
 const reviewedFiles = [

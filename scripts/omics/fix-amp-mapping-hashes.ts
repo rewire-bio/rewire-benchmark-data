@@ -5,8 +5,8 @@
  * catalogue records exist in a built snapshot ... not before." Run once,
  * then rebuild to confirm every mapping stays active (not demoted). */
 import fs from "node:fs";
-import { mappingEvidenceHash, parseUseCaseInputs } from "../../services/omics/src/use-cases";
-import type { CatalogueSnapshot } from "../../services/omics/src/catalogue-query";
+import { mappingEvidenceHash, parseUseCaseInputs } from "../../shared/omics/use-cases";
+import type { CatalogueSnapshot } from "../../shared/omics/catalogue-query";
 
 const NEW_MAPPING_IDS = [
   "use-case-mapping-amp-20261007-issue10-lancet-virtual-tumor",

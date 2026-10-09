@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { createCatalogueQuery, type CatalogueSnapshot } from "../../services/omics/src/catalogue-query";
-import { isModelSubject } from "../../services/omics/src/entity-kinds";
+import { createCatalogueQuery, type CatalogueSnapshot } from "../../shared/omics/catalogue-query";
+import { isModelSubject } from "../../shared/omics/entity-kinds";
 import { auditCsv } from "./baseline-coverage";
 
 /** Coverage comes from the same reviewed graph as website/API results, not names. */

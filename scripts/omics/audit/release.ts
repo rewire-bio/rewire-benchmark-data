@@ -7,7 +7,7 @@ import {
   auditIndex,
   validateAudit,
   type AuditBundle,
-} from "../../../services/omics/src/audit";
+} from "../../../shared/omics/audit";
 const root = "data/omics/audits";
 export function auditInputFiles(): string[] {
   return fs.existsSync(root)

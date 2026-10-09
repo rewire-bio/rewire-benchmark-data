@@ -5,7 +5,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { buildRelease } from "../scripts/omics/release";
 import { buildPreparedCatalogue } from "../scripts/serving/sqlite";
 import { checkParity } from "../scripts/serving/parity";
-import { openPreparedCatalogue } from "../services/omics/src/prepared-catalogue";
+import { openPreparedCatalogue } from "../shared/omics/prepared-catalogue";
 import { records } from "./helpers/records";
 const { DatabaseSync } = process.getBuiltinModule("node:sqlite");
 

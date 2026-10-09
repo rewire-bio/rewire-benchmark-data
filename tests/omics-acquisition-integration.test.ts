@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { migrated } from "./helpers/vocab";
 import { describe, it, expect } from "vitest";
 import { batchRecords } from "./helpers/records";
-import { profileSchema } from "../services/omics/src/profile-schema";
+import { profileSchema } from "../shared/omics/profile-schema";
 import type { RecordEntry } from "../scripts/omics/schema";
 const root = "data/omics/acquisition/2026-09-19";
 const read = (name: string): any[] =>

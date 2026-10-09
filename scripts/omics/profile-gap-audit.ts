@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { CatalogueSnapshot } from "../../services/omics/src/catalogue-query";
-import { profileSchema } from "../../services/omics/src/profile-schema";
+import type { CatalogueSnapshot } from "../../shared/omics/catalogue-query";
+import { profileSchema } from "../../shared/omics/profile-schema";
 
 const missingStates = new Set(["unreported", "unextracted", "unavailable", "inapplicable"]);
 const object = (value: unknown): Record<string, unknown> =>

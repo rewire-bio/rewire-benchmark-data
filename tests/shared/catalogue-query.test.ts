@@ -1,7 +1,7 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
-import { createCatalogueQuery } from "../../services/omics/src/catalogue-query";
-import { validateSnapshot } from "../../services/omics/src/validation";
+import { createCatalogueQuery } from "../../shared/omics/catalogue-query";
+import { validateSnapshot } from "../../shared/omics/validation";
 import { fixture } from "../fixtures/catalogue";
 
 test("public queries expose exact direct and reverse identities with result provenance", () => {

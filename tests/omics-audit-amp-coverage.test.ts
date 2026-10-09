@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
-import { buildUseCaseArtifact, mappingEvidenceHash, useCaseDeclaration } from "../services/omics/src/use-cases";
+import { buildUseCaseArtifact, mappingEvidenceHash, useCaseDeclaration } from "../shared/omics/use-cases";
 import { auditUseCaseCoverage, loadCoverageAudit } from "../scripts/omics/audit-amp-coverage";
 
 describe("use-case coverage audit", () => {

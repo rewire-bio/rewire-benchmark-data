@@ -1,9 +1,9 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
-import { privateFieldNames } from "../../services/omics/src/private-fields";
-import { createCatalogueQuery } from "../../services/omics/src/catalogue-query";
-import { createEvidenceIndex } from "../../services/omics/src/evidence-table";
-import { validateSnapshot } from "../../services/omics/src/validation";
+import { privateFieldNames } from "../../shared/omics/private-fields";
+import { createCatalogueQuery } from "../../shared/omics/catalogue-query";
+import { createEvidenceIndex } from "../../shared/omics/evidence-table";
+import { validateSnapshot } from "../../shared/omics/validation";
 import { fixture } from "../fixtures/catalogue";
 
 const boundaries = [

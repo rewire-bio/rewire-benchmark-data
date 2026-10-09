@@ -1,4 +1,4 @@
-import { privateFieldNames } from "../services/omics/src/private-fields";
+import { privateFieldNames } from "../shared/omics/private-fields";
 import { parseCatalogue } from "../lib/omics";
 import { validateRecords } from "../scripts/omics/schema";
 import { afterEach, describe, expect, it } from "vitest";

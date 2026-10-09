@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import { batchRecords, records } from "./helpers/records";
 import { buildRelease } from "../scripts/omics/release";
-import { createCatalogueQuery } from "../services/omics/src/catalogue-query";
-import { createEvidenceIndex } from "../services/omics/src/evidence-table";
+import { createCatalogueQuery } from "../shared/omics/catalogue-query";
+import { createEvidenceIndex } from "../shared/omics/evidence-table";
 
 const batch = batchRecords("data/omics/reviewed/alphagenome-2026.jsonl");
 const receipt = JSON.parse(

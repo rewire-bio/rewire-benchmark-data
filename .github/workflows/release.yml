@@ -1,0 +1,94 @@
+name: Cut and publish a release
+# On every push to main, and on demand: if main holds reviewed changes that are
+# not in the current release, cut a release from them, run every check, commit
+# it to main, publish its prepared SQLite file and knowledge-graph bundle, and
+# dispatch `data-release` to rewire-database, whose adopt-data-release workflow
+# deploys it. Evidence reaches main only through reviewed pull requests; this
+# workflow only packages what is already there. Its own release commit does not
+# start it again (pushes made with the workflow token start no workflows).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: benchmark-data-release
+  cancel-in-progress: false
+env:
+  RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.1.0
+  NODE_OPTIONS: --max-old-space-size=8192
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          # Match the website image: the prepared SQLite file's bytes depend on Node's bundled SQLite.
+          node-version: 24
+          cache: npm
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci
+      - name: Build a candidate release dated now
+        id: candidate
+        run: |
+          previous=$(node scripts/release/next.mjs prepare)
+          npm run build
+          next=$(node scripts/release/next.mjs latest)
+          echo "previous=$previous" >> "$GITHUB_OUTPUT"
+          echo "next=$next" >> "$GITHUB_OUTPUT"
+          echo "Previous release $previous; candidate $next"
+      - name: Stop if the candidate only renames the current release
+        id: pending
+        run: |
+          set +e
+          node scripts/release/next.mjs pending "${{ steps.candidate.outputs.previous }}" "${{ steps.candidate.outputs.next }}"
+          status=$?
+          set -e
+          if [ "$status" = 3 ]; then echo "release=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          [ "$status" = 0 ] && echo "release=true" >> "$GITHUB_OUTPUT"
+          exit "$status"
+      - name: Keep only the new release and confirm a fresh clone rebuilds it byte for byte
+        if: steps.pending.outputs.release == 'true'
+        run: |
+          npm run release:prune
+          npm run build
+      - name: Check the store, types, tests, packaging, prepared file and bundle
+        if: steps.pending.outputs.release == 'true'
+        run: |
+          npm run records -- check
+          npm run typecheck
+          npm test
+          npm run test:python
+          npm run test:kg
+          npm run verify:package
+          node scripts/parallel.mjs serving:parity kg:verify
+      - name: Commit the release to main
+        if: steps.pending.outputs.release == 'true'
+        id: commit
+        env:
+          RELEASE: ${{ steps.candidate.outputs.next }}
+        run: |
+          git config user.name "rewire-release-bot"
+          git config user.email "rewire-release-bot@users.noreply.github.com"
+          git add -A data website
+          git commit -m "Cut release $RELEASE"
+          git push origin HEAD:main
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Publish the prepared release file and the knowledge-graph bundle
+        if: steps.pending.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Tag the release commit itself; the website reads its revision from the tag.
+          RELEASE_TARGET_SHA: ${{ steps.commit.outputs.sha }}
+        run: node scripts/parallel.mjs serving:publish kg:publish
+      - name: Ask the website to adopt it
+        if: steps.pending.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
+        run: node scripts/release/dispatch-website.mjs
