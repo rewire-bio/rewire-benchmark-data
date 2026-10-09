@@ -15,7 +15,7 @@ import {
 import { loadResearchInputs, researchFiles, researchInputFiles } from "./research-release";
 import { withResearchPins } from "./research-snapshot";
 import { deriveResearchReadiness, validateResearchData, type ResearchData } from "../../shared/omics/research";
-import { auditFiles, loadAudits, auditInputFiles } from "./audit/release";
+import { auditFiles, loadAudits } from "./audit/release";
 import { benchmarkCoverage } from "./audit-benchmark-evidence";
 import { legacyKinds } from "../../shared/omics/entity-kinds";
 import { assertNoPrivateFields } from "../../shared/omics/private-fields";
@@ -238,9 +238,7 @@ function main() {
     records,
     audit.released_at,
     {
-      ...(auditInputFiles().some((f) => f.endsWith(".run.json"))
-        ? { audit_history: auditFiles(loadAudits()).coverage }
-        : {}),
+      // The September audit history stays in data/omics/audits; releases no longer republish it.
       entity_schema_version: "1.1",
       entity_migration: {
         baseline_release: "2026-09-17-5054ddf2a281",
@@ -364,7 +362,6 @@ function main() {
       source_inputs: [
         ...recordFiles(),
         provenanceFile,
-        ...auditInputFiles(),
         ...useCaseInputFiles(),
         ...researchInputFiles.filter(file => fs.existsSync(file)),
         "data/omics/search-ledger.jsonl",
