@@ -220,7 +220,7 @@ function main() {
   const audit = JSON.parse(
     fs.readFileSync("data/omics/release-config.json", "utf8"),
   );
-  const reviewedUseCases = loadUseCases();
+  const reviewedUseCases = loadUseCases(records);
   const profiles = records
     .filter((record) => record.attributes.profile)
     .map((record) => record.attributes.profile as OmicsProfile);

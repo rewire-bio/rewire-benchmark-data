@@ -5,6 +5,7 @@ import { gunzipSync } from "node:zlib";
 import { z } from "zod";
 import { recordSchema, type RecordEntry } from "./schema";
 import {
+  deriveUseCaseInputs,
   parseUseCaseInputs,
   useCaseHash,
   validateUseCaseArtifact,
@@ -14,9 +15,10 @@ import {
 import { validateSnapshot } from "../../shared/omics/validation";
 
 export const useCaseRoot = "data/omics/use-cases";
+/** Use cases and their relevance judgements are store records (data/entities/use-cases.jsonl
+ * and judgement claims in data/evidence/claims.jsonl). This folder keeps only the reviewed bytes
+ * of the documentation sources that use cases cite, bound by review.json. */
 const reviewedFiles = [
-  "inputs.json",
-  "sources.json",
   "sources/mfass-matched-study-intake.md",
   "sources/amfr-pilot-readme.md",
   "sources/clinical-priorities-2026-09-28.md",
@@ -89,27 +91,28 @@ export function useCaseInputFiles(directory = useCaseRoot): string[] {
     : [];
 }
 
-/** Read frozen curation only. Builds never refresh evidence fingerprints or receipts. */
-export function loadUseCases(directory = useCaseRoot): ReviewedUseCases | undefined {
-  if (!fs.existsSync(directory)) return undefined;
+/** Use cases derived from store records, plus the reviewed documentation source bytes they
+ * cite. Builds never refresh judgement pins or receipts. */
+export function loadUseCases(records: RecordEntry[], directory = useCaseRoot): ReviewedUseCases | undefined {
+  if (!records.some((record) => record.kind === "use_case")) return undefined;
   const review = reviewSchema.parse(
     JSON.parse(fs.readFileSync(path.join(directory, "review.json"), "utf8")),
   );
   if (JSON.stringify(Object.keys(review.files).sort()) !==
       JSON.stringify([...reviewedFiles].sort()))
-    throw Error("Use-case review must bind every curated input and source artifact");
+    throw Error("Use-case review must bind every documentation source artifact");
   const texts = Object.fromEntries(reviewedFiles.map((file) => {
     const bytes = fs.readFileSync(path.join(directory, file));
     if (sha(bytes) !== review.files[file])
-      throw Error(`Use-case input changed since review: ${file}`);
+      throw Error(`Use-case source changed since review: ${file}`);
     return [file, bytes.toString("utf8")];
   }));
-  const inputs = parseUseCaseInputs(JSON.parse(texts["inputs.json"]));
-  const sources = z.array(recordSchema).parse(JSON.parse(texts["sources.json"]));
-  if (new Set(sources.map((record) => record.id)).size !== sources.length ||
-      JSON.stringify(Object.keys(review.source_artifacts).sort()) !==
-      JSON.stringify(sources.map((record) => record.id).sort()))
-    throw Error("Use-case source inventory does not match the review");
+  const byId = new Map(records.map((record) => [record.id, record]));
+  const sources = Object.keys(review.source_artifacts).sort().map((id) => {
+    const source = byId.get(id);
+    if (!source) throw Error(`Use-case source record is missing from the store: ${id}`);
+    return source;
+  });
   for (const source of sources) {
     const artifact = review.source_artifacts[source.id];
     if (source.kind !== "source" || source.status !== "source_checked" ||
@@ -126,20 +129,14 @@ export function loadUseCases(directory = useCaseRoot): ReviewedUseCases | undefi
   }
   const sourceFiles = Object.fromEntries(Object.values(review.source_artifacts)
     .map((file) => [`use-case-source-${review.files[file]}.md`, texts[file]]));
+  const inputs = deriveUseCaseInputs({ records: records as never });
   return { inputs, sources, review, sourceFiles };
 }
 
-/** Add source provenance without changing any existing scientific record. */
-export function addUseCaseSources(
-  records: RecordEntry[],
-  reviewed = loadUseCases(),
-): RecordEntry[] {
-  if (!reviewed) return records;
-  const ids = new Set(records.map((record) => record.id));
-  for (const source of reviewed.sources)
-    if (ids.has(source.id))
-      throw Error(`Use-case curation cannot replace existing record: ${source.id}`);
-  return [...records, ...reviewed.sources];
+/** The use-case receipt alone: when the documentation sources were last reviewed. */
+export function loadUseCaseReview(directory = useCaseRoot): z.infer<typeof reviewSchema> | undefined {
+  const file = path.join(directory, "review.json");
+  return fs.existsSync(file) ? reviewSchema.parse(JSON.parse(fs.readFileSync(file, "utf8"))) : undefined;
 }
 
 /** A tombstone must recover real, immutable scoped evidence, not an invented

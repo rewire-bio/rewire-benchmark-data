@@ -3,6 +3,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { RefreshStore, nextMonthly, digest } from "../scripts/refresh/store";
+const writeUseCases = (cases: object[]) => {
+  const file = store.file("data/entities/use-cases.jsonl");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, cases.map((c) => JSON.stringify(c) + "\n").join(""));
+};
+
 let root: string, store: RefreshStore, now: string;
 const baseline = "2026-09-30-aaaaaaaaaaaa";
 const scope = ["genomics", "existing-sources", "use-cases"];
@@ -60,9 +66,7 @@ beforeEach(() => {
     required_scope: scope,
   });
   store.write(`data/omics/releases/${baseline}.json`, { release_id: baseline });
-  store.write("data/omics/use-cases/inputs.json", {
-    use_cases: [{ id: "case-a" }],
-  });
+  writeUseCases([{ id: "case-a" }]);
 });
 afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 describe("durable refresh lifecycle", () => {
@@ -118,9 +122,7 @@ describe("durable refresh lifecycle", () => {
   });
   it("cannot clear stale fingerprints by changing use-case bytes", () => {
     const r = begin();
-    store.write("data/omics/use-cases/inputs.json", {
-      use_cases: [{ id: "case-a", hash: "regenerated" }],
-    });
+    writeUseCases([{ id: "case-a", hash: "regenerated" }]);
     expect(() => finish(r.id)).toThrow("without explicit review");
   });
   it("rejects false no-change outcomes", () => {

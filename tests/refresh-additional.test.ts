@@ -4,6 +4,12 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { RefreshStore, digest } from "../scripts/refresh/store";
+const writeUseCases = (cases: object[]) => {
+  const file = store.file("data/entities/use-cases.jsonl");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, cases.map((c) => JSON.stringify(c) + "\n").join(""));
+};
+
 
 const repository = process.cwd();
 const baseline = "2026-09-30-bbbbbbbbbbbb";
@@ -56,9 +62,7 @@ beforeEach(() => {
   store.write(`data/omics/releases/${baseline}.json`, {
     release_id: baseline,
   });
-  store.write("data/omics/use-cases/inputs.json", {
-    use_cases: [{ id: "case-a" }],
-  });
+  writeUseCases([{ id: "case-a" }]);
 });
 
 afterEach(() => fs.rmSync(root, { recursive: true, force: true }));

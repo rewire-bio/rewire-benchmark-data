@@ -9,7 +9,7 @@ Follow [docs/collection.md](../../../docs/collection.md), sections 1 and 2. This
 
 ## Inputs
 
-- A scope: a research lane (`genomics`, `rna`, `protein-fitness`, `structure-design`, `cells-spatial`, `microbial`, `interactions`, `other-omics`, `networks-mechanistic`), a use-case ID from `data/omics/use-cases/inputs.json`, a benchmark or a model family.
+- A scope: a research lane (`genomics`, `rna`, `protein-fitness`, `structure-design`, `cells-spatial`, `microbial`, `interactions`, `other-omics`, `networks-mechanistic`), a use-case ID from `data/entities/use-cases.jsonl`, a benchmark or a model family.
 - A search window (cutoff date) and a query budget. Ask if either is missing.
 
 ## Steps

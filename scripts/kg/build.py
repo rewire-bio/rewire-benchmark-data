@@ -70,6 +70,7 @@ PROTECTED = {
     RB.configurationOf,
     RB.aliasOf,
     RB.usesModel,
+    RB.assessedBy,
     RB.status,
     MLS_HAS_VALUE,
     OWL.sameAs,

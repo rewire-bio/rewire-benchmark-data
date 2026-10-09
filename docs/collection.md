@@ -33,7 +33,7 @@ Research is organised in nine lanes, used as scope IDs in the search ledger and 
 
 `genomics`, `rna`, `protein-fitness`, `structure-design`, `cells-spatial`, `microbial`, `interactions`, `other-omics`, `networks-mechanistic`.
 
-Two further scopes cover cross-cutting checks: `scope-screen` (include or exclude decisions) and `source-resolution` (finding the primary artifact behind a lead). The 17 use cases in `data/omics/use-cases/inputs.json` are a separate axis: each defines a user decision and the evidence it needs (see [use-cases.md](use-cases.md)). Enumerate them from the file each time rather than relying on a remembered count.
+Two further scopes cover cross-cutting checks: `scope-screen` (include or exclude decisions) and `source-resolution` (finding the primary artifact behind a lead). The use cases (`use_case` records in `data/entities/use-cases.jsonl`) are a separate axis: each defines a user decision and the evidence it needs (see [use-cases.md](use-cases.md)). Enumerate them from the file each time rather than relying on a remembered count.
 
 A dataset is the underlying measurements. A benchmark is how a capability is evaluated on a dataset: its split, allowed inputs and metrics. Keep the two separate.
 
@@ -187,7 +187,7 @@ npm run records -- add data/omics/<batch>/batch.jsonl data/omics/<batch>
 
 This appends each record to the right canonical file, keeps the files sorted, and writes its provenance line. It then exports the store to RDF and validates it against the SHACL shapes (`npm run kg:shapes`, which needs [uv](https://docs.astral.sh/uv/) and takes about a minute); if any record fails, the store is put back as it was. It refuses any ID that already exists; to change an existing record, use `records -- change` (step 5). `npm run records -- check` confirms the whole store matches its provenance.
 
-For use-case work, also add or update the mapping in `data/omics/use-cases/inputs.json` that links a use case to the new protocol, evaluation and result IDs. Mappings carry an evidence fingerprint that the build checks against the records.
+For use-case work, also add a relevance judgement for each new protocol that bears on a use case: an `assessed_by` link on the `use_case` record and a judgement claim (`field` `links:assessed_by:<protocol>`) recording relevance, endpoint, rationale, caveats and sources, with status `needs_review`. Evaluations on the protocol are found automatically. The reviewer lists the evaluations it checked in `reviewed_evaluations` and records the pins with `npm run use-cases:repin -- <review.md> <claim-id>...`. Fill `method_types`, version and access on each new configuration, so the use-case page can say what kind of method it is. See [use-cases.md](use-cases.md).
 
 ## 7. Validate and open a PR
 

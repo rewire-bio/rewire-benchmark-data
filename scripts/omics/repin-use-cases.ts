@@ -1,37 +1,52 @@
-/** Re-pin the evidence fingerprint (evidence_sha256) of every active use-case mapping to the
- * current built snapshot (public/omics/catalogue.json; run npm run omics:release first).
- * For changes that only alter how records are written, not what they say, such as the
- * issue #42 migrations. Name the review that justifies it.
- *   npm run use-cases:repin -- <review.md> */
+/** Pin reviewed relevance judgement and summary claims to the store as it is now.
+ *
+ * A reviewed claim pins the fields of the records it rests on (shared/omics/use-cases.ts claimPins).
+ * Re-pinning tells the release those records still support it, so it needs a review that says so:
+ *   npm run use-cases:repin -- <review.md>                 pin reviewed claims that have no pins yet
+ *   npm run use-cases:repin -- <review.md> <claim-id>...   re-pin the named claims, after re-review
+ *   npm run use-cases:repin -- <review.md> --all           re-pin every reviewed claim; only for a
+ *                                                          reviewed change of form, never of meaning
+ * Each changed claim is recorded in data/provenance/records.jsonl. */
 import fs from "node:fs";
-import crypto from "node:crypto";
-import { mappingEvidenceHash, parseUseCaseInputs } from "../../shared/omics/use-cases";
-import type { CatalogueSnapshot } from "../../shared/omics/catalogue-query";
+import { claimPins, useCaseHash, type JudgementPin } from "../../shared/omics/use-cases";
+import type { CatalogueRecord } from "../../shared/omics/catalogue-query";
+import { recordChanges, recordFile } from "./records";
 
-const review = process.argv[2];
-if (!review || !fs.existsSync(review)) {
-  console.error("Usage: npm run use-cases:repin -- <review.md>  (the review must exist)");
+const [review, ...rest] = process.argv.slice(2);
+const all = rest.includes("--all");
+const named = new Set(rest.filter((a) => a !== "--all"));
+if (!review || !fs.existsSync(review) || (all && named.size)) {
+  console.error("Usage: npm run use-cases:repin -- <review.md> [<claim-id>... | --all]  (the review must exist)");
   process.exit(1);
 }
-const file = "data/omics/use-cases/inputs.json";
-const snapshot: CatalogueSnapshot = JSON.parse(fs.readFileSync("public/omics/catalogue.json", "utf8"));
-const raw = JSON.parse(fs.readFileSync(file, "utf8"));
-const useCases = new Map(parseUseCaseInputs(raw).use_cases.map((u) => [u.id, u]));
+const read = (kind: string) =>
+  fs.readFileSync(recordFile(kind), "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as CatalogueRecord);
+const kinds = ["use_case", "protocol", "source", "evaluation", "result", "claim"];
+const records = new Map(kinds.flatMap(read).map((r) => [r.id, r]));
+const claims = read("claim");
+const reviewed = (c: CatalogueRecord) => ["source_checked", "reproduced"].includes(c.status);
+const pinnable = (c: CatalogueRecord) => typeof c.attributes.field === "string"
+  && (c.attributes.field.startsWith("links:assessed_by:") || c.attributes.field === "summary");
+
+for (const id of named) {
+  const claim = records.get(id);
+  if (!claim || claim.kind !== "claim" || !pinnable(claim)) { console.error(`${id} is not a judgement or summary claim.`); process.exit(1); }
+  if (!reviewed(claim)) { console.error(`${id} is ${claim.status}; review it before pinning.`); process.exit(1); }
+}
+
 const repinned: string[] = [];
-raw.mappings = raw.mappings.map((m: { id: string; use_case_id: string; lifecycle: string; evidence_sha256?: string }) => {
-  if (m.lifecycle !== "active") return m;
-  const hash = mappingEvidenceHash(snapshot, useCases.get(m.use_case_id)!, m as never);
-  if (hash === m.evidence_sha256) return m;
-  repinned.push(m.id);
-  return { ...m, evidence_sha256: hash };
+const next = claims.map((claim) => {
+  if (!pinnable(claim) || !reviewed(claim)) return claim;
+  const stored = claim.attributes.pins as JudgementPin[] | undefined;
+  if (!(all || named.has(claim.id) || !stored?.length)) return claim;
+  const pins = claimPins(records, claim);
+  if (!pins || (stored && useCaseHash(pins) === useCaseHash(stored))) return claim;
+  repinned.push(claim.id);
+  return { ...claim, attributes: { ...claim.attributes, pins } };
 });
-const text = JSON.stringify(raw, null, 2) + "\n";
-fs.writeFileSync(file, text);
-// The use-case review receipt pins inputs.json; record the re-pin there.
-const receiptFile = "data/omics/use-cases/review.json";
-const receipt = JSON.parse(fs.readFileSync(receiptFile, "utf8"));
-receipt.files["inputs.json"] = crypto.createHash("sha256").update(text).digest("hex");
-if (repinned.length)
-  receipt.limitations.push(`${new Date().toISOString().slice(0, 10)}: ${repinned.length} active mappings had evidence_sha256 re-pinned after record migrations, without re-reading the mappings; see ${review}.`);
-fs.writeFileSync(receiptFile, JSON.stringify(receipt, null, 2) + "\n");
-console.log(`Re-pinned ${repinned.length} active mappings (${review}).`);
+if (repinned.length) {
+  fs.writeFileSync(recordFile("claim"), next.map((r) => JSON.stringify(r) + "\n").join(""));
+  recordChanges(repinned, "shared/omics/use-cases.ts claimPins", review);
+}
+console.log(`Pinned ${repinned.length} claims against ${review}.`);
+for (const id of repinned) console.log(`  ${id}`);
