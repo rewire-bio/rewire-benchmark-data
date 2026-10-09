@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T23:00:00Z",
+  "scope": "Independent review of the EGFR NSCLC evidence-retrieval batch for use-case-egfr-nsclc-actionability-resistance-evidence: 128 records after review (41 results, 31 evaluations, 22 configurations, 11 methods, 7 claims including 5 relevance judgements, 5 protocols, 4 datasets, 4 sources, 3 models). Every result checked against Lin et al. 2025 Tables 1 and 2 and the TREC 2020 PM overview Tables 5 and 6; Table 5 also checked against the TREC browser results page and the run appendix PDFs. See docs/reviews/use-cases/egfr-nsclc-actionability-resistance-evidence-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any system.",
+    "TREC Table 6 (NDCG@30) has no public cross-check.",
+    "The TREC browser results page and the run appendices were read for cross-checks only; they are not source records.",
+    "Relevance judgement pins are left unset for the integrator; all seven judgements on the use case were simulated active after re-pinning, with the approved use-case changes applied in memory."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "egfrnsclc-20261009-config-trec2020-pm-uog-ufmg-bg-df5",
+        "egfrnsclc-20261009-eval-trec2020-pm-phase1-uog-ufmg-bg-df5",
+        "egfrnsclc-20261009-result-trec2020-pm-uog-ufmg-sb-df5-p10"
+      ],
+      "message": "Run 'uog ufmg bg df5' in Overview Table 5 is a misprint of uog_ufmg_sb_df5 (no such run among UoGTr's five; value equals its P@10). Configuration and evaluation removed; result renamed from ...-uog-ufmg-bg-df5-p10 and relinked, with a scope_note."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-egfr-nsclc-20261009-lin2025-foundationone"
+      ],
+      "message": "Regraded from proxy to outside_scope: relevant-versus-VUS agreement with one vendor's reports scores no regimen, direction, setting, tier or source."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-egfr-nsclc-20261009-trec2020-phase2",
+        "egfrnsclc-20261009-eval-trec2020-pm-phase2-damoespcbh3",
+        "egfrnsclc-20261009-eval-trec2020-pm-phase2-uwman"
+      ],
+      "message": "Manual runs excluded from the Phase 2 judgement with reasons; results kept source_checked."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-egfr-nsclc-20261009-lin2025-civic"
+      ],
+      "message": "Rationale repeated the OncoKB text about resistance levels; rewritten for CIViC levels."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "nine Lin Table 1 results",
+        "two Lin Llama temperature results"
+      ],
+      "message": "Iteration counts added to qualifiers (100 for basic prompts; 10 per Methods versus 100 per Figure 7 for the temperature runs); p value test named (ANOVA, Methods P52)."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "egfrnsclc-20261009-protocol-lin2025-oncokb-level-assignment",
+        "egfrnsclc-20261009-protocol-lin2025-civic-level-assignment",
+        "use-case-mapping-egfr-nsclc-20261009-lin2025-oncokb",
+        "use-case-mapping-egfr-nsclc-20261009-lin2025-civic"
+      ],
+      "message": "Added limitation: queries name no drug, while reference levels are per drug or evidence item; scoring of multi-level queries is not described."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "15 TREC evaluations",
+        "egfrnsclc-20261009-data-trec2020-pm-topics-medline"
+      ],
+      "message": "Population text 'Topics with judged documents (31 of 40)' was wrong; all 40 topics have judged documents. Now attributed to the run appendices."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "egfrnsclc-20261009-config-trec2020-pm-r1st",
+        "use-case-mapping-egfr-nsclc-20261009-trec2020-phase1"
+      ],
+      "message": "Added caveat: listed as automatic but trained on about 2,000 manually labelled PubMed papers."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "claims.csv"
+      ],
+      "message": "25 TREC rows cited the browser runs page as source_id; the values are printed in the overview."
+    },
+    {
+      "status": "open",
+      "record_ids": [
+        "use-case-egfr-nsclc-actionability-resistance-evidence"
+      ],
+      "message": "Approved exclusion changes a pinned field; both existing judgements hold but must be re-pinned with the five new ones."
+    }
+  ],
+  "files": {
+    "batch.jsonl": "922fc2b0837a8d233748eada48a3b00a88160d95f9112b1ef56ec010506ceb94",
+    "claims.csv": "753ba734946feca1928cf840842296b6923d296f85d2b98c01f2d837ee600b92",
+    "coverage.json": "3274f3b3b13f656464690c07fc5ff503c725582efd278d241c1297d4c223947e",
+    "research.md": "66dcbae3e1962dafeadd0328606113c5cacf79003be9f68fc17bf91567e83649",
+    "retrieval-log.md": "9986a010c989f40de5f8255f762e59febe9473ddeca1bb8ec23d8a8ec3f53dc3",
+    "sources.md": "b8053a5b33347380e92704ff5f0ae4d93b6f962c54f51598c826f47966d5723a",
+    "extract/extract_egfr_nsclc.py": "7355a160aa03ec89e9404ea2df31083f6521d8463c9da40b06eace6a85dff40a"
+  }
+}
