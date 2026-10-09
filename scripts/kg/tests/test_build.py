@@ -34,7 +34,7 @@ def expand(curie: str, prefixes: dict[str, str]) -> URIRef:
 class VocabularyTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.vocab = rdflib.Graph().parse(build.VOCABULARY, format="turtle")
+        cls.vocab = rdflib.Graph().parse(build.VOCABULARY, format="turtle").parse(build.ATTRIBUTE_DECLARATIONS, format="turtle")
         cls.mapping = json.loads(build.MAPPING.read_text("utf-8"))
 
     def test_declares_every_rb_term_the_mapping_uses(self) -> None:
@@ -213,6 +213,31 @@ class InferenceTest(unittest.TestCase):
         conforms, report = build.validate(broken, build.infer(broken, self.ontology))
         self.assertFalse(conforms)
         self.assertIn("vocab/metric/", report)
+
+    def test_shacl_checks_attribute_datatypes_and_nodes(self) -> None:
+        broken = fixture()
+        broken.add((ID.result1, RB.denominator, Literal("many")))  # an integer attribute
+        node = URIRef(str(ID.result1) + "/uncertainty")
+        broken.add((ID.result1, RB.uncertainty, node))
+        broken.add((node, RDF.type, RB.Uncertainty))
+        broken.add((node, RB.uncertaintyType, V("uncertainty-type", "confidence_interval")))
+        broken.add((node, RB.confidenceLevel, Literal("95", datatype=rdflib.XSD.decimal)))  # not a fraction
+        missing = URIRef(str(ID.result2) + "/missing/seeds")
+        broken.add((ID.result2, RB.missingValue, missing))
+        broken.add((missing, RDF.type, RB.MissingValue))
+        broken.add((missing, RB.missingField, Literal("seeds")))
+        broken.add((missing, RB.missingReason, V("status", "discovered")))  # not a missingness concept
+        conforms, report = build.validate(broken, build.infer(broken, self.ontology))
+        self.assertFalse(conforms)
+        self.assertIn("denominator", report)
+        self.assertIn("confidenceLevel", report)
+        self.assertIn("vocab/missingness/", report)
+
+    def test_shapes_only_skips_links_only_inference_creates(self) -> None:
+        conforms, report = build.validate(fixture(), set(), asserted_only=True)
+        self.assertTrue(conforms, report)
+        conforms, _ = build.validate(fixture(), set())
+        self.assertFalse(conforms)
 
     def test_check_rejects_a_result_moved_to_another_system(self) -> None:
         moved = set(self.inferred) | {(ID.result1, RB.resultFor, ID.model)}

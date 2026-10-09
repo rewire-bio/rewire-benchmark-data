@@ -5,6 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { recordSchema, validateRecords, type RecordEntry } from "./schema";
 import { loadSchemes, validateVocabularies } from "./vocab";
 import { validateAttributes } from "../../shared/omics/attributes";
@@ -135,7 +136,22 @@ if (process.argv[1]?.endsWith("records.ts")) {
   const [command, ...args] = process.argv.slice(2);
   const usage = "Usage: npm run records -- check | add <batch.jsonl> <batch-dir> | change <review-path> <batch-dir> <id>...";
   if (command === "check") console.log(`${loadRecords().length} records match their provenance.`);
-  else if (command === "add" && args.length === 2) console.log(`Added ${addBatch(args[0], args[1])} records.`);
+  else if (command === "add" && args.length === 2) {
+    // The SHACL shapes are the record contract (issue #42, R6): export the store with the batch
+    // and validate it, and put the store back exactly as it was if any record fails.
+    const files = [...recordFiles(), provenanceFile];
+    const before = new Map(files.map((file) => [file, fs.readFileSync(file)]));
+    const added = addBatch(args[0], args[1]);
+    try {
+      execFileSync("npm", ["run", "-s", "kg:shapes"], { stdio: "inherit" });
+    } catch {
+      for (const file of recordFiles()) if (!before.has(file)) fs.rmSync(file);
+      for (const [file, bytes] of before) fs.writeFileSync(file, bytes);
+      console.error("The batch does not conform to data/ontology/shapes.ttl and attribute-shapes.ttl; the store is unchanged.");
+      process.exit(1);
+    }
+    console.log(`Added ${added} records.`);
+  }
   else if (command === "change" && args.length >= 3) {
     recordChanges(args.slice(2), args[1], args[0]);
     console.log(`Recorded changes to ${args.length - 2} records.`);

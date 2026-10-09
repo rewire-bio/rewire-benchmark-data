@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        task: [store, types, python, kg, tests-1, tests-2, tests-3, tests-4, tests-5, tests-6]
+        task: [store, types, python, kg, shacl, tests-1, tests-2, tests-3, tests-4, tests-5, tests-6]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,7 +32,7 @@ jobs:
           node-version: 24
           cache: npm
       - uses: astral-sh/setup-uv@v6
-        if: matrix.task == 'kg'
+        if: matrix.task == 'kg' || matrix.task == 'shacl'
       - run: npm ci
       - name: Validate the record store, vocabularies and provenance
         if: matrix.task == 'store'
@@ -43,6 +43,9 @@ jobs:
         run: npm run test:python
       - if: matrix.task == 'kg'
         run: npm run test:kg
+      - name: Validate every record against the SHACL shapes (asserted graph, no inference)
+        if: matrix.task == 'shacl'
+        run: npm run kg:shapes
       - name: Tests, ${{ matrix.task }} of 6 (fast set on pull requests, all on main)
         if: startsWith(matrix.task, 'tests-')
         env:
