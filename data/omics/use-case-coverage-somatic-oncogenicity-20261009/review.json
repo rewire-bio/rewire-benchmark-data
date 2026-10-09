@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the collector and extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T21:06:32Z",
+  "scope": "Independent review of the somatic small-variant oncogenicity batch for use-case-somatic-small-variant-oncogenicity: 1,191 records after removing two duplicates of main records (794 results, 247 evaluations, 82 configurations, 43 methods, 8 sources, 7 protocols, 7 relevance judgements, 3 datasets). All eight source artifacts match their pinned SHA-256 (the bioRxiv page through its archived copy; a fresh download differs only in per-request CDN tokens). All 794 results were re-read from the pinned cells with a separate parser and match in value, printed form, metric, unit, direction, locator, configuration and protocol. Descriptive corrections and relevance changes, none of which changes a value, are listed in docs/reviews/use-cases/somatic-small-variant-oncogenicity-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any predictor.",
+    "The OncoCal table was not regenerated: its inputs (dbNSFP 5.3.1a, COSMIC v104) are licensed and not redistributed. The generating code was read at the pinned commit, not run.",
+    "Chen et al. 2020 figures, benchmarks 1, 3 and 4 and the AUC values were not checked; the bioRxiv PDF and S1 to S8 Tables were not retrieved.",
+    "CTAT authorship overlap with Chen et al. could not be checked from the pinned sources.",
+    "Relevance judgements are reviewed but not pinned; the lead records pins with npm run use-cases:repin after the use-case change.",
+    "The SHACL step of records add and npm run build were not run; a dry-run addBatch against a scratch copy of the store accepted all 1,191 records."
+  ],
+  "errors": [],
+  "findings": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "500 somatic-oncogenicity-20261009-result-chen2020-* results"
+      ],
+      "message": "Mean plus or minus two standard deviations stored as confidence_interval; structured uncertainty removed, missing_metadata.uncertainty with a note added, printed range kept in printed_source_cell."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "somatic-oncogenicity-20261009-eval-chen2020-candra-oncokb-default",
+        "somatic-oncogenicity-20261009-eval-chen2020-candra-oncokb-median",
+        "somatic-oncogenicity-20261009-eval-chen2020-candra-viability-default",
+        "somatic-oncogenicity-20261009-eval-chen2020-candra-viability-median"
+      ],
+      "message": "Two Chen et al. authors co-developed CanDrA (reference 7); origin changed to author_reported."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "250 OncoKB results, 2 protocols, 50 evaluations, 1 dataset, 2 judgements"
+      ],
+      "message": "Qualifier asserted the oncogenic-only positive set, which Additional files 9 and 10 do not state."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "147 somatic-oncogenicity-20261009-result-lee2026-*-auprc results",
+        "294 Lee results",
+        "147 Lee evaluations"
+      ],
+      "message": "AUPRC column is scikit-learn average precision (metric average-precision); AUROC and average precision unit unitless, as for every AUROC in the store; metric_implementation filled from the code."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "28 configurations",
+        "18 methods"
+      ],
+      "message": "Method types checked against Chen Table 1 and OncoCal reclassify_tools.py."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-somatic-oncogenicity-20261009-chen2020-oncokb-median",
+        "use-case-mapping-somatic-oncogenicity-20261009-chen2020-viability-median"
+      ],
+      "message": "relevance direct changed to proxy: the threshold is each tool's median on the test draw."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "data/vocab/metric.ttl negative-predictive-value"
+      ],
+      "message": "Replaced with the reviewed block from the RNA pathogen branch (exactMatch STATO_0000619), byte for byte."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "somatic-oncogenicity-20261009-method-bayesdel",
+        "somatic-oncogenicity-20261009-method-esm1b",
+        "somatic-oncogenicity-20261009-config-lee2026-bayesdel-addaf",
+        "somatic-oncogenicity-20261009-config-lee2026-bayesdel-noaf",
+        "somatic-oncogenicity-20261009-config-lee2026-esm1b"
+      ],
+      "message": "Two batch records duplicated main records; removed, and the three configurations now link configuration_of to uc-clinical-20260930-method-bayesdel and uc20260930-model-esm-1b. The main MVP record is a different tool and was not used."
+    }
+  ],
+  "files": {
+    "artifacts/chen2020-additional-file-1.xlsx.gz": "eac8e0a5e52c8a638208ab446cd6e6692318042805949b81426e713074045715",
+    "artifacts/chen2020-additional-file-10.xlsx.gz": "53dc97164a1e625bc55c87d0e4be246189c7234935f9bfb85df04b7977c20dca",
+    "artifacts/chen2020-additional-file-21.xlsx.gz": "4d64f1b12fe251f73da5417ffc09c996f8f64baa0787440fdeb83dfcd0812f18",
+    "artifacts/chen2020-additional-file-22.xlsx.gz": "ee707905d7df18b72042403949948d65e3e5575d64c2ced22f6aa679e63f509c",
+    "artifacts/chen2020-additional-file-9.xlsx.gz": "358afffe609030633cb88106fc161b39b681b7e5e3efa908b118d59e7980fcdb",
+    "artifacts/chen2020-article.xml.gz": "409167ef6b039a6b96d75555e7f463cc3601dad742100cd65c966d05a4c0e553",
+    "artifacts/lee2026-oncocal-tool-performance.tsv.gz": "f9161781d60d5341ac1eadcd9344057cd793f16b0b93e5d65bcd0c5de76bfb66",
+    "artifacts/lee2026-preprint-full-text.html.gz": "4d8a602a29e89f6bf3295ea656cdaa9a541faf20e1d786e6d74db129b991869d",
+    "batch.jsonl": "98a3b2998df30b5e652051d39076804d6e38729b8736bd51c6369f4145c75bbb",
+    "claims.csv": "4aafcdae19a63d767a914879a82da17ade4c83caa4221b97df9a53b6fd15c257",
+    "coverage.json": "0ec8cde03bb12632acdbd47badcf067fa5c8d220a697c2f0cddcaa72b3163e78",
+    "extract/extract_somatic_oncogenicity.py": "32129f443660c276e37a7d01ebdb1b6f4133471240857f41ef9f4a43b4db603a",
+    "extract/rawxlsx.py": "81aa5a418143431976749abe8273a45f37c8bde0fe4c1ce25a449221ae512726",
+    "research.md": "9cd721f906bc3296db99f444cfbc5821853f43f85f07fc9b811790390764bb34",
+    "retrieval-log.md": "f86c43814c308c7f94bc971d725101874bd3dc3d82104cff2e22e71a4cc475a3",
+    "sources.md": "5c586d6efe317f750dc62d11ac74bcb62e813f351bfb608a259be51194e525f9"
+  }
+}
