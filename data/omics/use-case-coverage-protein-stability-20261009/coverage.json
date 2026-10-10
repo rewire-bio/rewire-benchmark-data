@@ -1,0 +1,630 @@
+{
+  "use_case_id": "use-case-protein-stability",
+  "bounds": {
+    "cutoff_date": "2026-10-09",
+    "query_budget": 25,
+    "queries_used": 5,
+    "source_budget": 3,
+    "sources_extracted": 3
+  },
+  "existing_sources_not_duplicated": [
+    "rewire-local-20260920-source-proteingym-esm2",
+    "rewire-local-20260921-source-proteingym-random",
+    "uc20260930-source-proteingym-amfr-spearman",
+    "profile-protocol-proteingym-reference-files-dms-substitutions-csv-a8f49801"
+  ],
+  "existing_reused": [
+    "discovery-model-esm-2",
+    "discovery-model-proteinmpnn"
+  ],
+  "existing_reuse_note": "The two ESM-2 checkpoint configurations and the ProteinMPNN configuration link configuration_of to the existing model records; ESM therm and ThermoMPNN link uses_model to them.",
+  "vocabulary_additions": {
+    "files": [
+      "data/vocab/metric.ttl"
+    ],
+    "metric": [
+      "antisymmetry-bias"
+    ],
+    "note": "No existing concept held the signed bias over paired direct and reverse variants. Added as a rewire-only concept with direction unknown, since its sign carries meaning and the formula is source-specific. The antisymmetry correlation itself is stored as pearson-correlation with direction unknown and a qualifier. Needs review."
+  },
+  "new_record_counts": {
+    "claim": 12,
+    "configuration": 42,
+    "dataset": 12,
+    "evaluation": 120,
+    "method": 23,
+    "protocol": 12,
+    "result": 427,
+    "source": 3
+  },
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-chu2024-mega-scale",
+      "protocol_id": "protein-stability-20261009-protocol-chu2024-mega-scale",
+      "relevance": "direct",
+      "comparison_group": "chu2024-transfer",
+      "stratum_label": "Mega-scale held-out domains",
+      "stratum_order": 1,
+      "headline_metric": "spearman-correlation",
+      "endpoint": "Spearman correlation for Rosetta, MUPro, RaSP, ELASPIC-2, ESM therm and two ESM-2 checkpoints on Mega-scale dataset",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-chu2024-elaspic-2-mega-scale",
+        "protein-stability-20261009-eval-chu2024-esm-2-35m-mega-scale",
+        "protein-stability-20261009-eval-chu2024-esm-2-3b-mega-scale",
+        "protein-stability-20261009-eval-chu2024-esm-therm-mega-scale",
+        "protein-stability-20261009-eval-chu2024-mupro-mega-scale",
+        "protein-stability-20261009-eval-chu2024-rasp-mega-scale",
+        "protein-stability-20261009-eval-chu2024-rosetta-mega-scale"
+      ],
+      "limitations": [
+        "ESM therm was fine-tuned by the authors of this paper; the other methods were run by them as comparators.",
+        "Only Spearman correlation is printed; no RMSE, calibration or uncertainty.",
+        "Rosetta was run on only six ProteinGym datasets plus BglB because of compute cost (Methods).",
+        "Point mutations only for every method except the authors' own model, which also saw multi-point variants on this set (Table 1 caption).",
+        "Metrics are aggregated over test-set-only domains of 40-72 residues, the same assay the model was trained on."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-chu2024-bglb",
+      "protocol_id": "protein-stability-20261009-protocol-chu2024-bglb",
+      "relevance": "proxy",
+      "comparison_group": "chu2024-transfer",
+      "stratum_label": "Beta-glucosidase (BglB) (melting temperature (Tm))",
+      "stratum_order": 2,
+      "headline_metric": "spearman-correlation",
+      "endpoint": "Spearman correlation for Rosetta, MUPro, RaSP, ELASPIC-2, ESM therm and two ESM-2 checkpoints on BglB dataset",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-chu2024-elaspic-2-bglb",
+        "protein-stability-20261009-eval-chu2024-esm-2-35m-bglb",
+        "protein-stability-20261009-eval-chu2024-esm-2-3b-bglb",
+        "protein-stability-20261009-eval-chu2024-esm-therm-bglb",
+        "protein-stability-20261009-eval-chu2024-mupro-bglb",
+        "protein-stability-20261009-eval-chu2024-rasp-bglb",
+        "protein-stability-20261009-eval-chu2024-rosetta-bglb"
+      ],
+      "limitations": [
+        "ESM therm was fine-tuned by the authors of this paper; the other methods were run by them as comparators.",
+        "Only Spearman correlation is printed; no RMSE, calibration or uncertainty.",
+        "Rosetta was run on only six ProteinGym datasets plus BglB because of compute cost (Methods).",
+        "Single protein (Beta-glucosidase (BglB), 445 residues); the measured quantity is melting temperature (Tm), not ddG of folding.",
+        "ESM therm was fine-tuned on domains of at most 72 residues, so this is an out-of-range test for it."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-chu2024-bgl3",
+      "protocol_id": "protein-stability-20261009-protocol-chu2024-bgl3",
+      "relevance": "proxy",
+      "comparison_group": "chu2024-transfer",
+      "stratum_label": "Beta-glucosidase (Bgl3) (catalytic susceptibility to heat shock)",
+      "stratum_order": 3,
+      "headline_metric": "spearman-correlation",
+      "endpoint": "Spearman correlation for Rosetta, MUPro, RaSP, ELASPIC-2, ESM therm and two ESM-2 checkpoints on Bgl3 dataset",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-chu2024-elaspic-2-bgl3",
+        "protein-stability-20261009-eval-chu2024-esm-2-35m-bgl3",
+        "protein-stability-20261009-eval-chu2024-esm-2-3b-bgl3",
+        "protein-stability-20261009-eval-chu2024-esm-therm-bgl3",
+        "protein-stability-20261009-eval-chu2024-mupro-bgl3",
+        "protein-stability-20261009-eval-chu2024-rasp-bgl3",
+        "protein-stability-20261009-eval-chu2024-rosetta-bgl3"
+      ],
+      "limitations": [
+        "ESM therm was fine-tuned by the authors of this paper; the other methods were run by them as comparators.",
+        "Only Spearman correlation is printed; no RMSE, calibration or uncertainty.",
+        "Rosetta was run on only six ProteinGym datasets plus BglB because of compute cost (Methods).",
+        "Single protein (Beta-glucosidase (Bgl3), 501 residues); the measured quantity is catalytic susceptibility to heat shock, not ddG of folding.",
+        "ESM therm was fine-tuned on domains of at most 72 residues, so this is an out-of-range test for it."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-chu2024-acetyltransferase",
+      "protocol_id": "protein-stability-20261009-protocol-chu2024-acetyltransferase",
+      "relevance": "proxy",
+      "comparison_group": "chu2024-transfer",
+      "stratum_label": "Gentamicin 3-N-acetyltransferase (chemical stability)",
+      "stratum_order": 4,
+      "headline_metric": "spearman-correlation",
+      "endpoint": "Spearman correlation for Rosetta, MUPro, RaSP, ELASPIC-2, ESM therm and two ESM-2 checkpoints on Acetyltransferase dataset",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-chu2024-elaspic-2-acetyltransferase",
+        "protein-stability-20261009-eval-chu2024-esm-2-35m-acetyltransferase",
+        "protein-stability-20261009-eval-chu2024-esm-2-3b-acetyltransferase",
+        "protein-stability-20261009-eval-chu2024-esm-therm-acetyltransferase",
+        "protein-stability-20261009-eval-chu2024-mupro-acetyltransferase",
+        "protein-stability-20261009-eval-chu2024-rasp-acetyltransferase",
+        "protein-stability-20261009-eval-chu2024-rosetta-acetyltransferase"
+      ],
+      "limitations": [
+        "ESM therm was fine-tuned by the authors of this paper; the other methods were run by them as comparators.",
+        "Only Spearman correlation is printed; no RMSE, calibration or uncertainty.",
+        "Rosetta was run on only six ProteinGym datasets plus BglB because of compute cost (Methods).",
+        "Single protein (Gentamicin 3-N-acetyltransferase, 177 residues); the measured quantity is chemical stability, not ddG of folding.",
+        "ESM therm was fine-tuned on domains of at most 72 residues, so this is an out-of-range test for it."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-chu2024-lipase-esta",
+      "protocol_id": "protein-stability-20261009-protocol-chu2024-lipase-esta",
+      "relevance": "proxy",
+      "comparison_group": "chu2024-transfer",
+      "stratum_label": "Lipase EstA (melting temperature (T50))",
+      "stratum_order": 5,
+      "headline_metric": "spearman-correlation",
+      "endpoint": "Spearman correlation for Rosetta, MUPro, RaSP, ELASPIC-2, ESM therm and two ESM-2 checkpoints on Lipase EstA dataset",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-chu2024-elaspic-2-lipase-esta",
+        "protein-stability-20261009-eval-chu2024-esm-2-35m-lipase-esta",
+        "protein-stability-20261009-eval-chu2024-esm-2-3b-lipase-esta",
+        "protein-stability-20261009-eval-chu2024-esm-therm-lipase-esta",
+        "protein-stability-20261009-eval-chu2024-mupro-lipase-esta",
+        "protein-stability-20261009-eval-chu2024-rasp-lipase-esta",
+        "protein-stability-20261009-eval-chu2024-rosetta-lipase-esta"
+      ],
+      "limitations": [
+        "ESM therm was fine-tuned by the authors of this paper; the other methods were run by them as comparators.",
+        "Only Spearman correlation is printed; no RMSE, calibration or uncertainty.",
+        "Rosetta was run on only six ProteinGym datasets plus BglB because of compute cost (Methods).",
+        "Single protein (Lipase EstA, 212 residues); the measured quantity is melting temperature (T50), not ddG of folding.",
+        "ESM therm was fine-tuned on domains of at most 72 residues, so this is an out-of-range test for it."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-chu2024-pten",
+      "protocol_id": "protein-stability-20261009-protocol-chu2024-pten",
+      "relevance": "proxy",
+      "comparison_group": "chu2024-transfer",
+      "stratum_label": "PTEN (protein abundance)",
+      "stratum_order": 6,
+      "headline_metric": "spearman-correlation",
+      "endpoint": "Spearman correlation for Rosetta, MUPro, RaSP, ELASPIC-2, ESM therm and two ESM-2 checkpoints on PTEN dataset",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-chu2024-elaspic-2-pten",
+        "protein-stability-20261009-eval-chu2024-esm-2-35m-pten",
+        "protein-stability-20261009-eval-chu2024-esm-2-3b-pten",
+        "protein-stability-20261009-eval-chu2024-esm-therm-pten",
+        "protein-stability-20261009-eval-chu2024-mupro-pten",
+        "protein-stability-20261009-eval-chu2024-rasp-pten",
+        "protein-stability-20261009-eval-chu2024-rosetta-pten"
+      ],
+      "limitations": [
+        "ESM therm was fine-tuned by the authors of this paper; the other methods were run by them as comparators.",
+        "Only Spearman correlation is printed; no RMSE, calibration or uncertainty.",
+        "Rosetta was run on only six ProteinGym datasets plus BglB because of compute cost (Methods).",
+        "Single protein (PTEN, 403 residues); the measured quantity is protein abundance, not ddG of folding.",
+        "ESM therm was fine-tuned on domains of at most 72 residues, so this is an out-of-range test for it."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-chu2024-methyltransferase",
+      "protocol_id": "protein-stability-20261009-protocol-chu2024-methyltransferase",
+      "relevance": "proxy",
+      "comparison_group": "chu2024-transfer",
+      "stratum_label": "Thiopurine S-methyltransferase (protein abundance)",
+      "stratum_order": 7,
+      "headline_metric": "spearman-correlation",
+      "endpoint": "Spearman correlation for Rosetta, MUPro, RaSP, ELASPIC-2, ESM therm and two ESM-2 checkpoints on Methyltransferase dataset",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-chu2024-elaspic-2-methyltransferase",
+        "protein-stability-20261009-eval-chu2024-esm-2-35m-methyltransferase",
+        "protein-stability-20261009-eval-chu2024-esm-2-3b-methyltransferase",
+        "protein-stability-20261009-eval-chu2024-esm-therm-methyltransferase",
+        "protein-stability-20261009-eval-chu2024-mupro-methyltransferase",
+        "protein-stability-20261009-eval-chu2024-rasp-methyltransferase",
+        "protein-stability-20261009-eval-chu2024-rosetta-methyltransferase"
+      ],
+      "limitations": [
+        "ESM therm was fine-tuned by the authors of this paper; the other methods were run by them as comparators.",
+        "Only Spearman correlation is printed; no RMSE, calibration or uncertainty.",
+        "Rosetta was run on only six ProteinGym datasets plus BglB because of compute cost (Methods).",
+        "Single protein (Thiopurine S-methyltransferase, 245 residues); the measured quantity is protein abundance, not ddG of folding.",
+        "ESM therm was fine-tuned on domains of at most 72 residues, so this is an out-of-range test for it."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-dieckhaus2024-megascale",
+      "protocol_id": "protein-stability-20261009-protocol-dieckhaus2024-megascale",
+      "relevance": "direct",
+      "comparison_group": "dieckhaus2024-thermompnn",
+      "stratum_label": "Megascale held-out test split",
+      "stratum_order": 1,
+      "headline_metric": "pearson-correlation",
+      "endpoint": "RMSE and correlation of predicted ddG on the Megascale held-out test split for the ThermoMPNN comparison set",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-dieckhaus2024-acdc-nn-megascale",
+        "protein-stability-20261009-eval-dieckhaus2024-acdc-nn-seq-megascale",
+        "protein-stability-20261009-eval-dieckhaus2024-foldx-megascale",
+        "protein-stability-20261009-eval-dieckhaus2024-maestro-megascale",
+        "protein-stability-20261009-eval-dieckhaus2024-mcsm-megascale",
+        "protein-stability-20261009-eval-dieckhaus2024-mupro-megascale",
+        "protein-stability-20261009-eval-dieckhaus2024-prostata-megascale",
+        "protein-stability-20261009-eval-dieckhaus2024-proteinmpnn-megascale",
+        "protein-stability-20261009-eval-dieckhaus2024-rasp-megascale",
+        "protein-stability-20261009-eval-dieckhaus2024-rosetta-megascale",
+        "protein-stability-20261009-eval-dieckhaus2024-thermompnn-megascale",
+        "protein-stability-20261009-eval-dieckhaus2024-thermonet-megascale"
+      ],
+      "limitations": [
+        "Developer comparison: the authors built ThermoMPNN and chose the comparator set (methods with readily accessible code).",
+        "Megascale proteins are 40-72-residue domains, many de novo designed, measured by one proteolysis assay over a narrow ddG range (-3 to 5 kcal/mol).",
+        "RaSP and PROSTATA were retrained on Megascale data for this table; other comparators use their published training.",
+        "No uncertainty is printed in Table 2 (Table 1 ablations give seed SD for ThermoMPNN only)."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-dieckhaus2024-fireprot",
+      "protocol_id": "protein-stability-20261009-protocol-dieckhaus2024-fireprot",
+      "relevance": "direct",
+      "comparison_group": "dieckhaus2024-thermompnn",
+      "stratum_label": "Fireprot homologue-free split",
+      "stratum_order": 2,
+      "headline_metric": "pearson-correlation",
+      "endpoint": "RMSE and correlation of predicted ddG on the Fireprot homologue-free split for the ThermoMPNN comparison set",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-dieckhaus2024-acdc-nn-fireprot",
+        "protein-stability-20261009-eval-dieckhaus2024-acdc-nn-seq-fireprot",
+        "protein-stability-20261009-eval-dieckhaus2024-foldx-fireprot",
+        "protein-stability-20261009-eval-dieckhaus2024-maestro-fireprot",
+        "protein-stability-20261009-eval-dieckhaus2024-mcsm-fireprot",
+        "protein-stability-20261009-eval-dieckhaus2024-mupro-fireprot",
+        "protein-stability-20261009-eval-dieckhaus2024-prostata-fireprot",
+        "protein-stability-20261009-eval-dieckhaus2024-proteinmpnn-fireprot",
+        "protein-stability-20261009-eval-dieckhaus2024-rasp-fireprot",
+        "protein-stability-20261009-eval-dieckhaus2024-rosetta-fireprot",
+        "protein-stability-20261009-eval-dieckhaus2024-thermompnn-fireprot",
+        "protein-stability-20261009-eval-dieckhaus2024-thermonet-fireprot"
+      ],
+      "limitations": [
+        "Developer comparison (ThermoMPNN authors).",
+        "Values marked * may be inflated because those methods' training sets contain close homologues of Fireprot proteins (Table 2 footnote).",
+        "85 of 100 Fireprot proteins have fewer than 50 measurements, so pooled metrics are dominated by a few proteins.",
+        "No uncertainty is printed."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-dieckhaus2024-ssym",
+      "protocol_id": "protein-stability-20261009-protocol-dieckhaus2024-ssym",
+      "relevance": "proxy",
+      "comparison_group": "dieckhaus2024-thermompnn",
+      "stratum_label": "Ssym direct and inverse",
+      "stratum_order": 3,
+      "headline_metric": "pearson-correlation",
+      "endpoint": "RMSE and correlation of predicted ddG on the Ssym direct and inverse for the ThermoMPNN comparison set",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-dieckhaus2024-abyssal-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-acdc-nn-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-foldx-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-maestro-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-mcsm-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-mupro-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-prostata-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-proteinmpnn-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-rasp-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-rosetta-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-stability-oracle-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-thermompnn-ssym",
+        "protein-stability-20261009-eval-dieckhaus2024-thermonet-ssym"
+      ],
+      "limitations": [
+        "Most rows are compiled from earlier publications (references 29 and 30 and the methods' own papers) rather than rerun by the authors.",
+        "Variant counts are not printed in Table 3.",
+        "No uncertainty is printed."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-dieckhaus2024-s669",
+      "protocol_id": "protein-stability-20261009-protocol-dieckhaus2024-s669",
+      "relevance": "proxy",
+      "comparison_group": "dieckhaus2024-thermompnn",
+      "stratum_label": "S669 direct",
+      "stratum_order": 4,
+      "headline_metric": "pearson-correlation",
+      "endpoint": "RMSE and correlation of predicted ddG on the S669 direct for the ThermoMPNN comparison set",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-dieckhaus2024-abyssal-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-acdc-nn-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-foldx-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-maestro-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-mcsm-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-mupro-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-prostata-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-proteinmpnn-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-rasp-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-rosetta-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-stability-oracle-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-thermompnn-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-thermonet-s669"
+      ],
+      "limitations": [
+        "Most rows are compiled from Pancotti et al. 2022 (reference 30); the S669 values here are not an independent rerun.",
+        "ThermoMPNN was trained on a homologue-filtered Megascale set for this column (footnote *); ABYSSAL was scored on 420 filtered variants (footnote dagger).",
+        "The ACDC-NN RMSE printed here (1.60) differs from Pancotti et al. 2022 Table 1 (1.49 for direct variants), although its PCC matches.",
+        "No uncertainty is printed."
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-protein-stability-20261009-pancotti2022-s669",
+      "protocol_id": "protein-stability-20261009-protocol-pancotti2022-s669",
+      "relevance": "direct",
+      "comparison_group": "pancotti2022-s669",
+      "stratum_label": null,
+      "stratum_order": null,
+      "headline_metric": "pearson-correlation",
+      "endpoint": "Pearson r, RMSE and MAE of predicted against experimental ddG for 21 predictors on 669 direct and 669 reverse variants, with antisymmetry",
+      "evaluation_ids": [
+        "protein-stability-20261009-eval-pancotti2022-acdc-nn-s669",
+        "protein-stability-20261009-eval-pancotti2022-acdc-nn-seq-s669",
+        "protein-stability-20261009-eval-pancotti2022-ddgun-s669",
+        "protein-stability-20261009-eval-pancotti2022-ddgun3d-s669",
+        "protein-stability-20261009-eval-pancotti2022-duet-s669",
+        "protein-stability-20261009-eval-pancotti2022-dynamut-s669",
+        "protein-stability-20261009-eval-pancotti2022-dynamut2-s669",
+        "protein-stability-20261009-eval-pancotti2022-foldx-s669",
+        "protein-stability-20261009-eval-pancotti2022-i-mutant3-0-s669",
+        "protein-stability-20261009-eval-pancotti2022-i-mutant3-0-seq-s669",
+        "protein-stability-20261009-eval-pancotti2022-inps-seq-s669",
+        "protein-stability-20261009-eval-pancotti2022-inps3d-s669",
+        "protein-stability-20261009-eval-pancotti2022-maestro-s669",
+        "protein-stability-20261009-eval-pancotti2022-mcsm-s669",
+        "protein-stability-20261009-eval-pancotti2022-mupro-s669",
+        "protein-stability-20261009-eval-pancotti2022-popmusic-s669",
+        "protein-stability-20261009-eval-pancotti2022-premps-s669",
+        "protein-stability-20261009-eval-pancotti2022-rosetta-s669",
+        "protein-stability-20261009-eval-pancotti2022-saafec-seq-s669",
+        "protein-stability-20261009-eval-pancotti2022-sdm-s669",
+        "protein-stability-20261009-eval-pancotti2022-thermonet-s669"
+      ],
+      "limitations": [
+        "Single benchmark of 669 variants with reverse variants built from modelled structures.",
+        "Some methods (ACDC-NN, ACDC-NN-Seq, DDGun, DDGun3D) were developed by authors of this paper.",
+        "Predictor versions and servers are listed only in the Supplementary Materials, which were not read; web servers may have changed since.",
+        "Proteins are under 25% identity to S2648 and VariBench, but predictors trained on other data (for example ThermoMutDB itself) may still overlap.",
+        "No uncertainty is printed."
+      ]
+    }
+  ],
+  "use_case_changes": {
+    "add_links": [
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-chu2024-mega-scale"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-chu2024-bglb"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-chu2024-bgl3"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-chu2024-acetyltransferase"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-chu2024-lipase-esta"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-chu2024-pten"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-chu2024-methyltransferase"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-dieckhaus2024-megascale"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-dieckhaus2024-fireprot"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-dieckhaus2024-ssym"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-dieckhaus2024-s669"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "protein-stability-20261009-protocol-pancotti2022-s669"
+      }
+    ],
+    "add_source_ids": [
+      "protein-stability-20261009-source-pancotti2022",
+      "protein-stability-20261009-source-dieckhaus2024",
+      "protein-stability-20261009-source-chu2024"
+    ],
+    "add_citation_locators": [
+      {
+        "source_id": "protein-stability-20261009-source-pancotti2022",
+        "locator": "Table 1; see data/omics/use-case-coverage-protein-stability-20261009/claims.csv"
+      },
+      {
+        "source_id": "protein-stability-20261009-source-dieckhaus2024",
+        "locator": "Tables 2 and 3; see claims.csv"
+      },
+      {
+        "source_id": "protein-stability-20261009-source-chu2024",
+        "locator": "Tables 1 and 2; see claims.csv"
+      }
+    ],
+    "evidence_gaps_add": [
+      "Both mega-scale comparisons are developer papers (ThermoMPNN and ESM therm); no independent comparison on the mega-scale proteolysis set with printed per-method values was found.",
+      "No linked comparison includes the AMFR construct of the existing judgements, so the new evidence does not resolve them.",
+      "Only Pancotti et al. 2022 tests antisymmetry across many tools; the other two report it partly (Dieckhaus Ssym) or not at all.",
+      "No linked comparison reports uncertainty intervals for per-method correlations; Dieckhaus prints seed standard deviations only for its own model in Table 1, which is not transcribed here.",
+      "Stability Oracle, PROSTATA and ABYSSAL appear only as values compiled from their own papers (Dieckhaus Table 3), not as reruns."
+    ],
+    "exclusions_note": "No exclusion change is proposed. The Chu single-protein datasets measure melting temperature, chemical stability or abundance, not ddG of folding, so those seven judgements are proxy; the exclusion on whole-protein function and pathogenicity still holds because none of these endpoints is organismal fitness or a clinical label.",
+    "setting_proposed": "Existing AMFR evidence, plus three published comparisons: 21 predictors on S669 with reverse variants (Pancotti et al. 2022); 12 methods on a homology-clustered mega-scale held-out split and a homologue-free FireProtDB split, with compiled Ssym and S669 values (Dieckhaus et al. 2024); and seven methods on held-out mega-scale domains and six larger single-protein stability datasets (Chu et al. 2024).",
+    "decision_proposed": "Inspect per-method correlation and error on held-out proteins, the antisymmetry bias, and the drop when moving from small domains to larger proteins, before choosing a method for the intended protein and assay.",
+    "pin_warning": "Changing setting or decision alters fields pinned by the three reviewed judgements on this use case, which would be withheld until re-reviewed and re-pinned. Adding links, gaps, sources and citations does not."
+  },
+  "summary_proposal": {
+    "id": "use-case-summary-protein-stability",
+    "field": "summary",
+    "status": "needs_review",
+    "value": "Three new comparisons join the existing AMFR evidence. Each uses its own dataset, split and metric, so the numbers cannot be pooled. On S669, 669 experimental ddG variants in proteins unlike the usual training sets (Pancotti et al. 2022), the best Pearson correlation on direct variants was about 0.5 (MAESTRO 0.50, ACDC-NN 0.46) and FoldX reached 0.22. Reversing each variant exposed strong bias in tools not built to be antisymmetric: mCSM fell to 0.22 on reverse variants with a bias of -0.85, while antisymmetric tools such as INPS-Seq kept the same correlation. On held-out proteins from the mega-scale proteolysis set, clustered at 25% identity (Dieckhaus et al. 2024, the ThermoMPNN developers), ThermoMPNN reached Pearson 0.75 and RMSE 0.71 kcal/mol, RaSP 0.71 and Rosetta 0.53 with RMSE 5.18; FoldX had RMSE 3.87. On a homologue-free FireProtDB split ThermoMPNN fell to 0.65. Chu et al. 2024, the ESM therm developers, show the transfer limit directly: on held-out mega-scale domains Spearman was 0.65 for their fine-tuned model, 0.64 for RaSP and ELASPIC-2 and 0.61 for Rosetta, but on six larger single proteins their model dropped to between -0.11 and 0.03 while ELASPIC-2 stayed at 0.47 to 0.58 and a pretrained ESM-2 3B reached 0.53 on one of them. Values are as printed. None of these comparisons covers the AMFR construct in the existing judgements, and none establishes whole-protein function, fitness or pathogenicity.",
+    "source_ids": [
+      "protein-stability-20261009-source-pancotti2022",
+      "protein-stability-20261009-source-dieckhaus2024",
+      "protein-stability-20261009-source-chu2024"
+    ],
+    "source_locator": "Pancotti et al. 2022 Table 1; Dieckhaus et al. 2024 Tables 2-3; Chu et al. 2024 Tables 1-2",
+    "traceability": [
+      {
+        "record_id": "protein-stability-20261009-result-pancotti2022-acdc-nn-s669-direct-r",
+        "printed_value": "0.46"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-pancotti2022-maestro-s669-direct-r",
+        "printed_value": "0.5"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-pancotti2022-foldx-s669-direct-r",
+        "printed_value": "0.22"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-pancotti2022-foldx-s669-reverse-r",
+        "printed_value": "0.22"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-pancotti2022-mcsm-s669-reverse-r",
+        "printed_value": "0.22"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-pancotti2022-mupro-s669-bias",
+        "printed_value": "–0.95"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-pancotti2022-inps-seq-s669-antisimmetry-r-d-r",
+        "printed_value": "–1"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-dieckhaus2024-thermompnn-megascale-pearson-correlation",
+        "printed_value": "0.75"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-dieckhaus2024-rasp-megascale-pearson-correlation",
+        "printed_value": "0.71"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-dieckhaus2024-proteinmpnn-megascale-pearson-correlation",
+        "printed_value": "0.43"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-dieckhaus2024-rosetta-megascale-pearson-correlation",
+        "printed_value": "0.53"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-dieckhaus2024-thermompnn-fireprot-pearson-correlation",
+        "printed_value": "0.65"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-dieckhaus2024-foldx-megascale-root-mean-squared-error",
+        "printed_value": "3.87"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-dieckhaus2024-rosetta-megascale-root-mean-squared-error",
+        "printed_value": "5.18"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-dieckhaus2024-thermompnn-megascale-root-mean-squared-error",
+        "printed_value": "0.71"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-chu2024-esm-therm-mega-scale-spearman-correlation",
+        "printed_value": "0.65"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-chu2024-rasp-mega-scale-spearman-correlation",
+        "printed_value": "0.64"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-chu2024-elaspic-2-mega-scale-spearman-correlation",
+        "printed_value": "0.64"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-chu2024-rosetta-mega-scale-spearman-correlation",
+        "printed_value": "0.61"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-chu2024-mupro-mega-scale-spearman-correlation",
+        "printed_value": "0.31"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-chu2024-esm-therm-bglb-spearman-correlation",
+        "printed_value": "-0.11"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-chu2024-esm-therm-methyltransferase-spearman-correlation",
+        "printed_value": "0.03"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-chu2024-elaspic-2-methyltransferase-spearman-correlation",
+        "printed_value": "0.58"
+      },
+      {
+        "record_id": "protein-stability-20261009-result-chu2024-esm-2-3b-bgl3-spearman-correlation",
+        "printed_value": "0.53"
+      }
+    ],
+    "note": "The ELASPIC-2 range 0.47 to 0.58 covers its six larger-protein rows; the ESM therm range -0.11 to 0.03 covers the same six. The mCSM bias -0.85 and reverse r 0.22 are from Pancotti Table 1."
+  },
+  "concerns_for_reviewer": [
+    {
+      "source_id": "protein-stability-20261009-source-dieckhaus2024",
+      "locator": "Table 3 row 'ACDC-NN ( 30 , 36 )' versus Pancotti et al. 2022 Table 1",
+      "message": "Dieckhaus Table 3 prints ACDC-NN S669 RMSE 1.60 and PCC 0.46, citing Pancotti et al. 2022; Pancotti Table 1 prints RMSE 1.49 for direct variants with the same PCC 0.46. Both values are stored, each against its own source."
+    },
+    {
+      "source_id": "protein-stability-20261009-source-dieckhaus2024",
+      "locator": "Table 2 footnote and Table 3 footnotes",
+      "message": "Rows marked * in Table 2 may be inflated by training-set homologues; in Table 3 the marks mean something different (ThermoMPNN trained on a filtered set; ABYSSAL scored on 420 of 669 variants). Both are recorded on the affected results as source_warnings."
+    },
+    {
+      "source_id": "protein-stability-20261009-source-pancotti2022",
+      "locator": "Section 2.2 and Supplementary Materials",
+      "message": "Predictor versions and server access dates are only in the Supplementary Materials, which were not read; configuration versions are therefore unextracted."
+    },
+    {
+      "source_id": "protein-stability-20261009-source-chu2024",
+      "locator": "Table 1 caption",
+      "message": "Every method is scored on point mutations only, except the authors' own model on the mega-scale set, which also saw multi-point variants. The comparison on that row is therefore not exactly matched."
+    },
+    {
+      "source_id": "protein-stability-20261009-source-pancotti2022",
+      "locator": "Table 1 row 'MAESTRO'",
+      "message": "MAESTRO has the highest direct-variant correlation (0.50) but a bias of -0.57 and reverse correlation 0.20, so ranking by direct correlation alone would mislead."
+    }
+  ],
+  "concerns_note": "Not written as source evidence_concerns; the reviewer decides.",
+  "gaps": [
+    "Pancotti Supplementary Materials (tool versions, classification metrics) not read.",
+    "Dieckhaus SI Appendix (seed variability, p53 and myoglobin antisymmetry, PPV for stabilising mutations) not extracted.",
+    "Chu per-domain spreadsheets (S1 and S2) not extracted.",
+    "No independent mega-scale comparison; no ProteinGym stability-subset table with a stated protein set found.",
+    "Tsuboyama 2023 itself was not retrieved; both mega-scale splits are second-hand curations."
+  ],
+  "leads": [
+    {
+      "doi": "10.3390/genes14122228",
+      "pmcid": "PMC10742815",
+      "note": "Birolo et al. 2023: same Ssym set with experimental versus modelled structures, per-method tables."
+    },
+    {
+      "doi": "10.1038/s41467-025-67609-4",
+      "pmcid": "PMC12830971",
+      "note": "Rewired generative models for stability; source-data workbook may hold per-method values."
+    },
+    {
+      "doi": "10.1093/bib/bbac025",
+      "pmcid": "PMC9155634",
+      "note": "Homology-model performance for stability predictors; figure-level results."
+    }
+  ]
+}
