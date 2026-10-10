@@ -13,6 +13,7 @@ import { createEvidenceIndex } from "../../shared/omics/evidence-table";
 import { deriveResearchReadiness, getResearch } from "../../shared/omics/research";
 import { useCaseState, type UseCaseArtifact, type UseCaseDeclaration } from "../../shared/omics/use-cases";
 import { PREPARED_CONTRACT_VERSION } from "../../shared/omics/prepared-catalogue";
+import { createRecordEncoder, decodeRecords, packEvidence, slimListRecord, unpackEvidence } from "../../shared/omics/serving-codec";
 import { isBenchmarkSubject, isDatasetSubject } from "../../shared/omics/entity-kinds";
 import { benchmarkCoverage } from "../omics/audit-benchmark-evidence";
 import { buildBaselineAudit } from "../../lib/baseline-coverage";
@@ -29,6 +30,7 @@ export const generatorFiles = [
   "lib/baseline-coverage.ts",
   "shared/omics/evidence-table.ts",
   "shared/omics/prepared-catalogue.ts",
+  "shared/omics/serving-codec.ts",
   "shared/omics/published-comparisons.ts",
   "shared/omics/research.ts",
   "shared/omics/source-identity.ts",
@@ -98,17 +100,20 @@ export function buildPreparedCatalogue(input: {
   const query = createCatalogueQuery(snapshot);
   fs.rmSync(input.file, { force: true });
   const db = new DatabaseSync(input.file);
+  // Contract 3: records are stored once, compressed; every other table refers to
+  // them by ID (serving-codec.ts). Use cases are one row per entry.
   db.exec(`
     PRAGMA page_size = 8192; PRAGMA journal_mode = OFF; PRAGMA synchronous = OFF;
     CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL) WITHOUT ROWID;
     CREATE TABLE blobs (key TEXT PRIMARY KEY, value BLOB NOT NULL);
-    CREATE TABLE records (id TEXT PRIMARY KEY, kind TEXT NOT NULL, status TEXT NOT NULL, json TEXT NOT NULL);
+    CREATE TABLE records (id TEXT PRIMARY KEY, kind TEXT NOT NULL, status TEXT NOT NULL, gz BLOB NOT NULL);
     CREATE INDEX records_kind ON records (kind, id);
     CREATE TABLE details (id TEXT PRIMARY KEY, gz BLOB NOT NULL);
     CREATE TABLE result_rows (result_id TEXT PRIMARY KEY, gz BLOB NOT NULL);
     CREATE TABLE result_index (record_id TEXT NOT NULL, pos INTEGER NOT NULL, result_id TEXT NOT NULL, PRIMARY KEY (record_id, pos)) WITHOUT ROWID;
     CREATE TABLE evidence (record_id TEXT PRIMARY KEY, gz BLOB NOT NULL);
     CREATE TABLE audit_checks (record_id TEXT PRIMARY KEY, gz BLOB NOT NULL);
+    CREATE TABLE use_case_entries (section TEXT NOT NULL, key TEXT NOT NULL, gz BLOB NOT NULL, PRIMARY KEY (section, key)) WITHOUT ROWID;
   `);
   const meta = db.prepare("INSERT INTO meta VALUES (?, ?)");
   const blob = db.prepare("INSERT INTO blobs VALUES (?, ?)");
@@ -117,21 +122,32 @@ export function buildPreparedCatalogue(input: {
   const insertRow = db.prepare("INSERT INTO result_rows VALUES (?, ?)");
   const insertIndex = db.prepare("INSERT INTO result_index VALUES (?, ?, ?)");
   const insertEvidence = db.prepare("INSERT INTO evidence VALUES (?, ?)");
+  const insertUseCase = db.prepare("INSERT INTO use_case_entries VALUES (?, ?, ?)");
 
   // The engine's own record set: non-excluded records, ordered by ID.
   const records = snapshot.records
     .filter((record) => record.status !== "excluded")
     .sort((a, b) => a.id.localeCompare(b.id));
+  const byId = new Map(records.map((record) => [record.id, record]));
+  const encodeRecords = createRecordEncoder(records);
+  // Every encoded value must decode to exactly what the engine returned.
+  const packed = (value: unknown, label: string) => {
+    const encoded = encodeRecords(value);
+    const decoded = decodeRecords(encoded, (id) => byId.get(id) || null);
+    if (JSON.stringify(decoded) !== JSON.stringify(value)) throw new Error(`Prepared ${label} does not round-trip`);
+    return gz(encoded);
+  };
   const evidence = createEvidenceIndex(snapshot);
-  const counts = { records: 0, details: 0, result_rows: 0, result_index: 0, evidence: 0 };
+  const evidenceSources: Parameters<typeof packEvidence>[1] = new Map();
+  const counts = { records: 0, details: 0, result_rows: 0, result_index: 0, evidence: 0, use_case_entries: 0 };
   const rowsWritten = new Set<string>();
   db.exec("BEGIN");
   for (const record of records) {
-    insertRecord.run(record.id, record.kind, record.status, JSON.stringify(record));
+    insertRecord.run(record.id, record.kind, record.status, gz(record));
     counts.records++;
     const detail = query.get({ id: record.id, include_comparisons: true });
     if (detail) {
-      insertDetail.run(record.id, gz(detail));
+      insertDetail.run(record.id, packed(detail, `detail ${record.id}`));
       counts.details++;
     }
     // All of this record's result rows, in the engine's order. Rows are stored once.
@@ -146,7 +162,10 @@ export function buildPreparedCatalogue(input: {
     counts.result_index += rows.length;
     const evidenceRows = evidence.forRecord(record.id);
     if (evidenceRows.length) {
-      insertEvidence.run(record.id, gz(evidenceRows));
+      const packedRows = packEvidence(evidenceRows, evidenceSources);
+      const unpacked = unpackEvidence(packedRows, record, snapshot.release_id, Object.fromEntries(evidenceSources));
+      if (JSON.stringify(unpacked) !== JSON.stringify(evidenceRows)) throw new Error(`Prepared evidence of ${record.id} does not round-trip`);
+      insertEvidence.run(record.id, gz(packedRows));
       counts.evidence++;
     }
   }
@@ -154,10 +173,12 @@ export function buildPreparedCatalogue(input: {
   for (const row of query.resultRows()) {
     if (rowsWritten.has(row.result.id)) continue;
     rowsWritten.add(row.result.id);
-    insertRow.run(row.result.id, gz(row));
+    insertRow.run(row.result.id, packed(row, `result row ${row.result.id}`));
     counts.result_rows++;
   }
-  blob.run("list_entries", gz(query.listEntries()));
+  blob.run("evidence_sources", gz(Object.fromEntries([...evidenceSources].sort(([a], [b]) => a.localeCompare(b)))));
+  // List entries carry only the record fields listPage filters on; pages read the rest.
+  blob.run("list_entries", gz(query.listEntries().map((entry) => ({ ...entry, record: slimListRecord(entry.record) }))));
   blob.run("home_summary", gz(homeSummary(snapshot.records)));
   blob.run("baseline_audit", gz(buildBaselineAudit(snapshot as never)));
   blob.run("evidence_summary", gz(evidenceSummary(evidence.all())));
@@ -185,10 +206,17 @@ export function buildPreparedCatalogue(input: {
         .sort(),
     ),
   );
-  blob.run(
-    "use_cases",
-    gz(useCaseState(snapshot, input.useCases?.artifact, input.useCases?.declaration, query)),
+  // Use cases: the small index (entries and backlinks) as one blob, and each
+  // mapping list, result list and source list as its own row.
+  const { mappings, results, sources, ...base } = useCaseState(
+    snapshot, input.useCases?.artifact, input.useCases?.declaration, query,
   );
+  blob.run("use_case_base", gz(base));
+  for (const [section, entries] of [["mappings", mappings], ["results", results], ["sources", sources]] as const)
+    for (const [key, value] of entries) {
+      insertUseCase.run(section, key, packed(value, `use case ${section} ${key}`));
+      counts.use_case_entries++;
+    }
   const metadata: Record<string, string> = {
     serving_contract_version: PREPARED_CONTRACT_VERSION,
     record_schema_version: snapshot.schema_version,
