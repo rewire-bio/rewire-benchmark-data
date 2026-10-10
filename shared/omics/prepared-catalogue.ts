@@ -119,9 +119,20 @@ export function openPreparedCatalogue(file: string) {
   const useCaseRows = () => {
     const entryStatement = db.prepare("SELECT gz FROM use_case_entries WHERE section = ? AND key = ?");
     const base = blob<Pick<UseCaseState, "release_id" | "input_sha256" | "entries" | "backlinks">>("use_case_base");
+    // Index pages read the same use case's evaluations a page at a time, so the
+    // last few decoded entries are kept.
+    const recent = new Map<string, [string, unknown][]>();
     const entry = <T>(section: "mappings" | "results" | "sources", key: string): [string, T][] => {
-      const row = entryStatement.get(section, key) as { gz: Uint8Array } | undefined;
-      return row ? [[key, stored<T>(row.gz, sharedLookup())]] : [];
+      const id = `${section}\u0000${key}`;
+      let found = recent.get(id);
+      if (found) recent.delete(id);
+      else {
+        const row = entryStatement.get(section, key) as { gz: Uint8Array } | undefined;
+        found = row ? [[key, stored<T>(row.gz, sharedLookup())]] : [];
+      }
+      recent.set(id, found);
+      if (recent.size > 8) recent.delete(recent.keys().next().value!);
+      return found as [string, T][];
     };
     const over = (state: Partial<UseCaseState>) =>
       useCaseQueryFrom({ ...base, mappings: [], backlinks: [], results: [], sources: [], ...state });
