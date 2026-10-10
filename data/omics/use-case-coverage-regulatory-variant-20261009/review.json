@@ -1,0 +1,180 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T21:28:00Z",
+  "scope": "Independent review of the regulatory variant and gene follow-up use-case batch for use-case-regulatory-variant-gene-follow-up: 388 records after review (160 results, 136 evaluations, 44 configurations, 15 claims, 8 models, 8 protocols, 7 methods, 6 datasets, 4 sources). All four pinned artifacts were re-downloaded and matched their recorded SHA-256; archived copies decompress to the same bytes. All 160 results, including every bootstrap interval and standard error, were re-read with the reviewer's own parsers (the extractor's scripts were not run) and match. No number changed. Corrections, concern decisions, exclusions, judgement review and approved use-case changes are in docs/reviews/use-cases/regulatory-variant-gene-follow-up-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any model.",
+    "Figures, Manzo Supplementary Tables S1 and S2, Tang Additional file 1 and Gschwind Supplementary Table 1 were not checked.",
+    "The Europe PMC supplementaryFiles zip is rebuilt per request, so its container hash cannot be re-verified; the MOESM3 zip and the xlsx member were verified.",
+    "SHACL shapes and npm run build were not run; npm test and npm run typecheck passed, and an in-memory addBatch and deriveUseCaseInputs dry run passed with all eight new and all five existing judgements active."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "4 regulatory-variant-20261009-eval-gschwind2026-*-epiraction and -epimap evaluations"
+      ],
+      "message": "Origin independent_paper corrected to author_reported: EPIraction and EpiMap are from Gschwind et al. co-authors' groups (references 27 and 8). Two developer_overlap claims added."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "regulatory-variant-20261009-eval-tang2025-hepg2-lentimpra-one-hot-mprann",
+        "regulatory-variant-20261009-eval-tang2025-k562-lentimpra-one-hot-mprann"
+      ],
+      "message": "Origin author_reported corrected to independent_paper: MPRAnn is a published architecture retrained by Tang et al."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "8 family records now regulatory-variant-20261009-model-*"
+      ],
+      "message": "Neural-network families recorded as kind method with -method- IDs; now kind model, entity_level family, consistent with existing model records. Configuration links updated."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "DNABERT-2 and 4 NT v2 configurations"
+      ],
+      "message": "Linked to catalog-model-dnabert-2 (an alias) and catalog-model-nt-v2 (version 50M); relinked to discovery-model-dnabert-2 and discovery-model-nucleotide-transformer."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "38 configurations"
+      ],
+      "message": "version held a printed label such as 'Borzoi (as printed)'; now missing_metadata.version unreported with the label in the note. Tang HyenaDNA version set to hyenadna-tiny-1k-seqlen-d256 from Methods."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "14 family method and model records"
+      ],
+      "message": "Descriptions stated facts not in the sources; now quote the sources."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "regulatory-variant-20261009-claim-manzo2025-prose-averages"
+      ],
+      "message": "Locator corrected to Results 2.1 paragraph 5; value extended with the Results 2.3 values and the HeLa ranking conflict. Two Manzo claims added (adaptation conflict, SNP counts)."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "Enformer, Borzoi, HyenaDNA and Geneformer Manzo configurations and evaluations",
+        "Tang CAGI5 dataset and HepG2 evaluations",
+        "Gschwind ABC configuration"
+      ],
+      "message": "Adaptation text now states the source's conflicting descriptions; 'LDLT' kept as printed instead of asserting LDLR; ABC method type corrected to conventional_pipeline."
+    },
+    {
+      "status": "judgement_changed",
+      "record_ids": [
+        "use-case-mapping-regulatory-variant-20261009-gschwind2026-k562-training"
+      ],
+      "message": "Relevance proxy changed to outside_scope: these are ENCODE-rE2G training pairs and every predictor's threshold was set on them; not shown as evidence."
+    },
+    {
+      "status": "excluded_from_judgement",
+      "record_ids": [
+        "regulatory-variant-20261009-eval-manzo2025-hela-borzoi",
+        "regulatory-variant-20261009-eval-manzo2025-hela-enformer",
+        "regulatory-variant-20261009-eval-manzo2025-hela-geneformer",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-borzoi",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-enformer",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-geneformer",
+        "regulatory-variant-20261009-eval-manzo2025-k562-borzoi",
+        "regulatory-variant-20261009-eval-manzo2025-k562-enformer",
+        "regulatory-variant-20261009-eval-manzo2025-k562-geneformer",
+        "regulatory-variant-20261009-eval-manzo2025-npc-borzoi",
+        "regulatory-variant-20261009-eval-manzo2025-npc-enformer",
+        "regulatory-variant-20261009-eval-manzo2025-npc-geneformer"
+      ],
+      "message": "Twelve Manzo evaluations excluded with reasons: Enformer and Borzoi (input setup described two ways) and Geneformer (single-cell model applied to DNA tokens)."
+    }
+  ],
+  "excluded_evaluations": [
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-hela",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-hela-borzoi",
+      "reason": "Model setup unresolved: Table 2 and Section 4.2 give different input setups for Borzoi (1 kb input versus full-length genomic context), so these values cannot be attributed to a defined configuration."
+    },
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-hela",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-hela-enformer",
+      "reason": "Model setup unresolved: Table 2 and Section 4.2 give different input setups for Enformer (1 kb input versus full-length genomic context), so these values cannot be attributed to a defined configuration."
+    },
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-hela",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-hela-geneformer",
+      "reason": "Off-label use: Geneformer is a single-cell transcriptome model with a gene-level vocabulary, applied here to DNA sequence tokens (Table 2); the value does not describe Geneformer as published."
+    },
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-hepg2",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-hepg2-borzoi",
+      "reason": "Model setup unresolved: Table 2 and Section 4.2 give different input setups for Borzoi (1 kb input versus full-length genomic context), so these values cannot be attributed to a defined configuration."
+    },
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-hepg2",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-hepg2-enformer",
+      "reason": "Model setup unresolved: Table 2 and Section 4.2 give different input setups for Enformer (1 kb input versus full-length genomic context), so these values cannot be attributed to a defined configuration."
+    },
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-hepg2",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-hepg2-geneformer",
+      "reason": "Off-label use: Geneformer is a single-cell transcriptome model with a gene-level vocabulary, applied here to DNA sequence tokens (Table 2); the value does not describe Geneformer as published."
+    },
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-k562",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-k562-borzoi",
+      "reason": "Model setup unresolved: Table 2 and Section 4.2 give different input setups for Borzoi (1 kb input versus full-length genomic context), so these values cannot be attributed to a defined configuration."
+    },
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-k562",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-k562-enformer",
+      "reason": "Model setup unresolved: Table 2 and Section 4.2 give different input setups for Enformer (1 kb input versus full-length genomic context), so these values cannot be attributed to a defined configuration."
+    },
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-k562",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-k562-geneformer",
+      "reason": "Off-label use: Geneformer is a single-cell transcriptome model with a gene-level vocabulary, applied here to DNA sequence tokens (Table 2); the value does not describe Geneformer as published."
+    },
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-npc",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-npc-borzoi",
+      "reason": "Model setup unresolved: Table 2 and Section 4.2 give different input setups for Borzoi (1 kb input versus full-length genomic context), so these values cannot be attributed to a defined configuration."
+    },
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-npc",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-npc-enformer",
+      "reason": "Model setup unresolved: Table 2 and Section 4.2 give different input setups for Enformer (1 kb input versus full-length genomic context), so these values cannot be attributed to a defined configuration."
+    },
+    {
+      "judgement": "use-case-mapping-regulatory-variant-20261009-manzo2025-npc",
+      "evaluation": "regulatory-variant-20261009-eval-manzo2025-npc-geneformer",
+      "reason": "Off-label use: Geneformer is a single-cell transcriptome model with a gene-level vocabulary, applied here to DNA sequence tokens (Table 2); the value does not describe Geneformer as published."
+    }
+  ],
+  "files": {
+    "artifacts/gschwind2026-article.xml.gz": "6f7395cabd170df955712b9929d8c19dbbae450c468d867b6578ce605f85d814",
+    "artifacts/gschwind2026-supplementary-table-3.xlsx.gz": "03518763e0d1052cf91e930dff69eff98c22f9e8752f4038175098e5c786ba64",
+    "artifacts/manzo2025-article.xml.gz": "01a66e8bf405804430acd706caaddd746128db731896d2a6bc764bb517bb31a2",
+    "batch.jsonl": "f61e8648971dc38b5a0fd0990fcdd050893b0da33db691aac999a95684836edb",
+    "claims.csv": "2f5ff65c9cb506afb9537fead65edc695de1a949dfe2eeb6fa0c5203a2534a87",
+    "coverage.json": "140a4488103f6e1f3f0fa7fa121e21f5aa576099988abea2059023411ac9605e",
+    "extract/extract_regulatory_variant.py": "fe1c71e48810439ec30bac5e7902588d4dbb61fc677ace18ad0498a6ba87440c",
+    "extract/rawxlsx.py": "81aa5a418143431976749abe8273a45f37c8bde0fe4c1ce25a449221ae512726",
+    "research.md": "548f8f080c632d1db149e2f34d13636667fc205d713841f7d2d50e9522d5c1a1",
+    "retrieval-log.md": "c86705bfdf3dfd97284187ade03d682bb77fb132ac3c0b814467f3bd23ba7a4e",
+    "sources.md": "07a21edb6e92a61418baa93ad449eeb63d66f94b4a9e8b51588a57c85433b525"
+  }
+}
