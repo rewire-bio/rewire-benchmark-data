@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T23:59:00Z",
+  "scope": "Independent review of the protein variant stability batch for use-case-protein-stability: 651 records (427 results, 120 evaluations, 42 configurations, 23 methods, 12 datasets, 12 protocols, 12 relevance judgements, 3 sources). Every result checked against Pancotti et al. 2022 Table 1, Dieckhaus et al. 2024 Tables 2 and 3 and Chu et al. 2024 Table 1. See docs/reviews/use-cases/protein-variant-stability-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any predictor.",
+    "Supplementary materials of the three papers were not read; Pancotti predictor versions remain unextracted.",
+    "Compiled Dieckhaus Table 3 values for Ssym were not checked against their original papers; the S669 values were checked against Pancotti et al. 2022.",
+    "Relevance judgement pins are left unset for the integrator; all 15 judgements on the use case were simulated active after re-pinning, with the approved use-case text applied in memory.",
+    "The collector reports that rerunning extract/extract_protein_stability.py on the archived artifacts reproduced the pre-review batch.jsonl and claims.csv byte for byte. That was not relied on; every cell was checked independently. After this review's edits the script no longer reproduces batch.jsonl or claims.csv."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "protein-stability-20261009-result-dieckhaus2024-acdc-nn-s669-direct-variants-root-mean-squared-error"
+      ],
+      "message": "Compiled ACDC-NN S669 RMSE 1.60 disagrees with the cited source (Pancotti et al. 2022 Table 1: 1.49 direct; 1.60 is DDGun3D's value). Set to disputed with source_warnings; the Pancotti value stays source_checked."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "protein-stability-20261009-eval-pancotti2022-inps3d-s669",
+        "protein-stability-20261009-eval-pancotti2022-inps-seq-s669",
+        "protein-stability-20261009-eval-pancotti2022-i-mutant3-0-s669",
+        "protein-stability-20261009-eval-pancotti2022-i-mutant3-0-seq-s669"
+      ],
+      "message": "Origin corrected to author_reported: Pancotti authors Fariselli and Capriotti co-developed INPS-MD and I-Mutant."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "protein-stability-20261009-eval-dieckhaus2024-proteinmpnn-s669",
+        "protein-stability-20261009-eval-dieckhaus2024-proteinmpnn-ssym"
+      ],
+      "message": "Origin corrected to independent_paper; ProteinMPNN was not developed by the Dieckhaus authors."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-protein-stability-20261009-dieckhaus2024-fireprot",
+        "use-case-mapping-protein-stability-20261009-dieckhaus2024-s669",
+        "use-case-mapping-protein-stability-20261009-chu2024-mega-scale"
+      ],
+      "message": "Eight evaluations excluded with reasons: six homologue-inflated Fireprot rows (Table 2 *), ABYSSAL on 420 filtered S669 variants (Table 3 dagger), ESM therm on the mega-scale set (scored on multi-point variants as well)."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "21 Pancotti antisymmetry correlation results"
+      ],
+      "message": "metric_direction set to lower (perfect antisymmetry is -1)."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "Chu protocols and judgements",
+        "Dieckhaus Fireprot protocol, dataset and judgement",
+        "Dieckhaus Ssym judgement",
+        "Chu datasets"
+      ],
+      "message": "Wrong or copied limitation and rationale text corrected; Chu text-table conflicts recorded; label spacing cleaned."
+    },
+    {
+      "status": "open",
+      "record_ids": [
+        "use-case-protein-stability"
+      ],
+      "message": "Approved use-case text changes pinned fields; the three existing judgements hold but must be re-pinned with the twelve new ones."
+    }
+  ],
+  "files": {
+    "batch.jsonl": "dd26a54d6a5c818e5d67fe332b78c4c3c1e5a0487a660decaad4e658c6b26de0",
+    "claims.csv": "e07b290f4cea33036b261aa8f02f270993a3188319311aa98a02d426b4a85e88",
+    "coverage.json": "97fa852dd52b0a847d1f8e33fb27a546c3ed5e31ad9c85da1ef8d040a777b218",
+    "research.md": "7cfeb31f622675ae84b7c1a2be23c4aba7752636507f81b1b9e4def71183b8b5",
+    "retrieval-log.md": "76c6ef6557155c296db1a3b55ede0929b92ed90af59544f2c04bd488e6867611",
+    "sources.md": "901ab9c1d2e2da4af2bfdcd84b8afa8df020bd43a8dbf4d0550469cce8bff6aa",
+    "artifacts/chu2024-article.xml.gz": "249fac22220dc82fc718524bf286e9142e4e34094c541a4ac8fac117b4c63758",
+    "artifacts/dieckhaus2024-article.xml.gz": "925a164bc3cdaf4df852dc6800f0d98ef4ae066c06c8fdfe93543e480182bca4",
+    "artifacts/pancotti2022-article.xml.gz": "25aff1c34bab07a3b0b21765e0391fc3741d45810b88431caf738e5a636f4f1b",
+    "extract/extract_protein_stability.py": "699c06ab8ed050a6ed8a9e9aab413cb26a8dd34d0d4ca9d3a7c4e382f9204746"
+  }
+}
