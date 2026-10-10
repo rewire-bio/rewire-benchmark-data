@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-10T06:18:59Z",
+  "scope": "Independent review of the Kaschta et al. 2026 reanalysis batch for use-case-unresolved-rare-disease-reanalysis: 48 records (27 results, 5 claims of which 3 are relevance judgements, 5 evaluations, 3 configurations, 3 datasets, 3 protocols, 1 method, 1 source). The JATS XML re-downloaded to the pinned SHA-256. Every value was checked against its exact paragraph and quoted phrase with a separate parser; 26 results are source_checked and 1 is disputed (Talos total yield printed as 41.9%, contradicting its own sentence). The 3 judgements are source_checked with reviewed_evaluations (1 direct, 2 proxy); pins are not set. Details in docs/reviews/use-cases/unresolved-rare-disease-reanalysis-kaschta-2026-10-10.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review, not reproduction and not clinical validation.",
+    "All values are prose transcriptions; Table 1 (an image), the figures and the per-patient supplement were not read.",
+    "The source is a preprint whose licence reserves all rights; it is pinned by hash and not archived, so re-checking requires a new retrieval.",
+    "Pins for the 3 judgements are not set; the use case's assessed_by links, gap replacements and the replacement summary text are approved in the dated review but not applied here.",
+    "npm run build was not run, by instruction. npm test and npm run typecheck passed, and a scratch-store dry run of addBatch, loadRecords and deriveUseCaseInputs succeeded."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "reanalysis-kaschta-20261010-result-talos-total-diagnostic-yield"
+      ],
+      "message": "Printed 41.9% contradicts its own sentence (158 to 161 cases, identical to the manual result; 161 of 377 is 42.7%). Status set to disputed; printed value kept."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "reanalysis-kaschta-20261010-protocol-manual-vs-talos-219-reanalysis",
+        "use-case-mapping-reanalysis-kaschta-20261010-manual-vs-talos"
+      ],
+      "message": "Limitations added: the equal-input condition is not met, effort is measured in different units, the arms ran at different times, the manual reference cannot credit Talos-only findings, and Illumina supported the study. Yield and workload limitations rewritten."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "reanalysis-kaschta-20261010-eval-manual-219-reanalysis",
+        "reanalysis-kaschta-20261010-eval-talos-219-reanalysis"
+      ],
+      "message": "Origin basis recorded: Illumina support on the manual arm; no Talos author among the study authors and the authors' ingestion adaptation on the Talos arm."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "reanalysis-kaschta-20261010-data-uksh-trio-benchmark",
+        "reanalysis-kaschta-20261010-protocol-talos-singleton-benchmark",
+        "reanalysis-kaschta-20261010-protocol-talos-trio-benchmark"
+      ],
+      "message": "Recorded the 33 against 34 trio VUS case count and the per-case definition against per-variant reporting of concordance."
+    }
+  ],
+  "files": {
+    "batch.jsonl": "8adc9639146e35dcd263c73837848419ca15216d64d2e0d80f9351928e6e7e6d",
+    "claims.csv": "991e6cc4e10e4d7155b3592b268009e6c769cf38d5a08ed63b76d5da97f6553a",
+    "coverage.json": "31d8a524bb0c6dd6c6b68f61c70e009e4d8015515900190884c4cf01c9679e36",
+    "extract/extract_kaschta.py": "2a6c5d0b1f968852c1145f3998aaceb4eed4b561ca5ae27bdda5ec540d3fbd46",
+    "extract/jats_paras.py": "41ed2ba31afdf50408f5cb6687a8945d000f9ab9a815dbf946fe4b3501f6192b",
+    "research.md": "ce998a2dd6dd9f56dd3b01eaae959c8150a3ad3717e8d017c9f1397ecd16b959",
+    "retrieval-log.md": "8768bb799a653d33478f5022f08e2489e1018e01e7c191849252dd8b7478873c",
+    "sources.md": "32ee2e7caadcd3689224abab85c30bb381bc7e253b09b3a941dab90043747f83"
+  }
+}

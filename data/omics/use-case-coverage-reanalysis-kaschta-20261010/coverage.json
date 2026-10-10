@@ -1,0 +1,121 @@
+{
+  "use_case_id": "use-case-unresolved-rare-disease-reanalysis",
+  "cutoff_date": "2026-10-10",
+  "query_budget": {
+    "budgeted": "single named source",
+    "used": 1
+  },
+  "existing_reused": [
+    "uc-clinical-20260930-method-talos"
+  ],
+  "existing_not_reused": {
+    "uc-clinical-20260930-reanalysis-4735-data and the Talos ACG/RGP datasets": "Different cohorts (Talos study); no existing record describes the UKSH cohort, so three datasets were created."
+  },
+  "existing_judgements_unchanged": "All ten existing judgements on this use case are unchanged.",
+  "new_record_counts": {
+    "claim": 5,
+    "configuration": 3,
+    "dataset": 3,
+    "evaluation": 5,
+    "method": 1,
+    "protocol": 3,
+    "result": 27,
+    "source": 1
+  },
+  "vocabulary_additions": {
+    "data/vocab/metric.ttl": [
+      "review-time-per-case"
+    ],
+    "note": "No existing concept covers human hands-on review time (runtime is defined as computation time). Lower is better. No external match asserted. Needs review."
+  },
+  "prose_values": "All 27 results are printed in the article text (abstract and Results paragraphs). Each locator names the section, the paragraph number within it and the exact quoted phrase; the extractor asserts both. Figures, Table 1 (an image) and the supplement were not read.",
+  "per_patient_data": "The supplement (352295_file02.xlsx, per-patient clinical data) was not downloaded. Case numbers, genes and variants printed in Results 'Manual Reanalysis' P1-P2 are not stored in any file.",
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-reanalysis-kaschta-20261010-manual-vs-talos",
+      "protocol_id": "reanalysis-kaschta-20261010-protocol-manual-vs-talos-219-reanalysis",
+      "relevance": "direct",
+      "comparison_group": "kaschta2026-reanalysis",
+      "stratum_label": "Reanalysis of 219 unresolved cases",
+      "headline_metric": "count",
+      "evaluation_ids": [
+        "reanalysis-kaschta-20261010-eval-manual-219-reanalysis",
+        "reanalysis-kaschta-20261010-eval-talos-219-reanalysis"
+      ],
+      "endpoint": "New P/LP and VUS case findings, case-category counts, manual review time and Talos candidates per case for manual and Talos reanalysis of the same 219 unresolved genomes",
+      "limitations": [
+        "Unequal inputs: the manual arm re-aligned and re-called the raw reads with DRAGEN v4.2.4 and used Emedgene; Talos used the archived DRAGEN v3.7.5 VCFs. Differences cannot be attributed to the method alone.",
+        "The reference is the manual arm's own result: Talos is scored on whether it returned what manual reanalysis found, so findings that only Talos might have made are not counted.",
+        "Very small numbers: three new P/LP cases in each arm.",
+        "Automated total diagnostic yield is printed as 41.9% (Results 'Reanalysis Diagnostic Yield: Automated Reanalysis' P1), but 161 of 377 is 42.7%, which the manual paragraph and Figure 4 legend print; 41.9% is the initial yield.",
+        "Talos output per case is printed as an average of three variants (Results; Discussion P3) and as a median of approximately three (Discussion P1).",
+        "Manual time excludes report writing and preparation of evidence for secondary review; no hands-on time is printed for Talos.",
+        "Single centre, high initial yield (41.9%), one reanalysis round after a mean of 660 days.",
+        "A new candidate or classification is not a confirmed diagnosis; per-case confirmation details are in the supplement, which was not read."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-reanalysis-kaschta-20261010-talos-singleton-benchmark",
+      "protocol_id": "reanalysis-kaschta-20261010-protocol-talos-singleton-benchmark",
+      "relevance": "proxy",
+      "comparison_group": "kaschta2026-reanalysis",
+      "stratum_label": "Talos benchmark, singletons",
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "reanalysis-kaschta-20261010-eval-talos-singleton-benchmark"
+      ],
+      "endpoint": "Share of 35 known P/LP variants and count of 21 known VUS that Talos prioritised in 45 singleton cases, with failure modes",
+      "limitations": [
+        "Positive controls are known findings from the initial analysis; recovering them does not establish new diagnostic yield.",
+        "Concordance is per variant against the initial report, not per case.",
+        "The pipeline conversion share for singletons is 8.6% in the text but 9.6% in the Figure 2 legend; the text value is stored (3 of 35 is 8.6%)."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-reanalysis-kaschta-20261010-talos-trio-benchmark",
+      "protocol_id": "reanalysis-kaschta-20261010-protocol-talos-trio-benchmark",
+      "relevance": "proxy",
+      "comparison_group": "kaschta2026-reanalysis",
+      "stratum_label": "Talos benchmark, trios",
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "reanalysis-kaschta-20261010-eval-talos-trio-benchmark",
+        "reanalysis-kaschta-20261010-eval-talos-trio-benchmark-proband-only"
+      ],
+      "endpoint": "Share of 145 known P/LP variants Talos prioritised in 162 trio cases in trio mode and proband-only mode, VUS captured and failure modes",
+      "limitations": [
+        "Positive controls are known findings from the initial analysis; recovering them does not establish new diagnostic yield.",
+        "Concordance is per variant against the initial report, not per case.",
+        "Strict inheritance filtering in trio mode excluded 11 P/LP variants that proband-only mode recovered."
+      ],
+      "status": "needs_review"
+    }
+  ],
+  "relevance_decision": "The reanalysis comparison is judged direct: same 219 unresolved cases, same interval, both arms with updated knowledge, case-level new findings and review effort for each arm. The arms did not get the same variant calls (manual re-called with DRAGEN v4.2.4; Talos used archived DRAGEN v3.7.5 VCFs), which favours the manual arm and means differences cannot be credited to the method alone; this is the first constraint a reader sees in the limitations. The two Talos benchmarking protocols are proxy because they rerank known findings.",
+  "use_case_changes": {
+    "add_links": [
+      {
+        "relation": "assessed_by",
+        "target_id": "reanalysis-kaschta-20261010-protocol-manual-vs-talos-219-reanalysis"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "reanalysis-kaschta-20261010-protocol-talos-singleton-benchmark"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "reanalysis-kaschta-20261010-protocol-talos-trio-benchmark"
+      }
+    ],
+    "evidence_gaps_add": [
+      "The only same-cohort manual versus automated comparison found (Kaschta et al. 2026) gave the arms different variant calls and uses the manual result as the reference; no equal-input comparison exists in the store.",
+      "No hands-on time is printed for the automated arm; workload is printed as 81 minutes per manual case versus about three Talos variants per case, which are not the same unit.",
+      "Kaschta et al. 2026 is a single-centre preprint with three new P/LP cases per arm."
+    ],
+    "exclusions_change": null,
+    "decision_inputs_output_setting_change": "Not proposed."
+  },
+  "summary_proposal": "Kaschta et al. (2026, preprint) reanalysed the same 219 genomes that had no P/LP finding after a mean of 660 days, once manually by the diagnostic laboratory and once with Talos 8.2.0. Manual reanalysis found three new P/LP cases and two new VUS cases, taking a mean of 81 minutes per case (Results). Talos also returned the three new P/LP cases and one of the two new VUS cases, with an average of three variants returned per case. The arms did not have the same inputs: the manual arm re-called the reads with a newer DRAGEN version, while Talos used the archived calls, and the manual result is also the reference. On known findings, Talos prioritised 80.0% of 35 P/LP variants in singletons and 75.2% of 145 in trios, rising to 82.8% in proband-only mode. The paper prints the automated total yield as 41.9%, although 161 of 377 cases is 42.7%. Values are transcribed from the article text, not reproduced, and do not establish confirmed diagnoses. This summary describes evidence and does not recommend a workflow."
+}
