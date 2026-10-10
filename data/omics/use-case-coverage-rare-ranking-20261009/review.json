@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the collector and extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T21:43:50Z",
+  "scope": "Independent review of the rare-disease candidate ranking batch for use-case-rare-disease-candidate-ranking: 616 records (496 results, 56 evaluations, 27 configurations, 10 claims of which 7 are relevance judgements, 9 methods, 7 protocols, 6 datasets, 4 sources, 1 model). All four pinned artifacts were re-downloaded and matched their recorded SHA-256. All 496 results were re-read from the pinned cells with a separate parser (the extractor's script was not run) and match in printed and numeric value, locator, metric, qualifier, unit, direction, evaluation, configuration, protocol and dataset; every top-k row is monotone and every percentage is a whole number of cases over the cohort size. The 7 judgements are source_checked with reviewed_evaluations (one changed from direct to proxy); pins are not set. Corrections change no number and are listed in docs/reviews/use-cases/rare-disease-candidate-ranking-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review, not reproduction of any tool or model and not clinical validation.",
+    "The sources print rates only, so no rate could be recomputed from counts; whole-number consistency with the cohort size was checked instead.",
+    "Figures were not read (Yuan et al. 2024 Figure 2 option tables; Yuan et al. 2022 Supplementary Figure 2).",
+    "Yuan et al. 2022 SM Tables 1, 2 and 4 and Kafkas et al. Supplementary Tables S5 and S6 were not opened.",
+    "Europe PMC supplementaryFiles zips are assembled per request; only the SM Table 3 docx member hash can be re-verified.",
+    "Pins for the 7 judgements are not set; the use case's assessed_by links and gaps are approved in the dated review but not applied here.",
+    "npm run build was not run, by instruction. npm test and npm run typecheck passed, and a scratch-store dry run of addBatch, loadRecords and deriveUseCaseInputs succeeded.",
+    "Rerunning extract/extract_rare_ranking.py would restore the collector's wording for the corrected fields."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "10 rare-ranking-20261009-eval-yuan2024-{ddd,kgd}-{amelie-protocol-a..d,lirical} evaluations",
+        "5 rare-ranking-20261009-config-yuan2024-{amelie-protocol-a..d,lirical} configurations"
+      ],
+      "message": "comparison.inputs said trio mode not stated; Discussion paragraph 1 item 4 says AMELIE ran only in singleton mode and LIRICAL trio mode was under development. Now singleton."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "6 rare-ranking-20261009-eval-kafkas2025-*-gpt-4-* evaluations"
+      ],
+      "message": "Origin was independent_paper; the evaluated system is GPT-4 with prompts the authors designed, so author_reported."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rare-ranking-20261009-protocol-yuan2024-ddd-parameter-protocols",
+        "rare-ranking-20261009-protocol-yuan2024-kgd-parameter-protocols",
+        "rare-ranking-20261009-protocol-kafkas2025-clinvar-gene-sets",
+        "rare-ranking-20261009-protocol-kafkas2025-gpcards-gene-sets",
+        "rare-ranking-20261009-protocol-kafkas2025-pavs-gene-sets"
+      ],
+      "message": "Limitations corrected: mode per row, in-sample tuning narrowed to the chosen protocols, figure-only option sets, authorship of the prompts, unstated zero-shot prompt, random-gene pool, best-baseline selection, GPCards prompt development."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rare-ranking-20261009-claim-yuan2022-amelie-published-cases"
+      ],
+      "message": "Locator was Discussion paragraph 1; the text is Discussions paragraph 3. Value now notes the top-20 detail and that the subset result is in Supplementary Figure 2 only."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "rare-ranking-20261009-data-kmcgd-209",
+        "rare-ranking-20261009-data-kafkas2025-gpcards"
+      ],
+      "message": "Population descriptions completed from the source (KMCGD mixed syndromes, 2.0 HPO terms; GPCards 50 variants and used for prompt development)."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-rare-ranking-20261009-yuan2022-kmcgd"
+      ],
+      "message": "Relevance changed from direct to proxy: the cohort is a mixed clinical-genetics population, not the defined congenital-anomaly or developmental-disorder population in the use case setting."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "artifacts/yuan2024-article.xml.gz"
+      ],
+      "message": "Archived article contained Table 2 (one row per case with causal variant) and case IDs in prose. Removed; URL and SHA-256 remain on the source record."
+    }
+  ],
+  "files": {
+    "artifacts/kafkas2025-article.xml.gz": "9735bfca70a8a359070ec009995bbeb2f5e752f0c16710bf31972ac0c273540d",
+    "batch.jsonl": "c15b901649077fe0e5746bb4601ac108eb1f69b9ae8411683e5fb858731ae1f3",
+    "claims.csv": "f40fe72866ee8f0e539943c5debfcdd7f18857ca7d8c59da8bccec8767bf935c",
+    "coverage.json": "6b3e05e43129e886bb0f3968146576ce64af8d1beefdb352496ba298b0a147bb",
+    "extract/extract_rare_ranking.py": "52aedc061ad416d985960d933bd9e833b269fd7da20f415d805500334e8e7992",
+    "research.md": "2259d975472a8a11a500950785454830773e5ce2a7056b8b7507d336c06c9db0",
+    "retrieval-log.md": "8af05f8261b4596fd9e5634225ea6cacf74829f7ad597f1dd07e7ed7bde6c45d",
+    "sources.md": "b5d81ad060403b50c59dcc6cd542a92526707f798099c533cf13d08583a71458"
+  }
+}

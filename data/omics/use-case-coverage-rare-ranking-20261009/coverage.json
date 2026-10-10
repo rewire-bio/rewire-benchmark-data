@@ -1,0 +1,285 @@
+{
+  "use_case_id": "use-case-rare-disease-candidate-ranking",
+  "cutoff_date": "2026-10-09",
+  "query_budget": {
+    "budgeted": 25,
+    "used": 4
+  },
+  "existing_reused": [
+    "uc-clinical-20260930-method-exomiser"
+  ],
+  "existing_judgements_unchanged": [
+    "use-case-mapping-20260930-341-146a9ab5ab18",
+    "use-case-mapping-20260930-341-4c5f542b7511",
+    "use-case-mapping-20260930-341-5f740d825a8a",
+    "use-case-mapping-20260930-341-6c73bbc682f2",
+    "use-case-mapping-20260930-341-74cc9a990fc2",
+    "use-case-mapping-20260930-341-7a155a6d471d",
+    "use-case-mapping-20260930-341-882d36ea77fc",
+    "use-case-mapping-amp-20261007-feng-pathogenic-common-variant"
+  ],
+  "sources_not_duplicated": [
+    "uc-clinical-20260930-source-talos",
+    "uc-clinical-20260930-source-talos-table1",
+    "evidence-expansion-dna-foundation-models-2025-5d8ca9bc"
+  ],
+  "new_record_counts": {
+    "claim": 10,
+    "configuration": 27,
+    "dataset": 6,
+    "evaluation": 56,
+    "method": 9,
+    "model": 1,
+    "protocol": 7,
+    "result": 496,
+    "source": 4
+  },
+  "vocabulary_additions": {
+    "data/vocab/metric.ttl": [
+      "top-30-accuracy",
+      "top-40-accuracy"
+    ],
+    "note": "Modelled on the existing top-50-accuracy block; no other branch defines them. Needed for the TOP 30 and TOP 40 columns of both Yuan tables. Review like a record change."
+  },
+  "method_reuse_check": "Searched main and every rewire-benchmark-data-* worktree, including the rare-reanalysis batch, for Exomiser, LIRICAL, AMELIE, Xrare, PhenIX, Phen2Gene, CADA, GADO, DeepPVP, Phenolyzer, HANRD and GPT-4. Reused uc-clinical-20260930-method-exomiser for all Exomiser configurations. The rare-reanalysis Exomiser 13.1.0 configurations are reanalysis-flag rules, not ranking runs, so they were not reused. GPT-4 exists only as excluded record reported-model-91d4548437068f, so a new model record was created.",
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-rare-ranking-20261009-kafkas2025-clinvar",
+      "protocol_id": "rare-ranking-20261009-protocol-kafkas2025-clinvar-gene-sets",
+      "relevance": "proxy",
+      "comparison_group": "kafkas2025-gene-sets",
+      "stratum_label": "ClinVar",
+      "headline_metric": "top-1-accuracy",
+      "evaluation_ids": [
+        "rare-ranking-20261009-eval-kafkas2025-clinvar-exomiser-12-1-0",
+        "rare-ranking-20261009-eval-kafkas2025-clinvar-gpt-4-one-shot",
+        "rare-ranking-20261009-eval-kafkas2025-clinvar-gpt-4-zero-shot"
+      ],
+      "endpoint": "Hits@1, Hits@10, ROC AUC and AUPR for GPT-4 (zero-shot and one-shot) and Exomiser 12.1.0 gene scores in ClinVar candidate sets of 5 to 100 genes",
+      "limitations": [
+        "Synthetic candidate sets: the causative gene plus randomly chosen genes, not the filtered variant list of a real exome.",
+        "ClinVar phenotypes are OMIM disease annotations from the HPO database, which Exomiser also uses, so the comparison may favour Exomiser (authors' note).",
+        "Phenotypes are database annotations, not observed in a patient workup (PAVS is closer to clinical reports).",
+        "Exomiser was given one random variant per gene and its variant scores were ignored; only gene scores were compared.",
+        "Neither GPT-4 nor Exomiser was developed by the authors."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rare-ranking-20261009-kafkas2025-gpcards",
+      "protocol_id": "rare-ranking-20261009-protocol-kafkas2025-gpcards-gene-sets",
+      "relevance": "proxy",
+      "comparison_group": "kafkas2025-gene-sets",
+      "stratum_label": "GPCards",
+      "headline_metric": "top-1-accuracy",
+      "evaluation_ids": [
+        "rare-ranking-20261009-eval-kafkas2025-gpcards-gpt-4-one-shot",
+        "rare-ranking-20261009-eval-kafkas2025-gpcards-gpt-4-zero-shot"
+      ],
+      "endpoint": "Hits@1, Hits@10, ROC AUC and AUPR for GPT-4 (zero-shot and one-shot) in GPCards candidate sets of 5 to 100 genes",
+      "limitations": [
+        "Synthetic candidate sets: the causative gene plus randomly chosen genes, not the filtered variant list of a real exome.",
+        "ClinVar phenotypes are OMIM disease annotations from the HPO database, which Exomiser also uses, so the comparison may favour Exomiser (authors' note).",
+        "Phenotypes are database annotations, not observed in a patient workup (PAVS is closer to clinical reports).",
+        "Exomiser was given one random variant per gene and its variant scores were ignored; only gene scores were compared.",
+        "Neither GPT-4 nor Exomiser was developed by the authors."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rare-ranking-20261009-kafkas2025-pavs",
+      "protocol_id": "rare-ranking-20261009-protocol-kafkas2025-pavs-gene-sets",
+      "relevance": "proxy",
+      "comparison_group": "kafkas2025-gene-sets",
+      "stratum_label": "PAVS",
+      "headline_metric": "top-1-accuracy",
+      "evaluation_ids": [
+        "rare-ranking-20261009-eval-kafkas2025-pavs-exomiser-12-1-0",
+        "rare-ranking-20261009-eval-kafkas2025-pavs-gpt-4-one-shot",
+        "rare-ranking-20261009-eval-kafkas2025-pavs-gpt-4-zero-shot"
+      ],
+      "endpoint": "Hits@1, Hits@10, ROC AUC and AUPR for GPT-4 (zero-shot and one-shot) and Exomiser 12.1.0 gene scores in PAVS candidate sets of 5 to 100 genes",
+      "limitations": [
+        "Synthetic candidate sets: the causative gene plus randomly chosen genes, not the filtered variant list of a real exome.",
+        "ClinVar phenotypes are OMIM disease annotations from the HPO database, which Exomiser also uses, so the comparison may favour Exomiser (authors' note).",
+        "Phenotypes are database annotations, not observed in a patient workup (PAVS is closer to clinical reports).",
+        "Exomiser was given one random variant per gene and its variant scores were ignored; only gene scores were compared.",
+        "Neither GPT-4 nor Exomiser was developed by the authors."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rare-ranking-20261009-yuan2022-ddd",
+      "protocol_id": "rare-ranking-20261009-protocol-yuan2022-ddd-singleton-default",
+      "relevance": "direct",
+      "comparison_group": "yuan2022-default",
+      "stratum_label": "DDD (305)",
+      "headline_metric": "top-10-accuracy",
+      "evaluation_ids": [
+        "rare-ranking-20261009-eval-yuan2022-ddd-amelie",
+        "rare-ranking-20261009-eval-yuan2022-ddd-amelie-hpo",
+        "rare-ranking-20261009-eval-yuan2022-ddd-deeppvp",
+        "rare-ranking-20261009-eval-yuan2022-ddd-exomiser",
+        "rare-ranking-20261009-eval-yuan2022-ddd-gado",
+        "rare-ranking-20261009-eval-yuan2022-ddd-hanrd",
+        "rare-ranking-20261009-eval-yuan2022-ddd-lirical",
+        "rare-ranking-20261009-eval-yuan2022-ddd-phen2gene",
+        "rare-ranking-20261009-eval-yuan2022-ddd-phenix",
+        "rare-ranking-20261009-eval-yuan2022-ddd-phenolyzer",
+        "rare-ranking-20261009-eval-yuan2022-ddd-xrare"
+      ],
+      "endpoint": "Top-1 to top-50 causal-gene recovery for 11 tool configurations (6 using HPO and VCF, 5 HPO-only) on 305 solved DDD exomes, default singleton runs",
+      "limitations": [
+        "Ranking of the known causal gene in solved cases; does not establish pathogenicity or a diagnosis.",
+        "Each case has a single causal gene; cases with no or several causal genes are not represented.",
+        "Default parameters and singleton mode for every tool; versions from 2014 to 2020.",
+        "AMELIE draws on the literature, and 156 of 305 DDD cases are published (HGMD); the authors report an almost unchanged trend on the 149 unpublished cases.",
+        "Same group later optimised parameters (Yuan et al. 2024); the two studies use different tool versions."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rare-ranking-20261009-yuan2022-kmcgd",
+      "protocol_id": "rare-ranking-20261009-protocol-yuan2022-kmcgd-singleton-default",
+      "relevance": "direct",
+      "comparison_group": "yuan2022-default",
+      "stratum_label": "KMCGD (209)",
+      "headline_metric": "top-10-accuracy",
+      "evaluation_ids": [
+        "rare-ranking-20261009-eval-yuan2022-kmcgd-amelie",
+        "rare-ranking-20261009-eval-yuan2022-kmcgd-amelie-hpo",
+        "rare-ranking-20261009-eval-yuan2022-kmcgd-deeppvp",
+        "rare-ranking-20261009-eval-yuan2022-kmcgd-exomiser",
+        "rare-ranking-20261009-eval-yuan2022-kmcgd-gado",
+        "rare-ranking-20261009-eval-yuan2022-kmcgd-hanrd",
+        "rare-ranking-20261009-eval-yuan2022-kmcgd-lirical",
+        "rare-ranking-20261009-eval-yuan2022-kmcgd-phen2gene",
+        "rare-ranking-20261009-eval-yuan2022-kmcgd-phenix",
+        "rare-ranking-20261009-eval-yuan2022-kmcgd-phenolyzer",
+        "rare-ranking-20261009-eval-yuan2022-kmcgd-xrare"
+      ],
+      "endpoint": "The same metrics on 209 solved in-house exomes",
+      "limitations": [
+        "Ranking of the known causal gene in solved cases; does not establish pathogenicity or a diagnosis.",
+        "Each case has a single causal gene; cases with no or several causal genes are not represented.",
+        "In-house cohort; not public.",
+        "Default singleton runs."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rare-ranking-20261009-yuan2024-ddd",
+      "protocol_id": "rare-ranking-20261009-protocol-yuan2024-ddd-parameter-protocols",
+      "relevance": "direct",
+      "comparison_group": "yuan2024-protocols",
+      "stratum_label": "DDD trios (305)",
+      "headline_metric": "top-10-accuracy",
+      "evaluation_ids": [
+        "rare-ranking-20261009-eval-yuan2024-ddd-amelie-protocol-a",
+        "rare-ranking-20261009-eval-yuan2024-ddd-amelie-protocol-b",
+        "rare-ranking-20261009-eval-yuan2024-ddd-amelie-protocol-c",
+        "rare-ranking-20261009-eval-yuan2024-ddd-amelie-protocol-d",
+        "rare-ranking-20261009-eval-yuan2024-ddd-exomiser-protocol-a",
+        "rare-ranking-20261009-eval-yuan2024-ddd-exomiser-protocol-b",
+        "rare-ranking-20261009-eval-yuan2024-ddd-exomiser-protocol-c",
+        "rare-ranking-20261009-eval-yuan2024-ddd-exomiser-protocol-d",
+        "rare-ranking-20261009-eval-yuan2024-ddd-lirical",
+        "rare-ranking-20261009-eval-yuan2024-ddd-phenix-protocol-a",
+        "rare-ranking-20261009-eval-yuan2024-ddd-phenix-protocol-b",
+        "rare-ranking-20261009-eval-yuan2024-ddd-phenix-protocol-c",
+        "rare-ranking-20261009-eval-yuan2024-ddd-phenix-protocol-d"
+      ],
+      "endpoint": "Top-1 to top-50 causal-gene recovery for Exomiser 13.1.0, PhenIX 1.16 and AMELIE 3.1.0 under four parameter protocols each and LIRICAL 1.3.4, on 305 DDD trio families",
+      "limitations": [
+        "Ranking of the known causal gene in solved cases; does not establish pathogenicity or a diagnosis.",
+        "Each case has a single causal gene; cases with no or several causal genes are not represented.",
+        "Rows mix singleton (Protocols A and B of Exomiser and PhenIX) and trio-mode (C and D) runs; compare within mode only.",
+        "Parameter protocols were optimised on the same cohorts, so the best protocol's values are in-sample.",
+        "Same authors as Yuan et al. 2022; none developed the tools compared."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-rare-ranking-20261009-yuan2024-kgd",
+      "protocol_id": "rare-ranking-20261009-protocol-yuan2024-kgd-parameter-protocols",
+      "relevance": "direct",
+      "comparison_group": "yuan2024-protocols",
+      "stratum_label": "KGD trios (152)",
+      "headline_metric": "top-10-accuracy",
+      "evaluation_ids": [
+        "rare-ranking-20261009-eval-yuan2024-kgd-amelie-protocol-a",
+        "rare-ranking-20261009-eval-yuan2024-kgd-amelie-protocol-b",
+        "rare-ranking-20261009-eval-yuan2024-kgd-amelie-protocol-c",
+        "rare-ranking-20261009-eval-yuan2024-kgd-amelie-protocol-d",
+        "rare-ranking-20261009-eval-yuan2024-kgd-exomiser-protocol-a",
+        "rare-ranking-20261009-eval-yuan2024-kgd-exomiser-protocol-b",
+        "rare-ranking-20261009-eval-yuan2024-kgd-exomiser-protocol-c",
+        "rare-ranking-20261009-eval-yuan2024-kgd-exomiser-protocol-d",
+        "rare-ranking-20261009-eval-yuan2024-kgd-lirical",
+        "rare-ranking-20261009-eval-yuan2024-kgd-phenix-protocol-a",
+        "rare-ranking-20261009-eval-yuan2024-kgd-phenix-protocol-b",
+        "rare-ranking-20261009-eval-yuan2024-kgd-phenix-protocol-c",
+        "rare-ranking-20261009-eval-yuan2024-kgd-phenix-protocol-d"
+      ],
+      "endpoint": "The same metrics on 152 in-house trio families",
+      "limitations": [
+        "Ranking of the known causal gene in solved cases; does not establish pathogenicity or a diagnosis.",
+        "Each case has a single causal gene; cases with no or several causal genes are not represented.",
+        "Rows mix singleton (Protocols A and B of Exomiser and PhenIX) and trio-mode (C and D) runs; compare within mode only.",
+        "Parameter protocols were optimised on the same cohorts, so the best protocol's values are in-sample.",
+        "Same authors as Yuan et al. 2022; none developed the tools compared.",
+        "In-house cohort; not public."
+      ],
+      "status": "needs_review"
+    }
+  ],
+  "use_case_changes": {
+    "add_links": [
+      {
+        "relation": "assessed_by",
+        "target_id": "rare-ranking-20261009-protocol-kafkas2025-clinvar-gene-sets"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rare-ranking-20261009-protocol-kafkas2025-gpcards-gene-sets"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rare-ranking-20261009-protocol-kafkas2025-pavs-gene-sets"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rare-ranking-20261009-protocol-yuan2022-ddd-singleton-default"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rare-ranking-20261009-protocol-yuan2022-kmcgd-singleton-default"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rare-ranking-20261009-protocol-yuan2024-ddd-parameter-protocols"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "rare-ranking-20261009-protocol-yuan2024-kgd-parameter-protocols"
+      }
+    ],
+    "evidence_gaps_add": [
+      "No independent multi-tool comparison on 100kGP, UDN or CAGI cohorts with printed top-k values was found in this pass; the two direct sources use DDD and a Chinese in-house cohort from one laboratory.",
+      "Candidates per case (review workload) is not reported by the added sources; only top-k recovery of a known causal gene.",
+      "Reese et al. 2026 (EJHG) compares seven LLMs with Exomiser on 5,213 phenopackets, but reports per-model values only in text and figures, and ranks diseases rather than genes or variants.",
+      "LLM evidence is limited to GPT-4 on synthetic candidate gene sets (Kafkas et al. 2025); no LLM was evaluated on real exome candidate lists.",
+      "Yuan et al. 2024 trio-mode protocol definitions are in a figure; exact option sets for Exomiser and PhenIX Protocols C and D are not stated in text."
+    ],
+    "exclusions_change": null,
+    "decision_inputs_output_setting_change": "Not proposed."
+  },
+  "summary_proposal": "Three comparisons were added; values are transcribed from the publications, not reproduced, and none of the compared tools was developed by the authors. Yuan et al. (2022) ran 10 prioritisers with default settings in singleton mode on 305 solved DDD exomes and 209 solved in-house exomes. In DDD, the causal gene was within the top 10 for 86.2% of cases with AMELIE, 83.0% with LIRICAL, 73.1% with Xrare, 53.1% with Exomiser 12.1.0 and 41.6% with PhenIX; phenotype-only tools reached at most 14.4%. In the in-house cohort the top-10 values were 78.9%, 75.6%, 74.6%, 75.1% and 73.2% respectively (SM Table 3). AMELIE draws on the literature and half of the DDD cases are published. Yuan et al. (2024) tuned parameters and added parental data: in trio mode (Protocol D, the setting the authors chose), Exomiser 13.1.0 ranked the causal gene first in 61.6% of 305 DDD trios and within the top 10 in 91.1%; PhenIX Protocol D reached 49.5% and 91.8%, AMELIE Protocol B 46.6% and 85.9%, and LIRICAL 46.6% and 83.3% (Table 1). The protocols were chosen on the same cohorts. Kafkas et al. (2025) ranked a causative gene inside synthetic candidate sets: on PAVS with 25 candidates, GPT-4 placed it first in 75.4% (zero-shot) and 77.8% (one-shot) of cases against 65.6% for Exomiser gene scores, and with 100 candidates in 56.4%, 57.8% and 58.6% (Table 3). These sets are not real exome candidate lists. Ranking does not establish pathogenicity or a diagnosis, singleton and trio results must be compared separately, and results from different sources must not be pooled. This summary describes evidence and does not recommend a tool for clinical use.",
+  "gaps": [
+    "Genome Med 2025 Exomiser/Genomiser optimisation (UDN) and Front Genet 2026 AI versus manual curation are leads, not screened for multi-tool tables.",
+    "PhEval (BMC Bioinformatics 2025) is a developer benchmark framework; its supplementary tables were not read.",
+    "Kim et al. 2024 (AJHG) LLM gene prioritisation values are in supplementary tables, not read; the Phen2Gene developers are among the authors.",
+    "Yuan 2022 SM Tables 1, 2 and 4 (cohort details, tool screening list, synthetic negative-control cases) not extracted.",
+    "No result is comparable across sources: cohorts, tool versions, inputs and candidate definitions differ."
+  ]
+}
