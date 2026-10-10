@@ -1,0 +1,263 @@
+{
+  "use_case_ids": [
+    "use-case-plasma-ctdna-methylation",
+    "use-case-plasma-ctdna-fragmentomics"
+  ],
+  "cutoff_date": "2026-10-10",
+  "query_budget": "Follow-up retrieval of one named source",
+  "queries_used": 4,
+  "sources_extracted": 1,
+  "existing_reused": [],
+  "existing_reused_note": "No stored record describes CCGA, GRAIL or these classifiers, so every method, configuration and dataset is new. No metric block is shared with another batch and no vocabulary concept was added: the batch reuses sensitivity-at-98-percent-specificity and accuracy.",
+  "sample_overlap_note": "None. The CCGA sequencing data are not public (Data and code availability). The cohorts behind the existing judgements are cfMethyl-Seq (EGAD00001009003 and the 408-sample cfMethyl-Seq cohort), EGAD00001000856 liver WGBS, in silico mixtures, the SPOT-MAS Vietnam cohorts, DELFI 2019, Jiang et al. 2018, Mathios et al. 2021, Zhou et al. 2022 and the pooled UNITE set; none draws on CCGA. The three protocols here share one set of CCGA participants with each other.",
+  "new_record_counts": {
+    "claim": 8,
+    "configuration": 10,
+    "dataset": 3,
+    "evaluation": 22,
+    "method": 10,
+    "protocol": 3,
+    "result": 22,
+    "source": 1
+  },
+  "new_ids": {
+    "claim": [
+      "ctdnajam-20261010-claim-ctaf-predictor",
+      "ctdnajam-20261010-claim-observed-specificity",
+      "ctdnajam-20261010-claim-targeted-methylation-lod",
+      "use-case-mapping-ctdna-jamshidi-20261010-frag-training-cv",
+      "use-case-mapping-ctdna-jamshidi-20261010-frag-validation",
+      "use-case-mapping-ctdna-jamshidi-20261010-meth-cso",
+      "use-case-mapping-ctdna-jamshidi-20261010-meth-training-cv",
+      "use-case-mapping-ctdna-jamshidi-20261010-meth-validation"
+    ],
+    "dataset": [
+      "ctdnajam-20261010-data-ccga1-training",
+      "ctdnajam-20261010-data-ccga1-validation",
+      "ctdnajam-20261010-data-ccga1-validation-jointly-detected"
+    ],
+    "protocol": [
+      "ctdnajam-20261010-protocol-ccga1-training-cv-sens-98spec",
+      "ctdnajam-20261010-protocol-ccga1-validation-cso-accuracy",
+      "ctdnajam-20261010-protocol-ccga1-validation-sens-98spec"
+    ],
+    "source": [
+      "ctdnajam-20261010-source-jamshidi2022"
+    ]
+  },
+  "judgements": [
+    {
+      "mapping_id": "use-case-mapping-ctdna-jamshidi-20261010-frag-training-cv",
+      "revision": 1,
+      "use_case_id": "use-case-plasma-ctdna-fragmentomics",
+      "protocol_id": "ctdnajam-20261010-protocol-ccga1-training-cv-sens-98spec",
+      "relevance": "proxy",
+      "evaluation_ids": [
+        "ctdnajam-20261010-eval-training-allelic-imbalance",
+        "ctdnajam-20261010-eval-training-clinical-data",
+        "ctdnajam-20261010-eval-training-fragment-endpoints",
+        "ctdnajam-20261010-eval-training-fragment-lengths",
+        "ctdnajam-20261010-eval-training-scna",
+        "ctdnajam-20261010-eval-training-scna-wbc",
+        "ctdnajam-20261010-eval-training-snv",
+        "ctdnajam-20261010-eval-training-snv-wbc",
+        "ctdnajam-20261010-eval-training-wg-methylation"
+      ],
+      "endpoint": "Sensitivity (95% CI, TP/total) at 98% specificity under 10-fold cross-validation for the fragment endpoint, fragment length and allelic imbalance classifiers from 30x cfDNA WGS, alongside copy-number, mutation, whole-genome methylation and clinical classifiers on the same participants",
+      "comparison_group": "jamshidi2022-ccga1-detection",
+      "stratum_label": "Training set, 10-fold cross-validation",
+      "stratum_order": 1,
+      "headline_metric": "sensitivity-at-98-percent-specificity",
+      "limitations": [
+        "Developer study: GRAIL designed the assays and classifiers, ran every arm, and reports the comparison.",
+        "The 98% specificity threshold was set post hoc within each set, including the validation set, so it is not a threshold locked before validation.",
+        "Case-control enrolment of clinically diagnosed cancers and matched non-cancer participants, not an intended-use screening population.",
+        "Prototype assays; the targeted methylation test developed afterwards is a different assay and is not scored here.",
+        "The fragment endpoints, fragment lengths, allelic imbalance and pan-feature classifiers were developed after validation blinding was lifted; the other classifiers were blinded.",
+        "Table 3 scores 833 training and 464 validation cancers, against 854 and 485 analysable cancers in Table 1; the source does not explain the 21-sample difference in each set.",
+        "Specificity was 97.9% (548/560) in training and 97.8% (354/362) in validation for every cfDNA classifier, slightly below the 98% target.",
+        "No sensitivity within tumour-fraction strata is printed; per-classifier clinical limits of detection by cTAF are in figures only."
+      ]
+    },
+    {
+      "mapping_id": "use-case-mapping-ctdna-jamshidi-20261010-frag-validation",
+      "revision": 1,
+      "use_case_id": "use-case-plasma-ctdna-fragmentomics",
+      "protocol_id": "ctdnajam-20261010-protocol-ccga1-validation-sens-98spec",
+      "relevance": "proxy",
+      "evaluation_ids": [
+        "ctdnajam-20261010-eval-validation-allelic-imbalance",
+        "ctdnajam-20261010-eval-validation-clinical-data",
+        "ctdnajam-20261010-eval-validation-fragment-endpoints",
+        "ctdnajam-20261010-eval-validation-fragment-lengths",
+        "ctdnajam-20261010-eval-validation-pan-feature",
+        "ctdnajam-20261010-eval-validation-scna",
+        "ctdnajam-20261010-eval-validation-scna-wbc",
+        "ctdnajam-20261010-eval-validation-snv",
+        "ctdnajam-20261010-eval-validation-snv-wbc",
+        "ctdnajam-20261010-eval-validation-wg-methylation"
+      ],
+      "endpoint": "Sensitivity (95% CI, TP/total) at 98% specificity on the independent validation set for the fragment endpoint (18%) and fragment length (29%) classifiers from 30x cfDNA WGS, against whole-genome methylation (34%) and other classifiers on the same participants",
+      "comparison_group": "jamshidi2022-ccga1-detection",
+      "stratum_label": "Independent validation set",
+      "stratum_order": 2,
+      "headline_metric": "sensitivity-at-98-percent-specificity",
+      "limitations": [
+        "Developer study: GRAIL designed the assays and classifiers, ran every arm, and reports the comparison.",
+        "The 98% specificity threshold was set post hoc within each set, including the validation set, so it is not a threshold locked before validation.",
+        "Case-control enrolment of clinically diagnosed cancers and matched non-cancer participants, not an intended-use screening population.",
+        "Prototype assays; the targeted methylation test developed afterwards is a different assay and is not scored here.",
+        "The fragment endpoints, fragment lengths, allelic imbalance and pan-feature classifiers were developed after validation blinding was lifted; the other classifiers were blinded.",
+        "Table 3 scores 833 training and 464 validation cancers, against 854 and 485 analysable cancers in Table 1; the source does not explain the 21-sample difference in each set.",
+        "Specificity was 97.9% (548/560) in training and 97.8% (354/362) in validation for every cfDNA classifier, slightly below the 98% target.",
+        "No sensitivity within tumour-fraction strata is printed; per-classifier clinical limits of detection by cTAF are in figures only."
+      ]
+    },
+    {
+      "mapping_id": "use-case-mapping-ctdna-jamshidi-20261010-meth-cso",
+      "revision": 1,
+      "use_case_id": "use-case-plasma-ctdna-methylation",
+      "protocol_id": "ctdnajam-20261010-protocol-ccga1-validation-cso-accuracy",
+      "relevance": "proxy",
+      "evaluation_ids": [
+        "ctdnajam-20261010-eval-cso-scna",
+        "ctdnajam-20261010-eval-cso-snv-wbc",
+        "ctdnajam-20261010-eval-cso-wg-methylation"
+      ],
+      "endpoint": "Cancer signal origin accuracy among 127 validation cancers detected by all three representative classifiers, for whole-genome methylation, copy-number and white-blood-cell-corrected variant origin classifiers",
+      "comparison_group": "jamshidi2022-ccga1-cso",
+      "stratum_label": "Jointly detected validation cancers",
+      "stratum_order": 1,
+      "headline_metric": "accuracy",
+      "limitations": [
+        "Scored only on 127 cancers detected by all three classifiers; no non-cancer participants.",
+        "The label 'other' covers six cancer types and counts as correct for them.",
+        "The Results and Methods name different classifier triples for the jointly detected set.",
+        "Developer study; origin classifiers developed after validation blinding was lifted; no confidence intervals printed."
+      ]
+    },
+    {
+      "mapping_id": "use-case-mapping-ctdna-jamshidi-20261010-meth-training-cv",
+      "revision": 1,
+      "use_case_id": "use-case-plasma-ctdna-methylation",
+      "protocol_id": "ctdnajam-20261010-protocol-ccga1-training-cv-sens-98spec",
+      "relevance": "direct",
+      "evaluation_ids": [
+        "ctdnajam-20261010-eval-training-allelic-imbalance",
+        "ctdnajam-20261010-eval-training-clinical-data",
+        "ctdnajam-20261010-eval-training-fragment-endpoints",
+        "ctdnajam-20261010-eval-training-fragment-lengths",
+        "ctdnajam-20261010-eval-training-scna",
+        "ctdnajam-20261010-eval-training-scna-wbc",
+        "ctdnajam-20261010-eval-training-snv",
+        "ctdnajam-20261010-eval-training-snv-wbc",
+        "ctdnajam-20261010-eval-training-wg-methylation"
+      ],
+      "endpoint": "Sensitivity (95% CI, TP/total) at 98% specificity under 10-fold cross-validation on 833 cancers and 560 non-cancers for the whole-genome methylation classifier and eight other classifiers on the same participants",
+      "comparison_group": "jamshidi2022-ccga1-detection",
+      "stratum_label": "Training set, 10-fold cross-validation",
+      "stratum_order": 1,
+      "headline_metric": "sensitivity-at-98-percent-specificity",
+      "limitations": [
+        "Developer study: GRAIL designed the assays and classifiers, ran every arm, and reports the comparison.",
+        "The 98% specificity threshold was set post hoc within each set, including the validation set, so it is not a threshold locked before validation.",
+        "Case-control enrolment of clinically diagnosed cancers and matched non-cancer participants, not an intended-use screening population.",
+        "Prototype assays; the targeted methylation test developed afterwards is a different assay and is not scored here.",
+        "The fragment endpoints, fragment lengths, allelic imbalance and pan-feature classifiers were developed after validation blinding was lifted; the other classifiers were blinded.",
+        "Table 3 scores 833 training and 464 validation cancers, against 854 and 485 analysable cancers in Table 1; the source does not explain the 21-sample difference in each set.",
+        "Specificity was 97.9% (548/560) in training and 97.8% (354/362) in validation for every cfDNA classifier, slightly below the 98% target."
+      ]
+    },
+    {
+      "mapping_id": "use-case-mapping-ctdna-jamshidi-20261010-meth-validation",
+      "revision": 1,
+      "use_case_id": "use-case-plasma-ctdna-methylation",
+      "protocol_id": "ctdnajam-20261010-protocol-ccga1-validation-sens-98spec",
+      "relevance": "direct",
+      "evaluation_ids": [
+        "ctdnajam-20261010-eval-validation-allelic-imbalance",
+        "ctdnajam-20261010-eval-validation-clinical-data",
+        "ctdnajam-20261010-eval-validation-fragment-endpoints",
+        "ctdnajam-20261010-eval-validation-fragment-lengths",
+        "ctdnajam-20261010-eval-validation-pan-feature",
+        "ctdnajam-20261010-eval-validation-scna",
+        "ctdnajam-20261010-eval-validation-scna-wbc",
+        "ctdnajam-20261010-eval-validation-snv",
+        "ctdnajam-20261010-eval-validation-snv-wbc",
+        "ctdnajam-20261010-eval-validation-wg-methylation"
+      ],
+      "endpoint": "Sensitivity (95% CI, TP/total) at 98% specificity on the independent validation set (464 cancers, 362 non-cancers) for the whole-genome methylation classifier and nine other classifiers, with paired McNemar tests against whole-genome methylation",
+      "comparison_group": "jamshidi2022-ccga1-detection",
+      "stratum_label": "Independent validation set",
+      "stratum_order": 2,
+      "headline_metric": "sensitivity-at-98-percent-specificity",
+      "limitations": [
+        "Developer study: GRAIL designed the assays and classifiers, ran every arm, and reports the comparison.",
+        "The 98% specificity threshold was set post hoc within each set, including the validation set, so it is not a threshold locked before validation.",
+        "Case-control enrolment of clinically diagnosed cancers and matched non-cancer participants, not an intended-use screening population.",
+        "Prototype assays; the targeted methylation test developed afterwards is a different assay and is not scored here.",
+        "The fragment endpoints, fragment lengths, allelic imbalance and pan-feature classifiers were developed after validation blinding was lifted; the other classifiers were blinded.",
+        "Table 3 scores 833 training and 464 validation cancers, against 854 and 485 analysable cancers in Table 1; the source does not explain the 21-sample difference in each set.",
+        "Specificity was 97.9% (548/560) in training and 97.8% (354/362) in validation for every cfDNA classifier, slightly below the 98% target."
+      ]
+    }
+  ],
+  "relevance_note": "Methylation: the training and validation detection protocols are direct, because they measure the use case's declared endpoint (all-stage sensitivity at a declared specificity on plasma cfDNA), as the stored cfMethyl-Seq judgement does; the post hoc threshold, case-control design and developer origin are limitations, not a change of endpoint. Tissue of origin is proxy, as the stored SPOT-MAS judgements are. Fragmentomics: both detection protocols are proxy, consistent with the reviewed fragmentomics judgements, because the use case asks for performance under low tumour fractions and no stratified sensitivity is printed.",
+  "use_case_changes": {
+    "note": "Proposed for the integrator; neither use_case record was edited.",
+    "use-case-plasma-ctdna-methylation": {
+      "add_assessed_by_links": [
+        "ctdnajam-20261010-protocol-ccga1-training-cv-sens-98spec",
+        "ctdnajam-20261010-protocol-ccga1-validation-sens-98spec",
+        "ctdnajam-20261010-protocol-ccga1-validation-cso-accuracy"
+      ],
+      "add_source_ids": [
+        "ctdnajam-20261010-source-jamshidi2022"
+      ],
+      "evidence_gaps_replace": {
+        "No sensitivity at a declared specificity for several methods on the same plasma samples was found in a retrievable source; Jamshidi et al. 2022 (Cancer Cell, 10.1016/j.ccell.2022.10.022) could not be retrieved.": "The only same-sample comparison at a declared specificity (Jamshidi et al. 2022) is developer-run on prototype assays, with the 98% specificity threshold set post hoc within each set."
+      },
+      "evidence_gaps_add": [
+        "Jamshidi et al. 2022 tissue-of-origin accuracy is scored on 127 cancers detected by all three classifiers and counts 'other' as correct for six cancer types; the Results and Methods name different classifier triples for that set."
+      ],
+      "exclusion_change_proposed": "The second exclusion says the only tissue-of-origin comparison uses combined features. Jamshidi et al. 2022 adds a methylation-only origin classifier compared with two non-methylation classifiers on the same cancers, so the reviewer may want to narrow it, for example: 'Tissue-of-origin identification outside detected cancers: the tissue-of-origin results ingested classify cancer patients only.'",
+      "summary_addition_proposed": "Jamshidi et al. 2022 (Cancer Cell), the GRAIL developers, compared ten prototype classifiers on the same CCGA substudy 1 participants at a 98% specificity threshold set post hoc within each set. On the independent validation set (464 cancers, 362 non-cancers), the whole-genome bisulfite methylation classifier detected 34% (95% CI 30%-39%; 158 of 464), against 33% for variants with white-blood-cell correction, 30% for copy number with white-blood-cell correction, 29% for fragment lengths, 27% for copy number, 22% for allelic imbalance, 18% for fragment endpoints and 16% for uncorrected variants; a classifier over all scores reached 36%. Among 127 validation cancers detected by all three representative classifiers, the methylation origin classifier assigned the correct tissue in 75% (95 of 127), against 41% for copy number and 35% for corrected variants. These are case-control results from the assay developer, not screening performance, and the targeted methylation test GRAIL developed afterwards is a different assay."
+    },
+    "use-case-plasma-ctdna-fragmentomics": {
+      "add_assessed_by_links": [
+        "ctdnajam-20261010-protocol-ccga1-training-cv-sens-98spec",
+        "ctdnajam-20261010-protocol-ccga1-validation-sens-98spec"
+      ],
+      "add_source_ids": [
+        "ctdnajam-20261010-source-jamshidi2022"
+      ],
+      "evidence_gaps_add": [
+        "Jamshidi et al. 2022 fragment classifiers were developed after validation blinding was lifted, and their clinical limits of detection by tumour allele fraction are in figures only."
+      ],
+      "summary_addition_proposed": "Jamshidi et al. 2022 (Cancer Cell), the GRAIL developers, also scored two fragmentomic classifiers from 30x cfDNA whole-genome sequencing on the same CCGA substudy 1 participants as their methylation, copy-number and variant classifiers, at a 98% specificity threshold set post hoc within each set. On the independent validation set (464 cancers, 362 non-cancers), the fragment length classifier detected 29% (95% CI 25%-34%) and the fragment endpoint classifier 18% (15%-22%), against 34% for whole-genome methylation; both fragment classifiers were developed after validation blinding was lifted, and no tumour-fraction-stratified sensitivity is printed."
+    }
+  },
+  "summary_proposal_note": "Each use case already has a reviewed summary; the text above is a proposed addition, not a replacement.",
+  "vocabulary_changes": [],
+  "not_extracted": [
+    {
+      "source_id": "ctdnajam-20261010-source-jamshidi2022",
+      "locator": "Figure 3 and Figure S2 (clinical LOD per classifier)",
+      "reason": "Values are plotted, not printed. The single printed LOD (targeted methylation, second substudy) is a different assay on different samples and is a claim."
+    },
+    {
+      "source_id": "ctdnajam-20261010-source-jamshidi2022",
+      "locator": "Table S2 (validation pAUC over 98-100% specificity), supplement mmc1",
+      "reason": "Retrievable, but its values (0.50 to 0.66, with 0.50 for the clinical classifier) imply a standardised partial AUC that the source does not define, and no metric concept fits. A candidate for a follow-up with a reviewer-agreed concept."
+    },
+    {
+      "source_id": "ctdnajam-20261010-source-jamshidi2022",
+      "locator": "Figure S1 (sensitivity by stage), Figure S5 (CSO on each classifier's own detected set)",
+      "reason": "Figure-only."
+    }
+  ],
+  "gaps": [
+    "Supplementary mmc2 (2.97 MB PDF, likely the article with supplement) was not downloaded.",
+    "The processed data in github.com/grailbio-publications/Jamshidi_CCGA1LOD_2022 were not checked."
+  ]
+}

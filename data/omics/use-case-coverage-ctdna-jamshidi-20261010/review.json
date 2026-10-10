@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "pdf-text-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-10T09:00:00Z",
+  "scope": "Independent review of the CCGA substudy 1 batch (Jamshidi et al. 2022) for use-case-plasma-ctdna-methylation and use-case-plasma-ctdna-fragmentomics: 79 records (22 results, 22 evaluations, 10 configurations, 10 methods, 8 claims including 5 relevance judgements, 3 datasets, 3 protocols, 1 source). Every Table 3 cell and every cancer signal origin value checked against the PDF text layer; every percentage recomputed from TP/total and every 95% interval recomputed as Clopper-Pearson. See docs/reviews/use-cases/plasma-ctdna-jamshidi-2026-10-10.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any classifier.",
+    "The source PDF is not archived (CC BY-NC-ND 4.0); its hash and figshare MD5 pin the bytes read.",
+    "The supplement (Tables S1 and S2, Figures S1 to S8) was not read in this review.",
+    "The collector's Unpaywall call sent an email parameter; this has since been reported to the owner, and no file in the batch records the address. This review made no such call and sent no personal identifier.",
+    "Relevance judgement pins are left unset for the integrator; all judgements and both summaries on the two use cases were simulated active after re-pinning, with the approved use-case and summary text applied in memory."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "ctdnajam-20261010-protocol-ccga1-training-cv-sens-98spec",
+        "ctdnajam-20261010-protocol-ccga1-validation-sens-98spec",
+        "ctdnajam-20261010-data-ccga1-training",
+        "ctdnajam-20261010-data-ccga1-validation",
+        "all five judgements"
+      ],
+      "message": "The 833/464 against 854/485 gap is explained by the source: detection was restricted to solid cancers, and Table 1 lists 21 plasma cell neoplasms and leukaemias in each set. The 'not explained' limitation was replaced."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-ctdna-jamshidi-20261010-meth-validation",
+        "use-case-mapping-ctdna-jamshidi-20261010-meth-training-cv"
+      ],
+      "message": "Classifiers developed after validation unblinding (fragment endpoints, fragment lengths, allelic imbalance, pan-feature) excluded from the methylation detection judgements with reasons; only the six double-blinded classifiers are reviewed."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-ctdna-jamshidi-20261010-meth-training-cv"
+      ],
+      "message": "Regraded from direct to proxy: internal cross-validation in the design set, with the independent validation giving the direct estimate for the same locked classifiers."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-ctdna-jamshidi-20261010-frag-validation"
+      ],
+      "message": "Pan-feature classifier excluded (combines all nine cfDNA scores, not a fragmentomics workflow, developed after unblinding); fragment rows labelled as not a blinded validation."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "seven validation results with Table 3 marks b or c"
+      ],
+      "message": "Footnote letters moved out of printed_value into printed_source_cell; claims.csv synced."
+    },
+    {
+      "status": "open",
+      "record_ids": [
+        "use-case-plasma-ctdna-methylation",
+        "use-case-plasma-ctdna-fragmentomics",
+        "use-case-summary-plasma-ctdna-methylation",
+        "use-case-summary-plasma-ctdna-fragmentomics"
+      ],
+      "message": "Approved use-case text changes pinned fields and the summaries change: all eight existing methylation judgements and all eleven existing fragmentomics judgements hold, and must be re-pinned with the new judgements and both updated summaries."
+    }
+  ],
+  "files": {
+    "batch.jsonl": "9e79c0b033fc2b3e7635a917cabbb5c9415f68055a9498e21fb0b2d0b6e9df2b",
+    "claims.csv": "a9778f774f93e9c6c2b9b3cbcf0becc96b2cd50ddeeabf5a9faba55bff21fdf8",
+    "coverage.json": "dc274ab883e0e46334be469e5f8b09777bb8192ca6997f6b666eda23d7e461a9",
+    "research.md": "4a68d06f70b34436e6fdb78c3e03e83cfd2945595a8a494b76b9be74198d621d",
+    "retrieval-log.md": "c40a014bcc5a41023d4f4f5172aaeadbe5439015473bc412b022d87f3724f9a2",
+    "sources.md": "799e1c67bd69ca652f85c79d2656eea788436f87b37228173ee148a415fac1cd",
+    "extract/extract_ctdna_jamshidi.py": "10a424bfaf585131fb2d310c96a76c6d04bf804f57ac717424db550fe1865244"
+  }
+}
