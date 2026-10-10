@@ -38,7 +38,10 @@ describe("evidence completion", () => {
     expect(recordsById.get("catalog-model-alphafold-3-server")!.attributes.entity_level).toBe("service");
     expect(recordsById.get("discovery-model-alphafold-3")!.attributes.entity_level).toBe("family");
     expect(
-      records.find((record) => record.id.startsWith("metadata-correction-"))!.attributes.previous_value,
+      records.find((record) =>
+        record.id.startsWith("metadata-correction-") &&
+        record.links.some((link) => link.relation === "subject" && link.target_id === "catalog-model-alphafold-3-server"),
+      )!.attributes.previous_value,
     ).toBe("family");
   });
 });

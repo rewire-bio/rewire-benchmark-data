@@ -1,0 +1,647 @@
+{
+  "use_case_id": "use-case-tumour-dna-somatic-variant-detection",
+  "bounds": {
+    "cutoff_date": "2026-10-10",
+    "query_budget": 25,
+    "queries_used": 1,
+    "source_budget": 3,
+    "sources_extracted": 1,
+    "note": "Follow-up on one named paper; two source records (article XML and Additional file 2 PDF)."
+  },
+  "existing_reused": [
+    "somatic-20261009-method-vardict",
+    "somatic-20261009-method-somaticsniper",
+    "somatic-20261009-method-muse",
+    "somatic-20261009-method-mutect2",
+    "somatic-20261009-method-lancet",
+    "somatic-20261009-method-strelka",
+    "somatic-20261009-method-neusomatic",
+    "cnv-20261009-method-dragen"
+  ],
+  "existing_reuse_note": "Caller methods from the merged somatic batch; Strelka2 configures somatic-20261009-method-strelka. DRAGEN reuses the existing cnv-20261009-method-dragen record (described as the DRAGEN platform). Octopus is the only new method.",
+  "tables_taken": "Additional file 2 Tables S2 (WGS replicates by centre), S3 (purity, coverage, contaminated normal) and S4 (library preparation), every cell. 2,464 results; SomaticSniper and MuSE print '-' for indels and have no indel evaluations.",
+  "tables_not_taken": "S1 (model training data, used for configuration attributes, not results), S5 and S6 (WES, AmpliSeq: targeted panels are excluded by the use case), S7 and S8 (FFPE, excluded), S9 (sample-specific models), S10 (compute).",
+  "callers_requested_not_in_tables": [
+    "LoFreq",
+    "TNscope"
+  ],
+  "leakage": {
+    "rule": "Use-case exclusion: 'Callers evaluated only with a pre-trained model built from the test cell line or simulator (excluded from the affected judgements).'",
+    "training_data": {
+      "NeuSomatic and NeuSomatic-S DREAM3": "DREAM Challenge Stage 3 in silico data; no SEQC2 data. Kept; origin author_reported.",
+      "NeuSomatic and NeuSomatic-S SEQC-WGS-Spike": "In silico tumours from HCC1395BL WGS replicates (eight pairs from four sites, 40x-95x, plus two merged Illumina NovaSeq pairs), whole genome, no HCC1395 truth labels.",
+      "NeuSomatic and NeuSomatic-S SEQC-WGS-GT-50": "Eight real HCC1395/HCC1395BL WGS pairs (seven from six centres, one ~390x merged NovaSeq) with SEQC2 truth labels in 50% of the high-confidence genome, plus in silico purity mixtures.",
+      "NeuSomatic and NeuSomatic-S SEQC-WGS-GT50-SpikeWGS10": "All GT-50 candidates plus 10% of Spike candidates.",
+      "Octopus-RF": "Results: random forest trained on the SEQC-WGS-GT50-SpikeWGS10 training data. Methods: 'the pretrained random forest model'. Treated as SEQC2-trained."
+    },
+    "evaluation_region": "All tables score the 50% of the high-confidence genome held out from GT-50 training, so no truth label used in training is scored. The cell line and truth set are shared, and in Table S2 the training replicates are among the 21 scored pairs (not identified).",
+    "flag": "evaluation.attributes.evidence_overlap on every SEQC2-trained evaluation; configuration.attributes.training_overlap on each model configuration.",
+    "proposed_excluded_evaluations": [
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-library-prep-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-library-prep-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-titration-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-titration-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-wgs-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-wgs-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-library-prep-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-library-prep-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-titration-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-titration-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-wgs-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-wgs-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-library-prep-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-library-prep-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-titration-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-titration-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-wgs-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-wgs-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-library-prep-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-library-prep-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-titration-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-titration-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-wgs-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-wgs-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-library-prep-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-library-prep-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-titration-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-titration-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-wgs-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-wgs-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-library-prep-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-library-prep-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-titration-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-titration-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-wgs-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-wgs-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-library-prep-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-library-prep-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-titration-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-titration-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-wgs-indel",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      },
+      {
+        "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-wgs-snv",
+        "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+      }
+    ],
+    "note": "42 evaluations (7 configurations x 6 protocols) proposed for exclusion; excluded_evaluations is not set on the claims. Remaining per judgement: 9 conventional caller configurations (7 for indels) and the two DREAM3 models."
+  },
+  "new_record_counts": {
+    "claim": 6,
+    "configuration": 17,
+    "dataset": 3,
+    "evaluation": 96,
+    "method": 1,
+    "protocol": 6,
+    "result": 2464,
+    "source": 2
+  },
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-somatic-neusomatic-20261010-library-prep-indel",
+      "protocol_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-library-prep-indel",
+      "relevance": "direct",
+      "comparison_group": "neusomatic2022-seqc2-library-prep",
+      "stratum_label": "Indels",
+      "stratum_order": 2,
+      "headline_metric": "f1-score",
+      "endpoint": "Indel F1 (%) per library pair and on average for 15 caller configurations, scored on the held-out half of the SEQC2 high-confidence genome",
+      "evaluation_ids": [
+        "somatic-neusomatic-20261010-eval-sahraeian2022-dragen-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-lancet-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-mutect2-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-dream3-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-dream3-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-hard-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-strelka2-library-prep-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-vardict-library-prep-indel"
+      ],
+      "proposed_excluded_evaluations": [
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-library-prep-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-library-prep-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-library-prep-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-library-prep-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-library-prep-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-library-prep-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-library-prep-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        }
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-neusomatic-20261010-library-prep-snv",
+      "protocol_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-library-prep-snv",
+      "relevance": "direct",
+      "comparison_group": "neusomatic2022-seqc2-library-prep",
+      "stratum_label": "SNVs",
+      "stratum_order": 1,
+      "headline_metric": "f1-score",
+      "endpoint": "SNV F1 (%) per library pair and on average for 17 caller configurations, scored on the held-out half of the SEQC2 high-confidence genome",
+      "evaluation_ids": [
+        "somatic-neusomatic-20261010-eval-sahraeian2022-dragen-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-lancet-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-muse-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-mutect2-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-dream3-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-dream3-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-hard-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-somaticsniper-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-strelka2-library-prep-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-vardict-library-prep-snv"
+      ],
+      "proposed_excluded_evaluations": [
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-library-prep-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-library-prep-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-library-prep-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-library-prep-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-library-prep-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-library-prep-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-library-prep-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The library-preparation replicates are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        }
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-neusomatic-20261010-titration-indel",
+      "protocol_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-titration-indel",
+      "relevance": "direct",
+      "comparison_group": "neusomatic2022-seqc2-titration",
+      "stratum_label": "Indels",
+      "stratum_order": 2,
+      "headline_metric": "f1-score",
+      "endpoint": "Indel F1 (%) per purity-coverage pair and on average for 15 caller configurations, scored on the held-out half of the SEQC2 high-confidence genome",
+      "evaluation_ids": [
+        "somatic-neusomatic-20261010-eval-sahraeian2022-dragen-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-lancet-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-mutect2-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-dream3-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-dream3-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-hard-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-strelka2-titration-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-vardict-titration-indel"
+      ],
+      "proposed_excluded_evaluations": [
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-titration-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-titration-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-titration-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-titration-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-titration-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-titration-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-titration-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        }
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-neusomatic-20261010-titration-snv",
+      "protocol_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-titration-snv",
+      "relevance": "direct",
+      "comparison_group": "neusomatic2022-seqc2-titration",
+      "stratum_label": "SNVs",
+      "stratum_order": 1,
+      "headline_metric": "f1-score",
+      "endpoint": "SNV F1 (%) per purity-coverage pair and on average for 17 caller configurations, scored on the held-out half of the SEQC2 high-confidence genome",
+      "evaluation_ids": [
+        "somatic-neusomatic-20261010-eval-sahraeian2022-dragen-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-lancet-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-muse-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-mutect2-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-dream3-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-dream3-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-hard-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-somaticsniper-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-strelka2-titration-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-vardict-titration-snv"
+      ],
+      "proposed_excluded_evaluations": [
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-titration-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-titration-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-titration-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-titration-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-titration-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-titration-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-titration-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The titration libraries are not described as training data; the cell line, truth set and evaluation region are shared with training."
+        }
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-neusomatic-20261010-wgs-indel",
+      "protocol_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-wgs-indel",
+      "relevance": "direct",
+      "comparison_group": "neusomatic2022-seqc2-wgs-centres",
+      "stratum_label": "Indels",
+      "stratum_order": 2,
+      "headline_metric": "f1-score",
+      "endpoint": "Indel F1 (%) per replicate pair and on average for 15 caller configurations, scored on the held-out half of the SEQC2 high-confidence genome",
+      "evaluation_ids": [
+        "somatic-neusomatic-20261010-eval-sahraeian2022-dragen-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-lancet-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-mutect2-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-dream3-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-dream3-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-hard-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-strelka2-wgs-indel",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-vardict-wgs-indel"
+      ],
+      "proposed_excluded_evaluations": [
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-wgs-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-wgs-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-wgs-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-wgs-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-wgs-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-wgs-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-wgs-indel",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        }
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-somatic-neusomatic-20261010-wgs-snv",
+      "protocol_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-wgs-snv",
+      "relevance": "direct",
+      "comparison_group": "neusomatic2022-seqc2-wgs-centres",
+      "stratum_label": "SNVs",
+      "stratum_order": 1,
+      "headline_metric": "f1-score",
+      "endpoint": "SNV F1 (%) per replicate pair and on average for 17 caller configurations, scored on the held-out half of the SEQC2 high-confidence genome",
+      "evaluation_ids": [
+        "somatic-neusomatic-20261010-eval-sahraeian2022-dragen-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-lancet-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-muse-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-mutect2-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-dream3-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-dream3-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-hard-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-somaticsniper-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-strelka2-wgs-snv",
+        "somatic-neusomatic-20261010-eval-sahraeian2022-vardict-wgs-snv"
+      ],
+      "proposed_excluded_evaluations": [
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt-50-wgs-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-gt50-spikewgs10-wgs-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-s-seqc-wgs-spike-wgs-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt-50-wgs-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-gt50-spikewgs10-wgs-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-neusomatic-seqc-wgs-spike-wgs-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        },
+        {
+          "id": "somatic-neusomatic-20261010-eval-sahraeian2022-octopus-rf-wgs-snv",
+          "reason": "Model trained on SEQC2 HCC1395 data. The SEQC2-trained models were trained on WGS replicate pairs from this replicate set (seven pairs from six centres plus a merged NovaSeq pair; spike-in models on HCC1395BL replicates from four sites). The paper does not say which of the 21 pairs, so any row may be a training replicate scored in the held-out half of the genome."
+        }
+      ]
+    }
+  ],
+  "use_case_changes": {
+    "add_links": [
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-library-prep-indel"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-library-prep-snv"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-titration-indel"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-titration-snv"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-wgs-indel"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "somatic-neusomatic-20261010-protocol-sahraeian2022-wgs-snv"
+      }
+    ],
+    "evidence_gaps_to_remove": [
+      "SEQC2 HCC1395 whole-genome caller comparisons (Xiao et al. 2021; NeuSomatic 2022 Additional file 2) were not extracted: the first is not open access through Europe PMC and the second prints its tables only in a PDF with rotated headers."
+    ],
+    "evidence_gaps_to_add": [
+      "Xiao et al. 2021 SEQC2 WGS caller comparison is not extracted (not open access through Europe PMC).",
+      "Sahraeian et al. 2022 prints F1 only; precision and recall per caller are in figures."
+    ],
+    "note": "Proposed only; the use_case record was not edited."
+  },
+  "summary_proposal": {
+    "id": "use-case-summary-tumour-dna-somatic-variant-detection",
+    "field": "summary",
+    "status": "needs_review",
+    "value": "Sahraeian et al. 2022 (the NeuSomatic developers) scored nine conventional callers and NeuSomatic models on SEQC2 HCC1395 whole-genome data, in the half of the genome held out from model training. Models trained on SEQC2 HCC1395 data, including Octopus with the authors' random forest, are set aside because they were built from the test cell line. Across 21 replicate pairs from several centres, average SNV F1 was 92.3% for DRAGEN 3.7.5, 89.0% for Strelka2, 88.1% for MuSE, 87.1% for Lancet, 86.1% for Octopus with hard filters and 85.8% for MuTect2 4.beta.6; NeuSomatic with its DREAM3 model, trained only on simulated data, reached 91.8%. Indel F1 averaged 81.7% for DRAGEN, 79.3% for NeuSomatic DREAM3, 77.7% for Lancet, 73.7% for MuTect2 and 72.8% for Strelka2. Accuracy fell sharply with tumour purity: at 80x, SNV F1 at 10% purity was 44.2-56.5% for Strelka2, MuTect2, Lancet, DRAGEN, Octopus with hard filters and NeuSomatic DREAM3, against 88.6-95.4% at full purity, and 20.8% for MuSE. With a normal contaminated by 5% tumour, MuTect2 and Lancet lost about half their SNV F1 at full purity (88.6% to 43.8% for MuTect2) and MuSE about a third (91.6% to 59.5%), while Strelka2 (92.4% to 90.9%) and NeuSomatic DREAM3 (95.2% to 91.5%) changed little. With 1 ng TruSeq-Nano libraries every caller performed poorly; DRAGEN had the best average indel F1 over the six library-preparation pairs (72.5%). All results come from one cell line, an F1 metric only and caller versions from 2017 to 2021.",
+    "source_ids": [
+      "somatic-neusomatic-20261010-source-sahraeian2022",
+      "somatic-neusomatic-20261010-source-sahraeian2022-additional-file-2"
+    ],
+    "note": "Covers the new judgements only; to be merged with the existing summary for this use case."
+  },
+  "concerns_for_reviewer": [
+    {
+      "source_id": "somatic-neusomatic-20261010-source-sahraeian2022",
+      "locator": "Results 'Analysis of different model-building strategies' paragraph 9 versus Methods 'Somatic mutation detection algorithms' paragraph 1",
+      "message": "Results say Octopus-RF used 'random forest filtering trained on SEQC-WGS-GT50-SpikeWGS10 data'; Methods say 'the pretrained random forest model'. Octopus-RF is treated as SEQC2-trained and author-built (origin author_reported) and proposed for exclusion. If the reviewer reads it as Octopus's own pretrained forest, its six evaluations could be kept as independent_paper."
+    },
+    {
+      "source_id": "somatic-neusomatic-20261010-source-sahraeian2022",
+      "locator": "Results 'WGS dataset' paragraph 1; Additional file 2 Table S2 row labels",
+      "message": "Prose says 21 WGS replicates from six sequencing centres; the row labels carry seven site codes (EA, FD, IL, LL, NC, NS, NV). Recorded as printed; not resolved."
+    },
+    {
+      "source_id": "somatic-neusomatic-20261010-source-sahraeian2022",
+      "locator": "Methods 'SEQC-WGS-Spike model' and 'SEQC-WGS-GT-50 model'",
+      "message": "The training replicate pairs are described by site and coverage but not named, so Table S2 rows that are training replicates cannot be identified. All SEQC2-trained evaluations on S2 are proposed for exclusion for that reason as well as the cell-line rule; S3 and S4 rows are proposed under the cell-line rule only."
+    },
+    {
+      "source_id": "somatic-neusomatic-20261010-source-sahraeian2022",
+      "locator": "Methods 'SEQC2 tumor-normal sequencing data and ground truth'; author list",
+      "message": "The SEQC2 truth set was derived with SomaticSeq over calls from several callers; co-author Li Tai Fang leads SomaticSeq. SomaticSeq is not evaluated here, but the truth set may favour callers that contributed to it. Recorded as a protocol limitation."
+    }
+  ],
+  "concerns_note": "Not written as source evidence_concerns; the reviewer decides.",
+  "gaps": [
+    "LoFreq and TNscope are not in these tables.",
+    "No precision or recall per caller (figures only).",
+    "Xiao et al. 2021 (the SEQC2 consortium WGS caller comparison) not extracted.",
+    "Tables S5-S9 not extracted (outside whole-genome scope or excluded by the use case)."
+  ]
+}
