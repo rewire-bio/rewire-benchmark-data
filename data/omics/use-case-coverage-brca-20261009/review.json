@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T21:52:00Z",
+  "scope": "Independent review of the BRCA1/BRCA2 germline interpretation use-case batch for use-case-brca1-brca2-germline-interpretation: 862 records (558 results, 182 evaluations, 92 configurations, 16 methods, 4 protocols, 4 claims, 3 datasets, 3 sources). All three pinned artifacts were re-downloaded and matched their recorded SHA-256; archived copies decompress to the same bytes. All 558 results were re-read with the reviewer's own parsers (the extractor's scripts were not run) and match. Cubuk et al. likelihood ratios and intervals were recomputed from the Supplementary Table 6 counts and Ramadane-Morchadi et al. predictive values from the printed sensitivity and specificity. No number changed. Details are in docs/reviews/use-cases/brca1-brca2-germline-interpretation-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any tool.",
+    "Cubuk Supplementary Tables 1, 8, 10, 11 and 13 and Ramadane-Morchadi Tables S1 to S6 and Table 3 were not checked; method types were not checked against Cubuk Supplementary Table 1.",
+    "The functional data behind the ENIGMA VCEP BayesDel calibration are not named in the stored records, so their overlap with the Findlay et al. 2018 data is unresolved.",
+    "SHACL shapes and npm run build were not run; npm test and npm run typecheck passed, and a scratch dry run adding the somatic oncogenicity, protein stability and this batch passed, with all four new and all ten existing judgements active."
+  ],
+  "errors": [
+    {
+      "status": "disputed",
+      "record_ids": [
+        "brca-20261009-result-cubuk2021-bayesdel-maxaf-genespecific-brca2-blr",
+        "brca-20261009-result-cubuk2021-bayesdel-maxaf-universal-brca2-blr",
+        "brca-20261009-result-cubuk2021-bayesdel-nomaxaf-genespecific-brca2-blr",
+        "brca-20261009-result-cubuk2021-cadd-phred-a-brca2-blr",
+        "brca-20261009-result-cubuk2021-cadd-phred-b-brca1-blr",
+        "brca-20261009-result-cubuk2021-cadd-phred-b-brca2-blr",
+        "brca-20261009-result-cubuk2021-chasm-brca1-blr",
+        "brca-20261009-result-cubuk2021-chasm-brca2-blr",
+        "brca-20261009-result-cubuk2021-clinpred-brca2-blr",
+        "brca-20261009-result-cubuk2021-combined-panther-and-metasnp-brca2-blr",
+        "brca-20261009-result-cubuk2021-combined-polyphen2-hvar-and-sift-and-mutationtaster-brca1-blr",
+        "brca-20261009-result-cubuk2021-combined-polyphen2-hvar-and-sift-and-mutationtaster-brca2-blr",
+        "brca-20261009-result-cubuk2021-combined-revel-b-and-metasnp-brca2-blr",
+        "brca-20261009-result-cubuk2021-dann-a-brca2-blr",
+        "brca-20261009-result-cubuk2021-dann-b-brca2-blr",
+        "brca-20261009-result-cubuk2021-fathmm-mkl-coding-brca2-blr",
+        "brca-20261009-result-cubuk2021-gerppp-rs-a-brca2-blr",
+        "brca-20261009-result-cubuk2021-m-cap-brca1-blr",
+        "brca-20261009-result-cubuk2021-m-cap-brca2-blr",
+        "brca-20261009-result-cubuk2021-mlp-a-brca2-blr",
+        "brca-20261009-result-cubuk2021-msc-cadd-based-brca2-blr",
+        "brca-20261009-result-cubuk2021-msc-polyphen2-based-brca2-blr",
+        "brca-20261009-result-cubuk2021-msc-sift-based-brca2-blr",
+        "brca-20261009-result-cubuk2021-mvp-brca2-blr",
+        "brca-20261009-result-cubuk2021-phastcons100way-vertebrate-brca2-blr",
+        "brca-20261009-result-cubuk2021-phd-snpg-all-brca2-blr",
+        "brca-20261009-result-cubuk2021-pon-p2-brca1-blr",
+        "brca-20261009-result-cubuk2021-pon-p2-brca2-blr",
+        "brca-20261009-result-cubuk2021-primateai-a-brca2-plr",
+        "brca-20261009-result-cubuk2021-sift-brca2-blr",
+        "brca-20261009-result-cubuk2021-vest3-a-brca2-blr"
+      ],
+      "message": "Cubuk et al. likelihood ratios that divide by a zero count in Supplementary Table 6 (30 benignity ratios with FN = 0, one positive ratio with TP = FP = 0); the printed value rests only on a zero-cell correction the Table 9 note says was not applied. Not shown as evidence."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "brca-20261009-result-ramadane2025-ddg-af-1-0-3-0-binary-npv"
+      ],
+      "message": "Probably misprinted interval (92.3-97.5) removed from structured uncertainty; missing_metadata.uncertainty conflicting."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "54 Ramadane-Morchadi results"
+      ],
+      "message": "Metric qualifiers named each tool's threshold, which prevented any comparison; thresholds moved to score_category."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "4 protocols",
+        "4 judgements",
+        "12 configurations"
+      ],
+      "message": "Limitations and notes rewritten from the sources: shared saturation genome editing data, Cubuk BayesDel thresholds are not the VCEP's, Align-GVGD trained on BRCA1/2, VEST3 under a 'VEST4' family record, thresholds tuned on the evaluated variants, Ambry employees. Two collector statements not supported by the sources were removed."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "data/vocab/metric.ttl benignity-likelihood-ratio and log2-likelihood-ratio"
+      ],
+      "message": "Scope notes added: benignity ratio is the reciprocal of the conventional negative likelihood ratio; log2 LR direction depends on the interval."
+    }
+  ],
+  "files": {
+    "artifacts/cubuk2021-article.xml.gz": "c8fd47b55ae97b58b1784fdfcd805df326be67541983d352cebe96551d0d1994",
+    "artifacts/cubuk2021-supplementary-tables.xlsx.gz": "ad3badc7cb9cf1e45a788129bbc33c8db1708a1716d66d4c4377abe48b7d6e6d",
+    "artifacts/ramadane2025-article.xml.gz": "b5014b2f7e4d728af56f83b7c3a5e1560539f9577a2b114479a6253d54b101f4",
+    "batch.jsonl": "f24f480d661e32396f31c0729b38d27d570ecdcaa64699f4d78cf3729786411c",
+    "claims.csv": "93e3fdd5a2af08b4d127911fb8c2ec1ecbce34298af6f221629268405d7468c9",
+    "coverage.json": "ed4ddbffbc18e33f8537a8751fe0ab73d1f24d96d8f2e410757adb16a8d3faa4",
+    "extract/extract_brca.py": "499852b03d7d11b1f707c8baf5b65ef3fabf86f5ec8edffe16c565ed2cb03806",
+    "extract/rawxlsx.py": "81aa5a418143431976749abe8273a45f37c8bde0fe4c1ce25a449221ae512726",
+    "research.md": "1144849b24487d8eb09794e3348902d36d39c847eecb15c6de4e7bd57b33efc8",
+    "retrieval-log.md": "5f66b4f7e3b852dcdf32e5ec582d562db46f31b3231acab3f16c39780b03f08f",
+    "sources.md": "b77bf03aee06f4b2fa57fa66193f15923958be5c0663dc90bf066222d0ad3c1e"
+  }
+}
