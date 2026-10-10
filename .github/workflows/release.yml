@@ -51,9 +51,15 @@ jobs:
           echo "Previous release $previous; candidate $next"
       - name: Stop if the candidate only renames the current release
         id: pending
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIOUS: ${{ steps.candidate.outputs.previous }}
         run: |
+          # The receipt published with the previous prepared file records its serving contract.
+          gh release download "serving/$PREVIOUS" --repo "$GITHUB_REPOSITORY" --pattern "catalogue-$PREVIOUS.json" --dir "$RUNNER_TEMP/published" \
+            || echo "::warning::No published serving receipt for $PREVIOUS; comparing release files only."
           set +e
-          node scripts/release/next.mjs pending "${{ steps.candidate.outputs.previous }}" "${{ steps.candidate.outputs.next }}"
+          node scripts/release/next.mjs pending "$PREVIOUS" "${{ steps.candidate.outputs.next }}" "$RUNNER_TEMP/published/catalogue-$PREVIOUS.json"
           status=$?
           set -e
           if [ "$status" = 3 ]; then echo "release=false" >> "$GITHUB_OUTPUT"; exit 0; fi

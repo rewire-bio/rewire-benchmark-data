@@ -5,10 +5,12 @@
 //       exit 4 if the next release withholds or drops use-case mappings that the
 //       previous release serves, unless the judgement was withdrawn on purpose
 //       (its claim is excluded or superseded in data/evidence/claims.jsonl)
-//   node scripts/release/next.mjs pending <previous-id> <next-id>
+//   node scripts/release/next.mjs pending <previous-id> <next-id> [published-serving-receipt]
 //       exit 0 if the next release differs from the previous one in anything but
 //       its release ID and date (new or changed records, evidence, audits, use
-//       cases, exports); exit 3 if it is the same release under a new name.
+//       cases, exports), or if its prepared file uses a different serving contract
+//       from the one published for the previous release; exit 3 if it is the same
+//       release under a new name.
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -17,7 +19,7 @@ import readline from 'node:readline';
 
 const releases = 'data/omics/releases';
 const configFile = 'data/omics/release-config.json';
-const [command, previous, next] = process.argv.slice(2);
+const [command, previous, next, publishedReceipt] = process.argv.slice(2);
 
 function releaseOf(id) {
   const receipt = JSON.parse(fs.readFileSync(path.join(releases, `${id}.json`), 'utf8'));
@@ -80,8 +82,15 @@ if (command === 'latest') {
   const before = await digests(a.id), after = await digests(b.id, normalise);
   const changed = [...new Set([...before.keys(), ...after.keys()])]
     .filter(name => before.get(name) !== after.get(name));
+  // The prepared file is published beside the release, not in it, so a new serving
+  // contract with unchanged records still needs a release for the website to adopt it.
+  const contract = file => fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')).serving_contract_version : null;
+  const published = publishedReceipt ? contract(publishedReceipt) : null;
+  const built = contract(path.join('public/serving', `catalogue-${b.id}.json`));
   if (changed.length) {
     console.log(`Release ${b.id} changes ${changed.length} file(s) against ${a.id}: ${changed.slice(0, 10).join(', ')}`);
+  } else if (published && built && published !== built) {
+    console.log(`Release ${b.id} has the same records as ${a.id} but serving contract ${built} instead of ${published}.`);
   } else {
     console.log(`Release ${b.id} only renames ${a.id}; nothing to release.`);
     process.exitCode = 3;
