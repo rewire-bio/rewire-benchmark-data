@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the author of the summaries; no human review claimed",
+  "reviewed_at": "2026-10-10T06:57:19Z",
+  "scope": "Independent review of the five draft use-case summary claims for issue #87: utr-translation-baselines, plant-promoter-reporters, mass-spectrum-molecule-shortlisting, phenotype-perturbation-selection and rhodopsin-wavelength-transfer. Each summary was checked against its use case's active judgements, rebuilt with deriveUseCaseInputs, and against the stored result, protocol, dataset, configuration and source records. Every number matches its result's printed value and rounding; every comparative statement was checked against all active evaluations on the protocol. No number was wrong. All five texts were corrected for scope, provenance or completeness and are now source_checked with reviews. Pins are not set. Details in data/omics/qa-data-fixes-20261010/review.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review, not reproduction and not clinical validation.",
+    "No source artifact was re-downloaded or re-hashed; numbers were checked against the stored results that earlier reviews bound to their sources.",
+    "Figures and supplementary tables behind the stored results were not reopened.",
+    "Pins are unset by instruction, so none of the five summaries publishes until the integrator pins it.",
+    "npm run build was not run. npm test (500 tests) and npm run typecheck passed, and a scratch-store dry run of addBatch and deriveUseCaseInputs succeeded."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-summary-utr-translation-baselines"
+      ],
+      "message": "Did not state that both controls are Rewire runs, nor that their automated audit checks the run rather than a published score. Added those, the held-out record count and the neural model names."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-summary-plant-promoter-reporters"
+      ],
+      "message": "\"All values are author reported\" was wrong: the five DNA foundation-model rows are independent_paper. Rewritten, with the negatives described as similar non-promoter sequences and both the TATA and NonTATA tasks named."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-summary-mass-spectrum-molecule-shortlisting"
+      ],
+      "message": "Standard-deviation range on the formula split was 0.2 to 3.4; those rows are 0.5 to 3.4 and the 0.2 is an MCES row. \"Three seeds\" does not hold for MCES, whose protocol records two swapped variants. Both sources are versions of one arXiv preprint."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-summary-phenotype-perturbation-selection"
+      ],
+      "message": "\"Much better than chance\" and \"most near 0.5\" replaced with the distribution (17 of 20 between 0.50 and 0.57, random expectation 0.5). The four counts 61, 57, 59 and 50 were mislabelled as nomination counts and are now named individually."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-summary-rhodopsin-wavelength-transfer"
+      ],
+      "message": "Omitted the 22-feature composition probe, the fifth active evaluation on the protocol; added it with its values and its two sources. Opening qualified to the nm columns, since all three methods print 0.045 eV on split 3. Removed \"the splits differ more than the methods do\", which split 4 does not support."
+    }
+  ],
+  "files": {
+    "batch.jsonl": "acdc73a14b8d87930d8c9a32638b0a2269ac51f33dbad86bcd4a3555e825214f",
+    "changes.md": "fc012a8b0016d9b352b1602892076e344cd9d15dc623255b66d06e5657524a94",
+    "review.md": "c3c592615ea878374948954c6f4fc7b0ce2c21cd1894156eca43999c6641a9f3"
+  }
+}
