@@ -1,0 +1,373 @@
+{
+  "use_case_id": "use-case-regulatory-variant-gene-follow-up",
+  "cutoff_date": "2026-10-09",
+  "query_budget": {
+    "budgeted": 25,
+    "used": 5
+  },
+  "existing_reused": [
+    "ucc-research-method-mprabc-abc",
+    "ucc-research-method-mprabc-re2g",
+    "ucc-research-data-mprabc-k562-crispri",
+    "catalog-model-dnabert-2",
+    "catalog-model-nt-v2",
+    "discovery-model-nucleotide-transformer",
+    "catalog-model-geneformer",
+    "discovery-model-chrombpnet"
+  ],
+  "existing_judgements_unchanged": [
+    "use-case-mapping-20260930-347-81e84acc2274",
+    "use-case-mapping-amp-20261007-feng-qtl-eqtl",
+    "use-case-mapping-amp-20261007-feng-qtl-ipaqtl",
+    "use-case-mapping-amp-20261007-feng-qtl-paqtl",
+    "use-case-mapping-amp-20261007-feng-qtl-sqtl"
+  ],
+  "new_record_counts": {
+    "claim": 11,
+    "configuration": 44,
+    "dataset": 6,
+    "evaluation": 136,
+    "method": 15,
+    "protocol": 8,
+    "result": 160,
+    "source": 4
+  },
+  "vocabulary_additions": {},
+  "method_reuse_check": "Searched data/entities on main and every rewire-benchmark-data-* worktree, plus their use-case batch folders, for ABC, ENCODE-rE2G, EPIraction, EpiMap, Enformer, Borzoi, Sei, ChromBPNet, TREDNet, Nucleotide Transformer, DNABERT-2, HyenaDNA, Caduceus, GENA-LM, Geneformer, GPN, MPRAnn and ResidualBind. Reused the eight records listed in existing_reused; created 15 new method records. Feng configurations for HyenaDNA, Caduceus, Enformer and Sei have no configuration_of link, so there was no family record to reuse.",
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-regulatory-variant-20261009-gschwind2026-heldout",
+      "protocol_id": "regulatory-variant-20261009-protocol-gschwind2026-heldout-weighted",
+      "relevance": "proxy",
+      "comparison_group": "gschwind2026-crispr",
+      "stratum_label": "Held-out, five cell types",
+      "headline_metric": "auprc",
+      "evaluation_ids": [
+        "regulatory-variant-20261009-eval-gschwind2026-heldout-abc-dnase-avg-hic",
+        "regulatory-variant-20261009-eval-gschwind2026-heldout-distance-to-tss",
+        "regulatory-variant-20261009-eval-gschwind2026-heldout-encode-re2g",
+        "regulatory-variant-20261009-eval-gschwind2026-heldout-ep-dnase-correlation",
+        "regulatory-variant-20261009-eval-gschwind2026-heldout-epimap",
+        "regulatory-variant-20261009-eval-gschwind2026-heldout-epiraction"
+      ],
+      "endpoint": "Weighted AUPRC, precision and recall at threshold, with 95% bootstrap intervals, for ENCODE-rE2G, ABC, EPIraction, EpiMap, distance to TSS and element-promoter correlation on held-out CRISPR pairs from five cell types",
+      "limitations": [
+        "Developer comparison: ENCODE-rE2G and ABC come from the authors' group; other predictors and baselines were run or rebuilt by the authors.",
+        "Whole-element CRISPRi perturbation, not allele editing; a regulatory link does not establish a causal disease role.",
+        "Weighting depends on the authors' model of direct effects (Supplementary Methods 22).",
+        "The threshold behind the 'precision at threshold' and 'recall at threshold' rows is not restated in the sheet (the training sheet sets thresholds at 70% recall)."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-regulatory-variant-20261009-gschwind2026-k562-training",
+      "protocol_id": "regulatory-variant-20261009-protocol-gschwind2026-k562-training-weighted",
+      "relevance": "proxy",
+      "comparison_group": "gschwind2026-crispr",
+      "stratum_label": "Combined K562 training pairs",
+      "headline_metric": "auprc",
+      "evaluation_ids": [
+        "regulatory-variant-20261009-eval-gschwind2026-k562-training-abc-dnase-avg-hic",
+        "regulatory-variant-20261009-eval-gschwind2026-k562-training-distance-to-tss",
+        "regulatory-variant-20261009-eval-gschwind2026-k562-training-encode-re2g",
+        "regulatory-variant-20261009-eval-gschwind2026-k562-training-ep-dnase-correlation",
+        "regulatory-variant-20261009-eval-gschwind2026-k562-training-epimap",
+        "regulatory-variant-20261009-eval-gschwind2026-k562-training-epiraction"
+      ],
+      "endpoint": "The same weighted metrics on the combined K562 CRISPR pairs used to train ENCODE-rE2G",
+      "limitations": [
+        "Developer comparison: ENCODE-rE2G and ABC come from the authors' group; other predictors and baselines were run or rebuilt by the authors.",
+        "Whole-element CRISPRi perturbation, not allele editing; a regulatory link does not establish a causal disease role.",
+        "Weighting depends on the authors' model of direct effects (Supplementary Methods 22).",
+        "The threshold behind the 'precision at threshold' and 'recall at threshold' rows is not restated in the sheet (the training sheet sets thresholds at 70% recall).",
+        "In-sample for ENCODE-rE2G; same pairs as the existing K562 mapping, different weighting."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-regulatory-variant-20261009-manzo2025-hela",
+      "protocol_id": "regulatory-variant-20261009-protocol-manzo2025-hela-pearson",
+      "relevance": "proxy",
+      "comparison_group": "manzo2025-reporter-variants",
+      "stratum_label": "HeLa",
+      "headline_metric": "pearson-correlation",
+      "evaluation_ids": [
+        "regulatory-variant-20261009-eval-manzo2025-hela-borzoi",
+        "regulatory-variant-20261009-eval-manzo2025-hela-caduceus",
+        "regulatory-variant-20261009-eval-manzo2025-hela-chrombpnet",
+        "regulatory-variant-20261009-eval-manzo2025-hela-dnabert-2",
+        "regulatory-variant-20261009-eval-manzo2025-hela-enformer",
+        "regulatory-variant-20261009-eval-manzo2025-hela-gena-lm-b-multi",
+        "regulatory-variant-20261009-eval-manzo2025-hela-gena-lm-base",
+        "regulatory-variant-20261009-eval-manzo2025-hela-gena-lm-bigbird",
+        "regulatory-variant-20261009-eval-manzo2025-hela-gena-lm-large",
+        "regulatory-variant-20261009-eval-manzo2025-hela-geneformer",
+        "regulatory-variant-20261009-eval-manzo2025-hela-hyenadna-1-mf",
+        "regulatory-variant-20261009-eval-manzo2025-hela-hyenadna-160-k",
+        "regulatory-variant-20261009-eval-manzo2025-hela-hyenadna-32-k",
+        "regulatory-variant-20261009-eval-manzo2025-hela-hyenadna-450-k",
+        "regulatory-variant-20261009-eval-manzo2025-hela-nt-2-5b-1000g",
+        "regulatory-variant-20261009-eval-manzo2025-hela-nt-2-5b-m-s",
+        "regulatory-variant-20261009-eval-manzo2025-hela-nt-500m-h-ref",
+        "regulatory-variant-20261009-eval-manzo2025-hela-nt-500m1000g",
+        "regulatory-variant-20261009-eval-manzo2025-hela-nt-v2-100m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-hela-nt-v2-250m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-hela-nt-v2-500m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-hela-nt-v2-50m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-hela-sei",
+        "regulatory-variant-20261009-eval-manzo2025-hela-trednet"
+      ],
+      "endpoint": "Pearson correlation (with standard error) between predicted and measured variant effects for 24 DNA language and sequence-to-function models on 5241 HeLa reporter-assay SNPs",
+      "limitations": [
+        "Reporter (SuRE, MPRA, luciferase) activity, not endogenous regulation.",
+        "TREDNet was developed by the same group (Ovcharenko lab).",
+        "Transformers were fine-tuned for enhancer classification per cell line; CNNs and long-context models were used for inference on 1 kb input, so models were not adapted equally.",
+        "Standard errors in brackets are not defined further in the caption."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-regulatory-variant-20261009-manzo2025-hepg2",
+      "protocol_id": "regulatory-variant-20261009-protocol-manzo2025-hepg2-pearson",
+      "relevance": "proxy",
+      "comparison_group": "manzo2025-reporter-variants",
+      "stratum_label": "HepG2",
+      "headline_metric": "pearson-correlation",
+      "evaluation_ids": [
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-borzoi",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-caduceus",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-chrombpnet",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-dnabert-2",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-enformer",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-gena-lm-b-multi",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-gena-lm-base",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-gena-lm-bigbird",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-gena-lm-large",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-geneformer",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-hyenadna-1-mf",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-hyenadna-160-k",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-hyenadna-32-k",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-hyenadna-450-k",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-nt-2-5b-1000g",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-nt-2-5b-m-s",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-nt-500m-h-ref",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-nt-500m1000g",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-nt-v2-100m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-nt-v2-250m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-nt-v2-500m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-nt-v2-50m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-sei",
+        "regulatory-variant-20261009-eval-manzo2025-hepg2-trednet"
+      ],
+      "endpoint": "Pearson correlation (with standard error) between predicted and measured variant effects for 24 DNA language and sequence-to-function models on 16255 HepG2 reporter-assay SNPs",
+      "limitations": [
+        "Reporter (SuRE, MPRA, luciferase) activity, not endogenous regulation.",
+        "TREDNet was developed by the same group (Ovcharenko lab).",
+        "Transformers were fine-tuned for enhancer classification per cell line; CNNs and long-context models were used for inference on 1 kb input, so models were not adapted equally.",
+        "Standard errors in brackets are not defined further in the caption."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-regulatory-variant-20261009-manzo2025-k562",
+      "protocol_id": "regulatory-variant-20261009-protocol-manzo2025-k562-pearson",
+      "relevance": "proxy",
+      "comparison_group": "manzo2025-reporter-variants",
+      "stratum_label": "K562",
+      "headline_metric": "pearson-correlation",
+      "evaluation_ids": [
+        "regulatory-variant-20261009-eval-manzo2025-k562-borzoi",
+        "regulatory-variant-20261009-eval-manzo2025-k562-caduceus",
+        "regulatory-variant-20261009-eval-manzo2025-k562-chrombpnet",
+        "regulatory-variant-20261009-eval-manzo2025-k562-dnabert-2",
+        "regulatory-variant-20261009-eval-manzo2025-k562-enformer",
+        "regulatory-variant-20261009-eval-manzo2025-k562-gena-lm-b-multi",
+        "regulatory-variant-20261009-eval-manzo2025-k562-gena-lm-base",
+        "regulatory-variant-20261009-eval-manzo2025-k562-gena-lm-bigbird",
+        "regulatory-variant-20261009-eval-manzo2025-k562-gena-lm-large",
+        "regulatory-variant-20261009-eval-manzo2025-k562-geneformer",
+        "regulatory-variant-20261009-eval-manzo2025-k562-hyenadna-1-mf",
+        "regulatory-variant-20261009-eval-manzo2025-k562-hyenadna-160-k",
+        "regulatory-variant-20261009-eval-manzo2025-k562-hyenadna-32-k",
+        "regulatory-variant-20261009-eval-manzo2025-k562-hyenadna-450-k",
+        "regulatory-variant-20261009-eval-manzo2025-k562-nt-2-5b-1000g",
+        "regulatory-variant-20261009-eval-manzo2025-k562-nt-2-5b-m-s",
+        "regulatory-variant-20261009-eval-manzo2025-k562-nt-500m-h-ref",
+        "regulatory-variant-20261009-eval-manzo2025-k562-nt-500m1000g",
+        "regulatory-variant-20261009-eval-manzo2025-k562-nt-v2-100m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-k562-nt-v2-250m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-k562-nt-v2-500m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-k562-nt-v2-50m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-k562-sei",
+        "regulatory-variant-20261009-eval-manzo2025-k562-trednet"
+      ],
+      "endpoint": "Pearson correlation (with standard error) between predicted and measured variant effects for 24 DNA language and sequence-to-function models on 19321 K562 reporter-assay SNPs",
+      "limitations": [
+        "Reporter (SuRE, MPRA, luciferase) activity, not endogenous regulation.",
+        "TREDNet was developed by the same group (Ovcharenko lab).",
+        "Transformers were fine-tuned for enhancer classification per cell line; CNNs and long-context models were used for inference on 1 kb input, so models were not adapted equally.",
+        "Standard errors in brackets are not defined further in the caption."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-regulatory-variant-20261009-manzo2025-npc",
+      "protocol_id": "regulatory-variant-20261009-protocol-manzo2025-npc-pearson",
+      "relevance": "proxy",
+      "comparison_group": "manzo2025-reporter-variants",
+      "stratum_label": "NPC",
+      "headline_metric": "pearson-correlation",
+      "evaluation_ids": [
+        "regulatory-variant-20261009-eval-manzo2025-npc-borzoi",
+        "regulatory-variant-20261009-eval-manzo2025-npc-caduceus",
+        "regulatory-variant-20261009-eval-manzo2025-npc-chrombpnet",
+        "regulatory-variant-20261009-eval-manzo2025-npc-dnabert-2",
+        "regulatory-variant-20261009-eval-manzo2025-npc-enformer",
+        "regulatory-variant-20261009-eval-manzo2025-npc-gena-lm-b-multi",
+        "regulatory-variant-20261009-eval-manzo2025-npc-gena-lm-base",
+        "regulatory-variant-20261009-eval-manzo2025-npc-gena-lm-bigbird",
+        "regulatory-variant-20261009-eval-manzo2025-npc-gena-lm-large",
+        "regulatory-variant-20261009-eval-manzo2025-npc-geneformer",
+        "regulatory-variant-20261009-eval-manzo2025-npc-hyenadna-1-mf",
+        "regulatory-variant-20261009-eval-manzo2025-npc-hyenadna-160-k",
+        "regulatory-variant-20261009-eval-manzo2025-npc-hyenadna-32-k",
+        "regulatory-variant-20261009-eval-manzo2025-npc-hyenadna-450-k",
+        "regulatory-variant-20261009-eval-manzo2025-npc-nt-2-5b-1000g",
+        "regulatory-variant-20261009-eval-manzo2025-npc-nt-2-5b-m-s",
+        "regulatory-variant-20261009-eval-manzo2025-npc-nt-500m-h-ref",
+        "regulatory-variant-20261009-eval-manzo2025-npc-nt-500m1000g",
+        "regulatory-variant-20261009-eval-manzo2025-npc-nt-v2-100m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-npc-nt-v2-250m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-npc-nt-v2-500m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-npc-nt-v2-50m-ms",
+        "regulatory-variant-20261009-eval-manzo2025-npc-sei",
+        "regulatory-variant-20261009-eval-manzo2025-npc-trednet"
+      ],
+      "endpoint": "Pearson correlation (with standard error) between predicted and measured variant effects for 24 DNA language and sequence-to-function models on 14042 NPC reporter-assay SNPs",
+      "limitations": [
+        "Reporter (SuRE, MPRA, luciferase) activity, not endogenous regulation.",
+        "TREDNet was developed by the same group (Ovcharenko lab).",
+        "Transformers were fine-tuned for enhancer classification per cell line; CNNs and long-context models were used for inference on 1 kb input, so models were not adapted equally.",
+        "Standard errors in brackets are not defined further in the caption."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-regulatory-variant-20261009-tang2025-cagi5-hepg2",
+      "protocol_id": "regulatory-variant-20261009-protocol-tang2025-cagi5-hepg2",
+      "relevance": "proxy",
+      "comparison_group": "tang2025-cagi5",
+      "stratum_label": "HepG2",
+      "headline_metric": "pearson-correlation",
+      "evaluation_ids": [
+        "regulatory-variant-20261009-eval-tang2025-hepg2-lentimpra-embedding-cnn-gpn",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-lentimpra-embedding-cnn-nt",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-lentimpra-embedding-cnn-sei",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-lentimpra-one-hot-cnn",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-lentimpra-one-hot-mprann",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-lentimpra-one-hot-residualbind",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-self-supervised-pre-training-gpn-human",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-self-supervised-pre-training-hyenadna",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-self-supervised-pre-training-nt-2b51000g",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-self-supervised-pre-training-nt-2b5species",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-self-supervised-pre-training-nt-500m1000g",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-self-supervised-pre-training-nt-500mhuman",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-supervised-one-hot-enformer-dnase",
+        "regulatory-variant-20261009-eval-tang2025-hepg2-supervised-one-hot-sei"
+      ],
+      "endpoint": "Pearson correlation between 14 zero-shot, embedding-probe and supervised models and CAGI5 saturation MPRA effects in HepG2",
+      "limitations": [
+        "Reporter (MPRA) activity in an episomal construct, not endogenous regulation.",
+        "Very small: one CRE in K562 and the average of three CREs in HepG2.",
+        "lentiMPRA-trained CNNs, ResidualBind and MPRAnn were trained by the same authors; other models are published.",
+        "No uncertainty printed."
+      ],
+      "status": "needs_review"
+    },
+    {
+      "claim_id": "use-case-mapping-regulatory-variant-20261009-tang2025-cagi5-k562",
+      "protocol_id": "regulatory-variant-20261009-protocol-tang2025-cagi5-k562",
+      "relevance": "proxy",
+      "comparison_group": "tang2025-cagi5",
+      "stratum_label": "K562",
+      "headline_metric": "pearson-correlation",
+      "evaluation_ids": [
+        "regulatory-variant-20261009-eval-tang2025-k562-lentimpra-embedding-cnn-gpn",
+        "regulatory-variant-20261009-eval-tang2025-k562-lentimpra-embedding-cnn-nt",
+        "regulatory-variant-20261009-eval-tang2025-k562-lentimpra-embedding-cnn-sei",
+        "regulatory-variant-20261009-eval-tang2025-k562-lentimpra-one-hot-cnn",
+        "regulatory-variant-20261009-eval-tang2025-k562-lentimpra-one-hot-mprann",
+        "regulatory-variant-20261009-eval-tang2025-k562-lentimpra-one-hot-residualbind",
+        "regulatory-variant-20261009-eval-tang2025-k562-self-supervised-pre-training-gpn-human",
+        "regulatory-variant-20261009-eval-tang2025-k562-self-supervised-pre-training-hyenadna",
+        "regulatory-variant-20261009-eval-tang2025-k562-self-supervised-pre-training-nt-2b51000g",
+        "regulatory-variant-20261009-eval-tang2025-k562-self-supervised-pre-training-nt-2b5species",
+        "regulatory-variant-20261009-eval-tang2025-k562-self-supervised-pre-training-nt-500m1000g",
+        "regulatory-variant-20261009-eval-tang2025-k562-self-supervised-pre-training-nt-500mhuman",
+        "regulatory-variant-20261009-eval-tang2025-k562-supervised-one-hot-enformer-dnase",
+        "regulatory-variant-20261009-eval-tang2025-k562-supervised-one-hot-sei"
+      ],
+      "endpoint": "Pearson correlation between 14 zero-shot, embedding-probe and supervised models and CAGI5 saturation MPRA effects in K562",
+      "limitations": [
+        "Reporter (MPRA) activity in an episomal construct, not endogenous regulation.",
+        "Very small: one CRE in K562 and the average of three CREs in HepG2.",
+        "lentiMPRA-trained CNNs, ResidualBind and MPRAnn were trained by the same authors; other models are published.",
+        "No uncertainty printed."
+      ],
+      "status": "needs_review"
+    }
+  ],
+  "use_case_changes": {
+    "add_links": [
+      {
+        "relation": "assessed_by",
+        "target_id": "regulatory-variant-20261009-protocol-gschwind2026-heldout-weighted"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "regulatory-variant-20261009-protocol-gschwind2026-k562-training-weighted"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "regulatory-variant-20261009-protocol-manzo2025-hela-pearson"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "regulatory-variant-20261009-protocol-manzo2025-hepg2-pearson"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "regulatory-variant-20261009-protocol-manzo2025-k562-pearson"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "regulatory-variant-20261009-protocol-manzo2025-npc-pearson"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "regulatory-variant-20261009-protocol-tang2025-cagi5-hepg2"
+      },
+      {
+        "relation": "assessed_by",
+        "target_id": "regulatory-variant-20261009-protocol-tang2025-cagi5-k562"
+      }
+    ],
+    "evidence_gaps_add": [
+      "No locus-to-gene comparison with printed per-method precision and recall was found. CALDERA (Schipper et al. 2026, PLoS Genet) prints only Brier scores for CALDERA, FLAMES, L2G and cS2G (Table 1); its AUPRC comparison is figure-only.",
+      "No benchmark of variant-effect predictors against endogenous allele edits (base, prime or saturation editing of noncoding sites) with printed per-method values was found; both variant sources use reporter assays.",
+      "The astrocyte CRISPRi benchmark of ABC, ENCODE-rE2G and TAP-seq RF (Green et al. 2026, Nat Neurosci) reports per-model values only in figures, prose and bootstrap source data.",
+      "Gschwind et al. Supplementary Tables 5 and 7 (eQTL and GWAS enrichment benchmarks) and the per-predictor K562 sheets of Table 3 are not extracted.",
+      "Manzo et al. causal-SNP top-k results within LD blocks are figure-only."
+    ],
+    "exclusions_change": null,
+    "decision_inputs_output_setting_change": "Not proposed; the current decision, inputs and setting already describe allele-effect prediction, element-gene linking and shortlist selection as separate comparisons."
+  },
+  "summary_proposal": "Three comparisons were added; all values are transcribed from the publications, not reproduced. For element-gene linking, Gschwind et al. (2026), the ENCODE-rE2G and ABC developers, scored predictors on 4,378 held-out CRISPR-tested element-gene pairs (190 positives) from K562, GM12878, HCT116, WTC11 and Jurkat. Weighted AUPRC was 0.556 for ENCODE-rE2G (95% bootstrap interval 0.468 to 0.631), 0.465 for ABC, 0.383 for EPIraction, 0.363 for distance to TSS, 0.268 for EpiMap and 0.211 for element-promoter DNase correlation; weighted precision at threshold was 0.544, 0.437, 0.347, 0.245, 0.292 and 0.112 (Supplementary Table 3, rounded to three decimals). These are whole-element perturbations and say nothing about allele effects or disease causality. For allele effects, Manzo et al. (2025), whose group developed TREDNet, correlated predicted and reporter-measured variant effects for 24 models in four cell lines: in K562 the Pearson correlation was 0.315 for TREDNet, 0.297 for Sei, 0.287 for ChromBPNet, 0.199 for the best Nucleotide Transformer v2, 0.059 for Enformer and 0.033 for Borzoi; long-context models were run on 1 kb input. Tang et al. (2025) reported Pearson correlations with CAGI5 saturation mutagenesis MPRA for four regulatory elements: zero-shot DNA language models reached at most 0.135, while supervised Sei reached 0.545 (HepG2) and 0.641 (K562) and Enformer 0.510 and 0.685. Reporter activity is not endogenous regulation, several comparisons are by the developers of a compared method, and results from different sources must not be pooled. No locus-to-gene comparison with printed precision and recall was found. This summary describes evidence and does not recommend a method.",
+  "gaps": [
+    "Locus-to-gene: CALDERA Table 1 (Brier scores) screened, not extracted; Weeks et al. 2023 PoPS full text unavailable from Europe PMC (HTTP 500).",
+    "Linking regulatory variants to target genes with single-cell multiome (Nat Genet 2025, PMC12704523) full text returned HTTP 500; not screened.",
+    "Endogenous allele-editing benchmarks: PETRA preprint and 'Rewriting regulatory DNA' (Cell 2025) are leads, not screened.",
+    "Gschwind Supplementary Tables 4, 5 and 7 not extracted.",
+    "No result is comparable across sources: perturbation type, assay, population and metric differ."
+  ]
+}
