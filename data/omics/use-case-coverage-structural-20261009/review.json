@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-10T00:30:00Z",
+  "scope": "Independent review of the structural hypotheses batch for use-case-structural-hypotheses-experiments: 100 records (50 results, 19 evaluations, 13 configurations, 9 claims including 6 relevance judgements, 4 protocols, 3 datasets, 2 sources). All 27 Fromm et al. 2026 Table 1 cells and all 23 Smorodina et al. 2026 prose values checked against the paragraph each locator names; the two FoldBench protocols and their stored evaluations checked for status, links and fit. See docs/reviews/use-cases/structural-hypotheses-experiments-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any prediction.",
+    "The Smorodina supplementary tables were not retrieved, so the per-system quadrant assignments behind the calibration shares could not be checked.",
+    "The two FoldBench judgements reuse stored evaluations reviewed in an earlier batch; their values were not re-checked against FoldBench here.",
+    "Relevance judgement pins are left unset for the integrator; all eleven judgements on the use case were simulated active after re-pinning, with the approved use-case text applied in memory."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-structural-20261009-fromm2026-model-selection"
+      ],
+      "message": "The four oracle evaluations (DockQ, aeTM, aeiTM, aeRankConf) are excluded with reasons: each needs the experimental structure, so none is a selection rule a user could apply. The endpoint now names only the five computable scores; the gap stays in claim structural-20261009-claim-fromm2026-top-vs-best."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "structural-20261009-result-fromm2026-af3-ranking-confidence-spearman-per-target"
+      ],
+      "message": "Source warning added: section 3.5 gives the mean per-target correlation as 0.28 while Table 1 prints 0.214 for the same quantity. The table names its statistic and the text does not, so the table value is kept and the conflict travels with the result."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-structural-20261009-smorodina2026-sampling",
+        "use-case-mapping-structural-20261009-smorodina2026-calibration",
+        "use-case-mapping-structural-20261009-smorodina2026-cognate-vs-shuffled",
+        "use-case-mapping-structural-20261009-foldbench-antibody-antigen",
+        "use-case-mapping-structural-20261009-fromm2026-model-selection"
+      ],
+      "message": "Comparison groups split by complex class: the three nanobody strata moved to their own group, because their own limitations say results do not transfer to conventional antibodies. The antibody-antigen group keeps the FoldBench and Fromm strata."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "structural-20261009-protocol-fromm2026-abag-model-selection"
+      ],
+      "message": "The 'Table 1 does not state the number of models' limitation replaced: Methods 2.2.2 and section 2.4 state 200 models per complex, so the reading is stated, not inferred."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "structural-20261009-protocol-smorodina2026-vhh-cognate-vs-shuffled",
+        "structural-20261009-protocol-smorodina2026-vhh-dockq-vs-sampling",
+        "structural-20261009-protocol-smorodina2026-vhh-iptm-dockq-calibration"
+      ],
+      "message": "Training-cutoff limitation rewritten precisely (Chai-1 earliest, Boltz-2 latest, October 2021 matches AF3) and kept as a limitation, not a source concern; preprint status added as its own limitation."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "structural-20261009-data-smorodina2026-vhh-antigen-91x91",
+        "structural-20261009-protocol-smorodina2026-vhh-cognate-vs-shuffled"
+      ],
+      "message": "Shuffled-pairing count conflict recorded: the abstract gives 11,342, Results P8 gives 11,130. No stored value uses either."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "use-case-mapping-structural-20261009-foldbench-antibody-antigen",
+        "use-case-mapping-structural-20261009-foldbench-protein-ligand"
+      ],
+      "message": "Added limitation: the mapped evaluations are stored records reviewed in an earlier batch; this review checked status, links and fit, not their values."
+    },
+    {
+      "status": "open",
+      "record_ids": [
+        "use-case-structural-hypotheses-experiments"
+      ],
+      "message": "The approved exclusion changes a pinned field; the five existing judgements hold but must be re-pinned with the six new ones."
+    }
+  ],
+  "files": {
+    "batch.jsonl": "92340055c352206ff15d3142b789a88efed8ca32ae21d7b5101c835b0f149029",
+    "claims.csv": "bcf2b26d6ea3d509e41f12688bdc049d7f09d236242ae829e86baaecd6ff00fc",
+    "coverage.json": "0c334ed3e7530042e9f7783641a041fc333854df173f2829a03e448edd756339",
+    "research.md": "6a28255005031bec63e4eae438ba735a20213ecda067799214546d6f4fe7bea4",
+    "retrieval-log.md": "f1692293b809bee8e8a0919e5d6645850e292900e2419cc0a9b15defc878dcc3",
+    "sources.md": "f908cf69ef03aa89a7d7cb168069f312b0bb800a56f56f1d94dbbf0611389c69",
+    "artifacts/fromm2026-article.xml.gz": "ca5a13544dfc5efbd48acdb8170cc1840ef8b932f3dcada068d4ad53b33b48e8",
+    "artifacts/smorodina2026-article.xml.gz": "84551bd369c8aacc8164cc508c82d3e1e42725862c5771c5a82ab24d0d1e1191",
+    "extract/extract_structural.py": "8e27048c3f5eaedd9b4241ba51dfe7e6edf95a746bb8ca8a2628fc2e26ce1c6a"
+  }
+}
