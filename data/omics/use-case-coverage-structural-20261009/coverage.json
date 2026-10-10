@@ -1,0 +1,289 @@
+{
+  "use_case_id": "use-case-structural-hypotheses-experiments",
+  "cutoff_date": "2026-10-09",
+  "query_budget": 25,
+  "queries_used": 6,
+  "sources_extracted": 2,
+  "existing_reused": [
+    "discovery-model-alphafold-3",
+    "catalog-model-boltz-2",
+    "discovery-model-boltz",
+    "catalog-model-chai-1",
+    "ucc-research-protocol-foldbench-antibody-antigen",
+    "ucc-research-protocol-foldbench-protein-ligand",
+    "ucc-research-source-foldbench-paper",
+    "ucc-research-source-foldbench-supp",
+    "ucc-research-eval-foldbench-antibody-antigen-af3",
+    "ucc-research-eval-foldbench-antibody-antigen-boltz1",
+    "ucc-research-eval-foldbench-antibody-antigen-chai1",
+    "ucc-research-eval-foldbench-antibody-antigen-helixfold3",
+    "ucc-research-eval-foldbench-antibody-antigen-protenix",
+    "ucc-research-eval-foldbench-protein-ligand-af3",
+    "ucc-research-eval-foldbench-protein-ligand-boltz1",
+    "ucc-research-eval-foldbench-protein-ligand-chai1",
+    "ucc-research-eval-foldbench-protein-ligand-helixfold3",
+    "ucc-research-eval-foldbench-protein-ligand-protenix"
+  ],
+  "existing_reused_note": "Configurations link to the stored model records by configuration_of; Boltz-1 links to discovery-model-boltz as the FoldBench Boltz-1 configuration does. Two judgements map existing, unmapped FoldBench protocols (antibody-antigen and protein-ligand) with their stored evaluations; no FoldBench record is changed or copied. The five existing judgements (ClusPro BM5 and FoldBench protein-protein) are unchanged and no new source duplicates theirs. No metric block is shared with another batch, and no vocabulary concept was added.",
+  "new_record_counts": {
+    "claim": 9,
+    "configuration": 13,
+    "dataset": 3,
+    "evaluation": 19,
+    "protocol": 4,
+    "result": 50,
+    "source": 2
+  },
+  "new_ids": {
+    "claim": [
+      "structural-20261009-claim-fromm2026-top-vs-best",
+      "structural-20261009-claim-smorodina2026-random-baseline",
+      "structural-20261009-claim-smorodina2026-shuffled-negatives",
+      "use-case-mapping-structural-20261009-foldbench-antibody-antigen",
+      "use-case-mapping-structural-20261009-foldbench-protein-ligand",
+      "use-case-mapping-structural-20261009-fromm2026-model-selection",
+      "use-case-mapping-structural-20261009-smorodina2026-calibration",
+      "use-case-mapping-structural-20261009-smorodina2026-cognate-vs-shuffled",
+      "use-case-mapping-structural-20261009-smorodina2026-sampling"
+    ],
+    "dataset": [
+      "structural-20261009-data-fromm2026-abag-110",
+      "structural-20261009-data-smorodina2026-vhh-antigen-106",
+      "structural-20261009-data-smorodina2026-vhh-antigen-91x91"
+    ],
+    "protocol": [
+      "structural-20261009-protocol-fromm2026-abag-model-selection",
+      "structural-20261009-protocol-smorodina2026-vhh-cognate-vs-shuffled",
+      "structural-20261009-protocol-smorodina2026-vhh-dockq-vs-sampling",
+      "structural-20261009-protocol-smorodina2026-vhh-iptm-dockq-calibration"
+    ],
+    "source": [
+      "structural-20261009-source-fromm2026",
+      "structural-20261009-source-smorodina2026"
+    ]
+  },
+  "judgements": [
+    {
+      "mapping_id": "use-case-mapping-structural-20261009-foldbench-antibody-antigen",
+      "revision": 1,
+      "protocol_id": "ucc-research-protocol-foldbench-antibody-antigen",
+      "relevance": "proxy",
+      "evaluation_ids": [
+        "ucc-research-eval-foldbench-antibody-antigen-af3",
+        "ucc-research-eval-foldbench-antibody-antigen-boltz1",
+        "ucc-research-eval-foldbench-antibody-antigen-chai1",
+        "ucc-research-eval-foldbench-antibody-antigen-helixfold3",
+        "ucc-research-eval-foldbench-antibody-antigen-protenix"
+      ],
+      "endpoint": "FoldBench success rate, LDDT, interface RMSD and ligand RMSD for AlphaFold 3, Boltz-1, Chai-1, HelixFold 3 and Protenix on antibody-antigen targets with low homology to earlier PDB entries",
+      "comparison_group": "antibody-antigen-interfaces",
+      "stratum_label": "Accuracy of five tools (FoldBench)",
+      "stratum_order": 1,
+      "headline_metric": "foldbench-success-rate",
+      "limitations": [
+        "Benchmark authors ran all five tools; per-tool assessable counts differ, so the scored populations are not matched.",
+        "Structural success against the deposited complex, not binding, affinity or the outcome of an experiment.",
+        "No uncertainty is printed.",
+        "Antibody-antigen targets only."
+      ],
+      "use_case_id": "use-case-structural-hypotheses-experiments"
+    },
+    {
+      "mapping_id": "use-case-mapping-structural-20261009-fromm2026-model-selection",
+      "revision": 1,
+      "protocol_id": "structural-20261009-protocol-fromm2026-abag-model-selection",
+      "relevance": "proxy",
+      "evaluation_ids": [
+        "structural-20261009-eval-fromm2026-af3-aeitm-oracle",
+        "structural-20261009-eval-fromm2026-af3-aerankconf-oracle",
+        "structural-20261009-eval-fromm2026-af3-aetm-oracle",
+        "structural-20261009-eval-fromm2026-af3-dockq-oracle",
+        "structural-20261009-eval-fromm2026-af3-ipsae",
+        "structural-20261009-eval-fromm2026-af3-iptm",
+        "structural-20261009-eval-fromm2026-af3-pdockq2",
+        "structural-20261009-eval-fromm2026-af3-ptm",
+        "structural-20261009-eval-fromm2026-af3-ranking-confidence"
+      ],
+      "endpoint": "Mean DockQ of the AlphaFold3 model picked by each of nine scores (ipTM, pTM, ranking confidence, pDockQ2, ipSAE and four oracle references) among 200 models per target, and Spearman correlation with DockQ over all models and per target, on 110 antibody-antigen complexes released after the training cutoff",
+      "comparison_group": "antibody-antigen-interfaces",
+      "stratum_label": "Picking AlphaFold3 models by confidence (independent)",
+      "stratum_order": 2,
+      "headline_metric": "dockq",
+      "limitations": [
+        "Antibody-antigen complexes only; results do not transfer to other complex classes.",
+        "Structural accuracy against the deposited complex, not binding, affinity or the outcome of an experiment.",
+        "Only AlphaFold3 models are ranked in Table 1; the source does not print the same table for AlphaFold2.3, Boltz-1 or Chai-1.",
+        "Table 1 does not state the number of models ranked per target. Its DockQ row (0.544) matches the best-of-200 value given in the text (0.54), so the table is read as selection among all 200 models; this is an inference.",
+        "The DockQ, aeTM, aeiTM and aeRankConf rows use the experimental structure, so they are upper bounds, not usable selection rules.",
+        "Figure 6 and the text give a per-target ranking-confidence correlation of 0.28, while Table 1 prints 0.214 for RankConf under a Spearman caption; the figure's correlation type is not stated.",
+        "No uncertainty is printed."
+      ],
+      "use_case_id": "use-case-structural-hypotheses-experiments"
+    },
+    {
+      "mapping_id": "use-case-mapping-structural-20261009-smorodina2026-sampling",
+      "revision": 1,
+      "protocol_id": "structural-20261009-protocol-smorodina2026-vhh-dockq-vs-sampling",
+      "relevance": "proxy",
+      "evaluation_ids": [
+        "structural-20261009-eval-smorodina2026-vhh-dockq-vs-sampling-af3",
+        "structural-20261009-eval-smorodina2026-vhh-dockq-vs-sampling-boltz1",
+        "structural-20261009-eval-smorodina2026-vhh-dockq-vs-sampling-boltz2",
+        "structural-20261009-eval-smorodina2026-vhh-dockq-vs-sampling-chai1"
+      ],
+      "endpoint": "Median best DockQ among 1 and among 100 samples for AlphaFold3, Boltz-2, Boltz-1 and Chai-1 on 106 nanobody-antigen complexes",
+      "comparison_group": "antibody-antigen-interfaces",
+      "stratum_label": "Best of N samples, nanobodies (preprint)",
+      "stratum_order": 3,
+      "headline_metric": "dockq",
+      "limitations": [
+        "Best-of-N DockQ needs the experimental structure to pick the best sample, so it is an upper bound on what a user could select.",
+        "Each sampling depth is a separate run with its own seed (seeds 1 to 5 for N = 1, 10, 25, 50 and 100), unlike the single 50-sample runs of the other protocols.",
+        "For Chai-1 the smallest depth is 5 samples (5 trunk samples x 1 diffusion sample), so its N = 1 value is the best of 5.",
+        "Boltz-1 appears only in this analysis.",
+        "Nanobody (VHH)-antigen complexes only; results do not transfer to conventional antibodies or other complex classes.",
+        "The set mixes systems inside and outside each tool's training data (AF3 30 of 106 in training, Chai-1 25, Boltz-2 64); the printed values are over all systems, so they are not post-cutoff results, and Boltz-2's are the most exposed.",
+        "The curation text calls Boltz-2's cutoff the earliest among the tools, while the methods give Chai-1 about 12 January 2021, AF3 about 30 September 2021 and Boltz-2 about 1 June 2023. The per-tool counts follow the later statement.",
+        "Preprint, not peer reviewed. Supplementary tables were not read.",
+        "No uncertainty is printed for these values."
+      ],
+      "use_case_id": "use-case-structural-hypotheses-experiments"
+    },
+    {
+      "mapping_id": "use-case-mapping-structural-20261009-smorodina2026-calibration",
+      "revision": 1,
+      "protocol_id": "structural-20261009-protocol-smorodina2026-vhh-iptm-dockq-calibration",
+      "relevance": "proxy",
+      "evaluation_ids": [
+        "structural-20261009-eval-smorodina2026-vhh-iptm-dockq-calibration-af3",
+        "structural-20261009-eval-smorodina2026-vhh-iptm-dockq-calibration-boltz2",
+        "structural-20261009-eval-smorodina2026-vhh-iptm-dockq-calibration-chai1"
+      ],
+      "endpoint": "Pearson correlation of ipTM with DockQ, share of confident failures and unconfident successes, and correlation of ipTM change with DockQ change under sampling, for AlphaFold3, Boltz-2 and Chai-1 on 106 nanobody-antigen complexes",
+      "comparison_group": "antibody-antigen-interfaces",
+      "stratum_label": "Confidence against accuracy, nanobodies (preprint)",
+      "stratum_order": 4,
+      "headline_metric": "pearson-correlation",
+      "limitations": [
+        "Calibration is computed on cognate complexes only; it says nothing about whether ipTM separates binders from non-binders.",
+        "Quadrant thresholds (DockQ 0.23, ipTM 0.5) are the source's choice, and the text does not say which sample (best, first or worst) the quadrant shares refer to.",
+        "Not every tool has every value printed in the text.",
+        "Nanobody (VHH)-antigen complexes only; results do not transfer to conventional antibodies or other complex classes.",
+        "The set mixes systems inside and outside each tool's training data (AF3 30 of 106 in training, Chai-1 25, Boltz-2 64); the printed values are over all systems, so they are not post-cutoff results, and Boltz-2's are the most exposed.",
+        "The curation text calls Boltz-2's cutoff the earliest among the tools, while the methods give Chai-1 about 12 January 2021, AF3 about 30 September 2021 and Boltz-2 about 1 June 2023. The per-tool counts follow the later statement.",
+        "Preprint, not peer reviewed. Supplementary tables were not read.",
+        "No uncertainty is printed for these values."
+      ],
+      "use_case_id": "use-case-structural-hypotheses-experiments"
+    },
+    {
+      "mapping_id": "use-case-mapping-structural-20261009-smorodina2026-cognate-vs-shuffled",
+      "revision": 1,
+      "protocol_id": "structural-20261009-protocol-smorodina2026-vhh-cognate-vs-shuffled",
+      "relevance": "proxy",
+      "evaluation_ids": [
+        "structural-20261009-eval-smorodina2026-vhh-cognate-vs-shuffled-af3",
+        "structural-20261009-eval-smorodina2026-vhh-cognate-vs-shuffled-boltz2",
+        "structural-20261009-eval-smorodina2026-vhh-cognate-vs-shuffled-chai1"
+      ],
+      "endpoint": "Average precision for ranking cognate above shuffled nanobody-antigen pairings by ipTM, for AlphaFold3, Chai-1 and Boltz-2, against a random baseline of about 0.011",
+      "comparison_group": "antibody-antigen-interfaces",
+      "stratum_label": "Confidence as evidence of binding, nanobodies (preprint)",
+      "stratum_order": 5,
+      "headline_metric": "average-precision",
+      "limitations": [
+        "Negatives are shuffled pairings assumed to be non-binders; none was tested, and some may bind.",
+        "Ranks pairings by ipTM; it measures whether confidence separates observed from assumed-absent interactions, not structural accuracy.",
+        "Nanobody (VHH)-antigen complexes only; results do not transfer to conventional antibodies or other complex classes.",
+        "The set mixes systems inside and outside each tool's training data (AF3 30 of 106 in training, Chai-1 25, Boltz-2 64); the printed values are over all systems, so they are not post-cutoff results, and Boltz-2's are the most exposed.",
+        "The curation text calls Boltz-2's cutoff the earliest among the tools, while the methods give Chai-1 about 12 January 2021, AF3 about 30 September 2021 and Boltz-2 about 1 June 2023. The per-tool counts follow the later statement.",
+        "Preprint, not peer reviewed. Supplementary tables were not read.",
+        "No uncertainty is printed for these values."
+      ],
+      "use_case_id": "use-case-structural-hypotheses-experiments"
+    },
+    {
+      "mapping_id": "use-case-mapping-structural-20261009-foldbench-protein-ligand",
+      "revision": 1,
+      "protocol_id": "ucc-research-protocol-foldbench-protein-ligand",
+      "relevance": "proxy",
+      "evaluation_ids": [
+        "ucc-research-eval-foldbench-protein-ligand-af3",
+        "ucc-research-eval-foldbench-protein-ligand-boltz1",
+        "ucc-research-eval-foldbench-protein-ligand-chai1",
+        "ucc-research-eval-foldbench-protein-ligand-helixfold3",
+        "ucc-research-eval-foldbench-protein-ligand-protenix"
+      ],
+      "endpoint": "FoldBench success rate, LDDT-LP and LDDT-PLI for AlphaFold 3, Boltz-1, Chai-1, HelixFold 3 and Protenix on protein-ligand targets with low homology to earlier PDB entries",
+      "comparison_group": "protein-ligand-poses",
+      "stratum_label": "Pose accuracy of five tools (FoldBench)",
+      "stratum_order": 1,
+      "headline_metric": "foldbench-success-rate",
+      "limitations": [
+        "Benchmark authors ran all five tools; per-tool assessable counts differ, so the scored populations are not matched.",
+        "Structural success against the deposited complex, not binding, affinity or the outcome of an experiment.",
+        "No uncertainty is printed.",
+        "Protein-ligand targets only."
+      ],
+      "use_case_id": "use-case-structural-hypotheses-experiments"
+    }
+  ],
+  "grouping_note": "Judgements are grouped by complex class through comparison_group: antibody-antigen-interfaces (five strata, from structural accuracy to confidence as evidence of binding) and protein-ligand-poses (one stratum). The stored protein-protein judgements have no comparison_group and were not edited; the integrator may want to add protein-protein-interfaces to them in a later revision.",
+  "negatives_note": "Only the Smorodina cognate-versus-shuffled protocol has negatives. They are shuffled VHH-antigen pairings that the source assumes do not bind; none was tested. This is recorded on the dataset's label_semantics, the protocol's limitations, a claim and the judgement rationale, and is one reason the judgement is proxy.",
+  "use_case_changes": {
+    "note": "Proposed for the integrator; the use_case record was not edited.",
+    "add_assessed_by_links": [
+      "ucc-research-protocol-foldbench-antibody-antigen",
+      "structural-20261009-protocol-fromm2026-abag-model-selection",
+      "structural-20261009-protocol-smorodina2026-vhh-dockq-vs-sampling",
+      "structural-20261009-protocol-smorodina2026-vhh-iptm-dockq-calibration",
+      "structural-20261009-protocol-smorodina2026-vhh-cognate-vs-shuffled",
+      "ucc-research-protocol-foldbench-protein-ligand"
+    ],
+    "add_source_ids": [
+      "structural-20261009-source-fromm2026"
+    ],
+    "add_source_ids_note": "The Smorodina preprint is left off the use case's own source_ids because it is not peer reviewed; its judgements cite it directly.",
+    "evidence_gaps_proposed": [
+      "Antibody-antigen: an independent post-cutoff comparison (Fromm et al. 2026) prints the model-selection table for AlphaFold3 only; per-tool values for AlphaFold2.3, Boltz-1 and Chai-1 are in figures.",
+      "Nanobody-antigen values (Smorodina et al. 2026, preprint) are pooled over systems inside and outside each tool's training data, and their negatives are assumed non-binders.",
+      "Protein-ligand: no independent post-cutoff pose comparison with printed per-method values was found; Runs N' Poses and PoseBench report per-method results in figures only.",
+      "No benchmark here links a predicted structure or a confidence threshold to the success of a mutation or construct experiment."
+    ],
+    "exclusion_text_proposed": "Keep the three exclusions. Suggested addition to the second: 'Confidence scores also do not reliably pick the best of several models: in an independent antibody-antigen test, picking AlphaFold3 models by any predicted score lost about a third of the achievable DockQ.'"
+  },
+  "summary_proposal": {
+    "field": "summary",
+    "value": "Evidence is grouped by complex class, because results for one class do not establish another. Every judgement is proxy: each measures agreement with a deposited structure or how well a confidence score tracks that agreement, not whether an interaction exists, how strong it is, or whether an experiment will work. Protein-protein: FoldBench (benchmark authors' runs) and ClusPro docking on BM5 remain the stored comparisons. Antibody-antigen: on FoldBench antibody-antigen targets AlphaFold 3 reached a success rate of 47.9, against 34.13 for Protenix, 33.54 for Boltz-1, 28.40 for HelixFold 3 and 23.64 for Chai-1. Fromm et al. 2026, independent of the tool developers, generated 200 AlphaFold3 models for each of 110 antibody-antigen complexes released after the training cutoff. The best model had a mean DockQ of 0.544, but picking by any predicted score gave 0.352 to 0.375 (ipTM 0.370, ranking confidence 0.375, ipSAE 0.353, pDockQ2 0.352), and the per-target Spearman correlation of these scores with DockQ was 0.184 to 0.247. Scores recomputed from the true aligned errors reached 0.508 to 0.516, so the limit is the accuracy of the predicted errors. Smorodina et al. 2026, a preprint, tested nanobody-antigen complexes on a set that mixes systems inside and outside each tool's training data. Ranking cognate above shuffled pairings by ipTM gave average precision 0.187 for AlphaFold3, 0.067 for Chai-1 and 0.026 for Boltz-2, against a random baseline of about 0.011; the shuffled pairings are assumed, not shown, not to bind. ipTM correlated with DockQ at 0.736 (AlphaFold3), 0.665 (Boltz-2) and 0.612 (Chai-1) for the best sample, Boltz-2 had 18% confident failures against 2% for AlphaFold3, and changes in ipTM under extra sampling did not track changes in DockQ (r between -0.040 and -0.019). Protein-ligand: FoldBench reports success rates of 64.90 for AlphaFold 3, 55.04 for Boltz-1, 51.82 for HelixFold 3, 51.23 for Chai-1 and 50.70 for Protenix; no independent post-cutoff ligand comparison with printed per-method values was found in this pass.",
+    "source_ids": [
+      "ucc-research-source-foldbench-supp",
+      "structural-20261009-source-fromm2026",
+      "structural-20261009-source-smorodina2026"
+    ]
+  },
+  "vocabulary_changes": [],
+  "metric_reuse_note": "Mean DockQ of the selected model is recorded as dockq with the selection in metric_qualifier. Fromm's R and <R> use spearman-correlation as the caption states. Smorodina's quadrant shares use proportion with unit percent and direction lower; best-of-N medians use dockq.",
+  "not_extracted": [
+    {
+      "source_id": "structural-20261009-source-fromm2026",
+      "locator": "Figures 1 to 4 and section 3.3 text",
+      "reason": "Per-tool DockQ for AlphaFold2.3 variants, Boltz-1 and Chai-1 is plotted, not tabulated; the text gives Boltz-1 and Chai-1 jointly (0.12 to 0.14). Recorded as a claim rather than per-tool results."
+    },
+    {
+      "source_id": "structural-20261009-source-smorodina2026",
+      "locator": "Results P14, P23, P26 to P31, P34 to P35",
+      "reason": "Clash scores by split, epitope recall correlations, two-VHH consistency, and energy use. Lean batch: these do not compare tools on the use case's endpoint, or they measure compute cost."
+    },
+    {
+      "source_id": "structural-20261009-source-smorodina2026",
+      "locator": "Supplementary Tables 1, 3 and 4",
+      "reason": "Download refused by a browser challenge; per-system quadrant assignments not read."
+    }
+  ],
+  "gaps": [
+    "CASP16 oligomer and antibody-antigen assessment (Proteins 2026, 10.1002/prot.70068) not extracted: values per group are in figures and the supplementary workbook was not retrieved.",
+    "Runs N' Poses (bioRxiv 10.1101/2025.02.03.636309) not extracted: per-method success by training similarity is figure-only.",
+    "TCR-pMHC structure benchmarks surfaced by search were not opened; a separate complex class.",
+    "No ipTM or pLDDT calibration table found for protein-protein or protein-ligand complexes on a post-cutoff set."
+  ]
+}
