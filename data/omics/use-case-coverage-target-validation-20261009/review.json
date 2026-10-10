@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "pdf-text-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the collector and extractor; no human review claimed",
+  "reviewed_at": "2026-10-09T21:22:54Z",
+  "scope": "Independent review of the therapeutic target validation batch for use-case-therapeutic-target-validation: 770 records (439 results, 223 evaluations, 47 configurations, 20 methods, 16 models, 10 datasets, 9 claims including 3 relevance judgements, 3 protocols, 3 sources). The three source PDFs re-download to their pinned SHA-256; by decision they are not archived in the batch. All 439 results were re-read from the PDF text layers with a separate parser and match in value, printed form, metric, unit, direction, locator, configuration, protocol and dataset. Descriptive corrections, none of which changes a value, are listed in docs/reviews/use-cases/therapeutic-target-validation-2026-10-09.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any method or screen.",
+    "The source PDFs are pinned by hash but not archived in the batch, so later review needs a fresh download.",
+    "Roohani Appendix Table 7 (standard deviations), figures, Gupta Table 3 and AssayBench appendix tables other than Table 3 were not checked.",
+    "Biomni authorship overlap with AssayBench, which Schmidt et al. 2022 screen the benchmarks replay, and whether AssayBench Precision@100 and dFDR@100 were condensed could not be established from the sources.",
+    "Relevance judgements are reviewed but not pinned; the lead records pins with npm run use-cases:repin after the use-case change, including the two CPPC judgements.",
+    "The SHACL step of records add and npm run build were not run; a dry-run addBatch against a scratch copy of the store accepted all 770 records."
+  ],
+  "errors": [],
+  "findings": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "48 tgtval-20261009-eval-roohani2025-* evaluations for the GeneDisco acquisition functions and DiscoBAX"
+      ],
+      "message": "origin author_reported changed to independent_paper; those methods were developed by Mehrjou et al. 2021 and Lyle et al. 2023."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "240 tgtval-20261009-result-roohani2025-* results"
+      ],
+      "message": "uncertainty reason unreported changed to unextracted; Appendix Table 7 prints one standard deviation."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "48 AssayBench precision-at-100 results"
+      ],
+      "message": "Denominator min(100, positive-relevance genes) added to metric_qualifier so the values are not compared with fixed-denominator precision at 100."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "tgtval-20261009-protocol-gupta2025-cumulative-hits-round5",
+        "use-case-mapping-target-validation-20261009-gupta2025-cumulative-hits"
+      ],
+      "message": "Limitation said the replication was lower on four of five screens; it is lower on three of the four with a reported value."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "tgtval-20261009-protocol-debrouwer2026-screen-gene-ranking",
+        "use-case-mapping-target-validation-20261009-debrouwer2026-assaybench",
+        "3 AssayBench cohort datasets"
+      ],
+      "message": "Unassayed genes are removed only for AnDCG@100; the printed Precision@100 and dFDR@100 formulas do not state that step. Post-cutoff limitation corrected: two systems score higher on that cohort."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "tgtval-20261009-data-schmidt2022-ifng",
+        "tgtval-20261009-data-schmidt2022-il2"
+      ],
+      "message": "Names asserted CRISPRa; the source reports activation and interference screens and the benchmark describes knockdown."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "3 relevance judgements"
+      ],
+      "message": "Split from one comparison group with three headline metrics into one group each."
+    }
+  ],
+  "files": {
+    "batch.jsonl": "1af52376ee4df4f827fa2135664afe6ffb582631459162beacd17444ee3ef5f6",
+    "claims.csv": "ba2036ff958bccd243a1b8b06f956db77eacc8a19f18a0d1506c2e8859e25de4",
+    "coverage.json": "b2d3fabeba749d06e20fd8df57b3a66be3385e1b51f02f3424637a77c18aa61f",
+    "extract/extract_target_validation.py": "1baf1c2b0354ee7659aa69c3236afd75979df0de7589fe690b9c5c65b43834d7",
+    "research.md": "22167af3a865abc7416f74ce90c5238b8e36c55cd39df2f51437e6556ca9cc2a",
+    "retrieval-log.md": "e567027687face59d9c97c1cb7de82ab21dcf9191ef436f9ee00e1fe8d97273d",
+    "sources.md": "8c226ec45217a96ab4c5f24a1f6c37218cab0a5a34dbdca85ba88147fd775146"
+  }
+}
