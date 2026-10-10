@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-10T08:30:00Z",
+  "scope": "Independent review of the issue #88a description fix: 54 records edited in place (44 models, 10 pipelines) and 94 batch records (54 metadata-correction claims, 40 sources). Diff checked against origin/main; every description read against its cited source text; all 42 originally pinned source artifacts re-downloaded and hash-checked. See review.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review.",
+    "Ten Europe PMC search responses no longer reproduce their pinned bytes because the API changes JSON key order; their content was compared with the collector's saved copies, which match the pins.",
+    "Descriptions were checked against abstracts and cited sections, not whole papers, except where full text was the cited source.",
+    "The checkpoints quoted in MIMIC Table S11 are not identified, so the pipeline descriptions stay at family level.",
+    "tests/omics-evidence-completion.test.ts fails once the batch is added because it takes the first metadata-correction record instead of metadata-correction-6ff08f49b3b45f847dd6; the test was not edited.",
+    "The full data build was not run."
+  ],
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "uc20260930-model-xtrimopglm",
+        "uc20260930-model-tranception",
+        "uc20260930-model-aido-protein-rag",
+        "mimic-2026-mrnabench-method-nt-v2",
+        "mimic-2026-mrnabench-method-rinalmo",
+        "mimic-2026-mrnabench-method-aido-rna",
+        "mimic-2026-mrnabench-method-evo2"
+      ],
+      "message": "Descriptions named or implied a checkpoint, size or variant that the record does not identify; reworded to family level and, for AIDO Protein-RAG, the ProteinGym README row added as a source."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "uc20260930-model-framepool",
+        "uc20260930-model-esm-1b",
+        "uc20260930-model-protgpt2",
+        "uc20260930-model-progen2"
+      ],
+      "message": "Wording went beyond the cited text (architecture not named in the abstract, 'translation rate', 'protein sequences'); changed to the source's terms."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "qa-descriptions-20261010-source-proteingym-readme",
+        "qa-descriptions-20261010-source-mrnabench"
+      ],
+      "message": "Duplicated existing store sources; replaced by run-doc-proteingym-readme-md-144fe22b and expansion-p3-mrnabench-2025 and removed from the batch."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "13 source records"
+      ],
+      "message": "Licence left unreported although the arXiv abstract page or the bioRxiv/medRxiv API states it; set from those statements."
+    },
+    {
+      "status": "open",
+      "record_ids": [
+        "mimic-2026-mrnabench-method-dilated-resnet"
+      ],
+      "message": "Left unchanged by the collector, but the mRNABench full text (expansion-p3-mrnabench-2025) describes the baseline; suggested description in review.md."
+    }
+  ],
+  "files": {
+    "batch.jsonl": "ede98b1f10742e5ccbdc90c1c42b02e43e2e9e06b9fcf485786b43be59169bb1",
+    "changes.md": "0ae353b9e50ed13fa8437cee27442669ebf5d33bc800a87ea6b8168ab2522e40",
+    "review.md": "2e7672f02030c4cc87b5c14533b83bc08d119bdd0a90262ef75a76391694d562"
+  }
+}
