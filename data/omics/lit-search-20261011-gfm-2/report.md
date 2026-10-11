@@ -73,8 +73,10 @@ GPN-Star, Variformer, SAGE-net); and eight reviews, which printed no new benchma
    tasks) are unextracted because the source never names the metric those columns report.
 6. You et al. Supplementary Tables 2, 3 and 6 (non-coding RNA classification, m6A, translation efficiency) are
    complete printed tables, unextracted here and flagged to `lit-rna-other`.
-7. Benchmark suites cited by the reviews and absent from the store: Genomic Touchstone, the Genomics
-   Long-Range Benchmark, the Diverse Genomic Embedding Benchmark, TraitGym. All for the suite pass.
+7. Benchmark suites cited by the reviews: `lit-genomics` is extracting TraitGym, DNALONGBENCH, GENEB, GenBench
+   and the Nucleotide Transformer benchmark. Still open in neither pass: Genomic Touchstone, the Genomics
+   Long-Range Benchmark (PDF not retrievable by `lit-genomics`), GV-Rep, OmniGenBench and the Diverse Genomic
+   Embedding Benchmark. These are suites, not independent comparisons, so they are not taken here either.
 8. No independent zero-shot comparison of Evo 2 against masked DNA models on a shared variant set was found
    in the window with retrievable printed values.
 9. The `derivation` result attribute that `derive-collector` is adding had not landed on `origin/main` when
