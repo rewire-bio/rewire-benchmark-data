@@ -4,7 +4,7 @@
  * the one in data/ontology/mapping.json "attributes" when listed there, otherwise
  * rb:<camelCaseKey>; its datatype follows the registry type for the record's kind. Structured
  * values (uncertainty, coverage, reported population, missing reasons) become nodes with their
- * own IRIs under the record's IRI. The same tables generate the property declarations
+ * own IRIs under the record's IRI; a derivation's inputs are nodes under the derivation's IRI. The same tables generate the property declarations
  * (data/ontology/rb-attributes.ttl) and the per-kind shapes (data/ontology/attribute-shapes.ttl):
  *   npm run kg -- terms */
 import { attributeRegistry } from "../../shared/omics/attribute-registry";
@@ -49,12 +49,15 @@ export function encoding(type: string): Encoding {
     case "uncertainty": return { kind: "node", node: "uncertainty" };
     case "coverage": return { kind: "node", node: "coverage" };
     case "reported-population": return { kind: "node", node: "reported-population" };
+    case "derivation": return { kind: "node", node: "derivation" };
     case "missing-metadata": return { kind: "missing" };
     default: return { kind: "literal" }; // text, doi, sha256, git-sha, url-or-path
   }
 }
 
-type NodeField = { property: string; datatype?: string; scheme?: string; range?: string };
+/** record: the value is a record ID, exported as the record's IRI. node: the value is a list of
+ * objects, each exported as a node of that kind. */
+type NodeField = { property: string; datatype?: string; scheme?: string; range?: string; record?: boolean; node?: string };
 /** Structured attribute values: class, and property and datatype of each field. */
 export const nodes = {
   uncertainty: {
@@ -100,6 +103,32 @@ export const nodes = {
       validation: { property: "rb:validationCount", datatype: "xsd:integer" },
       test: { property: "rb:testCount", datatype: "xsd:integer" },
       note: { property: "rb:note" },
+    } as Record<string, NodeField>,
+  },
+  derivation: {
+    class: "rb:Derivation",
+    comment: "How Rewire computed a result the source does not print: the source's own supplementary data rows, the aggregation the source states, and the pinned script.",
+    fields: {
+      method: { property: "rb:derivationMethod", scheme: "derivation-method" },
+      inputs: { property: "rb:derivationInput", node: "derivation-input" },
+      aggregation: { property: "rb:statedAggregation" },
+      aggregation_source_id: { property: "rb:aggregationSource", record: true },
+      aggregation_locator: { property: "rb:aggregationLocator" },
+      script: { property: "rb:scriptPath" },
+      script_sha256: { property: "rb:scriptSha256" },
+      precision: { property: "rb:precision" },
+      note: { property: "rb:note" },
+    } as Record<string, NodeField>,
+  },
+  "derivation-input": {
+    class: "rb:DerivationInput",
+    comment: "The rows of one pinned source artifact that a derivation reads.",
+    fields: {
+      source_id: { property: "rb:inputSource", record: true },
+      artifact_sha256: { property: "rb:artifactSha256" },
+      locator: { property: "rb:sourceLocator" },
+      row_filter: { property: "rb:rowFilter" },
+      row_count: { property: "rb:rowCount", datatype: "xsd:integer" },
     } as Record<string, NodeField>,
   },
 } as const;
@@ -168,7 +197,8 @@ export function declarationsTurtle(mapping: Mapping, declaredInRb: Set<string>):
     if (!declared.has(node.class)) lines.push(`${node.class} a owl:Class ;`, `    rdfs:comment "${node.comment}"@en .`, "");
     declared.add(node.class);
     for (const [field, f] of Object.entries(node.fields))
-      declare(f.property, !!f.scheme, field.replace(/_/g, " "), `Field ${field} of ${node.class.slice(3)} nodes.`, [node.class], [f.scheme ? "skos:Concept" : (f.datatype ?? "xsd:string")]);
+      declare(f.property, !!(f.scheme || f.record || f.node), field.replace(/_/g, " "), `Field ${field} of ${node.class.slice(3)} nodes.`, [node.class],
+        f.node ? [nodes[f.node as keyof typeof nodes].class] : f.record ? [] : [f.scheme ? "skos:Concept" : (f.datatype ?? "xsd:string")]);
   }
   lines.push(`${missing.class} a owl:Class ;`, `    rdfs:comment "${missing.comment}"@en .`, "");
   declare(missing.field, false, "missing field", "The declared attribute that has no value.", [missing.class], ["xsd:string"]);
@@ -220,7 +250,8 @@ export function shapesTurtle(mapping: Mapping): string {
   }
   for (const node of Object.values(nodes)) {
     const props = Object.values(node.fields).map((f) =>
-      `[ sh:path ${f.property} ; sh:maxCount 1 ; ${f.scheme ? `sh:node ${schemeShape(f.scheme)}` : `sh:datatype ${f.datatype ?? "xsd:string"}`}${f.range ? ` ; ${f.range}` : ""} ]`);
+      f.node ? `[ sh:path ${f.property} ; sh:minCount 1 ; sh:node rbs:${nodes[f.node as keyof typeof nodes].class.slice(3)} ]`
+      : `[ sh:path ${f.property} ; sh:maxCount 1 ; ${f.record ? "sh:nodeKind sh:IRI" : f.scheme ? `sh:node ${schemeShape(f.scheme)}` : `sh:datatype ${f.datatype ?? "xsd:string"}`}${f.range ? ` ; ${f.range}` : ""} ]`);
     lines.push(`rbs:${node.class.slice(3)} a sh:NodeShape ;`, `    sh:class ${node.class} ;`, `    sh:property\n        ${props.join(" ,\n        ")} .`, "");
   }
   lines.push(

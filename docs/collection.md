@@ -87,7 +87,7 @@ Write records following [record-contract.md](record-contract.md). Search existin
 - `benchmark`, `task`, `protocol`, `dataset` and `dataset_subset` records for what it was evaluated on. A protocol fixes the split, inputs and metric; two tables with different splits are two protocols.
 - One `evaluation` per configuration and protocol, linked with exactly one `system`, one `assessment` and one `data` (see [record-contract.md](record-contract.md) for every relation), with `origin` (`author_reported`, `independent_paper`, `paper_compilation`, `rewire_run`, or `unreported` when the source does not say who ran it) and a `comparison` object. Comparison fields that the source does not state are `null`; that blocks automatic comparison, which is intended.
 - One `result` per printed cell, with:
-  - `printed_value`: the string exactly as printed, including `%`, `±` and rounding
+  - `printed_value`: the string exactly as printed, including `%`, `±` and rounding. The one exception is a value computed from the source's own supplementary data (see [Values computed from source data](#values-computed-from-source-data)).
   - `numeric_value`: decimal string, or `null` if not numeric
   - `metric`, `metric_direction` (`higher`, `lower` or `unknown`), `unit` and `uncertainty`. `metric` and `unit` are concept keys from [data/vocab/metric.ttl](../data/vocab/metric.ttl) and [data/vocab/unit.ttl](../data/vocab/unit.ttl), not the source's wording. When the source's metric carries more than the concept (a class, a setting such as zero-shot, a scope such as SNV only, a cutoff, or an aggregation such as median over targets), put it in `metric_qualifier`, phrased the same way as existing qualifiers. Detail a unit concept cannot hold (the counted entity, a printed scale) goes in `unit_detail`.
   - `source_locator`: precise enough to find the cell again, for example `Table 2, row "ESM-2 650M", column "Spearman"` or `Figure S10, Panel B (page 15 of 18), row "SVMrejection", test set ALM`
@@ -100,7 +100,18 @@ Controlled fields hold concept keys from the SKOS vocabularies in `data/vocab/` 
 
 Every record carries `source_ids`. Missing results stay missing: never record a blank cell as zero.
 
-Where a deterministic extractor exists for the source (`scripts/omics/extract/<benchmark>.ts`), use it and assert the expected row labels. Otherwise transcribe by hand and say so in the review notes. Figures without printed numbers are not read by eye or by colour; record them as a gap.
+Where a deterministic extractor exists for the source (`scripts/omics/extract/<benchmark>.ts`), use it and assert the expected row labels. Otherwise transcribe by hand and say so in the review notes. Figures without printed numbers are not read by eye, by colour or from pixels; record them as a gap, unless the source publishes the figure's underlying rows (below).
+
+### Values computed from source data
+
+Some sources print results only as figures but publish the per-item rows behind them, for example a Source Data workbook with one row per perturbation. A result may be computed from those rows when all of these hold:
+
+- The rows are the source's own supplementary data, retrieved from the publisher or the authors' repository. A third party's reanalysis, or a compilation paper's copy, does not count.
+- The source states the aggregation in its own words, for example "The horizontal red lines show the mean per model". If the aggregation is ambiguous (a bootstrap with no resample count, a ratio that could be a ratio of means or a mean of ratios, a filter the rows do not let you apply), do not compute it. Record a gap.
+- Each input file is pinned: one `source` record per file, with its SHA-256, re-downloaded and checked before use.
+- The computation is a deterministic script in the repository, run on the pinned files, which asserts the row counts it expects.
+
+Record the result with a `derivation` ([record-contract.md](record-contract.md)): the inputs and their row filters and counts, the quoted aggregation and where it is printed, the script and its hash, and the precision. `printed_value` is the computed value at that precision. The evaluation keeps its usual origin; the derivation is what marks the number as computed by Rewire, and the website labels it that way. Inconsistencies between the rows and the paper's text (counts that do not match a legend, a method the text says was excluded) go in the source's `evidence_concerns`.
 
 ### Where records live
 
@@ -135,7 +146,7 @@ Unreviewed or disputed extractions that are not ready go in `data/omics/pending-
 
 Review is a separate pass by a different worker from the one that extracted the data.
 
-1. Re-open the pinned source (check the hash matches) and check every result against it: printed value, numeric value, locator, metric, direction, denominator and the model/benchmark identity.
+1. Re-open the pinned source (check the hash matches) and check every result against it: printed value, numeric value, locator, metric, direction, denominator and the model/benchmark identity. For a result with a `derivation`, re-download each input, check its SHA-256 and row count, rerun the script and compare its output with `printed_value`; check the quoted aggregation against the source and that the script applies it.
 2. Check that `missing_metadata` and `null` fields are genuinely unstated in the source, and that nothing was inferred.
 3. Fill each result's `review` object. The usual shape is:
 
@@ -208,6 +219,7 @@ Then open a PR containing the batch folder, the store and provenance changes, th
 | A paper was included or excluded | `data/omics/scope-audit.jsonl` | stated reason |
 | The source is what we say it is | `source` record | URL, version, `retrieved_at`, `artifact_sha256` |
 | A value was printed in the source | `result` record, batch `claims.csv` | `printed_value` and `source_locator` |
+| A value was computed from the source's own data | `result.attributes.derivation`, the script in the repository | pinned input hashes, row filters and counts, the quoted aggregation, the script hash |
 | The value was checked | `result.attributes.review`, batch `review.json`, dated review | actor, method, time; file hashes |
 | The record has not changed since review | `data/provenance/records.jsonl` | per-record SHA-256 and `changed_by` history |
 | A descriptive fact about a model or benchmark | `claim` record, profile facts | `source_locator`, `status` |
