@@ -34,6 +34,7 @@ export const generatorFiles = [
   "shared/omics/published-comparisons.ts",
   "shared/omics/research.ts",
   "shared/omics/source-identity.ts",
+  "shared/omics/source-records.ts",
   "shared/omics/use-cases.ts",
 ];
 /** Catalogue-wide counts shown on the homepage, prepared once per release.
@@ -114,6 +115,7 @@ export function buildPreparedCatalogue(input: {
     CREATE TABLE evidence (record_id TEXT PRIMARY KEY, gz BLOB NOT NULL);
     CREATE TABLE audit_checks (record_id TEXT PRIMARY KEY, gz BLOB NOT NULL);
     CREATE TABLE use_case_entries (section TEXT NOT NULL, key TEXT NOT NULL, gz BLOB NOT NULL, PRIMARY KEY (section, key)) WITHOUT ROWID;
+    CREATE TABLE source_records (source_id TEXT NOT NULL, kind TEXT NOT NULL, pos INTEGER NOT NULL, count INTEGER NOT NULL, gz BLOB NOT NULL, PRIMARY KEY (source_id, pos)) WITHOUT ROWID;
   `);
   const meta = db.prepare("INSERT INTO meta VALUES (?, ?)");
   const blob = db.prepare("INSERT INTO blobs VALUES (?, ?)");
@@ -139,7 +141,7 @@ export function buildPreparedCatalogue(input: {
   };
   const evidence = createEvidenceIndex(snapshot);
   const evidenceSources: Parameters<typeof packEvidence>[1] = new Map();
-  const counts = { records: 0, details: 0, result_rows: 0, result_index: 0, evidence: 0, use_case_entries: 0 };
+  const counts = { records: 0, details: 0, result_rows: 0, result_index: 0, evidence: 0, use_case_entries: 0, source_records: 0 };
   const rowsWritten = new Set<string>();
   db.exec("BEGIN");
   for (const record of records) {
@@ -175,6 +177,15 @@ export function buildPreparedCatalogue(input: {
     rowsWritten.add(row.result.id);
     insertRow.run(row.result.id, packed(row, `result row ${row.result.id}`));
     counts.result_rows++;
+  }
+  // Each source's citing record IDs, one row per kind in display order (3.1).
+  const insertSource = db.prepare("INSERT INTO source_records VALUES (?, ?, ?, ?, ?)");
+  for (const [sourceId, lists] of query.sourceIndex()) {
+    let pos = 0;
+    for (const [kind, ids] of lists) {
+      insertSource.run(sourceId, kind, pos++, ids.length, gz(ids));
+      counts.source_records += ids.length;
+    }
   }
   blob.run("evidence_sources", gz(Object.fromEntries([...evidenceSources].sort(([a], [b]) => a.localeCompare(b)))));
   // List entries carry only the record fields listPage filters on; pages read the rest.

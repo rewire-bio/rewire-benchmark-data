@@ -27,13 +27,16 @@ export function checkParity(snapshot: CatalogueSnapshot, file: string, useCaseAr
     checks++;
   };
   // Walk a paged call through up to `pages` pages using its next cursor.
-  const walk = (label: string, input: Record<string, unknown>, method: string, pages = 3) => {
+  const walk = (
+    label: string, input: Record<string, unknown>, method: string, pages = 3,
+    next = (page: unknown) => (page as { next_cursor?: string | null }).next_cursor,
+  ) => {
     let cursor: string | undefined;
     for (let page = 0; page < pages; page++) {
       const current = cursor;
       const call = (q: Query) => q[method]({ ...input, ...(current ? { cursor: current } : {}) });
       same(`${label} page ${page}`, call);
-      cursor = ((call(live) as { next_cursor?: string | null }).next_cursor) || undefined;
+      cursor = next(call(live)) || undefined;
       if (!cursor) break;
     }
   };
@@ -70,10 +73,26 @@ export function checkParity(snapshot: CatalogueSnapshot, file: string, useCaseAr
   const resultIds = records.filter((record) => record.kind === "result").slice(0, 120).map((record) => record.id);
   for (let index = 0; index < 40; index++)
     same(`compare ${index}`, (q) => q.compare({ ids: resultIds.slice(index * 3, index * 3 + 2 + (index % 3)) }));
+  // Source pages: the busiest sources and a spread of others, every kind's pages.
+  const sources = records.filter((record) => record.kind === "source")
+    .map((record) => ({ id: record.id, total: (live.sourceRecords({ id: record.id, limit: 1 }) as { total: number }).total }));
+  const sourceSample = [...new Set([
+    ...[...sources].sort((a, b) => b.total - a.total || a.id.localeCompare(b.id)).slice(0, 3),
+    ...sources.filter((_, index) => index % 23 === 0),
+  ].map((item) => item.id))];
+  for (const id of sourceSample) {
+    same(`source records ${id}`, (q) => q.sourceRecords({ id, limit: 5 }));
+    const counts = (live.sourceRecords({ id, limit: 1 }) as { counts: Record<string, number> }).counts;
+    for (const kind of Object.keys(counts)) walk(`source records ${id} ${kind}`, { id, kind, limit: 20 }, "sourceRecords", 3,
+        (page) => (page as { pages: Record<string, { next_cursor: string | null }> }).pages[kind].next_cursor);
+    walk(`source results ${id}`, { id, limit: 25 }, "sourceResults");
+  }
   for (const id of ["does-not-exist"]) {
     same("missing record", (q) => q.record(id));
     same("missing get", (q) => q.get({ id }));
     same("missing results", (q) => q.results({ id }));
+    same("missing source records", (q) => q.sourceRecords({ id }));
+    same("missing source results", (q) => q.sourceResults({ id }));
   }
   if (useCaseArtifact) {
     const liveCases = createUseCaseQuery(snapshot, useCaseArtifact as never, snapshot.coverage.use_cases as never, live as never);
