@@ -233,6 +233,28 @@ class InferenceTest(unittest.TestCase):
         self.assertIn("confidenceLevel", report)
         self.assertIn("vocab/missingness/", report)
 
+    def test_shacl_checks_derivation_nodes(self) -> None:
+        graph = fixture()
+        node = URIRef(str(ID.result1) + "/derivation")
+        source = URIRef(str(ID.result1) + "/derivation/inputs/0")
+        graph.add((ID.result1, RB.derivation, node))
+        graph.add((node, RDF.type, RB.Derivation))
+        graph.add((node, RB.derivationMethod, V("derivation-method", "computed-from-source-data")))
+        graph.add((node, RB.derivationInput, source))
+        graph.add((source, RDF.type, RB.DerivationInput))
+        graph.add((source, RB.rowCount, Literal(310)))
+        conforms, report = build.validate(graph, build.infer(graph, self.ontology))
+        self.assertTrue(conforms, report)
+        graph.set((source, RB.rowCount, Literal("many")))  # an integer field
+        graph.set((node, RB.derivationMethod, V("review-method", "transcription")))  # another scheme
+        conforms, report = build.validate(graph, build.infer(graph, self.ontology))
+        self.assertFalse(conforms)
+        self.assertIn("rowCount", report)
+        self.assertIn("vocab/derivation-method/", report)
+        graph.remove((node, RB.derivationInput, source))  # a derivation needs its inputs
+        conforms, report = build.validate(graph, build.infer(graph, self.ontology))
+        self.assertIn("derivationInput", report)
+
     def test_shapes_only_skips_links_only_inference_creates(self) -> None:
         conforms, report = build.validate(fixture(), set(), asserted_only=True)
         self.assertTrue(conforms, report)

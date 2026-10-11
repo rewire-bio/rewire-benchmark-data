@@ -74,6 +74,9 @@ export function controlledValues(mapping: MappingSections, record: RecordLike): 
   if (review && typeof review === "object" && !Array.isArray(review))
     for (const [name, t] of Object.entries(mapping.review))
       if (t.scheme) add(`attributes.review.${name}`, t.scheme, (review as Record<string, unknown>)[name]);
+  const derivation = record.attributes.derivation;
+  if (derivation && typeof derivation === "object" && !Array.isArray(derivation))
+    add("attributes.derivation.method", "derivation-method", (derivation as Record<string, unknown>).method);
   return found;
 }
 

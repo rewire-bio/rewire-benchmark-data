@@ -560,6 +560,12 @@ rb:denominatorWarning a owl:DatatypeProperty ;
     schema:domainIncludes rb:Dataset ;
     schema:rangeIncludes xsd:string .
 
+rb:derivation a owl:ObjectProperty ;
+    rdfs:label "derivation"@en ;
+    rdfs:comment "The derivation attribute of result records."@en ;
+    schema:domainIncludes rb:Result ;
+    schema:rangeIncludes rb:Derivation .
+
 rb:derivedNormalizedValue a owl:DatatypeProperty ;
     rdfs:label "derived normalized value"@en ;
     rdfs:comment "The derived_normalized_value attribute of result records."@en ;
@@ -2631,6 +2637,76 @@ rb:validationCount a owl:DatatypeProperty ;
     rdfs:label "validation"@en ;
     rdfs:comment "Field validation of ReportedPopulation nodes."@en ;
     schema:domainIncludes rb:ReportedPopulation ;
+    schema:rangeIncludes xsd:integer .
+
+rb:Derivation a owl:Class ;
+    rdfs:comment "How Rewire computed a result the source does not print: the source's own supplementary data rows, the aggregation the source states, and the pinned script."@en .
+
+rb:derivationMethod a owl:ObjectProperty ;
+    rdfs:label "method"@en ;
+    rdfs:comment "Field method of Derivation nodes."@en ;
+    schema:domainIncludes rb:Derivation ;
+    schema:rangeIncludes skos:Concept .
+
+rb:derivationInput a owl:ObjectProperty ;
+    rdfs:label "inputs"@en ;
+    rdfs:comment "Field inputs of Derivation nodes."@en ;
+    schema:domainIncludes rb:Derivation ;
+    schema:rangeIncludes rb:DerivationInput .
+
+rb:statedAggregation a owl:DatatypeProperty ;
+    rdfs:label "aggregation"@en ;
+    rdfs:comment "Field aggregation of Derivation nodes."@en ;
+    schema:domainIncludes rb:Derivation ;
+    schema:rangeIncludes xsd:string .
+
+rb:aggregationSource a owl:ObjectProperty ;
+    rdfs:label "aggregation source id"@en ;
+    rdfs:comment "Field aggregation_source_id of Derivation nodes."@en ;
+    schema:domainIncludes rb:Derivation .
+
+rb:aggregationLocator a owl:DatatypeProperty ;
+    rdfs:label "aggregation locator"@en ;
+    rdfs:comment "Field aggregation_locator of Derivation nodes."@en ;
+    schema:domainIncludes rb:Derivation ;
+    schema:rangeIncludes xsd:string .
+
+rb:scriptPath a owl:DatatypeProperty ;
+    rdfs:label "script"@en ;
+    rdfs:comment "Field script of Derivation nodes."@en ;
+    schema:domainIncludes rb:Derivation ;
+    schema:rangeIncludes xsd:string .
+
+rb:scriptSha256 a owl:DatatypeProperty ;
+    rdfs:label "script sha256"@en ;
+    rdfs:comment "Field script_sha256 of Derivation nodes."@en ;
+    schema:domainIncludes rb:Derivation ;
+    schema:rangeIncludes xsd:string .
+
+rb:precision a owl:DatatypeProperty ;
+    rdfs:label "precision"@en ;
+    rdfs:comment "Field precision of Derivation nodes."@en ;
+    schema:domainIncludes rb:Derivation ;
+    schema:rangeIncludes xsd:string .
+
+rb:DerivationInput a owl:Class ;
+    rdfs:comment "The rows of one pinned source artifact that a derivation reads."@en .
+
+rb:inputSource a owl:ObjectProperty ;
+    rdfs:label "source id"@en ;
+    rdfs:comment "Field source_id of DerivationInput nodes."@en ;
+    schema:domainIncludes rb:DerivationInput .
+
+rb:rowFilter a owl:DatatypeProperty ;
+    rdfs:label "row filter"@en ;
+    rdfs:comment "Field row_filter of DerivationInput nodes."@en ;
+    schema:domainIncludes rb:DerivationInput ;
+    schema:rangeIncludes xsd:string .
+
+rb:rowCount a owl:DatatypeProperty ;
+    rdfs:label "row count"@en ;
+    rdfs:comment "Field row_count of DerivationInput nodes."@en ;
+    schema:domainIncludes rb:DerivationInput ;
     schema:rangeIncludes xsd:integer .
 
 rb:MissingValue a owl:Class ;

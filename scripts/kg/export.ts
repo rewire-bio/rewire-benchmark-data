@@ -49,10 +49,14 @@ function attributeContext(mapping: Mapping): Record<string, unknown> {
   for (const keys of Object.values(registry))
     for (const [key, type] of Object.entries(keys)) types.set(key, (types.get(key) ?? new Set()).add(type));
   const scalar = (datatype?: string) => (datatype ? { "@type": datatype } : {});
-  const fieldContext = (fields: Record<string, { property: string; datatype?: string; scheme?: string }>) =>
+  type Field = { property: string; datatype?: string; scheme?: string; record?: boolean; node?: string };
+  const fieldContext = (fields: Record<string, Field>): Record<string, unknown> =>
     Object.fromEntries(Object.entries(fields).map(([name, f]) => [name, {
       "@id": f.property,
-      ...(f.scheme ? { "@type": "@vocab", "@context": { "@vocab": schemeIri(f.scheme) } } : scalar(f.datatype)),
+      ...(f.scheme ? { "@type": "@vocab", "@context": { "@vocab": schemeIri(f.scheme) } }
+        : f.record ? { "@type": "@id" }
+        : f.node ? { "@context": fieldContext(nodes[f.node as keyof typeof nodes].fields) }
+        : scalar(f.datatype)),
     }]));
   const out: Record<string, unknown> = {};
   for (const [key, set] of [...types].sort(([a], [b]) => (a < b ? -1 : 1))) {
@@ -208,17 +212,31 @@ export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
         if (entry.note) addTo(subject, missing.note, `"${escapeLiteral(entry.note)}"`);
       }
     } else if (e.kind === "node") {
-      const spec = nodes[e.node];
       const subject = node(key);
       add(property, subject);
-      addTo(subject, "rdf:type", iri(expand(mapping, spec.class)));
-      const fields = { ...(value as Record<string, unknown>) };
-      const split = fields.train_validation_test;
-      if (Array.isArray(split)) [fields.train, fields.validation, fields.test] = split;
-      for (const [field, f] of Object.entries(spec.fields)) {
-        const object = fields[field] === undefined ? undefined : nodeLiteral(fields[field], f.datatype, f.scheme);
-        if (object) addTo(subject, f.property, object);
-      }
+      // Structured values become typed nodes; a list of objects (a derivation's inputs) becomes
+      // one numbered node per item under the parent node.
+      const addNode = (subject: string, spec: (typeof nodes)[keyof typeof nodes], value: Record<string, unknown>, path: string) => {
+        addTo(subject, "rdf:type", iri(expand(mapping, spec.class)));
+        const fields = { ...value };
+        const split = fields.train_validation_test;
+        if (Array.isArray(split)) [fields.train, fields.validation, fields.test] = split;
+        for (const [field, f] of Object.entries(spec.fields)) {
+          const item = fields[field];
+          if (item === undefined) continue;
+          if (f.node && Array.isArray(item))
+            item.forEach((child, i) => {
+              const childSubject = node(`${path}/${field}/${i}`);
+              addTo(subject, f.property, childSubject);
+              addNode(childSubject, nodes[f.node as keyof typeof nodes], child as Record<string, unknown>, `${path}/${field}/${i}`);
+            });
+          else {
+            const object = f.record ? iri(mapping.base + String(item)) : nodeLiteral(item, f.datatype, f.scheme);
+            if (object) addTo(subject, f.property, object);
+          }
+        }
+      };
+      addNode(subject, nodes[e.node], value as Record<string, unknown>, key);
     } else if (e.kind === "literal" && e.datatype === "rdf:JSON") {
       add(property, `"${escapeLiteral(canonicalJson(value))}"^^${iri(expand(mapping, "rdf:JSON"))}`);
     } else {
