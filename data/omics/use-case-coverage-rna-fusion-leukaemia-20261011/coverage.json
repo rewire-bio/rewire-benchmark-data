@@ -1,0 +1,96 @@
+{
+  "batch": "use-case-coverage-rna-fusion-leukaemia-20261011",
+  "use_case_ids": [
+    "use-case-tumour-rna-fusion-detection"
+  ],
+  "bounds": {
+    "window": "2025-10-01 to 2026-10-11",
+    "cutoff_date": "2026-10-11",
+    "query_budget_per_use_case": 30,
+    "ledger": "data/omics/lit-search-20261011-uc-oncology/ledger.jsonl"
+  },
+  "existing_reused": [
+    "rna-fusion-20261009-method-arriba",
+    "use-case-tumour-rna-fusion-detection"
+  ],
+  "new_record_counts": {
+    "claim": 1,
+    "configuration": 1,
+    "dataset": 1,
+    "evaluation": 1,
+    "protocol": 1,
+    "result": 83,
+    "source": 1
+  },
+  "new_ids_by_kind": {
+    "claim": [
+      "use-case-mapping-rna-fusion-leukaemia-20261011-conventional-diagnostics"
+    ],
+    "configuration": [
+      "rna-fusion-leukaemia-20261011-config-arriba-2-4-0-igv-review"
+    ],
+    "dataset": [
+      "rna-fusion-leukaemia-20261011-data-smc-acute-leukaemia"
+    ],
+    "evaluation": [
+      "rna-fusion-leukaemia-20261011-eval-arriba-conventional-diagnostics"
+    ],
+    "protocol": [
+      "rna-fusion-leukaemia-20261011-protocol-conventional-diagnostics"
+    ],
+    "source": [
+      "rna-fusion-leukaemia-20261011-source-kim2025"
+    ]
+  },
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-rna-fusion-leukaemia-20261011-conventional-diagnostics",
+      "use_case_id": "use-case-tumour-rna-fusion-detection",
+      "protocol_id": "rna-fusion-leukaemia-20261011-protocol-conventional-diagnostics",
+      "relevance": "direct",
+      "comparison_group": "kim2025-leukaemia",
+      "stratum_label": "Acute leukaemia, 101 patients",
+      "stratum_order": 1,
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "rna-fusion-leukaemia-20261011-eval-arriba-conventional-diagnostics"
+      ],
+      "excluded_evaluations": []
+    }
+  ],
+  "use_case_links_to_add": [
+    {
+      "use_case": "use-case-tumour-rna-fusion-detection",
+      "relation": "assessed_by",
+      "target_id": "rna-fusion-leukaemia-20261011-protocol-conventional-diagnostics",
+      "judgement_claim": "use-case-mapping-rna-fusion-leukaemia-20261011-conventional-diagnostics"
+    }
+  ],
+  "use_case_changes": {
+    "use-case-tumour-rna-fusion-detection": {
+      "status": "approved by reviewer-onc-2 (docs/reviews/use-cases/tumour-rna-fusion-detection-2026-10-11.md)",
+      "rejected": "setting_append was not approved: setting is pinned. inputs and exclusions unchanged.",
+      "evidence_gaps_replace": [
+        {
+          "from": "No linked study compares short-read and long-read callers on the same samples.",
+          "to": "Short- and long-read evidence on the same RNA comes from one cell line (Huh7), with calls pooled over callers per platform (Dorney et al. 2026 preprint); no per-caller comparison across platforms on the same samples is linked."
+        }
+      ],
+      "evidence_gaps_add": [
+        "Only one workflow (Arriba with manual review) is scored against orthogonal clinical assays (Kim et al. 2025, acute leukaemia); its specificity counts RNA-seq-only fusions as errors, although some are well-known recurrent fusions and one was confirmed by RT-PCR and Sanger sequencing.",
+        "Long-read caller precision and recall come from simulated reads only; on cancer cell lines only counts of known and other calls are available."
+      ],
+      "source_ids_add": [
+        "rna-fusion-longread-20261011-source-dorney2026",
+        "rna-fusion-longread-20261011-source-dorney2026-repository",
+        "rna-fusion-leukaemia-20261011-source-kim2025"
+      ],
+      "citation_locators_add": "one per batch, pointing to its claims.csv"
+    }
+  },
+  "gaps": [
+    "Supplemental Data Tables S2 and S3 (per-patient results) were not retrieved.",
+    "Table 3 (case-level characterisation of new fusions) not extracted; it carries no performance metric.",
+    "Arriba depth subsampling in acute leukaemia is in a separate study (Cells 2026, 301 patients), not extracted."
+  ]
+}

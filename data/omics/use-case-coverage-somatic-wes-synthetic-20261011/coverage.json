@@ -1,0 +1,115 @@
+{
+  "batch": "use-case-coverage-somatic-wes-synthetic-20261011",
+  "use_case_ids": [
+    "use-case-tumour-dna-somatic-variant-detection"
+  ],
+  "bounds": {
+    "window": "2025-10-01 to 2026-10-11",
+    "cutoff_date": "2026-10-11",
+    "query_budget_per_use_case": 30,
+    "ledger": "data/omics/lit-search-20261011-uc-oncology/ledger.jsonl"
+  },
+  "existing_reused": [
+    "somatic-20261009-method-freebayes",
+    "somatic-20261009-method-mutect2",
+    "somatic-20261009-method-strelka",
+    "use-case-tumour-dna-somatic-variant-detection"
+  ],
+  "new_record_counts": {
+    "claim": 1,
+    "configuration": 3,
+    "dataset": 1,
+    "evaluation": 3,
+    "protocol": 1,
+    "result": 18,
+    "source": 1
+  },
+  "new_ids_by_kind": {
+    "claim": [
+      "use-case-mapping-somatic-wes-synthetic-20261011-bamsurgeon-wes-snv"
+    ],
+    "configuration": [
+      "somatic-wes-synthetic-20261011-config-freebayes",
+      "somatic-wes-synthetic-20261011-config-mutect2",
+      "somatic-wes-synthetic-20261011-config-strelka2"
+    ],
+    "dataset": [
+      "somatic-wes-synthetic-20261011-data-bamsurgeon-wes"
+    ],
+    "evaluation": [
+      "somatic-wes-synthetic-20261011-eval-freebayes-bamsurgeon-wes-snv",
+      "somatic-wes-synthetic-20261011-eval-mutect2-bamsurgeon-wes-snv",
+      "somatic-wes-synthetic-20261011-eval-strelka2-bamsurgeon-wes-snv"
+    ],
+    "protocol": [
+      "somatic-wes-synthetic-20261011-protocol-bamsurgeon-wes-snv"
+    ],
+    "source": [
+      "somatic-wes-synthetic-20261011-source-lopezcade2025"
+    ]
+  },
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-somatic-wes-synthetic-20261011-bamsurgeon-wes-snv",
+      "use_case_id": "use-case-tumour-dna-somatic-variant-detection",
+      "protocol_id": "somatic-wes-synthetic-20261011-protocol-bamsurgeon-wes-snv",
+      "relevance": "proxy",
+      "comparison_group": "lopezcade2025-wes-synthetic",
+      "stratum_label": "Synthetic WES, SNVs",
+      "stratum_order": 1,
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "somatic-wes-synthetic-20261011-eval-freebayes-bamsurgeon-wes-snv",
+        "somatic-wes-synthetic-20261011-eval-mutect2-bamsurgeon-wes-snv",
+        "somatic-wes-synthetic-20261011-eval-strelka2-bamsurgeon-wes-snv"
+      ],
+      "excluded_evaluations": [
+        {
+          "id": "somatic-wes-synthetic-20261011-eval-freebayes-bamsurgeon-wes-snv",
+          "reason": "Table 1 row is internally inconsistent: TP plus FN is 4,222, not the 4,709 truth variants, and the printed recall uses 4,222 as denominator."
+        }
+      ]
+    }
+  ],
+  "use_case_links_to_add": [
+    {
+      "use_case": "use-case-tumour-dna-somatic-variant-detection",
+      "relation": "assessed_by",
+      "target_id": "somatic-wes-synthetic-20261011-protocol-bamsurgeon-wes-snv",
+      "judgement_claim": "use-case-mapping-somatic-wes-synthetic-20261011-bamsurgeon-wes-snv"
+    }
+  ],
+  "use_case_changes": {
+    "use-case-tumour-dna-somatic-variant-detection": {
+      "status": "approved by reviewer-onc-1 (docs/reviews/use-cases/tumour-dna-somatic-variant-detection-2026-10-11.md); non-pinned fields only",
+      "rejected": "The collector's proposed exclusions_replace, inputs_add and setting_append were rejected: no change to exclusions, inputs, setting, question, decision or output. The tumour-only judgements are proxy instead.",
+      "evidence_gaps_replace": [
+        {
+          "from": "No linked comparison covers tumour-only calling, FFPE tissue, ctDNA or targeted panels.",
+          "to": "Tumour-only calling is covered only by proxy evidence from two developer papers (ClairS-TO, VarNet-T) on cell lines and research tumours; no linked comparison covers FFPE tissue, ctDNA or targeted panels."
+        },
+        {
+          "from": "No peer-reviewed HG008 small-variant caller comparison was found; the GIAB HG008 somatic small-variant benchmark is a draft.",
+          "to": "The only linked HG008 small-variant caller comparison is a single-author preprint scored on the draft HG008-T v0.3 benchmark."
+        },
+        {
+          "from": "No linked study reports interval estimates for per-caller precision, recall or F1.",
+          "to": "Only the HG008 preprint (Hasan 2026) reports interval estimates, for F1 only (genomic block bootstrap within one sample); no other linked study reports interval estimates for per-caller precision, recall or F1."
+        }
+      ],
+      "evidence_gaps_add": [
+        "Both linked tumour-only comparisons are developer papers (ClairS-TO, VarNet-T); no independent tumour-only comparison with printed per-caller values was found in the 2025-10 to 2026-10 window.",
+        "Tumour-only precision, recall and F1 in Chen et al. 2025 are at a threshold chosen on the test data; Krishnamachari et al. 2026 is extracted as AUPRC only.",
+        "The two tumour-only papers used different COLO829 sequencing data and truth sets (NYGC in Chen et al. 2025, TGen in Krishnamachari et al. 2026), so their COLO829 values are not comparable.",
+        "Long-read tumour-normal calling (ClairS, Nature Methods 2026) and the peer-reviewed DeepSomatic paper (Nature Biotechnology 2025, not open access) are not linked.",
+        "The amplicon-panel tumour-only comparison found in this pass (Bharne and Gaston 2026 preprint, HD789 reference standard) prints detection per variant but no per-caller performance metric, so panels remain uncovered."
+      ],
+      "source_ids_add": "the source records of the four somatic 20261011 batches",
+      "citation_locators_add": "one per batch, pointing to its claims.csv"
+    }
+  },
+  "gaps": [
+    "Real ovarian cancer WES results (five FFPE tumour-normal pairs) are concordance and VAF distributions without a truth set; not extracted.",
+    "FreeBayes row in Table 1 is internally inconsistent (TP + FN = 4,222, not 4,709); kept as printed, excluded from the judgement."
+  ]
+}
