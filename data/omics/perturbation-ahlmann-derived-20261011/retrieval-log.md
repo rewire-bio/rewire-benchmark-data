@@ -1,0 +1,11 @@
+# Retrieval log
+
+2026-10-11, Claude (Opus 5.5) extraction agent. No human review is claimed.
+
+1. Downloaded the article XML from the Europe PMC REST endpoint and the four Source Data workbooks from the Springer static-content URLs in `sources.md`, with `curl`, into an empty scratch folder. No credentials or email were sent.
+2. Computed SHA-256 of each file. All five match the hashes recorded on 2026-10-10 in the reproduction plan.
+3. Read the article text from the XML with a standard-library parser (main text, Methods, all figure and Extended Data legends, Data availability). Main-text paragraphs are numbered in document order, excluding legends: paragraph 3 gives the Norman gene count, 6 the double-perturbation finding, 9 the interaction finding, 16 the single-perturbation finding and the scFoundation and CPA exclusions, 17 and 18 the embedding results, 22 the limitations.
+4. Ran `python3 -I scripts/omics/derive/ahlmann_eltze_2025.py <folder> derived-values.jsonl`. The script checks each workbook's SHA-256, reads sheet "Panel A" of each with the standard library (the workbooks use inline strings only; the script asserts there is no shared-strings part), checks that MOESM6 Panel A equals MOESM3 Panel A and MOESM10 Panel A equals MOESM4 Panel A row for row, checks every row count per dataset and method, and computes each mean exactly (as a fraction of the stored decimal strings) before rounding half to even to 3 decimal places. Output: 60 rows, 59 with a value. The Extended Data Fig. 2a `no_change` row has no value (all 310 `r2_delta` cells are empty).
+5. Counted rows per split to check the Fig. 2 legend: Replogle K562 134 and 128, Replogle RPE1 210 and 203, Adamson 24 and 24 for splits 1 and 2. The legend's "134, 210 and 24" are the split 1 counts. Norman has 31 test and 31 val rows per split and method, 122 distinct doubles over five splits.
+6. Wrote the records with `python3 -I data/omics/perturbation-ahlmann-derived-20261011/extract/build_batch.py`, which reads `derived-values.jsonl` and the script's hash.
+7. Trial run of `npm run records -- add` on this batch: the derivation checks passed (script hash, input hashes, same DOI, origins) and the records conform to the SHACL shapes. The store was then restored; the batch is not in the store until it is reviewed.
