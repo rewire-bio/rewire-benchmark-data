@@ -9,8 +9,9 @@ Benchmark suites (BEND, GUE, Genomic Benchmarks, the Nucleotide Transformer benc
 GUANinE, DNALONGBENCH, GENEB, TraitGym) were left to the parallel `lit-genomics` pass by agreement; the
 message sent to that teammate lists what I skipped and what I took.
 
-Searches: 25 ledger entries, 22 of them exact queries (16 Europe PMC, 3 arXiv, 1 web search, 1 review
-reference-mining entry over eight reviews, 1 retrieval entry). Scope decisions: 42 (3 included, 39 excluded). Papers that already had a decision in the shared `scope-audit.jsonl` (Tang et al. 2025, Manzo et al. 2025, and the Sun et al. 2026 splicing review 10.1093/bib/bbag329, excluded 2026-10-09) are not repeated.
+Searches: 26 ledger entries: 22 exact queries (19 Europe PMC, 3 arXiv), 1 web search, 1 review
+reference-mining entry over eight reviews, 1 abstract screen of four leads handed over by `lit-genomics`, and
+1 retrieval entry. Scope decisions: 46 (3 included, 43 excluded). Papers that already had a decision in the shared `scope-audit.jsonl` (Tang et al. 2025, Manzo et al. 2025, and the Sun et al. 2026 splicing review 10.1093/bib/bbag329, excluded 2026-10-09) are not repeated.
 
 - `data/omics/lit-search-20261011-gfm-2/ledger.jsonl`
 - `data/omics/lit-search-20261011-gfm-2/scope-audit.jsonl`
@@ -39,7 +40,6 @@ In scope, worth a later pass:
 
 | Source | Reason |
 | --- | --- |
-| Mathur and Sachidanandam 2026, Evo 2 blind spots (10.64898/2026.03.10.710786) | Could not be retrieved: bioRxiv returned HTTP 429 on two attempts. Recorded as a gap, not as "nothing found". The best candidate for the next pass. |
 | Cheng and Zhang 2026, Mechanistic Invariance Test (arXiv:2604.06549v1, CC BY) | Five genomic language models with complete printed tables, but its headline metrics (compensation sensitivity score, spacing consistency ratio) have no concept in `data/vocab/metric.ttl`. Extraction needs a reviewed vocabulary addition first. |
 | Baranwal et al. 2026, Dark Regulome (arXiv:2606.06834v2) | Caduceus, HyenaDNA and Enformer on 30,448 dark-genome elements; values in figures, and its variance-decomposition metrics are not in the vocabulary. |
 | Sun et al. 2026, ancestry-stratified Borzoi and AlphaGenome (10.64898/2026.06.22.730889, CC BY) | Multi-ancestry eQTL evaluation; per-model values are in figures and Supplementary Tables S1 to S6, which were not retrieved. |
@@ -49,6 +49,9 @@ In scope, worth a later pass:
 | Jiang et al. 2026, Nullsettes (10.1021/acssynbio.6c00024, CC BY) | 14 models on synthetic loss-of-function cassettes; success rates in Figure 1C, supplementary tables hold designs and model specifications only. |
 | Ebbert et al. 2026, SegmentNT contextual biases (10.1093/nar/gkag704, CC BY) | Independent evaluation with no printed results table; values in figures and the supplementary zip. |
 | Evo 2 viral architecture benchmark (10.64898/2026.07.14.738542, CC BY) | Probe accuracies and R-squared values quoted in the abstract and figures only. |
+| Hirota et al. 2026, BGCs-Bench (10.64898/2026.05.12.724296, CC BY) | Long-context genome language models on biosynthetic gene clusters with layer-wise evaluation; handed over by `lit-genomics`. Not retrieved in this pass, so its tables are unchecked. |
+| Karpinsky et al. 2026, pre-training assessment (arXiv:2606.30140v1) | DNABERT-2 against convolutional models and BPE tokenisation on fine-tuning tasks; handed over by `lit-genomics`. Not retrieved in this pass. |
+| Kato et al. 2026, Evo 2 for plant variant effects (10.64898/2026.03.24.714098) | Single model, small Arabidopsis variant set, with a scoring metric of the authors' own. Low priority. |
 | Sweeney and Kang 2026, sequence-to-omics models for fine-mapping (10.64898/2026.02.04.703796) | AlphaGenome, Borzoi, Enformer and Sei, but the endpoint is fine-mapping replication failure rate; values in figures and supplements. |
 
 Out of scope or already held: see `scope-audit.jsonl`. The main groups are the suites left to `lit-genomics`;
@@ -58,9 +61,10 @@ GPN-Star, Variformer, SAGE-net); and eight reviews, which printed no new benchma
 
 ## Gaps
 
-1. Mathur and Sachidanandam 2026 is unretrieved because of rate limiting, not because it does not exist.
+1. Mathur and Sachidanandam 2026 (Evo 2 blind spots) was rate-limited here and is extracted instead by the
+   parallel `lit-genomics` pass on `claude/lit-20261011-genomics`; it is not duplicated here.
 2. The great majority of in-window independent evaluations put their per-model numbers in figures. Eight of the
-   eleven candidates above fail only on that. Figures were not read by eye or by colour.
+   fourteen candidates above fail only on that; two more are unretrieved. Figures were not read by eye or by colour.
 3. Two candidates need new metric concepts before they can be extracted. No concept was added in this pass.
 4. Buzkova et al. Tables 8 and 9 (the 6x6 mutation and masking accuracy grids, the paper's robustness result)
    are unextracted: a 36-cell corruption grid needs either 36 protocols or a grid-aware protocol shape, which
