@@ -1,0 +1,8 @@
+# Retrieval log
+
+1. 2026-10-11 21:39Z. Fetched https://www.researchsquare.com/article/rs-11210923/v1 (HTML, 200). The page states CC BY 4.0 and links two PDFs under assets-eu.researchsquare.com.
+2. Downloaded `64524534-bebe-4227-867b-bdb799621e9b.pdf` (manuscript, 16 pages, 654,435 bytes, SHA-256 `358502e2...`) and `bc3a36ea4bacf59b6edf4928.pdf` (Supplementary Information, 4 pages, SHA-256 `a5b3a77a...`). Read both with pdftotext -layout. The supplementary PDF only describes Supplementary Tables 1 to 3, which are in the Zenodo archive; it is not pinned as a source.
+3. Crossref metadata for 10.21203/rs.3.rs-11210923/v1 (contact parameter research-agent@example.invalid) confirmed the CC BY 4.0 licence and posting date 2026-10-05.
+4. 2026-10-11 21:39Z. Zenodo API record 22998005 (CC BY 4.0, published 2026-09-27) lists one file. Downloaded it from the API content URL: 1,934,562 bytes, md5 `a1fdab61...` (matches the record), SHA-256 `629921b1...`.
+5. Unzipped into an empty scratch folder. Checked the three result TSVs against the archive's `SHA256SUMS` and `tables/TABLE_MANIFEST.tsv` (status VERIFIED for each). Read `README.md`, `metadata/software_versions.tsv`, `metadata/container_digests.tsv`, `metadata/benchmark_resource_identities.tsv` and `documentation/SCIENTIFIC_METHODS.md` for versions, truth-set identity and limitations.
+6. `extract/extract_hg008.py` (run with `python3 -I`) reads the three TSVs from the pinned zip, re-checks their member hashes, asserts row labels and TP + FN constancy, writes `batch.jsonl` and `claims.csv`, and archives the three TSVs (CC BY 4.0) as gzip under `artifacts/`.
