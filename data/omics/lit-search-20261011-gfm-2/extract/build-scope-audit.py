@@ -12,7 +12,7 @@ REVIEWER = "Claude (Opus 5.5) research agent lit-gfm-2 scope review; not a scien
 INCLUDED = [
     ("doi:10.64898/2026.09.25.754388", "Buzkova et al. 2026: nine Nucleotide Transformer and DNABERT models compared with BLAST on RVDB-derived viral classification from frozen embeddings, with printed tables for pooling, PCA, BLAST comparison, corruption grids and long sequences. Independent of all models compared. Extracted (Tables 3, 7 and 10)."),
     ("arxiv:2608.05329v1", "Datta et al. 2026: frozen-embedding probing of five genomic language models against fine-tuned references on the Nucleotide Transformer benchmark, Genomic Benchmark and two Genomics Long-Range Benchmark variant-effect tasks. Independent of all models compared. Extracted (Table 1)."),
-    ("doi:10.1038/s41467-025-66899-y", "You et al. 2026: eleven pre-trained genomic language models against task-specific methods on four RNA-related processes, with per-method supplementary tables. Independent of all models compared. Extracted (Supplementary Tables 4 and 5, the splicing tables)."),
+    ("doi:10.1038/s41467-025-66899-y", "You et al. 2026: eleven pre-trained genomic language models against task-specific methods on four RNA-related processes, with per-method supplementary tables. Independent of the models compared except SpTransformer, which is the authors' own (reference 12), so those evaluations are author_reported. Extracted (Supplementary Tables 4 and 5, the splicing tables); the average top-k results are held in pending-review because k is not stated."),
 ]
 
 EXCLUDED = [
