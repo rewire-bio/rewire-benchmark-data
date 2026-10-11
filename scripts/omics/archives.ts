@@ -2,8 +2,18 @@ import fs from "node:fs";
 import path from "node:path";
 import { gunzipSync } from "node:zlib";
 import { createHash } from "node:crypto";
+import { fileSha256 } from "./stream-files";
 import { validateUseCaseArtifact } from "../../shared/omics/use-cases";
 import { parseUseCaseSourceDeclaration, writeUseCaseSourceCopies } from "./use-cases";
+
+// Hash in 1 GiB slices: one Hash.update call is capped at 2 GiB, and a large
+// release's evidence.jsonl is bigger than that.
+function bytesSha256(bytes: Buffer): string {
+  const hash = createHash("sha256");
+  for (let start = 0; start < bytes.length; start += 2 ** 30)
+    hash.update(bytes.subarray(start, start + 2 ** 30));
+  return hash.digest("hex");
+}
 
 function expectedFiles(manifest: any): string[] {
   // Releases before 2026-10-10 also carried CSV copies of the JSONL exports; accept them when
@@ -93,16 +103,16 @@ export function restoreReleaseBundles(
   // the output filesystem. Never rewrite or relink an existing destination.
   const verifiedFiles = new Map<string, string>();
   const writeVerified = (target: string, bytes: Buffer) => {
-    const digest = createHash("sha256").update(bytes).digest("hex");
+    const digest = bytesSha256(bytes);
     if (fs.existsSync(target)) {
-      if (!fs.lstatSync(target).isFile() || !fs.readFileSync(target).equals(bytes))
+      if (!fs.lstatSync(target).isFile() || fileSha256(target) !== digest)
         throw new Error(`Immutable release conflict: ${target}`);
     } else {
       const source = verifiedFiles.get(digest);
       if (source) {
         // Recheck the source itself before sharing its inode. A matching input
         // receipt must never cause a changed output file to be propagated.
-        if (!fs.lstatSync(source).isFile() || !fs.readFileSync(source).equals(bytes))
+        if (!fs.lstatSync(source).isFile() || fileSha256(source) !== digest)
           throw new Error(`Immutable release conflict: ${source}`);
         fs.linkSync(source, target);
       } else fs.writeFileSync(target, bytes, { flag: "wx" });
@@ -131,7 +141,7 @@ export function restoreReleaseBundles(
       throw new Error("Unexpected archived files");
     const readChecked = (name: string) => {
       const bytes = gunzipSync(fs.readFileSync(path.join(input, entry.name, `${name}.gz`)));
-      if (createHash("sha256").update(bytes).digest("hex") !== manifest.files[name])
+      if (bytesSha256(bytes) !== manifest.files[name])
         throw new Error(`Archive checksum mismatch: ${entry.name}/${name}`);
       return bytes.toString("utf8");
     };
@@ -147,8 +157,7 @@ export function restoreReleaseBundles(
             );
       if (
         name !== "manifest.json" &&
-        createHash("sha256").update(bytes).digest("hex") !==
-          manifest.files[name]
+        bytesSha256(bytes) !== manifest.files[name]
       )
         throw new Error(`Archive checksum mismatch: ${entry.name}/${name}`);
       const target = path.join(dir, name);
