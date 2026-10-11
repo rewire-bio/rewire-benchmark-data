@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "pdf-text-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Claude (Opus 5.5) review agent reviewer-gfm-a, independent of the extractor lit-gfm-2; no human review claimed",
+  "reviewed_at": "2026-10-11T13:00:00Z",
+  "scope": "Independent review of the Datta et al. 2026 batch (arXiv:2608.05329v1): 303 records (1 source, 2 models, 8 configurations, 1 dataset, 2 protocols, 144 evaluations, 144 results, 1 claim). Every Table 1 value and spread checked by a separate parser (review/review.py) over the text layer of the re-downloaded PDF, whose SHA-256 matches the pinned hash; printed recoveries recomputed from the two scores; Table 4 cross-checked. Details in review.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any result.",
+    "Values were checked against the PDF text layer; figures were not read.",
+    "The source carries two evidence concerns, so none of its results supports automatic comparison.",
+    "The NT benchmark is one dataset record for 18 tasks; per-task records from the lit-genomics pass are not linked yet."
+  ],
+  "corrections": [
+    "54 reference fine-tuned results: spread type changed from standard_deviation to unresolved_spread; the source defines only the frozen spread.",
+    "144 results: metric_qualifier now names the NT benchmark task.",
+    "protocol-frozen-probe: probe set corrected to the LR and MLP readout grid of Section 2.5; frozen configurations state per-task test-grid selection.",
+    "Both protocols: limitation added that Table 1 frozen values are test-set grid-best values (Table 4).",
+    "146 records: DNABERT-2 limitation corrected; it appears in Tables 2, 7, 8 and 9.",
+    "Source: second evidence concern for the Table 1 versus Table 4 conflict on HyenaDNA Splice Acceptor and related cells."
+  ],
+  "errors": [],
+  "files": {
+    "batch.jsonl": "b0c5ab9eb683541f2e26090702f151dffc405f3b28868a54dffe9e817c94be23",
+    "claims.csv": "381852388304f3c456212bd77aeca281df293e48156b041743ad2534fe7dc065",
+    "extract/extract.py": "9faadab9efab8ff3990478e57466b1673287f01df58bbf97fd8480a376181c31",
+    "research.md": "6bfcdb68a98c8a068fb380ed1345293145d1e99bc29321ade395e96da9e94f46",
+    "retrieval-log.md": "46419216fd9e49abda5c48dd18278e00208ced7dc3daa1c36a347e2b88cf7321",
+    "review/corrections.json": "79e60e1cad8b80b823eb2d971adf87bba419dad57451a0850ad51259c34da1bc",
+    "review/review.py": "7d61475a362a7460913684041a7981cf32880a1c8b8f152b36fe444e0fec3eab",
+    "review.md": "b559f9104884ad6bca00c68b151805a650af4625562b81264591b369c2d04052",
+    "sources.md": "d9d8d26d76323ffd4a8d7194774bdf3bd1ec580e817b862cdb4481611ab1ebac"
+  }
+}
