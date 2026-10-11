@@ -277,7 +277,8 @@ function main() {
         ).length,
         note: "Source-reviewed instructions and exact applicability links; execution receipts do not establish reproduction of published scores. Production contributions remain disabled.",
       },
-      evidence_table_version: "1.0",
+      // No bulk evidence.jsonl from 2026-10-11: it passed 2 GB, and record pages and the
+      // serving database derive the same rows from the catalogue (#110).
       ...(research ? { research_generator_sha256: sha(["shared/omics/research.ts", "shared/omics/research-integrity.ts", "scripts/omics/research-release.ts"].map(file => fs.readFileSync(file, "utf8")).join("\n")) } : {}),
       evidence_table_generator_sha256: sha(
         [
