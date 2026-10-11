@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "pdf-text-parse",
+    "independent-cell-check"
+  ],
+  "reviewer": "Claude review agent reviewer-gen-3, independent of the extractor lit-genomics; no human review claimed",
+  "reviewed_at": "2026-10-11T14:40:00Z",
+  "scope": "Independent review of lit-genomics-20261011-gfmbench: 770 records after correction (552 results). Matched the archived PDF's SHA-256, re-parsed Tables 1-5 from pdftotext -layout with an independent block assignment confirmed from AUPRC prevalence; every printed and numeric value matches.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any result.",
+    "Figures were not read.",
+    "Corrections were applied by the extractor as specified in the review; see review.md."
+  ],
+  "corrections": [
+    "The 20 results printed 'NA' (SNV Cos metrics on ClinVar Indel Pathogenicity and LOL-EVE) were dropped: the Table 3 caption says the metric does not apply to indels.",
+    "The 6 Caduceus-Ps Songlab ClinVar zero-shot embedding results carry a source_anomaly (AUROC 0.9333 and 0.8667, AUPRC about 0.99, unlike the other four models). It is attached to these results rather than to the source, so the batch's other results stay comparable.",
+    "TraitGym Mendelian judgement claims: AUROC ranges and label wording corrected per the reviewer's clarification.",
+    "BRCA1 judgement claims: endpoint uses the source's wording (3,893 variants, LOF/INT/FUNC from DNA-repair activity); 'single run; no uncertainty printed' added.",
+    "Autoregressive LLR judgement claims name Evo2 (1B, NVIDIA BioNeMo, FP16) instead of 'genomic language models'.",
+    "Supervised protocols: limitation added that they hold both Table 1 full fine-tuning rows and Table 2 Evo2 linear-probing rows.",
+    "Judgement rationale now states why the relevance is proxy, separate from the description."
+  ],
+  "errors": [],
+  "files": {
+    "artifacts/larey2026-gfmbench-api-v2.pdf.gz": "3d6f06b2f649b70f3d983beb753eb4f42b93eefd890c7063e5ebba7e1393d25c",
+    "batch.jsonl": "2a13d739f0ad3e70d9001117a46140aaffeda915ef200570b49fcc2674d8009f",
+    "claims.csv": "b5b57b9e5f1b66a47afb55ae316df68568ebf677be69e2f0556cfb12e0dfc60b",
+    "extract/extract_gfmbench.py": "a0a2e42515ffbba63daa52b875e092778f85ed8ba322a6a2a44a2371c3c84703",
+    "extract/lib.py": "2ccf7083115f44153adf7244e85f00f161cb08ea19f9d184f4dc32ed294780f2",
+    "research.md": "e1c3edfb4f43d7e6c504b244a907a3db19c04c7676ad0e983dc83ef1951584dc",
+    "retrieval-log.md": "c3e0459c7b049e6cc30339113573cc37502e8c5fad63bf7d4b76114f912988c9",
+    "review.md": "69b1f47eadbf674d2f0bf4b1d8aa474f6317c7c9f665aa6e1cf887ba45b7fa9f",
+    "sources.md": "d1ecc4f6b15fcee7b9c69f667218532e5065d76ba687b42574bad44f1712c6ce",
+    "use-case-links.json": "a00b2e9f40da21a736689aacd076cebecb12b78d2e328a7be3fc8fb82d659e90"
+  }
+}
