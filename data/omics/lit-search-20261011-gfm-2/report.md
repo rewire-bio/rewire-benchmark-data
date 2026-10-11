@@ -49,7 +49,7 @@ In scope, worth a later pass:
 | Jiang et al. 2026, Nullsettes (10.1021/acssynbio.6c00024, CC BY) | 14 models on synthetic loss-of-function cassettes; success rates in Figure 1C, supplementary tables hold designs and model specifications only. |
 | Ebbert et al. 2026, SegmentNT contextual biases (10.1093/nar/gkag704, CC BY) | Independent evaluation with no printed results table; values in figures and the supplementary zip. |
 | Evo 2 viral architecture benchmark (10.64898/2026.07.14.738542, CC BY) | Probe accuracies and R-squared values quoted in the abstract and figures only. |
-| Hirota et al. 2026, BGCs-Bench (10.64898/2026.05.12.724296, CC BY) | Long-context genome language models on biosynthetic gene clusters with layer-wise evaluation; handed over by `lit-genomics`. Not retrieved in this pass, so its tables are unchecked. |
+| Hirota et al. 2026, BGCs-Bench (10.64898/2026.05.12.724296, CC BY) | Long-context genome language models on biosynthetic gene clusters with layer-wise evaluation. A new suite that `lit-genomics` screened and declined for budget, so it is open in neither pass. Not retrieved here; its tables are unchecked. |
 | Karpinsky et al. 2026, pre-training assessment (arXiv:2606.30140v1) | DNABERT-2 against convolutional models and BPE tokenisation on fine-tuning tasks; handed over by `lit-genomics`. Not retrieved in this pass. |
 | Kato et al. 2026, Evo 2 for plant variant effects (10.64898/2026.03.24.714098) | Single model, small Arabidopsis variant set, with a scoring metric of the authors' own. Low priority. |
 | Sweeney and Kang 2026, sequence-to-omics models for fine-mapping (10.64898/2026.02.04.703796) | AlphaGenome, Borzoi, Enformer and Sei, but the endpoint is fine-mapping replication failure rate; values in figures and supplements. |
@@ -113,6 +113,12 @@ GPN-Star, Variformer, SAGE-net); and eight reviews, which printed no new benchma
 7. **`printed_value` with a marker.** Buzkova et al. Table 3 prints the overall best with a star marker
    (`*0.9265` in the source's typography). The marker is kept inside `printed_value` with the reason in
    `review.note`.
+
+8. **NT benchmark dataset identity.** `gfm2-20261011-datta2026-data-nt-benchmark` covers all 18 Nucleotide
+   Transformer benchmark tasks in one record. The `lit-genomics` branch (`claude/lit-20261011-genomics`) adds
+   per-task records `lit-genomics-20261011-ntbench-data-<task-slug>` and `lit-genomics-20261011-ntbench-data-all-18-tasks`.
+   Once both land, the reviewer can repoint the Datta et al. evaluations at the per-task records, or mark the
+   two all-task records as the same data.
 
 ## Next step
 
