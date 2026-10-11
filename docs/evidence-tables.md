@@ -1,8 +1,8 @@
 # Evidence tables
 
-The release generator publishes `evidence.jsonl` beside the records and catalogue exports. Releases before 2026-10-10 also carried CSV copies of the evidence, records and audit-check exports; they are no longer written, to keep releases small. Their SHA-256 checksums are in the immutable release manifest. The table is generated from reviewed records; it is not a separate editable source of scientific assertions. The source JSONL inputs, profile review receipts and pinned artifacts remain authoritative.
+Releases from 2026-10-11 no longer publish the bulk `evidence.jsonl`. It had grown past 2 GB (1.4 million rows, each repeating its source details) and over the website's file limit. The same rows are derived from `records.jsonl` by `createEvidenceIndex` in `shared/omics/evidence-table.ts`; record pages and the serving database show them per record. Releases from 2026-09-16 to 2026-10-11 published `evidence.jsonl`, and releases before 2026-10-10 also carried CSV copies of the evidence, records and audit-check exports. Their checksums remain in their immutable release manifests. The table is generated from reviewed records; it is not a separate editable source of scientific assertions. The source JSONL inputs, profile review receipts and pinned artifacts remain authoritative.
 
-`coverage.evidence_table_version = "1.0"` identifies the new export contract. A generator fingerprint in coverage binds the compiler, profile schema and privacy boundary to the release ID. Older releases retain their original three exported files and exact checksums. The record-envelope schema remains 1.0.
+`coverage.evidence_table_version = "1.0"` marks the releases that published the bulk table. A generator fingerprint in coverage binds the compiler, profile schema and privacy boundary to the release ID. Older releases retain their original three exported files and exact checksums. The record-envelope schema remains 1.0.
 
 ## Row identity and scope
 

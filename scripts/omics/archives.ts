@@ -115,7 +115,16 @@ export function restoreReleaseBundles(
         if (!fs.lstatSync(source).isFile() || fileSha256(source) !== digest)
           throw new Error(`Immutable release conflict: ${source}`);
         fs.linkSync(source, target);
-      } else fs.writeFileSync(target, bytes, { flag: "wx" });
+      } else {
+        // Write in slices for the same reason as bytesSha256.
+        const fd = fs.openSync(target, "wx");
+        try {
+          for (let start = 0; start < bytes.length; )
+            start += fs.writeSync(fd, bytes.subarray(start, start + 2 ** 30));
+        } finally {
+          fs.closeSync(fd);
+        }
+      }
     }
     if (!verifiedFiles.has(digest)) verifiedFiles.set(digest, target);
   };
