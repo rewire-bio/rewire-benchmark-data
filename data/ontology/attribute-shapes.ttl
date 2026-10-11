@@ -532,6 +532,7 @@ rbs:ResultAttributes a sh:NodeShape ;
         [ sh:path rb:datasetVersion ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
         [ sh:path rb:denominator ; sh:maxCount 1 ; sh:datatype xsd:integer ] ,
         [ sh:path rb:denominatorNote ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:derivation ; sh:maxCount 1 ; sh:node rbs:Derivation ] ,
         [ sh:path rb:derivedNormalizedValue ; sh:maxCount 1 ; sh:datatype xsd:decimal ] ,
         [ sh:path rb:derivedNormalizedValueNote ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
         [ sh:path rb:eligibleCount ; sh:maxCount 1 ; sh:datatype xsd:integer ] ,
@@ -734,6 +735,28 @@ rbs:ReportedPopulation a sh:NodeShape ;
         [ sh:path rb:validationCount ; sh:maxCount 1 ; sh:datatype xsd:integer ] ,
         [ sh:path rb:testCount ; sh:maxCount 1 ; sh:datatype xsd:integer ] ,
         [ sh:path rb:note ; sh:maxCount 1 ; sh:datatype xsd:string ] .
+
+rbs:Derivation a sh:NodeShape ;
+    sh:class rb:Derivation ;
+    sh:property
+        [ sh:path rb:derivationMethod ; sh:maxCount 1 ; sh:node [ sh:class skos:Concept ; sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/derivation-method/> ; sh:minCount 1 ] ] ] ,
+        [ sh:path rb:derivationInput ; sh:minCount 1 ; sh:node rbs:DerivationInput ] ,
+        [ sh:path rb:statedAggregation ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:aggregationSource ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:aggregationLocator ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:scriptPath ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:scriptSha256 ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:precision ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:note ; sh:maxCount 1 ; sh:datatype xsd:string ] .
+
+rbs:DerivationInput a sh:NodeShape ;
+    sh:class rb:DerivationInput ;
+    sh:property
+        [ sh:path rb:inputSource ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:artifactSha256 ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:sourceLocator ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:rowFilter ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:rowCount ; sh:maxCount 1 ; sh:datatype xsd:integer ] .
 
 rbs:MissingValue a sh:NodeShape ;
     sh:class rb:MissingValue ;
