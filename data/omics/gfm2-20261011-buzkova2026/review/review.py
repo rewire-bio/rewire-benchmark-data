@@ -20,7 +20,6 @@ TEXT_SHA = "e1a2027c0ac0f6ac14306635cc5f2301b248eecd1f5b0dcf24a142fed9a2f5ac"
 PDF_SHA = "9a589a2088f8466502b1035228db3e594065e984e5755c25d907471225f75c19"
 URL = "https://www.biorxiv.org/content/10.64898/2026.09.25.754388v1.full.pdf"
 DATE = "2026-10-11"
-REVIEWED_AT = "2026-10-11T12:00:00Z"
 REVIEWER_NOTE = "Claude (Opus 5.5) review agent reviewer-gfm-a, independent of the extractor lit-gfm-2; no human review claimed"
 METHOD_NOTE = ("Re-downloaded the bioRxiv PDF (byte stream differs per request in the preprint banner; the text layer is "
                "identical) and matched the archived copy to the pinned SHA-256. Parsed the table from the "
@@ -220,8 +219,9 @@ for key, (old_cfg, label, handling) in LONG.items():
     ca = cfg["attributes"]
     ca["source_locator"] = f"Table 2 row '{tmpl['attributes']['reported_name']}'; Sections 2.3 and 2.5; Table 10 row '{label}'"
     ca["parameters"] = re.sub(r"; [^;]*pooling;", ";", ca["parameters"]) + f"; {handling}"
-    ca["missing_metadata"]["representation"] = {"reason": "unreported",
-                                         "note": "Sections 2.5 and 3.8 and Table 10 do not say which token pooling the long-sequence run used"}
+    ca["missing_metadata"] = {"representation": {"reason": "unreported",
+                                                 "note": "Sections 2.5 and 3.8 and Table 10 do not say which token pooling the long-sequence run used"},
+                              **ca["missing_metadata"]}  # keys in sorted order, as the attribute normaliser writes them
     new_records.append(cfg)
     ev = by_id[f"{P}eval-t10-{key}"]
     ev["links"] = [l if l["relation"] != "system" else {"relation": "system", "target_id": cfg["id"]} for l in ev["links"]]
@@ -273,11 +273,11 @@ for r in records:
             note += " Corrected in review: " + "; ".join(fixes) + "."
         a["review"] = {"method": ["source-hash-verification", "pdf-text-parse", "independent-cell-check"],
                        "method_note": METHOD_NOTE, "reviewer": ["claude"], "reviewer_note": REVIEWER_NOTE,
-                       "date": DATE, "reviewed_at": REVIEWED_AT, "artifact_sha256": PDF_SHA, "retrieval_url": URL,
+                       "date": DATE, "artifact_sha256": PDF_SHA, "retrieval_url": URL,
                        "note": note}
     if r["kind"] == "source":
         a["review"] = {"method": ["source-hash-verification", "ai-assisted-source-review"], "reviewer": ["claude"],
-                       "reviewer_note": REVIEWER_NOTE, "date": DATE, "reviewed_at": REVIEWED_AT,
+                       "reviewer_note": REVIEWER_NOTE, "date": DATE,
                        "artifact_sha256": PDF_SHA, "retrieval_url": URL,
                        "note": "Archived copy matches the pinned SHA-256; licence CC BY 4.0 confirmed on the PDF banner."}
 

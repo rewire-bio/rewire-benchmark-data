@@ -21,7 +21,6 @@ PDF_SHA = "df36e4772562329550c924004a546812c8d76149a1b5238e4d0b0cfa8a82bb5c"
 TEXT_SHA = "b2458cdb3a338c1ec39021610df8229050a8082065fbe5489f0e16a443e4f401"
 URL = "https://arxiv.org/pdf/2608.05329v1"
 DATE = "2026-10-11"
-REVIEWED_AT = "2026-10-11T13:00:00Z"
 REVIEWER_NOTE = "Claude (Opus 5.5) review agent reviewer-gfm-a, independent of the extractor lit-gfm-2; no human review claimed"
 METHOD_NOTE = ("Re-downloaded the arXiv PDF and matched the pinned SHA-256. Parsed Table 1 from the `pdftotext -layout` "
                "(poppler 26.08.0) text with a separate parser (review/review.py) and checked printed value, numeric value, "
@@ -219,11 +218,11 @@ for r in records:
             note += " Corrected in review: " + "; ".join(fixes) + "."
         a["review"] = {"method": ["source-hash-verification", "pdf-text-parse", "independent-cell-check"],
                        "method_note": METHOD_NOTE, "reviewer": ["claude"], "reviewer_note": REVIEWER_NOTE,
-                       "date": DATE, "reviewed_at": REVIEWED_AT, "artifact_sha256": PDF_SHA, "retrieval_url": URL,
+                       "date": DATE, "artifact_sha256": PDF_SHA, "retrieval_url": URL,
                        "note": note}
     if r["kind"] == "source":
         a["review"] = {"method": ["source-hash-verification", "ai-assisted-source-review"], "reviewer": ["claude"],
-                       "reviewer_note": REVIEWER_NOTE, "date": DATE, "reviewed_at": REVIEWED_AT,
+                       "reviewer_note": REVIEWER_NOTE, "date": DATE,
                        "artifact_sha256": PDF_SHA, "retrieval_url": URL,
                        "note": "Fresh download matches the pinned SHA-256. arXiv non-exclusive distribution licence; no copy archived."}
 

@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "pdf-text-parse",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Claude (Opus 5.5) review agent reviewer-gfm-a, independent of the extractor lit-gfm-2; no human review claimed",
+  "reviewed_at": "2026-10-11T14:00:00Z",
+  "scope": "Independent review of the You et al. 2026 batch (Nat Commun, PMC12780105 and Supplementary Information): 242 records after review (2 sources, 7 models, 13 configurations, 4 datasets, 6 protocols, 55 evaluations, 154 results, 1 claim). All 176 extracted values were checked against Supplementary Tables 4 and 5 by a separate parser (review/review.py); 22 Average Top-k results were rejected to data/omics/pending-review/gfm2-20261011-you2026-topk because their metric concept is not supported. Details in review.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any result.",
+    "Values were checked against the supplement's PDF text layer; figures and the Source Data file were not read.",
+    "Averaging scheme of F1, precision and recall on the three-class NT-splice-sites-all set is not stated per table.",
+    "The GTEx dataset was built by the authors, whose earlier SpTransformer method is one of the compared methods."
+  ],
+  "corrections": [
+    "Four SpTransformer evaluations: origin changed to author_reported; the first author developed SpTransformer (ref. 12).",
+    "168 NT splice-site records: 500 bp input removed; the source states it for the GTEx task only.",
+    "Configurations: SpliceAI and SpTransformer described as retrained under the authors' framework, not as distributed; 500 bp input scoped to the GTEx task.",
+    "RNAFM and GENA-LM configurations relinked to existing store families; duplicate model-rna-fm and model-gena-lm removed.",
+    "DNABERT and SpTransformer changed from method to model family records (new IDs model-dnabert, model-sptransformer).",
+    "GTEx protocols: limitation on best-epoch selection without a named validation split; zero-spread limitation on UTRLM and SpliceAI evaluations.",
+    "Rejected: 22 Average Top-k results moved to pending review."
+  ],
+  "errors": [],
+  "files": {
+    "batch.jsonl": "7e07c9ce61d0c6e953d3e1ceced4821b55f27f1d2454954ee0ed63783581935c",
+    "claims.csv": "d1191110055a2463b383df0a3039f694be06a6560687b2a0bc89255071a325ca",
+    "extract/extract.py": "fd50a06025aaf90bca68ceaa0b18de8dfd8a15ed4db0b1eaae366e6674268201",
+    "research.md": "6aa9214f807f0445f3af1de8ef1f980dbddd4db0c010140b9f0d261bc2b933aa",
+    "retrieval-log.md": "339f8bdec40679f1eb5e3c697a2c8a38b2c8e56d2e1a0ff7ae68fdad0a0e9b9b",
+    "review/corrections.json": "7f7ccf81da904f93d977540c0cdc5bc94506913b577aaa61b56a58a118b160aa",
+    "review/review.py": "4271d4f1370a7a89b586e6304fcb8c8de5dbd002c0e9d2b9bc9bacfe1cb2f0b9",
+    "review.md": "b378b15403b78bb9eb28c9e99aa532c3fcdbece4a45c6398e09638fd94f22c7b",
+    "sources.md": "ac882d12a74226f8a2d0c12b2cbfcfa6d528628aaa73c515d9d340b5847b76c9"
+  }
+}
