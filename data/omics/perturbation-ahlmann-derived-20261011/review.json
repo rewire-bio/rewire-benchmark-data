@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "source-data-recomputation",
+    "independent-cell-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Separate Claude (Opus 5.5) review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-11T03:00:00Z",
+  "scope": "Independent review of the Ahlmann-Eltze et al. 2025 derived batch for use-case-genetic-perturbation-response: 131 records (59 results with derivation, 30 evaluations, 11 configurations, 13 claims including 4 relevance judgements, 5 sources, 4 datasets, 4 protocols, 3 methods, 2 models). The article XML and the four Source Data workbooks were re-downloaded and match their recorded SHA-256. scripts/omics/derive/ahlmann_eltze_2025.py (sha256 452a7a7aaab7e4965142de87ed9f00209a6d9664760919cb39b921bb45aec45c) was rerun on the fresh downloads and its output equals derived-values.jsonl; all 59 means and row counts were recomputed with a separate openpyxl reader and match. Changes are listed in docs/reviews/use-cases/genetic-perturbation-response-2026-10-11.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any model run.",
+    "The values are means computed from the authors' Source Data; the paper prints none, so no printed number was available to check against.",
+    "Fig. 2c, Fig. 1c, Extended Data Fig. 2b, 4, 8b and 10 were not checked beyond confirming they were not extracted.",
+    "Judgement pins are not set; the integrator runs use-cases:repin after the records are in the store.",
+    "batch.jsonl and claims.csv now differ from the output of extract/build_batch.py; do not regenerate them."
+  ],
+  "errors": [
+    {
+      "status": "verified",
+      "record_ids": [
+        "59 results"
+      ],
+      "message": "Every printed_value, numeric_value, row_count, row_filter, input hash, aggregation quote and locator and script hash matches the recomputation and the article."
+    },
+    {
+      "status": "verified",
+      "record_ids": [
+        "30 evaluations"
+      ],
+      "message": "Origin split is right: the authors' own or adopted baselines are author_reported; the seven third-party models are independent_paper. None is rewire_run or paper_compilation."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "21 fig2a L2 results"
+      ],
+      "message": "unit_detail no longer asserts a log transform, which the article states only for the Norman data."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "perturbation-ahlmann-20261011-claim-adamson-single-baselines-not-beaten",
+        "perturbation-ahlmann-20261011-claim-replogle-k562-single-baselines-not-beaten",
+        "perturbation-ahlmann-20261011-claim-replogle-rpe1-single-baselines-not-beaten"
+      ],
+      "message": "Noted that paragraph 16 states the finding for the single-perturbation benchmark as a whole, not per dataset."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "perturbation-ahlmann-20261011-claim-linear-model-pretrained-embeddings"
+      ],
+      "message": "Fig. 2c citation attached to the paragraph 17 statement; paragraph 18 cites no figure."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "3 single-perturbation judgements",
+        "4 protocols"
+      ],
+      "message": "UCE and scBERT ground-truth embedding caveat added to the single-perturbation judgements and protocols; scBERT named in the Norman protocol."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "perturbation-ahlmann-20261011-model-cpa",
+        "perturbation-ahlmann-20261011-model-scbert"
+      ],
+      "message": "Name and descriptions limited to what the article states."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "perturbation-ahlmann-20261011-source-data-fig2"
+      ],
+      "message": "First evidence concern now records that using split 1 only would change the means by up to 0.61 (L2) and 0.06 (Pearson delta) and the top model on Adamson and Replogle RPE1."
+    }
+  ],
+  "files": {
+    "batch.jsonl": "b40db61edafa70b44b759484f1970c030e65b3047cca874a04654654f6b899f5",
+    "claims.csv": "40daae575508d872e0e79f53ebaa1f70690aae56ab79147170d6259bba816cc9",
+    "coverage.json": "28a5e17b3d21e324449c515c9f1d7cb0c23491a886d61d49572e32940e5bac1b",
+    "derived-values.jsonl": "28f29b153db5389fc7d72b991dc71b3ab8e8540e79932c7c1459c632fb5c169f",
+    "extract/build_batch.py": "9a209fecf6e37c234856ede8e0e5cd656de5c8a75650b0000cb593010920dbfb",
+    "extract/gaps.json": "d5c4454c3632affe82ce993c20bc14dd754e57ad7c8cf48c1ef658b83c45927c",
+    "extract/judgements.json": "dc02176e30587d85037c843d8ccf22d6aaba86cc1d54df97cbbd02cb3c461d92",
+    "research.md": "cb2ed4ef66dfe5a5d41cfc81c834a0d131dc676ba2f2e309efb04b2bb7b21496",
+    "retrieval-log.md": "271768353ac7063142a3a5ccc7cef590b72a2da1ce83f27f3b27829b30b0f7f2",
+    "sources.md": "ac13615a88c268cb401db7796c6993fc7eb47a0ba9167761cbc6ff8c2e5894a5"
+  }
+}
