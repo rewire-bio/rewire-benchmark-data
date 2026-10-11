@@ -17,8 +17,6 @@ INCLUDED = [
 
 EXCLUDED = [
     ("doi:10.1038/s41467-025-65823-8", "Already in the store (Feng et al. 2025, batch amp-feng-20261007 and dna-foundation-models-2025 source)."),
-    ("doi:10.1186/s13059-025-03674-8", "Already in the store (Tang et al. 2025, batch use-case-coverage-regulatory-variant-20261009)."),
-    ("doi:10.3390/genes16101223", "Already in the store (Manzo et al. 2025, same batch)."),
     ("doi:10.1186/s13040-026-00553-1", "Already in the store (fusion-breakpoint foundation model benchmark)."),
     ("doi:10.1016/j.csbj.2025.03.007", "Already in the store (quadruplex DNA language model benchmark)."),
     ("doi:10.1093/bioinformatics/btaf456", "Already in the store (tokenizer selection in genomic language models)."),
@@ -40,7 +38,6 @@ EXCLUDED = [
     ("doi:10.64898/2026.02.04.703796", "Sweeney and Kang 2026, sequence-to-omics models for fine-mapping reproducibility: outcome is replication failure rate of fine-mapping, not a model benchmark metric; values in figures and supplementary tables. Candidate."),
     ("doi:10.64898/2026.07.14.738542", "Evo 2 viral-architecture benchmark: in scope; accuracies and R-squared values are quoted in the abstract and figures, with no printed results table in the retrieved text. Candidate."),
     ("doi:10.1093/nar/gkag704", "Ebbert et al. 2026, SegmentNT contextual biases: in scope as an independent evaluation, but the article prints no results table; values are in figures and the supplementary zip."),
-    ("doi:10.1093/bib/bbag329", "Sun et al. 2026 splicing review and assessment of ten models including six genomic foundation models: benchmark values are in figures and a supplementary docx; the two printed tables summarise architectures and resources. Candidate, and overlaps the RNA splicing lane."),
     ("doi:10.3390/ijms27156657", "Jin et al. 2026, encoding strategies for non-coding SNPs: the printed tables are feature and interpretability profiles, not scores; results are in figures."),
     ("doi:10.1093/bib/bbag011", "McLaughlin and Lim 2026, probing Nucleotide GPT: developer study of their own model, and Europe PMC holds no full text."),
     ("doi:10.1038/s41598-026-67272-9", "Viral classification benchmark of supervised and retrieval methods: the only language-model representation is DNABERT embeddings among classical encodings, so it is a representation comparison rather than a foundation model evaluation. Low priority candidate."),
@@ -67,4 +64,6 @@ with open(OUT / "scope-audit.jsonl", "w") as f:
     for paper_id, reason in EXCLUDED:
         f.write(json.dumps({"paper_id": paper_id, "decision": "excluded", "reason": reason,
                             "reviewed_at": AT, "reviewer": REVIEWER}, ensure_ascii=False) + "\n")
+# Papers with a decision already in data/omics/scope-audit.jsonl are not repeated here:
+# 10.1186/s13059-025-03674-8 and 10.3390/genes16101223 (included 2026-10-09), 10.1093/bib/bbag329 (excluded 2026-10-09).
 print(len(INCLUDED) + len(EXCLUDED), "scope entries")
