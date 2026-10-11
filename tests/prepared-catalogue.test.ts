@@ -11,6 +11,7 @@ import { decodeRecords, unpackEvidence } from "../shared/omics/serving-codec";
 import { records } from "./helpers/records";
 const { DatabaseSync } = process.getBuiltinModule("node:sqlite");
 
+const sum = (kinds: Map<string, Set<string>>) => [...kinds.values()].reduce((total, ids) => total + ids.size, 0);
 const snapshot = buildRelease(records, "2026-10-07T00:00:00Z", { entity_schema_version: "1.1" }).snapshot;
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), "prepared-"));
 const file = path.join(directory, "catalogue.sqlite");
@@ -80,6 +81,103 @@ describe("prepared release file", () => {
     db.exec("COMMIT");
     db.close();
     expect(checkParity(snapshot, copy)).toBeGreaterThan(1000);
+  });
+
+  describe("source records", () => {
+    // Brute force: every source ID anywhere in a record other than its own ID,
+    // and, for a result, in its evaluation's sources (the result row shows them).
+    const visible = snapshot.records.filter((record) => record.status !== "excluded");
+    const byId = new Map(visible.map((record) => [record.id, record]));
+    const sourceIds = new Set(visible.filter((record) => record.kind === "source").map((record) => record.id));
+    const strings = (value: unknown): string[] =>
+      typeof value === "string" ? [value]
+        : Array.isArray(value) ? value.flatMap(strings)
+        : value && typeof value === "object" ? Object.values(value).flatMap(strings) : [];
+    const scan = new Map<string, Map<string, Set<string>>>();
+    for (const record of visible) {
+      const { id, ...rest } = record;
+      const found = strings(rest);
+      if (record.kind === "result") {
+        const evaluation = byId.get(record.links.find((link) => link.relation === "evaluation")?.target_id || "");
+        if (evaluation) found.push(...evaluation.source_ids, ...strings(evaluation.attributes.profile), ...strings(evaluation.attributes.run_guide));
+      }
+      for (const sourceId of new Set(found.filter((value) => sourceIds.has(value) && value !== id))) {
+        const kinds = scan.get(sourceId) || new Map<string, Set<string>>();
+        kinds.set(record.kind, (kinds.get(record.kind) || new Set()).add(id));
+        scan.set(sourceId, kinds);
+      }
+    }
+    const prepared = openPreparedCatalogue(file);
+    afterAll(() => prepared.close());
+    // Every ID of one kind, read a page at a time.
+    const allPages = (id: string, kind: string, limit: number) => {
+      const ids: string[] = [];
+      let cursor: string | undefined;
+      do {
+        const page = prepared.sourceRecords({ id, kind, limit, ...(cursor ? { cursor } : {}) }).pages[kind];
+        expect(page.range_start).toBe(page.items.length ? ids.length + 1 : 0);
+        ids.push(...page.items);
+        cursor = page.next_cursor || undefined;
+      } while (cursor);
+      return ids;
+    };
+
+    it("lists every source that has citing records, and no other", () => {
+      const listed = [...sourceIds].filter((id) => prepared.sourceRecords({ id, limit: 1 }).total > 0).sort();
+      expect(listed).toEqual([...scan.keys()].sort());
+      expect(listed.length).toBeGreaterThan(1000);
+    });
+
+    it("matches a brute-force scan of the store", () => {
+      const busiest = [...scan].sort((a, b) => sum(b[1]) - sum(a[1])).slice(0, 5).map(([id]) => id);
+      const sample = [...new Set([...busiest, ...[...scan.keys()].filter((_, index) => index % 17 === 0)])];
+      for (const id of sample) {
+        const expected = scan.get(id)!;
+        const answer = prepared.sourceRecords({ id, limit: 100 });
+        expect(answer.counts, id).toEqual(Object.fromEntries([...expected].map(([kind, ids]) => [kind, ids.size])));
+        for (const [kind, ids] of expected) expect(new Set(allPages(id, kind, 100)), `${id} ${kind}`).toEqual(ids);
+      }
+    });
+
+    it("pages every kind without gaps or repeats, results by evaluation then metric", () => {
+      const [id] = [...scan].sort((a, b) => (b[1].get("result")?.size || 0) - (a[1].get("result")?.size || 0))[0];
+      const counts = prepared.sourceRecords({ id }).counts;
+      for (const [kind, count] of Object.entries(counts)) {
+        const ids = allPages(id, kind, 7);
+        expect(ids.length).toBe(count);
+        expect(new Set(ids).size).toBe(count);
+        expect(ids).toEqual(allPages(id, kind, 100));
+      }
+      const rows: { id: string; evaluation: { id: string } | null; metric: string }[] = [];
+      let cursor: string | undefined;
+      do {
+        const page = prepared.sourceResults({ id, limit: 30, ...(cursor ? { cursor } : {}) });
+        rows.push(...page.items);
+        cursor = page.next_cursor || undefined;
+      } while (cursor);
+      expect(rows.map((row) => row.id)).toEqual(allPages(id, "result", 100));
+      // Each evaluation's results are contiguous.
+      const runs = rows.map((row) => row.evaluation?.id).filter((value, index, list) => value !== list[index - 1]);
+      expect(new Set(runs).size).toBe(runs.length);
+      const first = prepared.sourceResults({ id, limit: 1 }).items[0];
+      const record = prepared.record(first.id)!;
+      expect(first).toMatchObject({ metric: record.attributes.metric, printed_value: record.attributes.printed_value });
+      expect(first.tested.length + first.datasets.length).toBeGreaterThan(0);
+    });
+
+    it("reads a contract 3.0 file as having no source records", () => {
+      const copy = path.join(directory, "contract-3.0.sqlite");
+      fs.copyFileSync(file, copy);
+      const db = new DatabaseSync(copy);
+      db.exec("DROP TABLE source_records");
+      db.prepare("UPDATE meta SET value = '3.0' WHERE key = 'serving_contract_version'").run();
+      db.close();
+      const old = openPreparedCatalogue(copy);
+      const [id] = scan.keys();
+      expect(old.sourceRecords({ id })).toEqual({ release_id: snapshot.release_id, source_id: id, counts: {}, total: 0, pages: {} });
+      expect(old.sourceResults({ id }).items).toEqual([]);
+      old.close();
+    });
   });
 
   it("refuses a file with an unsupported serving contract", () => {
