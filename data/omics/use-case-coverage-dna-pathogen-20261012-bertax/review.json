@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "pdf-text-parse",
+    "independent-cell-check",
+    "scope-review"
+  ],
+  "reviewer": "Claude review agent rev-mlvb, independent of the extracting agent ml-vs-baseline; no human review claimed",
+  "reviewed_at": "2026-10-12T21:52:52Z",
+  "scope": "Independent review of use-case-coverage-dna-pathogen-20261012-bertax: 227 records (153 results, 3 relevance judgements). Re-downloaded the article XML and SI PDF and matched their SHA-256; checked every Table 1, Table S2 and Table S5 cell with a separate parser written for this review; reviewed descriptive fields and the judgements.",
+  "review": "docs/reviews/use-cases/dna-pathogen-ml-baseline-2026-10-12.md",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any result.",
+    "The pinned PNAS PDF (SHA-256 7977424613ab5e5f4986745b527a270fd2c0427dbab40471813903eda85dcaec) could not be re-fetched: PNAS returns HTTP 403 to command-line clients and no browser was used. Table 1 was checked against the PMC open-access copy of the same PDF (SHA-256 725c99ba8bb95d9e5e73997cbbe45d3a889185163749f494673a084de534c835).",
+    "Figures, PR and ROC curves were not read.",
+    "extract/extract_bertax.py reproduces the pre-review batch; batch.jsonl includes the reviewer's corrections listed here."
+  ],
+  "corrections": [
+    "54 accuracy results: qualifier states the denominator, the samples the tool classified.",
+    "36 proportion-classified results: direction higher changed to unknown.",
+    "Closely and distantly related protocols: metric definition and limitation state the accuracy denominator and the AveP treatment of unclassified samples.",
+    "Final protocol: metric definition, limitation and locator no longer refer to Table S2; the final judgement's source_locator likewise.",
+    "Three judgements: limitations add the AveP and accuracy caveats and name the authors as BERTax's developers; reviewed_evaluations filled.",
+    "Training-data claim locator corrected to Results opening paragraph 3.",
+    "PDF source record: review_artifact and limitation record the PMC copy used for the check."
+  ],
+  "errors": [],
+  "files": {
+    "artifacts/si-tables-s2-s5-pdftotext.txt": "d5ba7c4b68462e228de514949ad4357ae4e0c6f932dfc79b86cee2ab2b64ee8b",
+    "artifacts/table1-pdf-text-layer.txt": "7be6943e577af1ef383e3b21c835451f93f1e41aac488b1dbc25fce9a053d681",
+    "batch.jsonl": "41e552c57501e83ec12870a953b3ab7a44e161a9f166f7048e134864d66a0f88",
+    "claims.csv": "28e3de80cb7e3f5e97e678d738d8c311c4a22ce98e6f4445078ee782097ce9c9",
+    "coverage.json": "14f6559665660f648b4c08440d23c070158ae63005c020c1997fdad54187691d",
+    "extract/extract_bertax.py": "f535e6da637e0be3e831145c8699fe87cfa2ac82fea500e2daa98edc6a7544aa",
+    "research.md": "a20c7bdf9a7e793a613d9fa244624f450fc3c5cfa2ff778a144be2e529849424",
+    "retrieval-log.md": "9bf35179a04022ffdef347f424ea79046ad45480c89b00c2104345c354d98f73",
+    "sources.md": "f92f6b1903c0c16b7d74f9284a62dcb8c953104999f2e7d818b91c9ce4492021"
+  }
+}
