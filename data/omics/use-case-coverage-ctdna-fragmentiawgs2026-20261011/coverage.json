@@ -1,0 +1,94 @@
+{
+ "use_case_ids": [
+  "use-case-plasma-ctdna-fragmentomics"
+ ],
+ "cutoff_date": "2026-10-11",
+ "window": "2025-10-01 to 2026-10-11",
+ "query_budget": "About 30 queries per use case, shared across the 2026-10-11 uc-ctdna pass",
+ "queries_used": "Shared pass: 26 searches and lookups logged in data/omics/lit-search-20261011-uc-ctdna/ledger.jsonl",
+ "existing_reused": [
+  "ctdnalit-20261011-fragmentia2026-method-fragmentia-ai"
+ ],
+ "existing_reused_note": "Configurations are configuration_of the Fragmentia-AI method added by the Fragmentia-AI batch, which must be added first. Metric concepts auroc, recall and specificity reused.",
+ "sample_overlap_note": "The external DELFI cohort (FinaleDB, 538 samples) is the DELFI 2019 study behind the stored DELFI and Hou et al. 2024 evidence, so those samples overlap. The Geneseeq cohorts are not public.",
+ "new_record_counts": {
+  "claim": 3,
+  "configuration": 3,
+  "dataset": 4,
+  "evaluation": 7,
+  "protocol": 4,
+  "result": 30,
+  "source": 2
+ },
+ "new_ids": {
+  "claim": [
+   "use-case-mapping-ctdna-lit-20261011-fragmentiawgs2026-delfi",
+   "use-case-mapping-ctdna-lit-20261011-fragmentiawgs2026-test",
+   "use-case-mapping-ctdna-lit-20261011-fragmentiawgs2026-validation"
+  ],
+  "dataset": [
+   "ctdnalit-20261011-fragmentiawgs2026-data-delfi-finaledb",
+   "ctdnalit-20261011-fragmentiawgs2026-data-test",
+   "ctdnalit-20261011-fragmentiawgs2026-data-train",
+   "ctdnalit-20261011-fragmentiawgs2026-data-validation"
+  ],
+  "protocol": [
+   "ctdnalit-20261011-fragmentiawgs2026-protocol-delfi",
+   "ctdnalit-20261011-fragmentiawgs2026-protocol-test",
+   "ctdnalit-20261011-fragmentiawgs2026-protocol-train",
+   "ctdnalit-20261011-fragmentiawgs2026-protocol-validation"
+  ],
+  "source": [
+   "ctdnalit-20261011-fragmentiawgs2026-source-article",
+   "ctdnalit-20261011-fragmentiawgs2026-source-supplementary-material-1"
+  ]
+ },
+ "judgements": [
+  {
+   "mapping_id": "use-case-mapping-ctdna-lit-20261011-fragmentiawgs2026-delfi",
+   "revision": 1,
+   "use_case_id": "use-case-plasma-ctdna-fragmentomics",
+   "protocol_id": "ctdnalit-20261011-fragmentiawgs2026-protocol-delfi",
+   "relevance": "proxy",
+   "evaluation_ids": [
+    "ctdnalit-20261011-fragmentiawgs2026-eval-delfi-high-medium-low-tf"
+   ],
+   "status": "source_checked",
+   "comparison_group": "fragmentiawgs2026-tf-strata",
+   "stratum_label": "External DELFI cohort"
+  },
+  {
+   "mapping_id": "use-case-mapping-ctdna-lit-20261011-fragmentiawgs2026-test",
+   "revision": 1,
+   "use_case_id": "use-case-plasma-ctdna-fragmentomics",
+   "protocol_id": "ctdnalit-20261011-fragmentiawgs2026-protocol-test",
+   "relevance": "direct",
+   "evaluation_ids": [
+    "ctdnalit-20261011-fragmentiawgs2026-eval-test-high-medium-low-tf"
+   ],
+   "status": "source_checked",
+   "comparison_group": "fragmentiawgs2026-tf-strata",
+   "stratum_label": "Independent test cohort"
+  },
+  {
+   "mapping_id": "use-case-mapping-ctdna-lit-20261011-fragmentiawgs2026-validation",
+   "revision": 1,
+   "use_case_id": "use-case-plasma-ctdna-fragmentomics",
+   "protocol_id": "ctdnalit-20261011-fragmentiawgs2026-protocol-validation",
+   "relevance": "proxy",
+   "evaluation_ids": [
+    "ctdnalit-20261011-fragmentiawgs2026-eval-validation-high-medium-low-tf",
+    "ctdnalit-20261011-fragmentiawgs2026-eval-validation-high-medium-tf",
+    "ctdnalit-20261011-fragmentiawgs2026-eval-validation-high-tf"
+   ],
+   "status": "source_checked",
+   "comparison_group": "fragmentiawgs2026-tf-strata",
+   "stratum_label": "Internal validation cohort (model selection)"
+  }
+ ],
+ "remaining_gaps": [
+  "Per-stratum AUCs of the high/medium-TF scheme other than low TF, and cancer-type AUCs, are figure-only. Results P19 prints test-cohort sensitivity for nine of 17 cancer types (liver/biliary 0.88 to head and neck 0.29); these were not extracted because the list is partial.",
+  "No comparator method was run on these cohorts.",
+  "Paired-panel low-TF cohort (VAF-stratified sensitivity) is figure-only."
+ ]
+}
