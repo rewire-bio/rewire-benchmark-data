@@ -45,6 +45,32 @@ describe("use cases as records", () => {
     expect(after).toBe(before);
   });
 
+  it("publishes a baseline only once it is reviewed, pinned and names methods in the store", () => {
+    const useCaseId = "use-case-tumour-dna-somatic-variant-detection";
+    const draft: CatalogueRecord = {
+      id: "use-case-baseline-test", kind: "claim", name: "Baseline", description: "Test baseline claim.",
+      status: "source_checked", facets: {}, source_ids: ["somatic-20261009-source-wang2020"],
+      links: [{ relation: "subject", target_id: useCaseId }],
+      attributes: {
+        field: "baseline", value: "Mutect2", method_ids: ["somatic-20261009-method-mutect2"],
+        rationale: "The established statistical tumour-normal caller.",
+        review: { method: ["automated-source-review"], reviewer: ["claude"], reviewer_note: "test", reviewed_at: "2026-10-12T00:00:00Z", note: "test" },
+      },
+    } as unknown as CatalogueRecord;
+    const baselineOf = (records: CatalogueRecord[]) => derive(records).use_cases.find((u) => u.id === useCaseId)!.baseline;
+    expect(baselineOf([...store, draft])).toBeUndefined(); // no pins yet
+    const pinned = { ...draft, attributes: { ...draft.attributes, pins: claimPins(new Map([...store, draft].map((r) => [r.id, r])), draft) } };
+    expect(baselineOf([...store, pinned])).toEqual({
+      name: "Mutect2", method_ids: ["somatic-20261009-method-mutect2"],
+      rationale: "The established statistical tumour-normal caller.", source_ids: ["somatic-20261009-source-wang2020"],
+    });
+    // A change to the question it answers withholds it until it is reviewed again.
+    const changed = edit(useCaseId, (r) => ({ ...r, attributes: { ...r.attributes, question: "A different question?" } }));
+    expect(baselineOf([...changed, pinned])).toBeUndefined();
+    // So does naming a method that is not in the store.
+    expect(baselineOf([...store, { ...pinned, attributes: { ...pinned.attributes, method_ids: ["no-such-method"] } }])).toBeUndefined();
+  });
+
   it("withholds a judgement when a pinned field changes meaning", () => {
     const m = mapping(edit(protocolId, (r) => ({ ...r, attributes: { ...r.attributes, protocol: "A different matching rule" } })));
     expect(m.lifecycle).toBe("needs_review");

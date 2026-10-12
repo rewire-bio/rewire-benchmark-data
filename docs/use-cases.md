@@ -36,6 +36,20 @@ Each use case can also carry a summary claim (`field` `summary`): a short, descr
 
 Every literature pass or monthly refresh that searches for a use case sets `evidence_checked` with `npm run records -- change` and the pass's dated review, even when it finds nothing new. That is how a reader knows "nothing new" is recent rather than stale. A use case with no `evidence_checked` is shown as not yet checked and is due. The field is not pinned, so updating it never withholds judgements.
 
+## Baselines
+
+Each use case names its baseline: the best established algorithmic, pre-machine-learning method that newer methods must beat, for example Mutect2 and Strelka2 for tumour-normal somatic calling. The clinical reference standard (culture, PCR, FISH, a truth set) is the truth the methods are scored against, not the baseline.
+
+A baseline is a claim on the use case with `field` `baseline`:
+
+- `value`: the short name shown on the page ("Mutect2 and Strelka2");
+- `attributes.method_ids`: the method or model records it covers, which must exist in the store;
+- `attributes.rationale`: why these are the reference, in a sentence or two;
+- `source_ids`: the sources that establish them as the standard (benchmark papers, guidelines or wide adoption);
+- `review` and `pins`, like a summary.
+
+It is published as `baseline` in the use-case artifact only when the claim is reviewed (`source_checked`), its sources are clean, every method exists and its pins match. A change to the use case's question, decision or inputs, or to a cited source, withholds it until it is reviewed again (`npm run use-cases:repin -- <review.md> <claim-id>`). The website marks configurations of these methods as baseline rows, and says whether any active comparison scores a baseline and a machine-learning method on the same protocol. Where none does, record that as an evidence gap.
+
 ## Content and evidence ownership
 
 - Use cases and their first judgements were curated by Codex and Claude research agents with independent automated cross-review. Recorded actors and methods mean automated review, not human domain review or experimental replication.
