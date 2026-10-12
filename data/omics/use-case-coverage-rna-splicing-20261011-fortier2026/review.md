@@ -1,0 +1,58 @@
+# Review: use-case-coverage-rna-splicing-20261011-fortier2026, 2026-10-12
+
+Reviewer: independent Claude review agent `reviewer-scnv`, separate from the extracting agent `uc-splicing-cnv`. No human review claimed. Source transcription is not reproduction. The full review, covering all five splicing and CNV batches, is `docs/reviews/use-cases/splicing-cnv-use-cases-2026-10-12.md`.
+
+## Reviewer's report (verbatim)
+
+| Batch | Verdict |
+| --- | --- |
+| `use-case-coverage-rna-splicing-20261011-fortier2026` | Approved with corrections (Riepe score rule, CI-SpliceAI caveats) |
+
+Applies to every batch: delete `extract/__pycache__/` from each batch folder before writing `review.json`, so the receipt does not hash compiled bytecode.
+
+### fortier2026: approved with corrections
+
+1. Riepe score rule. Methods 'Riepe benchmark dataset' says "the most relevant SpliceAI score was selected based on each variant's effect type". The configurations say the maximum of four delta scores is used, which does not hold for Table 2.
+   - Set `attributes.metric_qualifier` to "delta score for each variant's effect type; threshold optimised per gene and algorithm for maximum accuracy (upper bound)" on these 12 results: `rna-splicing-20261011-fortier2026-result-riepe-{spliceai,ci-spliceai,openspliceai}-{balanced-accuracy,f1-score,recall,specificity}`.
+   - Set `attributes.comparison.adaptation` to the same text on `rna-splicing-20261011-fortier2026-eval-riepe-spliceai`, `-eval-riepe-ci-spliceai` and `-eval-riepe-openspliceai`.
+2. Training split caveat. On all six protocols and all four judgement claims, replace the limitation "Labels and variant sets are reused from earlier publications; the open-source models and SpliceAI were not trained to the same chromosome split." with:
+   "Labels and variant sets are reused from earlier publications. CI-SpliceAI was trained on all human chromosomes, so no benchmark variant is held out from its training; ABCA4 lies on a test chromosome held out by both SpliceAI and OpenSpliceAI (Methods 'Technical overview of deep learning methods'; Discussion)."
+3. Append to `attributes.limitations` on `rna-splicing-20261011-fortier2026-protocol-ci-spliceai-benchmark` and `use-case-mapping-rna-splicing-20261011-fortier2026-ci-spliceai-benchmark`:
+   "The variant set was assembled and published by the CI-SpliceAI developers (reference 9)."
+4. `rna-splicing-20261011-fortier2026-source-article`, `attributes.limitations`: append
+   "The Discussion says SPiP results hold 'even with optimized thresholds'; Methods and Results use the standard 0.5 threshold for SPiP."
+5. Recommended: add this to the description of `rna-splicing-20261011-fortier2026-data-riepe`: "The 213 variants are the union of the stored Riepe sets splicing-follow-up-20261009-data-riepe2021-abca4-di (81), -abca4-ncss (71) and -mybpc3-ncss (61)."
+
+Origin is confirmed: the Legacy Ensemble rows are `author_reported` (Competing Interests: all authors are Golden Helix employees, and VarSeq supplies the legacy algorithms). The deep learning rows are `independent_paper` (Golden Helix "has no commercial relationship with the developers of SpliceAI, OpenSpliceAI, or" CI-SpliceAI). All four judgements are confirmed as `proxy`, and leaving Tables 5 and 6 unjudged (ClinVar labels) is correct. `reviewed_evaluations` should list the four evaluations on each protocol.
+
+Answers to the collector's questions that concern this batch:
+
+4. Fortier. Legacy Ensemble `author_reported` is confirmed, and both prose slips are confirmed; I found a third (SPiP thresholds) and a stale "three datasets" line, which is already recorded. The Riepe, CI-SpliceAI, SPiP and Barbosa deep intronic protocols do bear on `use-case-splicing-follow-up`; that store already has the three Riepe datasets. Judging them there is a separate pass for the lead, and it does not block this approval.
+
+## Corrections applied
+
+Applied by a separate Claude agent (not the reviewer) exactly as the reviewer specified, before the batch was added to the store.
+
+1. Correction 1: metric_qualifier on the 12 Riepe deep learning results and comparison.adaptation on the three Riepe deep learning evaluations set to the reviewer's text; the Legacy Ensemble Riepe rows are unchanged.
+2. Correction 2: the training-split limitation replaced with the reviewer's text on all six protocols and all four judgements.
+3. Correction 3: the CI-SpliceAI developer limitation appended to protocol-ci-spliceai-benchmark and its judgement.
+4. Correction 4: the SPiP threshold limitation appended to the source record.
+5. Correction 5 (recommended): the Riepe union sentence added to the description of rna-splicing-20261011-fortier2026-data-riepe.
+6. All four judgements stay proxy; Tables 5 and 6 stay unjudged.
+7. Every correction is applied in the extraction script under extract/ (marked 'review correction N'), and batch.jsonl, claims.csv, use-case-links.json and coverage.json were regenerated by rerunning it. A field-by-field comparison with the extracted batch shows no change beyond the corrections and the review fields.
+8. Reviewed records are source_checked. Each result and claim carries the reviewer's review block (method, reviewer, reviewer_note, date, artifact_sha256 and retrieval_url from the source record; the extraction method description is kept as method_note; the note points to this file and the dated review). Each reviewed judgement lists the reviewer's reviewed_evaluations.
+9. extract/__pycache__/ deleted before this receipt was written.
+
+## Records after correction
+
+- claim: 4
+- configuration: 4
+- dataset: 6
+- evaluation: 24
+- method: 1
+- model: 2
+- protocol: 6
+- result: 96
+- source: 1
+
+All records are source_checked.
