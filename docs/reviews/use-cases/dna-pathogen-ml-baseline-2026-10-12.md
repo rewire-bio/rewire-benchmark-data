@@ -3,7 +3,7 @@
 Batches (issue #121):
 
 - `data/omics/use-case-coverage-dna-pathogen-20261012-bertax/` (Mock et al., PNAS 2022; 227 records, 153 results, 3 judgements)
-- `data/omics/use-case-coverage-dna-pathogen-20261012-metagenn/` (Moreno et al., BMC Bioinformatics 2024; 58 records after review, 24 results, 2 judgements)
+- `data/omics/use-case-coverage-dna-pathogen-20261012-metagenn/` (Peres da Silva et al., BMC Bioinformatics 2024; 58 records after review, 24 results, 2 judgements)
 - `data/omics/use-case-coverage-rna-fusion-20261012-haas2019/` (Haas et al., Genome Biology 2019; source and 5 descriptive claims, no results)
 
 Reviewer: a separate Claude review agent (rev-mlvb) that did not extract these batches. No human review is claimed. Nothing was executed or reproduced: this checks transcription and scope against the pinned sources.
@@ -149,7 +149,7 @@ The extractors' scripts in each batch's `extract/` reproduce the pre-review `bat
 
 ## Records reused and method types
 
-Configuration links checked against the store: `catalog-model-kraken2`, `dna-pathogen-20261009-method-minimap2`, `dna-pathogen-20261009-method-sourmash`, `dna-pathogen-20261009-method-megan-lr`, `dna-pathogen-20261009-method-metamaps` (after correction 6) and `discovery-model-mmseqs2`. There is no other MMseqs2, DeepMicrobes, BERTax, MetageNN or GeNet record, so the new models and pipelines are not duplicates. `discovery-model-mmseqs2` is a discovered method record tagged protein-function, but its reviewed profile describes nucleotide search and "configured taxonomic assignments", so reuse is right; its area facet is a separate question. The 27 BERTax configurations (one per tool and dataset) are justified because each dataset gives the tools a different reference or training partition. Method types: BERTax, DeepMicrobes, MetageNN and GeNet `supervised_machine_learning`; the MMseqs2 hybrids both tags; the database and alignment tools `conventional_pipeline`. Every evaluation is `author_reported`, which is right: Mock et al. developed BERTax and Moreno et al. developed MetageNN, and each ran every tool.
+Configuration links checked against the store: `catalog-model-kraken2`, `dna-pathogen-20261009-method-minimap2`, `dna-pathogen-20261009-method-sourmash`, `dna-pathogen-20261009-method-megan-lr`, `dna-pathogen-20261009-method-metamaps` (after correction 6) and `discovery-model-mmseqs2`. There is no other MMseqs2, DeepMicrobes, BERTax, MetageNN or GeNet record, so the new models and pipelines are not duplicates. `discovery-model-mmseqs2` is a discovered method record tagged protein-function, but its reviewed profile describes nucleotide search and "configured taxonomic assignments", so reuse is right; its area facet is a separate question. The 27 BERTax configurations (one per tool and dataset) are justified because each dataset gives the tools a different reference or training partition. Method types: BERTax, DeepMicrobes, MetageNN and GeNet `supervised_machine_learning`; the MMseqs2 hybrids both tags; the database and alignment tools `conventional_pipeline`. Every evaluation is `author_reported`, which is right: Mock et al. developed BERTax and Peres da Silva et al. developed MetageNN, and each ran every tool.
 
 ## New metric concept
 
@@ -174,11 +174,11 @@ The judgements were pinned with `npm run use-cases:repin -- docs/reviews/use-cas
 Applied to `use-case-diagnostic-dna-pathogen-identification` with `records -- change` and this review:
 
 - `assessed_by` links to the five protocols above.
-- Gap replaced. Old: "No machine-learning method has been compared with Kraken2, minimap2 or MEGAN-LR on the same data in the linked evidence." New: "In the linked evidence, machine-learning classifiers are compared with the baseline only on simulated or isolate-derived data, in papers by the developers of BERTax and MetageNN: BERTax and DeepMicrobes against Kraken2 and minimap2 on simulated 1,500-nt genome fragments at superkingdom, phylum and genus rank (Mock et al. 2022), and MetageNN against Kraken2 and MEGAN-LR on ONT reads from 30 pseudo-mock communities of species absent from the reference, where the only printed endpoint is the share of reads assigned at genus level, not whether they were assigned correctly (Moreno et al. 2024). No machine-learning method is compared with the baseline on clinical specimens or at species level."
+- Gap replaced. Old: "No machine-learning method has been compared with Kraken2, minimap2 or MEGAN-LR on the same data in the linked evidence." New: "In the linked evidence, machine-learning classifiers are compared with the baseline only on simulated or isolate-derived data, in papers by the developers of BERTax and MetageNN: BERTax and DeepMicrobes against Kraken2 and minimap2 on simulated 1,500-nt genome fragments at superkingdom, phylum and genus rank (Mock et al. 2022), and MetageNN against Kraken2 and MEGAN-LR on ONT reads from 30 pseudo-mock communities of species absent from the reference, where the only printed endpoint is the share of reads assigned at genus level, not whether they were assigned correctly (Peres da Silva et al. 2024). No machine-learning method is compared with the baseline on clinical specimens or at species level."
 
   This differs from the extractor's proposal in four ways. "Constructed data" is replaced by "simulated or isolate-derived data", because the MetageNN reads are real ONT reads. The MetageNN comparison is limited to the pseudo-mocks, because after correction 7 no linked judgement shows MetageNN beside a baseline on the isolates. It names the developer authorship. And it keeps "in the linked evidence". Checked against the baseline claim `use-case-baseline-diagnostic-dna-pathogen-identification` ("Kraken2 and minimap2 with MEGAN-LR", method IDs Kraken2, minimap2 and MEGAN-LR): BERTax scores Kraken2 and minimap2 (minimap2 alone, not with MEGAN-LR), MetageNN scores Kraken2 and MEGAN-LR on minimap2 alignments. No other linked protocol scores a machine-learning method beside these, so the last sentence holds.
-- Gap added: "Moreno et al. 2024 show per-tool sensitivity, precision and F1 for MetageNN, Kraken2, MEGAN-LR, MetaMaps and MMseqs2 only in Figures 3 and 4; these were not extracted."
-- Gap amended, because it listed only two indirect sources for organisms absent from the reference and would be incomplete with the new judgements active: it now adds "genus or species exclusion on non-clinical data (the distantly related set of Mock et al. 2022; out-of-database species in Moreno et al. 2024)". Its last sentence, "No clade-exclusion benchmark with a pathogen focus was extracted", still holds.
+- Gap added: "Peres da Silva et al. 2024 show per-tool sensitivity, precision and F1 for MetageNN, Kraken2, MEGAN-LR, MetaMaps and MMseqs2 only in Figures 3 and 4; these were not extracted."
+- Gap amended, because it listed only two indirect sources for organisms absent from the reference and would be incomplete with the new judgements active: it now adds "genus or species exclusion on non-clinical data (the distantly related set of Mock et al. 2022; out-of-database species in Peres da Silva et al. 2024)". Its last sentence, "No clade-exclusion benchmark with a pathogen focus was extracted", still holds.
 
 Not changed: `evidence_checked` (this was not a literature search), the collection plan, and the RNA fusion use case.
 
@@ -190,6 +190,16 @@ Checked with `deriveUseCaseInputs` on the store before and after these changes (
 - No mapping changed state: the 351 previously active mappings stay active, and the 20 withheld and 7 draft mappings are unchanged.
 - The baseline for DNA pathogen identification still publishes.
 - The DNA pathogen summary (`use-case-summary-diagnostic-dna-pathogen-identification`) is now withheld. A summary pins the reviewed evaluations of all the use case's reviewed judgements, so the five new judgements change its pins. Its text is still accurate as far as it goes, but it does not mention the new evidence. It is not rewritten or re-pinned here; that needs its own review. Every other use case's summary and baseline is unchanged.
+
+## Author-attribution correction
+
+Found by a separate Claude review agent while reviewing the summary (`dna-pathogen-summary-2026-10-12.md`). No human review is claimed. The MetageNN records cited "Moreno et al. 2024". The pinned article XML (`PMC11022314.xml.gz`, SHA-256 `ac4b1375...4e12`) names the authors as Rafael Peres da Silva, Chayaporn Suphavilai and Niranjan Nagarajan. "Moreno et al." is now "Peres da Silva et al." in this review and in:
+
+- `extract/extract_metagenn.py`. I ran it on the pinned XML before and after the fix: the generated `batch.jsonl` and `claims.csv` differ only in the name.
+- `batch.jsonl` (46 occurrences in 28 records: names, dataset versions and comparison titles) and `research.md`. The batch receipt `review.json` has the new hashes and lists this correction.
+- The store. The 58 batch records were replaced with the corrected `batch.jsonl` lines, and their provenance rows were written as `records -- add` writes them. A literal remove and re-add is refused, because the use case links to the batch's protocols. The two MetageNN judgements were re-pinned against this review, and the use case's two gap texts were corrected with `records -- change` against this review.
+
+No value, ID, status, locator or judgement outcome changed. Apart from the pins, each changed record differs from its previous version only in the name. The message of commit a264265, which added the batch, still says "Moreno et al. 2024".
 
 ## Remaining gaps
 

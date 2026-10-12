@@ -4,7 +4,7 @@ Part of the 2026-10-12 ML-versus-baseline pass for issue #121. No literature sea
 
 ## Why this source
 
-Moreno et al. 2024 compare MetageNN, a neural-network classifier, with Kraken2 and MEGAN-LR (two of the use case's three baseline tools) and with MMseqs2, MetaMaps and GeNet, on ONT reads, with every tool using the same 516-genome database. Its stated focus is reads from species missing from the reference, which is part of the use case's question.
+Peres da Silva et al. 2024 compare MetageNN, a neural-network classifier, with Kraken2 and MEGAN-LR (two of the use case's three baseline tools) and with MMseqs2, MetaMaps and GeNet, on ONT reads, with every tool using the same 516-genome database. Its stated focus is reads from species missing from the reference, which is part of the use case's question.
 
 ## What was extracted
 

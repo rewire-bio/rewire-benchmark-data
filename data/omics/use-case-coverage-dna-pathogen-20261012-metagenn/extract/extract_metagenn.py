@@ -1,4 +1,4 @@
-"""Extract the MetageNN (Moreno et al., BMC Bioinformatics 2024) method comparison into batch records.
+"""Extract the MetageNN (Peres da Silva et al., BMC Bioinformatics 2024) method comparison into batch records.
 
 Input (pinned, passed as an argument): the Europe PMC full-text XML of PMC11022314
 (sha256 ac4b137508d295d5e04e9be263bef40bdcf2c494e096407e5896611194f14e12), and the batch folder.
@@ -118,7 +118,7 @@ CONFIG = {}
 for tool, (name, target, mtypes, params) in TOOLS.items():
     cid = f"{P}-config-{tool}"
     CONFIG[tool] = cid
-    add({"id": cid, "kind": "configuration", "name": f"{name} (main database, Moreno et al. 2024)",
+    add({"id": cid, "kind": "configuration", "name": f"{name} (main database, Peres da Silva et al. 2024)",
          "description": f"{name} as run by the MetageNN authors with the 516-genome main database.",
          "status": "needs_review", "facets": {**FACETS, "method_types": mtypes}, "source_ids": [SRC],
          "links": [{"relation": "configuration_of", "target_id": target}],
@@ -128,22 +128,22 @@ for tool, (name, target, mtypes, params) in TOOLS.items():
                         "missing_metadata": {"version": {"reason": "unreported", "note": "No tool versions are given"}}}})
 
 # ---------------------------------------------------------------- data, benchmark, protocols
-add({"id": f"{P}-data-isolates", "kind": "dataset", "name": "ONT reads from 81 bacterial isolates (Moreno et al. 2024)",
+add({"id": f"{P}-data-isolates", "kind": "dataset", "name": "ONT reads from 81 bacterial isolates (Peres da Silva et al. 2024)",
      "description": "ONT R9.4.1 reads from NCBI SRA for 81 bacterial strains with verified RefSeq genomes (assembly ANI > 99%), subsampled to about 20,000 reads per isolate.",
      "status": "needs_review", "facets": FACETS, "source_ids": [SRC], "links": [],
-     "attributes": {"version": "As described in Moreno et al. 2024; SRA run lists in the authors' repository",
+     "attributes": {"version": "As described in Peres da Silva et al. 2024; SRA run lists in the authors' repository",
                     "population": "47 isolates whose species genome is in the main database ('Species in the database') and 34 whose genome is not ('Species out of the database')",
                     "split": "Two test datasets by database membership; MetageNN trained only on reference genomes",
                     "access": "SRA run IDs listed at https://github.com/csb5/MetageNN (data/list_of_sra_ids_species_in.txt and _out.txt)",
                     "source_locator": "Methods 'Data' and 'Databases'"}})
-add({"id": f"{P}-data-mocks", "kind": "dataset", "name": "30 ONT pseudo-mock communities of out-of-database species (Moreno et al. 2024)",
+add({"id": f"{P}-data-mocks", "kind": "dataset", "name": "30 ONT pseudo-mock communities of out-of-database species (Peres da Silva et al. 2024)",
      "description": "Pseudo-mock communities built from the isolate reads of species out of the database, 20 to 34 species each, up to 100,000 reads log-distributed across species.",
      "status": "needs_review", "facets": FACETS, "source_ids": [SRC], "links": [],
-     "attributes": {"version": "'Mock - Species out of DB' as described in Moreno et al. 2024",
+     "attributes": {"version": "'Mock - Species out of DB' as described in Peres da Silva et al. 2024",
                     "population": "30 pseudo-mock communities", "split": "Test only",
                     "access": "Not released; built from the listed SRA runs",
                     "source_locator": "Results 'MetageNN is more sensitive ... at the community-level for ONT pseudo-mock communities' Experimental setup"}})
-add({"id": f"{P}-benchmark", "kind": "benchmark", "name": "MetageNN long-read genus classification benchmark (Moreno et al. 2024)",
+add({"id": f"{P}-benchmark", "kind": "benchmark", "name": "MetageNN long-read genus classification benchmark (Peres da Silva et al. 2024)",
      "description": "Genus-level classification of ONT reads from bacterial isolates and pseudo-mock communities, with every tool using the same 516-genome database.",
      "status": "needs_review", "facets": FACETS, "source_ids": [SRC], "links": [],
      "attributes": {"entity_level": "suite", "version": "BMC Bioinformatics 2024, Table 1 and Results prose",
@@ -154,17 +154,17 @@ add({"id": f"{P}-benchmark", "kind": "benchmark", "name": "MetageNN long-read ge
                                     "The reference holds 516 genomes, far smaller than the databases clinical classifiers use.",
                                     "Genus level only; isolates from bacteria only."]}})
 PROTOS = {
-    "isolates": ("Genus-level read classification of ONT bacterial isolates, main database (Moreno et al. 2024)",
+    "isolates": ("Genus-level read classification of ONT bacterial isolates, main database (Peres da Silva et al. 2024)",
                  "Per-isolate sensitivity, precision and F1 of read assignments at genus level, averaged across isolates; reported for all isolates, species in the database and species out of the database, and by number of species per genus.",
                  f"{P}-data-isolates", "Results 'Evaluation metrics'; 'Results for all genomes'; 'Results for “Species out of the database” settings'",
                  "For each taxon, sensitivity is the proportion of its reads classified as such and precision the proportion of correctly classified reads; F1 is their harmonic mean. Averages are across bacterial isolates; Wilcoxon rank-sum tests compare MetageNN with each tool.",
                  "Test sets 'Species in the database' (47 isolates) and 'Species out of the database' (34 isolates)", "81 ONT bacterial isolates, about 20,000 reads each"),
-    "mocks": ("Read classification on 30 ONT pseudo-mock communities of out-of-database species (Moreno et al. 2024)",
+    "mocks": ("Read classification on 30 ONT pseudo-mock communities of out-of-database species (Peres da Silva et al. 2024)",
               "Average percentage of reads classified at genus level per tool across the 30 pseudo-mocks; community-level sensitivity, precision and F1 at 0.001, 0.1 and 1% thresholds appear only in Figure 4b.",
               f"{P}-data-mocks", "Results 'Read classification results'; 'Community-level results'",
               "Read classification: percentage of reads assigned at genus level, whether or not correctly. Community level: presence of a genus above a cumulative read-count threshold.",
               "Test only", "30 pseudo-mocks of 20 to 34 out-of-database species, up to 100,000 reads each"),
-    "resources": ("Database storage and classification speed on ONT data, main database (Moreno et al. 2024)",
+    "resources": ("Database storage and classification speed on ONT data, main database (Peres da Silva et al. 2024)",
                   "Memory needed to store each tool's database or model weights, and reads classified per second with four CPUs.",
                   f"{P}-data-isolates", "Table 1; Results 'MetageNN is faster and requires less storage than alignment and k-mer-based tools, respectively'",
                   "Speed includes database loading (Kraken2) and k-mer counting and dataset loading (MetageNN); four CPUs for all tools.",
@@ -300,7 +300,7 @@ for key, (order, stratum, headline, why, endpoint) in J.items():
                         "citation_locators": [{"source_id": SRC, "locator": PROTOS[key][3]}],
                         "source_locator": f"{SRC}: {PROTOS[key][3]}", "revision": 1,
                         "reason": "Drafted by the extracting agent in the 2026-10-12 ML-versus-baseline pass (issue #121; data/omics/use-case-coverage-dna-pathogen-20261012-metagenn). Not reviewed.",
-                        "comparison_group": "metagenn2024-ont", "comparison_title": "MetageNN against alignment and k-mer classifiers on ONT reads (Moreno et al. 2024)",
+                        "comparison_group": "metagenn2024-ont", "comparison_title": "MetageNN against alignment and k-mer classifiers on ONT reads (Peres da Silva et al. 2024)",
                         "headline_metric": headline, "stratum_label": stratum, "stratum_order": order,
                         "review": review(["scope-review"], "Judgement drafted by the extracting agent from the pinned article.")}})
 

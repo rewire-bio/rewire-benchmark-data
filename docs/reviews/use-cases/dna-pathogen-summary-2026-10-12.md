@@ -33,7 +33,7 @@ Origins and data: the text says both papers come from the developers of the trai
 
 ## Corrections
 
-1. MetageNN first author. The draft cited "Moreno et al. 2024". The pinned XML names Rafael Peres da Silva, Chayaporn Suphavilai and Niranjan Nagarajan. The text now says "Peres da Silva et al. 2024". The same wrong name is in the MetageNN batch's stored records, including the judgement names and the use case's gap text; those are not changed here and need their own reviewed fix.
+1. MetageNN first author. The draft cited "Moreno et al. 2024". The pinned XML names Rafael Peres da Silva, Chayaporn Suphavilai and Niranjan Nagarajan. The text now says "Peres da Silva et al. 2024". The same wrong name was in the MetageNN batch's stored records, including the judgement names and the use case's gap text. It is corrected there too and recorded in the Author-attribution correction section of `dna-pathogen-ml-baseline-2026-10-12.md`. That fix changed the comparison titles of the MetageNN evaluations, which this summary pins, so the summary was re-pinned after it. No value changed.
 2. MetageNN shares are means. The paper reports the average percentage across the 30 pseudo-mocks. The text now says "on average across 30 mixtures".
 3. MMseqs2 added to the MetageNN sentence. MMseqs2, a reference-based tool that is not in this use case's baseline, assigned 85.49% of reads on the same mixtures. Leaving it out made the gap between the trained classifier and reference-based tools look larger than the paper shows. It is a reviewed result on the active `metagenn-mocks` judgement.
 4. BERTax accuracy denominator. "with 99.82% and 99.95% accuracy" became "with 99.82% and 99.95% accuracy on the fragments they assigned", so the reader does not take it as accuracy over all fragments. "in the two settings" was added to BERTax's pair of accuracies.
@@ -43,10 +43,9 @@ Not changed: the draft's three added sources and its choice not to cite `dna-pat
 
 ## State after the change
 
-Checked with `deriveUseCaseInputs`: the summary publishes; the use-case and mapping output is otherwise identical to before the change.
+Checked with `deriveUseCaseInputs` against the store before this review: the summary publishes. The only other differences come from the author-name fix: the names and evidence hashes of the two MetageNN mappings, and the use case's two gap texts. Every mapping keeps its state and evaluations, and every other use case is identical.
 
 ## Remaining gaps
 
-- "Moreno et al. 2024" in the stored MetageNN records (see correction 1).
 - The claim's `description` still says "Draft until reviewed."; it is unchanged, as in other summaries.
 - No human scientific review.
