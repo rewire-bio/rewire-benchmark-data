@@ -1,0 +1,128 @@
+{
+  "use_case_id": "use-case-diagnostic-genomics-model-execution",
+  "bounds": {
+    "window": "2025-10-01 to 2026-10-11",
+    "cutoff_date": "2026-10-11",
+    "query_budget": 30,
+    "pass_ledger": "data/omics/lit-search-20261011-uc-execution/ledger.jsonl"
+  },
+  "existing_reused": [
+    "somatic-clairs-to-20261011-method-clair3"
+  ],
+  "new_record_counts": {
+    "claim": 6,
+    "configuration": 5,
+    "dataset": 2,
+    "evaluation": 12,
+    "model": 1,
+    "protocol": 5,
+    "result": 374,
+    "source": 2
+  },
+  "judgements": [
+    {
+      "claim_id": "use-case-mapping-model-execution-20261011-zheng2026-hg003-accuracy-ont",
+      "protocol_id": "model-execution-20261011-protocol-zheng2026-hg003-accuracy-ont",
+      "relevance": "proxy",
+      "comparison_group": "zheng2026-hg003-accuracy",
+      "stratum_label": "ONT",
+      "stratum_order": 1,
+      "headline_metric": "f1-score",
+      "evaluation_ids": [
+        "model-execution-20261011-eval-zheng2026-clair3-accuracy-hg003-accuracy-ont",
+        "model-execution-20261011-eval-zheng2026-clair3-pileup-accuracy-hg003-accuracy-ont",
+        "model-execution-20261011-eval-zheng2026-deepvariant-accuracy-hg003-accuracy-ont"
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261011-zheng2026-hg003-accuracy-pacbio",
+      "protocol_id": "model-execution-20261011-protocol-zheng2026-hg003-accuracy-pacbio",
+      "relevance": "proxy",
+      "comparison_group": "zheng2026-hg003-accuracy",
+      "stratum_label": "PacBio Revio",
+      "stratum_order": 2,
+      "headline_metric": "f1-score",
+      "evaluation_ids": [
+        "model-execution-20261011-eval-zheng2026-clair3-accuracy-hg003-accuracy-pacbio",
+        "model-execution-20261011-eval-zheng2026-clair3-pileup-accuracy-hg003-accuracy-pacbio",
+        "model-execution-20261011-eval-zheng2026-deepvariant-accuracy-hg003-accuracy-pacbio"
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261011-zheng2026-hg003-clair3-stage-runtime",
+      "protocol_id": "model-execution-20261011-protocol-zheng2026-hg003-clair3-stage-runtime",
+      "relevance": "proxy",
+      "comparison_group": "zheng2026-clair3-stages",
+      "headline_metric": "runtime",
+      "evaluation_ids": [
+        "model-execution-20261011-eval-zheng2026-clair3-1-2-0-gpu-hg003-clair3-stage-runtime-ont",
+        "model-execution-20261011-eval-zheng2026-clair3-1-2-0-gpu-hg003-clair3-stage-runtime-pacbio"
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261011-zheng2026-hg003-resource-ont",
+      "protocol_id": "model-execution-20261011-protocol-zheng2026-hg003-resource-ont",
+      "relevance": "proxy",
+      "comparison_group": "zheng2026-hg003-resources",
+      "stratum_label": "ONT",
+      "stratum_order": 1,
+      "headline_metric": "runtime",
+      "evaluation_ids": [
+        "model-execution-20261011-eval-zheng2026-clair3-1-2-0-gpu-hg003-resource-ont",
+        "model-execution-20261011-eval-zheng2026-deepvariant-1-10-beta-gpu-hg003-resource-ont"
+      ]
+    },
+    {
+      "claim_id": "use-case-mapping-model-execution-20261011-zheng2026-hg003-resource-pacbio",
+      "protocol_id": "model-execution-20261011-protocol-zheng2026-hg003-resource-pacbio",
+      "relevance": "proxy",
+      "comparison_group": "zheng2026-hg003-resources",
+      "stratum_label": "PacBio Revio",
+      "stratum_order": 2,
+      "headline_metric": "runtime",
+      "evaluation_ids": [
+        "model-execution-20261011-eval-zheng2026-clair3-1-2-0-gpu-hg003-resource-pacbio",
+        "model-execution-20261011-eval-zheng2026-deepvariant-1-10-beta-gpu-hg003-resource-pacbio"
+      ]
+    }
+  ],
+  "status": "source_checked; independently reviewed by reviewer-exec (docs/reviews/use-cases/diagnostic-genomics-model-execution-2026-10-12.md); the five judgements are withheld by the source concern on the supplement (review C2)",
+  "vocabulary_additions": {
+    "files": [
+      "data/vocab/metric.ttl",
+      "data/vocab/unit.ttl"
+    ],
+    "metric": [
+      "cpu-time",
+      "data-io-volume",
+      "energy-efficiency",
+      "maximum-batch-size",
+      "mean-memory",
+      "power-draw",
+      "throughput-change"
+    ],
+    "unit": [
+      "megabyte",
+      "sample-per-joule",
+      "watt"
+    ],
+    "used_by": {
+      "mean-memory": "clair3gpu",
+      "data-io-volume": "clair3gpu",
+      "megabyte": "clair3gpu",
+      "power-draw": "fp8genomeocean",
+      "energy-efficiency": "fp8genomeocean",
+      "throughput-change": "fp8genomeocean",
+      "watt": "fp8genomeocean",
+      "sample-per-joule": "fp8genomeocean",
+      "maximum-batch-size": "moderngena",
+      "cpu-time": "dnascopehybrid"
+    },
+    "note": "Shared by all five 2026-10-11 execution batches. megabyte and watt carry skos:exactMatch to QUDT unit:MegaBYTE and unit:W after checking their QUDT Turtle (2026-10-11T21:44Z: MegaBYTE 'Megabyte', symbol MB, quantity kind AmountOfData; W, quantity kinds Power and ElectricPower). The seven metrics and sample-per-joule have no STATO or QUDT match claimed. They need review like a record change."
+  },
+  "remaining_gaps": [
+    "Figure 2a runtimes (CPU modes, Clair3 v0.1) are plot-only.",
+    "Hardware is not stated in Supplementary Table 2 itself; the Methods give it for the GPU benchmarks (review C4).",
+    "Accuracy and runtime tables are not stated to come from the same runs."
+  ]
+}
