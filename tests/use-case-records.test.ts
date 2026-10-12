@@ -57,18 +57,24 @@ describe("use cases as records", () => {
         review: { method: ["automated-source-review"], reviewer: ["claude"], reviewer_note: "test", reviewed_at: "2026-10-12T00:00:00Z", note: "test" },
       },
     } as unknown as CatalogueRecord;
+    // Without the use case's reviewed baseline, so the draft is the only one.
+    const others = store.filter((r) => r.id !== "use-case-baseline-tumour-dna-somatic-variant-detection");
     const baselineOf = (records: CatalogueRecord[]) => derive(records).use_cases.find((u) => u.id === useCaseId)!.baseline;
-    expect(baselineOf([...store, draft])).toBeUndefined(); // no pins yet
-    const pinned = { ...draft, attributes: { ...draft.attributes, pins: claimPins(new Map([...store, draft].map((r) => [r.id, r])), draft) } };
-    expect(baselineOf([...store, pinned])).toEqual({
+    expect(baselineOf([...others, draft])).toBeUndefined(); // no pins yet
+    const pinned = { ...draft, attributes: { ...draft.attributes, pins: claimPins(new Map([...others, draft].map((r) => [r.id, r])), draft) } };
+    expect(baselineOf([...others, pinned])).toEqual({
       name: "Mutect2", method_ids: ["somatic-20261009-method-mutect2"],
       rationale: "The established statistical tumour-normal caller.", source_ids: ["somatic-20261009-source-wang2020"],
     });
     // A change to the question it answers withholds it until it is reviewed again.
-    const changed = edit(useCaseId, (r) => ({ ...r, attributes: { ...r.attributes, question: "A different question?" } }));
+    const changed = edit(useCaseId, (r) => ({ ...r, attributes: { ...r.attributes, question: "A different question?" } }))
+      .filter((r) => r.id !== "use-case-baseline-tumour-dna-somatic-variant-detection");
     expect(baselineOf([...changed, pinned])).toBeUndefined();
     // So does naming a method that is not in the store.
-    expect(baselineOf([...store, { ...pinned, attributes: { ...pinned.attributes, method_ids: ["no-such-method"] } }])).toBeUndefined();
+    expect(baselineOf([...others, { ...pinned, attributes: { ...pinned.attributes, method_ids: ["no-such-method"] } }])).toBeUndefined();
+    // A descriptive "baseline" claim on a protocol is not a use-case baseline and gets no pins.
+    const onProtocol = store.find((r) => r.id === "structural-20261009-claim-smorodina2026-random-baseline")!;
+    expect(claimPins(new Map(store.map((r) => [r.id, r])), onProtocol)).toBeUndefined();
   });
 
   it("withholds a judgement when a pinned field changes meaning", () => {

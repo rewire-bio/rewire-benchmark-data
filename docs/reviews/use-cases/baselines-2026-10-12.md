@@ -11,6 +11,7 @@ Reviewer: a separate Claude review agent that did not propose these claims. No h
 - 10 use cases get an evidence-gap sentence: 6 where no comparison scores a machine-learning method beside the baseline, and 4 where only one part of a two-part baseline has such a comparison.
 - 6 use cases get no gap sentence because the only obstacle is a missing or wrong method-type tag. These records are listed below for a separate reviewed PR. No tag is changed here.
 - No method record was added. No numerical value or result was changed.
+- `claimPins` pinned any reviewed claim with field `baseline`, including the older descriptive claim `structural-20261009-claim-smorodina2026-random-baseline` on a protocol. It now pins only baselines whose subject is a use case, and that claim is restored unchanged.
 - After merging main, the MassSpecGym in the Wild judgements added a random-ranking row to the mass-spectrum use case. Its rationale was corrected again (below) with `records -- change`. Every other comparison count is unchanged.
 
 ## How the check was done
