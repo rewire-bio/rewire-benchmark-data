@@ -1,0 +1,103 @@
+{
+  "use_case_ids": [
+    "use-case-diagnostic-dna-pathogen-identification"
+  ],
+  "batch": "data/omics/use-case-coverage-dna-pathogen-20261011-wolf2026",
+  "cutoff_date": "2026-10-11",
+  "window": "2025-10-01 to 2026-10-11",
+  "search_ledger": "data/omics/lit-search-20261011-uc-pathogens/ledger.jsonl",
+  "queries_used": {
+    "dna": 28,
+    "rna": 25
+  },
+  "query_budget": {
+    "dna": 30,
+    "rna": 30
+  },
+  "sources_extracted_in_pass": 5,
+  "source_limit": 6,
+  "existing_reused": [],
+  "new_record_counts": {
+    "benchmark": 1,
+    "claim": 4,
+    "configuration": 2,
+    "dataset": 2,
+    "evaluation": 4,
+    "protocol": 3,
+    "result": 44,
+    "service": 1,
+    "source": 1
+  },
+  "vocabulary_additions": {},
+  "judgements": [
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261011-wolf2026-diagnosis",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261011-wolf2026-protocol-diagnosis",
+      "relevance": "proxy",
+      "comparison_group": "wolf2026-plasma-mcfdna",
+      "stratum_label": "Diagnosis (day 0 or 1)",
+      "stratum_order": 1,
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "dna-pathogen-20261011-wolf2026-eval-diagnosis"
+      ]
+    },
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261011-wolf2026-prediction",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261011-wolf2026-protocol-prediction",
+      "relevance": "proxy",
+      "comparison_group": "wolf2026-plasma-mcfdna",
+      "stratum_label": "Prediction (day -3 to -1)",
+      "stratum_order": 2,
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "dna-pathogen-20261011-wolf2026-eval-prediction"
+      ]
+    },
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261011-wolf2026-specificity",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261011-wolf2026-protocol-specificity",
+      "relevance": "proxy",
+      "comparison_group": "wolf2026-plasma-mcfdna",
+      "stratum_label": "Control samples",
+      "stratum_order": 3,
+      "headline_metric": "specificity",
+      "evaluation_ids": [
+        "dna-pathogen-20261011-wolf2026-eval-specificity-all",
+        "dna-pathogen-20261011-wolf2026-eval-specificity-cutoff140"
+      ]
+    }
+  ],
+  "use_case_changes": {
+    "add_links": {
+      "use-case-diagnostic-dna-pathogen-identification": [
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261011-wolf2026-protocol-diagnosis"
+        },
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261011-wolf2026-protocol-prediction"
+        },
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261011-wolf2026-protocol-specificity"
+        }
+      ]
+    },
+    "note": "Links are added to the use_case records by the integrator after review (records -- change), as for the 2026-10-09 batches. The summary proposals are in data/omics/lit-search-20261011-uc-pathogens/report.md."
+  },
+  "gaps": [
+    "Day-by-day sensitivity (Figure 2, appendix pp 9 and 17-19) not extracted.",
+    "Appendix PDF not retrieved.",
+    "Assay, pipeline and database versions not stated."
+  ],
+  "concerns_for_reviewer": [
+    "The diagnosis judgement is proposed as direct: same assay type (Karius plasma mcfDNA) and endpoint (agreement with blood culture) as the use case's anchor, in a paediatric high-risk leukaemia population. Decide direct or proxy.",
+    "Karius provided testing and took part in processing and analysis; one author is a Karius employee. Origin recorded as author_reported.",
+    "Table 3 specificity denominators are taken as 162 from the column header 'Negative (n=162)'; the cutoff rows use the same denominator."
+  ]
+}

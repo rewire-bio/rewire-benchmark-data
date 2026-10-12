@@ -1,0 +1,69 @@
+{
+  "use_case_ids": [
+    "use-case-diagnostic-rna-pathogen-detection"
+  ],
+  "batch": "data/omics/use-case-coverage-rna-pathogen-20261011-sanderson2026",
+  "cutoff_date": "2026-10-11",
+  "window": "2025-10-01 to 2026-10-11",
+  "search_ledger": "data/omics/lit-search-20261011-uc-pathogens/ledger.jsonl",
+  "queries_used": {
+    "dna": 28,
+    "rna": 25
+  },
+  "query_budget": {
+    "dna": 30,
+    "rna": 30
+  },
+  "sources_extracted_in_pass": 5,
+  "source_limit": 6,
+  "existing_reused": [],
+  "new_record_counts": {
+    "claim": 2,
+    "configuration": 2,
+    "dataset": 1,
+    "evaluation": 2,
+    "method": 1,
+    "protocol": 1,
+    "result": 14,
+    "source": 1
+  },
+  "vocabulary_additions": {},
+  "judgements": [
+    {
+      "judgement_id": "use-case-mapping-rna-pathogen-20261011-sanderson2026-validation",
+      "use_case_id": "use-case-diagnostic-rna-pathogen-detection",
+      "protocol_id": "rna-pathogen-20261011-sanderson2026-protocol-validation",
+      "relevance": "proxy",
+      "comparison_group": "sanderson2026-nanopore-nps",
+      "stratum_label": "Validation set",
+      "stratum_order": 1,
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "rna-pathogen-20261011-sanderson2026-eval-alternative",
+        "rna-pathogen-20261011-sanderson2026-eval-prespecified"
+      ]
+    }
+  ],
+  "use_case_changes": {
+    "add_links": {
+      "use-case-diagnostic-rna-pathogen-detection": [
+        {
+          "relation": "assessed_by",
+          "target_id": "rna-pathogen-20261011-sanderson2026-protocol-validation"
+        }
+      ]
+    },
+    "note": "Links are added to the use_case records by the integrator after review (records -- change), as for the 2026-10-09 batches. The summary proposals are in data/omics/lit-search-20261011-uc-pathogens/report.md."
+  },
+  "gaps": [
+    "Tables 1 to 3 are images in the preprint; only values printed in the Results text were extracted.",
+    "Journal of Infection version (10.1016/j.jinf.2026.106839) not retrieved (HTTP 403) or compared.",
+    "Derivation-set results (43/67, 1151/1154) not extracted."
+  ],
+  "concerns_for_reviewer": [
+    "Abstract specificity 3836/3845 against Results 3901/3910 (source_anomaly on the pre-specified specificity result). Decide between a result note, a result-level dispute and a source concern.",
+    "Alternative-criterion sensitivity 159/274: the sentence calls 274 'samples passing batch controls', while 260 elsewhere counts PCR-positive targets (source_anomaly).",
+    "The judgement is proposed as direct (pre-specified criteria validated on an independent prospective set, same endpoint as the use case's anchor). The alternative criterion is post hoc. Decide direct or proxy, or exclude the alternative evaluation.",
+    "Per-pathogen sensitivities are recorded under the pre-specified evaluation, as the Results paragraph states ('using pre-specified criteria')."
+  ]
+}

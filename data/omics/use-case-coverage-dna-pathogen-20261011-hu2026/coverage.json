@@ -1,0 +1,106 @@
+{
+  "use_case_ids": [
+    "use-case-diagnostic-dna-pathogen-identification"
+  ],
+  "batch": "data/omics/use-case-coverage-dna-pathogen-20261011-hu2026",
+  "cutoff_date": "2026-10-11",
+  "window": "2025-10-01 to 2026-10-11",
+  "search_ledger": "data/omics/lit-search-20261011-uc-pathogens/ledger.jsonl",
+  "queries_used": {
+    "dna": 28,
+    "rna": 25
+  },
+  "query_budget": {
+    "dna": 30,
+    "rna": 30
+  },
+  "sources_extracted_in_pass": 5,
+  "source_limit": 6,
+  "existing_reused": [],
+  "new_record_counts": {
+    "benchmark": 1,
+    "claim": 4,
+    "configuration": 2,
+    "dataset": 1,
+    "evaluation": 6,
+    "method": 1,
+    "protocol": 3,
+    "result": 108,
+    "source": 2
+  },
+  "vocabulary_additions": {},
+  "judgements": [
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261011-hu2026-cmt",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261011-hu2026-protocol-cmt",
+      "relevance": "proxy",
+      "comparison_group": "hu2026-balf-ngs-tgs",
+      "stratum_label": "Clinical microbiological tests (CMT)",
+      "stratum_order": 2,
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "dna-pathogen-20261011-hu2026-eval-cmt-hdont",
+        "dna-pathogen-20261011-hu2026-eval-cmt-mgi"
+      ]
+    },
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261011-hu2026-crs",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261011-hu2026-protocol-crs",
+      "relevance": "proxy",
+      "comparison_group": "hu2026-balf-ngs-tgs",
+      "stratum_label": "Composite reference standard (CRS)",
+      "stratum_order": 3,
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "dna-pathogen-20261011-hu2026-eval-crs-hdont",
+        "dna-pathogen-20261011-hu2026-eval-crs-mgi"
+      ]
+    },
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261011-hu2026-culture",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261011-hu2026-protocol-culture",
+      "relevance": "proxy",
+      "comparison_group": "hu2026-balf-ngs-tgs",
+      "stratum_label": "Culture",
+      "stratum_order": 1,
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "dna-pathogen-20261011-hu2026-eval-culture-hdont",
+        "dna-pathogen-20261011-hu2026-eval-culture-mgi"
+      ]
+    }
+  ],
+  "use_case_changes": {
+    "add_links": {
+      "use-case-diagnostic-dna-pathogen-identification": [
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261011-hu2026-protocol-cmt"
+        },
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261011-hu2026-protocol-crs"
+        },
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261011-hu2026-protocol-culture"
+        }
+      ]
+    },
+    "note": "Links are added to the use_case records by the integrator after review (records -- change), as for the 2026-10-09 batches. The summary proposals are in data/omics/lit-search-20261011-uc-pathogens/report.md."
+  },
+  "gaps": [
+    "Mock-community detection (Supplemental Tables S1 and S2) is per-organism rows with prose aggregates; not extracted.",
+    "Software and database versions are not stated.",
+    "Specimen-level (patient-level) agreement is not reported; only organism-level 2x2 tables."
+  ],
+  "concerns_for_reviewer": [
+    "Table 2 HD-ONT NPA against CMT is printed 79.2% but the block's counts give 42/52 = 80.8% (source_anomaly on the result). Decide whether a result-level dispute is warranted.",
+    "The CRS adds organisms detected by both sequencing workflows (incorporation bias). Check the limitation wording.",
+    "A co-corresponding author is from Genskey (clinical mNGS provider) while the article declares no conflict; origin is author_reported. Confirm.",
+    "Organism scope (all, bacteria, fungi) is held in metric_qualifier within one protocol per reference standard; check that this grouping is acceptable."
+  ]
+}

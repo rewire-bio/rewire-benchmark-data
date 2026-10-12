@@ -1,0 +1,71 @@
+{
+  "use_case_ids": [
+    "use-case-diagnostic-dna-pathogen-identification"
+  ],
+  "batch": "data/omics/use-case-coverage-dna-pathogen-20261011-huang2026",
+  "cutoff_date": "2026-10-11",
+  "window": "2025-10-01 to 2026-10-11",
+  "search_ledger": "data/omics/lit-search-20261011-uc-pathogens/ledger.jsonl",
+  "queries_used": {
+    "dna": 28,
+    "rna": 25
+  },
+  "query_budget": {
+    "dna": 30,
+    "rna": 30
+  },
+  "sources_extracted_in_pass": 5,
+  "source_limit": 6,
+  "existing_reused": [],
+  "new_record_counts": {
+    "claim": 2,
+    "configuration": 4,
+    "dataset": 1,
+    "evaluation": 4,
+    "method": 4,
+    "protocol": 1,
+    "result": 80,
+    "source": 1
+  },
+  "vocabulary_additions": {},
+  "judgements": [
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261011-huang2026-clinical-diagnosis",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261011-huang2026-protocol-clinical-diagnosis",
+      "relevance": "proxy",
+      "comparison_group": "huang2026-blood-sepsis",
+      "stratum_label": "122 ICU patients",
+      "stratum_order": 1,
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "dna-pathogen-20261011-huang2026-eval-bstngs",
+        "dna-pathogen-20261011-huang2026-eval-cmt",
+        "dna-pathogen-20261011-huang2026-eval-culture",
+        "dna-pathogen-20261011-huang2026-eval-mngs"
+      ]
+    }
+  ],
+  "use_case_changes": {
+    "add_links": {
+      "use-case-diagnostic-dna-pathogen-identification": [
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261011-huang2026-protocol-clinical-diagnosis"
+        }
+      ]
+    },
+    "note": "Links are added to the use_case records by the integrator after review (records -- change), as for the 2026-10-09 batches. The summary proposals are in data/omics/lit-search-20261011-uc-pathogens/report.md."
+  },
+  "gaps": [
+    "Unit counts for Table 2 are not printed; only percentages with intervals.",
+    "BALF-mNGS has no row in Table 2 (it is part of the reference).",
+    "Supplementary methods (DOCX) not inspected."
+  ],
+  "concerns_for_reviewer": [
+    "The reference diagnosis incorporates NGS and CMT results; CMT is both a comparator and part of the reference.",
+    "Fungal blood culture PPV printed 0.00% (0.00% to 0.00%) with a zero denominator (source_anomaly).",
+    "The p value column is attached to accuracy as reported_p_value because Results paragraph 'Comparative diagnostic performance' ties the p values to accuracy; Table 2 does not label which metric the p value tests. Confirm.",
+    "Licence CC BY-NC-ND: no artifact archived."
+  ]
+}
