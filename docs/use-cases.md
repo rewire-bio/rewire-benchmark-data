@@ -30,6 +30,23 @@ Each use case can also carry a summary claim (`field` `summary`): a short, descr
 
 `npm run use-cases:repin -- <review.md>` pins reviewed claims that have no pins yet. After a re-review, name the claims: `npm run use-cases:repin -- <review.md> <claim-id>...`. Only a reviewed change of form that alters no meaning, such as a vocabulary relabel or a relation rename, justifies `--all`. Each pinned claim is recorded in provenance. The release workflow refuses a release that withholds or drops a judgement the previous release served, unless its claim was excluded or superseded (`scripts/release/next.mjs withheld`).
 
+## Collection plans and the use-case label
+
+`collection_plan` is optional. It records one further comparison Rewire wants measured for the question (`comparison_question`, `baselines`, `outcomes`, `validation_requirements`, `next_step`), with `status` `planned` or `collecting`. It is not a measure of how much evidence the use case has.
+
+The website derives the label on each use-case card from the evidence, not from the plan:
+
+- with at least one active judgement, the card says "Evidence reviewed" with the counts on the use-case page ("3 comparisons shown · 1 held for review · 6 tools") and links to the evidence; the plan stays on the use-case page, collapsed under the evidence;
+- with no active judgement, the card shows the plan's status ("Collection planned" or "Collecting evidence") and links to the plan.
+
+So the label updates by itself when judgements become active or are withheld. Do not edit `collection_plan.status` to reflect new evidence. Keep the plan current instead:
+
+1. Set `status` to `collecting` when work on the plan's own comparison starts, for example when a rewire-benchmarks protocol or run task exists for it.
+2. Update `next_step` when the next task changes, for example after a literature pass closes part of a gap or a run issue is opened.
+3. Remove the plan when its comparison is answered by a reviewed judgement or is dropped, and say which in the dated review.
+
+`collection_plan` is not a pinned field, so editing it does not withhold judgements. Change it with `npm run records -- change` and a dated review, like any other use-case field. Each literature pass or monthly refresh that touches a use case checks that its plan is still accurate, and the reviewer approves any change.
+
 ## Content and evidence ownership
 
 - Use cases and their first judgements were curated by Codex and Claude research agents with independent automated cross-review. Recorded actors and methods mean automated review, not human domain review or experimental replication.
