@@ -1,0 +1,128 @@
+{
+  "use_case_ids": [
+    "use-case-diagnostic-dna-pathogen-identification"
+  ],
+  "batch": "data/omics/use-case-coverage-dna-pathogen-20261012-bertax",
+  "cutoff_date": "2026-10-12",
+  "scope": "Issue #121 named source; bounded single-source extraction, not a literature search",
+  "existing_reused": [
+    "catalog-model-kraken2",
+    "discovery-model-mmseqs2",
+    "dna-pathogen-20261009-method-minimap2",
+    "dna-pathogen-20261009-method-sourmash",
+    "use-case-diagnostic-dna-pathogen-identification"
+  ],
+  "new_record_counts": {
+    "benchmark": 1,
+    "claim": 6,
+    "configuration": 27,
+    "dataset": 3,
+    "evaluation": 27,
+    "model": 2,
+    "pipeline": 2,
+    "protocol": 3,
+    "result": 153,
+    "source": 3
+  },
+  "vocabulary_additions": {},
+  "judgements": [
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261012-bertax-closely",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261012-bertax-protocol-closely",
+      "relevance": "proxy",
+      "comparison_group": "bertax2022-fragments",
+      "stratum_label": "Closely related (test genera present in the reference)",
+      "stratum_order": 1,
+      "headline_metric": "macro-average-precision",
+      "evaluation_ids": [
+        "dna-pathogen-20261012-bertax-eval-bertax-closely",
+        "dna-pathogen-20261012-bertax-eval-deepmicrobes-closely",
+        "dna-pathogen-20261012-bertax-eval-kraken2-closely",
+        "dna-pathogen-20261012-bertax-eval-minimap2-closely",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-bertax-closely",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-closely",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-deepmicrobes-closely",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-taxonomy-closely",
+        "dna-pathogen-20261012-bertax-eval-sourmash-closely"
+      ]
+    },
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261012-bertax-distantly",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261012-bertax-protocol-distantly",
+      "relevance": "proxy",
+      "comparison_group": "bertax2022-fragments",
+      "stratum_label": "Distantly related (test genera absent from the reference)",
+      "stratum_order": 2,
+      "headline_metric": "macro-average-precision",
+      "evaluation_ids": [
+        "dna-pathogen-20261012-bertax-eval-bertax-distantly",
+        "dna-pathogen-20261012-bertax-eval-deepmicrobes-distantly",
+        "dna-pathogen-20261012-bertax-eval-kraken2-distantly",
+        "dna-pathogen-20261012-bertax-eval-minimap2-distantly",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-bertax-distantly",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-deepmicrobes-distantly",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-distantly",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-taxonomy-distantly",
+        "dna-pathogen-20261012-bertax-eval-sourmash-distantly"
+      ]
+    },
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261012-bertax-final",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261012-bertax-protocol-final",
+      "relevance": "proxy",
+      "comparison_group": "bertax2022-fragments",
+      "stratum_label": "Final model dataset (larger reference, genus rank added)",
+      "stratum_order": 3,
+      "headline_metric": "macro-average-precision",
+      "evaluation_ids": [
+        "dna-pathogen-20261012-bertax-eval-bertax-final",
+        "dna-pathogen-20261012-bertax-eval-deepmicrobes-final",
+        "dna-pathogen-20261012-bertax-eval-kraken2-final",
+        "dna-pathogen-20261012-bertax-eval-minimap2-final",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-bertax-final",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-deepmicrobes-final",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-final",
+        "dna-pathogen-20261012-bertax-eval-mmseqs2-taxonomy-final",
+        "dna-pathogen-20261012-bertax-eval-sourmash-final"
+      ]
+    }
+  ],
+  "use_case_changes": {
+    "add_links": {
+      "use-case-diagnostic-dna-pathogen-identification": [
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261012-bertax-protocol-closely"
+        },
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261012-bertax-protocol-distantly"
+        },
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261012-bertax-protocol-final"
+        }
+      ]
+    },
+    "note": "Links are added to the use_case records by the integrator after review (records -- change). Proposed evidence-gap text is in report.md of the ML-versus-baseline pass, not in the store."
+  },
+  "gaps": [
+    "Table 1 and SI Table S2 random rows (chance reference) not extracted.",
+    "SI Tables S1, S3, S4, S6 and S7 compare BERTax architectures or ablations only; not extracted.",
+    "Micro- and macro-averaged PR and ROC curves (SI Figures S3-S10) and confusion matrices are figures; not read.",
+    "No tool versions are stated for Kraken2, minimap2, sourmash, MMseqs2 or DeepMicrobes.",
+    "MEGAN-LR, the third named baseline, is not compared in this source.",
+    "No uncertainty is printed for any value."
+  ],
+  "concerns_for_reviewer": [
+    "Results prints 95.20% for BERTax phylum AveP on the final dataset; Table 1 and SI Table S7 print 95.10. The table value is recorded with source_discrepancy and a claim. Decide whether a source evidence_concern is warranted.",
+    "The PNAS PDF was fetched through a browser (curl gets HTTP 403) and its bytes were not saved. Re-fetch in a browser and check the SHA-256, or check Table 1 against the archived text-layer excerpt and SI Table S7.",
+    "SI Table S2 does not say whether acc. is over all samples or only classified samples; the protocol records this as a limitation. Check the metric and qualifier.",
+    "MMseqs2 is linked to discovery-model-mmseqs2, a discovered record in the protein-function area; confirm reuse.",
+    "One configuration per tool and dataset (27) because each dataset has its own reference and training partition. Confirm this granularity.",
+    "Licence is CC BY-NC-ND 4.0, so only factual table excerpts are archived."
+  ]
+}

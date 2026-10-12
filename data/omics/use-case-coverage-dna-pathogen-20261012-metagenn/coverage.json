@@ -1,0 +1,99 @@
+{
+  "use_case_ids": [
+    "use-case-diagnostic-dna-pathogen-identification"
+  ],
+  "batch": "data/omics/use-case-coverage-dna-pathogen-20261012-metagenn",
+  "cutoff_date": "2026-10-12",
+  "scope": "Issue #121 named source; bounded single-source extraction, not a literature search",
+  "existing_reused": [
+    "catalog-model-kraken2",
+    "discovery-model-mmseqs2",
+    "dna-pathogen-20261009-method-megan-lr",
+    "dna-pathogen-20261009-method-metamaps",
+    "use-case-diagnostic-dna-pathogen-identification"
+  ],
+  "new_record_counts": {
+    "benchmark": 1,
+    "claim": 5,
+    "configuration": 6,
+    "dataset": 2,
+    "evaluation": 14,
+    "model": 2,
+    "protocol": 3,
+    "result": 24,
+    "source": 1
+  },
+  "vocabulary_additions": {
+    "metric": [
+      "reference-storage-size"
+    ]
+  },
+  "judgements": [
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261012-metagenn-isolates",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261012-metagenn-protocol-isolates",
+      "relevance": "proxy",
+      "comparison_group": "metagenn2024-ont",
+      "stratum_label": "ONT bacterial isolates",
+      "stratum_order": 1,
+      "headline_metric": "recall",
+      "evaluation_ids": [
+        "dna-pathogen-20261012-metagenn-eval-kraken2-isolates",
+        "dna-pathogen-20261012-metagenn-eval-metagenn-isolates",
+        "dna-pathogen-20261012-metagenn-eval-mmseqs2-isolates"
+      ]
+    },
+    {
+      "judgement_id": "use-case-mapping-dna-pathogen-20261012-metagenn-mocks",
+      "use_case_id": "use-case-diagnostic-dna-pathogen-identification",
+      "protocol_id": "dna-pathogen-20261012-metagenn-protocol-mocks",
+      "relevance": "proxy",
+      "comparison_group": "metagenn2024-ont",
+      "stratum_label": "Pseudo-mock communities of out-of-database species",
+      "stratum_order": 2,
+      "headline_metric": "proportion",
+      "evaluation_ids": [
+        "dna-pathogen-20261012-metagenn-eval-kraken2-mocks",
+        "dna-pathogen-20261012-metagenn-eval-megan-lr-mocks",
+        "dna-pathogen-20261012-metagenn-eval-metagenn-mocks",
+        "dna-pathogen-20261012-metagenn-eval-metamaps-mocks",
+        "dna-pathogen-20261012-metagenn-eval-mmseqs2-mocks"
+      ]
+    }
+  ],
+  "use_case_changes": {
+    "add_links": {
+      "use-case-diagnostic-dna-pathogen-identification": [
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261012-metagenn-protocol-isolates"
+        },
+        {
+          "relation": "assessed_by",
+          "target_id": "dna-pathogen-20261012-metagenn-protocol-mocks"
+        }
+      ]
+    },
+    "note": "Links are added to the use_case records by the integrator after review (records -- change). Proposed evidence-gap text is in report.md of the ML-versus-baseline pass, not in the store."
+  },
+  "gaps": [
+    "Per-tool sensitivity, precision and F1 for all isolates, species in and out of the database and the three genus-size strata are shown only in Figure 3 (values drawn on the figure); only the four values printed in the text are extracted.",
+    "Community-level sensitivity, precision and F1 at 0.001, 0.1 and 1% thresholds are only in Figure 4b; not read.",
+    "Figure 2 (MetageNN, GeNet and DeepMicrobes on the 47-genome small database; epoch time, speed, F1) compares machine-learning methods only and was not extracted, including its prose values.",
+    "Relative improvements printed in the text (sensitivity gains of 100%, 23%, 17% and 36%; memory reductions of 77%, 61%, 83% and 96%) were not recorded.",
+    "The authors' repository (csb5/MetageNN at d7c858cee1b88bf78fb1ea7d120b3be180a52b69) holds code and genome or SRA lists, no result tables.",
+    "No tool versions are stated."
+  ],
+  "concerns_for_reviewer": [
+    "Table 1 prints Kraken2 speed as 13.471 reads/sec; the Results text says 13,471 and calls Kraken2 the fastest. The cell is recorded with numeric_value null and source_discrepancy, and the text value as a separate result. Decide whether a source evidence_concern is warranted.",
+    "Database storage memory uses a new metric concept, reference-storage-size (data/vocab/metric.ttl). Review it like a record change.",
+    "The resources protocol links to the isolate dataset although the article does not say which reads were timed.",
+    "The isolates protocol carries baseline values (all isolates) and one MetageNN stratum (out-of-database, more than three species per genus) with no shared subset; check that this is acceptable as one protocol.",
+    "MEGAN-LR here runs on minimap2 nucleotide alignments; minimap2 is not scored on its own."
+  ],
+  "review_corrections": [
+    "dna-pathogen-20261012-metagenn-method-metamaps removed at review: it duplicated dna-pathogen-20261009-method-metamaps, which config-metamaps now configures.",
+    "dna-pathogen-20261012-metagenn-eval-metagenn-isolates excluded from the isolates judgement: its printed values cover a subset with no printed baseline value."
+  ]
+}

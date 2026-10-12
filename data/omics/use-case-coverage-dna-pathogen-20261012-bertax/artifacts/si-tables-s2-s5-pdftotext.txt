@@ -1,0 +1,33 @@
+Table S2: Comparison of the accuracy (acc.) and the proportion (prop.) of the predicted samples per
+method on the closely and the distantly related dataset.
+
+                                      closely related dataset                    distantly related dataset
+            Tool                 superkingdom           phylum               superkingdom           phylum
+                                 acc.     prop.      acc.     prop.          acc.     prop.      acc.    prop.
+
+ MMseqs2                        99.63      87.45    97.30        87.45       90.73    52.78      75.04     52.78
+ MMseqs2 taxonomy∗              98.06      92.69    92.62        92.69       80.50    71.37      59.19     71.37
+ minimap2                       99.95      75.59    99.55        75.59       94.42    19.88      77.12     19.88
+ Kraken2                        99.82      76.11    98.82        75.95       90.71    21.56      68.26     21.08
+ sourmash                       99.96       6.91    99.81         6.90       99.56     0.17      91.67     0.16
+ DeepMicrobes                   96.68       100     87.72         100        68.39     100       41.95      100
+ BERTax                         94.78       100     85.55         100        88.95     100       60.10      100
+ MMseqs2 + DeepMicrobes         99.10       100     94.03         100        78.20     100       56.28      100
+ MMseqs2 + BERTax               99.10       100     95.21         100        89.42     100       66.60      100
+ random                         25.00      100      25.00         100        25.00     100       25.00     100
+Table S5: Comparison of accuracy (acc.) when removing potentially homologous sequences from the
+distantly related dataset. To account for how sequence similarity between the test- and train-partition
+of the distantly related dataset affects performance, a BLAST search has been performed with the test
+sequences as query and the train sequences as database. All query sequences with at least one hit have
+been removed (filtered); default parameters have been used for the BLAST search (megablast). The
+accuracy for the sequences removed is also included (left-out). Note that MMseqs2 taxonomy∗ is only
+able to make predictions for 71.37% of all sequences, BERTax and DeepMicrobes for all sequences (see
+S2).
+
+                                        superkingdom                                               phylum
+ Tool                    acc. unfiltered   acc. filtered     acc. left-out     acc. unfiltered    acc. filtered    acc. left-out
+
+ BERTax                      88.95            88.30              93.48               60.10           59.15            63.52
+ DeepMicrobes                68.39            63.24              81.13               41.95           39.89            47.80
+ MMseqs2 taxonomy∗           80.50            74.51              95.83               59.19           53.31            80.36
+
