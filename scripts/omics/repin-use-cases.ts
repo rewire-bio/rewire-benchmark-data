@@ -1,4 +1,4 @@
-/** Pin reviewed relevance judgement and summary claims to the store as it is now.
+/** Pin reviewed relevance judgement, summary and baseline claims to the store as it is now.
  *
  * A reviewed claim pins the fields of the records it rests on (shared/omics/use-cases.ts claimPins).
  * Re-pinning tells the release those records still support it, so it needs a review that says so:
@@ -26,11 +26,11 @@ const records = new Map(kinds.flatMap(read).map((r) => [r.id, r]));
 const claims = read("claim");
 const reviewed = (c: CatalogueRecord) => ["source_checked", "reproduced"].includes(c.status);
 const pinnable = (c: CatalogueRecord) => typeof c.attributes.field === "string"
-  && (c.attributes.field.startsWith("links:assessed_by:") || c.attributes.field === "summary");
+  && (c.attributes.field.startsWith("links:assessed_by:") || c.attributes.field === "summary" || c.attributes.field === "baseline");
 
 for (const id of named) {
   const claim = records.get(id);
-  if (!claim || claim.kind !== "claim" || !pinnable(claim)) { console.error(`${id} is not a judgement or summary claim.`); process.exit(1); }
+  if (!claim || claim.kind !== "claim" || !pinnable(claim)) { console.error(`${id} is not a judgement, summary or baseline claim.`); process.exit(1); }
   if (!reviewed(claim)) { console.error(`${id} is ${claim.status}; review it before pinning.`); process.exit(1); }
 }
 
