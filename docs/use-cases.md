@@ -8,7 +8,7 @@ Use cases are records in the store, like models and benchmarks.
 
 | Record | Where | What it holds |
 | --- | --- | --- |
-| `use_case` | `data/entities/use-cases.jsonl` | The question, intended users, decision, inputs, desired output, setting, exclusions, clinical scope, evidence gaps, collection plan and planned work. Areas and settings are facets. Links `assessed_by` each protocol judged to bear on it. |
+| `use_case` | `data/entities/use-cases.jsonl` | The question, intended users, decision, inputs, desired output, setting, exclusions, clinical scope, evidence gaps, collection plan, planned work and when the evidence was last checked (`evidence_checked`). Areas and settings are facets. Links `assessed_by` each protocol judged to bear on it. |
 | relevance judgement (`claim`) | `data/evidence/claims.jsonl` | One per use case and protocol: subject the use case, `field` `links:assessed_by:<protocol>`, `value` the protocol. Records `relevance` (`direct`, `proxy` or `outside_scope`; scheme `data/vocab/relevance.ttl`), `endpoint`, `rationale`, `constraints`, `limitations`, the sources it rests on (`source_ids`, `citation_locators`), its review, and `pins`. |
 
 A judgement is a decision, not a fact from a source: someone read the protocol and the question and decided how closely one answers the other. The agent that makes it (usually the one extracting the evidence) records its reasoning in the claim with status `needs_review`. A different worker reviews it with `review-evidence`, as for any other claim. In the knowledge graph a judgement is `rb:RelevanceJudgement`, a subclass of SEPIO assertion (`obo:SEPIO_0000001`); `rb:UseCase` and `rb:assessedBy` are rewire terms because no external term matches (see the basis notes in `data/ontology/mapping.json`).
@@ -29,6 +29,12 @@ Each use case can also carry a summary claim (`field` `summary`): a short, descr
 **Pins.** A reviewed judgement or summary pins the records it rests on (`judgementPinFields`, `claimPins`): the use case's status, name, description, facets and decision fields (question, decision, inputs, output, exclusions, setting, scope, users); the protocol's status, name, description, facets, sources, links and attributes; the status and artifact hash of the protocol's and the claim's sources; and each reviewed evaluation (status, links, origin, comparison) with its results (status, metric, qualifier, printed and numeric value). If any of these changes, the claim is withheld until it is reviewed again. Adding a judgement, gap or citation to a use case does not withhold its other judgements; its cited sources are checked live instead.
 
 `npm run use-cases:repin -- <review.md>` pins reviewed claims that have no pins yet. After a re-review, name the claims: `npm run use-cases:repin -- <review.md> <claim-id>...`. Only a reviewed change of form that alters no meaning, such as a vocabulary relabel or a relation rename, justifies `--all`. Each pinned claim is recorded in provenance. The release workflow refuses a release that withholds or drops a judgement the previous release served, unless its claim was excluded or superseded (`scripts/release/next.mjs withheld`).
+
+## When the evidence was last checked
+
+`evidence_checked` records the latest literature pass for the use case: `date` (when the search ran), `cutoff_date` (the latest publication date it covered, if the pass recorded one) and `records` (the pass's search ledger and its dated review). Releases add `next_due`, one calendar month after `date`, and the website shows "Evidence last checked … · checked monthly · next check due …" on the use-case card and page.
+
+Every literature pass or monthly refresh that searches for a use case sets `evidence_checked` with `npm run records -- change` and the pass's dated review, even when it finds nothing new. That is how a reader knows "nothing new" is recent rather than stale. A use case with no `evidence_checked` is shown as not yet checked and is due. The field is not pinned, so updating it never withholds judgements.
 
 ## Content and evidence ownership
 
