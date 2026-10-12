@@ -197,7 +197,7 @@ Found by a separate Claude review agent while reviewing the summary (`dna-pathog
 
 - `extract/extract_metagenn.py`. I ran it on the pinned XML before and after the fix: the generated `batch.jsonl` and `claims.csv` differ only in the name.
 - `batch.jsonl` (46 occurrences in 28 records: names, dataset versions and comparison titles) and `research.md`. The batch receipt `review.json` has the new hashes and lists this correction.
-- The store. The 58 batch records were replaced with the corrected `batch.jsonl` lines, and their provenance rows were written as `records -- add` writes them. A literal remove and re-add is refused, because the use case links to the batch's protocols. The two MetageNN judgements were re-pinned against this review, and the use case's two gap texts were corrected with `records -- change` against this review.
+- The store. The 58 batch records were replaced with the corrected `batch.jsonl` lines, and the 28 whose bytes changed (26 batch records and the two MetageNN judgements) are recorded with `records -- change` against this review. A literal remove and re-add is refused, because the use case links to the batch's protocols. The use case's two gap texts were corrected and recorded the same way. The two MetageNN judgements were re-pinned against this review, and the summary against its own review.
 
 No value, ID, status, locator or judgement outcome changed. Apart from the pins, each changed record differs from its previous version only in the name. The message of commit a264265, which added the batch, still says "Moreno et al. 2024".
 
