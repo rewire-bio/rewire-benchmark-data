@@ -25,6 +25,7 @@ Write only these files:
 
 - `data/omics/search-ledger.jsonl`: one entry per search, with the exact `query`, `channels`, `searched_at`, `cutoff_date`, `status`, `included_record_ids`, `reviewed_source_ids`, `decision`, `gaps` and an honest `coverage_claim`. Copy the field set from an existing entry.
 - `data/omics/scope-audit.jsonl`: include or exclude decisions with reasons.
+- For a use-case scope: the use case's `evidence_checked` (date, cutoff, ledger and review paths), set after review with `records -- change`, even when nothing new is found ([docs/use-cases.md](../../../docs/use-cases.md#when-the-evidence-was-last-checked)).
 - New benchmarks, models or datasets with no results yet: hand them to `extract-evaluations` as a small batch with status `discovered`.
 
 Finish with a short report: candidates worth extracting (source URL, version, table or figure, why it matters), sources that could not be retrieved, and what the search did not cover.
