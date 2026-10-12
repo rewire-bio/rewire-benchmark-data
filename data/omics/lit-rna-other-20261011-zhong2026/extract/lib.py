@@ -101,7 +101,8 @@ class Batch:
         a = {"origin": origin, "protocol": protocol_id, "version": f"Primary source as retrieved {DATE}",
              "comparison": comp, "source_locator": locator}
         if miss:
-            a["missing_metadata"] = miss
+            # The store keeps missing_metadata keys in sorted order (shared/omics/attributes.ts).
+            a["missing_metadata"] = dict(sorted(miss.items()))
         a.update(extra or {})
         return self.add({"id": self.rid("eval", key), "kind": "evaluation", "name": name,
                          "description": "Published comparison; transcribed, not reproduced.", "status": "needs_review",

@@ -28,6 +28,7 @@ Applied by the extractor in the extraction scripts (`extract/`), as the reviewer
 
 1. Z1 (optional, applied): `lit20261011-zhong2026-protocol-t2-massspecgym` has an `evaluates_task` link to `discovery-benchmark-massspecgym-spectrum-simulation`; no `part_of` link.
 2. Review fields: every record is `source_checked`; each result carries a review block naming reviewer-ro-2 (methods source-hash-verification, pdf-text-parse, independent-cell-check), with the extraction note kept in `note`.
+3. Form only, not a review correction: the extractor writes each evaluation's `missing_metadata` keys in sorted order, as the store's attribute normaliser expects. No value changed.
 
 ## Records after correction
 
