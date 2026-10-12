@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "rendered-source-visual-check",
+    "scope-review"
+  ],
+  "reviewer": "Claude review agent reviewer-ro-2, independent of the extractor lit-rna-otheromics; no human review claimed",
+  "reviewed_at": "2026-10-12T07:44:06Z",
+  "scope": "Independent review of lit-otheromics-20261011-msgwild (MassSpecGym in the Wild, arXiv:2606.19624v1): re-downloaded the arXiv HTML and PDF and matched their SHA-256; an independent html.parser read of Tables 2, 3 and 9 compared all 176 cells (156 after M1) including grey state; 40 cells read against the rendered PDF. 382 records after correction (156 results); the two judgement claims are deferred drafts (needs_review).",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any result.",
+    "Figures were not read.",
+    "Corrections were applied by the extractor as specified in the review; see review.md."
+  ],
+  "corrections": [
+    "M1: the 20 Table 3 results of the Random, DeepSets, Fingerprint FFN, DeepSets + Fourier and MIST vMassSpecGym rows, their 20 evaluations and claims.csv rows, 4 configurations and 2 methods are not extracted. The Random ranking configuration is kept for Table 2. The reviewer's line is added to research.md. Counts: result 156, evaluation 156, configuration 34, method 4.",
+    "M2: the 28 remaining Table 3 results with no interval level have level 0.999, 20000 resamples and the reviewer's note.",
+    "M3: `comparison.dataset_version` is null, with the reviewer's missing_metadata note, on the 24 Table 2 and 12 Table 9 MolForge evaluations; Table 3 values are kept.",
+    "M4: `comparison.metric_implementation` is null, with the reviewer's missing_metadata note, on the 80 non-compilation evaluations.",
+    "M5: the 16 grey Table 2 evaluations carry the reviewer's `comparison.inputs` text.",
+    "M6: the source's fourth limitation is the reviewer's text.",
+    "M7: the MIST encoder limitation is appended to every MolForge evaluation. M7 says \"the 16 MolForge evaluations listed under M3\" plus 4; M3 lists 12 Table 9 MolForge evaluations, so the limitation is on 12 + 4 = 16 evaluations, which are all the MolForge evaluations in the batch.",
+    "M8: both judgement claims carry the reviewer's rationale, constraints and limitations; relevance stays proxy and the other fields are unchanged. `reviewed_evaluations` is set in the extractor to the two evaluations per protocol the reviewer listed. The claims are not pinned (see 9).",
+    "Deferred: the approved `assessed_by` links in use-case-links.json are not yet applied to `use-case-mass-spectrum-molecule-shortlisting`, because the edit must be recorded with `records -- change`, which needs owner approval. The two judgement claims therefore stay `needs_review`, unpinned and without a review block, as unlinked drafts holding the reviewer's text. A follow-up adds the links, sets the claims to `source_checked` with the review block and pins them. No use-case field changed in this batch.",
+    "Review fields: every record except the two judgement claims is `source_checked`; each result carries a review block naming reviewer-ro-2, with the extraction description kept in `note`."
+  ],
+  "errors": [],
+  "files": {
+    "artifacts/liu2026-arxiv-2606.19624v1.html.gz": "8d5dcda29506da1eaa2fb3b88e69c1f56fb79d4265bd89d4ab24a774a3b22b3f",
+    "batch.jsonl": "2f5e2c0cfcb2f6a6713db17fdb13761e4fe3d03e172e6b6c902e99845b16b336",
+    "claims.csv": "62b1535216f9b880c2c6c27acd8dfff76a2b712a67a30ddf5ff4eb00eeb26737",
+    "extract/extract_msgwild.py": "6ebfe69746cae489d937f2e55ee9fe09042d841e5b5c94576645c8def2203386",
+    "extract/lib.py": "2b7b007a43d6bc7dcf14aa1b912cad857830779804d2fa88e06ba92167044fbf",
+    "research.md": "92a592fc6bc30680bc2dfa467de5e137bec3d92af7ae937dbbbd38393104148e",
+    "retrieval-log.md": "49dfde60b6d2b73d4860d47b4386ffe8b0fcf96419ef641327b26905ca68bfc3",
+    "review.md": "c5dab7d69bcec63315188eb15a52a2e2d3bdb7e176fa86c855033c6453902a8b",
+    "sources.md": "518bb9ad3a5476666dbeac73d39ff5668243ec5350015b39d89c1dd4aa9d0f6b",
+    "use-case-links.json": "30c74d3fc748b4d42bb2990e23fb35be44314f92533ef6f49a33a1a8a487522d"
+  }
+}
