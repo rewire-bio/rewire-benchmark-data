@@ -1091,6 +1091,23 @@
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
     skos:scopeNote "Defined by PerturBench"@en .
 
+:perturbench-energy-mmd a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Energy-distance MMD between predicted and observed cells"@en ;
+    skos:altLabel "MMD"@en ;
+    skos:altLabel "MMD PCA"@en ;
+    skos:definition "Energy distance between the predicted and observed perturbed cell distributions, reported by PerturBench as MMD. Computed in gene expression space unless metric_qualifier names another space, such as PCA."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by PerturBench (arXiv 2408.10609v4, Sections 4.1-4.2)"@en .
+
+:perturbench-matrix-distance a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Cosine similarity matrix distance"@en ;
+    skos:altLabel "Matrix distance"@en ;
+    skos:definition "Frobenius norm of the difference between the perturbation-by-perturbation cosine similarity matrices of predicted and observed responses; used to detect mode collapse."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by PerturBench (arXiv 2408.10609v4, Appendix C.7.2, equation 4)"@en .
+
 :perturbench-rmse-of-mean a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "RMSE of the mean expression profile"@en ;
@@ -1108,6 +1125,14 @@
     skos:definition "Normalised rank of the true perturbation among all perturbations when predictions are ranked by RMSE to the observed profile; 0 is perfect."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
     skos:scopeNote "Defined by PerturBench"@en .
+
+:perturbench-rmse-transposed-rank a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "RMSE mean transposed rank"@en ;
+    skos:altLabel "RMSE mean transposed-rank"@en ;
+    skos:definition "For each predicted perturbation, the normalised rank of its own observed profile among all observed profiles by RMSE distance, averaged over perturbations; 0 is perfect. Stricter than the RMSE mean rank for mode-collapsed predictions."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
+    skos:scopeNote "Defined by PerturBench (arXiv 2408.10609v4, Appendix C.7.2, equation 3)"@en .
 
 :plddt a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1511,6 +1536,14 @@
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by scIB"@en .
 
+:scmbench-integration-accuracy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "SCMBench integration accuracy score"@en ;
+    skos:altLabel "Overall integration accuracy"@en ;
+    skos:definition "Mean of four cell-type label metrics on a joint multi-omics embedding: mean average precision, normalised mutual information, average silhouette width and adjusted Rand index."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Defined by SCMBench (Wang et al., Nature Communications 2026, Results and Methods)"@en .
+
 :scrmsd a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Self-consistency RMSD (scRMSD)"@en ;
@@ -1577,6 +1610,14 @@
     skos:altLabel "amino acid recovery"@en ;
     skos:altLabel "sequence recovery"@en ;
     skos:definition "Fraction of positions where the designed residue or nucleotide equals the native one (amino acid recovery, AAR)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:silhouette-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Silhouette score"@en ;
+    skos:altLabel "Silhouette"@en ;
+    skos:altLabel "SIL"@en ;
+    skos:definition "Mean silhouette coefficient of cells or spots grouped by reference labels in an embedding, on its native scale from -1 to 1. Not the scIB rescaled cell-type ASW (scib-asw-label)."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :spearman-correlation a skos:Concept, mls:EvaluationMeasure ;
