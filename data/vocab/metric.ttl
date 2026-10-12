@@ -628,6 +628,13 @@
     skos:broader :cosine-similarity ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
+:fingerprint-tanimoto-similarity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Fingerprint Tanimoto similarity"@en ;
+    skos:altLabel "fingerprint Jaccard index"@en ;
+    skos:definition "Jaccard (Tanimoto) index between a predicted molecular fingerprint, binarised at a stated threshold, and the reference fingerprint of the true molecule. Scores a predicted fingerprint, not a retrieved candidate (see top-1-tanimoto)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
 :fnat a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Fraction of native contacts (Fnat)"@en ;
@@ -991,6 +998,15 @@
     skos:prefLabel "Normalised mutual information (NMI)"@en ;
     skos:altLabel "NMI"@en ;
     skos:definition "Mutual information between cluster assignments and labels, normalised to [0, 1]."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:one-minus-overlap-ratio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "One minus overlap ratio (1 - OR)"@en ;
+    skos:altLabel "1 - OR"@en ;
+    skos:altLabel "1 − OR"@en ;
+    skos:definition "Separation between two score distributions, for example cosine similarities of homologous and non-homologous sequence pairs: one minus the overlap ratio, where the overlap ratio is the area of intersection of the two probability density curves divided by the area of their union. 1 means no overlap."@en ;
+    skos:scopeNote "Defined by Wang et al. 2026, Briefings in Bioinformatics, doi:10.1093/bib/bbag098, Supplementary Information 'Calculation of the overlap ratio (OR)'"@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :paired-accuracy a skos:Concept, mls:EvaluationMeasure ;
@@ -1606,6 +1622,22 @@
     skos:altLabel "TNR"@en ;
     skos:definition "True negatives divided by all actual negatives (true negative rate)."@en ;
     skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000134> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:spectral-angle a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Spectral angle (SA)"@en ;
+    skos:altLabel "SA"@en ;
+    skos:definition "Angular distance between a predicted and an observed fragment-ion intensity vector after l2-normalisation, divided by π (SA = arccos(cosine)/π); 0 means identical relative intensities."@en ;
+    skos:scopeNote "As defined by PepSpecBench (arXiv:2605.01945, Section 3, Eq. 3). Not the Prosit normalized spectral contrast angle (1 − 2·arccos/π), and not comparable with spectrum cosine similarity without conversion."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:spectral-angle-similarity a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Spectral angle similarity (SAS)"@en ;
+    skos:altLabel "SAS"@en ;
+    skos:definition "One minus the spectral angle between a predicted and an observed fragment-ion intensity vector (SAS = 1 - SA); 1 means identical relative intensities."@en ;
+    skos:scopeNote "As defined by PepSpecBench (arXiv:2605.01945, Section 3)."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :spectrum-cosine-similarity a skos:Concept, mls:EvaluationMeasure ;
