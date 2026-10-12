@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadRecords } from "../scripts/omics/records";
-import { claimPins, deriveUseCaseInputs, useCaseHash, type JudgementPin } from "../shared/omics/use-cases";
+import { claimPins, deriveUseCaseInputs, nextMonthlyCheck, useCaseHash, type JudgementPin } from "../shared/omics/use-cases";
 import type { CatalogueRecord } from "../shared/omics/catalogue-query";
 
 const store = loadRecords() as unknown as CatalogueRecord[];
@@ -27,6 +27,22 @@ describe("use cases as records", () => {
       "use-case-mapping-cnv-20261009-delavega2025-hg002",
       "use-case-mapping-cnv-20261009-nardone2025-hg002-deletions",
     ]);
+  });
+
+  it("publishes when each use case's evidence was last checked and when the monthly check is due", () => {
+    expect(nextMonthlyCheck("2026-10-11")).toBe("2026-11-11");
+    expect(nextMonthlyCheck("2026-01-31")).toBe("2026-02-28");
+    expect(nextMonthlyCheck("2028-01-31")).toBe("2028-02-29");
+    expect(nextMonthlyCheck("2026-12-15")).toBe("2027-01-15");
+    const somatic = derive(store).use_cases.find((u) => u.id === "use-case-tumour-dna-somatic-variant-detection")!;
+    expect(somatic.evidence_checked).toMatchObject({ date: "2026-10-11", cutoff_date: "2026-10-11", next_due: "2026-11-11" });
+    for (const path of somatic.evidence_checked!.records) expect(fs.existsSync(path)).toBe(true);
+    // Recording a check is not a change of meaning: it withholds no judgement.
+    const before = derive(store).mappings.filter((m) => m.lifecycle === "active").length;
+    const after = derive(edit("use-case-tumour-dna-somatic-variant-detection", (r) => ({
+      ...r, attributes: { ...r.attributes, evidence_checked: { date: "2026-11-11", records: ["docs/use-cases.md"] } },
+    }))).mappings.filter((m) => m.lifecycle === "active").length;
+    expect(after).toBe(before);
   });
 
   it("withholds a judgement when a pinned field changes meaning", () => {
