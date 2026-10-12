@@ -1,0 +1,40 @@
+{
+ "source": {
+  "id": "runner-receipt-mfass-v2-cpu-baselines-779eeb5c",
+  "kind": "source",
+  "name": "rewirebench: MFASS v2 registered baselines, CPU run 2026-10-12",
+  "description": "Full-protocol run of mfass-kmer-position-v2 and training-prior-v1 with the released rewirebench 0.5.0 wheel. A rerun with the project's own code and data, not an independent reproduction.",
+  "status": "needs_review",
+  "facets": {},
+  "source_ids": [],
+  "links": [],
+  "attributes": {
+   "url": "https://github.com/rewire-bio/rewire-benchmarks/tree/779eeb5c88712442fbc9682c3d417cb7a7427fe3/benchmarks/mfass/reproductions/2026-10-12-cpu-baselines",
+   "version": "779eeb5c88712442fbc9682c3d417cb7a7427fe3",
+   "retrieved_at": "2026-10-12",
+   "artifact_sha256": "fab950f4822b92f1056108bec7e17e398bf173533008391662c7ed922163c644",
+   "hash_scope": "complete bytes of the folder's SHA256SUMS file, which lists the SHA-256 of every report, prediction and plan file in the folder",
+   "artifact_format": "text",
+   "source_locator": "benchmarks/mfass/reproductions/2026-10-12-cpu-baselines/SHA256SUMS and README.md"
+  }
+ },
+ "benchmark_id": "rewire-mfass-v2",
+ "recipe_id": "mfass-v2-baseline",
+ "add_instruction": {
+  "runtime": "command_line",
+  "title": "Run the registered baseline with the released wheel",
+  "code": "curl --fail --location --remote-name https://github.com/rewire-bio/rewire-benchmarks/releases/download/v0.5.0/rewirebench-0.5.0-py3-none-any.whl\ncurl --fail --location --remote-name https://github.com/rewire-bio/rewire-benchmarks/releases/download/v0.5.0/SHA256SUMS\nawk '$2 == \"rewirebench-0.5.0-py3-none-any.whl\"' SHA256SUMS | shasum -a 256 --check\nuv venv --python 3.11 .venv && uv pip install --python .venv/bin/python rewirebench-0.5.0-py3-none-any.whl\n.venv/bin/rewirebench prepare mfass-v2 --source data/mfass --output prepared\n.venv/bin/rewirebench run-baselines --prepared prepared --output runs/mfass-baselines",
+  "status": "executed",
+  "validation_receipt": {
+   "source_id": "runner-receipt-mfass-v2-cpu-baselines-779eeb5c",
+   "source_locator": "mfass-kmer-position-v2/report.json metrics: precision_at_capacity 0.61, average_precision_sklearn 0.2864, auroc 0.7779, coverage 8324/8324",
+   "scope": "full_protocol",
+   "platform": "macOS 26 arm64, CPU, Python 3.11.13, rewirebench 0.5.0"
+  },
+  "source_ids": [
+   "runner-receipt-mfass-v2-cpu-baselines-779eeb5c"
+  ],
+  "source_locator": "README.md: How it was run"
+ },
+ "add_source_id": "runner-receipt-mfass-v2-cpu-baselines-779eeb5c"
+}
