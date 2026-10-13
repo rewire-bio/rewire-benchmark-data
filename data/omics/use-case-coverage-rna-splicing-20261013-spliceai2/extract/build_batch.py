@@ -589,6 +589,66 @@ protocol("dm1-mbnl1", "MBNL1-associated junction usage differences across myoton
           "source_locator": "Methods 'MBNL1-depleted myotonic dystrophy'; Fig. 2e"},
          "dm1-gse86356", areas=["rna-transcriptomes"], extra_limits=["SpliceAI2 only; per-pair values are a heatmap without printed numbers."])
 
+# ---------------------------------------------------------------- review corrections 1 to 3
+# Independent review 2026-10-13 (docs/reviews/use-cases/spliceai2-2026-10-13.md). The common
+# limitations above were applied to every protocol; these replace the ones the source does not
+# support for a given protocol.
+def _rec(id):
+    return next(r for r in records if r["id"] == id)
+
+
+def _replace_limit(key, old, new):
+    lim = _rec(PR[key])["attributes"]["limitations"]
+    i = lim.index(old)
+    if new is None:
+        del lim[i]
+    else:
+        lim[i] = new
+
+
+DEV_OLD, OVL_OLD, ESS_OLD = COMMON_LIMITS[0], COMMON_LIMITS[1], COMMON_LIMITS[2]
+DEV_SOLO = "Developer-reported: the SpliceAI2 authors (Illumina) built the benchmark and ran SpliceAI2; no other model is scored on it."
+OVL_GEL = ("Training overlap: SpliceAI2 was trained on all human genes except those on chromosomes 21 and 22, and the benchmark is genome-wide, "
+           "so most variants lie in genes seen in training. Supplementary Table 1 does not list Genomics England data among the training sources.")
+OVL_POP = ("Training overlap: SpliceAI2 was trained on all human genes except those on chromosomes 21 and 22, and the benchmark is genome-wide, "
+           "so most variants lie in genes seen in training.")
+OVL_DISEASE = ("Training overlap: results are reported for 'held-out genes', which the paper does not define for this fine-tune; "
+               "the pretrained encoder saw all human genes except those on chromosomes 21 and 22.")
+# Review correction 1: essential splice exclusion is printed for the Fig. 1d benchmarks, the population,
+# UK Biobank and panel-enrichment analyses only.
+_replace_limit("gel-gtag-detection", ESS_OLD,
+               "The paper does not say whether essential splice variants were excluded from the Genomics England benchmark; the exclusion is stated for the GTEx and OpenSplice benchmarks (Fig. 1d).")
+for _k in ("gel-prioritised-confirmation", "gtex-tissue-specific", "uvm-sf3b1", "dm1-mbnl1"):
+    _replace_limit(_k, ESS_OLD, None)
+# Review correction 2: training-overlap wording per protocol (GTEx protocols keep the original).
+for _k in ("gel-gtag-detection", "gel-prioritised-confirmation", "gel-panel-enrichment"):
+    _replace_limit(_k, OVL_OLD, OVL_GEL)
+for _k in ("population-constraint", "ukb-proteomics"):
+    _replace_limit(_k, OVL_OLD, OVL_POP)
+_replace_limit("opensplice-mpra", OVL_OLD,
+               "Training overlap: SpliceAI2 was trained on all human genes except those on chromosomes 21 and 22; the paper does not say how many of the 599 OpenSplice exons lie in training genes.")
+_replace_limit("gtex-tissue-specific", OVL_OLD,
+               "Training overlap: evaluation uses chromosomes 1, 3, 5, 7 and 9, which were held out from fine-tuning but also used as its validation set; the pretrained encoder saw all human genes except those on chromosomes 21 and 22, and GTEx is among its recount3 training sources.")
+for _k in ("uvm-sf3b1", "dm1-mbnl1"):
+    _replace_limit(_k, OVL_OLD, OVL_DISEASE)
+# Review correction 3: who ran which model.
+for _k in ("gel-prioritised-confirmation", "gtex-tissue-specific", "uvm-sf3b1", "dm1-mbnl1"):
+    _replace_limit(_k, DEV_OLD, DEV_SOLO)
+_replace_limit("opensplice-mpra", DEV_OLD,
+               "Developer-reported: the SpliceAI2 authors (Illumina) scored SpliceAI2 and computed every correlation; the SpliceAI, Pangolin and AlphaGenome scores are those released with the OpenSplice dataset (reference 23).")
+_replace_limit("opensplice-mpra",
+               "The Methods also say the AlphaGenome configuration was chosen across 'eight evaluations', which may include this benchmark; the paper does not reconcile this with the use of released OpenSplice scores.",
+               "The OpenSplice paragraph of the Methods says released SpliceAI, Pangolin and AlphaGenome scores were used. The AlphaGenome paragraph says the raw composite score was chosen across 'eight evaluations' and used 'for all evaluations'; the paper has eight other analyses with AlphaGenome (four GTEx panels in Fig. 1d and Figs. 3c, 3f, 4b and 4g), so the reviewer reads the OpenSplice scores as the released ones. The settings of the released scores are not described in this paper.")
+_replace_limit("gel-panel-enrichment",
+               "Only the SpliceAI2 value is printed; the text gives 114 for 'the next best model' without naming it, and the comparator curves in Fig. 4b are unlabelled.",
+               "Only the SpliceAI2 value is printed; the text gives 114 for 'the next best model' without naming it, and the Fig. 4b curves (SpliceAI, Pangolin, AlphaGenome, the AlphaGenome AVI score and SpliceAI2) carry no printed values.")
+# Review correction 4: bioRxiv stamps each served PDF, so the pinned hash describes one retrieval.
+_rec(SRC_ART)["attributes"]["hash_scope"] = (
+    "SHA-256 of one retrieval of the bioRxiv PDF. bioRxiv stamps the PDF when serving it (XMP ModifyDate, MetadataDate, DocumentID, "
+    "InstanceID, Info ModDate and the second trailer ID), so later retrievals differ. A reviewer retrieval on 2026-10-13 of the same length "
+    "(2,679,664 bytes) had SHA-256 407f5884427dda0226e0ce1f022e4479d3ff2b243da18bcc691eb345b0e04a6a and ModDate D:20261013063115-07'00'; "
+    "its bytes differ only in those fields and its pdftotext text layer is identical to the pinned copy.")
+
 # ---------------------------------------------------------------- evaluations and results
 EVALS = {}
 
@@ -695,15 +755,16 @@ GEL_CMP = {"dataset_version": "Genomics England NGRL rare-disease WGS and blood 
            "aggregation": "Pooled over variants"}
 for m in MODELS:
     cfg = MODEL_CFG[m]
-    e = evaluation("gel-gtag-detection", cfg, "gel-rnaseq", dict(GEL_CMP, inputs=GT_INPUTS[cfg] + "; essential splice variants excluded"),
+    # Review correction 5: the essential splice exclusion is not stated for the GEL benchmark.
+    e = evaluation("gel-gtag-detection", cfg, "gel-rnaseq", dict(GEL_CMP, inputs=GT_INPUTS[cfg]),
                    f"Fig. 4g, bar '{m}'", f"{m} on Genomics England GT/AG cryptic splice activation (auPRC, SpliceAI2 paper)")
-    result(e, "auprc", f"{m} GEL GT/AG auPRC", FIG4G[m], "auprc", "higher", "unitless", "all variants; essential splice variants excluded",
+    result(e, "auprc", f"{m} GEL GT/AG auPRC", FIG4G[m], "auprc", "higher", "unitless", "all variants",
            f"Fig. 4g (page 17), bar label for '{m}'", ["pdf-text-parse", "rendered-source-visual-check"], FIG_NOTE)
 e = evaluation("gel-gtag-detection", "alphagenome-splice-site-max", "gel-rnaseq",
-               dict(GEL_CMP, inputs=GT_INPUTS["alphagenome-splice-site-max"] + "; essential splice variants excluded"),
+               dict(GEL_CMP, inputs=GT_INPUTS["alphagenome-splice-site-max"]),
                "Methods 'Evaluation of competing methods', AlphaGenome paragraph", "AlphaGenome raw splice site score on Genomics England GT/AG (auPRC, SpliceAI2 paper)")
 result(e, "auprc", "AlphaGenome raw splice site score GEL GT/AG auPRC", "0.45", "auprc", "higher", "unitless",
-       "all variants; essential splice variants excluded",
+       "all variants",
        "Methods 'Evaluation of competing methods', AlphaGenome paragraph: '... GEL GT/AG auPRC (0.45)'", ["pdf-text-parse"], TEXT_NOTE)
 
 e = evaluation("gel-prioritised-confirmation", "spliceai2-ensemble", "gel-rnaseq",
@@ -829,7 +890,8 @@ def judgement(key, use_case, proto_key, relevance, endpoint, rationale, constrai
                         "source_locator": "; ".join(SRC_ART + ": " + l for l in locators),
                         "comparison_group": group, "comparison_title": title, "stratum_label": stratum, "stratum_order": order,
                         "headline_metric": headline,
-                        "reason": "Drafted from the 2026-10-13 SpliceAI2 extraction (data/omics/use-case-coverage-rna-splicing-20261013-spliceai2), issue #127. Pending independent review.",
+                        # Review correction 8: the published reason names the review.
+                        "reason": "Drafted from the 2026-10-13 SpliceAI2 extraction (data/omics/use-case-coverage-rna-splicing-20261013-spliceai2), issue #127. Independently reviewed in docs/reviews/use-cases/spliceai2-2026-10-13.md.",
                         "review": review(["scope-review"], "Drafted by the extractor against the use case's question, inputs and output and the existing judgements for the same use case; not a review.")}})
     claim_rows.append([id, SRC_ART, "; ".join(locators), relevance, "judgement"])
 
@@ -842,7 +904,8 @@ judgement("gel-gtag", "use-case-patient-rna-splicing-validation", "gel-gtag-dete
           BASE_CONSTRAINTS + ["Compare configurations only within this protocol; the AlphaGenome raw splice site score (0.45) is a separate configuration reported in the Methods, not the paper's chosen AlphaGenome score (0.36)."],
           ["Developer-reported; the SpliceAI2 authors built the labels and ran SpliceAI, Pangolin and SpliceAI2; AlphaGenome was run by Oxford co-authors.",
            "Training overlap: SpliceAI2 was trained on all human genes outside chromosomes 21 and 22; benchmark variants are genome-wide.",
-           "Blood RNA-seq only, so splicing in genes not expressed in blood is unobserved; GT/AG-creating variants only; essential splice variants excluded.",
+           # Review correction 6: essential splice exclusion not stated for GEL.
+           "Blood RNA-seq only, so splicing in genes not expressed in blood is unobserved; GT/AG-creating variants only; the paper does not say whether essential splice variants were excluded from this benchmark.",
            "The use case's baseline (FRASER and OUTRIDER on patient RNA, with a legacy splice-site vote such as MaxEntScan on DNA) is not evaluated in this paper; no rule-based motif scorer is compared (see issue #121).",
            "Controlled-access data (Genomics England project 754); benchmark variant lists are not released, so the comparison cannot be rerun outside the Research Environment.",
            "Single auPRC per model; no uncertainty, strata or thresholds printed.",
@@ -872,6 +935,8 @@ judgement("opensplice", "use-case-splicing-follow-up", "opensplice-mpra", "proxy
            "Spearman over all substitutions; no precision at a follow-up capacity and no uncertainty printed.",
            "Training overlap: SpliceAI2 was trained on all human genes outside chromosomes 21 and 22, including the reference splicing of most OpenSplice exons' genes.",
            "The use case's baseline, MaxEntScan, is not evaluated.",
+           # Review correction 7: comparator score provenance.
+           "Comparator scores come from the OpenSplice release; this paper does not describe their settings.",
            "Preprint (bioRxiv v1), not peer reviewed."],
           ["Extended Data Fig. 2 panel 'OpenSplice MPRA (ρ)'", "Fig. 1d", "Methods 'Variant effect benchmarks', OpenSplice MPRA paragraph"],
           "spliceai2-2026-opensplice", "OpenSplice MPRA delta PSI (SpliceAI2 paper, developer-reported)",
