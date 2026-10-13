@@ -25,9 +25,9 @@ Agents should use the matching skills: `literature-search` (step 2), `extract-ev
 
 ## 1. Scope
 
-In scope: specialist omics and molecular models, including DNA and RNA language models, protein models, molecular interactions, single-cell and spatial omics, microbial communities, metabolomics and other molecular measurements, and mechanistic or network models.
+In scope: specialist omics and molecular models, including DNA and RNA language models, protein models, molecular interactions, single-cell and spatial omics, microbial communities, metabolomics and other molecular measurements, and mechanistic or network models. Agent systems are in scope when they are scored on a task with a molecular or omics endpoint (for example BioDiscoveryAgent on CRISPR screen hit recovery). Record the agent scaffold as a method and the underlying LLM as a model it uses.
 
-Out of scope: clinical assistants, general medical question answering, language-agent benchmarks, and imaging without a molecular or omics endpoint.
+Out of scope: clinical assistants, general medical question answering, language-agent benchmarks of question answering, clinical or literature reasoning, and imaging without a molecular or omics endpoint.
 
 Research is organised in nine lanes, used as scope IDs in the search ledger and the refresh schedule:
 
