@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "issue": "https://github.com/rewire-bio/rewire-benchmark-data/issues/19",
+  "source": "Feng et al. 2025, Nature Communications 16:10780, doi 10.1038/s41467-025-65823-8",
+  "existing_ids_reused": {
+    "sources": [
+      "dna-foundation-models-2025",
+      "evidence-expansion-dna-foundation-models-2025-5d8ca9bc",
+      "evidence-reported-dna-foundation-models-2025-readme-md"
+    ],
+    "protocols_with_new_claims": [
+      "amp-feng-20261007-protocol-splice-acceptor",
+      "amp-feng-20261007-protocol-splice-donor",
+      "amp-feng-20261007-protocol-promoter-tata",
+      "amp-feng-20261007-protocol-promoter-nontata"
+    ],
+    "use_cases": ["use-case-regulatory-variant-gene-follow-up"]
+  },
+  "table_coverage": [
+    {"locator": "Table 1", "content": "Human sequence classification, 24 rows x 5 models, AUC", "status": "complete", "existing": "Acceptor, Donor (10 values, amp-feng-20261007)", "this_batch": "22 rows, 110 values"},
+    {"locator": "Table 2", "content": "Multi-species sequence classification, 10 rows x 5 models, AUC", "status": "partial", "existing": "Arabidopsis TATA and NonTATA (10 values)", "not_extracted": "Bacterial promoters, human vs worm, mouse TFBS 1-5 (40 values); not human diagnostic or regulatory decisions"},
+    {"locator": "Table 3", "content": "Epigenetic modification classification, 18 rows x 5 models, AUC", "status": "partial", "existing": "Human 5mC, Caduceus-Ph and NT-v2 (2 values, lit-001/lit-002)", "not_extracted": "Human 5mC other three models, human 6mA, yeast histone marks, 4mC in six species (88 values)"},
+    {"locator": "Table 4", "content": "GTEx whole-blood expression prediction, 8 rows, average correlation and MSE", "status": "complete", "this_batch": "16 values"},
+    {"locator": "Table 5", "content": "Pathogenic vs common SNPs, 11 rows, AUC and Cohen's d, including Sei and Enformer comparators", "status": "complete", "existing": "22 values (amp-feng-20261007)"},
+    {"locator": "Table 6", "content": "eQTL/sQTL/paQTL/ipaQTL, 12 rows, AUC and Cohen's d, including AlphaGenome, Sei and Enformer comparators", "status": "complete", "existing": "96 values (amp-feng-20261007)"},
+    {"locator": "TAD recognition (Results, Methods, Supplementary Fig. 2)", "content": "Qualitative NT-v2 attention comparison; no metric printed", "status": "recorded as claim", "this_batch": "protocol, dataset, reported_finding claim; no result"},
+    {"locator": "Supplementary Data 1-2", "content": "Baseline CNN significance lists per dataset", "status": "recorded as claims for Table 1 and the two Arabidopsis rows", "gap": "CNN AUC values are not printed anywhere"},
+    {"locator": "Supplementary Data 6", "content": "Dataset sizes and lengths", "status": "used for the 22 new Table 1 datasets"},
+    {"locator": "Supplementary Data 4", "content": "Per-chromosome-group AUCs behind Tables 5 and 6", "status": "not extracted", "gap": "Would give the spread behind the stored Table 5/6 means; the stored results cannot be edited, so this needs separate per-group results in a later batch"},
+    {"locator": "Supplementary Data 3, 5; Supplementary Tables 1-8; Supplementary Fig. 1; Figures 2-4", "content": "Top genes, re-pretraining, pooling, multi-class accuracy, RF vs XGBoost, short vs long input, hyperparameter grids, embedding dimensions, classifier comparison, runtime", "status": "not extracted", "gap": "Not decision-relevant for the use cases, or repeat main-table values; Supplementary Table 4 is quoted in a claim"}
+  ],
+  "label_free_vs_supervised": "All Feng results use frozen embeddings plus a supervised random forest fitted on task labels. No label-free scoring is reported. TAD analysis trains nothing and reports no metric.",
+  "access_constraints": [
+    "GTEx v8 individual-level data are protected (GTEx Protected Data Access portal); the expression benchmark is not redistributed.",
+    "Author scripts need per-model GPU environments, local checkpoints and placeholder paths; job_scripts/gtex_hyena.py at 3f4c81c has inconsistent folder names. Not executed by Rewire."
+  ],
+  "use_case_mappings_added": [
+    {"protocol": "feng-dna-fm-20261013-protocol-gtex-wb-expression-6kb", "use_case": "use-case-regulatory-variant-gene-follow-up", "relevance": "proxy", "status": "needs_review"},
+    {"protocol": "feng-dna-fm-20261013-protocol-gtex-wb-expression-long-768", "use_case": "use-case-regulatory-variant-gene-follow-up", "relevance": "proxy", "status": "needs_review"}
+  ],
+  "not_mapped": [
+    {"protocols": "feng-dna-fm-20261013-protocol-t1-*", "reason": "Reference-sequence region-type classification; none of the 26 use cases makes this decision."},
+    {"protocols": "amp-feng-20261007-protocol-splice-*", "use_case": "use-case-patient-rna-splicing-validation", "reason": "Sequence-window classification with no patient RNA; stays mapped only to use-case-splicing-follow-up."}
+  ],
+  "reproduction": "None. All values are transcribed from the paper."
+}
