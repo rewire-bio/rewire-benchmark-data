@@ -1,0 +1,87 @@
+{
+ "use_case_ids": [
+  "use-case-patient-rna-splicing-validation",
+  "use-case-splicing-follow-up"
+ ],
+ "issue": "https://github.com/rewire-bio/rewire-benchmark-data/issues/127",
+ "cutoff_date": "2026-10-13",
+ "window": "Targeted source pass for SpliceAI2 (Jaganathan et al. 2026); not a full use-case literature pass",
+ "existing_reused": [
+  "catalog-model-alphagenome",
+  "catalog-model-pangolin",
+  "catalog-model-spliceai",
+  "use-case-patient-rna-splicing-validation",
+  "use-case-splicing-follow-up"
+ ],
+ "new_record_counts": {
+  "claim": 11,
+  "configuration": 13,
+  "dataset": 10,
+  "evaluation": 39,
+  "model": 1,
+  "protocol": 13,
+  "result": 90,
+  "source": 5
+ },
+ "judgements": [
+  {
+   "claim_id": "use-case-mapping-rna-splicing-20261013-spliceai2-gel-gtag",
+   "use_case_id": "use-case-patient-rna-splicing-validation",
+   "protocol_id": "rna-splicing-20261013-spliceai2-protocol-gel-gtag-detection",
+   "relevance": "proxy",
+   "comparison_group": "spliceai2-2026-gel",
+   "stratum_label": "GT/AG cryptic-site activation, all four models",
+   "headline_metric": "auprc",
+   "evaluation_ids": [
+    "rna-splicing-20261013-spliceai2-eval-gel-gtag-detection-alphagenome-composite-max",
+    "rna-splicing-20261013-spliceai2-eval-gel-gtag-detection-alphagenome-splice-site-max",
+    "rna-splicing-20261013-spliceai2-eval-gel-gtag-detection-pangolin-position-resolved",
+    "rna-splicing-20261013-spliceai2-eval-gel-gtag-detection-spliceai-position-resolved",
+    "rna-splicing-20261013-spliceai2-eval-gel-gtag-detection-spliceai2-ensemble"
+   ],
+   "status": "source_checked"
+  },
+  {
+   "claim_id": "use-case-mapping-rna-splicing-20261013-spliceai2-gel-prioritised",
+   "use_case_id": "use-case-patient-rna-splicing-validation",
+   "protocol_id": "rna-splicing-20261013-spliceai2-protocol-gel-prioritised-confirmation",
+   "relevance": "proxy",
+   "comparison_group": "spliceai2-2026-gel",
+   "stratum_label": "SpliceAI2-prioritised variants checked in RNA-seq",
+   "headline_metric": "true-positive-count",
+   "evaluation_ids": [
+    "rna-splicing-20261013-spliceai2-eval-gel-prioritised-confirmation-spliceai2-ensemble"
+   ],
+   "status": "source_checked"
+  },
+  {
+   "claim_id": "use-case-mapping-rna-splicing-20261013-spliceai2-opensplice",
+   "use_case_id": "use-case-splicing-follow-up",
+   "protocol_id": "rna-splicing-20261013-spliceai2-protocol-opensplice-mpra",
+   "relevance": "proxy",
+   "comparison_group": "spliceai2-2026-opensplice",
+   "stratum_label": "All substitutions and exon or intron strata",
+   "headline_metric": "spearman-correlation",
+   "evaluation_ids": [
+    "rna-splicing-20261013-spliceai2-eval-opensplice-mpra-alphagenome-opensplice-released",
+    "rna-splicing-20261013-spliceai2-eval-opensplice-mpra-pangolin-opensplice-released",
+    "rna-splicing-20261013-spliceai2-eval-opensplice-mpra-spliceai-opensplice-released",
+    "rna-splicing-20261013-spliceai2-eval-opensplice-mpra-spliceai2-ensemble"
+   ],
+   "status": "source_checked"
+  }
+ ],
+ "not_mapped": [
+  "GTEx GT/AG, GTEx sQTL, population constraint, UK Biobank proteomics, 100kGP enrichment and the tissue- and disease-specific fine-tunes are extracted but not mapped: they use healthy-tissue RNA, population or protein proxies, or reference splicing, not patient-RNA validation or experimental follow-up selection."
+ ],
+ "remaining_gaps": [
+  "No rule-based splice-site scorer (MaxEntScan or a legacy vote) is evaluated in the paper, so neither use case gains a baseline-versus-machine-learning comparison (issue #121).",
+  "Fig. 4f RNA-seq validation rates by SpliceAI2 score bin (41,959 variant-gene pairs) are bars without printed values.",
+  "Fig. 4b comparator curves for the 100kGP enrichment (SpliceAI, Pangolin, AlphaGenome, the AlphaGenome AVI score) carry no printed values; the text gives 114 excess variants for an unnamed next best model (review correction, 2026-10-13).",
+  "Extended Data Fig. 2 region stratum sizes are not printed.",
+  "No uncertainty is printed for any comparison.",
+  "All benchmark data are controlled access (GTEx dbGaP, Genomics England project 754, UK Biobank 33751) and the derived benchmark variant lists are not released, so the comparisons cannot be rerun independently.",
+  "The OpenSplice preprint (bioRxiv 10.64898/2026.05.22.727141) may report its own predictor comparison; not screened in this pass.",
+  "No independent evaluation of SpliceAI2 was found (the model was released 2026-10-08)."
+ ]
+}
