@@ -73,3 +73,7 @@ Extracted by Claude research agents, transcription only, every record `needs_rev
 The issue gave the GPN-MSA preprint DOI incorrectly; the source record uses 10.1101/2023.10.10.561776.
 
 After adding, 230 of the new evaluations had their `missing_metadata` keys in a different order from the one `normalizeAttributes` writes (`tests/attributes.test.ts`). The keys were reordered in the batch files and the store, with no value changed, and recorded with `records -- change` against this review.
+
+## Independent review
+
+The independent review of these batches and claims is in `docs/reviews/2026-10-14-gfm-guide-evidence-review.md`. Every batch is now `source_checked` except 120 disputed results (2 Kendiukhov CRISPRa, 114 in four Evo 2 strata, 4 Brandes text values). All 20 identity claims were accepted, and the `variant_of` follow-up for Evo 2, ESM-2 and ESMFold is done.
