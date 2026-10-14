@@ -261,6 +261,27 @@ class InferenceTest(unittest.TestCase):
         conforms, _ = build.validate(fixture(), set())
         self.assertFalse(conforms)
 
+    def test_shape_groups_cover_every_targeted_shape_once(self) -> None:
+        def targeted(shapes: rdflib.Graph) -> set:
+            return {shape for target in build.TARGETS for shape in shapes.subjects(target, None)}
+
+        load = lambda: rdflib.Graph().parse(build.SHAPES, format="turtle").parse(build.ATTRIBUTE_SHAPES, format="turtle")
+        everything = targeted(load())
+        groups = [targeted(build.shard_shapes(load(), index, 4)) for index in range(1, 5)]
+        self.assertEqual(set().union(*groups), everything)
+        self.assertEqual(sum(len(group) for group in groups), len(everything))
+
+    def test_shape_groups_find_what_one_run_finds(self) -> None:
+        full, _ = build.validate(fixture(), set())
+        self.assertFalse(full)
+        groups = [build.validate(fixture(), set(), shard=(index, 3))[0] for index in range(1, 4)]
+        self.assertFalse(all(groups))
+        conforms, report = build.validate(fixture(), set(), asserted_only=True)
+        self.assertTrue(conforms, report)
+        for index in range(1, 4):
+            conforms, report = build.validate(fixture(), set(), asserted_only=True, shard=(index, 3))
+            self.assertTrue(conforms, report)
+
     def test_check_rejects_a_result_moved_to_another_system(self) -> None:
         moved = set(self.inferred) | {(ID.result1, RB.resultFor, ID.model)}
         with self.assertRaises(build.BuildError):
