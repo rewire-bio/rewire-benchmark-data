@@ -149,3 +149,7 @@ Every source record with its URL, version, retrieval time and SHA-256 is listed 
 | Bergquist et al. 2025, PMC12208618 page (normalised) | `4fe954451167b5a5717a4c37f4054432e1f02fb59862d0fb909edb525e6bb8e2` |
 | Stenton et al. 2024, PMC11560577 page (normalised) | `debe1ae8e304ac0a6272c093bcf7874977e7b9b3921dbe7f5ba096701611ebe7` |
 | Tejura et al. 2024, PMC11393694 page (normalised) | `e00fb418efba3924e47db1aba3be26835dbdbb9f0a4c14aca06a61215ca16ecf` |
+
+## Review
+
+Independently reviewed on 2026-10-14 in `docs/reviews/vep-use-cases-2026-10-14-review.md`. The batch passed after corrections made before it entered the store.
