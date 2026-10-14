@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        task: [store, types, python, kg, shacl, tests-1, tests-2, tests-3, tests-4, tests-5, tests-6]
+        task: [store, types, python, kg, shacl-1, shacl-2, shacl-3, shacl-4, tests-1, tests-2, tests-3, tests-4, tests-5, tests-6]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -36,7 +36,7 @@ jobs:
           node-version: 24
           cache: npm
       - uses: astral-sh/setup-uv@v6
-        if: matrix.task == 'kg' || matrix.task == 'shacl'
+        if: matrix.task == 'kg' || startsWith(matrix.task, 'shacl-')
       - run: npm ci
       - name: Validate the record store, vocabularies and provenance
         if: matrix.task == 'store'
@@ -58,9 +58,13 @@ jobs:
         run: npm run test:python
       - if: matrix.task == 'kg'
         run: npm run test:kg
-      - name: Validate every record against the SHACL shapes (asserted graph, no inference)
-        if: matrix.task == 'shacl'
-        run: npm run kg:shapes
+      # Each job checks a quarter of the targeted shapes against every record; together they
+      # run the same check as `npm run kg:shapes`.
+      - name: Validate every record against the SHACL shapes, ${{ matrix.task }} of 4 (asserted graph, no inference)
+        if: startsWith(matrix.task, 'shacl-')
+        env:
+          SHARD: ${{ matrix.task }}
+        run: npm run -s kg -- export && npm run -s kg:build -- --shapes-only --shard="${SHARD#shacl-}/4"
       - name: Tests, ${{ matrix.task }} of 6 (fast set on pull requests, all on main)
         if: startsWith(matrix.task, 'tests-')
         env:
