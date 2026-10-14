@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "issue": "https://github.com/rewire-bio/rewire-benchmark-data/issues/142",
+  "source": "Feng et al. 2025, Nature Communications 16:10780, doi 10.1038/s41467-025-65823-8",
+  "existing_ids_reused": {
+    "sources": [
+      "evidence-expansion-dna-foundation-models-2025-5d8ca9bc",
+      "feng-dna-fm-20261013-source-supplementary-data",
+      "feng-dna-fm-20261013-source-supplementary-information"
+    ],
+    "evaluations_with_new_results": "59 evaluations: amp-feng-20261007-eval-variant-* (11) and amp-feng-20261007-eval-qtl-{eqtl,sqtl,paqtl,ipaqtl}-* (12 each)",
+    "human_5mc": {
+      "task": "reported-task-988ff78f86471e",
+      "dataset": "reported-dataset-463197d6a98b99",
+      "existing_results": ["lit-001", "lit-002"]
+    },
+    "superseded_claim": "feng-dna-fm-20261013-claim-not-extracted"
+  },
+  "new_records": {"claim": 27, "configuration": 128, "dataset": 25, "evaluation": 128, "protocol": 26, "result": 305, "total": 639},
+  "table_coverage": [
+    {"locator": "Table 1", "status": "complete", "existing": "120 values (amp-feng-20261007, feng-dna-fm-20261013)"},
+    {"locator": "Table 2", "status": "complete", "existing": "Arabidopsis TATA and NonTATA (10 values)", "this_batch": "8 rows, 40 values"},
+    {"locator": "Table 3", "status": "complete", "existing": "Human 5mC Caduceus-Ph and NT-v2 (lit-001, lit-002)", "this_batch": "88 values: Human 5mC DNABERT-2, HyenaDNA, GROVER; all of human 6mA, 10 yeast marks and 6 species 4mC"},
+    {"locator": "Table 4", "status": "complete", "existing": "16 values (feng-dna-fm-20261013)"},
+    {"locator": "Table 5", "status": "complete", "existing": "22 values (amp-feng-20261007)"},
+    {"locator": "Table 6", "status": "complete", "existing": "96 values (amp-feng-20261007)"},
+    {"locator": "Supplementary Data 4", "status": "complete for AUC", "this_batch": "177 per-test-group AUCs linked to the existing Table 5/6 evaluations", "gap": "Per-group Cohen's d is not published"},
+    {"locator": "Supplementary Data 1-2", "status": "complete as claims", "this_batch": "26 baseline-CNN claims for the new Table 2 and Table 3 protocols", "gap": "CNN AUC values are not printed anywhere"},
+    {"locator": "Supplementary Data 6", "status": "used for the 25 new datasets and the Human 5mC protocol"},
+    {"locator": "Supplementary Data 3, 5; Supplementary Tables 1-8; Supplementary Fig. 1; Figures 2-4", "status": "not extracted", "gap": "Outside the use cases or repeat main-table values at another aggregation; listed in feng-dna-fm-20261014-claim-not-extracted"}
+  ],
+  "sd4_mean_check": "extract/sd4-mean-check.json: 59 rows, 50 exact, 9 differ by 0.0001 in the fourth decimal",
+  "label_free_vs_supervised": "All results use frozen embeddings plus a supervised random forest fitted on task labels. No label-free scoring is reported.",
+  "use_case_mappings_added": [],
+  "not_mapped": [
+    {"protocols": "feng-dna-fm-20261014-protocol-t2-*", "reason": "Bacterial promoter, human vs worm and mouse TFBS classification; no use case makes these decisions. Only the Arabidopsis rows stay on use-case-plant-promoter-reporters."},
+    {"protocols": "feng-dna-fm-20261014-protocol-t3-human-5mc, feng-dna-fm-20261014-protocol-t3-human-6-ma", "reason": "Modification-site classification of 41 bp genomic sequences; use-case-plasma-ctdna-methylation concerns tumour DNA detection from plasma methylation data, which these tasks do not measure."},
+    {"protocols": "feng-dna-fm-20261014-protocol-t3-yeast-*, feng-dna-fm-20261014-protocol-t3-*-4mc", "reason": "Non-human epigenetic classification; outside every use case."}
+  ],
+  "use_case_effects": "The Supplementary Data 4 results sit on evaluations reviewed under five existing proxy judgements (use-case-rare-disease-candidate-ranking: pathogenic vs common; use-case-regulatory-variant-gene-follow-up: eQTL, sQTL, paQTL, ipaQTL). After the store write those judgements are withheld until re-pinned with npm run use-cases:repin.",
+  "reproduction": "None. All values are transcribed from the paper and its supplementary workbook."
+}
