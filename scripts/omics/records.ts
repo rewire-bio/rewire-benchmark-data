@@ -6,6 +6,7 @@
  * provenance hash locks each record, so a changed record fails the build until its change
  * is recorded. */
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -243,28 +244,48 @@ export function recordChanges(ids: string[], inputs: string, review: string, roo
   writeStore([...records.values()], provenance, root);
 }
 
+/** The SHACL shapes are the record contract (issue #42, R6). Validate the records just written,
+ * the records that link to them and their link targets (`npm run kg -- subset`), not the whole
+ * store: that takes minutes and runs once in CI (`npm run kg:shapes`). If any checked record
+ * fails, put the store back exactly as it was. */
+function writeCheckedAgainstShapes(ids: () => string[], write: () => void, what: string) {
+  const storeFiles = () => [...recordFiles(), ...provenanceFiles()];
+  const before = new Map(storeFiles().map((file) => [file, fs.readFileSync(file)]));
+  const restore = () => {
+    for (const file of storeFiles()) if (!before.has(file)) fs.rmSync(file);
+    for (const [file, bytes] of before) fs.writeFileSync(file, bytes);
+  };
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "records-shapes-"));
+  try {
+    write();
+    fs.writeFileSync(path.join(dir, "ids.txt"), ids().join("\n") + "\n");
+    execFileSync("npm", ["run", "-s", "kg", "--", "subset", path.join(dir, "ids.txt"), dir], { stdio: "inherit" });
+    execFileSync("npm", ["run", "-s", "kg:build", "--", "--shapes-only", "--kg-dir", dir, "--context", path.join(dir, "context.txt")], { stdio: "inherit" });
+  } catch (error) {
+    restore();
+    fs.rmSync(dir, { recursive: true, force: true });
+    if (!(error as { status?: number }).status) console.error(error);
+    console.error(`${what} failed validation; the store is unchanged.`);
+    process.exit(1);
+  }
+  fs.rmSync(dir, { recursive: true, force: true });
+}
+
 if (process.argv[1]?.endsWith("records.ts")) {
   const [command, ...args] = process.argv.slice(2);
   const usage = "Usage: npm run records -- check | add <batch.jsonl> <batch-dir> | change <review-path> <batch-dir> <id>... | reshard";
   if (command === "check") console.log(`${loadRecords().length} records match their provenance.`);
   else if (command === "add" && args.length === 2) {
-    // The SHACL shapes are the record contract (issue #42, R6): export the store with the batch
-    // and validate it, and put the store back exactly as it was if any record fails.
-    const storeFiles = () => [...recordFiles(), ...provenanceFiles()];
-    const before = new Map(storeFiles().map((file) => [file, fs.readFileSync(file)]));
-    const added = addBatch(args[0], args[1]);
-    try {
-      execFileSync("npm", ["run", "-s", "kg:shapes"], { stdio: "inherit" });
-    } catch {
-      for (const file of storeFiles()) if (!before.has(file)) fs.rmSync(file);
-      for (const [file, bytes] of before) fs.writeFileSync(file, bytes);
-      console.error("The batch does not conform to data/ontology/shapes.ttl and attribute-shapes.ttl; the store is unchanged.");
-      process.exit(1);
-    }
+    let added = 0;
+    writeCheckedAgainstShapes(
+      () => readJsonl(args[0]).map((value: RecordEntry) => value.id),
+      () => { added = addBatch(args[0], args[1]); },
+      "The batch",
+    );
     console.log(`Added ${added} records.`);
   }
   else if (command === "change" && args.length >= 3) {
-    recordChanges(args.slice(2), args[1], args[0]);
+    writeCheckedAgainstShapes(() => args.slice(2), () => recordChanges(args.slice(2), args[1], args[0]), "The changed records");
     console.log(`Recorded changes to ${args.length - 2} records.`);
   } else if (command === "reshard" && !args.length) {
     console.log(`Placed ${reshardStore()} records in their shard files.`);

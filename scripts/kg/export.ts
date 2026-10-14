@@ -5,7 +5,8 @@
  *            to public/kg/ (the asserted graph of a knowledge-graph bundle)
  *   terms:   write data/ontology/rb-attributes.ttl and attribute-shapes.ttl, the property
  *            declarations and per-kind shapes for declared attributes (attribute-terms.ts)
- * Usage: npm run kg -- context | export | terms */
+ *   subset:  write the part of the graph that `records -- add` and `change` check against the shapes
+ * Usage: npm run kg -- context | export | terms | subset <ids-file> <dir> */
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -258,6 +259,31 @@ export function exportQuadLines(mapping: Mapping, records: RecordEntry[]): strin
   return [...new Set(publicRecords(records).flatMap((record) => recordQuads(mapping, record)))].sort();
 }
 
+/** The part of the graph `records -- add` and `change` check against the shapes: the given
+ * records and the records that link to them (checked), plus the records those link to
+ * (context, present so links resolve to typed records). The whole store is checked in CI. */
+export function subsetQuadLines(mapping: Mapping, records: RecordEntry[], ids: Iterable<string>) {
+  const quads = new Map(publicRecords(records).map((record) => [record.id, recordQuads(mapping, record)]));
+  const prefix = `<${mapping.base}`;
+  const targets = (id: string) => {
+    const found = new Set<string>();
+    for (const line of quads.get(id) ?? [])
+      for (let at = line.indexOf(prefix, 1); at !== -1; at = line.indexOf(prefix, at + 1)) {
+        const end = line.indexOf(">", at);
+        const target = line.slice(at + prefix.length, end);
+        if (target !== id && quads.has(target)) found.add(target);
+      }
+    return found;
+  };
+  const checked = new Set([...ids].filter((id) => quads.has(id)));
+  for (const id of quads.keys())
+    if (!checked.has(id) && [...targets(id)].some((target) => checked.has(target))) checked.add(id);
+  const context = new Set<string>();
+  for (const id of checked) for (const target of targets(id)) if (!checked.has(target)) context.add(target);
+  const lines = [...new Set([...checked, ...context].flatMap((id) => quads.get(id)!))].sort();
+  return { lines, checked: [...checked].sort(), context: [...context].sort().map((id) => mapping.base + id) };
+}
+
 export function exportQuads(mapping: Mapping, records: RecordEntry[]): string {
   return exportQuadLines(mapping, records).join("\n") + "\n";
 }
@@ -303,6 +329,14 @@ if (process.argv[1]?.endsWith("export.ts")) {
     };
     fs.writeFileSync(path.join("public/kg", "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
     console.log(`Wrote ${manifest.files["asserted.nq"].quads} quads for ${release.release_id} to public/kg/`);
+  } else if (command === "subset" && process.argv[4]) {
+    // npm run kg -- subset <ids-file> <dir>: asserted.nq and context.txt for build.py --shapes-only --context
+    const [idsFile, dir] = process.argv.slice(3);
+    const subset = subsetQuadLines(mapping, loadRecords(), fs.readFileSync(idsFile, "utf8").split(/\s+/).filter(Boolean));
+    fs.mkdirSync(dir, { recursive: true });
+    writeQuads(path.join(dir, "asserted.nq"), subset.lines);
+    fs.writeFileSync(path.join(dir, "context.txt"), subset.context.map((iri) => iri + "\n").join(""));
+    console.log(`Wrote ${subset.lines.length} quads: ${subset.checked.length} records to check, ${subset.context.length} link targets.`);
   } else if (command === "terms") {
     const rb = fs.readFileSync("data/ontology/rb.ttl", "utf8");
     const declared = new Set([...rb.matchAll(/^(rb:[A-Za-z0-9]+) a /gm)].map((m) => m[1]));
@@ -310,7 +344,7 @@ if (process.argv[1]?.endsWith("export.ts")) {
     fs.writeFileSync(attributeShapesFile, shapesTurtle(mapping));
     console.log(`Wrote ${attributeDeclarationsFile} and ${attributeShapesFile}`);
   } else {
-    console.error("Usage: npm run kg -- context | export | terms");
+    console.error("Usage: npm run kg -- context | export | terms | subset <ids-file> <dir>");
     process.exit(1);
   }
 }

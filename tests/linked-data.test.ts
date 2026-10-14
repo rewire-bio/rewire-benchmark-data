@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { Parser } from "n3";
-import { attributeDeclarationsFile, attributeShapesFile, buildContext, contextFile, exportQuadLines, exportQuads, readMapping, recordQuads, writeQuads } from "../scripts/kg/export";
+import { attributeDeclarationsFile, attributeShapesFile, buildContext, contextFile, exportQuadLines, exportQuads, readMapping, recordQuads, subsetQuadLines, writeQuads } from "../scripts/kg/export";
 import { declarationsTurtle, shapesTurtle } from "../scripts/kg/attribute-terms";
 import { kinds } from "../scripts/omics/schema";
 import { relations as catalogueRelations } from "../shared/omics/relations";
@@ -79,6 +79,19 @@ describe("N-Quads export", () => {
     const digest = writeQuads(file, lines);
     expect(fs.readFileSync(file, "utf8")).toBe(nquads);
     expect(digest).toBe(crypto.createHash("sha256").update(nquads).digest("hex"));
+  });
+
+  it("exports a checked record, the records linking to it and their link targets for records -- add", () => {
+    const evaluation = records.find((r) => r.kind === "evaluation" && records.some((x) => x.kind === "result" && x.links.some((l) => l.target_id === r.id)))!;
+    const result = records.find((r) => r.kind === "result" && r.links.some((l) => l.target_id === evaluation.id))!;
+    const { lines, checked, context } = subsetQuadLines(mapping, records, [evaluation.id]);
+    expect(checked).toContain(evaluation.id);
+    expect(checked).toContain(result.id);
+    for (const link of evaluation.links)
+      if (!checked.includes(link.target_id)) expect(context).toContain(ID + link.target_id);
+    expect(context.some((iri) => checked.includes(iri.slice(ID.length)))).toBe(false);
+    expect(lines).toContain(`<${ID}${evaluation.id}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${RB}Evaluation> <${mapping.graph}> .`);
+    expect([...lines].sort()).toEqual(lines);
   });
 
   it("is deterministic and sorted", () => {
