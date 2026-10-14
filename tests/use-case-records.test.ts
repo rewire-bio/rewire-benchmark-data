@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadRecords } from "../scripts/omics/records";
-import { claimPins, deriveUseCaseInputs, nextMonthlyCheck, useCaseHash, type JudgementPin } from "../shared/omics/use-cases";
+import { buildUseCaseArtifact, claimPins, deriveUseCaseInputs, nextMonthlyCheck, useCaseHash, type JudgementPin } from "../shared/omics/use-cases";
+import { publicRecords } from "../scripts/omics/schema";
 import type { CatalogueRecord } from "../shared/omics/catalogue-query";
 
 const store = loadRecords() as unknown as CatalogueRecord[];
@@ -174,6 +175,21 @@ describe("use cases as records", () => {
   it("does not withhold judgements when the use case gains a gap", () => {
     const grown = edit("use-case-cnv-detection-characterisation", (r) => ({ ...r, attributes: { ...r.attributes, evidence_gaps: [...(r.attributes.evidence_gaps as string[]), "A new gap"] } }));
     expect(mapping(grown).lifecycle).toBe("active");
+  });
+
+  it("keeps a judgement active in the release when a reviewed evaluation also has a disputed result", () => {
+    // The release serves public records only, so a disputed result is absent there. The evidence
+    // hash must be computed over the same records or the build marks the judgement as changed.
+    const published = publicRecords(store as never) as unknown as CatalogueRecord[];
+    const inputs = deriveUseCaseInputs({ records: store, published });
+    const artifact = buildUseCaseArtifact({ schema_version: "1.1", release_id: "2099-01-01-test",
+      released_at: "2099-01-01T00:00:00Z", records: published, coverage: {} } as never, inputs);
+    const hou = "use-case-mapping-ctdna-fragmentomics-20261009-hou2024-cris";
+    const disputed = store.filter((r) => r.kind === "result" && r.status === "disputed"
+      && r.links.some((l) => inputs.mappings.find((m) => m.id === hou)!.evaluation_ids.includes(l.target_id)));
+    expect(disputed.length).toBeGreaterThan(0);
+    expect(artifact.mappings.find((m) => m.id === hou)!.lifecycle).toBe("active");
+    expect(artifact.mappings.filter((m) => "stale_from" in m && m.stale_from).map((m) => m.id)).toEqual([]);
   });
 
   it("rejects an assessed_by link that no judgement backs", () => {
