@@ -1,5 +1,7 @@
 # Research notes
 
+Reviewed on 2026-10-14 (`docs/reviews/vep-literature-2026-10-14-review.md`); the review changes decisions 3 and 7 below and revises the judgements' limitations.
+
 Scope: literature pass for variant effect predictors (VEPs), rewire-benchmark-data #153, #154 and #155. Cutoff 2026-10-14; budget 60 queries, 10 used (ledger entries `search-vep-lit-20261014-q01` to `q10`). Use cases considered: BRCA1/BRCA2 germline interpretation, rare-disease candidate ranking, unresolved rare-disease reanalysis, somatic small-variant oncogenicity, protein stability, splicing follow-up, regulatory variant and gene follow-up. The AVE predictor list was used only to know which names to look for; no record cites it.
 
 Literature first: nothing was run. Two priority sources were extracted completely at the level chosen (below); everything else found is a recorded gap.

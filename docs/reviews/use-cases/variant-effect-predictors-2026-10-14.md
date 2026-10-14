@@ -8,6 +8,8 @@ Starting commit: `origin/main` b67ec370d884ccdf5bc4d2728e6407474044aa13 (release
 
 Batch: `data/omics/vep-literature-20261014/`.
 
+Reviewed independently on 2026-10-14 in [vep-literature-2026-10-14-review.md](../vep-literature-2026-10-14-review.md). That review changes some decisions recorded below (ProteinGym evaluation origin, the fitCons identity, judgement limitations); where they differ, the review is current.
+
 ## Disposition in brief
 
 1. Livesey and Marsh 2025 (Genome Biol 26:104, CC BY 4.0) is the current edition of the Edinburgh DMS benchmark. It ranks 97 VEPs against 36 human deep mutational scanning (DMS) datasets and 83 VEPs on ClinVar pathogenic versus gnomAD missense variants in 819 proteins. Its supplementary Tables S3 and S5 to S8 print every VEP's rank score. All of those rank scores are extracted: 6 protocols, 570 evaluations, 667 results.
