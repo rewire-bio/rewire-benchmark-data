@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "pdf-text-parse",
+    "rendered-source-visual-check",
+    "ai-assisted-source-review",
+    "scope-review"
+  ],
+  "reviewer": "Independent Claude (Opus 5.5) review agent, separate from the extraction agent feng-19; no human review claimed",
+  "reviewed_at": "2026-10-13T14:40:00Z",
+  "scope": "Independent review of feng-dna-fm-20261013: 447 records (126 results, 32 claims, 118 configurations, 118 evaluations, 25 protocols, 25 datasets, 3 sources). Re-downloaded and matched the SHA-256 of the article XML, Supplementary Data workbook, Supplementary Information PDF, gtex_hyena.py and README; a separate parser compared all 126 Table 1 and Table 4 values with 0 mismatches; 22 datasets checked against Supplementary Data 6 and 26 baseline-CNN claims against Supplementary Data 1 and 2; descriptive claims, two proxy relevance judgements and scope checked against the text. All records set to source_checked by review/signoff.py.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any result.",
+    "Figures were read only where a claim cites them (Supplementary Fig. 2); main-text Figures 2 to 4 were not checked value by value.",
+    "Corrections were applied by the extractor in extract/extract_feng.py as specified in the review; see review.md.",
+    "The use case's assessed_by links and the judgement pins are added at integration, after this receipt."
+  ],
+  "corrections": [
+    "Supplementary Information source: 11 pages, Supplementary Table 8 and Supplementary Figures 1 and 2 are present; the false 'not in the PDF' limitation was replaced by the TAD token-position discrepancy, and the TAD claim cites Supplementary Fig. 2.",
+    "GTEx configurations: the two allele embeddings are averaged (Methods); Enformer uses its final hidden state mean-pooled over regions.",
+    "dbGaP removed from access text and judgement limitations; the source names only the GTEx Protected Data Access portal.",
+    "TAD dataset: 'human reference genome' instead of GRCh38.",
+    "Judgement limitations gained the authors' preliminary-indicators caveat, no held-out loci or genes, distal elements outside the 6 kb window and the 131 kb versus 196 kb long inputs; the tables-not-extracted claim lists Supplementary Tables 5 to 8 and Supplementary Fig. 1; DNABERT-2 and GROVER configurations carry checkpoint values."
+  ],
+  "errors": [],
+  "files": {
+    "artifacts/MOESM3_ESM.xlsm.gz": "7eab15accb189db3d4630476328606a25490314da45ef84a1229e46943810569",
+    "batch.jsonl": "4a5a8403843b1747ce8dcc4ef024d8e7551cb5ee80d58154840d4f34ab361244",
+    "claims.csv": "7b47ca0c59f048a9a85f3736f77ea83e99e803a5df25491acb0b0858abaddc92",
+    "coverage.json": "105596fa513d92f2668dda9782138811f5dee8aa5b5213133212cb586e3546f5",
+    "extract/extract_feng.py": "65fe52a202fa5fa4eaaf5d7977ea1db787a06b8934bb4e511f6fcd3f6beab1f1",
+    "research.md": "c01ec980623bafe2f00966c0b4390962b749390a7e2f277301da0c747e46417b",
+    "retrieval-log.md": "eee300f880674e0aaf7f29466128d6a82b30a3d6f1f33a9bfac813b07634afab",
+    "review.md": "481b8ac018829ee3451c70dc767343cd79a033e924c76a0b6c54f5718f81f47e",
+    "review/signoff.py": "2f709f29a4294c167ab3d627af4dd13c4909c615c45d783de3054bf27209d050",
+    "sources.md": "4088613e9e2766a838708539a57a4235b9cdb76f65e50e154fdda56e5497dc0b"
+  }
+}
