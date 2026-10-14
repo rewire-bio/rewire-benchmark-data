@@ -84,7 +84,7 @@ for _l, _sp in FOURMC_SPECIES.items():
     ORIGIN[_l] = (f"N4-methylcytosine (4mC) site detection benchmark, {_sp} set of six species datasets; 41 bp sequences centred on potential 4mC sites "
                   "(Methods, 'Sequence classification datasets', 4mC site detection in multiple species; " + SN1 + ")", _sp + " (as printed)")
 
-# Supplementary Note 2 (Supplementary Information pages 1-2): reliance on experimental or gold-standard evidence.
+# Supplementary Note 2 (Supplementary Information pages 3-4): reliance on experimental or gold-standard evidence.
 SN2 = "Supplementary Note 2 (Supplementary Information pages 3-4)"
 NOT_EXPERIMENTAL = {f"Mouse TFBS {i}" for i in range(1, 6)}
 EUKARYOTIC_4MC = {"A.Thaliana 4mC", "C.Elegans 4mC", "D.Melanogaster 4mC"}
@@ -294,7 +294,11 @@ def main(xml_path, sd_path, si_path, root, out):
             if label.startswith("Yeast"):
                 notes.append(SN2 + " lists 'All Yeast Datasets' as 'Unknown' for reliance on experimental evidence or gold-standard sources. The yeast species is not named in the article.")
             if label in EUKARYOTIC_4MC:
-                notes.append("Methods ('Sequence classification datasets') state that for eukaryotic species 4mC site annotations often rely on computational predictions rather than direct genome-wide chemical mapping; Results treat these tasks as exploratory.")
+                notes.append("Methods ('Sequence classification datasets') state that for eukaryotic species 4mC site annotations often rely on computational predictions rather than direct genome-wide chemical mapping; Results treat these tasks as exploratory. "
+                             + SN2 + " nonetheless marks this dataset 'Yes' for reliance on experimental evidence or gold-standard sources.")
+            if label in FOURMC_SPECIES:
+                notes.append("Methods ('Sequence classification datasets', the paragraph defining four task categories) give 4mC site detection as an example of a human epigenetic task, "
+                             "but all six 4mC datasets are non-human (Table 3; Methods, 4mC paragraph). This dataset is recorded under its printed species.")
             if label in existing_cells_rows(existing_cells):
                 ds = H5MC_DATASET
                 links = [{"relation": "evaluates_task", "target_id": H5MC_TASK}, {"relation": "uses_data", "target_id": H5MC_DATASET}]
@@ -426,6 +430,27 @@ def main(xml_path, sd_path, si_path, root, out):
                            and any(l["relation"] == "evaluation" and l["target_id"] == ev for l in x["links"])]
             assert len(auc_results) == 1, (ev, len(auc_results))
             base_qual = auc_results[0]["attributes"]["metric_qualifier"]
+            # The stored evaluation's comparison.aggregation is the three-group mean. Per-group values have a
+            # different aggregation, so they get their own evaluation on the same configuration, protocol and data.
+            old = store[ev]
+            oa = old["attributes"]
+            assert oa["comparison"]["aggregation"].startswith("Mean of AUC/Cohen's d across the three outer chromosome test folds"), ev
+            block_slug = "pathogenic-common" if key == "variant" else key
+            legend_note = (" Supplementary Data 4 legend: 'There are notable differences between different test sets for paQTL and ipaQTL.'"
+                           if title in ("paQTL", "ipaQTL") else "")
+            group_links = [l for l in old["links"] if l["relation"] in ("assessment", "system", "data")]
+            assert sorted(l["relation"] for l in group_links) == ["assessment", "data", "system"], ev
+            group_ev = b.entity(
+                "evaluation", f"{P}-eval-sd4-{block_slug}-{ev_suffix}", f"{label} {title} per-test-group evaluation",
+                (f"Per-test-group AUCs behind the {table_label} three-group mean stored on {ev}; Feng et al. 2025 Supplementary Data 4. "
+                 "Transcribed, not reproduced." + legend_note),
+                {"origin": oa["origin"],
+                 "protocol": f"{table_label} set-up, AUC reported separately for each outer chromosome test group (Supplementary Data 4); frozen embeddings + random forest classifier",
+                 "comparison": {**oa["comparison"],
+                                "aggregation": ("Per outer chromosome test group: one AUC for each of the three held-out groups, not averaged (Supplementary Data 4); "
+                                                "the group is named in each result's metric qualifier")},
+                 "missing_metadata": oa["missing_metadata"]},
+                source_ids=(SRC_SD, SRC), links=group_links)
             printed_mean = t5_auc[table_row] if column is None else t6_auc[table_row][column]
             assert auc_results[0]["attributes"]["printed_value"] == printed_mean, (ev, printed_mean)
             values = []
@@ -438,13 +463,15 @@ def main(xml_path, sd_path, si_path, root, out):
                 loc = (f"Supplementary Data 4 (workbook sheet 'Data 4'), block '{title}', row '{label}', column '{hdr}' (cell {ref}). "
                        f"Test group {g} is {GROUPS[g]} (Methods, 'Variant effect quantification benchmark').")
                 note = ("The workbook stores the cell as a binary double in General number format; printed_value is the value as displayed. "
-                        f"This per-group AUC is one of the three test-set values whose mean is the {table_label} cell already stored as {auc_results[0]['id']}.")
+                        f"This per-group AUC is one of the three test-set values whose mean is the {table_label} cell already stored as {auc_results[0]['id']} "
+                        f"on evaluation {ev}. It sits on its own evaluation because its aggregation differs.")
                 if label == "HyenaDNA-160K":
-                    note += (" Supplementary Data 4 labels this row 'HyenaDNA-160K'; Table " + table_label[-1] + " prints 'HyenaDNA', and Methods ('Model configuration selection') "
-                             "say Hyena-450K was used for variant effect quantification. The row is linked by its matching mean; the checkpoint conflict is left for review.")
-                block_slug = "pathogenic-common" if key == "variant" else key
+                    note += (" Supplementary Data 4 labels this row 'HyenaDNA-160K', the default checkpoint in Methods ('Model configuration selection'). Table " + table_label[-1]
+                             + " prints it as 'HyenaDNA', beside a separate 'HyenaDNA-450K, long sequence' row that Supplementary Data 4 also lists; Methods say Hyena-450K was used "
+                             "for variant effect quantification 'to leverage its ability to process longer sequences', which matches the long-sequence row. Linked to the short-window "
+                             "HyenaDNA configuration by label and by its three-group mean.")
                 b.result(f"{P}-result-sd4-{block_slug}-{ev_suffix}-group-{g}-auc",
-                         f"{label} {title} AUC, test group {g}", ev,
+                         f"{label} {title} AUC, test group {g}", group_ev,
                          {"metric": "auroc", "metric_direction": "higher", "unit": "unitless", "printed_value": printed, "numeric_value": printed,
                           "metric_qualifier": f"{base_qual}; outer test group {g} only ({GROUPS[g]}), not averaged",
                           "source_locator": loc,
