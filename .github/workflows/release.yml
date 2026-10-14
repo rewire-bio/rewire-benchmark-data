@@ -1,11 +1,12 @@
 name: Cut and publish a release
 # On every push to main, and on demand: if main holds reviewed changes that are
-# not in the current release, cut a release from them, run every check, commit
-# it to main, publish its prepared SQLite file and knowledge-graph bundle, and
-# dispatch `data-release` to rewire-database, whose adopt-data-release workflow
-# deploys it. Evidence reaches main only through reviewed pull requests; this
-# workflow only packages what is already there. Its own release commit does not
-# start it again (pushes made with the workflow token start no workflows).
+# not in the current release, cut a release from them, check it, commit it to
+# main, publish its prepared SQLite file, and dispatch `data-release` to
+# rewire-database, whose adopt-data-release workflow deploys it. Evidence
+# reaches main only through reviewed pull requests; this workflow only packages
+# what is already there. Its own release commit does not start it again (pushes
+# made with the workflow token start no workflows). The knowledge-graph bundle
+# is not built here; it has its own on-demand workflow (kg-release.yml).
 # Runs after "Benchmark data checks" passes on main, so it never repeats those checks, and
 # never runs for a commit that failed them.
 on:
@@ -16,35 +17,39 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+# Release runs queue rather than cancel. GitHub keeps one waiting run per group, so a merge
+# made while a release is being cut replaces any older waiting run; that is harmless,
+# because each run builds main as it is when it starts.
 concurrency:
   group: benchmark-data-release
   cancel-in-progress: false
 env:
-  RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.1.0
   NODE_OPTIONS: --max-old-space-size=8192
 
 jobs:
   release:
     if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
+          # The release notes list the pull requests merged since the previous release, so
+          # the commit history is needed; file contents of older commits are not.
+          fetch-depth: 0
+          filter: blob:none
       - uses: actions/setup-node@v4
         with:
           # Match the website image: the prepared SQLite file's bytes depend on Node's bundled SQLite.
           node-version: 24
           cache: npm
-      - uses: astral-sh/setup-uv@v6
       - run: npm ci
       - name: Build a candidate release dated now
         id: candidate
         run: |
           previous=$(node scripts/release/next.mjs prepare)
-          # No inference here: whether anything changed is decided by the release itself.
-          npm run build:check
+          npm run build
           next=$(node scripts/release/next.mjs latest)
           echo "previous=$previous" >> "$GITHUB_OUTPUT"
           echo "next=$next" >> "$GITHUB_OUTPUT"
@@ -68,20 +73,16 @@ jobs:
       - name: Refuse a release that withholds reviewed use-case mappings
         if: steps.pending.outputs.release == 'true'
         run: node scripts/release/next.mjs withheld "${{ steps.candidate.outputs.previous }}" "${{ steps.candidate.outputs.next }}"
-      - name: Keep only the new release and confirm a fresh clone rebuilds it byte for byte
+      # Types, tests, the store, SHACL, Python and KG tests already passed in "Benchmark data
+      # checks" for this commit. The build itself refuses to change an archived file.
+      - name: Keep only the new release and check the packaging and prepared file
         if: steps.pending.outputs.release == 'true'
         run: |
           npm run release:prune
-          npm run build
-      # Types, tests, Python and KG tests already passed in "Benchmark data checks" for this commit.
-      - name: Check the store, packaging, prepared file and bundle
-        if: steps.pending.outputs.release == 'true'
-        run: |
-          npm run records -- check
           # The packaging check reads the git index, so stage the new release files first.
           git add -A data website
           npm run verify:package
-          node scripts/parallel.mjs serving:parity kg:verify
+          npm run serving:parity
       - name: Commit the release to main
         if: steps.pending.outputs.release == 'true'
         id: commit
@@ -92,15 +93,23 @@ jobs:
           git config user.email "rewire-release-bot@users.noreply.github.com"
           git add -A data website
           git commit -m "Cut release $RELEASE"
-          git push origin HEAD:main
+          # A pull request merged while this release was being cut moves main on. Rebase the
+          # release commit onto it and push again; the next run releases that pull request.
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then break; fi
+            if [ "$attempt" = 5 ]; then echo "::error::Could not push the release after $attempt attempts."; exit 1; fi
+            sleep $((attempt * 5))
+            git fetch origin main
+            git rebase origin/main
+          done
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - name: Publish the prepared release file and the knowledge-graph bundle
+      - name: Publish the prepared release file
         if: steps.pending.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           # Tag the release commit itself; the website reads its revision from the tag.
           RELEASE_TARGET_SHA: ${{ steps.commit.outputs.sha }}
-        run: node scripts/parallel.mjs serving:publish kg:publish
+        run: npm run serving:publish
       - name: Ask the website to adopt it
         if: steps.pending.outputs.release == 'true'
         env:

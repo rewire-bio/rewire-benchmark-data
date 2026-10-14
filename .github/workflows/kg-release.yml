@@ -1,0 +1,65 @@
+name: Build and publish a knowledge-graph bundle
+# On demand only. Builds the knowledge-graph bundle (inference, checks, SHACL) for a published
+# data release, verifies its format with rdf-kg-mcp, and publishes it as `kg/<release id>`.
+# Data releases (release.yml) never build or wait for it. An existing bundle is never replaced;
+# running this again for a published release only checks that the build reproduces it.
+on:
+  workflow_dispatch:
+    inputs:
+      release_id:
+        description: Data release to build the bundle for (default the newest published serving/<id>)
+        required: false
+permissions:
+  contents: write
+concurrency:
+  group: knowledge-graph-release
+  cancel-in-progress: false
+env:
+  RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.1.0
+  NODE_OPTIONS: --max-old-space-size=8192
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Find the release and the commit it was published from
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED: ${{ inputs.release_id }}
+        run: |
+          id="$REQUESTED"
+          if [ -z "$id" ]; then
+            id=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 200 --json tagName,createdAt,isDraft \
+              --jq '[.[] | select(.isDraft | not) | select(.tagName | test("^serving/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-f0-9]{12}$"))] | sort_by(.createdAt) | last | .tagName | ltrimstr("serving/")')
+          fi
+          echo "$id" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-f0-9]{12}$' || { echo "::error::No published release '$id'"; exit 1; }
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/serving/$id" --jq .sha)
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "Release $id, published from $sha"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.release.outputs.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci
+      - name: Rebuild the release's catalogue and confirm it matches the receipt
+        env:
+          RELEASE: ${{ steps.release.outputs.id }}
+        run: |
+          npm run omics:release
+          cmp public/omics/manifest.json "data/omics/releases/$RELEASE.json"
+      - name: Build the bundle and check its format
+        run: |
+          npm run kg:bundle
+          npm run kg:verify
+      - name: Publish it (never replaces an existing asset)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TARGET_SHA: ${{ steps.release.outputs.sha }}
+        run: npm run kg:publish
