@@ -9,7 +9,7 @@ All requests were plain HTTPS GETs with curl (or `gh api` for GitHub) from the c
 5. 14:48:03Z to 14:48:27Z: Europe PMC full-text XML for 32 PMC IDs. 26 returned full text; PMC4497952, PMC11751861, PMC10713091, PMC7288985, PMC6499232 and PMC6094955 returned the 150-byte error.
 6. 14:48:54Z to 14:49:01Z: PMC article pages for those six, HTTP 200. PMC4497952 (Gao et al. 2015, the paper the AVE list cites for DAMpred) does not describe DAMpred and was set aside.
 7. 14:49:14Z to 14:49:17Z: PMC article pages for Stenton et al. 2024 (PMC11560577), Tejura et al. 2024 (PMC11393694) and Dubé et al. 2026 (PMC13125162, screened only).
-8. 14:49:27Z: doi.org for 10.1016/j.gim.2026.102606 resolved to an Elsevier linking page (2,692 bytes, no article); an open-access lookup reported it closed (q05).
+8. 14:49:27Z: doi.org for 10.1016/j.gim.2026.102606 resolved to an Elsevier linking page (2,692 bytes, no article); an open-access lookup reported it closed (q05). That lookup used the Unpaywall API and sent a real contact email as its required `email` parameter instead of the placeholder `research-agent@example.invalid` used by earlier batches. The address is not recorded in this repository.
 9. 14:49:41Z: GitHub repository searches for seven tool names (q06 to q12).
 10. 14:49:56Z: Europe PMC DOI lookups for seven papers without a PMC copy (q13 to q19).
 11. 14:50:08Z: nature.com article page for GPN-Star (open access, CC BY; page bytes vary per request, not used). bioRxiv API metadata for the VAMPP preprint; its JATS XML route returned HTTP 429 (error 1015). Crossref bibliographic query for ESGMM (q20).
