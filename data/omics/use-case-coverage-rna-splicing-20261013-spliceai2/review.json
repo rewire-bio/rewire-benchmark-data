@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "pdf-text-parse",
+    "independent-cell-check",
+    "rendered-source-visual-check",
+    "scope-review"
+  ],
+  "reviewer": "Claude (Opus 5.5) research agent, independent reviewer; did not extract this batch (extractor: spliceai2-extract); no human review claimed",
+  "reviewed_at": "2026-10-13T16:00:00Z",
+  "scope": "Independent review of use-case-coverage-rna-splicing-20261013-spliceai2: 182 records, all 90 results (68 from the printed Extended Data Fig. 2 labels, 12 printed bar labels in Figs. 3c, 3f and 4g, 10 text values), 8 descriptive claims, 3 relevance judgements, comparator configurations and source hashes. Verdict in docs/reviews/use-cases/spliceai2-2026-10-13.md.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any result.",
+    "The bioRxiv PDF is stamped per download, so a fresh retrieval does not reproduce the pinned SHA-256; the pinned bytes were checked on the retained copy and the fresh copy's text layer is identical (hash_scope on the source record).",
+    "The OpenSplice preprint (reference 23) was not read, so the settings of its released comparator scores are unchecked."
+  ],
+  "corrections": [
+    "Corrections 1 to 7 are applied in extract/build_batch.py (marked 'review correction N'); batch.jsonl and claims.csv were regenerated from the pinned PDF and TSV, and extract/review_overlay.py then set every record to source_checked, wrote the reviewer's review blocks on results and claims, and listed reviewed_evaluations on the three judgements.",
+    "A field-by-field comparison with the extracted batch (commit 7d93545) shows 22 changed records: limitations on 9 protocols and 2 judgements, 5 GEL GT/AG result qualifiers, comparison.inputs on the 5 GEL GT/AG evaluations, and hash_scope on the article source. No printed or numeric value changed.",
+    "Correction 8 (judgement reason text naming the review) was added after the first build and regenerated the same way; it changes only attributes.reason on the three judgements.",
+    "coverage.json: judgement statuses set to source_checked and the Fig. 4b gap reworded.",
+    "After records add: assessed_by links from use-case-links.json applied to the two use cases, both splicing summaries extended with the SpliceAI2 results, recorded with records change, and the 3 judgements and 2 summaries repinned."
+  ],
+  "errors": [],
+  "files": {
+    "batch.jsonl": "6ea0b1f48295b1097795290aa9f4f4bbcd13bbd50bec808ac0b0342ecdd22069",
+    "claims.csv": "35c18e4caae4eb542c3ac3648994bc3174fd7c568e4daa4cac1edf28b3654487",
+    "coverage.json": "1b66b4f092c907f732e433a7069d3bfcd091173f0ad025a22901baac461d5b7e",
+    "extract/build_batch.py": "d3ddbeae8d4a8b7cec6ced214dc0cd8c89310227b3c12d286ad6d128a5093c88",
+    "extract/review_overlay.py": "2a195aeaf7e9f1e2f8e70ae52632eb6f9a46425fda3ba4ee46329ddef104f9cc",
+    "research.md": "2689c69b3226f71d401f473638d920da5fdfc350b086664f7eb564aae2e091ae",
+    "retrieval-log.md": "ba9df1df800dfd805ebf5be7cc0354015700c0ffec9993cba7a59373f729cf8a",
+    "sources.md": "c9b1045428ed71d586d8bdaaf94d82a77aac435075b443ef947847042c9e1649",
+    "use-case-links.json": "5d3c24011c64464a328ab279343bd5a18997c3b90a72ffd50bedfb6f66536b05"
+  }
+}
