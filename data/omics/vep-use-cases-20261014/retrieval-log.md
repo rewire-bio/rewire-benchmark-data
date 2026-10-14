@@ -19,6 +19,7 @@ All requests were plain HTTPS GETs with curl (or `gh api` for GitHub) from the c
 15. 14:52:02Z: Europe PMC search for DAMpred, VAMPP and EvoRator (q21). 14:52:09Z: Europe PMC XML for PMC6589125 (Quan et al. 2019, DAMpred) returned the error; the PMC page was retrieved at 14:52:10Z. About 14:52:30Z: VAMPP JATS XML retried, HTTP 429 again.
 16. 14:55:07Z: GPN-Star PDF from nature.com (HTTP 200, 16,497,174 bytes); a second download two seconds later had the same SHA-256.
 17. 14:56:33Z to 14:58:28Z: one HTTP probe of each recorded tool's stated access URL (results in `coverage.json`, `access_probe`). A single probe is not evidence that a tool is withdrawn.
+18. 15:18:57Z: second probe of the servers that had not responded (AFFIPred, PON-P3, MTBAN, FINSURF, PaPI, ENTPRISE), the code repositories of AFFIPred, MTBAN and FINSURF (with `gh api` for their last push), and DAMpred's current server at zhanggroup.org. Used for the exclusions on #153.
 
 Re-run the extraction with:
 

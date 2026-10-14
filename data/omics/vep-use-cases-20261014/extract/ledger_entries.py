@@ -9,7 +9,9 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from tools import GAPS, TOOLS  # noqa: E402
+from tools import EXCLUDED, EXCLUDED_UNRETRIEVED, GAPS, TOOLS as ALL_TOOLS  # noqa: E402
+
+TOOLS = [t for t in ALL_TOOLS if t["slug"] not in EXCLUDED]
 
 BATCH = os.path.dirname(HERE)
 P = "vep-uc-20261014"
@@ -17,7 +19,7 @@ CUTOFF = "2026-10-14"
 COVERAGE = ("VEP use-case pass for rewire-benchmark-data #151 and #152 and the remaining #153-#155 predictors, 21 of an 80-query budget "
             "used on 2026-10-14. Bounded pass, not systematic exhaustion of calibration studies or of predictor literature.")
 REVIEWER = "Claude (Opus 5.5) research agent scope review for the 2026-10-14 VEP use-case pass; not a scientific validation"
-T = {t["name"]: t for t in TOOLS}
+T = {t["name"]: t for t in ALL_TOOLS}
 tid = lambda t: f"{P}-{t['kind']}-{t['slug']}"
 sid = lambda t: f"{P}-source-{t['slug']}"
 
@@ -57,7 +59,7 @@ def main():
     rest = [t for t in TOOLS if t["issue"] in (154, 155)]
     L.append(entry(4, "source-resolution", 'DOI:"10.1186/s12859-015-0554-8" OR TITLE:"pseudo amino acid composition to score human protein-coding variants" OR TITLE:"SAAP pipeline and database" OR TITLE:"ENTPRISE" OR TITLE:"structure-guided variant effect predictions" OR TITLE:"protein structure graph embeddings to predict the pathogenicity" OR TITLE:"VAMPP" OR TITLE:"Born-Again Networks" OR TITLE:"formal perturbation equation between genotype and phenotype" OR TITLE:"UMD-Predictor" OR TITLE:"joint embedding of protein sequence and structure enables robust variant effect" OR TITLE:"ESGMM" OR TITLE:"Estimation of allele-specific fitness effects across human protein-coding sequences" OR TITLE:"landscape of tolerated genetic variation in humans and primates" OR TITLE:"Predicting genome-wide functional constraints with GPN-Star" OR TITLE:"Predicting expression-altering promoter mutations with deep learning" OR TITLE:"LOL-EVE" OR TITLE:"Predicting functional UTR variants" OR TITLE:"Classification of non-coding variants with high pathogenic impact" OR TITLE:"Using secondary structure to predict the effects of genetic variants on alternative splicing" OR TITLE:"De novo pattern discovery enables robust assessment of functional consequences of non-coding variants" OR TITLE:"Deep learning sequence-based ab initio prediction of variant effects on expression and disease risk" OR TITLE:"ShapeGTB" OR TITLE:"Predicting the impact of non-coding variants on DNA methylation" OR TITLE:"Functional annotation of noncoding sequence variants"',
         ["europe_pmc_rest"], "2026-10-14T14:47:44Z", "included",
-        "40 hits. Primary papers located for the #154 and #155 predictors and several #153 ones; GPN-Star (Nature 2026) and PromoterAI (Science 2025) have no PMC copy; LOL-EVE not indexed by title.",
+        "40 hits. Primary papers located for the #154 and #155 predictors and several #153 ones; GPN-Star (Nature 2026) and PromoterAI (Science 2025) have no PMC copy; LOL-EVE not indexed by title. MTBAN, UMD-Predictor, ESGMM, PEPSI, DVAR, ExPecto, ShapeGTB, CpGenie and GWAVA were then excluded as too old, outdated or unavailable (scope-audit).",
         included=[tid(t) for t in rest], reviewed=[sid(t) for t in rest],
         gaps=["PromoterAI Science paper not open access; the official repository README pinned to a commit is the captured source.", "LOL-EVE paper not found in Europe PMC; the official repository README is the captured source."]))
     L.append(entry(5, "source-resolution", "Open-access lookup for doi:10.1016/j.gim.2026.102606 (api.unpaywall.org/v2)", ["unpaywall_api"], "2026-10-14T14:49:27Z", "failed",
@@ -70,7 +72,7 @@ def main():
         L.append(entry(6 + i, "source-resolution", q, ["github_search_api"], "2026-10-14T14:49:41Z", "screened" if "captured" in d else "failed", d,
                        included=[tid(T[q])] if q in T and "captured" in d and q != "GPN-Star" else [], reviewed=[sid(T[q])] if q in ("PromoterAI", "LOL-EVE") else []))
     dois = [("10.1101/2024.07.11.602867", "VAMPP: preprint PPR880985, no full text in Europe PMC; bioRxiv API gives metadata only, JATS XML route rate limited (HTTP 429)", "failed"),
-            ("10.21203/rs.3.rs-4380588/v1", "ESGMM: Research Square preprint, CC BY; full text page captured", "screened"),
+            ("10.21203/rs.3.rs-4380588/v1", "ESGMM: Research Square preprint, CC BY; full text page retrieved, then ESGMM excluded under the #153 rule (no code or server stated)", "screened"),
             ("10.1016/j.jmb.2023.168155", "EvoRator2: no PMC copy; Elsevier linking page only", "failed"),
             ("10.1002/humu.23173", "PON-PS: no PMC copy; Wiley HTTP 403", "failed"),
             ("10.1021/acs.jcim.3c02019", "TransEFVP: no PMC copy; ACS HTTP 403", "failed"),
@@ -78,13 +80,13 @@ def main():
             ("10.1126/science.ads7373", "PromoterAI: no PMC copy; Science paywall; repository README used", "screened")]
     for i, (d, dec, st) in enumerate(dois):
         L.append(entry(13 + i, "source-resolution", f'DOI:"{d}"', ["europe_pmc_rest"], "2026-10-14T14:49:56Z", st, dec,
-                       reviewed=[sid(T["ESGMM"])] if "ESGMM" in dec else [sid(T["GPN-Star"])] if "GPN-Star" in dec else []))
+                       reviewed=[sid(T["GPN-Star"])] if "GPN-Star" in dec else []))
     L.append(entry(20, "source-resolution", "Crossref bibliographic query: Variant pathogenicity prediction based on the ESGMM algorithm", ["crossref_api"], "2026-10-14T14:50:08Z", "screened",
         "Published version Discover Computing, doi:10.1007/s10791-024-09487-w (CC BY-NC-ND); its Springer page and PDF returned a bot challenge, so the CC BY preprint is the captured source.",
         gaps=["ESGMM published version not retrieved."]))
     L.append(entry(21, "source-resolution", 'TITLE:"DAMpred" OR (TITLE:"VAMPP-Score") OR (TITLE:"EvoRator")', ["europe_pmc_rest"], "2026-10-14T14:52:02Z", "included",
-        "3 hits. DAMpred is described in Quan et al. 2019 (J Mol Biol, PMC6589125), not in the Gao et al. 2015 Structure paper the AVE list cites; Quan et al. captured. The VAMPP preprint and EvoRator (2022, the predecessor of EvoRator2) noted.",
-        included=[tid(T["DAMpred"])], reviewed=[sid(T["DAMpred"])], excluded=[{"paper_id": "doi:10.1016/j.str.2015.03.028", "reason": "Structural analysis of disease-associated mutations; does not describe DAMpred"}]))
+        "3 hits. DAMpred is described in Quan et al. 2019 (J Mol Biol, PMC6589125), not in the Gao et al. 2015 Structure paper the AVE list cites; Quan et al. retrieved, then DAMpred excluded under the #153 rule (see scope-audit). The VAMPP preprint and EvoRator (2022, the predecessor of EvoRator2) noted.",
+        excluded=[{"paper_id": "doi:10.1016/j.str.2015.03.028", "reason": "Structural analysis of disease-associated mutations; does not describe DAMpred"}]))
     with open(os.path.join(BATCH, "ledger.jsonl"), "w") as f:
         for e in L:
             f.write(json.dumps(e, ensure_ascii=False, sort_keys=True) + "\n")
@@ -97,9 +99,14 @@ def main():
     scope("doi:10.1016/j.gim.2024.101213", "included", "Stenton et al. 2024 (Genet Med): guidance and evidence yield for the calibrated PP3/BP4 thresholds. Cited for limitations; Table 2 not extracted.")
     scope("doi:10.1016/j.ajhg.2024.07.018", "included", "Tejura et al. 2024 (AJHG): gene-level heterogeneity of REVEL and BayesDel calibration. Cited for limitations; not extracted.")
     scope("doi:10.1016/j.str.2015.03.028", "excluded", "Gao, Zhou and Skolnick 2015 (Structure), cited by the AVE list for DAMpred: a structural analysis that does not describe DAMpred. DAMpred's primary paper is Quan et al. 2019 (J Mol Biol).")
-    for t in TOOLS:
-        scope(f"doi:{t['doi']}" if t.get("doi") else t["url"], "included",
-              f"Primary source for {t['name']} (rewire-benchmark-data #{t['issue']}): {t['kind']} record with status discovered (vep-use-cases-20261014). No results extracted.")
+    for t in ALL_TOOLS:
+        pid = f"doi:{t['doi']}" if t.get("doi") else t["url"]
+        if t["slug"] in EXCLUDED:
+            scope(pid, "excluded", f"{t['name']} (rewire-benchmark-data #{t['issue']}) excluded as too old, outdated or unavailable (timini on #153): {EXCLUDED[t['slug']]} No record created.")
+        else:
+            scope(pid, "included", f"Primary source for {t['name']} (rewire-benchmark-data #{t['issue']}): {t['kind']} record with status discovered (vep-use-cases-20261014)." + (" Results from Pejaver et al. 2022." if t["slug"] == "ea" else " No results extracted."))
+    for name, reason in EXCLUDED_UNRETRIEVED.items():
+        scope("doi:10.1002/humu.23173", "excluded", f"{name} (rewire-benchmark-data #153) excluded as outdated (timini on #153): {reason} No record created.")
     with open(os.path.join(BATCH, "scope-audit.jsonl"), "w") as f:
         for e in S:
             f.write(json.dumps(e, ensure_ascii=False) + "\n")

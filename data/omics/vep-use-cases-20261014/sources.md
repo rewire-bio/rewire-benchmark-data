@@ -56,26 +56,6 @@ All retrievals ran on 2026-10-14 (UTC) with curl or `gh api`. Hashes are of the 
 - SHA-256: `b3ea9f1fbbfd16760ebff96c8829f401c5836ed861a0db53de3ef33aff44fca8`
 - Licence: Not stated on the retrieved page
 
-### Zeng and Gifford 2017, Nucleic Acids Research 45:e99 (Europe PMC full text XML)
-
-- Record: `vep-uc-20261014-source-cpgenie`
-- Artifact: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5499808/fullTextXML
-- Version: PMC5499808 (Nucleic Acids Res 2017;45:e99)
-- DOI: 10.1093/nar/gkx177
-- Retrieved: 2026-10-14T14:48:27Z
-- SHA-256: `d572d0814ef4bcf6201bbede9cdd77e024aa2fa24aac08baad69c36df87c922e`
-- Licence: CC BY-NC 4.0
-
-### Quan, Wu, Lyu and Zhang 2019, J Mol Biol 431:2449 (PMC article page)
-
-- Record: `vep-uc-20261014-source-dampred`
-- Artifact: https://pmc.ncbi.nlm.nih.gov/articles/PMC6589125/
-- Version: PMC6589125, NIH author manuscript of J Mol Biol 2019;431(13):2449
-- DOI: 10.1016/j.jmb.2019.02.017
-- Retrieved: 2026-10-14T14:52:10Z
-- SHA-256: `2f0786d581e02817ba86411cf0185f72ba44ce941e571b172c54b5768adde1af`
-- Licence: NIH author manuscript in PMC; publisher copyright, no open licence stated
-
 ### Ramakrishnan et al. 2023, Frontiers in Molecular Biosciences 10:1204157 (Europe PMC full text XML)
 
 - Record: `vep-uc-20261014-source-deeprank-mut`
@@ -106,16 +86,6 @@ All retrievals ran on 2026-10-14 (UTC) with curl or `gh api`. Hashes are of the 
 - SHA-256: `4aa4bcad25636e2ff0f9ddc822ce958064e0832d8aec40e907ce9a078b1174c1`
 - Licence: CC BY 4.0
 
-### Yang et al. 2019, Bioinformatics 35:1453 (PMC article page)
-
-- Record: `vep-uc-20261014-source-dvar`
-- Artifact: https://pmc.ncbi.nlm.nih.gov/articles/PMC6499232/
-- Version: PMC6499232 (Bioinformatics 2019;35(9):1453)
-- DOI: 10.1093/bioinformatics/bty826
-- Retrieved: 2026-10-14T14:49:00Z
-- SHA-256: `7ae4584e7a96e5c3c5bd8c8c52cf32c8c000839db8b214d69cca8df235c9fc04`
-- Licence: Not stated on the retrieved page
-
 ### Katsonis and Lichtarge 2014, Genome Research 24:2050 (Europe PMC full text XML)
 
 - Record: `vep-uc-20261014-source-ea`
@@ -125,36 +95,6 @@ All retrievals ran on 2026-10-14 (UTC) with curl or `gh api`. Hashes are of the 
 - Retrieved: 2026-10-14T14:48:19Z
 - SHA-256: `4838b3936b4e35a20d397ca3ce61081da94d68e38f7f7389de8bcfb4388bcc66`
 - Licence: CC BY-NC 4.0
-
-### Zhou, Gao and Skolnick 2016, PLoS One 11:e0150965 (Europe PMC full text XML)
-
-- Record: `vep-uc-20261014-source-entprise`
-- Artifact: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC4794227/fullTextXML
-- Version: PMC4794227 (PLoS One 2016;11:e0150965)
-- DOI: 10.1371/journal.pone.0150965
-- Retrieved: 2026-10-14T14:48:07Z
-- SHA-256: `860d83bbc2ace05d02df4d45766dbe890b2422a038d36cbfea140c57f844ed28`
-- Licence: CC BY 4.0
-
-### Liu et al. 2024, Research Square preprint rs-4380588 v1 (preprint page)
-
-- Record: `vep-uc-20261014-source-esgmm`
-- Artifact: https://www.researchsquare.com/article/rs-4380588/v1
-- Version: Research Square preprint v1, posted 2024-05-25 (published as Discover Computing 2024;27:49, doi:10.1007/s10791-024-09487-w, not retrieved)
-- DOI: 10.21203/rs.3.rs-4380588/v1
-- Retrieved: 2026-10-14T14:50:30Z
-- SHA-256: `ebd520b91b7b35c5414d4996038ceb9c696b60f79b7128e5b5f2faa39356a41b`
-- Licence: CC BY 4.0 (preprint)
-
-### Zhou et al. 2018, Nature Genetics 50:1171 (PMC article page)
-
-- Record: `vep-uc-20261014-source-expecto`
-- Artifact: https://pmc.ncbi.nlm.nih.gov/articles/PMC6094955/
-- Version: PMC6094955, NIH author manuscript of Nat Genet 2018;50:1171
-- DOI: 10.1038/s41588-018-0160-6
-- Retrieved: 2026-10-14T14:49:01Z
-- SHA-256: `6eb3395dfdb2575aeb05d5f74ea63e63026340383f89808bd1ee9f3c072396b7`
-- Licence: NIH author manuscript in PMC; publisher terms of use
 
 ### Moyon et al. 2022, PLoS Genetics 18:e1010191 (Europe PMC full text XML)
 
@@ -195,16 +135,6 @@ All retrievals ran on 2026-10-14 (UTC) with curl or `gh api`. Hashes are of the 
 - Retrieved: 2026-10-14T14:55:07Z
 - SHA-256: `97f61ec05d4ace41692549290db3faf019ce869459459d2c5694bf54e16d0996`
 - Licence: CC BY 4.0
-
-### Ritchie et al. 2014, Nature Methods 11:294 (Europe PMC full text XML)
-
-- Record: `vep-uc-20261014-source-gwava`
-- Artifact: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5015703/fullTextXML
-- Version: PMC5015703, Europe PMC author manuscript of Nat Methods 2014;11:294
-- DOI: 10.1038/nmeth.2832
-- Retrieved: 2026-10-14T14:48:27Z
-- SHA-256: `b91bc154198ac946544f64d4b840163445155b7a01f9b72c0ebf213282365335`
-- Licence: Author manuscript under the publisher's academic-research terms of use
 
 ### Ruiz-Alías et al. 2025, Bioinformatics 41:btaf305 (Europe PMC full text XML)
 
@@ -265,16 +195,6 @@ All retrievals ran on 2026-10-14 (UTC) with curl or `gh api`. Hashes are of the 
 - SHA-256: `3f94a08d3988197e56b1893dc034f677c8aa8ec29bbfe9838a5546c208cca245`
 - Licence: CC BY 4.0
 
-### Kim, Jeon and Kim 2021, Scientific Reports 11:19127 (Europe PMC full text XML)
-
-- Record: `vep-uc-20261014-source-mtban`
-- Artifact: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8476491/fullTextXML
-- Version: PMC8476491 (Sci Rep 2021;11:19127)
-- DOI: 10.1038/s41598-021-98693-3
-- Retrieved: 2026-10-14T14:48:18Z
-- SHA-256: `88e947d81e74f44c637276943e257abb80a93b129a35186e4e84c846d280a690`
-- Licence: CC BY 4.0
-
 ### Yang et al. 2026, PNAS 123:e2524289123 (Europe PMC full text XML)
 
 - Record: `vep-uc-20261014-source-mutapheno`
@@ -284,26 +204,6 @@ All retrievals ran on 2026-10-14 (UTC) with curl or `gh api`. Hashes are of the 
 - Retrieved: 2026-10-14T14:48:18Z
 - SHA-256: `54c16ac9a0da2607496a7a464d0186c12f2de0f885c40d739f83fe17f6d1a3d1`
 - Licence: CC BY-NC-ND 4.0
-
-### Limongelli, Marini and Bellazzi 2015, BMC Bioinformatics 16:123 (Europe PMC full text XML)
-
-- Record: `vep-uc-20261014-source-papi`
-- Artifact: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC4411653/fullTextXML
-- Version: PMC4411653 (BMC Bioinformatics 2015;16:123)
-- DOI: 10.1186/s12859-015-0554-8
-- Retrieved: 2026-10-14T14:48:03Z
-- SHA-256: `e0d9965e7bf616423e0705ee6c59aceae9f63cd960cd05e745e1f8627c1de542`
-- Licence: CC BY 4.0
-
-### Wang, Wang and Hu 2019, Human Mutation 40:1270 (PMC article page)
-
-- Record: `vep-uc-20261014-source-pepsi`
-- Artifact: https://pmc.ncbi.nlm.nih.gov/articles/PMC7288985/
-- Version: PMC7288985, NIH author manuscript of Hum Mutat 2019;40:1270
-- DOI: 10.1002/humu.23790
-- Retrieved: 2026-10-14T14:48:59Z
-- SHA-256: `b4d66c5aaa5d9cd2d442f3a47377e1cefae137c58f68d38b52f1202212c57593`
-- Licence: NIH author manuscript in PMC; publisher copyright
 
 ### Kabir et al. 2025, International Journal of Molecular Sciences 26:2004 (Europe PMC full text XML)
 
@@ -344,26 +244,6 @@ All retrievals ran on 2026-10-14 (UTC) with curl or `gh api`. Hashes are of the 
 - SHA-256: `acaa8e8e17ae2f382ef34589186f9f8c80f8e104acc097fd956d36f024d5cc15`
 - Licence: CC BY-NC-ND 4.0
 
-### Al-Numair and Martin 2013, BMC Genomics 14(Suppl 3):S4 (Europe PMC full text XML)
-
-- Record: `vep-uc-20261014-source-saappred`
-- Artifact: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC3665582/fullTextXML
-- Version: PMC3665582 (BMC Genomics 2013;14 Suppl 3:S4)
-- DOI: 10.1186/1471-2164-14-S3-S4
-- Retrieved: 2026-10-14T14:48:04Z
-- SHA-256: `fc48d4a03b260515b8991c3c05c9b73f879b66c6abcb1b37c9edba2cee454394`
-- Licence: CC BY 2.0
-
-### Malkowska et al. 2018, PeerJ 6:e5742 (Europe PMC full text XML)
-
-- Record: `vep-uc-20261014-source-shapegtb`
-- Artifact: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC6275119/fullTextXML
-- Version: PMC6275119 (PeerJ 2018;6:e5742)
-- DOI: 10.7717/peerj.5742
-- Retrieved: 2026-10-14T14:48:26Z
-- SHA-256: `5a673631ee2790e79bb3731eee6e58535a896463451794cc10d3319e388d390d`
-- Licence: CC BY 4.0
-
 ### Blaabjerg et al. 2024, Nature Communications 15:9646 (Europe PMC full text XML)
 
 - Record: `vep-uc-20261014-source-ssemb`
@@ -374,16 +254,6 @@ All retrievals ran on 2026-10-14 (UTC) with curl or `gh api`. Hashes are of the 
 - SHA-256: `fd067a71c6980508086f4215db9eb7d84283670fd23534b70b9b29062719b69f`
 - Licence: CC BY-NC-ND 4.0
 
-### Salgado et al. 2016, Human Mutation 37:439 (Europe PMC full text XML)
-
-- Record: `vep-uc-20261014-source-umd-predictor`
-- Artifact: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5067603/fullTextXML
-- Version: PMC5067603 (Hum Mutat 2016;37:439)
-- DOI: 10.1002/humu.22965
-- Retrieved: 2026-10-14T14:48:20Z
-- SHA-256: `faf89a760fadb0c56a0dca29352848359e352f3c0b5d2f5a5cd345beb11994ef`
-- Licence: CC BY-NC-ND 4.0
-
 ### Lin et al. 2024, Scientific Reports 14:8136 (Europe PMC full text XML)
 
 - Record: `vep-uc-20261014-source-varipred`
@@ -392,14 +262,4 @@ All retrievals ran on 2026-10-14 (UTC) with curl or `gh api`. Hashes are of the 
 - DOI: 10.1038/s41598-024-51489-7
 - Retrieved: 2026-10-14T14:48:05Z
 - SHA-256: `556dac407f6fe6d7dc36e61b32554039824f26e4bd34f44ac66bfb48e86427b9`
-- Licence: CC BY 4.0
-
-### Baugh et al. 2016, Nucleic Acids Research 44:2501 (Europe PMC full text XML)
-
-- Record: `vep-uc-20261014-source-vipur`
-- Artifact: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC4824117/fullTextXML
-- Version: PMC4824117 (Nucleic Acids Res 2016;44:2501)
-- DOI: 10.1093/nar/gkw120
-- Retrieved: 2026-10-14T14:48:08Z
-- SHA-256: `7f5ac5a3cdefb4f722063a45d34402373844af0aa733d1bd45f6e24b48909bcb`
 - Licence: CC BY 4.0

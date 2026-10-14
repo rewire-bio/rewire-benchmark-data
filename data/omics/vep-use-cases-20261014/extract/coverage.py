@@ -5,7 +5,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from tools import GAPS, TOOLS  # noqa: E402
+from tools import EXCLUDED, EXCLUDED_UNRETRIEVED, GAPS, TOOLS  # noqa: E402
 
 BATCH = os.path.dirname(HERE)
 REPO = os.path.abspath(os.path.join(BATCH, "..", "..", ".."))
@@ -13,10 +13,10 @@ P = "vep-uc-20261014"
 
 # One availability probe per stated access URL, 2026-10-14 14:56:33Z to 14:58:28Z (curl -L, 20 s timeout).
 # 000 means no HTTP response. A single probe is not evidence that a tool is withdrawn.
-PROBE = {"papi": "000", "saappred": "200", "varipred": "200", "dampred": "000", "mlvar": "200", "entprise": "000", "vipur": "200", "lyrus": "200",
-         "deeprank-mut": "200", "affipred": "502", "metaea": "200", "dva": "200", "genoseer": "200", "pon-p3": "000", "rhapsody-2": "200", "ds-mvp": "200",
+PROBE = {"papi": "000", "saappred": "200", "varipred": "200", "dampred": "000 at the URL in the paper (14:56Z); 200 at zhanggroup.org/DAMpred/ (15:18Z)", "mlvar": "200", "entprise": "000", "vipur": "200", "lyrus": "200",
+         "deeprank-mut": "200", "affipred": "502 at 14:56Z and 15:18Z; kept because its code repository (github.com/timucinlab/AFFIPred) responds and was updated 2026-10-09", "metaea": "200", "dva": "200", "genoseer": "200", "pon-p3": "000 at 14:56Z and 15:18Z; kept as the current (2025) PON predictor, which supersedes PON-PS and PON-P2; the outage may be temporary", "rhapsody-2": "200", "ds-mvp": "200",
          "homolvar": "200", "magpie": "200", "mutapheno": "200", "mtban": "000", "ea": "500", "umd-predictor": "000 (probed with an ASCII hyphen; the paper prints a non-ASCII hyphen)",
-         "ssemb": "200", "primateai-3d": "200 (github.com/Illumina/PrimateAI-3D; the paper prints 'lllumina')", "funuv": "200", "finsurf": "000", "pepsi": "200", "dvar": "200",
+         "ssemb": "200", "primateai-3d": "200 (github.com/Illumina/PrimateAI-3D; the paper prints 'lllumina')", "funuv": "200", "finsurf": "000 at 14:56Z and 15:18Z; kept because its code repository (github.com/DyogenIBENS/FINSURF) responds and it was published in 2022", "pepsi": "200", "dvar": "200",
          "expecto": "200", "shapegtb": "200", "cpgenie": "000", "gwava": "200", "gpn-star": "200", "esgmm": "no URL stated", "promoterai": "200", "lol-eve": "200"}
 YEAR = {"papi": 2015, "saappred": 2013, "varipred": 2024, "dampred": 2019, "mlvar": 2022, "entprise": 2016, "vipur": 2016, "lyrus": 2022, "deeprank-mut": 2023,
         "affipred": 2025, "metaea": 2025, "dva": 2024, "genoseer": 2025, "pon-p3": 2025, "rhapsody-2": 2025, "ds-mvp": 2025, "homolvar": 2025, "magpie": 2024,
@@ -41,6 +41,12 @@ def main():
             row = {"predictor": p["predictor"]}
             if p.get("method_id"):
                 row.update(status="record and results from PR #160", record_id=p["method_id"], protocols_with_results=p["protocols_with_results"])
+            elif name in mine and mine[name]["slug"] in EXCLUDED:
+                t = mine[name]
+                row.update(status="excluded (too old, outdated or unavailable, per timini on #153); no record", reason=EXCLUDED[t["slug"]],
+                           screened_source=t["url"], publication_year=YEAR[t["slug"]], access_probe=PROBE[t["slug"]])
+            elif p["predictor"] in EXCLUDED_UNRETRIEVED:
+                row.update(status="excluded (outdated, per timini on #153); primary source not retrieved; no record", reason=EXCLUDED_UNRETRIEVED[p["predictor"]])
             elif name in mine:
                 t = mine[name]
                 row.update(status="discovered record added", record_id=f"{P}-{t['kind']}-{t['slug']}", source_id=f"{P}-source-{t['slug']}",
@@ -90,13 +96,13 @@ def main():
             "Genet Med 2026 calibration of machine-learning algorithms (doi:10.1016/j.gim.2026.102606) is closed access; not retrieved.",
             "BayesQuantify (J Med Genet 2025), P-KNN (bioRxiv 2025), INDELVAR (bioRxiv 2026), Dubé et al. 2026 and the regional 5' cis-regulatory calibration (AJHG 2024) not extracted.",
             "Tejura et al. 2024 gene-level tables and Stenton et al. 2024 Table 2 not extracted.",
-            "Four #153 predictors have no record: PON-PS, EvoRator2, TransEFVP and VAMPP (reasons under issue_predictor_coverage).",
-            "No benchmark result was extracted for any of the 36 newly recorded predictors except EA (Pejaver et al. 2022). Their developer papers print benchmark tables that were not extracted.",
+            "Three #153 predictors are gaps with no record because their primary source could not be retrieved: EvoRator2, TransEFVP and VAMPP (reasons under issue_predictor_coverage).",
+            "Fifteen predictors were excluded as too old, outdated or unavailable (timini on #153): PaPI, SAAPpred, DAMpred, ENTPRISE, VIPUR, PON-PS, MTBAN, UMD-Predictor, ESGMM, PEPSI, DVAR, ExPecto, ShapeGTB, CpGenie and GWAVA. Each has a reason in scope-audit.jsonl; borderline ones are marked.",
+            "No benchmark result was extracted for any of the 22 newly recorded predictors except EA (Pejaver et al. 2022). Their developer papers print benchmark tables that were not extracted.",
             "PromoterAI and LOL-EVE records rest on repository READMEs; their papers were not retrieved (Science paywall; LOL-EVE paper not found).",
-            "ESGMM record rests on the CC BY preprint; the published Discover Computing version was not retrieved.",
             "ProteinGym supervised DMS summaries and other zero-shot DMS metrics at 144fe22 remain unextracted (use case #152 gap).",
         ],
-        "issue_153_comment": "timini commented on #153: 'please do not add anything too old or outdated or bad'. All retrievable tools were recorded as discovered; publication_year and access_probe are given per tool so the reviewer can exclude old or unavailable ones.",
+        "issue_153_comment": "timini commented on #153: 'please do not add anything too old or outdated or bad'. On the lead's instruction a tool was excluded (no record) if its server or software is no longer available, a newer tool from the same group supersedes it, or it was published before about 2019 with no recent independent benchmark showing competitive performance; borderline cases were excluded and marked. Tools with results from PR #160 are unchanged. Probes ran at 14:56Z and, for borderline tools, again at 15:18Z.",
     }
     json.dump(out, open(os.path.join(BATCH, "coverage.json"), "w"), indent=1, ensure_ascii=False)
     open(os.path.join(BATCH, "coverage.json"), "a").write("\n")

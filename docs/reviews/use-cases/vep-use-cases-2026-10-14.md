@@ -9,13 +9,13 @@ Second pass on variant effect predictors (VEPs), after [variant-effect-predictor
 
 Starting commit 9beb63e (branch `claude/vep-literature-pass`, which holds the reviewed first-pass batch); this branch is `claude/vep-use-cases`. Cutoff 2026-10-14. Budget 80 queries; 21 used. No predictor or model was run, nothing was paid for or requested, and nobody was contacted. The AVE predictor list was used only to know which names to look for; no record cites it. This is an extraction awaiting independent review: no record is marked reviewed, there is no `review.json`, and the batch is not in the store.
 
-Batch: `data/omics/vep-use-cases-20261014/` (323 records).
+Batch: `data/omics/vep-use-cases-20261014/` (295 records).
 
 ## Disposition in brief
 
 1. Use case `use-case-missense-pp3-bp4-calibrated-evidence` (#151). Its core evidence is the ClinGen Sequence Variant Interpretation (SVI) calibration: Pejaver et al. 2022 (AJHG, CC BY) Table 2, score intervals for 13 predictors at four PP3 and four BP4 strengths, and Table 3, developer thresholds of SIFT, PolyPhen-2 and CADD; and Bergquist et al. 2025 (Genet Med) Table 1, points-scale intervals for BayesDel, MutPred2, REVEL, VEST4, AlphaMissense, ESM1b and VARITY_R. 173 results, every cell of the three tables. 15 relevance judgements (4 on the new protocols, 11 on existing ones) and a baseline claim (SIFT).
 2. Use case `use-case-protein-variant-effect-prediction` (#152). No new extraction: 6 judgements, all direct, on the ProteinGym zero-shot DMS substitutions track at 144fe22 and the five Livesey and Marsh 2025 DMS strata. Baseline claim: the site-independent alignment model.
-3. Predictors. 36 of the 40 without a record now have one, with status `discovered` and a captured primary source (19 from #153, 6 from #154, 11 from #155). EA also has results, from Pejaver et al. 2022. Four are gaps: PON-PS, EvoRator2, TransEFVP and VAMPP. Combined with PR #160, 36 of 40 (#153), 12 of 12 (#154) and 11 of 11 (#155) predictors have records; 17, 7 and 0 have results.
+3. Predictors. Of the 40 without a record, 22 now have one, with status `discovered` and a captured primary source (14 from #153, 3 from #154, 5 from #155). EA also has results, from Pejaver et al. 2022. Following timini's comment on #153, 15 were excluded as too old, outdated or unavailable (no record; reasons below). Three are gaps: EvoRator2, TransEFVP and VAMPP. Combined with PR #160, 31 of 40 (#153), 9 of 12 (#154) and 5 of 11 (#155) predictors have records; 17, 7 and 0 have results.
 4. A new metric concept, `evidence-strength-score-interval`.
 5. The seven first-pass use cases: a proposed `evidence_checked` of 2026-10-14 is in `evidence-checked.json`, to be applied with `records -- change` after review.
 
@@ -65,21 +65,40 @@ The proxy judgements for #151 say why: the rankings measure discrimination, not 
 
 - DAMpred: the AVE list cites Gao, Zhou and Skolnick 2015 (Structure 23:1362), which does not describe DAMpred. The record cites Quan et al. 2019 (J Mol Biol), which does; Gao et al. is excluded in the scope audit.
 - PromoterAI and LOL-EVE rest on their official repository READMEs pinned to commits (Illumina/PromoterAI ce9fcd0, debbiemarkslab/LOL-EVE deed3bd). The PromoterAI Science paper is not open access; the LOL-EVE paper was not found in Europe PMC.
-- ESGMM rests on its CC BY Research Square preprint; the published Discover Computing version returned a bot challenge.
 - GPN-Star rests on the Nature accelerated-preview PDF (CC BY), which hashed identically on two downloads; the article HTML did not.
-- MTBAN and mutationTCN are separate records; Livesey and Marsh 2025 score mutationTCN with predictions from the MTBAN server, which the first-pass review left without results for MTBAN.
 - Results from the predictors' own papers were not extracted (optional per the task). EA is the only new record with results.
 
 Gaps, no record created:
 
 | Predictor | Reference | Why |
 | --- | --- | --- |
-| PON-PS | Niroula and Vihinen 2017, Hum Mutat | No PMC copy; Wiley HTTP 403; the server path returns 404 and is not listed on the group's site. Livesey and Marsh 2025 dropped it because predictions were no longer available. |
 | EvoRator2 | Nagar et al. 2023, J Mol Biol | No PMC copy; Elsevier linking page only; server did not respond. |
 | TransEFVP | Yan et al. 2024, J Chem Inf Model | No PMC copy; ACS HTTP 403. A GitHub repository of that name holds only an 11-byte README and does not identify its authors. |
 | VAMPP | Aydin et al. 2024, bioRxiv | Preprint only; the bioRxiv JATS route was rate limited twice (HTTP 429). Retry later. |
 
-On #153, timini commented "please do not add anything too old or outdated or bad". All retrievable tools were recorded; the reviewer can exclude old or unavailable ones using the year and probe in `coverage.json`. The oldest are SAAPpred (2013), EA and GWAVA (2014), PaPI (2015), ENTPRISE, VIPUR and UMD-Predictor (2016) and CpGenie (2017). The single probe got no HTTP response for PaPI, DAMpred, ENTPRISE, PON-P3, MTBAN, UMD-Predictor, FINSURF and CpGenie, HTTP 500 for EA and HTTP 502 for AFFIPred.
+### Excluded as too old, outdated or unavailable
+
+timini commented on #153: "please do not add anything too old or outdated or bad". On the lead's instruction, applied to #153, #154 and #155: a tool gets no record if its server or software is no longer available, a newer tool from the same group supersedes it, or it was published before about 2019 with no recent independent benchmark showing competitive performance. Borderline cases are excluded and marked, so Tim can reverse them. Tools that already have Livesey and Marsh 2025 results from PR #160 are unchanged. Each exclusion is in `scope-audit.jsonl` with the same reason. Probes ran at 14:56Z and, for borderline tools, 15:18Z.
+
+| Tool | Issue | Reason |
+| --- | --- | --- |
+| DAMpred | #153 | Borderline: published 2019 and its server still responds (zhanggroup.org/DAMpred/), but it is not among the VEPs in Livesey and Marsh 2025 and no later independent benchmark was found. |
+| ENTPRISE | #153 | Published 2016; the server http://cssb.biology.gatech.edu/entprise/ gave no response at 14:56Z and 15:18Z; no later independent benchmark found. |
+| PaPI | #153 | Published 2015; the web server http://papi.unipv.it gave no response at 14:56Z and 15:18Z; Livesey and Marsh 2025 dropped PaPI because its predictions were no longer available. |
+| PON-PS | #153 | Published 2017; the server path https://structure.bmc.lu.se/PON-PS/ returns HTTP 404 and the group's site no longer lists it; PON-P3 (2025, recorded) from the same group supersedes the PON predictors; Livesey and Marsh 2025 dropped PON-PS because predictions were no longer available. |
+| SAAPpred | #153 | Published 2013 and trained on HumVar 2011/12; not among the VEPs in Livesey and Marsh 2025 and no later independent benchmark found. |
+| VIPUR | #153 | Published 2016; not among the VEPs in Livesey and Marsh 2025 and no later independent benchmark found. |
+| ESGMM | #154 | Borderline: published 2024, but the preprint states no code or server, so the tool cannot be obtained or run. |
+| MTBAN | #154 | Borderline: the web server http://mtban.kaist.ac.kr gave no response at 14:56Z and 15:18Z and the code repository was last updated in February 2024; Livesey and Marsh 2025 score its base model mutationTCN (from the MTBAN server), which is already in the store. |
+| UMD-Predictor | #154 | Published 2016; the web service gave no response at 14:56Z; not among the VEPs in Livesey and Marsh 2025 and no later independent benchmark found. |
+| CpGenie | #155 | Published 2017; the server http://cpgenie.csail.mit.edu gave no response at 14:56Z; no later independent benchmark found. |
+| DVAR | #155 | Borderline: published 2019 (online 2018); no later independent benchmark found, although its site still responds. |
+| ExPecto | #155 | Borderline: published 2018; its code is maintained, but the only later comparison found is in the 2021 Enformer paper (protocol text in the store) and no recent independent benchmark was found. |
+| GWAVA | #155 | Published 2014; no recent independent benchmark showing competitive performance found. |
+| PEPSI | #155 | Borderline: published 2019 and built for the CAGI5 Vex-seq challenge; no later independent benchmark found. |
+| ShapeGTB | #155 | Published 2018; no later independent benchmark found. |
+
+Kept although their servers did not respond on either probe: AFFIPred and FINSURF, whose code repositories respond, and PON-P3, the current (2025) PON predictor. EA is kept although Meta-EA (2025) comes from the same group, because EA is one of the ClinGen-calibrated tools and carries results here.
 
 ## Search log (exact, dated)
 
@@ -110,15 +129,15 @@ Two leads bear on first-pass use cases and were not mapped: the Pejaver and Berg
 1. Accept the result encoding for calibrated intervals (printed interval, `numeric_value` as the bound a score must reach) and the new metric concept, or prefer `numeric_value` null for two-sided intervals.
 2. Origin of the BayesDel and VEST4 rows in Bergquist et al. 2025, whose thresholds are carried over from a paper their developers co-wrote (`independent_paper` as recorded, or `author_reported`).
 3. Whether the gnomAD over-calling protocol should be mapped at all (recorded as proxy).
-4. Whether to drop old or unreachable predictors in response to the #153 comment.
+4. The 15 exclusions under the #153 comment, especially the six marked borderline, and the three tools kept with unresponsive servers.
 5. Whether PMC pages hashed after blanking two per-request tokens are acceptable source artifacts, or whether these papers should wait for a stable artifact.
 6. `docs/use-cases.md` says "There are 26" use cases; after this batch there would be 28. Not changed here, because the batch is not in the store.
 
 ## Validation
 
-In this worktree, with the batch not in the store: `npm run typecheck` passes and `npm run test:fast` passes (42 files, 370 tests). `build_batch.py` run twice gives the same `batch.jsonl` (SHA-256 `d6fa3f4eed1c722bcb61c83b35b2f9433040698d232bb496bdb199a0dad6c85a`).
+In this worktree, with the batch not in the store: `npm run typecheck` passes and `npm run test:fast` passes (42 files, 370 tests). `build_batch.py` is deterministic; the final `batch.jsonl` has SHA-256 `277d103f76bd9956f9d03bb902cb6ac27af99b88315050728d3cedc3c99c8f39`.
 
-On a temporary copy of the repository, deleted afterwards: `records -- add` of the batch passes the attribute checks and SHACL shapes (323 records added); applying `evidence-checked.json` to the seven use cases with `records -- change` passes the shapes; `records -- check` reports 77,050 records matching their provenance; `npm run build` exits 0. In the built `use-cases.json` the two new use cases carry `evidence_checked` 2026-10-14 and all 21 judgements are drafts, as expected before review. Built as drafts, the new use cases are listed in the artifact with no active evidence, so the batch should enter the store only after review.
+On a temporary copy of the repository, deleted afterwards: `records -- add` of the batch passes the attribute checks and SHACL shapes (295 records added); applying `evidence-checked.json` to the seven use cases with `records -- change` passes the shapes; `records -- check` reports 77,022 records matching their provenance; `npm run build` exits 0. In an earlier build of the same batch before the exclusions, the two new use cases carried `evidence_checked` 2026-10-14 and all 21 judgements were drafts, as expected before review. Built as drafts, the new use cases are listed in the artifact with no active evidence, so the batch should enter the store only after review.
 
 ## Source hashes
 

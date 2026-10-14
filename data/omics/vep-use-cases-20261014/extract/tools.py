@@ -211,8 +211,6 @@ TOOLS = [
 
 # Tools whose primary source could not be retrieved; recorded as gaps, no record created.
 GAPS = [
-    dict(name="PON-PS", issue=153, reference="Niroula and Vihinen 2017, Hum Mutat (doi:10.1002/humu.23173)",
-         reason="Not in PMC; the Wiley page returned HTTP 403 on 2026-10-14T14:50:59Z. The server path https://structure.bmc.lu.se/PON-PS/ returned HTTP 404 (14:51:09Z) and the group's index page does not list PON-PS. Livesey and Marsh 2025 dropped PON-PS because predictions were no longer available."),
     dict(name="EvoRator2", issue=153, reference="Nagar et al. 2023, J Mol Biol (doi:10.1016/j.jmb.2023.168155)",
          reason="Not in PMC; doi.org resolves to an Elsevier linking page without the article (14:50:59Z). http://evorator2.tau.ac.il/ did not respond (14:51:09Z). No preprint found in Europe PMC (query q08)."),
     dict(name="TransEFVP", issue=153, reference="Yan et al. 2024, J Chem Inf Model (doi:10.1021/acs.jcim.3c02019)",
@@ -220,3 +218,29 @@ GAPS = [
     dict(name="VAMPP", issue=153, reference="Aydin et al. 2024, bioRxiv 10.1101/2024.07.11.602867 (CC BY-ND per the bioRxiv API)",
          reason="Only a preprint is indexed. The bioRxiv JATS XML route returned HTTP 429 (rate limit, error 1015) at 14:50:17Z and again at about 14:52:30Z. The bioRxiv API returned metadata and abstract only, which is a summary, not the paper. Retry later."),
 ]
+
+# Excluded on the lead's instruction following timini's comment on #153 ("please do not add anything
+# too old or outdated or bad"): no record is created. A tool is excluded if its server or software is
+# no longer available, a newer tool from the same group supersedes it, or it was published before
+# about 2019 with no recent independent benchmark showing competitive performance. Borderline cases
+# are excluded and marked so; Tim can reverse them. Probes: 2026-10-14 14:56Z and, where noted, 15:18Z.
+EXCLUDED = {
+    "papi": "Published 2015; the web server http://papi.unipv.it gave no response at 14:56Z and 15:18Z; Livesey and Marsh 2025 dropped PaPI because its predictions were no longer available.",
+    "saappred": "Published 2013 and trained on HumVar 2011/12; not among the VEPs in Livesey and Marsh 2025 and no later independent benchmark found.",
+    "dampred": "Borderline: published 2019 and its server still responds (zhanggroup.org/DAMpred/), but it is not among the VEPs in Livesey and Marsh 2025 and no later independent benchmark was found.",
+    "entprise": "Published 2016; the server http://cssb.biology.gatech.edu/entprise/ gave no response at 14:56Z and 15:18Z; no later independent benchmark found.",
+    "vipur": "Published 2016; not among the VEPs in Livesey and Marsh 2025 and no later independent benchmark found.",
+    "mtban": "Borderline: the web server http://mtban.kaist.ac.kr gave no response at 14:56Z and 15:18Z and the code repository was last updated in February 2024; Livesey and Marsh 2025 score its base model mutationTCN (from the MTBAN server), which is already in the store.",
+    "umd-predictor": "Published 2016; the web service gave no response at 14:56Z; not among the VEPs in Livesey and Marsh 2025 and no later independent benchmark found.",
+    "esgmm": "Borderline: published 2024, but the preprint states no code or server, so the tool cannot be obtained or run.",
+    "pepsi": "Borderline: published 2019 and built for the CAGI5 Vex-seq challenge; no later independent benchmark found.",
+    "dvar": "Borderline: published 2019 (online 2018); no later independent benchmark found, although its site still responds.",
+    "expecto": "Borderline: published 2018; its code is maintained, but the only later comparison found is in the 2021 Enformer paper (protocol text in the store) and no recent independent benchmark was found.",
+    "shapegtb": "Published 2018; no later independent benchmark found.",
+    "cpgenie": "Published 2017; the server http://cpgenie.csail.mit.edu gave no response at 14:56Z; no later independent benchmark found.",
+    "gwava": "Published 2014; no recent independent benchmark showing competitive performance found.",
+}
+# Tools excluded without a captured source (their papers were not retrieved).
+EXCLUDED_UNRETRIEVED = {
+    "PON-PS": "Published 2017; the server path https://structure.bmc.lu.se/PON-PS/ returns HTTP 404 and the group's site no longer lists it; PON-P3 (2025, recorded) from the same group supersedes the PON predictors; Livesey and Marsh 2025 dropped PON-PS because predictions were no longer available.",
+}

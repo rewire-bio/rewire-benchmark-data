@@ -21,7 +21,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from pmc_html import normalised_sha256  # noqa: E402
-from tools import GAPS, TOOLS  # noqa: E402
+from tools import EXCLUDED, GAPS, TOOLS  # noqa: E402
 
 PINS = json.load(open(os.path.join(HERE, "pins.json")))
 
@@ -233,7 +233,7 @@ def main(downloads):
 
     # ---------------------------------------------------------- tool records (#153-#155)
     tool_ids = {}
-    for t in TOOLS:
+    for t in [t for t in TOOLS if t["slug"] not in EXCLUDED]:
         d = load(downloads, t["file"], t["mode"], PINS[t["slug"]]["sha"])
         sha, raw = PINS[t["slug"]]["sha"], hashlib.sha256(d).hexdigest()
         if t["mode"] == "pmc_html" and raw != PINS[t["slug"]]["raw_sha"]:
