@@ -1,6 +1,6 @@
 # Research and clinical use cases
 
-A use case is a decision someone needs to make, such as "which workflow detects copy-number changes accurately?", with the evidence that bears on it. There are 26. Use-case pages show the question, what the user brings and needs, the reviewed evidence, and what is still missing. They never recommend clinical care.
+A use case is a decision someone needs to make, such as "which workflow detects copy-number changes accurately?", with the evidence that bears on it. There are 28. Use-case pages show the question, what the user brings and needs, the reviewed evidence, and what is still missing. They never recommend clinical care.
 
 ## How use cases are stored
 

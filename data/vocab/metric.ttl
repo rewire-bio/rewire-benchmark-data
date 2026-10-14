@@ -555,6 +555,15 @@
     skos:definition "Effect size from an analysis of variance: the sum of squares between groups divided by the total sum of squares, from 0 to 1. Whether a larger value is better depends on what the groups are, so the direction is stated per result."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
 
+:evidence-strength-score-interval a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Score interval for an evidence strength"@en ;
+    skos:altLabel "calibrated score threshold"@en ;
+    skos:altLabel "PP3/BP4 threshold"@en ;
+    skos:definition "The range of a predictor's score that a calibration assigns to one evidence strength, for example ACMG/AMP PP3 Moderate. printed_value keeps the interval or bound as printed. numeric_value is the bound a score must reach to receive that strength (the printed bound of a one-sided interval, or the end of a two-sided interval further from the next-stronger interval), and is null when the strength is not reached or no threshold applies. The criterion, strength and calibration go in metric_qualifier and the score scale in unit_detail. Values are on each predictor's own score scale and are not comparable between predictors. Neither higher nor lower is better."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> ;
+    skos:scopeNote "Used for the ClinGen SVI calibrations of missense predictors (Pejaver et al. 2022; Bergquist et al. 2025)"@en .
+
 :event-detected a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Known event detected"@en ;
@@ -1024,6 +1033,15 @@
     skos:broader :accuracy ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by DART-Eval"@en .
+
+:pairwise-win-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Average pairwise win rate"@en ;
+    skos:altLabel "rank score"@en ;
+    skos:altLabel "rank_score"@en ;
+    skos:definition "For each other method, the percentage of head-to-head comparisons (per dataset, on the items both methods score) in which this method has the better value of an underlying metric, averaged over all other methods in the comparison. 0 to 100. It depends on which methods are compared, so values from different comparison sets are not comparable. The underlying metric, the items compared and any restriction of the opponent set go in metric_qualifier."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
+    skos:scopeNote "Used by Livesey and Marsh for variant effect predictor rankings"@en .
 
 :partial-label-accuracy a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
