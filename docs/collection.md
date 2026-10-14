@@ -115,13 +115,17 @@ Record the result with a `derivation` ([record-contract.md](record-contract.md))
 
 ### Where records live
 
-All records live in one canonical store, one JSONL file per kind, sorted by ID:
+All records live in one canonical store. Every file is JSONL, sorted by ID:
 
-| Folder | Kinds |
+| Location | Content |
 | --- | --- |
-| `data/entities/` | `models`, `methods`, `configurations`, `pipelines`, `services`, `benchmarks`, `tasks`, `protocols`, `evaluators`, `datasets`, `dataset-subsets`, `baselines`, `sources` |
-| `data/evidence/` | `evaluations`, `results`, `claims` |
-| `data/provenance/records.jsonl` | one line per record: its SHA-256, the batch that added it, and every reviewed change since |
+| `data/entities/<kind>.jsonl` | one file per kind: `models`, `methods`, `configurations`, `pipelines`, `services`, `benchmarks`, `tasks`, `protocols`, `evaluators`, `datasets`, `dataset-subsets`, `baselines`, `sources`, `use-cases` |
+| `data/evidence/<kind>/<shard>.jsonl` | `evaluations`, `results` and `claims`, each split into 16 shards |
+| `data/provenance/records/<shard>.jsonl` | one line per record, in 16 shards: its SHA-256, the batch that added it, and every reviewed change since |
+
+A record's shard is the first hex digit of the SHA-256 of its ID (UTF-8). For example, `printf %s <id> | shasum -a 256 | cut -c1` names the file that holds it, in its evidence folder and in `data/provenance/records/`. Sharding keeps every file far below GitHub's 50 MB warning and 100 MB limit; CI fails if any file under `data/` exceeds 50 MB. `records -- add` and `records -- change` place records and provenance in the right shard, and `records -- check` rejects a record in the wrong file. Scripts should read and write the store through `scripts/omics/records.ts` (`loadRecords`, `readKind`, `writeKind`, `recordFiles`) rather than by path.
+
+If a shard approaches 50 MB, raise `shardDigits` in `scripts/omics/records.ts` (2 gives 256 shards) or add the kind to `shardedKinds`, run `npm run records -- reshard`, which moves every line unchanged to its new file, and commit the result. Release receipts list the store as one logical file per kind (`data/evidence/results.jsonl`, `data/provenance/records.jsonl`) with the SHA-256 of its lines in ID order, so changing the shard layout does not change a release ID.
 
 The build reads only this store. A record whose bytes no longer match its provenance hash fails the build until the change is recorded (step 6).
 
@@ -162,14 +166,14 @@ Review is a separate pass by a different worker from the one that extracted the 
    ```
 
    Human review is recorded only when a named person did it.
-4. Write the batch receipt `review.json`: schema version, method, reviewer, `reviewed_at`, scope, limitations, an empty `errors` list, and the SHA-256 of `batch.jsonl` and every other file in the batch folder. After step 6, each record's hash in `data/provenance/records.jsonl` locks the reviewed bytes.
+4. Write the batch receipt `review.json`: schema version, method, reviewer, `reviewed_at`, scope, limitations, an empty `errors` list, and the SHA-256 of `batch.jsonl` and every other file in the batch folder. After step 6, each record's hash in `data/provenance/records/` locks the reviewed bytes.
 5. Summarise the pass in a dated review in `docs/reviews/` (or `docs/reviews/use-cases/` for a use-case pass): sources, a table of every value checked and its outcome, conflicts found, and remaining gaps.
 
 A review can conclude that nothing should change. Record that in the dated review; no data change or release is needed.
 
 ### Corrections and concerns
 
-Edit the record in its canonical file, then record the change with the review that justifies it:
+Edit the record in its canonical file (for an evaluation, result or claim, the shard named in [Where records live](#where-records-live); `grep -l '"id":"<record-id>"' data/evidence/*/*.jsonl` also finds it), then record the change with the review that justifies it:
 
 ```sh
 npm run records -- change docs/reviews/<date>-<topic>.md data/omics/<batch> <record-id> [<record-id> ...]
@@ -196,7 +200,7 @@ Audits are append-only checks on a specific catalogue release, stored in `data/o
 npm run records -- add data/omics/<batch>/batch.jsonl data/omics/<batch>
 ```
 
-This appends each record to the right canonical file, keeps the files sorted, and writes its provenance line. It then exports the store to RDF and validates it against the SHACL shapes (`npm run kg:shapes`, which needs [uv](https://docs.astral.sh/uv/) and takes about a minute); if any record fails, the store is put back as it was. It refuses any ID that already exists; to change an existing record, use `records -- change` (step 5). `npm run records -- check` confirms the whole store matches its provenance.
+This appends each record to the right canonical file or shard, keeps the files sorted, and writes its provenance line. It then exports the store to RDF and validates it against the SHACL shapes (`npm run kg:shapes`, which needs [uv](https://docs.astral.sh/uv/) and takes about a minute); if any record fails, the store is put back as it was. It refuses any ID that already exists; to change an existing record, use `records -- change` (step 5). `npm run records -- check` confirms the whole store matches its provenance.
 
 For use-case work, also add a relevance judgement for each new protocol that bears on a use case: an `assessed_by` link on the `use_case` record and a judgement claim (`field` `links:assessed_by:<protocol>`) recording relevance, endpoint, rationale, caveats and sources, with status `needs_review`. Evaluations on the protocol are found automatically. The reviewer lists the evaluations it checked in `reviewed_evaluations` and records the pins with `npm run use-cases:repin -- <review.md> <claim-id>...`. Fill `method_types`, version and access on each new configuration, so the use-case page can say what kind of method it is. See [use-cases.md](use-cases.md).
 
@@ -221,7 +225,7 @@ Then open a PR containing the batch folder, the store and provenance changes, th
 | A value was printed in the source | `result` record, batch `claims.csv` | `printed_value` and `source_locator` |
 | A value was computed from the source's own data | `result.attributes.derivation`, the script in the repository | pinned input hashes, row filters and counts, the quoted aggregation, the script hash |
 | The value was checked | `result.attributes.review`, batch `review.json`, dated review | actor, method, time; file hashes |
-| The record has not changed since review | `data/provenance/records.jsonl` | per-record SHA-256 and `changed_by` history |
+| The record has not changed since review | `data/provenance/records/` | per-record SHA-256 and `changed_by` history |
 | A descriptive fact about a model or benchmark | `claim` record, profile facts | `source_locator`, `status` |
 | A known problem | source `attributes.evidence_concerns` | artifact hash and locator |
 | A correction | `metadata-correction-*` claim, superseding records, provenance `changed_by` | linked evidence and review |

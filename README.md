@@ -30,8 +30,8 @@ Agent skills in [.agents/skills/](.agents/skills) (also linked from `.claude/ski
 ```
 data/
   entities/                            canonical records, one JSONL file per kind (models, benchmarks, sources, ...)
-  evidence/                            evaluations, results and claims
-  provenance/records.jsonl             per-record hash, originating batch and reviewed changes
+  evidence/                            evaluations, results and claims, each in 16 shards by ID hash
+  provenance/records/                  per-record hash, originating batch and reviewed changes (16 shards)
   ontology/                            RDF mapping, JSON-LD context, vocabulary, pinned imports and SHACL shapes
   omics/
     <batch folders>/                   evidence for each extraction: receipts, retrieval logs, archived sources
