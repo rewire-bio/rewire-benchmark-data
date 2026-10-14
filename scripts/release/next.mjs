@@ -1,5 +1,7 @@
 // Automated release support (.github/workflows/release.yml).
-//   node scripts/release/next.mjs prepare   set released_at to now; print the current release ID
+//   node scripts/release/next.mjs prepare   set released_at to now, record the commit the release is
+//       built from (source_revision) and the pull requests merged since the current release
+//       was built (changelog, see changelog.mjs); print the current release ID
 //   node scripts/release/next.mjs latest    print the newest release whose files are present
 //   node scripts/release/next.mjs withheld <previous-id> <next-id>
 //       exit 4 if the next release withholds or drops use-case mappings that the
@@ -16,6 +18,7 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import crypto from 'node:crypto';
 import readline from 'node:readline';
+import { changelogSince, head, previousSource } from './changelog.mjs';
 
 const releases = 'data/omics/releases';
 const configFile = 'data/omics/release-config.json';
@@ -52,6 +55,11 @@ if (command === 'latest') {
   const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
   const current = latest();
   config.released_at = new Date(Math.floor(Date.now() / 1000) * 1000).toISOString();
+  const since = previousSource(config, configFile);
+  const changelog = since ? changelogSince(since) : null;
+  if (!changelog) console.error(`::warning::Cannot list the pull requests merged since ${since || 'the current release'} in this clone; the release has no changelog.`);
+  config.source_revision = head();
+  config.changelog = changelog || [];
   fs.writeFileSync(configFile, JSON.stringify(config, null, 2) + '\n');
   console.log(current);
 } else if (command === 'withheld') {

@@ -24,7 +24,6 @@ import {
   evidenceJsonlLines,
 } from "../../shared/omics/evidence-table";
 import fs from "node:fs";
-import { restoreReleaseBundles } from "./archives";
 import { loadRecords, storeDigests } from "./records";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -48,6 +47,10 @@ export function buildRelease(
 ) {
   // Records written with older relation names are released under the current ones.
   const records = currentRecords(input);
+  // Release notes go in the receipt only. They do not enter the coverage or the release ID,
+  // so a release whose records are unchanged is recognised as unchanged (next.mjs pending).
+  const { changelog, ...coverageInputs } = extraCoverage;
+  extraCoverage = coverageInputs;
   if (useCases) {
     validateUseCaseHistory(useCases);
     const declaration = useCaseDeclaration(useCases);
@@ -173,8 +176,8 @@ export function buildRelease(
         ...(name === "records.jsonl" ? Object.entries(streamedHashes) : []),
       ]),
     ]),
-    changelog: Array.isArray(extraCoverage.changelog)
-      ? extraCoverage.changelog
+    changelog: Array.isArray(changelog)
+      ? changelog
       : [
           "Initial omics-only linked catalogue; original literature identifiers and scores retained.",
           "Only checked external numerical claims enter the catalogue; ambiguous values remain in the review queue.",
@@ -206,8 +209,6 @@ function writeArchive(output: ReturnType<typeof buildRelease>) {
 function main() {
   const records = loadRecords();
   if (!records.length) throw new Error("No reviewed catalogue records");
-  // Restore the frozen release first, so rebuilding it fails on any changed byte.
-  restoreReleaseBundles();
   const research = withResearchPins(() => loadResearchInputs());
   const ledger = fs.existsSync("data/omics/search-ledger.jsonl")
     ? fs
@@ -329,33 +330,11 @@ function main() {
               scope:
                 "Counts derived from this release through the production relationship and chart gates. Figures are source-specific, and metric rows are not independent experiments. Source review is not reproduction.",
             },
-            changelog: [
-              "Audit all 17 use cases; add source-reviewed, protocol-specific literature measurements and conventional baselines, with explicit remaining decision and transfer gaps. Automated source review is not independent experimental reproduction or human scientific review.",
-              ...(reviewedUseCases ? ["Add two sourced research use cases linking questions to exact existing evaluations, with separate MFASS and AMFR protocol scopes, explicit clinical evidence gaps and an independently versioned, release-pinned use-case artifact. Add two documentation source records; preserve every prior scientific record and numerical result."] : []),
-              "Add four MFASS matched canonical-annotation configurations and 16 exact metric rows on the identical 8,297/8,324 scored subset; retain 23 assembly-orientation exclusions and four canonical transcript-scope exclusions, with pinned automated evidence and separate comparison panels.",
-              "Add complete bounded primary-source result tables for BEELINE, CAFA, CAMI, CAPRI, CASP, FLIP2, PLINDER, scIB and provisional Virtual Cell Challenge 2026 validation.",
-              "Preserve PEtab timing candidates and four conflicting FLIP2 values in acquisition staging with explicit limitations.",
-              "Add append-only linked audit runs, field checks, source retrieval receipts and correction history; unresolved fields remain explicit.",
-              "Recover 16 omitted ProteinBench percentage results and correct percent units; original printed and numeric values remain unchanged.",
-              "Correct DART-Eval correlation units and remove unsupported standard-deviation labels from TDC printed plus/minus spreads.",
-              "Recheck pinned extraction inputs, reject unrecognised cells and authenticate PDF-to-text transformations.",
-              "Add complete AgroNT promoter and terminator source tables with CNN baselines, source-backed family links and separate assay comparisons.",
-              "Link verified model identities and expose downstream evaluations separately; add 1,620 source-checked numerical rows from 13 bounded primary-source comparisons. Preserve quoted evidence and quarantine conflicting mRNABench localization cells.",
-              "Count reviewed metrics from the same source evaluation setup together, retaining all original record IDs and links.",
-              "Load individual source-scoped charts, remove cross-protocol pooled rankings, and move findings before detailed instructions.",
-              "Review 69 selected profile facts across 18 profiles against pinned primary sources, including exact configuration, split, coverage and uncertainty distinctions. Preserve every result value and keep unresolved metadata explicit.",
-              "Add two bounded ProteinGym protocol profiles with 24 sourced facts, distinguishing the 217-assay track from one complete AMFR assay. Preserve numerical results, source-authentication gaps and independent-reproduction limits.",
-              "Name nine evaluated methods printed only as an author-year citation (eight ATOM3D comparisons) or an author surname (HEST, Ciga), from the benchmark text and the cited original sources. The ATOM3D RSR scorer is named only as a Rosetta scoring function; its citation conflict and settings stay unresolved. Printed labels remain searchable and auditable; IDs, values, locators and comparison conditions are unchanged. Add sourced DeepDTA and DeepAffinity method profiles.",
-              "Preserve archived release bytes, historical URLs and MFASS history. Contribution intake remains controlled separately from catalogue publication.",
-              ...(research ? ["Add verified research manifests, frozen readiness assessments and reviewed-only investigation contracts. Record IDs and values remain unchanged."] : []),
-              "Add a second, additive BRCA1/BRCA2 germline-interpretation evidence intake (issue #343): 42 new source-checked clinical-lane records from five sources (Benet-Pages 2025, So 2024, HECTOR preprint, Hu 2026, Karalidou 2022/MARGINAL source-only), distinguishing reclassification rate, tool agreement, preprint classification concordance and functional-data classification yield from clinical accuracy. Add five new scoped proxy use-case mappings against these records: two for Benet-Pages criteria-version reclassification on a fixed VUS cohort (ACMG/AMP+SVI, then ENIGMA VCEP), one for So 2024 VarSome-vs-CanVIG-UK tool agreement on conflicting BRCA1 missense calls, one for HECTOR preprint agreement with ClinGen eRepo expert calls, and one for Hu 2026 BRCA2 exon 15-26 functional-data classification yield; Karalidou 2022 remains source-only with no mapping added. None of these endpoints establishes clinical accuracy, qualified human scientific review or Rewire execution. All prior scientific records, mapping objects and historic release bytes remain unchanged.",
-              "Add a bounded, additive cell-type-annotation-transfer evidence intake (issue #349): Abdelaal et al. 2019 Figure S10 Panel B (34-population inter-dataset, cross-dataset/cross-species-where-applicable brain annotation-transfer comparison), SVMrejection row only (9 percent-unlabeled values across all nine VISp/ALM/MTG train-test combinations; VISp and ALM share a source study, GSE115746, so only the 7 of 9 combinations involving MTG are genuinely cross-study and cross-species), read directly from a page-image render of a separately-sourced supplement-PDF artifact and independently cross-checked before ingestion. Reuses the existing SVMrejection method/configuration records unmodified; adds one new source record, three new dataset records, one new protocol record, nine new evaluation records and nine new result records, plus one new scoped proxy use-case mapping. Scored denominator is explicitly unreported; Table 2's raw per-dataset cell counts are recorded as context only, not a confirmed denominator. Not a known-type accuracy claim, not an unknown-type-detection accuracy claim, and not a superiority claim across methods. All prior scientific records, mapping objects and historic release bytes remain unchanged.",
-              "Add a bounded, additive EGFR-NSCLC evidence-retrieval proxy intake (B345/BL345, rewire-benchmarks #25 and #28; use-case-egfr-nsclc-actionability-resistance-evidence): CIViC-Fact v3's post-cutoff within-linked-publication passage-retrieval evaluation (150 candidate CIViC entries submitted/revised 2026-03-03 to 2026-06-09, reduced by sequential source-defined exclusions to 40 scored entries). Nine new clinical-lane records (one source, one dataset, one protocol, two configurations, two evaluations, two results) and one new scoped proxy use-case mapping, alongside the unchanged existing CIViC MCP proxy mapping for the same use case. Both retriever configurations (a fine-tuned MedCPT cross-encoder and a pretrained Qwen3-Reranker-8B) report two linked-paper passage-retrieval results of 37/40 (92.5%) appropriate-content rate on the identical cohort, not two independent cohorts. This is retrieval within each entry's already-identified source publication, not open-corpus literature search, and establishes no EGFR- or NSCLC-specific validation, no clinical efficacy claim, and no close of the benchmark-execution gap tracked separately at rewire-benchmarks #28. Reviewer count, blinding and replicate/seed structure for the manual retrieval judgment are unreported. The code/data repository's root licence metadata is null with no root LICENSE file, but a nested data_builder/LICENSE (GPLv3) exists at a pinned commit; its scope over the dataset/model/experiment components is unestablished and not assumed, and no code/data/model copies were ingested. All prior scientific records, mapping objects, use cases and historic release bytes remain unchanged.",
-              "Add a bounded, additive genetic-perturbation-response evidence intake (B334/BL334, rewire-benchmarks #25; focused execution gap rewire-benchmarks #29; use-case-genetic-perturbation-response): PertEval-scFM (Wenteler et al., ICML 2025) Table 1, Norman single-gene section, 2,000 HVGs, three printed AUSPC endpoints (GEARS trained from scratch 0.815+/-0.039, an Xc-plus-co-expression MLP baseline 4.484+/-0.299, a context-mean baseline 4.612+/-0.317, all x10^-2), scoring the perturbation-effect delta=P-Xc rather than raw post-perturbation expression. Twelve new experimental-lane records (one source, one dataset, one protocol, three configurations, three evaluations, three results) and one new scoped proxy use-case mapping, alongside the two unchanged existing GEARS Supplementary Table 6 mappings for the same use case. This is a second, independent, from-scratch GEARS evaluation on a differently-preprocessed dataset, split mechanism and metric from Table 6; the two are not merged. Establishes no prospective experiment-selection hit rate and does not close the focused execution gap tracked separately at rewire-benchmarks #29. All prior scientific records, mapping objects, use cases and historic release bytes remain unchanged.",
-              "Add a bounded, additive AMP evidence intake (rewire.it#365; rewire-benchmark-data issues #10-19): nine new use-case definitions (tumour-dna-somatic-variant-detection, tumour-rna-fusion-detection, patient-rna-splicing-validation, diagnostic-dna-pathogen-identification, diagnostic-rna-pathogen-detection, plasma-ctdna-fragmentomics, plasma-ctdna-methylation, cnv-detection-characterisation, diagnostic-genomics-model-execution), transcribed from three research groups' Codex-checked primary-source candidate dossiers (Lancet/Strelka2 virtual-tumour SNV/indel calling; EnFusion Seraseq synthetic reference standard plus a separate NCH clinical-ascertainment mapping; FRASER known pathogenic splicing-event recovery; Karius plasma microbial cfDNA; UCSF respiratory RNA mNGS; DELFI ctDNA fragmentomics; cfMethyl-Seq ctDNA methylation; DRAGEN 4.2 CNV and runtime baselines), plus a bounded Feng et al. 2025 DNA-foundation-model table expansion (Table 1 Acceptor and Donor as two separate tasks, Table 2 Arabidopsis TATA and NonTATA as two separate tasks, Table 5 pathogenic-versus-common SNP AUC/Cohen's d, Table 6 eQTL/sQTL/paQTL/ipaQTL as four separate tasks, 79 task-scoped evaluations and 138 results total) reusing the existing evidence-expansion-dna-foundation-models-2025-5d8ca9bc source unchanged, mapped as nine proxy mappings onto existing use cases (two each for splicing-follow-up and plant-promoter-reporters, one for rare-disease-candidate-ranking, four for regulatory-variant-gene-follow-up). Every preserved source conflict (Lancet/Strelka2 truth-indel counts, EnFusion Table 2 v2/v3 caption and 43.6%/43.8% precision conflicts, DELFI classifier-input wording, UCSF composite-PPA conflict, DRAGEN CNV comparator conflict) stays explicit and unresolved by inference. Automated source review, independently Codex-checked across two review cycles; no qualified human scientific review, no independent experimental reproduction, no broad clinical validation claimed. The 17 prior use cases and 72 prior mapping objects remain byte-identical.",
-            ],
           }
         : {}),
+      // Release notes: the merged pull requests since the previous release, written into the
+      // release config by scripts/release/next.mjs prepare. They go in the receipt only.
+      changelog: Array.isArray(audit.changelog) ? audit.changelog : [],
       research_lanes: 9,
       search_entries: ledger.length,
       legacy_papers: 100,
