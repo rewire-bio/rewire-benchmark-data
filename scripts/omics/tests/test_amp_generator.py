@@ -17,10 +17,12 @@ NATIVE_ROOT = ROOT / "data/omics/use-case-coverage-amp-20261007"
 
 def batch_records(added_in):
     """Records a batch added, read from the canonical store through provenance."""
-    ids = {row["id"] for row in map(json.loads, (ROOT / "data/provenance/records.jsonl").read_text().splitlines())
-           if row["added_in"] == added_in}
-    return [record for path in sorted((ROOT / "data").glob("[ee][nv]*/*.jsonl"))
-            for record in map(json.loads, path.read_text().splitlines()) if record["id"] in ids]
+    ids = {row["id"] for path in (ROOT / "data/provenance/records").glob("*.jsonl")
+           for row in map(json.loads, path.read_text().splitlines()) if row["added_in"] == added_in}
+    # Entity kinds are one file each; evidence kinds and provenance are sharded by ID hash.
+    paths = [*(ROOT / "data/entities").glob("*.jsonl"), *(ROOT / "data/evidence").glob("*/*.jsonl")]
+    return sorted((record for path in paths for record in map(json.loads, path.read_text().splitlines())
+                   if record["id"] in ids), key=lambda record: record["id"])
 
 
 def digest(content):

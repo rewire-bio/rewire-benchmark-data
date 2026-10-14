@@ -25,7 +25,7 @@ import {
 } from "../../shared/omics/evidence-table";
 import fs from "node:fs";
 import { restoreReleaseBundles } from "./archives";
-import { loadRecords, recordFiles, provenanceFile } from "./records";
+import { loadRecords, storeDigests } from "./records";
 import path from "node:path";
 import crypto from "node:crypto";
 import { type OmicsProfile } from "../../lib/omics-profile";
@@ -360,16 +360,19 @@ function main() {
       search_entries: ledger.length,
       legacy_papers: 100,
       legacy_result_rows: 149,
+      // The store is listed as one file per kind (sharded kinds by their unsharded bytes), so
+      // splitting a file into shards does not change the release.
       source_inputs: [
-        ...recordFiles(),
-        provenanceFile,
-        ...useCaseInputFiles(),
-        ...researchInputFiles.filter(file => fs.existsSync(file)),
-        "data/omics/search-ledger.jsonl",
-      ].map((file) => ({
-        file,
-        sha256: fs.existsSync(file) ? sha(fs.readFileSync(file)) : null,
-      })),
+        ...storeDigests(),
+        ...[
+          ...useCaseInputFiles(),
+          ...researchInputFiles.filter(file => fs.existsSync(file)),
+          "data/omics/search-ledger.jsonl",
+        ].map((file) => ({
+          file,
+          sha256: fs.existsSync(file) ? sha(fs.readFileSync(file)) : null,
+        })),
+      ],
     },
     true,
     reviewedUseCases?.inputs,

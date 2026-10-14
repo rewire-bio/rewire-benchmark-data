@@ -6,11 +6,11 @@
  *   npm run use-cases:repin -- <review.md> <claim-id>...   re-pin the named claims, after re-review
  *   npm run use-cases:repin -- <review.md> --all           re-pin every reviewed claim; only for a
  *                                                          reviewed change of form, never of meaning
- * Each changed claim is recorded in data/provenance/records.jsonl. */
+ * Each changed claim is recorded in its provenance (data/provenance/records/). */
 import fs from "node:fs";
 import { claimPins, useCaseHash, type JudgementPin } from "../../shared/omics/use-cases";
 import type { CatalogueRecord } from "../../shared/omics/catalogue-query";
-import { recordChanges, recordFile } from "./records";
+import { readKind, recordChanges, writeKind } from "./records";
 
 const [review, ...rest] = process.argv.slice(2);
 const all = rest.includes("--all");
@@ -19,8 +19,7 @@ if (!review || !fs.existsSync(review) || (all && named.size)) {
   console.error("Usage: npm run use-cases:repin -- <review.md> [<claim-id>... | --all]  (the review must exist)");
   process.exit(1);
 }
-const read = (kind: string) =>
-  fs.readFileSync(recordFile(kind), "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as CatalogueRecord);
+const read = (kind: string) => readKind<CatalogueRecord>(kind);
 const kinds = ["use_case", "protocol", "source", "evaluation", "result", "claim"];
 const records = new Map(kinds.flatMap(read).map((r) => [r.id, r]));
 const claims = read("claim");
@@ -45,7 +44,7 @@ const next = claims.map((claim) => {
   return { ...claim, attributes: { ...claim.attributes, pins } };
 });
 if (repinned.length) {
-  fs.writeFileSync(recordFile("claim"), next.map((r) => JSON.stringify(r) + "\n").join(""));
+  writeKind("claim", next);
   recordChanges(repinned, "shared/omics/use-cases.ts claimPins", review);
 }
 console.log(`Pinned ${repinned.length} claims against ${review}.`);

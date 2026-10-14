@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import os from "node:os";
 import { z } from "zod";
 import { loadUseCaseReview } from "../omics/use-cases";
+import { kindFiles } from "../omics/records";
 
 const iso = z.string().datetime({ offset: true });
 const id = z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,100}$/);
@@ -247,9 +248,13 @@ export class RefreshStore {
         : [];
     return {
       cases: read("data/entities/use-cases.jsonl"),
-      judgements: read("data/evidence/claims.jsonl").filter((line) =>
-        line.includes('"field":"links:assessed_by:'),
-      ),
+      // Claims are sharded (scripts/omics/records.ts); read them in ID order, as one file.
+      judgements: kindFiles("claim", this.root)
+        .flatMap((file) => fs.readFileSync(file, "utf8").split("\n").filter(Boolean))
+        .filter((line) => line.includes('"field":"links:assessed_by:'))
+        .map((line) => ({ id: (JSON.parse(line) as { id: string }).id, line }))
+        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+        .map(({ line }) => line),
     };
   }
   cases() {

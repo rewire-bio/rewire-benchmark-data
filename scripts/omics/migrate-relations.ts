@@ -2,7 +2,7 @@
  *
  * Applies shared/omics/relations.ts normalizeRecords, the same function every reader
  * uses on older releases, to the records in data/entities and data/evidence, and records each
- * changed record in data/provenance/records.jsonl. Claims whose field cites a renamed link
+ * changed record in data/provenance/records/. Claims whose field cites a renamed link
  * ("links:variant_of:...") are updated with it. Running it again changes nothing.
  *
  * Usage: npm run relations:migrate -- <review.md> */

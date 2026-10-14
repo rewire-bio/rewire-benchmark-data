@@ -8,7 +8,7 @@
  *   replacement (empty removes old_value).
  * Every row is checked against the store before anything is written, so a table drafted against
  * an older state of a record is refused rather than half applied. Changed records are recorded
- * in data/provenance/records.jsonl with the table as input and the review as evidence.
+ * in data/provenance/records/ with the table as input and the review as evidence.
  *
  * Usage: npm run records:correct -- <table.csv> <review.md> */
 import fs from "node:fs";

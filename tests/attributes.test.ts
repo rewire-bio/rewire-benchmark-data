@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { attributeIssues, attributeTypes, convertUncertainty, normalizeAttributes } from "../shared/omics/attributes";
 import { attributeRegistry } from "../shared/omics/attribute-registry";
-import { addBatch, recordFile, recordSha256 } from "../scripts/omics/records";
+import { addBatch, recordSha256, writeStore } from "../scripts/omics/records";
 import { readMissingLookup } from "../scripts/omics/migrate-attributes";
 import { loadSchemes } from "../scripts/omics/vocab";
 import { records } from "./helpers/records";
@@ -98,11 +98,8 @@ describe("declared attributes", () => {
     try {
       const source = { id: "test-source", kind: "source" as const, name: "s", description: "", status: "source_checked" as const,
         facets: {}, source_ids: [], links: [], attributes: { url: "https://example.org/paper", version: "v1", retrieved_at: "2026-10-08T00:00:00Z" } };
-      fs.mkdirSync(path.dirname(recordFile("source", root)), { recursive: true });
-      fs.writeFileSync(recordFile("source", root), JSON.stringify(source) + "\n");
-      fs.mkdirSync(path.join(root, "data/provenance"), { recursive: true });
-      fs.writeFileSync(path.join(root, "data/provenance/records.jsonl"),
-        JSON.stringify({ id: source.id, sha256: recordSha256(source), added_in: "test", added_by: "test", changed_by: [] }) + "\n");
+      writeStore([source], new Map([[source.id,
+        { id: source.id, sha256: recordSha256(source), added_in: "test", added_by: "test", changed_by: [] }]]), root);
       const batch = path.join(root, "batch.jsonl");
       fs.writeFileSync(batch, JSON.stringify({ ...source, id: "test-model", kind: "model", source_ids: ["test-source"],
         attributes: { entity_level: "method", invented_key: 1 } }) + "\n");
