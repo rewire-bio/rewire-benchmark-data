@@ -206,3 +206,9 @@ Judgement calls:
 - fitCons stays a family record; the sentence describes the fitCons method, and the note keeps the open question of which dbNSFP fitCons score was used.
 
 These rows have not had an independent review.
+
+## Records from the combined branch
+
+Combining this PR with #150 (genomic foundation model guide sources), #159 (GFM guide evidence and record fixes) and #166 (VEP use cases) brought in 54 more configurations written before the check existed, most with "as evaluated by" or "as run by" wording. `extras.py` generated their descriptions from the same rules into `extras-2-corrections.csv`, applied with `records:correct` against this review. Six generated sentences were rewritten by hand: the four HyenaDNA Table A.2 pretraining rows, which only repeated the parameter count, and the EVE and CADD rows, which were cut off mid-quote. Trailing "(reference N)" citations were removed. As before, the previous description is kept verbatim in `provenance_note`. These rows have not had an independent review.
+
+Three GUANinE GPN-MSA configurations were changed by both PRs: #158 rewrote their descriptions and #159 repointed `configuration_of` to the new GPN-MSA model record. The combined records keep both changes, and their provenance lists both corrections.
