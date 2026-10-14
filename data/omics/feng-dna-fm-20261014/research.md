@@ -41,6 +41,10 @@ No new mappings.
 - Table 3 yeast and 4mC: outside every use case.
 - Supplementary Data 4: the five protocols are already mapped as proxy (pathogenic vs common to `use-case-rare-disease-candidate-ranking`; the four QTL protocols to `use-case-regulatory-variant-gene-follow-up`). The per-group results inherit those proxy labels through their evaluations. No mapping is added or changed.
 
+## Why the batch is not yet in the store
+
+A trial `records add` on 2026-10-14 succeeded (SHACL subgraph check passed, 639 records added) and `records -- check` passed. `npm test` then failed two tests in `tests/use-case-records.test.ts`: active judgements dropped from 97 to 92, and 5 reviewed judgements had pins that no longer match the store. Re-pinning is a review action, so the store write was reverted. The reviewer should run `records add`, review and re-pin the five judgements, and then run the tests.
+
 Consequence for review: judgements pin the results of their reviewed evaluations. The new per-group results sit on those evaluations, so after the store write the five judgements on the Table 5 and Table 6 protocols (and any summary built on them) are withheld until the reviewer re-pins them with `npm run use-cases:repin`.
 
 ## Source discrepancies found
