@@ -185,3 +185,24 @@ For all 3,791 configurations `provenance_note` holds the previous description ve
 ### Checks after the review
 
 `records -- check`, `typecheck` and the full vitest suite (2 workers) pass.
+
+## Records added after the change tables
+
+Merging origin/main into this branch brought in records from #157 (Feng et al. 2025 remaining tables) and #160 (VEP literature pass), written before the check existed. `records -- descriptions` flagged 281 of them: 254 configurations and 27 methods. They are fixed through `extras-corrections.csv`, written by `extras.py` and applied with `records:correct` against this review. As for the other configurations, the previous description is kept verbatim in `provenance_note`.
+
+| Group | Records | How the new description was written |
+| --- | --- | --- |
+| Feng et al. 2025 task configurations (`feng-dna-fm-20261014-config-*`) | 128 | `build.py` from the record's representation and head, e.g. "Caduceus-Ph (Human vs worm classification): Frozen last-layer mean token embeddings; Supervised random forest fitted separately for this task." The old text was "...; Feng et al. 2025 source-reported, task-scoped configuration." |
+| Livesey and Marsh 2025 configurations (`vep-lit-20261014-config-livesey2025-*`) | 99 | `build.py`, then the rules of `review-fixes.py`. These records hold the score source in `version`, which `build.py` wrote out as settings with the download URL and "release not stated". A new rule (score-source) writes where the scores come from instead: dbNSFP 4.2, ProteinGym's reference score files, the method's own paper, or the tool's own published code or score files, with "no release or settings beyond its name are recorded" where that holds. Two records with no settings get the reviewer's "no settings beyond its name are recorded". |
+| ProteinGym clinical summary configurations (`vep-lit-20261014-config-proteingym-clinical-*`) | 27 | As the reviewer's snapshot-commit rule: the "[ProteinGym 144fe22 clinical summary]" tag leaves the subject, and the commit is written as the commit of the clinical reference scores, with dbNSFP 4.4a where the record names it. |
+| Livesey and Marsh 2025 methods (`vep-lit-20261014-method-*`) | 27 | New sentences from each method's own paper (abstract unless the locator says otherwise), in `systems-researched-extras.jsonl` and the table's evidence column. The old text (training class and download URL from Table S2) moves to `provenance_note`. |
+
+Judgement calls:
+
+- mutationTCN: the benchmark obtained predictions from the MTBAN server. MTBAN is mutationTCN refined with Born-Again Networks. The sentence describes mutationTCN, the name the benchmark printed; the provenance note records the MTBAN source.
+- SNPs&GO3D: the cited paper (Capriotti and Altman 2011) names the structure-based predictor SVM-3D; the SNPs&GO server and container call it SNPs&GO 3d. The sentence follows the paper.
+- iGEMME has no paper of its own; it is introduced in the PRESCOTT paper (Genome Biology 2025, Methods), which is the evidence.
+- SNPred: only the medRxiv preprint is available, and its abstract says no more than "an ensemble model" for nonsynonymous SNVs, so the sentence says no more.
+- fitCons stays a family record; the sentence describes the fitCons method, and the note keeps the open question of which dbNSFP fitCons score was used.
+
+These rows have not had an independent review.
