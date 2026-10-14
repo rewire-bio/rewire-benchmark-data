@@ -1,7 +1,8 @@
 name: Cut and publish a release
 # On every push to main, and on demand: if main holds reviewed changes that are
-# not in the current release, cut a release from them, check it, commit it to
-# main, publish its prepared SQLite file, and dispatch `data-release` to
+# not in the current release, cut a release from them, check it, commit its
+# receipt and website manifest to main, publish its prepared SQLite file and
+# release files as assets of `serving/<id>`, and dispatch `data-release` to
 # rewire-database, whose adopt-data-release workflow deploys it. Evidence
 # reaches main only through reviewed pull requests; this workflow only packages
 # what is already there. Its own release commit does not start it again (pushes
@@ -51,6 +52,9 @@ jobs:
         id: candidate
         run: |
           previous=$(node scripts/release/next.mjs prepare)
+          # Release files are not committed. The previous release's come from its assets
+          # (or Git at its tag, for releases cut before that); pending and withheld compare them.
+          npm run release:fetch -- "$previous"
           npm run build
           next=$(node scripts/release/next.mjs latest)
           echo "previous=$previous" >> "$GITHUB_OUTPUT"
@@ -77,11 +81,11 @@ jobs:
         run: node scripts/release/next.mjs withheld "${{ steps.candidate.outputs.previous }}" "${{ steps.candidate.outputs.next }}"
       # Types, tests, the store, SHACL, Python and KG tests already passed in "Benchmark data
       # checks" for this commit. The build itself refuses to change an archived file.
-      - name: Keep only the new release and check the packaging and prepared file
+      - name: Check the packaging and prepared file
         if: steps.pending.outputs.release == 'true'
         run: |
-          npm run release:prune
-          # The packaging check reads the git index, so stage the new release files first.
+          # The packaging check reads the index: the receipt and manifest must be staged,
+          # and the release files, which are ignored, must not be.
           git add -A data website
           npm run verify:package
           npm run serving:parity
@@ -105,7 +109,7 @@ jobs:
             git rebase origin/main
           done
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - name: Publish the prepared release file
+      - name: Publish the prepared release file and the release files
         if: steps.pending.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}

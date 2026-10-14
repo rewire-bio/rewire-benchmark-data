@@ -2,7 +2,11 @@
 //   node scripts/release/next.mjs prepare   set released_at to now, record the commit the release is
 //       built from (source_revision) and the pull requests merged since the current release
 //       was built (changelog, see changelog.mjs); print the current release ID
-//   node scripts/release/next.mjs latest    print the newest release whose files are present
+//   node scripts/release/next.mjs latest    print the release website/manifest.json names: the current
+//       release before a build, the new candidate after it
+// `withheld` and `pending` read both releases' files from data/omics/releases/<id>/. The build
+// writes the candidate's; the previous release's come from its release assets
+// (npm run release:fetch -- <previous-id>), since release files are not committed.
 //   node scripts/release/next.mjs withheld <previous-id> <next-id>
 //       exit 4 if the next release withholds or drops use-case mappings that the
 //       previous release serves, unless the judgement was withdrawn on purpose
@@ -32,6 +36,7 @@ function releaseOf(id) {
 // after mapping the release's own ID and date to the ones it is compared with.
 async function digests(id, normalise = line => line) {
   const directory = path.join(releases, id);
+  if (!fs.existsSync(directory)) throw new Error(`The files of ${id} are not in ${directory}; run npm run release:fetch -- ${id}`);
   const files = new Map();
   for (const name of fs.readdirSync(directory).sort()) {
     const raw = fs.createReadStream(path.join(directory, name));
@@ -43,10 +48,9 @@ async function digests(id, normalise = line => line) {
   return files;
 }
 
-// Newest by its receipt's released_at; IDs end in a hash, so names do not sort by time.
+// The committed website manifest names the current release; the build rewrites it for the candidate.
 function latest() {
-  return fs.readdirSync(releases).filter(name => fs.statSync(path.join(releases, name)).isDirectory())
-    .map(releaseOf).sort((a, b) => a.released_at.localeCompare(b.released_at)).pop()?.id;
+  return JSON.parse(fs.readFileSync('website/manifest.json', 'utf8')).release_id;
 }
 
 if (command === 'latest') {
@@ -65,6 +69,7 @@ if (command === 'latest') {
 } else if (command === 'withheld') {
   if (!previous || !next) throw new Error('Usage: next.mjs withheld <previous-id> <next-id>');
   const useCases = id => {
+    if (!fs.existsSync(path.join(releases, id))) throw new Error(`The files of ${id} are not in ${path.join(releases, id)}; run npm run release:fetch -- ${id}`);
     const file = path.join(releases, id, 'use-cases.json.gz');
     return fs.existsSync(file) ? JSON.parse(zlib.gunzipSync(fs.readFileSync(file)).toString('utf8')) : null;
   };

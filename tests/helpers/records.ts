@@ -22,12 +22,14 @@ export function readJsonl<T = unknown>(file: string): T[] {
   return require("node:fs").readFileSync(file, "utf8").split("\n").filter(Boolean).map((line: string) => JSON.parse(line));
 }
 
-/** The one frozen release kept in the repository. */
+/** The newest release whose files are in data/omics/releases/<id>/. Release files are not
+ * committed: `npm run release:fetch` downloads the newest published release's (CI does). */
 export function currentReleaseDir(): string {
   const fs = require("node:fs");
-  const dirs = fs.readdirSync("data/omics/releases", { withFileTypes: true })
+  const dirs: string[] = fs.readdirSync("data/omics/releases", { withFileTypes: true })
     .filter((entry: { isDirectory(): boolean }) => entry.isDirectory())
     .map((entry: { name: string }) => entry.name);
-  if (dirs.length !== 1) throw new Error(`Expected one frozen release, found ${dirs.length}`);
-  return `data/omics/releases/${dirs[0]}`;
+  if (!dirs.length) throw new Error("No release files in data/omics/releases/; run npm run release:fetch");
+  const releasedAt = (id: string): string => JSON.parse(fs.readFileSync(`data/omics/releases/${id}.json`, "utf8")).released_at;
+  return `data/omics/releases/${dirs.sort((a, b) => releasedAt(a).localeCompare(releasedAt(b))).pop()}`;
 }

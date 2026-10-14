@@ -39,7 +39,7 @@ data/
     pending-review/                    extractions not yet ready for the store
     search-ledger.jsonl, scope-audit.jsonl   searches and scope decisions
     audits/                            append-only audit runs
-    releases/                          current release files, plus a receipt .json for every release
+    releases/                          a receipt .json for every release (release files are built or fetched here, not committed)
     release-config.json                released_at for the current release
   benchmark-literature/                paper-reported results table (see its README)
   research/                            research investigation inputs (see its README)
@@ -48,7 +48,7 @@ scripts/omics/                         record store, extraction, acquisition, au
 shared/omics/                          record validation, query engine and prepared-file reader, mirrored by the website
 lib/                                   rendering helpers shared with the website
 maintenance/                           refresh schedule, attempt records and reports
-website/                               packaged inputs pinned by the website
+website/                               manifest of the packaged inputs pinned by the website (files/ is build output)
 ```
 
 Records are edited only through the store: `npm run records -- add` appends a reviewed batch, `npm run records -- change` records a reviewed edit, and `npm run records -- check` verifies every record against its provenance. See [docs/collection.md](docs/collection.md).
@@ -68,14 +68,14 @@ npm run typecheck
 npm run build
 ```
 
-The build writes the release named by `data/omics/release-config.json`, its prepared SQLite file and the website package. Packaging refuses to change a file already archived in `data/omics/releases/`. It does not build the knowledge graph (`npm run kg:bundle`, see [docs/linked-data.md](docs/linked-data.md)).
+The build writes the release named by `data/omics/release-config.json`, its prepared SQLite file and the website package. Packaging refuses to change a file already archived in `data/omics/releases/`. The release files are not committed: they are published as assets of the release's `serving/<id>` GitHub release, and `npm run release:fetch` downloads a published release's files (see [docs/release.md](docs/release.md#release-files)). It does not build the knowledge graph (`npm run kg:bundle`, see [docs/linked-data.md](docs/linked-data.md)).
 
 CI runs every task at the same time on its own machine: the store check, type checking, the Python and KG tests, and the test suite split into six shards. Pull requests run the fast test set (`npm run test:fast`); main runs everything (`npm test`). The SHACL job checks the whole store against the shapes. Runs that change `data/omics/release-config.json` (a release cut by hand) also rebuild the release with `npm run build` and check the prepared file; on main, a publish job waits for all of them to pass before publishing. Releases are normally cut automatically after each merge (see [docs/release.md](docs/release.md)).
 
 ## How the website consumes releases
 
-`website/manifest.json` lists the prepared website inputs with destination, size and SHA-256. Each release also has a prepared SQLite file, published as the GitHub release asset `serving/<release-id>` (see [docs/serving-contract.md](docs/serving-contract.md)); the website's pages and public API read only that file. The website pins the manifest, a full git revision and the prepared file's SHA-256 in its `benchmark-data.lock.json`, verifies them and builds the file into its image, without running any build step from here. No change in this repository reaches the live site until a website PR updates that lock (see [docs/release.md](docs/release.md)).
+`website/manifest.json` lists the prepared website inputs with destination, size and SHA-256; the files are assets of the release's `serving/<release-id>` GitHub release. Each release also has a prepared SQLite file, published as the GitHub release asset `serving/<release-id>` (see [docs/serving-contract.md](docs/serving-contract.md)); the website's pages and public API read only that file. The website pins the manifest, a full git revision and the prepared file's SHA-256 in its `benchmark-data.lock.json`, verifies them and builds the file into its image, without running any build step from here. No change in this repository reaches the live site until a website PR updates that lock (see [docs/release.md](docs/release.md)).
 
 ## Provenance
 
-This repository was split from rewire-database at `e13852aa4d190fb52fad29f38b0d6a5257aadb3b`. Only the current release is stored. Each earlier release keeps its receipt (`data/omics/releases/<id>.json`: counts, file hashes and changelog); its files remain in git history.
+This repository was split from rewire-database at `e13852aa4d190fb52fad29f38b0d6a5257aadb3b`. Each release keeps its receipt (`data/omics/releases/<id>.json`: counts, file hashes and changelog) in the repository. Its files are assets of its `serving/<id>` GitHub release; releases up to `2026-10-14-87122402bd1c` also have them in Git history.

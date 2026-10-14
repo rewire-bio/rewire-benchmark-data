@@ -38,6 +38,10 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         if: matrix.task == 'kg' || startsWith(matrix.task, 'shacl-')
       - run: npm ci
+      # Release files are not committed. Some tests read the newest published release's.
+      - name: Fetch the newest published release's files
+        if: startsWith(matrix.task, 'tests-')
+        run: npm run release:fetch
       - name: Validate the record store, vocabularies and provenance
         if: matrix.task == 'store'
         run: npm run records -- check
@@ -103,21 +107,29 @@ jobs:
           cache: npm
       - if: steps.mode.outputs.release == 'true'
         run: npm ci
+      # The release's files are not committed, but its receipt and website manifest are, and
+      # they list the SHA-256 of every file, so a rebuild that matches them reproduces the files.
+      # The newest published release's files are fetched first, as the release workflow does.
       - name: Rebuild the release and prepared website artifact
         if: steps.mode.outputs.release == 'true'
-        run: npm run build
+        run: |
+          npm run release:fetch
+          npm run build
       - name: Require reviewed prepared artifacts
         if: steps.mode.outputs.release == 'true'
         run: npm run verify:package && git diff --exit-code -- data website
       - name: Check the prepared file against the live query engine
         if: steps.mode.outputs.release == 'true'
         run: npm run serving:parity
-      - name: Keep the prepared file for publishing
+      - name: Keep the prepared file and release files for publishing
         if: steps.mode.outputs.release == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: release-outputs
-          path: public/serving
+          path: |
+            public/serving
+            website/files
+            data/omics/releases/*/*.gz
           retention-days: 3
 
   publish:
@@ -138,8 +150,8 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: release-outputs
-          path: public/serving
-      - name: Publish the prepared release file (never replaces an existing asset)
+          path: .
+      - name: Publish the prepared release file and release files (never replaces an existing asset)
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TARGET_SHA: ${{ github.sha }}
