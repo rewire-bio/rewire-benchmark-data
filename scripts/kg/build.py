@@ -13,9 +13,11 @@ if a result's inferred system differs from what its evaluation tested, or if SHA
 validation fails.
 
 Usage: npm run kg:build   (or: python scripts/kg/build.py [--kg-dir public/kg])
-       python scripts/kg/build.py --shapes-only [--kg-dir public/kg]
+       python scripts/kg/build.py --shapes-only [--shard I/N] [--kg-dir public/kg]
          SHACL over the asserted graph and the vocabulary only, without inference: the
          check `npm run records -- add` and pull requests run on the exported store.
+         --shard I/N checks only the I-th of N groups of targeted shapes, so CI can run
+         the groups in parallel; together the N groups check every shape once.
 """
 
 from __future__ import annotations
@@ -219,7 +221,23 @@ def without_inferred_paths(shapes: rdflib.Graph) -> rdflib.Graph:
     return shapes
 
 
-def validate(asserted: rdflib.Graph, inferred: set[tuple], asserted_only: bool = False) -> tuple[bool, str]:
+TARGETS = (SH.targetClass, SH.targetNode, SH.targetObjectsOf, SH.targetSubjectsOf)
+
+
+def shard_shapes(shapes: rdflib.Graph, index: int, count: int) -> rdflib.Graph:
+    """Keep the targets of the index-th (1-based) of count groups of targeted shapes and drop
+    the others' targets. Untargeted shapes stay, so sh:node references still resolve."""
+    targeted = sorted({shape for target in TARGETS for shape in shapes.subjects(target, None)}, key=str)
+    for position, shape in enumerate(targeted):
+        if position % count != index - 1:
+            for target in TARGETS:
+                shapes.remove((shape, target, None))
+    return shapes
+
+
+def validate(
+    asserted: rdflib.Graph, inferred: set[tuple], asserted_only: bool = False, shard: tuple[int, int] | None = None
+) -> tuple[bool, str]:
     """SHACL over the asserted and inferred statements, with the concept schemes mixed in so
     shapes can check that each controlled value is a concept of the right scheme, and the
     vocabulary mixed in so sh:class sees subclasses without running the reasoner."""
@@ -231,6 +249,8 @@ def validate(asserted: rdflib.Graph, inferred: set[tuple], asserted_only: bool =
     shapes = rdflib.Graph().parse(SHAPES, format="turtle").parse(ATTRIBUTE_SHAPES, format="turtle")
     if asserted_only:
         shapes = without_inferred_paths(shapes)
+    if shard:
+        shapes = shard_shapes(shapes, *shard)
     data.parse(VOCABULARY, format="turtle")
     for path in sorted(VOCAB_DIR.glob("*.ttl")):
         data.parse(path, format="turtle")
@@ -385,14 +405,24 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--kg-dir", default=str(ROOT / "public" / "kg"))
     parser.add_argument("--shapes-only", action="store_true", help="SHACL on the asserted graph, no inference")
+    parser.add_argument("--shard", help="with --shapes-only, check only group I of N targeted shapes (I/N)")
     args = parser.parse_args()
     try:
         if args.shapes_only:
+            shard = tuple(int(part) for part in args.shard.split("/")) if args.shard else None
+            if shard and not (len(shard) == 2 and 1 <= shard[0] <= shard[1]):
+                raise BuildError(f"--shard must be I/N with 1 <= I <= N, not {args.shard}")
             started = time.monotonic()
-            conforms, report = validate(load_asserted(Path(args.kg_dir) / "asserted.nq"), set(), asserted_only=True)
+            asserted = load_asserted(Path(args.kg_dir) / "asserted.nq")
+            loaded = time.monotonic()
+            conforms, report = validate(asserted, set(), asserted_only=True, shard=shard)
             if not conforms:
                 raise BuildError("SHACL validation failed:\n" + report[:5000])
-            print(f"Records conform to the shapes ({time.monotonic() - started:.0f}s)", file=sys.stderr)
+            group = f", shape group {args.shard}" if shard else ""
+            print(
+                f"Records conform to the shapes ({loaded - started:.0f}s load, {time.monotonic() - loaded:.0f}s validate{group})",
+                file=sys.stderr,
+            )
             return
         build(Path(args.kg_dir))
     except BuildError as error:
