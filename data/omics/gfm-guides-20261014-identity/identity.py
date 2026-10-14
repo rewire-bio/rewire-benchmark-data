@@ -48,6 +48,22 @@ REDUNDANT_VARIANT = [
     ("catalog-model-scgpt", "discovery-model-scgpt", "profile-association-507834867ec7cde103f9"),
 ]
 # Family records that carry one checkpoint's name as their version.
+# GPN-MSA configurations linked to the GPN family before GPN-MSA had a model record
+# (added in data/omics/gfm-guides-20261014-gpnmsa/).
+GPN = "regulatory-variant-20261009-model-gpn"
+GPN_MSA = "gfm-guides-20261014-gpnmsa-model-gpn-msa"
+REPOINT = [
+    "lit-genomics-20261011-guanine-config-gpn-msa-mode-unprinted",
+    "lit-genomics-20261011-guanine-config-gpn-msa-position-zs",
+    "lit-genomics-20261011-guanine-config-gpn-msa-zs",
+    "lit-genomics-20261011-traitgym-config-gpn-msa-absllr-plus-score",
+    "lit-genomics-20261011-traitgym-config-gpn-msa-embeddings-minus-inner-product",
+    "lit-genomics-20261011-traitgym-config-gpn-msa-embeddings-plus-cosine-distance",
+    "lit-genomics-20261011-traitgym-config-gpn-msa-embeddings-plus-euclidean-distance",
+    "lit-genomics-20261011-traitgym-config-gpn-msa-innerproduct-minus-score",
+    "lit-genomics-20261011-traitgym-config-gpn-msa-llr-minus-score",
+    "lit-genomics-20261011-traitgym-config-gpn-msa-logisticregression-chrom",
+]
 PREVIOUS_VERSIONS = {
     "catalog-model-evo-2": "7B",
     "catalog-model-esm-2": "8M",
@@ -118,6 +134,23 @@ def main() -> None:
             f"links:{relation}:{canonical}",
             {"target_id": canonical, "source_locator": evidence},
             sources, supersedes,
+        ))
+
+    for record_id in REPOINT:
+        rec = by_id[record_id]
+        for link in rec["links"]:
+            if link["relation"] == "configuration_of" and link["target_id"] == GPN:
+                link["target_id"] = GPN_MSA
+                edited.add(record_id)
+        assert {"relation": "configuration_of", "target_id": GPN_MSA} in rec["links"], record_id
+        batch.append(claim(
+            f"identity-20261014-{short(record_id + '|configuration_of|' + GPN_MSA)}", record_id,
+            f"{rec['name']}: configuration of GPN-MSA",
+            f"The source names this setup GPN-MSA, the alignment-based model, not the single-sequence GPN family it was linked to before.",
+            f"links:configuration_of:{GPN_MSA}",
+            {"target_id": GPN_MSA, "previous_value": GPN,
+             "source_locator": f"Configuration name as printed in its source ({rec.get('attributes', {}).get('reported_name') or rec['name']}); GPN-MSA identity from gfm-guides-20261014-gpnmsa-source-biorxiv-v2 (Abstract) and gfm-guides-20261014-gpnmsa-source-gpn-msa-doc"},
+            sorted(set(rec["source_ids"]) | {"gfm-guides-20261014-gpnmsa-source-biorxiv-v2"}),
         ))
 
     for record_id, target, old_claim in REDUNDANT_VARIANT:
