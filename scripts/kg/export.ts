@@ -254,9 +254,28 @@ export function recordQuads(mapping: Mapping, record: RecordEntry): string[] {
   return lines;
 }
 
+export function exportQuadLines(mapping: Mapping, records: RecordEntry[]): string[] {
+  return [...new Set(publicRecords(records).flatMap((record) => recordQuads(mapping, record)))].sort();
+}
+
 export function exportQuads(mapping: Mapping, records: RecordEntry[]): string {
-  const lines = [...new Set(publicRecords(records).flatMap((record) => recordQuads(mapping, record)))].sort();
-  return lines.join("\n") + "\n";
+  return exportQuadLines(mapping, records).join("\n") + "\n";
+}
+
+// The full graph is larger than the longest string V8 allows, so write and hash it in chunks.
+function writeQuads(file: string, lines: string[]): string {
+  const hash = crypto.createHash("sha256");
+  const fd = fs.openSync(file, "w");
+  try {
+    for (let i = 0; i < lines.length; i += 10000) {
+      const chunk = lines.slice(i, i + 10000).join("\n") + "\n";
+      hash.update(chunk);
+      fs.writeSync(fd, chunk);
+    }
+  } finally {
+    fs.closeSync(fd);
+  }
+  return hash.digest("hex");
 }
 
 if (process.argv[1]?.endsWith("export.ts")) {
@@ -266,18 +285,18 @@ if (process.argv[1]?.endsWith("export.ts")) {
     fs.writeFileSync(contextFile, JSON.stringify(buildContext(mapping), null, 2) + "\n");
     console.log(`Wrote ${contextFile}`);
   } else if (command === "export") {
-    const nquads = exportQuads(mapping, loadRecords());
+    const lines = exportQuadLines(mapping, loadRecords());
     // Before a release is cut (at intake, or on a pull request) the graph is labelled unreleased.
     const releaseManifest = "public/omics/manifest.json";
     const release = fs.existsSync(releaseManifest) ? JSON.parse(fs.readFileSync(releaseManifest, "utf8")) : { release_id: "unreleased" };
     const sha = (value: string | Buffer) => crypto.createHash("sha256").update(value).digest("hex");
     fs.mkdirSync("public/kg", { recursive: true });
-    fs.writeFileSync(path.join("public/kg", "asserted.nq"), nquads);
+    const assertedSha = writeQuads(path.join("public/kg", "asserted.nq"), lines);
     const manifest = {
       format_version: "1.0",
       dataset: "rewire-benchmark-data",
       release_id: release.release_id,
-      files: { "asserted.nq": { sha256: sha(nquads), quads: nquads.split("\n").filter(Boolean).length } },
+      files: { "asserted.nq": { sha256: assertedSha, quads: lines.length } },
       mapping_sha256: sha(fs.readFileSync(mappingFile)),
       inferred: null,
       note: "Asserted statements only. Inference and SHACL validation are a later build step.",
