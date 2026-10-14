@@ -1,7 +1,10 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { Parser } from "n3";
-import { attributeDeclarationsFile, attributeShapesFile, buildContext, contextFile, exportQuads, readMapping, recordQuads } from "../scripts/kg/export";
+import { attributeDeclarationsFile, attributeShapesFile, buildContext, contextFile, exportQuadLines, exportQuads, readMapping, recordQuads, writeQuads } from "../scripts/kg/export";
 import { declarationsTurtle, shapesTurtle } from "../scripts/kg/attribute-terms";
 import { kinds } from "../scripts/omics/schema";
 import { relations as catalogueRelations } from "../shared/omics/relations";
@@ -67,6 +70,15 @@ describe("N-Quads export", () => {
     const quads = new Parser({ format: "N-Quads" }).parse(nquads);
     expect(quads.length).toBe(nquads.trim().split("\n").length);
     expect(new Set(quads.map((q) => q.graph.value))).toEqual(new Set([mapping.graph]));
+  });
+
+  it("writes the same bytes and hash in chunks as the single-string export", () => {
+    const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "kg-export-")), "asserted.nq");
+    const lines = exportQuadLines(mapping, sample);
+    expect(lines.length).toBeGreaterThan(10_000);
+    const digest = writeQuads(file, lines);
+    expect(fs.readFileSync(file, "utf8")).toBe(nquads);
+    expect(digest).toBe(crypto.createHash("sha256").update(nquads).digest("hex"));
   });
 
   it("is deterministic and sorted", () => {
