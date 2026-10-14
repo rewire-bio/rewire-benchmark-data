@@ -6,7 +6,8 @@ name: Cut and publish a release
 # reaches main only through reviewed pull requests; this workflow only packages
 # what is already there. Its own release commit does not start it again (pushes
 # made with the workflow token start no workflows). The knowledge-graph bundle
-# is not built here; it has its own on-demand workflow (kg-release.yml).
+# is not built here: once the release is published this workflow starts kg-release.yml for it,
+# which builds and publishes the bundle separately, so the release never waits for it.
 # Runs after "Benchmark data checks" passes on main, so it never repeats those checks, and
 # never runs for a commit that failed them.
 on:
@@ -17,6 +18,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: write
 # Release runs queue rather than cancel. GitHub keeps one waiting run per group, so a merge
 # made while a release is being cut replaces any older waiting run; that is harmless,
 # because each run builds main as it is when it starts.
@@ -115,3 +117,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
         run: node scripts/release/dispatch-website.mjs
+      # The website's agent page links each release's bundle, so build it for every release, in its
+      # own workflow so a slow or failing graph build never holds back the data release.
+      - name: Start the knowledge-graph bundle build for this release
+        if: steps.pending.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run kg-release.yml --repo "$GITHUB_REPOSITORY" -f release_id="${{ steps.candidate.outputs.next }}"

@@ -29,7 +29,7 @@ Merge reviewed PRs whenever they are ready; there is no need to wait for a relea
 
 ## Knowledge graph
 
-The knowledge-graph bundle is no longer built or published with each release, and the data release does not need Python, uv, the reasoner or rdf-kg-mcp. To publish a bundle, run "Build and publish a knowledge-graph bundle" (`.github/workflows/kg-release.yml`) from the Actions tab, with a release ID or none for the newest published release. It checks out the commit `serving/<id>` was published from, rebuilds the catalogue and confirms it matches the receipt, builds the bundle (`npm run kg:bundle`), checks it with `npm run kg:verify` and publishes it as `kg/<id>` ([linked-data.md](linked-data.md#bundle)). Running it again for a release that has a bundle only checks that the build reproduces it.
+The knowledge-graph bundle is not built in the data release, which does not need Python, uv, the reasoner or rdf-kg-mcp. Once a release is published, the release workflow starts "Build and publish a knowledge-graph bundle" (`.github/workflows/kg-release.yml`) for it, so every release still gets its bundle a few minutes later without the release waiting for it. To build one by hand, run "Build and publish a knowledge-graph bundle" (`.github/workflows/kg-release.yml`) from the Actions tab, with a release ID or none for the newest published release. It checks out the commit `serving/<id>` was published from, rebuilds the catalogue and confirms it matches the receipt, builds the bundle (`npm run kg:bundle`), checks it with `npm run kg:verify` and publishes it as `kg/<id>` ([linked-data.md](linked-data.md#bundle)). Running it again for a release that has a bundle only checks that the build reproduces it.
 
 ## Cutting a release by hand
 
@@ -48,7 +48,7 @@ Cut a release by hand when you want it reviewed as a pull request first:
 
    The build writes the new release's receipt (`data/omics/releases/<release-id>.json`, the exact manifest bytes) and its gzipped files (`data/omics/releases/<release-id>/`), builds the prepared SQLite file in `public/serving/` (see [serving-contract.md](serving-contract.md)), and packages the website inputs. It never overwrites existing bytes. `release:prune` removes the previous release's files and keeps its receipt.
 3. Open the PR with the config change, receipt, archive and updated `website/` files. Review scientific changes separately from packaging. CI rebuilds the release and fails if any file differs from the PR's.
-4. After merge, CI publishes the prepared file (tag `serving/<release-id>`) and dispatches `data-release` to the website, as for an automated release. Publish a knowledge-graph bundle on demand if one is needed.
+4. After merge, CI publishes the prepared file (tag `serving/<release-id>`) and dispatches `data-release` to the website, as for an automated release. The publish job then starts the knowledge-graph bundle build for it.
 5. Once the release is live, record it with `npm run refresh -- record-publication` and `npm run refresh -- export` (see [refresh.md](refresh.md#review-prs-and-publication)).
 
 Never edit a frozen release in place. Corrections always go into a new release.

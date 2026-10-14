@@ -73,7 +73,7 @@ To update a pinned vocabulary, download it, re-run the extraction command in `da
 | `ontology/` | `https://benchmarks.rewire.it/graph/ontology` | `rb.ttl`, the pinned imports and the concept schemes (`ontology/vocab/`) |
 | `manifest.json` | | Checksums, counts, graph roles, prefixes, reasoner and SHACL details, example queries |
 
-Bundles are built on demand, not with every data release: run "Build and publish a knowledge-graph bundle" (`.github/workflows/kg-release.yml`) for a published release ([release.md](release.md#knowledge-graph)). It runs `npm run kg:publish`, which packs a byte-reproducible `kg-<release id>.tar.gz` and publishes it with the manifest on a GitHub release tagged `kg/<release id>`. An existing asset must be byte-identical and is never replaced (`npm run kg:publish -- --check` verifies it).
+Bundles are built after each data release, in their own workflow, "Build and publish a knowledge-graph bundle" (`.github/workflows/kg-release.yml`), which the release workflow starts once the release is published; it can also be run by hand for any published release ([release.md](release.md#knowledge-graph)). It runs `npm run kg:publish`, which packs a byte-reproducible `kg-<release id>.tar.gz` and publishes it with the manifest on a GitHub release tagged `kg/<release id>`. An existing asset must be byte-identical and is never replaced (`npm run kg:publish -- --check` verifies it).
 
 The simplest way to use it is the `bio-model-benchmarks` plugin for Claude Code, which installs the knowledge-graph server and a skill for running the benchmarks; setup for other agents is at [benchmarks.rewirebio.io/agents/](https://benchmarks.rewirebio.io/agents/). To add only the server:
 
@@ -82,6 +82,6 @@ claude mcp add rewire-benchmark-graph -- uvx --from git+https://github.com/rewir
   rdf-kg-mcp serve https://benchmarks.rewirebio.io/agents/kg.tar.gz
 ```
 
-`https://benchmarks.rewirebio.io/agents/kg.tar.gz` redirects to the bundle of the release the website serves. Since bundles are now published on demand (#110), that release may have none: the website's redirect (`lib/agent-connect.ts` and `app/agents/kg.tar.gz/route.ts` in rewire-database) must point at the newest published `kg/<id>` release instead. For an exact reproduction, serve one release's bundle: `https://github.com/rewire-bio/rewire-benchmark-data/releases/download/kg/<release id>/kg-<release id>.tar.gz`.
+`https://benchmarks.rewirebio.io/agents/kg.tar.gz` redirects to the bundle of the release the website serves. That bundle is published a few minutes after the release, so a client that starts in that window should retry. For an exact reproduction, serve one release's bundle: `https://github.com/rewire-bio/rewire-benchmark-data/releases/download/kg/<release id>/kg-<release id>.tar.gz`.
 
 Or serve a local build with `rdf-kg-mcp serve public/kg`.
