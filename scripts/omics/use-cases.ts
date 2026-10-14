@@ -3,7 +3,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { gunzipSync } from "node:zlib";
 import { z } from "zod";
-import { recordSchema, type RecordEntry } from "./schema";
+import { publicRecords, recordSchema, type RecordEntry } from "./schema";
 import {
   deriveUseCaseInputs,
   parseUseCaseInputs,
@@ -129,7 +129,7 @@ export function loadUseCases(records: RecordEntry[], directory = useCaseRoot): R
   }
   const sourceFiles = Object.fromEntries(Object.values(review.source_artifacts)
     .map((file) => [`use-case-source-${review.files[file]}.md`, texts[file]]));
-  const inputs = deriveUseCaseInputs({ records: records as never });
+  const inputs = deriveUseCaseInputs({ records: records as never, published: publicRecords(records) as never });
   return { inputs, sources, review, sourceFiles };
 }
 
