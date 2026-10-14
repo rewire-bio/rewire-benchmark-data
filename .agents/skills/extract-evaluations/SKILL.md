@@ -22,7 +22,7 @@ Follow [docs/collection.md](../../../docs/collection.md), sections 3, 4 and 6, a
 6. Write the new records to `data/omics/<batch>/batch.jsonl`, plus `claims.csv`, `sources.md`, `retrieval-log.md` and `research.md` (and `coverage.json` for use-case work). For use-case work, add one relevance judgement per protocol that bears on the use case: an `assessed_by` link on the `use_case` record and a judgement claim recording relevance (`direct`, `proxy` or `outside_scope`), endpoint, rationale, constraints, limitations and the sources it rests on, with status `needs_review` (docs/use-cases.md). Fill `method_types`, version and access on every configuration you add. For grouped tables, add `comparison_group`, `comparison_title`, `stratum_label`, `stratum_order` and `headline_metric` to each judgement. Draft or update the use case's `summary` claim (descriptive, every number traceable to a result, author-reported benchmarks and truth-set bias named, no recommendation). Never mark your own judgement or summary reviewed.
 7. After `review-evidence` has written the receipt, add the batch to the store: `npm run records -- add data/omics/<batch>/batch.jsonl data/omics/<batch>`.
 8. In each result's `review.notes`, record how it was extracted (parser, transcription, page render). Leave review sign-off to `review-evidence`.
-9. Run `npm test`, `npm run typecheck` and `npm run build`.
+9. Run `npm run test:fast`, `npm run typecheck` and `npm run build`. CI runs the full tests and the SHACL check of the whole store; the release is cut after merge.
 
 ## Outputs
 

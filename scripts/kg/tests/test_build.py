@@ -183,6 +183,15 @@ class InferenceTest(unittest.TestCase):
         self.assertFalse(conforms)
         self.assertIn("evaluation", report)
 
+    def test_shacl_ignores_violations_only_on_context_records(self) -> None:
+        broken = fixture()
+        broken.add((ID.result1, RB.evaluation, ID.eval2))
+        conforms, _ = build.validate(broken, set(), asserted_only=True, context={str(ID.result1)})
+        self.assertTrue(conforms)
+        conforms, report = build.validate(broken, set(), asserted_only=True, context={str(ID.eval2)})
+        self.assertFalse(conforms)
+        self.assertIn(str(ID.result1), report)
+
     def test_shacl_rejects_excluded_records(self) -> None:
         broken = fixture()
         broken.set((ID.claim, RB.status, V("status", "excluded")))

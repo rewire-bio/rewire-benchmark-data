@@ -3,7 +3,7 @@
 Each release ships one prepared SQLite file that the website pages and public API read directly. It holds the outputs of the live query engine, computed once per release, so no consumer parses the whole catalogue or rebuilds its indexes. This is the producer side of [issue #31](https://github.com/rewire-bio/rewire-benchmark-data/issues/31).
 
 ```
-npm run build            # release, RDF export, then npm run serving
+npm run build            # release, then npm run serving and the website package
 npm run serving          # public/serving/catalogue-<release>.sqlite and its .json receipt
 npm run serving:parity   # every answer must equal the live engine's for the same release
 npm run serving:publish  # GitHub Release asset on tag serving/<release> (CI does this on main)

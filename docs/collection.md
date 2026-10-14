@@ -150,7 +150,7 @@ Unreviewed or disputed extractions that are not ready go in `data/omics/pending-
 
 Review is a separate pass by a different worker from the one that extracted the data.
 
-1. Re-open the pinned source (check the hash matches) and check every result against it: printed value, numeric value, locator, metric, direction, denominator and the model/benchmark identity. For a result with a `derivation`, re-download each input, check its SHA-256 and row count, rerun the script and compare its output with `printed_value`; check the quoted aggregation against the source and that the script applies it.
+1. Re-open the pinned source (check the hash matches) and check every result against it. For a large batch, an automated comparison of every value against the source (for example a deterministic parse with asserted row labels) plus a sampled manual check of values is enough; record the sample and the comparison in the receipt. Check printed value, numeric value, locator, metric, direction, denominator and the model/benchmark identity. For a result with a `derivation`, re-download each input, check its SHA-256 and row count, rerun the script and compare its output with `printed_value`; check the quoted aggregation against the source and that the script applies it.
 2. Check that `missing_metadata` and `null` fields are genuinely unstated in the source, and that nothing was inferred.
 3. Fill each result's `review` object. The usual shape is:
 
@@ -166,7 +166,7 @@ Review is a separate pass by a different worker from the one that extracted the 
    ```
 
    Human review is recorded only when a named person did it.
-4. Write the batch receipt `review.json`: schema version, method, reviewer, `reviewed_at`, scope, limitations, an empty `errors` list, and the SHA-256 of `batch.jsonl` and every other file in the batch folder. After step 6, each record's hash in `data/provenance/records/` locks the reviewed bytes.
+4. Write the batch receipt `review.json`: schema version, method, reviewer, `reviewed_at`, scope, limitations, an empty `errors` list, the SHA-256 of `batch.jsonl` and every other file in the batch folder, and the SHA-256 of each source artifact checked. After step 6, each record's hash in `data/provenance/records/` locks the reviewed bytes. A script that rebuilds the batch (`build.py`) is optional: keep one when it is how the batch was made, but the receipt and the provenance hashes are the record of review.
 5. Summarise the pass in a dated review in `docs/reviews/` (or `docs/reviews/use-cases/` for a use-case pass): sources, a table of every value checked and its outcome, conflicts found, and remaining gaps.
 
 A review can conclude that nothing should change. Record that in the dated review; no data change or release is needed.
@@ -200,20 +200,19 @@ Audits are append-only checks on a specific catalogue release, stored in `data/o
 npm run records -- add data/omics/<batch>/batch.jsonl data/omics/<batch>
 ```
 
-This appends each record to the right canonical file or shard, keeps the files sorted, and writes its provenance line. It then exports the store to RDF and validates it against the SHACL shapes (`npm run kg:shapes`, which needs [uv](https://docs.astral.sh/uv/) and takes about a minute); if any record fails, the store is put back as it was. It refuses any ID that already exists; to change an existing record, use `records -- change` (step 5). `npm run records -- check` confirms the whole store matches its provenance.
+This appends each record to the right canonical file or shard, keeps the files sorted, and writes its provenance line. It then validates the new records, the records that link to them and their link targets against the SHACL shapes (`npm run kg -- subset`, then `kg:build --shapes-only`; needs [uv](https://docs.astral.sh/uv/) and takes well under a minute); if any of them fails, the store is put back as it was. `records -- change` runs the same check on the changed records. CI checks the whole store against the shapes on every pull request (`npm run kg:shapes`). It refuses any ID that already exists; to change an existing record, use `records -- change` (step 5). `npm run records -- check` confirms the whole store matches its provenance.
 
 For use-case work, also add a relevance judgement for each new protocol that bears on a use case: an `assessed_by` link on the `use_case` record and a judgement claim (`field` `links:assessed_by:<protocol>`) recording relevance, endpoint, rationale, caveats and sources, with status `needs_review`. Evaluations on the protocol are found automatically. The reviewer lists the evaluations it checked in `reviewed_evaluations` and records the pins with `npm run use-cases:repin -- <review.md> <claim-id>...`. Fill `method_types`, version and access on each new configuration, so the use-case page can say what kind of method it is. See [use-cases.md](use-cases.md).
 
 ## 7. Validate and open a PR
 
 ```sh
-npm test
-npm run test:python
+npm run test:fast
 npm run typecheck
 npm run build
 ```
 
-Then open a PR containing the batch folder, the store and provenance changes, the ledger and scope entries, and the dated review. Plain JSONL keeps every changed record visible in the diff. Do not change `data/omics/release-config.json` in an evidence PR; releases are cut separately (see [release.md](release.md)).
+CI runs the full tests, the Python tests and the SHACL check of the whole store. Then open a PR containing the batch folder, the store and provenance changes, the ledger and scope entries, and the dated review. Plain JSONL keeps every changed record visible in the diff. Do not change `data/omics/release-config.json` or commit the build's `data/omics/releases/` and `website/` changes in an evidence PR; after merge, the release workflow cuts the release (see [release.md](release.md)). The PR title becomes the release note, so make it describe the change.
 
 ## Where each claim is tracked
 

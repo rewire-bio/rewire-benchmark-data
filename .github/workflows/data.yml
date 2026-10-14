@@ -1,22 +1,26 @@
 name: Benchmark data checks
 on:
   pull_request:
+  # Lets a merge queue run these checks on the queued merge, if one is enabled for main.
+  merge_group:
   push:
     branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
+# A new push to a pull request cancels its older run. Runs on main queue instead, so every
+# merge gets a complete result and starts its own release run.
 concurrency:
   group: benchmark-data-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 env:
-  # The release of rdf-kg-mcp whose bundle format the knowledge graph must satisfy.
-  RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.1.0
   NODE_OPTIONS: --max-old-space-size=8192
 
 # Every job starts at once on its own machine. Pull requests run the fast test set; main runs
-# all tests. A release (a change to data/omics/release-config.json) is also rebuilt, without
-# inference on pull requests and with it on main; main then publishes once everything passed.
+# all tests. The SHACL job checks the whole store once; records -- add checks only a batch.
+# A release cut by hand (a change to data/omics/release-config.json) is also rebuilt, and main
+# publishes its prepared file once everything passed. The knowledge graph is not built here
+# (kg-release.yml).
 jobs:
   checks:
     runs-on: ubuntu-latest
@@ -97,30 +101,23 @@ jobs:
           # Match the website image: the prepared SQLite file's bytes depend on Node's bundled SQLite.
           node-version: 24
           cache: npm
-      - uses: astral-sh/setup-uv@v6
-        if: steps.mode.outputs.release == 'true'
       - if: steps.mode.outputs.release == 'true'
         run: npm ci
-      - name: Reproduce the release and prepared website artifact (pull requests, no inference)
-        if: steps.mode.outputs.release == 'true' && github.event_name == 'pull_request'
-        run: npm run build:check
-      - name: Reproduce the release, knowledge graph and prepared website artifact
-        if: steps.mode.outputs.release == 'true' && github.event_name != 'pull_request'
+      - name: Rebuild the release and prepared website artifact
+        if: steps.mode.outputs.release == 'true'
         run: npm run build
       - name: Require reviewed prepared artifacts
         if: steps.mode.outputs.release == 'true'
         run: npm run verify:package && git diff --exit-code -- data website
-      - name: Check the prepared file against the live query engine (and the bundle format on main)
+      - name: Check the prepared file against the live query engine
         if: steps.mode.outputs.release == 'true'
-        run: node scripts/parallel.mjs serving:parity ${{ github.event_name != 'pull_request' && 'kg:verify' || '' }}
-      - name: Keep the prepared file and bundle for publishing
+        run: npm run serving:parity
+      - name: Keep the prepared file for publishing
         if: steps.mode.outputs.release == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: release-outputs
-          path: |
-            public/serving
-            public/kg
+          path: public/serving
           retention-days: 3
 
   publish:
@@ -130,24 +127,28 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-      - uses: astral-sh/setup-uv@v6
       - run: npm ci
       - uses: actions/download-artifact@v4
         with:
           name: release-outputs
-          path: public
-      - name: Publish the prepared release file and the knowledge-graph bundle (never replaces an existing asset)
+          path: public/serving
+      - name: Publish the prepared release file (never replaces an existing asset)
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TARGET_SHA: ${{ github.sha }}
-        run: node scripts/parallel.mjs serving:publish kg:publish
+        run: npm run serving:publish
       - name: Ask the website to adopt it
         env:
           GH_TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
         run: node scripts/release/dispatch-website.mjs
+      - name: Start the knowledge-graph bundle build for the newest published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run kg-release.yml --repo "$GITHUB_REPOSITORY"

@@ -51,12 +51,14 @@ The build fails, and nothing is published, if:
 npm run kg -- context   # regenerate data/ontology/context.jsonld from the mapping
 npm run kg -- export    # write public/kg/asserted.nq and an export manifest
 npm run kg -- terms     # regenerate rb-attributes.ttl and attribute-shapes.ttl from the attribute registry
-npm run kg:shapes       # export, then SHACL on the asserted graph without inference (about a minute)
+npm run kg -- subset <ids-file> <dir>  # the given records, the records linking to them and their link targets
+npm run kg:shapes       # export, then SHACL on the asserted graph without inference (a few minutes)
 npm run kg:build        # inference, checks and SHACL; writes inferred.nq, ontology/ and the bundle manifest
+npm run kg:bundle       # export, then kg:build: the whole bundle for the current release
 npm run test:kg         # vocabulary and inference tests
 ```
 
-`npm run build` runs the export and the KG build after the release. The KG build needs [uv](https://docs.astral.sh/uv/), which installs the pinned Python dependencies in `scripts/kg/requirements.txt`. It takes about two minutes locally and 1.5 GB of memory. `kg:shapes` skips property shapes on links only the reasoner creates (property chains and inverses); it runs at `records -- add` and on every pull request. The output is sorted and deterministic: the same release, mapping and vocabulary give byte-identical files.
+`npm run build` does not build the knowledge graph; run `npm run kg:bundle` after it. The KG build needs [uv](https://docs.astral.sh/uv/), which installs the pinned Python dependencies in `scripts/kg/requirements.txt`. It takes about two minutes locally and 1.5 GB of memory. `kg:shapes` skips property shapes on links only the reasoner creates (property chains and inverses); it runs on every pull request. `records -- add` and `records -- change` run the same shapes on a subset: the records they wrote, the records that link to them, and the records those link to. Violations on the last group are ignored, because their own links lead outside the subset. The output is sorted and deterministic: the same release, mapping and vocabulary give byte-identical files.
 
 To update a pinned vocabulary, download it, re-run the extraction command in `data/ontology/imports/sources.json` where one is listed, update the checksum there, and review the change in the inferred graph.
 
@@ -71,7 +73,7 @@ To update a pinned vocabulary, download it, re-run the extraction command in `da
 | `ontology/` | `https://benchmarks.rewire.it/graph/ontology` | `rb.ttl`, the pinned imports and the concept schemes (`ontology/vocab/`) |
 | `manifest.json` | | Checksums, counts, graph roles, prefixes, reasoner and SHACL details, example queries |
 
-When a push to `main` builds a release that has no bundle yet, CI runs `npm run kg:publish`. It packs a byte-reproducible `kg-<release id>.tar.gz` and publishes it with the manifest on a GitHub release tagged `kg/<release id>`. An existing asset must be byte-identical and is never replaced (`npm run kg:publish -- --check` verifies it).
+Bundles are built after each data release, in their own workflow, "Build and publish a knowledge-graph bundle" (`.github/workflows/kg-release.yml`), which the release workflow starts once the release is published; it can also be run by hand for any published release ([release.md](release.md#knowledge-graph)). It runs `npm run kg:publish`, which packs a byte-reproducible `kg-<release id>.tar.gz` and publishes it with the manifest on a GitHub release tagged `kg/<release id>`. An existing asset must be byte-identical and is never replaced (`npm run kg:publish -- --check` verifies it).
 
 The simplest way to use it is the `bio-model-benchmarks` plugin for Claude Code, which installs the knowledge-graph server and a skill for running the benchmarks; setup for other agents is at [benchmarks.rewirebio.io/agents/](https://benchmarks.rewirebio.io/agents/). To add only the server:
 
@@ -80,6 +82,6 @@ claude mcp add rewire-benchmark-graph -- uvx --from git+https://github.com/rewir
   rdf-kg-mcp serve https://benchmarks.rewirebio.io/agents/kg.tar.gz
 ```
 
-`https://benchmarks.rewirebio.io/agents/kg.tar.gz` redirects to the bundle of the release the website serves, so the server picks up a new release the next time it starts. For an exact reproduction, serve one release's bundle instead: `https://github.com/rewire-bio/rewire-benchmark-data/releases/download/kg/<release id>/kg-<release id>.tar.gz`. If the KG stops being published with every release (#110), the redirect must point at the latest release that has a bundle.
+`https://benchmarks.rewirebio.io/agents/kg.tar.gz` redirects to the bundle of the release the website serves. That bundle is published a few minutes after the release, so a client that starts in that window should retry. For an exact reproduction, serve one release's bundle: `https://github.com/rewire-bio/rewire-benchmark-data/releases/download/kg/<release id>/kg-<release id>.tar.gz`.
 
 Or serve a local build with `rdf-kg-mcp serve public/kg`.

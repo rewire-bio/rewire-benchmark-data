@@ -13,9 +13,12 @@ if a result's inferred system differs from what its evaluation tested, or if SHA
 validation fails.
 
 Usage: npm run kg:build   (or: python scripts/kg/build.py [--kg-dir public/kg])
-       python scripts/kg/build.py --shapes-only [--shard I/N] [--kg-dir public/kg]
+       python scripts/kg/build.py --shapes-only [--kg-dir public/kg] [--context FILE] [--shard I/N]
          SHACL over the asserted graph and the vocabulary only, without inference: the
-         check `npm run records -- add` and pull requests run on the exported store.
+         check pull requests run on the whole exported store. `npm run records -- add`
+         and `change` run it on a subset (`npm run kg -- subset`): the records they wrote,
+         the records that link to them, and the records those link to. FILE lists the
+         last group, one IRI per line; they are there only as link targets.
          --shard I/N checks only the I-th of N groups of targeted shapes, so CI can run
          the groups in parallel; together the N groups check every shape once.
 """
@@ -235,12 +238,15 @@ def shard_shapes(shapes: rdflib.Graph, index: int, count: int) -> rdflib.Graph:
     return shapes
 
 
-def validate(
-    asserted: rdflib.Graph, inferred: set[tuple], asserted_only: bool = False, shard: tuple[int, int] | None = None
-) -> tuple[bool, str]:
+def validate(asserted: rdflib.Graph, inferred: set[tuple], asserted_only: bool = False,
+             context: set[str] | None = None, shard: tuple[int, int] | None = None) -> tuple[bool, str]:
     """SHACL over the asserted and inferred statements, with the concept schemes mixed in so
     shapes can check that each controlled value is a concept of the right scheme, and the
-    vocabulary mixed in so sh:class sees subclasses without running the reasoner."""
+    vocabulary mixed in so sh:class sees subclasses without running the reasoner.
+
+    `context` names records (IRIs) that are in the graph only so that the checked records'
+    links resolve. Violations on them or their nodes are ignored, since their own links
+    lead to records outside the graph."""
     data = rdflib.Graph()
     for triple in asserted:
         data.add(triple)
@@ -254,8 +260,24 @@ def validate(
     data.parse(VOCABULARY, format="turtle")
     for path in sorted(VOCAB_DIR.glob("*.ttl")):
         data.parse(path, format="turtle")
-    conforms, _, report = pyshacl.validate(data, shacl_graph=shapes, inference="none", advanced=False)
-    return bool(conforms), str(report)
+    conforms, results, report = pyshacl.validate(data, shacl_graph=shapes, inference="none", advanced=False)
+    if conforms or not context:
+        return bool(conforms), str(report)
+    kept = [result for result in results.subjects(RDF.type, SH.ValidationResult)
+            if record_of(str(results.value(result, SH.focusNode))) not in context]
+    if not kept:
+        return True, "Conforms (violations only on context records)"
+    lines = [f"Constraint violations on checked records: {len(kept)}"]
+    for result in kept:
+        path = results.value(result, SH.resultPath)
+        lines.append(f"- {results.value(result, SH.focusNode)}{f' {path}' if path else ''}: "
+                     f"{results.value(result, SH.resultMessage)}")
+    return False, "\n".join(lines)
+
+
+def record_of(node: str) -> str:
+    """The record IRI a node belongs to: the record itself, or <record>/<path> for its nodes."""
+    return ID + node[len(ID):].split("/", 1)[0] if node.startswith(ID) else node
 
 
 def nquads(triples: Iterable[tuple], graph: str) -> str:
@@ -405,6 +427,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--kg-dir", default=str(ROOT / "public" / "kg"))
     parser.add_argument("--shapes-only", action="store_true", help="SHACL on the asserted graph, no inference")
+    parser.add_argument("--context", help="with --shapes-only: file of record IRIs present only as link targets")
     parser.add_argument("--shard", help="with --shapes-only, check only group I of N targeted shapes (I/N)")
     args = parser.parse_args()
     try:
@@ -413,9 +436,10 @@ def main() -> None:
             if shard and not (len(shard) == 2 and 1 <= shard[0] <= shard[1]):
                 raise BuildError(f"--shard must be I/N with 1 <= I <= N, not {args.shard}")
             started = time.monotonic()
+            context = set(Path(args.context).read_text("utf-8").split()) if args.context else None
             asserted = load_asserted(Path(args.kg_dir) / "asserted.nq")
             loaded = time.monotonic()
-            conforms, report = validate(asserted, set(), asserted_only=True, shard=shard)
+            conforms, report = validate(asserted, set(), asserted_only=True, context=context, shard=shard)
             if not conforms:
                 raise BuildError("SHACL validation failed:\n" + report[:5000])
             group = f", shape group {args.shard}" if shard else ""

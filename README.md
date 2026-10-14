@@ -57,7 +57,7 @@ Records are edited only through the store: `npm run records -- add` appends a re
 
 ## Build and validate
 
-Requires Node 22 or newer, Python 3 and [uv](https://docs.astral.sh/uv/) (for the knowledge-graph build).
+Requires Node 22 or newer. The Python tests need Python 3; the SHACL check (`records -- add`, `npm run kg:shapes`) and the knowledge-graph build need [uv](https://docs.astral.sh/uv/). The release build itself needs neither.
 
 ```sh
 npm ci
@@ -68,9 +68,9 @@ npm run typecheck
 npm run build
 ```
 
-The build rebuilds the current release from the inputs and fails if any byte differs from the frozen copy in `data/omics/releases/`.
+The build writes the release named by `data/omics/release-config.json`, its prepared SQLite file and the website package. Packaging refuses to change a file already archived in `data/omics/releases/`. It does not build the knowledge graph (`npm run kg:bundle`, see [docs/linked-data.md](docs/linked-data.md)).
 
-CI runs every task at the same time on its own machine: the store check, type checking, the Python and KG tests, and the test suite split into six shards. Pull requests run the fast test set (`npm run test:fast`); main runs everything (`npm test`). Runs that cut a release (a change to `data/omics/release-config.json`) also rebuild the release in a parallel job: release pull requests without inference (`npm run build:check`), main with inference (`npm run build`, which runs inference and the prepared SQLite file side by side), followed by the parity and bundle checks. On main, a publish job waits for all of them to pass before publishing. A failure that `npm run build` would catch shows up in the release PR, not in each evidence PR.
+CI runs every task at the same time on its own machine: the store check, type checking, the Python and KG tests, and the test suite split into six shards. Pull requests run the fast test set (`npm run test:fast`); main runs everything (`npm test`). The SHACL job checks the whole store against the shapes. Runs that change `data/omics/release-config.json` (a release cut by hand) also rebuild the release with `npm run build` and check the prepared file; on main, a publish job waits for all of them to pass before publishing. Releases are normally cut automatically after each merge (see [docs/release.md](docs/release.md)).
 
 ## How the website consumes releases
 
