@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "pdf-text-parse",
+    "ai-assisted-source-review",
+    "scope-review"
+  ],
+  "reviewer": "Independent Claude (Opus 5.5) review agent for PR #157, separate from the extraction agent for issue #142; no human review claimed",
+  "reviewed_at": "2026-10-14T15:30:00Z",
+  "scope": "Independent review of feng-dna-fm-20261014: 698 records (305 results, 27 claims, 128 configurations, 187 evaluations, 26 protocols, 25 datasets). Re-downloaded and matched the SHA-256 of the article XML, Supplementary Data workbook and Supplementary Information PDF. Reran extract/extract_feng.py and matched the submitted batch byte for byte. review/signoff.py, a separate parser, compared all 305 results (40 Table 2, 88 Table 3, 177 Supplementary Data 4) with 0 mismatches, checked 25 datasets against Supplementary Data 6 and Supplementary Note 2 and 26 baseline-CNN claims against Supplementary Data 1 and 2, and passed a five-error mutation test. Manual sample: 11 values (Table 2 R.Capsulatus GROVER; Table 3 G.Subterraneus 4mC GROVER, Human 6 mA NT-v2, Yeast H3K14ac HyenaDNA; Supplementary Data 4 cells B11, D41, C77; Supplementary Data 6 rows 6mA, G.subterraneus 4mC, Yeast H3K14ac, Human vs Worm, Mouse TFBS 4). All records set to source_checked by review/signoff.py. Five use-case judgements re-reviewed and re-pinned; one claim superseded.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any result.",
+    "Corrections were made by the reviewer in extract/extract_feng.py; see review.md and the dated review.",
+    "review/signoff.py and extract/extract_feng.py run only against the store as it was before this batch was added.",
+    "Figures 2-4 and Supplementary Data 3 and 5 were not checked value by value; they are not extracted."
+  ],
+  "corrections": [
+    "The 177 Supplementary Data 4 results moved from the stored Table 5/6 evaluations (aggregation: three-group mean) to 59 new per-group evaluations with the same links and comparison except aggregation.",
+    "HyenaDNA-160K result notes: no checkpoint conflict; Hyena-160K is the default and Hyena-450K is the long-sequence row (Methods, 'Model configuration selection').",
+    "4mC datasets: note that Methods list 4mC as a human epigenetic task although all six datasets are non-human; eukaryotic 4mC datasets also note the Supplementary Note 2 'Yes' flag.",
+    "feng-dna-fm-20261013-claim-not-extracted set to superseded with records -- change.",
+    "Five Feng variant-effect judgements: per-group evaluations excluded with a reason, one limitation added, revision 2, re-pinned."
+  ],
+  "errors": [],
+  "source_artifacts": {
+    "evidence-expansion-dna-foundation-models-2025-5d8ca9bc": "5d8ca9bcf88cc1b38ad667906a2e4699b1aefa6d31c6f49259784930353f3202",
+    "feng-dna-fm-20261013-source-supplementary-data": "4804c801e0e054eca5f776617c18a6a0cb31d6ce3d2a7a52f70e4dda5b3abd7a",
+    "feng-dna-fm-20261013-source-supplementary-information": "373f59b825c9e2bc51a0f122a9e2653f427c492727fbf73768cc9af02d094a15"
+  },
+  "files": {
+    "batch.jsonl": "d8344a6efd00ba89e2703f6d5b764c9cb37f446e032a17c47ab6f558457430ea",
+    "claims.csv": "ec1d1683316299151ba1d9ca2eef45a6be908352add6c1f002321971a8a764a6",
+    "coverage.json": "d2ff95b90ca3557c4cf8e11de453a16267ffce7827dc092de968201c5385bcef",
+    "extract/extract_feng.py": "521269e350095eeb6319fe521b9730bfbc69011b37971c8e23bdac37198d293c",
+    "extract/sd4-mean-check.json": "958377a39bc51f8ef0fec2d46eff106f1a0549cbef422214fce09aadc934095a",
+    "research.md": "a17a2c87380cb8599c42ddaeef27055643e6d562b388a1aef0d30ce774b7b2c2",
+    "retrieval-log.md": "01d75664da969fcf2e4c577c6d033139cf881f2b53ddb21a3e1db5bf26efa60a",
+    "review.md": "de1b4149dc8065296a4d9e6a4b71e4cd6d1f32c6a5d82f8d2947c0335242d286",
+    "review/signoff.py": "07d6386e7a3c77e36f0cc5f43ff489a20bd8b6b1273d071ce9bedb3227ffcd2c",
+    "sources.md": "01dda9ef01ac0e6e7a6bd41d57393d669e26b4690a004ebd44ee6911b6feb447"
+  }
+}
