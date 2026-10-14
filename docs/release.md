@@ -58,6 +58,18 @@ Never edit a frozen release in place. Corrections always go into a new release.
 
 Git keeps each release's receipt (`data/omics/releases/<id>.json`) and the current `website/manifest.json`, which lists every website file with the SHA-256 and size of its expanded bytes. The files themselves, the release archive (`data/omics/releases/<id>/`) and the website package (`website/files/`), are build output and ignored by Git. `npm run serving:publish` uploads each file the manifest lists as an asset of the `serving/<id>` GitHub release, beside the prepared SQLite file. An asset is named after the file's manifest destination with `/` replaced by `.` and `.gz` appended, so `public/omics/releases/<id>/records.jsonl` is `public.omics.releases.<id>.records.jsonl.gz`. If a run fails partway, running `serving:publish` again uploads only the missing assets; `serving:publish -- --check` downloads every published file and checks it against the manifest.
 
+### If publishing fails
+
+The release workflow pushes the release commit before it publishes, and the release files are not in Git, so a failed publish leaves `main` naming a release whose files exist nowhere public. The next release run then stops at `release:fetch` ("is neither a release asset nor in Git"), and the website is not asked to adopt it. Publish it by hand from the release commit:
+
+```sh
+git checkout <release commit>   # "Cut release <id>" on main
+gh run download <failed run id> -n unpublished-release   # the files the failed run built
+RELEASE_TARGET_SHA=$(git rev-parse HEAD) npm run serving:publish
+```
+
+If the artifact has expired, rebuild instead of downloading it: `npm run release:fetch -- <previous id>` then `npm run build`, with Node 24 as in CI (the prepared SQLite file's bytes depend on Node's bundled SQLite; the release files are compared by their expanded bytes, so any Node version reproduces them). Then run "Adopt the newest data release" in rewire-database, and start the knowledge-graph build (`kg-release.yml`) for the release. The same command completes a `serving/<id>` release that has the prepared file but lacks some release files; the website refuses to adopt a release until it has them all.
+
 rewire-database reads the manifest from Git at the pinned revision and downloads the assets, checking each against it ("Where the release files come from" in its `docs/hosting/benchmark-data-separation.md`). Downloads on the website redirect to the assets. Releases cut before the files left Git (up to `2026-10-14-87122402bd1c`) have no such assets; the website reads their files from Git at their tag, as before.
 
 `npm run release:fetch -- <id>` puts a published release's files in `data/omics/releases/<id>/`, each checked against the receipt: from the release assets, or from Git at `serving/<id>` for older releases. Without an ID it fetches the release `website/manifest.json` names, or the newest published release when that one is not published yet. The release workflow uses it for the previous release, which `next.mjs pending` and `withheld` compare against, and CI test jobs use it for tests that read the released catalogue. Delete old `data/omics/releases/<id>/` directories freely; they are only a local copy.

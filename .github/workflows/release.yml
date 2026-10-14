@@ -116,6 +116,19 @@ jobs:
           # Tag the release commit itself; the website reads its revision from the tag.
           RELEASE_TARGET_SHA: ${{ steps.commit.outputs.sha }}
         run: npm run serving:publish
+      # The release files are not in Git, so once the release commit is pushed they exist only on
+      # this runner until they are published. If publishing fails, keep them for a manual publish
+      # (docs/release.md, "If publishing fails"); the next release run cannot start until it is done.
+      - name: Keep the unpublished release files
+        if: failure() && steps.commit.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unpublished-release
+          path: |
+            public/serving
+            website/files
+            data/omics/releases/*/*.gz
+          retention-days: 14
       - name: Ask the website to adopt it
         if: steps.pending.outputs.release == 'true'
         env:
