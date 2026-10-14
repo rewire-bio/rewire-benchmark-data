@@ -17,6 +17,7 @@ Replay (from the repository root, after any change to the store layout):
   python3 -I data/omics/qa-descriptions-20261014/build.py
   npm run records:correct -- data/omics/qa-descriptions-20261014/corrections.csv docs/reviews/2026-10-14-functional-descriptions.md
 The table checks each old value, so it refuses to apply to records that changed since.
+Then apply the review's fixes (review-fixes.py writes review-corrections.csv; see its docstring).
 """
 import csv
 import glob

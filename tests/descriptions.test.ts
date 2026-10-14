@@ -41,6 +41,10 @@ describe("functional descriptions (issue #88)", () => {
     expect(descriptionProblems([rec("d", "dataset", "Kraken2 as run in Portik et al. 2022.")])).toEqual([]);
   });
 
+  it("leaves a missing description to the schema check", () => {
+    expect(descriptionProblems([{ id: "a", kind: "model", name: "a" } as unknown as Parameters<typeof descriptionProblems>[0][number]])).toEqual([]);
+  });
+
   it("fails validation with the record and a pointer to provenance_note", () => {
     expect(() => validateDescriptions([rec("a", "model", "Identity as reported in this paper.")])).toThrow(/a: placeholder[\s\S]*provenance_note|provenance_note[\s\S]*a: placeholder/);
   });

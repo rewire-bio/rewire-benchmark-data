@@ -1,6 +1,6 @@
 # Functional descriptions and provenance notes, 2026-10-14
 
-Issue #88. Change table: `data/omics/qa-descriptions-20261014/corrections.csv`, applied with `npm run records:correct`. Written by a Claude agent; no human review is claimed, and the researched descriptions have not had an independent second review.
+Issue #88. Change tables: `data/omics/qa-descriptions-20261014/corrections.csv`, then the reviewer's `review-corrections.csv`, both applied with `npm run records:correct`. Written by a Claude agent and independently reviewed by a second Claude agent (see Review below); no human review is claimed.
 
 ## What changed
 
@@ -27,3 +27,161 @@ Model, method, pipeline, service and configuration descriptions are not pinned b
 ## Check
 
 `records -- check` and `records -- add` now reject a placeholder, provenance-style or shared description on these kinds (`shared/omics/descriptions.ts`), so new records need a functional description and put provenance in `provenance_note`.
+
+## Review
+
+Independent review by a second Claude agent (`review-158`), which did not write the change table, the scripts or the researched sentences. No human review is claimed. Receipt: `data/omics/qa-descriptions-20261014/review.json`.
+
+Verdict: approved with corrections. The check, the attribute and the data change are sound. The reviewer fixed 467 descriptions (462 configurations, 4 models, 1 pipeline) through `review-corrections.csv`, written by `review-fixes.py` and applied with `records:correct` against this review.
+
+### Researched sentences (101)
+
+Each sentence was read against its evidence. For 67 the reviewer re-opened the cited source (AlphaGenome Supplementary Methods, ATOM3D, BEACON, BEND, DART-Eval, FLIP, TDC, BioDiscoveryAgent Appendix E, mRNABench, the LAMBDA prophage paper, the Gemini 3 model cards, the OpenAI GPT-5.4 page, the Qwen and Llama model cards, and the abstracts of the genomic model papers through arXiv and Europe PMC); for the other 34 (variant and fusion callers, Open Problems controls, AlphaFold 3 Server, o1, HelixFold 3, Protenix and the remaining model abstracts) the quoted passage in the evidence column was checked against the sentence. The reviewer also compared each model family sentence with the configurations linked to it.
+
+- The BEND findings hold. In BEND, AWD-LSTM and the dilated ResNet LM are language models trained by the BEND authors (Appendix A.6.1), NT-H and NT-MS are Nucleotide Transformer checkpoints (500M human reference; 2.5B multispecies, A.6.2), and all are scored through frozen embeddings with a two-layer CNN head; only the CNN is trained on one-hot sequence.
+- The DART-Eval finding holds: Appendix D.3 says "We utilized already trained ChromBPNet models from the ENCODE project", and only the count head was compared.
+- Four family sentences were narrower than the family, because the linked configurations include other checkpoints. Corrected: GENERator (GENEB) and GENERATOR (Datta et al.) now cover the v2 prokaryote checkpoints; Evo covers Evo 1.5 and the 8 kb checkpoints; DNAGPT covers the human 0.1B and multi-organism 3B checkpoints (DNAGPT README).
+- One article fixed ("a NTv2" to "an NTv2").
+- The evidence locator for GPT-2 gene models cites "T-dec, BPE" from GENEB Table 4; the table prints k-mer for both GPT2-Gene checkpoints. The sentence does not mention tokenisation, so it is unaffected; the evidence column is left as applied.
+- The other 96 sentences are accurate, say what the method does and are not overstated.
+
+| Record | Checked against | Outcome |
+| --- | --- | --- |
+| `alphagenome-2026-comparator-5b70f2a000382e2d` | source re-opened | Accurate |
+| `alphagenome-2026-comparator-6e631ed57f8eddcb` | source re-opened | Accurate |
+| `alphagenome-2026-comparator-ce0c8666036db12e` | source re-opened | Accurate |
+| `alphagenome-2026-comparator-e2cd76fdc569f86e` | source re-opened | Accurate |
+| `alphagenome-2026-model-25fe0d63594eb346` | source re-opened | Accurate |
+| `alphagenome-2026-model-3de62f394fc1f299` | source re-opened | Accurate |
+| `alphagenome-2026-model-c3f3edce9a9772fa` | source re-opened | Accurate |
+| `alphagenome-2026-model-d5baef97883591fa` | source re-opened | Accurate |
+| `atom3d-method-3dcnn` | source re-opened | Accurate |
+| `atom3d-method-enn` | source re-opened | Accurate |
+| `atom3d-method-gnn` | source re-opened | Accurate |
+| `beacon-model-cnn` | source re-opened | Accurate |
+| `beacon-model-lstm` | source re-opened | Accurate |
+| `beacon-model-resnet` | source re-opened | Accurate |
+| `bend-method-awd-lstm` | source re-opened | Accurate; old text confirmed wrong |
+| `bend-method-cnn` | source re-opened | Accurate |
+| `bend-method-nt-h` | source re-opened | Accurate; old text confirmed wrong |
+| `bend-method-nt-ms` | source re-opened | Accurate; old text confirmed wrong |
+| `bend-method-resnet-lm` | source re-opened | Accurate; old text confirmed wrong |
+| `catalog-model-alphafold-3-server` | quoted passage | Accurate |
+| `cnv-20261009-method-delly` | quoted passage | Accurate |
+| `cnv-20261009-method-manta` | quoted passage | Accurate |
+| `cnv-20261009-method-matchclip` | source re-opened | Accurate |
+| `cnv-20261009-method-softsv` | quoted passage | Accurate |
+| `dart-eval-method-chrombpnet-ab-initio` | source re-opened | Accurate; old text confirmed wrong |
+| `dart-eval-method-chrombpnet-like-ab-initio` | source re-opened | Accurate |
+| `dart-eval-method-probing-head-like-ab-initio` | source re-opened | Accurate |
+| `egfrnsclc-20261009-model-llama-3-1-70b` | source re-opened | Accurate |
+| `egfrnsclc-20261009-model-qwen-2-5-72b` | source re-opened | Accurate |
+| `flip-method-blosum62` | source re-opened | Accurate |
+| `flip-method-cnn` | source re-opened | Accurate |
+| `flip-method-levenshtein` | source re-opened | Accurate |
+| `flip-method-ridge` | source re-opened | Accurate |
+| `gfm2-20261011-datta2026-model-generator-v2` | source re-opened | Corrected |
+| `gfm2-20261011-datta2026-model-omni-dna` | source re-opened | Accurate |
+| `lit-genomics-20261011-geneb-model-biofm` | source re-opened | Accurate |
+| `lit-genomics-20261011-geneb-model-deepgene` | source re-opened | Accurate |
+| `lit-genomics-20261011-geneb-model-dnabert-s` | quoted passage | Accurate |
+| `lit-genomics-20261011-geneb-model-dnagpt` | source re-opened | Corrected |
+| `lit-genomics-20261011-geneb-model-eccdnamamba` | quoted passage | Accurate |
+| `lit-genomics-20261011-geneb-model-evo` | quoted passage | Corrected |
+| `lit-genomics-20261011-geneb-model-generator` | source re-opened | Corrected |
+| `lit-genomics-20261011-geneb-model-genomeocean` | source re-opened | Accurate |
+| `lit-genomics-20261011-geneb-model-genomics-fm` | source re-opened | Accurate |
+| `lit-genomics-20261011-geneb-model-gpt-2-gene-models` | source re-opened | Accurate |
+| `lit-genomics-20261011-geneb-model-grover` | quoted passage | Accurate |
+| `lit-genomics-20261011-geneb-model-janusdna` | quoted passage | Accurate |
+| `lit-genomics-20261011-geneb-model-lucaone` | source re-opened | Accurate |
+| `lit-genomics-20261011-geneb-model-mutbert` | quoted passage | Accurate |
+| `lit-genomics-20261011-geneb-model-omni-dna` | source re-opened | Accurate |
+| `lit-genomics-20261011-geneb-model-omnina` | quoted passage | Accurate |
+| `lit-genomics-20261011-geneb-model-plantcaduceus` | quoted passage | Accurate |
+| `lit-genomics-20261011-geneb-model-space` | quoted passage | Accurate |
+| `lit-genomics-20261011-geneb-model-splicebert` | quoted passage | Accurate |
+| `lit-microbial-20261011-virobench-model-genos` | source re-opened | Accurate |
+| `lit-otheromics-20261011-msgwild-model-foam` | source re-opened | Accurate |
+| `lit-rna-20261011-rnagym-model-genslm` | quoted passage | Accurate |
+| `lit-rna-20261011-rnagym-model-orthrus` | quoted passage | Accurate |
+| `lit-rna-20261011-rnagym-model-rnagenesis` | quoted passage | Accurate |
+| `mrnabench-method-naive-baseline` | source re-opened | Accurate |
+| `mrnabench-method-naive-mamba` | source re-opened | Accurate |
+| `mrnabench-method-supervised-cnn` | source re-opened | Accurate |
+| `open-problems-method-random-labels` | quoted passage | Accurate |
+| `open-problems-method-true-labels` | quoted passage | Accurate |
+| `paper-model-0996ef6d1e7e0b03ee` | source re-opened | Accurate |
+| `paper-model-235cc7b07d37f90c0c` | source re-opened | Accurate |
+| `paper-model-369c31a2f0b608a34a` | source re-opened | Accurate |
+| `paper-model-53f00fb44417cec450` | source re-opened | Accurate |
+| `paper-model-67baf1dec1a017ac4b` | source re-opened | Accurate |
+| `paper-model-984c6b7cbb3e92f1d0` | source re-opened | Corrected |
+| `paper-model-ebe8e20b92526285d9` | source re-opened | Accurate |
+| `paper-model-fd5f4dab9c82e7f7f1` | source re-opened | Accurate |
+| `rna-fusion-20261009-method-arriba` | quoted passage | Accurate |
+| `rna-fusion-20261009-method-star-fusion` | quoted passage | Accurate |
+| `rna-fusion-20261009-method-starchip` | quoted passage | Accurate |
+| `somatic-20261009-method-deepsomatic` | quoted passage | Accurate |
+| `somatic-20261009-method-lancet` | quoted passage | Accurate |
+| `somatic-20261009-method-seurat` | quoted passage | Accurate |
+| `somatic-20261009-method-somaticsniper` | quoted passage | Accurate |
+| `somatic-20261009-method-varnet` | quoted passage | Accurate |
+| `somatic-20261009-method-virmid` | quoted passage | Accurate |
+| `tdc-method-cnn` | source re-opened | Accurate |
+| `tdc-method-morgan-plus-mlp` | source re-opened | Accurate |
+| `tdc-method-rdkit2d-plus-mlp` | source re-opened | Accurate |
+| `tgtval-20261009-method-badge` | source re-opened | Accurate |
+| `tgtval-20261009-method-coreset` | source re-opened | Accurate |
+| `tgtval-20261009-method-kmeans-data` | source re-opened | Accurate |
+| `tgtval-20261009-method-kmeans-embedding` | source re-opened | Accurate |
+| `tgtval-20261009-method-margin-sample` | source re-opened | Accurate |
+| `tgtval-20261009-method-soft-uncertain` | source re-opened | Accurate |
+| `tgtval-20261009-method-top-uncertain` | source re-opened | Accurate |
+| `tgtval-20261009-model-claude-v1` | quoted passage | Accurate |
+| `tgtval-20261009-model-gemini-3-flash` | source re-opened | Accurate |
+| `tgtval-20261009-model-gemini-3-pro` | source re-opened | Accurate |
+| `tgtval-20261009-model-gpt-3-5-turbo` | quoted passage | Accurate |
+| `tgtval-20261009-model-gpt-5-4` | source re-opened | Accurate |
+| `tgtval-20261009-model-o1-mini` | quoted passage | Accurate |
+| `tgtval-20261009-model-o1-preview` | quoted passage | Accurate |
+| `tgtval-20261009-model-qwen3-5-2b` | source re-opened | Accurate |
+| `ucc-research-model-helixfold3` | quoted passage | Accurate |
+| `ucc-research-model-protenix` | quoted passage | Accurate |
+
+### Trimmed descriptions (73)
+
+All 73 rows of `systems-split.jsonl` were read. Only the locator, citation or "cited in the source as" tail was removed. Some rows also reword the kept text without changing its meaning: "All of the above metrics" names the panel metrics, "As all-exon depth, first coding exon" spells out the all-exon depth definition, "(preferred end coordinates)" becomes a clause, and the mRNABench pipelines start with "Embeds mature mRNA with". No meaning is lost; the removed tails are in `provenance_note`.
+
+### Configurations (3,791)
+
+A random sample of 70 (10 leaderboard and challenge entries, 10 with no settings, 8 described by benchmark only, 14 with a label and a target, 10 "Configuration of X", 18 with settings) was checked against each record's links and attributes, and every generated description was then scanned for the error patterns the sample showed. The generator's output matched the records, but it had these systematic errors, fixed by rule in `review-fixes.py`:
+
+| Error | Records | Example before, after |
+| --- | --- | --- |
+| A ProteinGym snapshot commit written as the model's version | 97 | "ESM2 (15B): version 144fe22b...", "ESM2 (15B), from the ProteinGym reference scores at commit 144fe22b." |
+| Detail only repeats the label, or stops at an abbreviation, while the record holds more | 84 | "RNAfold: RNAfold.", "RNAfold: ViennaRNA version 2.6.4; default parameters." |
+| Source commentary left in the description | 71 | "...; Table 2 prints the ROC-optimal thresholds, and Tables 3-5 do not restate which cutoff was applied." removed |
+| Label repeated after the colon | 23 | "Configuration of scVI: scVI: ...", "Configuration of scVI: ..." |
+| Size or setting written as a version | 10 | "Boltz-1: version 3 recycling rounds", "Boltz-1: 3 recycling rounds" |
+| Settings dropped although the record has them | 5 | "...; its settings are not recorded.", "...: scikit-learn v1.0.2 GridSearchCV (CV 3, class_weight balanced)." |
+| "its settings are not recorded" where the label carries the settings | 197 | "NEIMS predictor with GIN embedder; no settings beyond its name are recorded." |
+
+Some records match more than one row. "its settings are not recorded" was accurate for records with no settings fields, but many labels carry settings ("GIN embedder", "temperature 0.8"), so the phrase now says no settings beyond the name are recorded. "Entry in X, identified only by its entry label; the model or method behind it is not identified" is accurate for the 1,718 unlinked leaderboard and challenge entries. "its model version and settings are not identified" is kept for records described by their benchmark.
+
+### Provenance notes
+
+For all 3,791 configurations `provenance_note` holds the previous description verbatim (appended after an existing note where there was one), compared with b67ec37. For the 174 models, methods, pipelines and services the note is rewritten rather than verbatim; the reviewer read every one against the old text and found no provenance fact dropped, and the old text is in `old_value` of `corrections.csv`. Compared with b67ec37, no field other than `description` and `attributes.provenance_note` changed, and no record was added or removed.
+
+### Code
+
+- `shared/omics/descriptions.ts`: rules and wiring are correct. Fixed: a record without a string description threw a TypeError before the schema check could report it; it is now skipped and left to the schema (test added).
+- False-positive risk, not changed: `as-run-in` also matches functional phrases such as "as used to train" or "as implemented in scikit-learn", and `locator-in-parentheses` matches any parenthetical containing "Table" or "Section". No current record trips them; a writer who hits one should rephrase.
+- `records:correct` description rows check the old value and refuse empty text; tests cover both. It does not run the description check itself; `records -- check` does.
+- The `provenance_note` attribute is declared in the registry, `rb-attributes.ttl`, `attribute-shapes.ttl` and `context.jsonld` for all five kinds, consistently.
+- The refresh-additional CLI test failure was a worktree artifact: the test runs `node_modules/tsx/dist/cli.mjs` under the repository root. With `node_modules` present it passes.
+- Deviation from collection.md, for the maintainer to decide: a wrong descriptive field normally gets a `metadata-correction-*` claim keeping the old value. This change keeps old values in `corrections.csv`, `review-corrections.csv` and `provenance_note` instead, including for the five records whose old text was wrong.
+
+### Checks after the review
+
+`records -- check`, `typecheck` and the full vitest suite (2 workers) pass.

@@ -54,7 +54,9 @@ export const normaliseDescription = (text: string) => text.trim().replace(/\s+/g
 /** Problems with the descriptions of described kinds, in record order. Excluded records are not
  * published, so they are not checked. */
 export function descriptionProblems(records: DescriptionRecord[]): DescriptionProblem[] {
-  const described = records.filter((r) => (describedKinds as readonly string[]).includes(r.kind) && r.status !== "excluded");
+  // A missing or non-string description is the schema's to report (validateRecords runs later).
+  const described = records.filter((r) => (describedKinds as readonly string[]).includes(r.kind) && r.status !== "excluded" &&
+    typeof r.description === "string");
   const byText = new Map<string, DescriptionRecord[]>();
   for (const r of described)
     if ((distinctKinds as readonly string[]).includes(r.kind) && r.description.trim())
