@@ -263,7 +263,7 @@ export function exportQuads(mapping: Mapping, records: RecordEntry[]): string {
 }
 
 // The full graph is larger than the longest string V8 allows, so write and hash it in chunks.
-function writeQuads(file: string, lines: string[]): string {
+export function writeQuads(file: string, lines: string[]): string {
   const hash = crypto.createHash("sha256");
   const fd = fs.openSync(file, "w");
   try {
