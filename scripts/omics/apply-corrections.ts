@@ -1,7 +1,10 @@
 /** Apply a reviewed correction table to the canonical store.
  *
  * The table is a CSV with columns record_id, field, old_value, new_value, evidence, one row per
- * record and field. field is attributes.<key>, attributes.review.<key> or facets.<name>.
+ * record and field. field is description, attributes.<key>, attributes.review.<key> or
+ * facets.<name>.
+ * - Description: old_value must equal the current description; new_value replaces it and cannot
+ *   be empty.
  * - Attribute: old_value must equal the current value (empty means absent); new_value replaces
  *   it (empty removes it).
  * - Facet: old_value names the value to replace (empty adds new_value); new_value is its
@@ -15,13 +18,20 @@ import fs from "node:fs";
 import { readCsv } from "./migrate-vocab";
 import { recordChanges, recordFiles } from "./records";
 
-type StoreRecord = { id: string; facets: Record<string, string[]>; attributes: Record<string, unknown> };
+type StoreRecord = { id: string; description?: string; facets: Record<string, string[]>; attributes: Record<string, unknown> };
 export type Correction = { record_id: string; field: string; old_value: string; new_value: string; evidence: string };
 
 export function applyCorrection(record: StoreRecord, row: Correction): void {
   const fail = (why: string) => {
     throw new Error(`${row.record_id} ${row.field}: ${why}`);
   };
+  if (row.field === "description") {
+    if ((record.description ?? "") !== row.old_value)
+      fail(`is ${JSON.stringify(record.description ?? "")}, the table expects ${JSON.stringify(row.old_value)}`);
+    if (!row.new_value.trim()) fail("a description cannot be removed");
+    record.description = row.new_value;
+    return;
+  }
   const [section, ...path] = row.field.split(".");
   if (section === "facets" && path.length === 1) {
     const values = [...(record.facets[path[0]] ?? [])];

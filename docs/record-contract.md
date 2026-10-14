@@ -7,7 +7,7 @@ Each record is an object. Fields marked as concept keys hold the last segment of
 - `id`: stable lowercase slug, unique across kinds.
 - `kind`: one of `model`, `method`, `configuration`, `pipeline`, `service`, `benchmark`, `task`, `protocol`, `evaluator`, `dataset`, `dataset_subset`, `baseline`, `evaluation`, `result`, `source`, `claim`, `use_case`. The list and the allowed link relations are defined in `shared/omics/entity-kinds.ts`.
 - `name`: display name.
-- `description`: plain text.
+- `description`: plain text. For a `model`, `method`, `pipeline`, `service` or `configuration`, one sentence saying what it does (a configuration may say what it is: what it configures and with which settings). Where the record was reported, run or quoted, and what was not inferred about its identity, go in `attributes.provenance_note`, not in the description. `npm run records -- check` and `records -- add` reject placeholders ("Identity as reported in this paper"), provenance ("as run in the cited comparison", "quoted in Table S11", "(Author et al. 2025 Table 3)") and a description shared with a differently named model, method, pipeline or service; the rules are in `shared/omics/descriptions.ts`, and `npm run records -- descriptions` lists any record that fails them.
 - `status`: `discovered`, `needs_review`, `source_checked`, `reproduced`, `disputed`, `superseded`, or `excluded`. Source-checked is not reproduced.
 - `facets`: object mapping facet names to arrays. `areas`, `method_types` and `contexts` hold concept keys from `data/vocab/area.ttl`, `method-type.ttl` and `context.ttl`; `tasks` is free text.
 - `source_ids`: IDs of source records supporting this entity.
