@@ -4,7 +4,7 @@
 //   node scripts/release/next.mjs withheld <previous-id> <next-id>
 //       exit 4 if the next release withholds or drops use-case mappings that the
 //       previous release serves, unless the judgement was withdrawn on purpose
-//       (its claim is excluded or superseded in data/evidence/claims.jsonl)
+//       (its claim is excluded or superseded in data/evidence/claims/)
 //   node scripts/release/next.mjs pending <previous-id> <next-id> [published-serving-receipt]
 //       exit 0 if the next release differs from the previous one in anything but
 //       its release ID and date (new or changed records, evidence, audits, use
@@ -67,7 +67,10 @@ if (command === 'latest') {
   const withheld = (after?.mappings || []).filter(mapping => live.has(mapping.id) && !['active', 'withdrawn', 'superseded'].includes(mapping.lifecycle));
   // A served mapping missing from the next release counts too, unless its judgement was withdrawn.
   const present = new Set((after?.mappings || []).map(mapping => mapping.id));
-  const withdrawn = new Set(fs.readFileSync('data/evidence/claims.jsonl', 'utf8').split('\n').filter(Boolean)
+  // Claims are sharded across data/evidence/claims/*.jsonl (scripts/omics/records.ts).
+  const claimsDir = 'data/evidence/claims';
+  const withdrawn = new Set(fs.readdirSync(claimsDir).filter(name => name.endsWith('.jsonl'))
+    .flatMap(name => fs.readFileSync(path.join(claimsDir, name), 'utf8').split('\n').filter(Boolean))
     .map(line => JSON.parse(line)).filter(claim => ['excluded', 'superseded'].includes(claim.status)).map(claim => claim.id));
   for (const id of live) if (!present.has(id) && !withdrawn.has(id)) withheld.push({ id, reason: 'missing from the release without a withdrawn judgement' });
   if (withheld.length) {

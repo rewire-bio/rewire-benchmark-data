@@ -16,7 +16,7 @@ import { validateSnapshot } from "../../shared/omics/validation";
 
 export const useCaseRoot = "data/omics/use-cases";
 /** Use cases and their relevance judgements are store records (data/entities/use-cases.jsonl
- * and judgement claims in data/evidence/claims.jsonl). This folder keeps only the reviewed bytes
+ * and judgement claims in data/evidence/claims/). This folder keeps only the reviewed bytes
  * of the documentation sources that use cases cite, bound by review.json. */
 const reviewedFiles = [
   "sources/mfass-matched-study-intake.md",

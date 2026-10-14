@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
-import { addBatch, loadRecords, recordFile, recordSha256 } from "../scripts/omics/records";
+import { addBatch, loadRecords, recordSha256, writeStore } from "../scripts/omics/records";
 import type { RecordEntry } from "../scripts/omics/schema";
 import { readMapping, recordQuads } from "../scripts/kg/export";
 import { createCatalogueQuery } from "../shared/omics/catalogue-query";
@@ -59,14 +59,9 @@ function store() {
       { relation: "system", target_id: "model" }, { relation: "assessment", target_id: "protocol" }, { relation: "data", target_id: "dataset" },
     ]),
   ].sort((a, b) => (a.id < b.id ? -1 : 1));
-  for (const r of records) {
-    fs.mkdirSync(path.dirname(recordFile(r.kind, root)), { recursive: true });
-    fs.appendFileSync(recordFile(r.kind, root), JSON.stringify(r) + "\n");
-  }
-  fs.mkdirSync(path.join(root, "data/provenance"), { recursive: true });
-  fs.writeFileSync(path.join(root, "data/provenance/records.jsonl"), records.map((r) => JSON.stringify({
+  writeStore(records, new Map(records.map((r) => [r.id, {
     id: r.id, sha256: recordSha256(r), added_in: "test", added_by: "test", changed_by: [],
-  }) + "\n").join(""));
+  }])), root);
   fs.mkdirSync(path.join(root, path.dirname(script)), { recursive: true });
   fs.writeFileSync(path.join(root, script), scriptText);
   return root;

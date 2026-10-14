@@ -4,7 +4,7 @@
  * on older releases, with the reviewed table of free-text missing reasons in
  * data/vocab/migration/missingness.csv. Scaffolding attributes listed in movedAttributes are
  * copied to data/provenance/moved-attributes.jsonl before they leave the record. Each changed
- * record is recorded in data/provenance/records.jsonl. Running it again changes nothing.
+ * record is recorded in data/provenance/records/. Running it again changes nothing.
  *
  * Usage: npm run attributes:migrate -- <review.md>
  *        npm run attributes:migrate -- --batch <batch.jsonl>  (convert a new batch in place, before

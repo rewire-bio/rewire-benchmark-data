@@ -5,7 +5,7 @@ The canonical records can be read as RDF. Each release also produces a knowledge
 | File | Purpose |
 | --- | --- |
 | `data/ontology/mapping.json` | Maps each record kind to classes, each link relation to a property, and selected fields and attributes to properties. Each external term carries the reason it fits. Status: proposed. |
-| `data/ontology/context.jsonld` | JSON-LD 1.1 context generated from the mapping. With it, every line of `data/entities/*.jsonl` and `data/evidence/*.jsonl` is a JSON-LD node. |
+| `data/ontology/context.jsonld` | JSON-LD 1.1 context generated from the mapping. With it, every line of `data/entities/*.jsonl` and `data/evidence/*/*.jsonl` is a JSON-LD node. |
 | `data/ontology/rb.ttl` | The rewire vocabulary: every `rb:` class and property, with labels, definitions and the axioms the build reasons over. |
 | `data/ontology/imports/` | Pinned copies of ML Schema and DCAT, and extracted subsets of OBI and schema.org. `sources.json` records where each came from, its version, licence and checksum. |
 | `data/ontology/shapes.ttl` | SHACL shapes the build validates against. |

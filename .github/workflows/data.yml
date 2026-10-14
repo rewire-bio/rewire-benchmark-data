@@ -37,6 +37,17 @@ jobs:
       - name: Validate the record store, vocabularies and provenance
         if: matrix.task == 'store'
         run: npm run records -- check
+      # GitHub warns above 50 MB and rejects pushes with a file over 100 MB. Split a growing
+      # store file into more shards (docs/collection.md, "Where records live") before it gets there.
+      - name: Keep every file under data/ below 50 MB
+        if: matrix.task == 'store'
+        run: |
+          large=$(find data -type f -size +50000000c -exec ls -l {} + | awk '{print $5, $NF}')
+          if [ -n "$large" ]; then
+            echo "::error::Files under data/ over 50 MB (bytes, path):"
+            echo "$large"
+            exit 1
+          fi
       - if: matrix.task == 'types'
         run: npm run typecheck
       - if: matrix.task == 'python'

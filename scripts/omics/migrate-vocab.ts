@@ -2,7 +2,7 @@
  *
  * Reads the reviewed lookup tables in data/vocab/migration/ (one CSV per scheme:
  * source_string, concept, match, keep_detail, note), rewrites every record in place and
- * records each changed record in data/provenance/records.jsonl. A value that no table covers
+ * records each changed record in data/provenance/records/. A value that no table covers
  * stops the migration. Detail a concept cannot hold (a counted entity, a scale, a reviewer's
  * role) is kept in a note field next to the value. It runs once: some concept keys are also
  * source strings for other concepts, so a second run would remap migrated values. It refuses
@@ -11,7 +11,7 @@
  * Usage: npm run vocab:migrate -- <review.md> */
 import fs from "node:fs";
 import path from "node:path";
-import { recordChanges, recordFiles } from "./records";
+import { provenanceFiles, recordChanges, recordFiles } from "./records";
 import { loadSchemes } from "./vocab";
 
 export const migrationDir = "data/vocab/migration";
@@ -165,7 +165,7 @@ if (process.argv[1]?.endsWith("migrate-vocab.ts")) {
     console.error("Usage: npm run vocab:migrate -- <review.md>  (the review must exist)");
     process.exit(1);
   }
-  if (fs.readFileSync("data/provenance/records.jsonl", "utf8").includes(`"inputs":"${migrationDir}"`)) {
+  if (provenanceFiles().some((file) => fs.readFileSync(file, "utf8").includes(`"inputs":"${migrationDir}"`))) {
     console.error(`The vocabulary migration has already been applied (provenance cites ${migrationDir}).`);
     process.exit(1);
   }
