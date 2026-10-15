@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "pdf-text-parse",
+    "independent-cell-check",
+    "rendered-source-visual-check",
+    "ai-assisted-source-review",
+    "scope-review"
+  ],
+  "reviewer": "Claude review agent; no human review claimed. Independent Claude (Opus 5.5) review agent, separate from the extraction agent that built this batch.",
+  "reviewed_at": "2026-10-15T22:00:00Z",
+  "scope": "Independent review of saadat-fellay-20261015 (extraction commit fc3881f): 38 records (10 results, 10 evaluations, 10 configurations, 3 protocols, 3 claims, 1 dataset, 1 source). Matched the PDF SHA-256 on the archived copy of the hand download. Reran extract/extract_saadat_fellay.py and matched batch.jsonl, claims.csv and coverage.json byte for byte. review/review.py, written independently, re-parsed the PDF text and asserted all 6 prose values and the setup sentences; the 4 Figure 1 legend values were read by the reviewer from the embedded image and all matched. Figures 3, 4 and 5 were viewed to check stage assignment and claim scope. All records set to source_checked.",
+  "comparison": {
+    "script": "review/review.py",
+    "results_checked": 10,
+    "mismatches": 0,
+    "by_locator": {
+      "pdf-text": 6,
+      "figure-1-raster-legend": 4
+    }
+  },
+  "manual_sample": {
+    "results": "all 10",
+    "mismatches": 0
+  },
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any result.",
+    "No fresh download: OpenReview answers scripted requests with a bot challenge; the archived copy matched the pinned hash.",
+    "Figure 1 values are printed text inside a raster image; checked by eye, not by a text parse.",
+    "Plotted values in Figures 2-5 were viewed only to check scope and consistency; none is recorded as a result."
+  ],
+  "corrections": [
+    "NT 2.5B BF16 and 4-bit memory results: source_discrepancy extended with the Figure 5 bar heights (about 6.6 and 5.45 GB).",
+    "Quantization protocol: limitation citing a nonexistent source evidence concern rewritten.",
+    "Training-memory protocol: limitations on sequence-length unit and on LoRA versus full update.",
+    "Pseudo-perplexity protocol: limitations on NT pseudo-perplexity above the 6-mer vocabulary size and the NT 2.5B scatter.",
+    "Fine-tuning claim: limitations on what Figure 4 plots."
+  ],
+  "errors": [],
+  "review_document": "docs/reviews/saadat-fellay-2026-10-15-review.md",
+  "batch_sha256_before_review": "e3702fd5d1fab507a375797133158722a15131ac982144e5153342a319e812d0",
+  "source_artifacts": {
+    "saadat-fellay-20261015-source-paper": "4bc2452110f280a7ba8baa4c7c28beac89769511019666bc77fc33af9b3bcd60"
+  },
+  "files": {
+    "batch.jsonl": "08fc0804d8f8bbaf2fa9e08a67a21255ac516dca0e4c8226667c84c6b0a75f0d",
+    "claims.csv": "c40d0d20bea6d80b753d2dffcf44f5f170c62509302453ef04ed49f4fe75bce5",
+    "coverage.json": "e8e060f0d8ffad4ad7c1e1156320e35f9f9939d74b1a5eaa9f9faac72f404eee",
+    "extract/extract_saadat_fellay.py": "106b57c14fe5ba205919af14cf34a28f567e70e98367478b66302a49a572e604",
+    "research.md": "ac8c25d254759634c4ef144f2271aabc230edcf6e015f4a1bcdbcf3b34234d5a",
+    "retrieval-log.md": "2cb6a28d24b664f7f9b9157fe1ade6b3a1e1ac02070664f748ed9a65b72aaa9d",
+    "review/receipt.py": "056a64e9cd5ed84bac4aa05cf96ecf0a6d7d07484a3e0e4c6c9f7f0c9951f089",
+    "review/review.py": "16c88c93a9d27f5bff73605d796f0f360b6d9b0fddad94fc92e0dd279267b046",
+    "sources.md": "37f4a03eb7332436521cd6e515693b3018d6afc711f7566f52d852dc7b622684"
+  }
+}

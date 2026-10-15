@@ -2,6 +2,8 @@
 
 Batch: `data/omics/saadat-fellay-20261015` (38 records). Source: Saadat and Fellay, "Optimizing genomic language models for efficient training, fine-tuning, and inference", ICLR 2026 workshop paper, OpenReview NUleWh1GFx, PDF SHA-256 `4bc2452110f280a7ba8baa4c7c28beac89769511019666bc77fc33af9b3bcd60`.
 
+Independent review: [saadat-fellay-2026-10-15-review.md](saadat-fellay-2026-10-15-review.md). The rest of this page is the extraction handoff as written before review.
+
 Extracted by a Claude (Opus 5.5) agent on 2026-10-15. **Not yet reviewed.** Every record has status `needs_review`, and each result's `review` block says it is an extraction, not a review. An independent `review-evidence` pass is still needed. No human review is claimed, and nothing here is a reproduction.
 
 ## Values extracted
