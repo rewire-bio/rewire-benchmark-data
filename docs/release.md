@@ -1,19 +1,19 @@
 # Cutting a release
 
-A release is an immutable, content-addressed snapshot of every reviewed record. Its ID is `<date>-<hash>`, derived from the records, the `released_at` time in `data/omics/release-config.json` and the release coverage. The coverage includes hashes of some generator source files (for example `lib/baseline-coverage.ts` and the evidence-table and research modules in `shared/omics/`), so changing those files' bytes, even only an import path, changes the catalogue: the next automated release is cut even if no record changed. The coverage also lists a SHA-256 for each input file (`source_inputs`). The record store appears there as one logical file per kind plus `data/provenance/records.jsonl`, each hashed over its lines in ID order, so splitting store files into shards ([collection.md](collection.md#where-records-live)) does not change the ID; any change to a stored line does. The release notes (`changelog` in the receipt) are not part of the ID or the catalogue. The website pins one release. Only the current release's files are kept in the repository; earlier releases keep their receipts.
+A release is an immutable, content-addressed snapshot of every reviewed record. Its ID is `<date>-<hash>`, derived from the records, the `released_at` time in `data/omics/release-config.json` and the release coverage. The coverage includes hashes of some generator source files (for example `lib/baseline-coverage.ts` and the evidence-table and research modules in `shared/omics/`), so changing those files' bytes, even only an import path, changes the catalogue: the next automated release is cut even if no record changed. The coverage also lists a SHA-256 for each input file (`source_inputs`). The record store appears there as one logical file per kind plus `data/provenance/records.jsonl`, each hashed over its lines in ID order, so splitting store files into shards ([collection.md](collection.md#where-records-live)) does not change the ID; any change to a stored line does. The release notes (`changelog` in the receipt) are not part of the ID or the catalogue. The website pins one release. The repository keeps every release's receipt and the current website manifest; the release files themselves are published as assets of the release's `serving/<id>` GitHub release ([Release files](#release-files)).
 
 ## Automated releases
 
 `.github/workflows/release.yml` runs after "Benchmark data checks" pass for a push to `main`, and on demand (Actions, "Cut and publish a release"). Evidence PRs leave `release-config.json` alone; the workflow cuts the release. It:
 
 1. Runs `node scripts/release/next.mjs prepare`, which dates a candidate release now and writes into the release config the commit it is built from (`source_revision`) and the release notes.
-2. Builds it once with `npm run build`.
+2. Fetches the current release's files (`npm run release:fetch -- <id>`), then builds the candidate once with `npm run build`.
 3. Compares it with the current release, ignoring only the release ID and date (`next.mjs pending`). If nothing else differs, and the serving contract is unchanged, it stops: pushes that change no data cost one build.
 4. Refuses a release that withholds or drops use-case mappings the current release serves, unless their judgement was excluded or superseded (`next.mjs withheld`); re-review and re-pin those relevance judgements first ([use-cases.md](use-cases.md)).
-5. Removes the previous release's files (`npm run release:prune`), checks the packaging (`npm run verify:package`) and the prepared file against the live query engine (`npm run serving:parity`). Types, tests, the store check and SHACL already passed for this commit in "Benchmark data checks".
-6. Commits the release to `main` as `Cut release <id>`, publishes the prepared SQLite file as `serving/<id>` tagged at that commit, and dispatches `data-release` to rewire-database. That starts its adopt-data-release workflow, which checks and deploys the release.
+5. Checks the packaging (`npm run verify:package`: the receipt and manifest are committed, no release file is, and every file has the bytes the manifest lists) and the prepared file against the live query engine (`npm run serving:parity`). Types, tests, the store check and SHACL already passed for this commit in "Benchmark data checks".
+6. Commits the receipt, the website manifest and the release config to `main` as `Cut release <id>`, publishes `serving/<id>` tagged at that commit with the prepared SQLite file and the release files (`npm run serving:publish`), and dispatches `data-release` to rewire-database. That starts its adopt-data-release workflow, which checks and deploys the release.
 
-The build never changes an archived file: packaging (`scripts/package-website.mjs`) refuses to overwrite a file in `data/omics/releases/<id>/` with different bytes. There is no second build to confirm reproduction.
+The build never changes an archived file: packaging (`scripts/package-website.mjs`) refuses to overwrite a file in `data/omics/releases/<id>/` with different bytes, and `serving:publish` never replaces a published asset; a published release file must have the bytes the committed manifest lists. There is no second build to confirm reproduction.
 
 The dispatch needs the repository secret `WEBSITE_DISPATCH_TOKEN`: a fine-grained personal access token (or GitHub App token) for `rewire-bio/rewire-database` with Contents read and write. GitHub's workflow token cannot reach another repository. Without the secret the release is still published, and the workflow warns that the website must adopt it by hand.
 
@@ -39,20 +39,37 @@ Cut a release by hand when you want it reviewed as a pull request first:
 2. Build it and run the checks:
 
    ```sh
+   npm run release:fetch
    npm run build
-   npm run release:prune
    npm test
    npm run typecheck
+   git add -A data website
    npm run verify:package
    ```
 
-   The build writes the new release's receipt (`data/omics/releases/<release-id>.json`, the exact manifest bytes) and its gzipped files (`data/omics/releases/<release-id>/`), builds the prepared SQLite file in `public/serving/` (see [serving-contract.md](serving-contract.md)), and packages the website inputs. It never overwrites existing bytes. `release:prune` removes the previous release's files and keeps its receipt.
-3. Open the PR with the config change, receipt, archive and updated `website/` files. Review scientific changes separately from packaging. CI rebuilds the release and fails if any file differs from the PR's.
-4. After merge, CI publishes the prepared file (tag `serving/<release-id>`) and dispatches `data-release` to the website, as for an automated release. The publish job then starts the knowledge-graph bundle build for it.
+   `release:fetch` downloads the current release's files, which the build checks withdrawn use-case mappings against and some tests read. The build writes the new release's receipt (`data/omics/releases/<release-id>.json`, the exact manifest bytes) and its gzipped files (`data/omics/releases/<release-id>/`), builds the prepared SQLite file in `public/serving/` (see [serving-contract.md](serving-contract.md)), and packages the website inputs (`website/manifest.json` and `website/files/`). It never overwrites existing bytes.
+3. Open the PR with the config change, the receipt and `website/manifest.json`. The release files are ignored by Git and are not part of the PR. Review scientific changes separately from packaging. CI rebuilds the release and fails if the receipt or manifest differs from the PR's; they list the SHA-256 of every release file, so a match means the files were reproduced.
+4. After merge, CI rebuilds the release, publishes the prepared file and release files (tag `serving/<release-id>`) and dispatches `data-release` to the website, as for an automated release. The publish job then starts the knowledge-graph bundle build for it.
 5. Once the release is live, record it with `npm run refresh -- record-publication` and `npm run refresh -- export` (see [refresh.md](refresh.md#review-prs-and-publication)).
 
 Never edit a frozen release in place. Corrections always go into a new release.
 
-## Release files in git
+## Release files
 
-The current release's gzipped files (`data/omics/releases/<id>/`) and the website package (`website/`) are still committed with each release, because the website reads them from git: rewire-database's adopt-data-release workflow and `scripts/select-current-data.mjs` sparse-check-out the sources that `website/manifest.json` lists at the pinned revision, and `scripts/adopt-data-release.mjs` reads `data/omics/releases/<id>/use-cases.json.gz` from both revisions with `git show` to refuse withheld mappings. Publishing them as release assets only (#110) needs those three places to download and verify a package asset from the `serving/<id>` release instead. Until then, only the receipt and the current release's files are kept, as now.
+Git keeps each release's receipt (`data/omics/releases/<id>.json`) and the current `website/manifest.json`, which lists every website file with the SHA-256 and size of its expanded bytes. The files themselves, the release archive (`data/omics/releases/<id>/`) and the website package (`website/files/`), are build output and ignored by Git. `npm run serving:publish` uploads each file the manifest lists as an asset of the `serving/<id>` GitHub release, beside the prepared SQLite file. An asset is named after the file's manifest destination with `/` replaced by `.` and `.gz` appended, so `public/omics/releases/<id>/records.jsonl` is `public.omics.releases.<id>.records.jsonl.gz`. If a run fails partway, running `serving:publish` again uploads only the missing assets; `serving:publish -- --check` downloads every published file and checks it against the manifest.
+
+### If publishing fails
+
+The release workflow pushes the release commit before it publishes, and the release files are not in Git, so a failed publish leaves `main` naming a release whose files exist nowhere public. The next release run then stops at `release:fetch` ("is neither a release asset nor in Git"), and the website is not asked to adopt it. Publish it by hand from the release commit:
+
+```sh
+git checkout <release commit>   # "Cut release <id>" on main
+gh run download <failed run id> -n unpublished-release   # the files the failed run built
+RELEASE_TARGET_SHA=$(git rev-parse HEAD) npm run serving:publish
+```
+
+If the artifact has expired, rebuild instead of downloading it: `npm run release:fetch -- <previous id>` then `npm run build`, with Node 24 as in CI (the prepared SQLite file's bytes depend on Node's bundled SQLite; the release files are compared by their expanded bytes, so any Node version reproduces them). Then run "Adopt the newest data release" in rewire-database, and start the knowledge-graph build (`kg-release.yml`) for the release. The same command completes a `serving/<id>` release that has the prepared file but lacks some release files; the website refuses to adopt a release until it has them all.
+
+rewire-database reads the manifest from Git at the pinned revision and downloads the assets, checking each against it ("Where the release files come from" in its `docs/hosting/benchmark-data-separation.md`). Downloads on the website redirect to the assets. Releases cut before the files left Git (up to `2026-10-14-87122402bd1c`) have no such assets; the website reads their files from Git at their tag, as before.
+
+`npm run release:fetch -- <id>` puts a published release's files in `data/omics/releases/<id>/`, each checked against the receipt: from the release assets, or from Git at `serving/<id>` for older releases. Without an ID it fetches the release `website/manifest.json` names, or the newest published release when that one is not published yet. The release workflow uses it for the previous release, which `next.mjs pending` and `withheld` compare against, and CI test jobs use it for tests that read the released catalogue. Delete old `data/omics/releases/<id>/` directories freely; they are only a local copy.
