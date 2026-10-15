@@ -17,6 +17,14 @@
     skos:broader :spearman-correlation ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
+:accelerator-time a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Accelerator time"@en ;
+    skos:altLabel "GPU-hours"@en ;
+    skos:altLabel "TPU-hours"@en ;
+    skos:definition "GPU or other accelerator time consumed by a stated computation, summed over devices (for example H100 GPU-hours), as distinct from wall-clock runtime and from CPU time."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
 :accuracy a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Accuracy"@en ;
@@ -214,6 +222,15 @@
     skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000608> ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
+:auroc-difference a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "AUROC difference"@en ;
+    skos:altLabel "ΔAUROC"@en ;
+    skos:altLabel "delta AUROC"@en ;
+    skos:definition "AUROC of the evaluated system minus the AUROC of a stated reference system, both computed on the same items under the same protocol. Positive when the evaluated system ranks better; 0 means no difference. The reference system, the order of subtraction and how per-item or per-group AUROCs are combined go in metric_qualifier. Not an AUROC: values range from -1 to 1 and are not comparable with AUROC values."@en ;
+    skos:scopeNote "Used for incremental-value tests, where the evaluated system is a predictor with an added feature and the reference is the same predictor without it (for example Kendiukhov 2026, BMC Genomics 27:634, Methods 'Statistical framework': 'AUROC differences (ΔAUROC) for incremental-value tests')."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
 :auspc a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Area under the SPECTRA performance curve (AUSPC)"@en ;
@@ -222,6 +239,15 @@
     skos:definition "Area under the curve of test MSE plotted against SPECTRA train-test sparsification (spectral) splits; summarises performance as distribution shift increases."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> ;
     skos:scopeNote "Defined by PertEval-scFM"@en .
+
+:average-batch-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Average batch score"@en ;
+    skos:altLabel "Average batch"@en ;
+    skos:altLabel "Average Batch Score"@en ;
+    skos:definition "Arithmetic mean of two batch-mixing scores of a cell embedding: the batch integration score (one minus the absolute batch silhouette width per cell type, averaged; scib-asw-batch) and the principal component regression batch score (scib-pcr-batch). From 0 to 1; higher means better batch mixing."@en ;
+    skos:scopeNote "Defined by Kedzierska et al. 2025, Genome Biology 26:101, Methods 'Batch mixing scores' (pages 9-10), as a counterpart to AvgBIO. Other papers average other batch metrics under similar names; those values are not this concept."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :average-precision a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -232,6 +258,16 @@
     skos:definition "Step-wise AUPRC estimator: sum over ranks of precision at each rank weighted by the increase in recall (scikit-learn average_precision_score)."@en ;
     skos:broader :auprc ;
     skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000691> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:avg-bio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "AvgBIO"@en ;
+    skos:altLabel "Average BIO"@en ;
+    skos:altLabel "Average Bio score"@en ;
+    skos:altLabel "AvgBio"@en ;
+    skos:definition "Arithmetic mean of three cell-type conservation scores of a cell embedding: cell-type average silhouette width rescaled to [0, 1] (scib-asw-label), and the normalised mutual information and adjusted Rand index between clusters of the embedding and the cell-type labels. From 0 to 1; higher means cell types are better separated."@en ;
+    skos:scopeNote "As used by Kedzierska et al. 2025, Genome Biology 26:101, Methods 'Biological preservation scores' (page 9), who attribute it to the scGPT paper (Cui et al. 2024); there NMI and ARI use Louvain clusters at the resolution with the highest NMI out of 20. The clustering procedure goes in metric_qualifier when a source states it."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :balanced-accuracy a skos:Concept, mls:EvaluationMeasure ;
@@ -1015,6 +1051,15 @@
     skos:altLabel "NMI"@en ;
     skos:definition "Mutual information between cluster assignments and labels, normalised to [0, 1]."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:odds-ratio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Odds ratio"@en ;
+    skos:altLabel "OR"@en ;
+    skos:definition "Ratio of the odds of a property in one group to the odds of it in another, from a two-by-two table: (a/b)/(c/d). In benchmark use, usually the enrichment of one variant class over another among items a predictor flags (for example rare versus common variants in the tail of deleterious scores). 1 means no enrichment. The two groups, the threshold that defines the flagged set and the test go in metric_qualifier."@en ;
+    skos:scopeNote "Used by Benegas et al. (GPN-MSA, bioRxiv 10.1101/2023.10.10.561776 v2, Figure 2f caption and Supplementary Table 4): enrichment of rare versus common gnomAD variants in the tail of deleterious scores, the threshold chosen so that each score makes 30 false discoveries, computed with a one-sided Fisher's exact test. Odds ratios with different thresholds or variant sets are not comparable."@en ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/STATO_0000182> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
 
 :one-minus-overlap-ratio a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;

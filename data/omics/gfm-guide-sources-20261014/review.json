@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "pdf-text-parse",
+    "independent-cell-check",
+    "rendered-source-visual-check",
+    "ai-assisted-source-review",
+    "scope-review"
+  ],
+  "reviewer": "Independent Claude (Opus 5.5) review agent for PR #150, separate from the extraction agent for issue #138; no human review claimed",
+  "reviewed_at": "2026-10-14T15:00:00Z",
+  "scope": "Independent review of gfm-guide-sources-20261014: all 127 records (44 results, 10 claims, 25 evaluations, 21 configurations, 8 protocols, 6 datasets, 1 method, 12 sources) and the use-case-patient-rna-splicing-validation text changes. Every artifact was downloaded again; 12 stable artifacts matched their pinned SHA-256 and the 2 bioRxiv PDFs differ only by per-download stamps. review/check_gfm_guide.py, written by the reviewer, compared all 44 results (printed value, numeric value, unit) and the source sentences of all 9 descriptive claims with 0 mismatches; the 12 EVEE Figure 1c and 1d cells were also compared by eye with a 300 dpi render of the paper. Every result was checked, so no sample was needed.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any result.",
+    "The EVEE v4 and NTv3 v1 bioRxiv PDFs are stamped per download and the extractor's copies were not retained, so their pinned bytes could not be re-verified; values were checked in the reviewer's fresh copies (hash_scope on both source records).",
+    "The NTv3 column of EVEE Figure 1b/1c and AlphaMissense's Overall cell rest on the authors' plotting code at e5e4a43, not on the paper text.",
+    "Saadat and Fellay (ICLR 2026) and the Aspidova throughput unit remain outside this batch."
+  ],
+  "corrections": [
+    "1. config-hegde-nt-500m-human-ref-5-epochs: fine-tuning was LoRA through peft (Appendix A.3), not full fine-tuning.",
+    "2. claim-evee-developer-overlap: 11 of 23 EVEE authors are Goodfire employees, not most.",
+    "3. claim-nt-fine-tuning-single-gpu and the NT source concern: Discussion paragraph 3, not 2.",
+    "4. hash_scope added to source-evee-v4 and source-ntv3-v1.",
+    "5. New evidence concern on source-hyenadna-arxiv-v2: compiled Table A.2 GPU-hours are about 2.5 times GPUs x wall clock; limitation on the two affected results.",
+    "6. use-case-patient-rna-splicing-validation evidence_gaps[2]: the extractor's text wrongly said no DNA foundation-model result is linked (Alavi et al. 2026 is); replaced.",
+    "Use case setting: Feng citation replaced by the linked Alavi et al. 2026 proxy, meaning kept; metadata-correction-gfm-guide-20261014-patient-rna-splicing-setting added; 18 judgements, the baseline and the summary re-pinned."
+  ],
+  "errors": [],
+  "files": {
+    "batch.jsonl": "33c8a36466c545c5089606796a949f2c48f443b8c9e89e929f54d32dc10144c9",
+    "claims.csv": "47f0126887dbddc5593b81f858c3793344d062d8efa92c4bdbee54e882420aa2",
+    "coverage.json": "e97df7e4a9debfe509d9cdf814bd362fafaa90e11ce96b8e757cf677225d1b91",
+    "extract/extract_gfm_guide.py": "85325aba9291f21a24cb7080ead5adf5a94634a596b220a90c005ed2de320e2e",
+    "research.md": "1688ba2ed80152a5eb9feeb373df41757e8143b686fd0ecf34582b833d468dd7",
+    "retrieval-log.md": "f33de2c0c3d98e9602683a49db126c8d1c3d776adf184ade4414e7bdb046cf3b",
+    "review/apply_review.py": "af9ff342bbf52674164e0cd5f764e583ba74f6a5feb4ba958b42dc4c4c1a72bc",
+    "review/check_gfm_guide.py": "80a84961e3cb304d43c492420a2c8d17202e20fa1a38135ee8f564260e7f6c33",
+    "review/corrections.jsonl": "e07b45fd9b8d86cb16135ed05c5652fc8f8f17ffb86e5010b15b69931a5fc016",
+    "review/use-case.json": "77ee911b0121e1b85a2c1fc61ad5849de0e1871ebcdb8cd00177fb08996c8115",
+    "sources.md": "b39ae846e09ff0ce819fa8a68f155684a7d4f099a3647e201a745c523636ffba"
+  },
+  "source_artifacts": {
+    "gfm-guide-20261014-source-evee-v4": {
+      "pinned": "1d65b07059c50e8e3f88b8fde950f011630886097bf2784a6653282c6424eef8",
+      "reviewer_copy": "9e2176440dfae6740b9e799796297cdd70b9bd59edb5c0a1e7fcdb5d6978710a",
+      "outcome": "per-download stamp; values checked in reviewer copy"
+    },
+    "gfm-guide-20261014-source-ntv3-v1": {
+      "pinned": "374a7177ebf75bf9ce6398624a74e4d588581d54a13ba12263d146b194b961ea",
+      "reviewer_copy": "082ea9b096d634cad3fc568465ef887d2529060909777685261cfc0bb43fcbee",
+      "outcome": "per-download stamp; values checked in reviewer copy"
+    },
+    "gfm-guide-20261014-source-evee-repo-fig1c-pdf": {
+      "pinned": "3dd79f2055d965fa486ae6c33193c646bb21db51f1491694111b9c96d148eec6",
+      "outcome": "match"
+    },
+    "gfm-guide-20261014-source-evee-repo-fig1d-pdf": {
+      "pinned": "b1ec938f98392f1b169798f0d9232337d0635ee909e103745151c0c572578136",
+      "outcome": "match"
+    },
+    "gfm-guide-20261014-source-evee-repo-heatmap-common": {
+      "pinned": "1d477d2e1eb4213591015b26baca654e5ca1ca19ee9a1fd39e5f106fc8e56e2e",
+      "outcome": "match"
+    },
+    "gfm-guide-20261014-source-evee-repo-fig1d-script": {
+      "pinned": "5c03755c6807fef579e234676d86b9e6a20d675e0d520e656e8a60615331e34d",
+      "outcome": "match"
+    },
+    "gfm-guide-20261014-source-evo2-biorxiv-metadata": {
+      "pinned": "8b50005d8a5e8f37d9e504dec246994bf21a326cfb17dcdd086683db616d2254",
+      "outcome": "match"
+    },
+    "gfm-guide-20261014-source-hegde2025": {
+      "pinned": "9ea68b688637b40f0aeced7c905822f6b14c352a3a935c61c407945f3d66ef47",
+      "outcome": "match"
+    },
+    "gfm-guide-20261014-source-nt-nature-methods": {
+      "pinned": "7c3b78a4f38ef053a08e466222e5662dd9711d91c535512d0b35d459d1fc7249",
+      "outcome": "match"
+    },
+    "gfm-guide-20261014-source-hyenadna-arxiv-v2": {
+      "pinned": "2f471549352ff571ac55faa80c8da453f9bf1ff5b01b6b87fa893457828e798c",
+      "outcome": "match"
+    },
+    "gfm-guide-20261014-source-hyenadna-tiny-1k-card": {
+      "pinned": "273893718e3d9ec1adcd462b52127f5a201217d6c39d1bfd13fd963caa2598f1",
+      "outcome": "match"
+    },
+    "gfm-guide-20261014-source-alphagenome-article": {
+      "pinned": "50d10530afd474d85702813bc9c9e5431406515e44f3425d64603fdb647fee13",
+      "outcome": "match"
+    },
+    "source-alphagenome-nature2026-supplementary-methods": {
+      "pinned": "86b2e6a07543e3c201e2e157a3e9c6eb5235ff13eb8a5224f6fcb6fe1808d4c0",
+      "outcome": "match"
+    },
+    "evidence-official-578439da3f3a3a476b7f": {
+      "pinned": "c715b22c31bd4f69e9b76236de0ab6a26c96fa0f384ad56a2f9d2cb65e262681",
+      "outcome": "match"
+    }
+  }
+}

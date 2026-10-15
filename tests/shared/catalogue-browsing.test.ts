@@ -99,14 +99,20 @@ test("list summaries distinguish exact evaluations from metric rows and retain e
   assert.deepEqual(page.evaluation_summaries["model-a"], {
     evaluation_count: 3,
     result_count: 4,
+    linked_evaluation_count: 3,
+    linked_result_count: 4,
   });
   assert.deepEqual(page.evaluation_summaries["model-b"], {
     evaluation_count: 3,
     result_count: 3,
+    linked_evaluation_count: 3,
+    linked_result_count: 3,
   });
   assert.deepEqual(page.evaluation_summaries["empty-model"], {
     evaluation_count: 0,
     result_count: 0,
+    linked_evaluation_count: 0,
+    linked_result_count: 0,
   });
   const bounded = query.list({ kind: "model", limit: 1 });
   assert.deepEqual(
@@ -124,7 +130,7 @@ test("evaluation summaries use reviewed family associations and never infer iden
   assert.deepEqual(
     createCatalogueQuery(input).list({ kind: "model" }).evaluation_summaries
       .family,
-    { evaluation_count: 0, result_count: 0 },
+    { evaluation_count: 0, result_count: 0, linked_evaluation_count: 3, linked_result_count: 4 },
   );
   input.records.push(
     record(
@@ -137,8 +143,57 @@ test("evaluation summaries use reviewed family associations and never infer iden
   assert.deepEqual(
     createCatalogueQuery(input).list({ kind: "model" }).evaluation_summaries
       .family,
-    { evaluation_count: 3, result_count: 4 },
+    { evaluation_count: 3, result_count: 4, linked_evaluation_count: 3, linked_result_count: 4 },
   );
+});
+
+test("linked counts include configurations, versions and aliases once each, verified or not", () => {
+  const input = snapshot();
+  input.records.push(record("family", "model"), record("version", "model"), record("alias", "model"));
+  const byId = new Map(input.records.map((item) => [item.id, item]));
+  // model-a reaches the family twice: directly and through a version; model-b through an alias.
+  byId.get("model-a")!.links.push(
+    { relation: "configuration_of", target_id: "version" },
+    { relation: "family", target_id: "family" },
+  );
+  byId.get("version")!.links.push({ relation: "variant_of", target_id: "family" });
+  byId.get("alias")!.links.push({ relation: "alias_of", target_id: "family" });
+  byId.get("model-b")!.links.push({ relation: "configuration_of", target_id: "alias" });
+  // Only the version link is backed by a reviewed claim, so only it rolls results up.
+  input.records.push(
+    record("version-claim", "claim", { field: "links:variant_of:family", source_locator: "Methods" }, [
+      { relation: "subject", target_id: "version" },
+    ]),
+  );
+  // A pipeline that uses the family is not the family.
+  input.records.push(record("pipeline", "pipeline", {}, [{ relation: "uses_model", target_id: "family" }]));
+  byId.get("evaluation-0")!.links.push({ relation: "system", target_id: "pipeline" });
+  const summaries = createCatalogueQuery(input).list({ kind: "model" }).evaluation_summaries;
+  assert.deepEqual(summaries.family, {
+    evaluation_count: 0,
+    result_count: 0,
+    linked_evaluation_count: 6,
+    linked_result_count: 7,
+  });
+  assert.deepEqual(summaries.version, {
+    evaluation_count: 0,
+    result_count: 0,
+    linked_evaluation_count: 3,
+    linked_result_count: 4,
+  });
+});
+
+test("linked benchmark counts include unverified components", () => {
+  const input = snapshot();
+  input.records.push(record("suite", "benchmark"));
+  input.records.find((item) => item.id === "protocol")!.links.push({ relation: "part_of", target_id: "suite" });
+  const summaries = createCatalogueQuery(input).list({ kind: "benchmark" }).evaluation_summaries;
+  assert.deepEqual(summaries.suite, {
+    evaluation_count: 0,
+    result_count: 0,
+    linked_evaluation_count: 6,
+    linked_result_count: 7,
+  });
 });
 
 test("result filters intersect exact protocol, dataset and tested-entity identities", () => {

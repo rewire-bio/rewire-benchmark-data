@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "scope-review"
+  ],
+  "reviewer": "Claude (Opus 5.5) research agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-10-14T20:30:00Z",
+  "scope": "Brandes et al. 2023 Supplementary Table 2: head-to-head columns of the ClinVar and HGMD sheets, the in-frame indel and stop-gain sheets. All three sources re-downloaded (hashes match). Independent openpyxl comparison of all 386 results, every numeric cell found once; 12 cells hand-checked. 731 records source_checked.",
+  "limitations": [
+    "Automated review by a Claude agent; not human scientific review and not reproduction of any result.",
+    "Stop-gain class counts differ between the Fig. 6d legend and the Methods; the workbook values are exact whole-set ROC-AUC fractions for the Methods counts, which is recorded as a limitation, not as the stated aggregation.",
+    "The 27 comparators the paper excluded for data leakage concerns are kept, each on its own subset with training_overlap set.",
+    "The scripts in extract/ reproduce the extracted, pre-review records; batch.jsonl holds the reviewed records."
+  ],
+  "corrections": [
+    "Figure references corrected from Fig. 4 to Fig. 6 on 11 records and from Fig. 2f to Fig. 2g,h on the two head-to-head protocols.",
+    "Head-to-head protocol limitation: 'are inflated' changed to 'may be inflated', quoting the paper's 'data leakage concerns'.",
+    "Whole-set ROC-AUC arithmetic finding added to the stop-gain protocol, dataset, NMD subset and ten evaluations.",
+    "See docs/reviews/2026-10-14-gfm-guide-metrics-review.md."
+  ],
+  "errors": [],
+  "files": {
+    "batch.jsonl": "211842a196842e6acefa208d9ac8dc4da216879bfbc16648e5e5a25e388bde42",
+    "claims.csv": "d540bf9d48cd9cb2742bcf332c00e845cb34eb16771252d4d96076c7fd6742da",
+    "extract/build_supp2.py": "f562ee031dc8a6c736a7a06b49d153fe5bee4b06d34157ed105b2293328f483a",
+    "research.md": "ef05c71bbdcf3b57b115f7d9efadc4135d6f3a3be0ded4cbeee8932e4b389f91",
+    "retrieval-log.md": "43c78f0f97b358f34d1a8f3dec1751e94ed374cc1ccf7cc33c874bae6cdfc87e",
+    "sources.md": "833689e74188b18e9a60bbe0016b07b09f8e8e31628a47b73a904fc186b617c5"
+  },
+  "source_artifacts": {
+    "gfm-guides-20261014-esm1b-source-brandes2023-supplementary-table-2": "093c32e4156a801c0dd809a437c87818a4f1d04df92e037cf40222471a3e72e2",
+    "gfm-guides-20261014-esm1b-source-brandes2023-article": "919ca366369efbe7e0880565192de127375edddedb1aa43ad023dec612bb4a04",
+    "gfm-guides-20261014-esm1b-source-brandes2023-supplementary-information": "30f1c2713875c7cec40f0beee19864840bc55326ddf68918841f93f8bb897c2a"
+  }
+}

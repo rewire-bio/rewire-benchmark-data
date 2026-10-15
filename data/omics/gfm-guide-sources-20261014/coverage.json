@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "issue": "https://github.com/rewire-bio/rewire-benchmark-data/issues/138",
+  "record_counts": {
+    "claim": 10,
+    "configuration": 21,
+    "dataset": 6,
+    "evaluation": 25,
+    "method": 1,
+    "protocol": 8,
+    "result": 44,
+    "source": 12
+  },
+  "existing_ids_reused": {
+    "models_and_methods": [
+      "discovery-model-evo-2",
+      "somatic-oncogenicity-20261009-method-cadd",
+      "somatic-oncogenicity-20261009-method-alphamissense",
+      "regulatory-variant-20261009-model-gpn",
+      "lit-genomics-20261011-guanine-model-nucleotide-transformer-v3",
+      "catalog-model-alphagenome",
+      "discovery-model-nucleotide-transformer",
+      "discovery-model-dnabert-2",
+      "lit-genomics-20261011-gfmbench-model-dnabert",
+      "regulatory-variant-20261009-model-hyenadna"
+    ],
+    "datasets": [
+      "lit-genomics-20261011-ntbench-data-all-18-tasks"
+    ],
+    "sources": [
+      "source-alphagenome-nature2026-supplementary-methods",
+      "evidence-official-578439da3f3a3a476b7f",
+      "evidence-expansion-dna-foundation-models-2025-5d8ca9bc"
+    ],
+    "use_cases_changed": [
+      "use-case-patient-rna-splicing-validation"
+    ]
+  },
+  "issue_items": [
+    {
+      "item": "EVEE",
+      "status": "extracted",
+      "note": "The issue's SNV list (0.971, 0.972, 0.966, 0.952, 0.932, 0.586) matches no v4 figure cell; v4 deconfounded Overall is 0.977 EVEE, 0.972 AlphaMissense (missense only), 0.963 CADD v1.7, 0.952 GPN-MSA, 0.929 Evo 2 loss, 0.710 NTv3. Indel Overall is 0.991 against CADD v1.7 InDel 0.980 (issue said 0.986)."
+    },
+    {
+      "item": "Hegde, Nebel and Rahman 2025",
+      "status": "extracted"
+    },
+    {
+      "item": "NTv3 hardware",
+      "status": "extracted"
+    },
+    {
+      "item": "Nucleotide Transformer fine-tuning time",
+      "status": "extracted",
+      "note": "Conflict recorded as an evidence concern on the source."
+    },
+    {
+      "item": "HyenaDNA",
+      "status": "extracted"
+    },
+    {
+      "item": "AlphaGenome execution",
+      "status": "extracted",
+      "note": "The supplement says 512 TPUv3 cores per gradient step, with each 1 Mb interval split across 8 TPU cores; not 'training on 8 TPU v3'."
+    },
+    {
+      "item": "Saadat and Fellay, ICLR 2026",
+      "status": "gap",
+      "note": "PDF not retrievable by script; needs a manual download."
+    },
+    {
+      "item": "Aspidova throughput unit",
+      "status": "gap",
+      "note": "No benchmarking code in GENA_LM at ed71502; needs the authors."
+    },
+    {
+      "item": "Patient-RNA splicing use case text",
+      "status": "partly corrected",
+      "note": "evidence_gaps[2] corrected, with a metadata-correction claim keeping the old text. The setting text is pinned by 18 reviewed judgements, so its correction is proposed in docs/reviews/2026-10-14-gfm-guide-sources.md for the reviewer to apply and re-pin."
+    }
+  ],
+  "remaining_gaps": [
+    "Saadat and Fellay (ICLR 2026) peak memory and fine-tuning speed for NT 500M/2.5B and GENA-LM not extracted.",
+    "Aspidova et al. 2026 throughput unit unresolved: the GENA_LM repository at ed71502 has no throughput benchmarking script; only the authors can resolve it.",
+    "EVEE Figure 1b (full SNV set), per-consequence rows, AUPRC and confidence intervals not extracted; only the Overall rows of Figure 1c and 1d.",
+    "Hegde et al. Tables 3, 5, A2 and A3 (pruned-model times and accuracy) and the Table A1 accuracy columns not extracted."
+  ],
+  "not_done": [
+    "No use-case relevance judgements (assessed_by links) were added for the new execution protocols; use-case-diagnostic-genomics-model-execution is the candidate."
+  ]
+}

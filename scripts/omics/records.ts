@@ -14,6 +14,7 @@ import { recordSchema, validateRecords, type RecordEntry } from "./schema";
 import { loadSchemes, validateVocabularies } from "./vocab";
 import { validateAttributes } from "../../shared/omics/attributes";
 import { validateDerivations } from "./derivations";
+import { descriptionProblems, validateDescriptions } from "../../shared/omics/descriptions";
 
 /** The mapping and vocabularies are repository configuration, not store content: a store under
  * another root (as in tests) is validated against this repository's schemes. */
@@ -194,6 +195,7 @@ export function loadRecords(root = "."): RecordEntry[] {
   validateVocabularies(readMapping(), records, loadSchemes());
   validateAttributes(records);
   validateDerivations(records, root);
+  validateDescriptions(records);
   return validateRecords(records.sort(byId));
 }
 
@@ -218,6 +220,7 @@ export function addBatch(batchFile: string, batchDir: string, root = "."): numbe
   }
   validateVocabularies(readMapping(), additions, loadSchemes());
   validateAttributes(additions);
+  validateDescriptions([...existing, ...additions]);
   validateDerivations([...existing, ...additions], root);
   validateRecords([...existing, ...additions]);
   writeStore([...existing, ...additions], provenance, root);
@@ -273,8 +276,21 @@ function writeCheckedAgainstShapes(ids: () => string[], write: () => void, what:
 
 if (process.argv[1]?.endsWith("records.ts")) {
   const [command, ...args] = process.argv.slice(2);
-  const usage = "Usage: npm run records -- check | add <batch.jsonl> <batch-dir> | change <review-path> <batch-dir> <id>... | reshard";
+  const usage = "Usage: npm run records -- check | descriptions [--json] | add <batch.jsonl> <batch-dir> | change <review-path> <batch-dir> <id>... | reshard";
   if (command === "check") console.log(`${loadRecords().length} records match their provenance.`);
+  else if (command === "descriptions") {
+    // Every description the check rejects, with counts by kind and rule (issue #88).
+    const problems = descriptionProblems(recordFiles().flatMap((file) => readJsonl(file)) as RecordEntry[]);
+    if (args.includes("--json")) console.log(JSON.stringify(problems, null, 2));
+    else {
+      const count = (key: (p: (typeof problems)[number]) => string) =>
+        [...problems.reduce((m, p) => m.set(key(p), (m.get(key(p)) ?? 0) + 1), new Map<string, number>())].sort();
+      for (const p of problems) console.log(`${p.id}\t${p.rule}\t${p.description}`);
+      console.log(`\n${new Set(problems.map((p) => p.id)).size} records, ${problems.length} problems`);
+      for (const [k, n] of count((p) => p.kind)) console.log(`  kind ${k}: ${n}`);
+      for (const [k, n] of count((p) => p.rule)) console.log(`  rule ${k}: ${n}`);
+    }
+  }
   else if (command === "add" && args.length === 2) {
     let added = 0;
     writeCheckedAgainstShapes(

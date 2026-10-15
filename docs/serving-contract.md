@@ -17,7 +17,7 @@ The data is read-only and changes about once a month. One file gives indexed loo
 
 | Table | Content |
 | --- | --- |
-| `meta` | `serving_contract_version` (`3.1`), `record_schema_version`, `release_id`, `released_at`, `catalogue_sha256`, `generator_sha256`, `release_json` (the `release()` answer), `counts_json` |
+| `meta` | `serving_contract_version` (`3.2`), `record_schema_version`, `release_id`, `released_at`, `catalogue_sha256`, `generator_sha256`, `release_json` (the `release()` answer), `counts_json` |
 | `records` | every non-excluded record, by ID, with kind and status, its JSON gzipped |
 | `details` | gzipped `get({ id, include_comparisons: true })` per record |
 | `result_rows` | gzipped full result row per result |
@@ -26,7 +26,7 @@ The data is read-only and changes about once a month. One file gives indexed loo
 | `audit_checks` | gzipped audit checks per audited record, in index order |
 | `use_case_entries` | gzipped use-case mappings and sources per use case, and result rows per mapping and evaluation, keyed by section and ID |
 | `source_records` | per source, one row per kind of citing record: the count and the gzipped record IDs in display order (3.1) |
-| `blobs` | gzipped list entries (the record's ID, kind, status, facets and origin, search text, readiness, row origins, counts), the use-case index (entries and backlinks), evidence source fields, research readiness, research data, inactive assessment IDs, the homepage summary, the evidence-guide counts, the baseline coverage audit, reviewed association keys, and the audit index, runs and resolutions |
+| `blobs` | gzipped list entries (the record's ID, kind, status, facets and origin, search text, readiness, row origins, counts, and from 3.2 the linked counts below), the use-case index (entries and backlinks), evidence source fields, research readiness, research data, inactive assessment IDs, the homepage summary, the evidence-guide counts, the baseline coverage audit, reviewed association keys, and the audit index, runs and resolutions |
 
 Each record is stored once. In `details`, `result_rows` and `use_case_entries`, an embedded object that is exactly a stored record is written as `{"$r": "<id>"}`, and one that is exactly its `recordReference` form as `{"$ref": "<id>"}` (`shared/omics/serving-codec.ts`). An evidence row keeps only the fields that cannot be derived: its record fields, `row_id` and `value` are rebuilt from the record and `value_json`, and its source fields come from the `evidence_sources` blob. The producer decodes every value it writes and refuses the file unless the result equals the engine's answer.
 
@@ -37,6 +37,8 @@ A record cites a source when the source's ID appears in its `source_ids`, its li
 ## Reading it
 
 `shared/omics/prepared-catalogue.ts` opens the file read-only and exposes the engine's methods: `release`, `record`, `get`, `comparison`, `results`, `evidence`, `list`, `compare`, `researchReadiness`, `investigations`, `useCases()`, `homeSummary`, `evidenceSummary`, `baselineAudit`, `verifiedAssociation`, `research`, `auditRuns`, `auditRecords`, `auditChecks`, `sourceRecords` and `sourceResults`. Each uses the same exported functions as `createCatalogueQuery` (`resultPage`, `evidencePage`, `listPage`, `compareResults`, `readinessPage`, `investigationsPage`, `useCaseQueryFrom`), so filters, facet counts, ordering and cursors cannot drift. Cursors remain release-bound and interchangeable with the live engine's.
+
+`list` returns `evaluation_summaries` per record. `evaluation_count` and `result_count` count the results that reach the record through links backed by a reviewed association claim, the same rows `results()` pages. `linked_evaluation_count` and `linked_result_count` (3.2) also count results held on records linked to it as configurations, versions, aliases (`configuration_of`, `variant_of`, `family`, `alias_of`) or benchmark components (`part_of`), whether or not a claim backs the link, so a family whose results all sit on its configurations no longer reads as empty. Each result and each evaluation is counted once however many links lead to it. `uses_model` and `evaluates_task` are not followed. On a file written before 3.2 the linked counts equal the verified ones.
 
 `serving_contract_version` changes major version when a table or meaning changes incompatibly. The reader opens contracts 2 and 3, so a website can serve a release of either form while it switches, and refuses any other major version. A minor version adds tables that older readers ignore. On a 3.0 file, which has no `source_records`, `sourceRecords` and `sourceResults` answer as if no record cited the source.
 
