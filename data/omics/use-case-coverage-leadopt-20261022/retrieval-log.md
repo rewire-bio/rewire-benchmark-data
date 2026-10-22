@@ -25,7 +25,30 @@
 3. For each of the six, `extract/extract_leadopt.py` asserts that the quoted sentence occurs in the tag-stripped artifact text after punctuation and whitespace are normalised. Two quotes were corrected during this check: 'typical best D3R result' is printed as 'typical best Stage 1 D3R result'.
 4. Table 2 of this paper reports pose accuracy (skip-penalised mean LDDT-PLI), not affinity, and was not extracted. Table 1 was read for the series sizes and affinity ranges and is cited on the dataset record rather than extracted cell by cell.
 
-## 4. Store search before creating records
+## 4. Boltz repository check
+
+The search pass noted, from a search snippet it could not verify, that `github.com/jwohlwend/boltz` listed
+its FEP+, CASP16 and MF-PCBA affinity predictions and evaluation scripts as "coming soon". Checked here
+against the repository itself through the GitHub API, 2026-10-22:
+
+1. `GET /repos/jwohlwend/boltz`: MIT, default branch `main`, last pushed 2026-05-29T08:20:25Z. Latest
+   release `v2.2.1` (2025-09-08).
+2. `GET /repos/jwohlwend/boltz/commits/main` pins `main` to `b1ebfc46ecf57f5414e0d1a6f9027bbb122c53bc`.
+3. `README.md` at that commit (SHA-256 `79149435313841e6f9cc0c8b581259f3952a2469cbe6f9a733f7143b557025c2`)
+   reads "Coming soon: updated evaluation code for Boltz-2!" and "we will soon provide the evaluation
+   scripts and structural predictions for Boltz-2, Boltz-1, Chai-1 and AlphaFold3 on our test benchmark
+   dataset, and our affinity predictions on the FEP+ benchmark, CASP16 and our MF-PCBA test set."
+4. `docs/evaluation.md` repeats that and marks "Evaluation files", "Evaluation setup" and "Evaluation
+   script" all as coming soon for Boltz-2. Only the Boltz-1 section links published outputs, on Google
+   Drive, and those are structure predictions rather than affinities.
+5. The recursive tree at that commit holds `scripts/eval/{run_evals,aggregate_evals,physcialsim_metrics}.py`
+   and `src/boltz/model/modules/affinity.py`, but no affinity prediction outputs and no FEP+, CASP16 or
+   MF-PCBA evaluation data.
+
+Conclusion: the snippet was accurate. No per-series Boltz-2 affinity value is published, so nothing was
+extracted from the repository and no record cites it. Recorded as a gap and as planned work.
+
+## 5. Store search before creating records
 
 `git grep` over `data/entities/` and `data/evidence/` for: `boltz-2`, `boltz2`, `ligand-affinity`, `casp16`,
 `FEP`, `FEP+`, `OpenFE`, `ABFE`, `MM/PBSA`, `MMPBSA`, `Chemgauss`, `BACPI`, `Ross`, `protein-ligand-benchmark`,
@@ -36,7 +59,7 @@ No existing record was found for FEP, FEP+, OpenFE, ABFE, MM/PBSA, FMO, Chemgaus
 benchmark, the protein-ligand-benchmark or the CASP16 affinity assessment, so those are new.
 `coverage.json` lists the existing protocols that bear on the use case but were left unmapped in this pass.
 
-## 5. Validation run
+## 6. Validation run
 
 - `extract/extract_leadopt.py` rebuilds `batch.jsonl`, `claims.csv` and `coverage.json` deterministically from the three pinned artifacts.
 - Schema, attribute registry, vocabulary, description and link-target checks: all pass, run against the whole store plus this batch in memory.

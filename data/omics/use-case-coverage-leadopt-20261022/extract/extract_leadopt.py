@@ -258,7 +258,7 @@ PR_OPENFE = b.entity("protocol", P + "-protocol-boltz2-fep-openfe-subset", "FEP+
     SIDS_SUPP, {
         "protocol": "Pearson R, Kendall tau, PMAE, MAE (non-centered and centered) and the fraction of predictions within 1 and 2 kcal/mol, as printed in Table 11",
         "version": "Boltz-2 supplement (bioRxiv v1) Table 11",
-        "aggregation": WEIGHTED_AGG + " (appendix D.2.2); the table's columns are labelled 'target avg.'",
+        "aggregation": "Mean over targets, as the columns are labelled ('target avg.'). Appendix D.2.2 states the computation: \"" + WEIGHTED_AGG + "\".",
         "metric_definition": BOLTZ_METRIC_DEF,
         "control": LEAK_FEP,
         "heldout_test": ["Held-out affinity test set; training proteins sharing an mmseqs 90% identity cluster with a test protein were removed"],
@@ -277,7 +277,7 @@ PR_4T = b.entity("protocol", P + "-protocol-boltz2-fep-4target", "FEP+ benchmark
     SIDS_SUPP, {
         "protocol": "Per-method compute time plus Pearson R, Kendall tau, PMAE, MAE (non-centered and centered) and the fraction of predictions within 1 and 2 kcal/mol, as printed in Table 12",
         "version": "Boltz-2 supplement (bioRxiv v1) Table 12",
-        "aggregation": WEIGHTED_AGG + " (appendix D.2.2); the table's columns are labelled 'target avg.'",
+        "aggregation": "Mean over targets, as the columns are labelled ('target avg.'). Appendix D.2.2 states the computation: \"" + WEIGHTED_AGG + "\".",
         "metric_definition": BOLTZ_METRIC_DEF + "; the 'time' column prints a per-method cost with no stated denominator",
         "control": LEAK_FEP,
         "heldout_test": ["Held-out affinity test set; training proteins sharing an mmseqs 90% identity cluster with a test protein were removed"],
@@ -299,7 +299,7 @@ PR_CASP16 = b.entity("protocol", P + "-protocol-boltz2-casp16", "CASP16 affinity
     SIDS_SUPP, {
         "protocol": "Pearson R, Kendall tau, pairwise MAE, MAE (non-centered and centered) and the fraction of predictions within 1 and 2 kcal/mol, as printed in Table 14",
         "version": "Boltz-2 supplement (bioRxiv v1) Table 14",
-        "aggregation": WEIGHTED_AGG + " (appendix D.2.2); the table's columns are labelled 'target avg.'",
+        "aggregation": "Mean over targets, as the columns are labelled ('target avg.'). Appendix D.2.2 states the computation: \"" + WEIGHTED_AGG + "\".",
         "metric_definition": BOLTZ_METRIC_DEF,
         "control": LEAK_CASP16,
         "heldout_test": ["Blind challenge data released after the training-data cutoff; no sequence filtering was applied"],
@@ -577,7 +577,7 @@ KCAL_DETAIL = ("Unit not printed in the table header; appendix D.2.2 states that
 FRAC_DETAIL = ("Counted entity: predictions. The header reads 'Perc.' but appendix D.2.2 defines the column as the "
                "fraction of predictions with absolute error below the threshold, and the printed values lie on a 0 to "
                "1 scale")
-AGG = "weighted mean over assays, weight proportional to compound count"
+AGG = "target average as printed, computed per assay and weighted by compound count"
 
 FEP_COLS = [
     ("pearson", "pearson-correlation", "unitless", "higher", AGG, None, 'column "Pearson R", sub-column "target avg."'),
@@ -627,7 +627,7 @@ def emit_table(table_no, table_title, protocol, dataset, header, labels, first_r
             "inputs": "Protein sequence and ligand structure" if cfg in (C_BOLTZ2, C_IPTM, C_BACPI, C_GAT) else None,
             "adaptation": ADAPTATION.get(cfg),
             "metric_implementation": BOLTZ_METRIC_DEF,
-            "aggregation": WEIGHTED_AGG + " (appendix D.2.2); the table prints the columns as 'target avg.'",
+            "aggregation": "Mean over targets, as the columns are labelled ('target avg.'). Appendix D.2.2 states the computation: \"" + WEIGHTED_AGG + "\".",
             "budget": cells[2] if has_time else None,
         }
         ev = b.evaluation(P + "-eval-t" + str(table_no) + "-" + aslug,
@@ -959,8 +959,10 @@ LOCATORS = {
 }
 
 SUMMARY = (
-    "Three sources carry the extracted evidence, and none of them publishes a per-series value: every number below "
-    "is an average across congeneric series.\n\n"
+    "Three sources carry the extracted evidence. Every number below is a mean over congeneric series: each error "
+    "and correlation is computed inside one series first, so these are averages of within-series values and not "
+    "correlations pooled across unrelated targets. No source prints a value for an individual series, or the "
+    "spread across series.\n\n"
     "Ross et al. 2023, written by the developers of the FEP+ workflow, sets both the free energy baseline and the "
     "assay noise floor on the same page. On a curated collection of 1,237 compounds across more than 50 proteins, "
     "FEP+ reached a compound-weighted pairwise RMSE of 1.25 kcal/mol [1.17, 1.33], a pairwise mean unsigned error "
@@ -996,26 +998,29 @@ SUMMARY = (
     "established to be the same quantity. Supplying experimental structures in stage 2 produced no shift toward "
     "greater accuracy, and the assessors note that the best CASP16 stage-1 results are no better than the typical "
     "best stage 1 D3R result, which averaged a Kendall tau of 0.48 with a minimum of 0.21 and a maximum of 0.71.\n\n"
-    "Two comparisons bear on the use case's question and both are author-reported: the Boltz-2 supplement's two "
-    "FEP+ benchmark subsets. Both take their FEP+ arm from a benchmark whose protocol was tuned per system after "
-    "seeing the experimental error, and both average over series rather than printing per-series values, so "
-    "neither can say how well a given series would be ranked."
+    "Two comparisons set a machine-learning predictor against free energy calculation on the same series, and both "
+    "are reported by the developers of the machine-learning method: the Boltz-2 supplement's two FEP+ benchmark "
+    "subsets. Both take their FEP+ arm from a benchmark whose protocol was tuned per system after seeing the "
+    "experimental error, which raises the baseline being compared against. And because every value is a mean over "
+    "series, these numbers say how well each method ranked analogues on average across these series, not how well "
+    "it would rank any one series."
 )
 
 JUDGED = [
-    (PR_ROSS_FEP, "proxy", "Weighted-average pairwise error and rank correlation of a free energy perturbation workflow against measured relative affinities over more than 50 proteins' congeneric series",
-     "This is the free energy baseline the use case has to beat, measured on congeneric medicinal-chemistry series with measured affinities, which is the right kind of data. It is proxy rather than direct evidence because the use case asks for within-series ranking and these numbers are averages across series: Table 3 prints weighted averages over FEP graphs, no per-series value, and no spread across series, so they cannot say how well any one series would be ranked.",
+    (PR_ROSS_FEP, "direct", "Weighted-average pairwise error and rank correlation of a free energy perturbation workflow against measured relative affinities over more than 50 proteins' congeneric series",
+     "This is the free energy baseline the use case has to beat, and it is measured on the use case's own endpoint: each error and rank correlation is computed inside one congeneric series, then averaged over series with the weight equal to the number of compounds in the series. It is not a correlation pooled over unrelated targets, so it does not carry the inflation pooling produces. The granularity is series-average: the values support 'on average over these congeneric series, this method ranked analogues this well', and do not support any statement about a specific series or about variance across series, because no per-series value and no across-series spread is printed.",
      ["Do not compare these cells with the FEP+ cells quoted in the AEV-PLIG paper (Pearson 0.68, Kendall tau 0.49): those are a different metric and probably a different subset.",
       "Do not compare Ross's weighted averages with the Boltz-2 supplement's assay-weighted target averages as if they were the same aggregation.",
-      "Keep the pairwise and edgewise error families separate; the source states the edgewise errors depend on graph topology."],
+      "Keep the pairwise and edgewise error families separate; the source states the edgewise errors depend on graph topology.",
+      "Do not combine these series-average values with per-series FEP+ values recovered from the public benchmark repository: that would mix two granularities in one comparison."],
      ["The FEP+ protocol was tuned per system after seeing the error against experiment, so this is a maximum-attainable rather than a prospective baseline.",
       "Reported by the developers of the workflow being assessed.",
-      "No per-series values and no across-series spread are printed.",
+      "No per-series values and no across-series spread are printed, so the resolution needed to judge one series is absent.",
       "No compute cost is reported, so the accuracy-against-cost half of the decision cannot be answered from this protocol.",
       "Running the workflow needs a commercial licence, so its values can only ever be recorded from publication."],
      SIDS_ROSS, "fep-baseline", "Free energy baseline against measured affinities", "Public FEP benchmark", 1, "kendall-tau"),
     (PR_ROSS_SURVEY, "proxy", "Weighted-average pairwise error and rank correlation between two independent assays of the same compounds",
-     "This is the noise floor the decision rests on: it says how well relative affinities reproduce between assays, so it bounds what any method could achieve on this kind of data. It is proxy evidence because it scores assay reproducibility, not a method's ability to rank analogues, and its values are weighted averages over assay comparisons rather than per-series values.",
+     "This is the noise floor the decision rests on: it says how well relative affinities reproduce between two independent assays of the same compounds, so it bounds what any method could achieve on this kind of data. Its granularity is the same as the FEP+ column's, within-series then weighted over series, and the source states the two columns are directly comparable. It is proxy rather than direct evidence for a different reason: it scores assay reproducibility, not any method's ability to rank analogues, so it is a ceiling to read the methods against and not itself an answer to the decision.",
      ["Read these values as a ceiling on achievable accuracy, not as a method's score.",
       "Edgewise errors have no equivalent in this column and are printed as N/A."],
      ["Measures assay reproducibility, not prediction.",
@@ -1023,11 +1028,12 @@ JUDGED = [
       "Only 6 functional-vs-functional comparisons contribute, which the source says makes that category's weighted means less meaningful.",
       "The bootstrap intervals are wider than those of the FEP+ column, so the gap between the two columns is less precisely resolved than the point estimates suggest."],
      SIDS_ROSS, "fep-baseline", "Free energy baseline against measured affinities", "Repeat-assay ceiling", 2, "kendall-tau"),
-    (PR_OPENFE, "proxy", "Assay-weighted average Pearson R, Kendall tau and absolute error of predicted against measured affinities over 876 protein-ligand complexes",
-     "This protocol puts a machine-learning affinity predictor beside two free energy workflows on the same hit-to-lead and lead-optimisation complexes with measured affinities, which is the comparison the use case exists to make. It is proxy rather than direct evidence because the use case asks for within-series ranking and these numbers are averages across series: each metric is computed inside one assay and then averaged across assays weighted by compound count, and no per-assay or per-series value is printed.",
+    (PR_OPENFE, "direct", "Target-average Pearson R, Kendall tau and absolute error of predicted against measured affinities over 876 protein-ligand complexes",
+     "This protocol puts a machine-learning affinity predictor beside two free energy workflows on the same hit-to-lead and lead-optimisation complexes with measured affinities, which is the comparison the use case exists to make, and it measures the use case's own endpoint: each metric is computed inside one assay and then averaged across assays weighted by compound count, so a printed Pearson R is the mean of per-series Pearson values rather than a correlation pooled over unrelated targets. The granularity is series-average: the values support 'on average over these congeneric series, this method ranked analogues this well', and do not support any statement about a specific series or about variance across series, because no per-series value and no across-series spread is printed.",
      ["Keep the author-reported Boltz-2, GAT and BACPI rows distinct from the OpenFE and FEP+ rows, whose origin the supplement does not state.",
       "Do not treat the results on this subset and on the four-target subset as independent; both derive from the same collection and must partly overlap.",
-      "Compare only cells that share the centering convention."],
+      "Compare only cells that share the centering convention.",
+      "Do not combine these series-average values with per-series FEP+ or OpenFE values recovered from the baselines' own data releases: that would mix two granularities in one comparison, and no per-series value exists for Boltz-2."],
      ["Reported by the developers of the machine-learning model being promoted.",
       "No per-series value and no uncertainty are printed; bootstrap error bars exist only in a figure with no printed numbers.",
       "The FEP+ arm's protocol was tuned per system after seeing the error against experiment, which raises the baseline being compared against.",
@@ -1035,12 +1041,13 @@ JUDGED = [
       "The OpenFE arm's cited source is a blog post, which is not a primary source under this repository's rules and was not retrieved.",
       "No compute cost is printed in this table."],
      SIDS_SUPP, "ml-vs-fep", "Machine learning against free energy calculation on the same series", "FEP+ benchmark, 876-complex OpenFE subset", 1, "kendall-tau"),
-    (PR_4T, "proxy", "Assay-weighted average Pearson R, Kendall tau and absolute error of predicted against measured affinities for 87 neutral compounds on four kinases, beside each method's compute cost",
-     "This is the only extracted protocol that prints accuracy and compute cost side by side across a machine-learning predictor, two relative free energy workflows, an absolute free energy protocol, an end-state method and a docking score, which is both halves of the decision. It is proxy rather than direct evidence because the use case asks for within-series ranking and these numbers are averages across series: each metric is computed inside one assay and then averaged across assays weighted by compound count, and no per-assay or per-series value is printed.",
+    (PR_4T, "direct", "Target-average Pearson R, Kendall tau and absolute error of predicted against measured affinities for 87 neutral compounds on four kinases, beside each method's compute cost",
+     "This is the only extracted protocol that prints accuracy and compute cost side by side across a machine-learning predictor, two relative free energy workflows, an absolute free energy protocol, an end-state method and a docking score, which is both halves of the decision, and it measures the use case's own endpoint: each metric is computed inside one assay and then averaged across assays weighted by compound count, so a printed Pearson R is the mean of per-series Pearson values rather than a correlation pooled over unrelated targets. The granularity is series-average: the values support 'on average over these congeneric series, this method ranked analogues this well', and do not support any statement about a specific series or about variance across series, because no per-series value and no across-series spread is printed. Four series is a small number to average over.",
      ["Read the time column as printed and do not derive a per-compound cost from it; the table does not say what it counts or on what hardware.",
       "Do not quote a measured FEP+ cost from this table; its FEP+ time cell is '-'.",
       "Four of the ten arms print N/A for every column beyond Pearson R and Kendall tau, so do not build a cross-method comparison on the error or within-threshold columns.",
-      "Do not treat the results on this subset and on the 876-complex subset as independent."],
+      "Do not treat the results on this subset and on the 876-complex subset as independent.",
+      "Do not combine these series-average values with per-series FEP+, OpenFE or ABFE values recovered from the baselines' own data releases: that would mix two granularities in one comparison, and no per-series value exists for Boltz-2."],
      ["Reported by the developers of the machine-learning model being promoted.",
       "No per-series value and no uncertainty are printed.",
       "The FEP+ arm's protocol was tuned per system after seeing the error against experiment, and the supplement says the ABFE arm's protocol was optimised on this same data set, so both physics baselines are optimistic.",
@@ -1048,8 +1055,8 @@ JUDGED = [
       "The series definition behind the 87 compounds rests on a citation that does not resolve in the supplement's reference list.",
       "Four targets is a small sample on which to average."],
      SIDS_SUPP, "ml-vs-fep", "Machine learning against free energy calculation on the same series", "FEP+ benchmark, four-target subset", 2, "kendall-tau"),
-    (PR_CASP16, "proxy", "Assay-weighted average Pearson R, Kendall tau and absolute error of predicted against withheld measured affinities on the CASP16 chymase and autotaxin series",
-     "This is blind evidence on two pharmaceutical ligand series whose affinities were withheld until after submission, which is the closest thing in this batch to a prospective read. It is proxy rather than direct evidence because the use case asks for within-series ranking and these numbers are averages across the two series, not per-series values, and because the CASP16 series are target ligand sets rather than a single congeneric series around one confirmed hit.",
+    (PR_CASP16, "proxy", "Target-average Pearson R, Kendall tau and absolute error of predicted against withheld measured affinities on the CASP16 chymase and autotaxin ligand sets",
+     "This is blind evidence on two pharmaceutical ligand sets whose affinities were withheld until after submission, which is the closest thing in this batch to a prospective read, and its aggregation is the same within-target-then-averaged form as the FEP+ benchmark protocols. It is proxy rather than direct evidence for a different reason: neither source establishes that the chymase and autotaxin ligand sets are congeneric series around one confirmed hit, so this measures ranking inside a target's ligand set rather than ranking a hit's close analogues. The CASP16 assessors describe the two sets by their affinity range and count, not by a shared scaffold.",
      ["Keep the Boltz-2 row, which its developers report, distinct from the participant rows, which the supplement compiles.",
       "Do not read a per-target value from this table; the same two series are recorded per-target for PLABench and those values are not these values.",
       "Do not treat the anonymous group identifiers as named methods."],
@@ -1099,7 +1106,9 @@ UC = b.add({
         "clinical_scope": "Research only. Affinity ranking does not establish efficacy, safety or clinical suitability.",
         "evidence_gaps": [
             "Automated source review only; independent human scientific review remains outstanding.",
-            "No per-series value is published for any method in the extracted sources. The route to per-series evidence is the public_binding_free_energy_benchmark repository (MIT, releases v1.0 and v2.0), which holds FEP+ per-edge results, and the OpenFE per-transformation deposits on Zenodo; nothing was computed from either in this pass.",
+            "No reviewed source in the store publishes per-series affinity-ranking values for any machine-learning method. Every value recorded for a machine-learning method is a mean over series, so the question 'would this method have ranked my series correctly' cannot be answered from the store, only 'on average across these series'.",
+            "Per-series values are recoverable for the baselines but not for the machine-learning arms. The public_binding_free_energy_benchmark repository (MIT, releases v1.0 and v2.0) holds FEP+ per-edge results and the OpenFE per-transformation deposits on Zenodo cover the OpenFE arm; nothing was computed from either in this pass. The Boltz repository publishes no affinity predictions: at commit b1ebfc46ecf57f5414e0d1a6f9027bbb122c53bc its README and docs/evaluation.md still list the FEP+, CASP16 and MF-PCBA affinity predictions and the Boltz-2 evaluation scripts as 'coming soon'.",
+            "A comparison must not mix the two granularities: published per-series FEP+ values cannot be set beside Boltz-2's series averages in one comparison.",
             "No fully independent evaluation of a machine-learning affinity predictor against free energy calculation on the same measured congeneric series was found. Both same-series comparisons that exist are reported by the developers of the machine-learning method, and both take their FEP+ arm from a benchmark whose protocol was tuned per system after seeing the error against experiment.",
             "The peer-reviewed OpenFE industry benchmark (doi 10.1021/acs.jcim.6c00089) is behind an ACS paywall and was not retrieved, so the open-source free energy arm rests on a blog post the Boltz-2 supplement cites.",
             "No measured compute cost for FEP+ exists in any extracted table; the only cost column prints '-' for FEP+ and ranges for OpenFE and ABFE.",
@@ -1144,6 +1153,7 @@ UC = b.add({
             "Retrieve doi 10.1021/acs.jcim.6c00089 (OpenFE industry benchmark) to replace the blog-post citation behind the OpenFE arm.",
             "Pin the public_binding_free_energy_benchmark releases and assess whether per-series FEP+ values can be recorded under the derivation rule.",
             "Extract the CASP16 assessors' per-group affinity results from the official predictioncenter.org results file.",
+        "Re-check github.com/jwohlwend/boltz for the released Boltz-2 affinity predictions and evaluation scripts, which its README still lists as 'coming soon'; they would be the only route to per-series Boltz-2 values.",
             "Screen the leakage candidates the search pass noted and did not retrieve: PDBbind CleanSplit (PMC12552120), the GEMS preprint and the DAVIS-completeness preprint.",
         ],
         "review": {
@@ -1240,7 +1250,7 @@ coverage = {
     ],
     "gaps": [
         "Boltz-2 supplement Tables 13, 15 and 16 were not extracted. Table 13 is binary classification (MF-PCBA), outside this use case. Tables 15 and 16 are hit-to-lead validation and the eight blinded Recursion assays; they bear on hit-to-lead rather than lead optimisation and were not reached in this pass.",
-        "No per-series value exists for any method in the extracted sources. The route to per-series FEP+ values is github.com/schrodinger/public_binding_free_energy_benchmark (MIT, releases v1.0 and v2.0, both 2023-06-26), which holds per-edge FEP+ results. Nothing was computed from it in this pass, as instructed.",
+        "No per-series value exists for any machine-learning method in the extracted sources, and none exists in the store. The route to per-series FEP+ values is github.com/schrodinger/public_binding_free_energy_benchmark (MIT, releases v1.0 and v2.0, both 2023-06-26), which holds per-edge FEP+ results; nothing was computed from it in this pass, as instructed. There is no equivalent route for Boltz-2: its repository was checked at commit b1ebfc46ecf57f5414e0d1a6f9027bbb122c53bc (pushed 2026-05-29) and the FEP+, CASP16 and MF-PCBA affinity predictions and the Boltz-2 evaluation scripts are still listed as 'coming soon' in README.md and docs/evaluation.md; only the Boltz-1 structure-prediction outputs are published.",
         "The OpenFE industry benchmark (doi 10.1021/acs.jcim.6c00089) is behind an ACS paywall and was not retrieved, so the OpenFE arm rests on a blog post the supplement cites.",
         "Hahn et al. 2022, Schindler et al. 2020 (Merck FEP set) and Wu et al. 2025 (ABFE) were not retrieved, so the series definitions behind the four-target subset are not established.",
         "The 'Chen et al., 2023' citation the supplement gives for the 87 compounds does not resolve in its reference list.",
@@ -1249,7 +1259,8 @@ coverage = {
         "The SHACL shape check was run on this batch in a sandbox copy of the subset graph; `npm run records -- add`, which runs it against the store, was deliberately not run and is left to the review agent.",
     ],
     "reviewer_must_judge": [
-        "Column label against methods definition: Tables 11, 12 and 14 label their columns 'target avg.', while appendix D.2.2 defines every regression metric as computed per assay and averaged across assays weighted by compound count. Assays and targets are not the same unit. Every result's metric_qualifier follows the methods wording ('weighted mean over assays, weight proportional to compound count') and every protocol records the discrepancy.",
+        "Column label against methods definition: Tables 11, 12 and 14 label their columns 'target avg.', while appendix D.2.2 defines every regression metric as computed per assay and averaged across assays weighted by compound count. Assays and targets are not the same unit. Every result's metric_qualifier carries both ('target average as printed, computed per assay and weighted by compound count'), every evaluation's comparison.aggregation quotes the methods sentence under the printed label, and every protocol records the discrepancy.",
+        "Relevance calls: the Ross FEP+ protocol and both Boltz-2 FEP-subset protocols are direct at series-average granularity, because each metric is computed inside one congeneric series before being averaged, so a printed value is the mean of per-series values and not a correlation pooled over unrelated targets. Two protocols are proxy for reasons unrelated to granularity: the repeat-assay survey scores assay reproducibility rather than any method's ranking, and neither source establishes that the CASP16 chymase and autotaxin ligand sets are congeneric series around one confirmed hit.",
         "Units of the PMAE and MAE columns are not printed in the Boltz-2 table headers. They are recorded as kilocalorie-per-mole on the strength of appendix D.2.2 ('All predictions are converted to kcal/mol prior to computing the metrics'), with that stated in each result's unit_detail.",
         "The 'Perc. within 1' and 'Perc. within 2' headers say percentage, but appendix D.2.2 defines them as fractions and the printed values lie on 0 to 1. They are recorded with metric 'proportion' and unit 'fraction'.",
         "Origin of the OpenFE, FEP+ and ABFE rows in Tables 11 and 12 is recorded as 'unreported' because the supplement cites prior work without saying whether it re-ran those arms. The CASP16 participant rows are recorded as 'paper_compilation'.",

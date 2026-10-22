@@ -32,7 +32,7 @@
   "new_protocols_judged": [
     {
       "protocol": "uc-leadopt-20261022-protocol-ross-fep-plus",
-      "relevance": "proxy",
+      "relevance": "direct",
       "comparison_group": "fep-baseline"
     },
     {
@@ -42,12 +42,12 @@
     },
     {
       "protocol": "uc-leadopt-20261022-protocol-boltz2-fep-openfe-subset",
-      "relevance": "proxy",
+      "relevance": "direct",
       "comparison_group": "ml-vs-fep"
     },
     {
       "protocol": "uc-leadopt-20261022-protocol-boltz2-fep-4target",
-      "relevance": "proxy",
+      "relevance": "direct",
       "comparison_group": "ml-vs-fep"
     },
     {
@@ -105,7 +105,7 @@
   ],
   "gaps": [
     "Boltz-2 supplement Tables 13, 15 and 16 were not extracted. Table 13 is binary classification (MF-PCBA), outside this use case. Tables 15 and 16 are hit-to-lead validation and the eight blinded Recursion assays; they bear on hit-to-lead rather than lead optimisation and were not reached in this pass.",
-    "No per-series value exists for any method in the extracted sources. The route to per-series FEP+ values is github.com/schrodinger/public_binding_free_energy_benchmark (MIT, releases v1.0 and v2.0, both 2023-06-26), which holds per-edge FEP+ results. Nothing was computed from it in this pass, as instructed.",
+    "No per-series value exists for any machine-learning method in the extracted sources, and none exists in the store. The route to per-series FEP+ values is github.com/schrodinger/public_binding_free_energy_benchmark (MIT, releases v1.0 and v2.0, both 2023-06-26), which holds per-edge FEP+ results; nothing was computed from it in this pass, as instructed. There is no equivalent route for Boltz-2: its repository was checked at commit b1ebfc46ecf57f5414e0d1a6f9027bbb122c53bc (pushed 2026-05-29) and the FEP+, CASP16 and MF-PCBA affinity predictions and the Boltz-2 evaluation scripts are still listed as 'coming soon' in README.md and docs/evaluation.md; only the Boltz-1 structure-prediction outputs are published.",
     "The OpenFE industry benchmark (doi 10.1021/acs.jcim.6c00089) is behind an ACS paywall and was not retrieved, so the OpenFE arm rests on a blog post the supplement cites.",
     "Hahn et al. 2022, Schindler et al. 2020 (Merck FEP set) and Wu et al. 2025 (ABFE) were not retrieved, so the series definitions behind the four-target subset are not established.",
     "The 'Chen et al., 2023' citation the supplement gives for the 87 compounds does not resolve in its reference list.",
@@ -114,7 +114,8 @@
     "The SHACL shape check was run on this batch in a sandbox copy of the subset graph; `npm run records -- add`, which runs it against the store, was deliberately not run and is left to the review agent."
   ],
   "reviewer_must_judge": [
-    "Column label against methods definition: Tables 11, 12 and 14 label their columns 'target avg.', while appendix D.2.2 defines every regression metric as computed per assay and averaged across assays weighted by compound count. Assays and targets are not the same unit. Every result's metric_qualifier follows the methods wording ('weighted mean over assays, weight proportional to compound count') and every protocol records the discrepancy.",
+    "Column label against methods definition: Tables 11, 12 and 14 label their columns 'target avg.', while appendix D.2.2 defines every regression metric as computed per assay and averaged across assays weighted by compound count. Assays and targets are not the same unit. Every result's metric_qualifier carries both ('target average as printed, computed per assay and weighted by compound count'), every evaluation's comparison.aggregation quotes the methods sentence under the printed label, and every protocol records the discrepancy.",
+    "Relevance calls: the Ross FEP+ protocol and both Boltz-2 FEP-subset protocols are direct at series-average granularity, because each metric is computed inside one congeneric series before being averaged, so a printed value is the mean of per-series values and not a correlation pooled over unrelated targets. Two protocols are proxy for reasons unrelated to granularity: the repeat-assay survey scores assay reproducibility rather than any method's ranking, and neither source establishes that the CASP16 chymase and autotaxin ligand sets are congeneric series around one confirmed hit.",
     "Units of the PMAE and MAE columns are not printed in the Boltz-2 table headers. They are recorded as kilocalorie-per-mole on the strength of appendix D.2.2 ('All predictions are converted to kcal/mol prior to computing the metrics'), with that stated in each result's unit_detail.",
     "The 'Perc. within 1' and 'Perc. within 2' headers say percentage, but appendix D.2.2 defines them as fractions and the printed values lie on 0 to 1. They are recorded with metric 'proportion' and unit 'fraction'.",
     "Origin of the OpenFE, FEP+ and ABFE rows in Tables 11 and 12 is recorded as 'unreported' because the supplement cites prior work without saying whether it re-ran those arms. The CASP16 participant rows are recorded as 'paper_compilation'.",

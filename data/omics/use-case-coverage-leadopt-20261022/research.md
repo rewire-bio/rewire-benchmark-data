@@ -68,26 +68,61 @@ Ross Table 3 aggregates the same way in kind: a weighted average over FEP graphs
 number of compounds for the pairwise, R² and Kendall tau metrics and the number of edges for the edgewise
 errors, with bootstrap 95% intervals over the graphs or assay comparisons.
 
-## Why every judgement is proxy, not direct
+## Relevance: direct at series-average granularity, and where that stops
 
-The use case asks about ranking inside **one** series. Every extracted number is an average over series:
-Boltz-2's metrics are computed inside one assay and then averaged across assays, and Ross's are weighted
-averages over FEP graphs. No source prints a per-series value, and no source prints the spread across
-series. So the records support 'on average over these series, method X ranked analogues this well' and
-cannot support 'method X would have ranked your series this well', nor any statement about variance
-between series. All five judgements are therefore `proxy`, each saying so in its rationale and
-limitations.
+Three of the five judgements are `direct`: the Ross FEP+ protocol and both Boltz-2 FEP-subset protocols.
+The reason is the granularity, properly read. A "target avg." Pearson is the **mean of per-series Pearson
+values**, each computed inside one target's congeneric series, and Ross's values are weighted averages
+over FEP graphs where a graph is one series. Neither is a correlation pooled over unrelated targets, so
+neither carries the inflation that pooling produces. The endpoint is the use case's endpoint. What is lost
+is resolution, not validity: the records support "on average over these congeneric series, this method
+ranked analogues this well", and support no statement about a specific series or about the variance across
+series, because no source prints a per-series value or an across-series spread. Each `direct` judgement's
+rationale and limitations say exactly that.
 
-The route to per-series evidence, deliberately not taken in this pass:
-`github.com/schrodinger/public_binding_free_energy_benchmark` (MIT, releases v1.0 and v2.0, both published
-2023-06-26) holds the FEP+ per-edge results behind Ross Table 3. Recording values from it would need the
-per-edge files pinned with their hashes, a stated aggregation quoted from Ross, and a deterministic script
-in the repository under the derivation rule in `docs/collection.md`. The OpenFE per-transformation Zenodo
-deposits are a parallel route for the OpenFE arm, with the caveat the search pass recorded: they are
-force-field benchmark runs deposited by one author, not the published OpenFE industry benchmark result.
+Two judgements are `proxy`, for reasons that have nothing to do with granularity:
+
+- **The repeat-assay survey** (Ross Table 3, experimental column) has the same granularity as the FEP+
+  column, and the source states the two columns are directly comparable. It is proxy because it scores
+  assay reproducibility rather than any method's ability to rank analogues: it is a ceiling to read the
+  methods against, not itself an answer to the decision.
+- **The CASP16 protocol** aggregates the same way, but neither source establishes that the chymase and
+  autotaxin ligand sets are congeneric series around one confirmed hit. The assessors describe them by
+  affinity range and count, not by a shared scaffold. So it measures ranking inside a target's ligand set,
+  which is a step away from ranking a hit's close analogues.
+
+That is the test applied throughout: per-target **and** congeneric **and** one assay endpoint is direct;
+per-target but not congeneric, or pooling assay types, is proxy. The search pass's candidate C5 (Shimizu
+et al. 2026, ChEMBL target sets with pChEMBL pooled across Ki, Kd, IC50 and more) fails the test twice and
+was not extracted here.
+
+## Per-series evidence: recoverable for the baselines, not for Boltz-2
+
+Deliberately not taken in this pass, and recorded for a later one:
+
+- `github.com/schrodinger/public_binding_free_energy_benchmark` (MIT, releases v1.0 and v2.0, both
+  published 2023-06-26) holds the FEP+ per-edge results behind Ross Table 3. Recording values from it
+  would need the per-edge files pinned with their hashes, a stated aggregation quoted from Ross, and a
+  deterministic script in the repository under the derivation rule in `docs/collection.md`.
+- The OpenFE per-transformation Zenodo deposits are the parallel route for the OpenFE arm, with the caveat
+  the search pass recorded: they are force-field benchmark runs deposited by one author, not the published
+  OpenFE industry benchmark result.
+- **There is no route for Boltz-2.** Checked against the repository itself, not a search snippet:
+  `github.com/jwohlwend/boltz` at commit `b1ebfc46ecf57f5414e0d1a6f9027bbb122c53bc` (pushed 2026-05-29,
+  MIT). `README.md` carries "Coming soon: updated evaluation code for Boltz-2!" and says the affinity
+  predictions on the FEP+ benchmark, CASP16 and the MF-PCBA test set "will soon" be provided;
+  `docs/evaluation.md` repeats that under three headings, all marked coming soon. Only the Boltz-1
+  structure-prediction outputs are published, on Google Drive, and those are structures rather than
+  affinities. So the search pass's unverified snippet was accurate, and no per-series Boltz-2 value exists
+  anywhere to extract.
 
 Combining published per-series FEP+ numbers with Boltz-2's series averages in one comparison would mix two
-granularities and must not be done.
+granularities and must not be done. That constraint is written onto all three `direct` judgements so a
+later pass does not do it.
+
+The gap worth recording, and recorded in the use case's `evidence_gaps`, is therefore not that these
+protocols are weak evidence: it is that **no reviewed source in the store publishes per-series
+affinity-ranking values for any machine-learning method.**
 
 ## Limits carried onto the records in the sources' own words
 
