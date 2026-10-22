@@ -29,7 +29,7 @@ Seven artifacts, all retrieved on 2026-10-22. Hashes are of the exact bytes read
 
 ## Evidence concerns recorded on sources
 
-Four, all internal inconsistencies in a source rather than extraction errors:
+Five, all internal inconsistencies in a source rather than extraction errors:
 
 1. **AlphaProteo:** Table S2 prints the RFdiffusion IL-7RA rate as 16.8% and Table 1 as 17, but Section S4.1 states it as "16% versus 33%" and the TrkA value as "0% (versus 6%)" where the table prints 0.0 and 6.3. The text rounds down rather than to nearest.
 2. **BindCraft:** Supplementary Data 1's row filter reconciles with the Results prose for nine of twelve targets and fails for PD-L1, CrSAS-6 and CbAgo, so the per-target counts cannot be recomputed from it.
