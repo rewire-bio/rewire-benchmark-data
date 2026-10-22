@@ -9,7 +9,7 @@ Checked on the store at the head of PR #175 (main at release `2026-10-22-7edc128
 306 discrepancies: 1 high, 71 medium, 234 low.
 
 - All 36 gap outliers, and 17 ordering reversals, set ProteinGym files against each other: the AMFR assay-level table, the zero-shot DMS substitutions summary and the clinical indels summary, all at commit `144fe22`. They are one benchmark's own summaries at different levels, one assay against the average over 217 assays. Version 1 treated them as independent studies because they share no result record.
-- 17 reversals, all but one of them medium, compared the BERTax paper with its own SI appendix: two source records with one DOI.
+- 18 medium reversals compared the BERTax paper with its own SI appendix: two source records with one DOI.
 - The Alavi 2026 AlphaGenome case (`discrepancy-ead251c24ba272c1`) was low, one of 234 lows. It is cross-task and its identity links are unreviewed, so it lost two steps. Nothing separated it from reversals backed by a handful of comparisons.
 
 ## Changes
