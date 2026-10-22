@@ -422,6 +422,13 @@ class DiscrepancyTest(unittest.TestCase):
         [found] = self.reversals(self.derive(graph)[1])
         self.assertEqual((found["identity_basis"], found["severity"]), ("reviewed", "high"))
 
+    def test_a_configuration_of_an_alias_compares_as_the_aliased_model(self) -> None:
+        graph = disagreement(outlier_system=ID.configB)
+        record(graph, ID.modelBAlias, RB.Model, aliasOf=ID.modelB)
+        record(graph, ID.configB, RB.Configuration, configurationOf=ID.modelBAlias)
+        [found] = self.reversals(self.derive(graph)[1])
+        self.assertEqual(found["systems"], ["modelA", "modelB"])
+
     def test_a_review_claim_sets_the_state_and_method(self) -> None:
         graph = disagreement()
         [found] = self.reversals(self.derive(graph)[1])

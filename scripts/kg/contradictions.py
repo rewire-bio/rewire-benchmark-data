@@ -197,7 +197,8 @@ class Index:
         if not options:
             return None
         *_, target, reviewed = min(options)
-        return target, reviewed
+        # Configurations of two records for the same model compare as one system.
+        return self.g.value(target, RB.aliasOf) or target, reviewed
 
     def anchors(self, protocol: URIRef | None) -> set:
         """The protocol, the tasks it evaluates and everything it sits within."""
