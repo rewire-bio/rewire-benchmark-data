@@ -34,5 +34,6 @@ The other thresholds are unchanged.
 
 - A merged study is labelled by its first source, so the merged ProteinGym study still reads "ProteinGym AMFR assay-level Spearman comparison" in summaries, although it covers all three files. `outlier_sources` lists them all.
 - The issue's acceptance test asks for a gap-outlier finding on AlphaGenome's gap to SpliceAI. It does not fire. The AlphaGenome paper's splicing protocols are not linked to the splicing task or use case (issue #174, RC4), so no three studies share a protocol or task for that pair. The rule is not widened to cover it.
+- The strong-consensus step counts comparisons, not studies. The Alavi case's consensus of 25 comparisons comes from one study, the AlphaGenome paper, written by the model's developers. Its medium ranking is one developer paper against one independent preprint.
 - Most identity links in the store have no backing claim, so most findings are `unreviewed` and lose a step. Backing claims for the links involved in medium and high findings would sharpen the ranking.
 - Automated calibration by a Claude agent; no human review is claimed.
