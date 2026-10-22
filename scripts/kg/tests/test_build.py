@@ -23,6 +23,7 @@ RB = build.RB
 ID = rdflib.Namespace(build.ID)
 DCT = rdflib.Namespace("http://purl.org/dc/terms/")
 MLS = rdflib.Namespace("http://www.w3.org/ns/mls#")
+SCHEMA = rdflib.Namespace("https://schema.org/")
 V = lambda scheme, key: URIRef(f"https://benchmarks.rewire.it/vocab/{scheme}/{key}")
 LINK_ONLY = [RB.usesModel, RB.family, RB.variantOf, RB.configurationOf, RB.aliasOf, RB.measuredIn, RB.implementedBy, RB.usedIn, RB.usesData]
 
@@ -421,6 +422,32 @@ class DiscrepancyTest(unittest.TestCase):
         graph.add((ID.linkClaim, RB.claimField, Literal("links:configuration_of:modelB")))
         [found] = self.reversals(self.derive(graph)[1])
         self.assertEqual((found["identity_basis"], found["severity"]), ("reviewed", "high"))
+
+    def test_files_from_one_repository_are_one_study(self) -> None:
+        graph = disagreement()
+        for study, path in ((ID.study2, "blob/abc/summary.csv"), (ID.study3, "abc/assay_level.csv")):
+            host = "github.com" if study == ID.study2 else "raw.githubusercontent.com"
+            graph.add((study, SCHEMA.url, Literal(f"https://{host}/Lab/Bench/{path}")))
+        # Studies 2 and 3 are now one study, whose own comparisons are split 3 to 4, so nothing
+        # is a reversal of the others.
+        self.assertEqual(self.reversals(self.derive(graph)[1]), [])
+        self.assertEqual(len(self.reversals(self.derive(disagreement())[1])), 1)
+
+    def test_a_paper_and_its_supplement_are_one_study(self) -> None:
+        graph = disagreement()
+        for study in (ID.study2, ID.study3):
+            graph.add((study, RB.doi, Literal("10.1000/Example")))
+        self.assertEqual(self.reversals(self.derive(graph)[1]), [])
+
+    def test_reversing_a_near_unanimous_consensus_raises_severity(self) -> None:
+        graph = disagreement(outlier_system=ID.configB)
+        record(graph, ID.configB, RB.Configuration, configurationOf=ID.modelB)
+        self.assertEqual(self.reversals(self.derive(graph)[1])[0]["severity"], "medium")
+        for i in range(6, 20):
+            scored(graph, f"1-{i}-a", ID.modelA, ID.study1, "0.90", f"subset {i}")
+            scored(graph, f"1-{i}-b", ID.modelB, ID.study1, "0.80", f"subset {i}")
+        [found] = self.reversals(self.derive(graph)[1])
+        self.assertEqual((found["numbers"]["consensus_comparisons"], found["severity"]), (23, "high"))
 
     def test_a_configuration_of_an_alias_compares_as_the_aliased_model(self) -> None:
         graph = disagreement(outlier_system=ID.configB)

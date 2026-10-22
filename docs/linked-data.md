@@ -60,9 +60,9 @@ A discrepancy is a lead to investigate, not a finding that a result is wrong. It
 Thresholds are in `data/ontology/discrepancy-rules.json`; the manifest records its checksum. How it counts:
 
 - A comparison is two systems' best values in one group of one study's results: same protocol, dataset, metric, unit, qualifier, split and direction. Values within 1% are ties and do not count.
-- Copied results (origin `paper_compilation`, or an `original_evaluation` link) are left out. Sources that share a result are one study.
+- Copied results (origin `paper_compilation`, or an `original_evaluation` link) are left out. Sources that share a result are one study, and so are sources with the same DOI (a paper and its supplement) and files from one GitHub repository (one benchmark's leaderboard summaries).
 - A configuration is compared as the model it configures (`configuration_of`, then `family`). Links without a checked claim are used, and the discrepancy is marked `rb:identityBasis "unreviewed"`. A configuration with no link is not compared, so linking comparators to their models is what lets the rules see them.
-- Severity starts at high and drops a step each for comparisons on different tasks (`cross-task`), unreviewed identity links, and the gap rule.
+- Severity starts at high and drops a step each for comparisons on different tasks (`cross-task`), unreviewed identity links, and the gap rule. An ordering reversal against a consensus of at least 20 comparisons that agree 95% of the time or more goes up a step. The calibration is in [the 2026-10-22 review](reviews/2026-10-22-discrepancy-severity.md).
 
 The terms reuse existing ontologies where they fit. `rb:Discrepancy` is a SEPIO assertion (SEPIO_0000001). The results and sources it rests on are linked through subproperties of SEPIO `has_supporting_evidence` and `has_supporting_evidence_from_source`. `rb:assertionMethod` is ECO `automatic assertion` (ECO_0000203) until a reviewer decides, then `manual assertion` (ECO_0000218). The rule concepts match STATO `ranking` and `relative difference`. CiTO's `disagrees with` was not used, because it states a citing paper's intent, and the studies in a discrepancy rarely cite each other.
 

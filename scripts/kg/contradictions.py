@@ -17,7 +17,9 @@ Rules, with thresholds in data/ontology/discrepancy-rules.json:
 A comparison is two systems' best values in one group of results from one study: same protocol,
 dataset, metric, unit, qualifier, split and direction. Copied results (an rb:originalEvaluation
 link, or origin paper_compilation) are left out, so a compilation never counts as a second
-study. Sources that share a result are one study.
+study. Sources that share a result are one study, and so are sources with one DOI (a paper and
+its supplement) and files from one GitHub repository (the summaries of one benchmark's
+leaderboard are not independent of each other).
 
 Configurations are compared as the model or method they configure (rb:configurationOf, then
 rb:family). The vocabulary keeps those links out of inference because results roll up only
@@ -29,6 +31,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import statistics
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -44,6 +47,9 @@ RULES = ROOT / "data" / "ontology" / "discrepancy-rules.json"
 RB = rdflib.Namespace("https://benchmarks.rewire.it/vocab#")
 DCT = rdflib.Namespace("http://purl.org/dc/terms/")
 MLS_HAS_VALUE = URIRef("http://www.w3.org/ns/mls#hasValue")
+SCHEMA_URL = URIRef("https://schema.org/url")
+# A GitHub repository, whether a file is linked through github.com or raw.githubusercontent.com.
+REPOSITORY = re.compile(r"^https?://(?:github\.com|raw\.githubusercontent\.com)/([^/]+)/([^/#?]+)", re.I)
 ID = "https://benchmarks.rewire.it/id/"
 VOCAB = "https://benchmarks.rewire.it/vocab/"
 concept = lambda scheme, key: URIRef(f"{VOCAB}{scheme}/{key}")
@@ -163,7 +169,8 @@ class Index:
         return backed
 
     def _studies(self) -> dict[URIRef, URIRef]:
-        """Sources that appear together on a result are one study, named by its first source."""
+        """Sources that appear together on a result, share a DOI, or are files in one GitHub
+        repository are one study, named by its first source."""
         parent: dict[URIRef, URIRef] = {}
 
         def find(node: URIRef) -> URIRef:
@@ -173,13 +180,25 @@ class Index:
                 node = parent[node]
             return node
 
+        def union(a: URIRef, b: URIRef) -> None:
+            first, second = sorted((find(a), find(b)))
+            parent[second] = first
+
         for result in self.g.subjects(RDF.type, RB.Result):
             sources = sorted(self.g.objects(result, DCT.source))
             for other in sources[1:]:
-                first, second = sorted((find(sources[0]), find(other)))
-                parent[second] = first
+                union(sources[0], other)
             for source in sources:
                 find(source)
+        publications: dict[str, URIRef] = {}
+        for source in sorted(parent):
+            keys = []
+            if (doi := self.g.value(source, RB.doi)) is not None:
+                keys.append(f"doi:{str(doi).lower()}")
+            if match := REPOSITORY.match(str(self.g.value(source, SCHEMA_URL) or "")):
+                keys.append("github:" + "/".join(match.groups()).lower().removesuffix(".git"))
+            for key in keys:
+                union(publications.setdefault(key, source), source)
         return {source: find(source) for source in parent}
 
     def identity(self, system: URIRef) -> tuple[URIRef, bool] | None:
@@ -377,8 +396,14 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
         state = review["state"] if review else "open"
         where = scope(f, index)
         reviewed = all(c.reviewed for c in f.comparisons + f.consensus)
-        # A gap outlier is the weaker signal, so it is never more than medium.
-        severity = SEVERITY[max(0, 2 - (where == "cross-task") - (not reviewed) - (f.rule == "gap-outlier"))]
+        # A step down each for different tasks, unreviewed identity and the gap rule; a step up for
+        # a reversal of a near-unanimous consensus. A gap outlier is never more than medium.
+        strong = rules["strong_consensus"]
+        unanimous = (f.rule == "ordering-reversal"
+                     and f.numbers["consensus_comparisons"] >= strong["min_comparisons"]
+                     and f.numbers["consensus_agreements"] / f.numbers["consensus_comparisons"] >= strong["min_consistency"])
+        steps = 2 - (where == "cross-task") - (not reviewed) - (f.rule == "gap-outlier") + unanimous
+        severity = SEVERITY[min(max(0, steps), 1 if f.rule == "gap-outlier" else 2)]
         outlier_sources = sorted(s for s, study in index.study.items() if study == f.outlier)
         consensus_sources = sorted({s for s, study in index.study.items() if study in {c.study for c in f.consensus}})
         outlier_results = sorted({r for c in f.comparisons for r in c.results_a + c.results_b})
