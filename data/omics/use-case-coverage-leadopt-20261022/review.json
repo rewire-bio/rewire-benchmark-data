@@ -1,0 +1,130 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "pdf-text-parse",
+    "independent-cell-check",
+    "rendered-source-visual-check",
+    "ai-assisted-source-review"
+  ],
+  "reviewer": "Claude review agent, independent of the extraction agent; no human review claimed",
+  "reviewed_at": "2026-10-22T13:40:00Z",
+  "scope": "Independent review of the lead-optimisation affinity-ranking batch for use-case-lead-optimisation-affinity-ranking (issue #178): 369 records (256 results, 38 claims including 5 relevance judgements and the use-case summary, 28 evaluations, 17 configurations, 13 methods, 5 datasets, 5 protocols, 3 sources, 2 benchmarks, 1 model, 1 use case). All three sources were re-retrieved and match their pinned SHA-256, and the Boltz-2 supplement's pdftotext -layout text layer re-renders to the hash the batch records. All 256 results were re-read by a parser written for this review that does not import extract_leadopt.py, matching each result to its cell through its own source_locator; printed value, numeric value, locator, asserted text-layer line, metric concept, qualifier, direction, unit, uncertainty and the linked configuration, protocol and dataset all match, no cell in the four extracted tables lacks a result, and all 65 cells the sources print as N/A or '-' are recorded as missing with a reason and no numeric value. A drawn sample of 40 results, selected with random.Random(20261022).sample over the results sorted by record ID, was additionally re-read by eye from PNG renderings of PDF pages 29 and 30 at 160 dpi and from the Ross XML markup, and all 40 match. Descriptive corrections, none of which changes a value, a record ID, a source hash or a locator, are listed below and in docs/reviews/use-cases/leadopt-2026-10-22.md.",
+  "limitations": [
+    "Automated review by an AI agent. This is not human scientific review, and it is not reproduction of any result: every number was checked by transcription against the pinned source, never by rerunning a method.",
+    "The batch changed during the review: the extraction agent committed b9c7eed at 13:25:47 while the reviewer was reading f771836. The reviewed batch is b9c7eed and the folder was frozen for the rest of the pass.",
+    "extract/extract_leadopt.py reproduces the batch as extracted, not as reviewed. It was deliberately not edited so that the extractor's work and the review's corrections stay separable; the receipt and the provenance hashes are the record of the reviewed bytes.",
+    "coverage.json retains the extraction agent's reviewer_must_judge block, including positions this review overruled. It is kept as the extractor's record of what it asked.",
+    "The source bytes are pinned by hash but not archived in the batch, so a later review needs a fresh download. The direct bioRxiv PDF route returns HTTP 403; the Europe PMC supplementaryFiles ZIP is rebuilt per request, so only the PDF inside it is pinned.",
+    "No result in this batch carries a derivation, so no script rerun or source-data recomputation was in scope.",
+    "Figure-only material was not checked and cannot be: Boltz-2 Figures 6, 10 and 12 and Gilson Figures 8 and 9 print no values and are images in the pinned artifacts. The abstract-versus-body maximum Kendall tau conflict in Gilson could not be resolved for that reason.",
+    "Boltz-2 Tables 13, 15 and 16 and Ross Table 4 were outside the extraction's scope and were not checked cell by cell.",
+    "Relevance judgements are reviewed and listed in reviewed_evaluations here; their pins are recorded separately with npm run use-cases:repin."
+  ],
+  "errors": [],
+  "corrections": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "26 uc-leadopt-20261022-eval-t11/t12/t14-* evaluations",
+        "uc-leadopt-20261022-protocol-boltz2-fep-openfe-subset",
+        "uc-leadopt-20261022-protocol-boltz2-fep-4target",
+        "uc-leadopt-20261022-protocol-boltz2-casp16"
+      ],
+      "message": "comparison.aggregation and protocol aggregation led with 'Mean over targets, as the columns are labelled', which the source contradicts: appendix D.2.2 states that all regression metrics are calculated per assay and averaged across assays weighted by compound count, and the Figure 10 caption says the same. Corrected to lead with D.2.2's computation and keep 'target avg.' as the printed label, naming the unreconciled discrepancy."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "156 uc-leadopt-20261022-result-t11/t12/t14-* results in the MAE, Perc. within 1 and Perc. within 2 columns"
+      ],
+      "message": "metric_qualifier began 'target average as printed' for columns that do not print that label. Reading the rendered tables shows 'target avg.' is printed only over Pearson R, Kendall tau and PMAE (Pairwise MAE in Table 14); the centring sub-columns carry only 'non-cent.' and 'cent.'. Corrected to 'computed per assay and averaged across assays weighted by compound count'. The 88 results in the three labelled columns keep the original wording, which is accurate for them."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "uc-leadopt-20261022-judgement-boltz2-fep-openfe-subset",
+        "uc-leadopt-20261022-judgement-boltz2-fep-4target"
+      ],
+      "message": "The rationale called a printed value 'the mean of per-series Pearson values', which reads the source's per-assay unit as a per-series one without saying so. Corrected to name the per-assay unit and the compound weighting, and to mark reading an assay as a congeneric series as an inference from appendix D.2.1 and Ross et al. 2023 rather than a statement of the supplement. The direct relevance call stands; no value changed."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "uc-leadopt-20261022-method-experimental-reassay"
+      ],
+      "message": "The noise-floor method record is kept, but its own description did not say what it is. limitations is not an allowed attribute on a method in shared/omics/attribute-registry.ts, so the caveat was added to the description: it measures assay reproducibility, is not a prediction method, and cannot be ranked against predictors as though it were one."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "uc-leadopt-20261022-source-gilson2025"
+      ],
+      "message": "Added a limitation recording an inconsistency the batch had not: Figure 8A is captioned as the participants' N-weighted Kendall tau and Figure 9 as the baseline predictors', yet Section 3.3.1 cites Figure 9A for 'the maximum achieved value of 0.39', which is the participant maximum discussed under Figure 8A. Stated as what could not be settled, because both figures are image-only in the pinned XML."
+    },
+    {
+      "status": "confirmed",
+      "record_ids": [
+        "uc-leadopt-20261022-source-gilson2025"
+      ],
+      "message": "No evidence_concerns entry added for the abstract's maximum Kendall tau of 0.42 against the body's 0.39 and 'about 0.4'. Gilson contributes no result and no comparison row, the disagreement is already stated in the claim's own value, in the source's limitations and in the use-case summary, and cleanSource in shared/omics/use-cases.ts:231 with line 649 would withhold all five judgements and the summary because the use-case record cites this source, suppressing the verified Ross and Boltz-2 evidence."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "uc-leadopt-20261022-judgement-ross-fep-plus",
+        "uc-leadopt-20261022-judgement-ross-experimental-survey",
+        "uc-leadopt-20261022-judgement-boltz2-fep-openfe-subset",
+        "uc-leadopt-20261022-judgement-boltz2-fep-4target",
+        "uc-leadopt-20261022-judgement-boltz2-casp16",
+        "use-case-lead-optimisation-affinity-ranking"
+      ],
+      "message": "Two schema defects found by npm run test:fast after the batch was added, both of which would have withheld the whole use case. Every relevance judgement lacked the reason the mapping schema requires (shared/omics/use-cases.ts mappingSchema), so all five mappings failed to parse; a reason naming what the judgement adds was written for each. The use case's planned_work held plain strings where the schema requires {title, url, status, reason} objects; the five entries were converted, keeping each original sentence as the reason and pointing the url at issue #178. Recorded with npm run records -- change."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "all 369 records in the batch"
+      ],
+      "message": "The review block carried both date and reviewed_at. normalizeAttributes in shared/omics/attributes.ts drops date when reviewed_at already carries it, so the stored records were not in canonical form and tests/attributes.test.ts failed. date removed from all 369 review blocks, leaving reviewed_at. Recorded with npm run records -- change. No other field changed."
+    },
+    {
+      "status": "confirmed",
+      "record_ids": [
+        "uc-leadopt-20261022-eval-t11-openfe",
+        "uc-leadopt-20261022-eval-t11-fep-plus",
+        "uc-leadopt-20261022-eval-t12-openfe",
+        "uc-leadopt-20261022-eval-t12-fep-plus",
+        "uc-leadopt-20261022-eval-t12-abfe",
+        "6 uc-leadopt-20261022-eval-t14-lg* evaluations"
+      ],
+      "message": "Origins checked against appendix D.2.3 and confirmed: unreported for the OpenFE, FEP+ and ABFE arms, which the supplement introduces by citation without saying whether it re-ran them, and paper_compilation for the six CASP16 participant rows. The author_reported origin on the FMO, MM/PBSA and Chemgauss4 arms is also right, since D.2.3 describes running those in the first person with protocol detail."
+    },
+    {
+      "status": "confirmed",
+      "record_ids": [
+        "244 uc-leadopt-20261022-result-t11/t12/t14-* results"
+      ],
+      "message": "PMAE and MAE recorded in kilocalorie-per-mole on the basis of appendix D.2.2 ('All predictions are converted to kcal/mol prior to computing the metrics'), and the within-threshold columns recorded as proportion in fraction against the same section's definition ('the fraction of predictions with absolute error below 1 and 2 kcal/mol'). The printed values bear the scale out: every value in those columns lies between 0.11 and 1.00."
+    }
+  ],
+  "source_artifacts": {
+    "uc-leadopt-20261022-source-ross2023": "f371d2e373306588d11b695b8de21b253a90293d6a15884f635bcf927bdebb1d",
+    "uc-leadopt-20261022-source-gilson2025": "a1d7fdc52df61c4d75197f04be91b511b7d093d229d96a0815a11f95e350256b",
+    "uc-leadopt-20261022-source-boltz2-supplement": "be867a5d92add8b223d47d882a4213ad489741f3e4d5081a0901a54370342569"
+  },
+  "derived_artifacts": {
+    "supp-layout.txt (pdftotext -layout, poppler 26.08.0, of the pinned supplement PDF)": "6e19c85a90c118fd5fd045981a7ebfa5559d9b0a2b4c700b2da0c7393a417c17"
+  },
+  "files": {
+    "batch.jsonl": "936c09223cac5a3e9b9ed5d960f5b09639fda035d4e2ae0021c93631a98117f0",
+    "claims.csv": "c28139d4f0d8e1bb480fcd0c407822b37f7ae60fa5125bd8ce1ea22c0d19e974",
+    "coverage.json": "060550b57ff767a50aa869f4a32bdb7a7bdb70902edd4cd8bac241e33f41f823",
+    "extract/extract_leadopt.py": "f763d9dbb8d213621885c599bc8a587d5263352ade4ad775c9b8c8b7c1567b08",
+    "extract/lib.py": "10dda9dac7eea7fefb590f475c6e85aec976f579df12545c5c172be254354318",
+    "research.md": "538297b1da0337b4f7e3468d88c7c3d8323fa87a8bc9e95b2881ef95fda389c5",
+    "retrieval-log.md": "f0637421623108fd3c2a24a81d00b441254dc4190623888bcac66aff83593d81",
+    "sources.md": "f5799d8dbe99b00e986fb04be89a0a08d7ba5d70a5a7146bd0918d6b282d061c"
+  }
+}
