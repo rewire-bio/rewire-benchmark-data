@@ -43,15 +43,15 @@ Goal: find existing published results for models on benchmarks, and record the s
 
 1. Fix the search window (cutoff date) and the scope: a lane, a use case, a benchmark or a model family.
 2. Search primary literature (Europe PMC, PubMed, bioRxiv, arXiv), official benchmark repositories and leaderboards, and model cards. Follow citations from benchmark papers to the evaluations that use them.
-3. Log every search in `data/omics/search-ledger.jsonl`, one JSON object per line:
+3. Log each search pass in `data/omics/search-ledger.jsonl` as one JSON object: one line per pass, not per query. The query list is what shows coverage; repeating the window, lane and coverage statement on every query adds nothing.
 
    | Field | Meaning |
    | --- | --- |
    | `id` | `search-<purpose>-<lane>`, for example `search-discovery-genomics` |
    | `lane` | scope ID from step 1 |
-   | `query` | the exact query string or browse path |
+   | `queries` | every query run, including failed ones: `{query, channel, outcome}`, where `query` is the exact string or browse path and `outcome` is a few words (hits, the lead it gave, or the failure) |
    | `channels` | for example `web_search`, `official_repository_readme`, `official_project_site` |
-   | `searched_at` | when the search ran (UTC) |
+   | `searched_at` | when the pass ran (UTC) |
    | `cutoff_date` | end of the search window |
    | `status` | for example `initial_pass_complete`, `screened`, `documented` |
    | `included_record_ids` | record IDs this search led to |
@@ -64,18 +64,20 @@ Goal: find existing published results for models on benchmarks, and record the s
 4. Record each include or exclude decision about a paper in `data/omics/scope-audit.jsonl`: `paper_id`, `decision` (`included` or `excluded`), `reason`, `reviewed_at`, `reviewer`.
 5. New benchmarks, models, datasets and their sources found by discovery, but not yet carrying results, are added as records through step 6 with status `discovered`.
 
-Use-case passes also write a dated dossier in `docs/reviews/use-cases/` with the exact search log (query, mode, time, outcome). See `docs/reviews/use-cases/somatic-small-variant-oncogenicity-2026-10-08.md` for the expected level of detail.
+Older ledger entries hold one query each in a `query` field; leave them as they are.
+
+Use-case passes also write one search report, `notes.md` in the batch folder: the candidates worth extracting (primary URL, version, exact table, endpoint, whether values are per-target or pooled, leakage control, whether the authors built the method), what the store already holds, what could not be retrieved and why, and what the search did not cover. It replaces the separate search report, `research.md` and dossier search log; point to the ledger entry rather than copying the queries.
 
 ## 3. Capture the source
 
 Before extracting anything, pin the source.
 
-- Retrieve the primary artifact (PDF, XML, supplement, README at a commit, leaderboard file) and compute its SHA-256.
+- Retrieve the primary artifact (PDF, XML, supplement, README at a commit, leaderboard file) and compute its SHA-256. Hash the artifact the values come from, not intermediates such as a text layer or an unzipped copy; those can be regenerated from it.
 - Create one `source` record per artifact with `url`, `version` (commit, DOI version, preprint version), `retrieved_at` (UTC), `artifact_sha256`, and where known `doi`, `publication_status` (`peer_reviewed`, `preprint` or `official_project_source`) and `licence`.
 - Pin GitHub links to a commit, not a branch.
 - For a mutable website, record that it is mutable and that the hash describes one retrieval.
 - If the bytes are needed for later review and the licence allows it, archive a gzip copy under the batch folder (for example `artifacts/`) and record both the raw and archived hashes in the review receipt.
-- If the source cannot be retrieved, stop and record the gap. Do not extract from a summary.
+- If the source cannot be retrieved, stop and record the gap. Do not extract from a summary. Failed retrieval routes go in the ledger entry's `gaps` and in `notes.md`; a step-by-step retrieval narrative is not needed, because the source record already holds the URL, version, time and hash.
 
 Source records live in `data/entities/sources.jsonl` like any other record. Search it before adding one: 197 source URLs already have more than one record, and new duplicates make the graph harder to use.
 
@@ -136,13 +138,13 @@ Each extraction keeps its working evidence in a batch folder, `data/omics/<batch
 | File | Content |
 | --- | --- |
 | `batch.jsonl` | the new records, as reviewed; added to the store in step 6 |
-| `claims.csv` | one row per result or claim: `record_id, source_id, locator, printed_value, review_scope` |
+| `extract/` | the table specification or script that produced the results, where one was used |
+| `notes.md` | the search report and the decisions taken, with reasons (step 2) |
 | `coverage.json` | for use-case work: existing IDs reused, new IDs, and remaining gaps |
-| `sources.md` | each source with URL, version, retrieval time and hash |
-| `retrieval-log.md` | how each artifact was retrieved and read, step by step |
-| `research.md` | what was searched, what was decided and why |
 | `review.json` | the review receipt (step 5) |
 | `artifacts/` | archived source bytes, where the licence allows |
+
+Older batches also hold `claims.csv`, `sources.md`, `retrieval-log.md` and `research.md`. New batches do not write them: each repeats what `batch.jsonl`, the source records or `notes.md` already hold. If a script needs one, generate it from `batch.jsonl`.
 
 Unreviewed or disputed extractions that are not ready go in `data/omics/pending-review/<batch>/` with a README stating their status. The build never reads that folder.
 
@@ -150,7 +152,9 @@ Unreviewed or disputed extractions that are not ready go in `data/omics/pending-
 
 Review is a separate pass by a different worker from the one that extracted the data.
 
-1. Re-open the pinned source (check the hash matches) and check every result against it. For a large batch, an automated comparison of every value against the source (for example a deterministic parse with asserted row labels) plus a sampled manual check of values is enough; record the sample and the comparison in the receipt. Check printed value, numeric value, locator, metric, direction, denominator and the model/benchmark identity. For a result with a `derivation`, re-download each input, check its SHA-256 and row count, rerun the script and compare its output with `printed_value`; check the quoted aggregation against the source and that the script applies it.
+Start review only on a frozen extraction: a commit the extractor has finished and will not change. Make every ruling and edit in `batch.jsonl` first, then write the receipt, then add the batch (step 6) and run the checks once. Adding the batch before the rulings are done turns each later fix into a `records -- change` and repin cycle.
+
+1. Re-open the pinned source (check the hash matches) and check every result against it. For a large batch, an automated comparison of every value against the source (for example a deterministic parse with asserted row labels) plus a sampled manual check of values is enough; record the sample and the comparison in the receipt. Write the comparison as one script run over the whole batch, and save its mismatch report in the batch folder. Check printed value, numeric value, locator, metric, direction, denominator and the model/benchmark identity. For a result with a `derivation`, re-download each input, check its SHA-256 and row count, rerun the script and compare its output with `printed_value`; check the quoted aggregation against the source and that the script applies it.
 2. Check that `missing_metadata` and `null` fields are genuinely unstated in the source, and that nothing was inferred.
 3. Fill each result's `review` object. The usual shape is:
 
@@ -166,8 +170,8 @@ Review is a separate pass by a different worker from the one that extracted the 
    ```
 
    Human review is recorded only when a named person did it.
-4. Write the batch receipt `review.json`: schema version, method, reviewer, `reviewed_at`, scope, limitations, an empty `errors` list, the SHA-256 of `batch.jsonl` and every other file in the batch folder, and the SHA-256 of each source artifact checked. After step 6, each record's hash in `data/provenance/records/` locks the reviewed bytes. A script that rebuilds the batch (`build.py`) is optional: keep one when it is how the batch was made, but the receipt and the provenance hashes are the record of review.
-5. Summarise the pass in a dated review in `docs/reviews/` (or `docs/reviews/use-cases/` for a use-case pass): sources, a table of every value checked and its outcome, conflicts found, and remaining gaps.
+4. Write the batch receipt `review.json`: schema version, method, reviewer, `reviewed_at`, scope, limitations, an empty `errors` list, the SHA-256 of `batch.jsonl` and every other file in the batch folder, and the SHA-256 of each source artifact checked. Compute the hashes with a script as the last step, not by hand. After step 6, each record's hash in `data/provenance/records/` locks the reviewed bytes. A script that rebuilds the batch (`build.py`) is optional: keep one when it is how the batch was made, but the receipt and the provenance hashes are the record of review.
+5. Summarise the pass in a dated review in `docs/reviews/` (or `docs/reviews/use-cases/` for a use-case pass): sources and hashes, how values were compared and the sample drawn, a link to the mismatch report, each ruling on a question the extractor raised with the source text that decides it, conflicts found, and remaining gaps. Do not copy every value into a table; the mismatch report and the records already hold them.
 
 A review can conclude that nothing should change. Record that in the dated review; no data change or release is needed.
 
@@ -214,14 +218,22 @@ npm run build
 
 CI runs the full tests, the Python tests and the SHACL check of the whole store. Then open a PR containing the batch folder, the store and provenance changes, the ledger and scope entries, and the dated review. Plain JSONL keeps every changed record visible in the diff. Do not change `data/omics/release-config.json` or commit the build's `data/omics/releases/` and `website/` changes in an evidence PR; after merge, the release workflow cuts the release (see [release.md](release.md)). The PR title becomes the release note, so make it describe the change.
 
+## Running a pass with agents
+
+- Brief each phase with questions, not conclusions. Hand the extractor the ambiguities the search found ("decide whether these values are per series, from the source text") rather than the answer you expect. A brief that states the answer gets reversed by the extractor or the reviewer, and each reversal is another round.
+- Run one extraction worker per source where sources are independent, so each worker's context stays small. One reviewer then checks the merged batch.
+- Workers write long reports to files in the batch folder and return a short summary.
+- Batch exploratory reads into one script rather than many single commands, and trim command output (`| tail`) before reading it.
+- Coordinate from a fresh session per pass. A coordinator carrying an unrelated long conversation re-reads all of it each time a worker reports.
+
 ## Where each claim is tracked
 
 | What | Where | What proves it |
 | --- | --- | --- |
-| A search was done | `data/omics/search-ledger.jsonl`, use-case dossier | exact queries, channels, cutoff, gaps |
+| A search was done | `data/omics/search-ledger.jsonl`, batch `notes.md` | exact queries, channels, cutoff, gaps |
 | A paper was included or excluded | `data/omics/scope-audit.jsonl` | stated reason |
 | The source is what we say it is | `source` record | URL, version, `retrieved_at`, `artifact_sha256` |
-| A value was printed in the source | `result` record, batch `claims.csv` | `printed_value` and `source_locator` |
+| A value was printed in the source | `result` record | `printed_value` and `source_locator` |
 | A value was computed from the source's own data | `result.attributes.derivation`, the script in the repository | pinned input hashes, row filters and counts, the quoted aggregation, the script hash |
 | The value was checked | `result.attributes.review`, batch `review.json`, dated review | actor, method, time; file hashes |
 | The record has not changed since review | `data/provenance/records/` | per-record SHA-256 and `changed_by` history |
