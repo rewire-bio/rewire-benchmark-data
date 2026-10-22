@@ -234,6 +234,42 @@ receipt = {
                                                  "been withheld, because the use case and the "
                                                  "summary cite the audit source."),
     },
+    "vocabulary": {
+        "keys_added_by_this_review": [],
+        "note": ("The six metric concepts came from the extraction commit 161dc5b. This review added "
+                 "no key to data/vocab/metric.ttl and nothing to data/vocab/unit.ttl; it changed only "
+                 "the definition and scope note of cache-challenge-normalized-hit-score. No "
+                 "collision with the hit-rate, dissociation-constant, nanomolar or micromolar keys "
+                 "the issue #176 batch adds."),
+        "relation_to_hit_rate": ("cache-challenge-normalized-hit-score is not a duplicate of "
+                                 "hit-rate but is a hit rate in kind: confirmed actives over "
+                                 "compounds predicted active, restricted to one hit tier and scaled "
+                                 "by 1000. Once hit-rate exists in the file the right triple is "
+                                 "skos:broader :hit-rate, as normalized-enrichment-factor already "
+                                 "carries skos:broader :enrichment-factor. Left for the merge: "
+                                 ":hit-rate does not exist on this branch, and a dangling "
+                                 "skos:broader is caught by nothing. Checked, not assumed: the "
+                                 "triple was added temporarily and tests/linked-data.test.ts and "
+                                 "tests/attributes.test.ts both passed with the reference "
+                                 "dangling."),
+    },
+    "tests": {
+        "records_check": "83,909 records match their provenance",
+        "test_fast": "43 files, 386 tests, all passed",
+        "typecheck": "clean",
+        "omics_coverage_floor": ("Passed. It requires a release directory: currentReleaseDir() in "
+                                 "tests/helpers/records.ts keeps only directory entries under "
+                                 "data/omics/releases and throws if there are none, and the "
+                                 "committed releases/*.json files are metadata, not directories. "
+                                 "This worktree has exactly one fetched release directory, "
+                                 "data/omics/releases/2026-10-16-09564dea9640/, present before this "
+                                 "review began, so the file ran rather than failing its "
+                                 "precondition. It reads that release's catalogue.json.gz, the "
+                                 "published 2026-10-16 snapshot, which does not contain this batch, "
+                                 "so its pass is a floor check on the previous release and is "
+                                 "neither evidence for nor against these records."),
+        "release_fetch_needed": False,
+    },
     "errors": [],
     "review_document": "docs/reviews/use-cases/hitdisc-2026-10-22.md",
     "batch_sha256_before_review": "b54c088ab17ea6525ac4c8d16788f420f918c3c5bb7417cbb1d6260040c5b679",
