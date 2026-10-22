@@ -12,6 +12,8 @@
 #   subproperties of rb:testedSystem and not part of any property chain: a pipeline's or
 #   variant's result is never a result of the model it uses or belongs to.
 # - No rdfs:domain or rdfs:range on rb: properties, so no record gets a type from a link.
+# - Discrepancy terms appear only in the derived graph, which the reasoner never reads, and
+#   no record property is a subproperty of them.
 # Changes to this file are reviewed like record changes.
 
 @prefix rb: <https://benchmarks.rewire.it/vocab#> .
@@ -289,3 +291,70 @@ rb:claimField a owl:DatatypeProperty ; rdfs:label "claim field" ; rdfs:comment "
 rb:split a owl:DatatypeProperty ; rdfs:label "split" ; rdfs:comment "Data split a result was measured on." .
 rb:reviewDate a owl:DatatypeProperty ; rdfs:label "review date" ; rdfs:comment "The date a record was reviewed (xsd:date)." .
 rb:reviewedAt a owl:DatatypeProperty ; rdfs:label "reviewed at" ; rdfs:comment "The time a review completed (xsd:dateTime), recorded separately from the review date by some intakes." .
+
+# Discrepancies (derived graph) ----------------------------------------------------------------
+# Written by scripts/kg/contradictions.py after inference, into the derived graph. Each is a
+# SEPIO assertion that one source's results disagree with other sources' results for the same
+# systems, with the results and sources as its evidence. It is a lead to investigate, not a
+# ruling: no result's status or value changes because of it.
+
+rb:Discrepancy a owl:Class ; rdfs:subClassOf obo:SEPIO_0000001 ;
+    rdfs:label "discrepancy" ;
+    rdfs:comment "An assertion, made by a stated rule, that results from one source disagree with results from other independent sources for the same systems." .
+
+rb:OrderingReversal a owl:Class ; rdfs:subClassOf rb:Discrepancy ;
+    rdfs:label "ordering reversal" ;
+    rdfs:comment "Other sources consistently rank one system above another; the outlier source consistently ranks them the other way round (vocab/discrepancy-rule/ordering-reversal)." .
+
+rb:GapOutlier a owl:Class ; rdfs:subClassOf rb:Discrepancy ;
+    rdfs:label "gap outlier" ;
+    rdfs:comment "The outlier source's relative difference between a system and a reference system lies outside the range of the other sources (vocab/discrepancy-rule/gap-outlier)." .
+
+rb:discrepancyRule a owl:ObjectProperty ; rdfs:label "discrepancy rule" ;
+    rdfs:comment "The rule that found the discrepancy (vocab/discrepancy-rule)." .
+rb:assertionMethod a owl:ObjectProperty ; rdfs:label "assertion method" ;
+    rdfs:comment "ECO automatic assertion (ECO_0000203) while only the rule has made it; ECO manual assertion (ECO_0000218) once a reviewer has decided." .
+rb:reviewState a owl:ObjectProperty ; rdfs:label "review state" ;
+    rdfs:comment "Open, or the reviewer's decision (vocab/discrepancy-state)." .
+rb:reviewClaim a owl:ObjectProperty ; rdfs:label "review claim" ;
+    rdfs:comment "The discrepancy_review claim that records the reviewer's decision." .
+rb:comparedSystem a owl:ObjectProperty ; rdfs:label "compared system" ;
+    rdfs:comment "A model or method whose results the discrepancy compares." .
+rb:consensusHigher a owl:ObjectProperty ; rdfs:label "consensus higher" ;
+    rdfs:comment "For an ordering reversal, the system the other sources rank higher." .
+rb:referenceSystem a owl:ObjectProperty ; rdfs:label "reference system" ;
+    rdfs:comment "For a gap outlier, the system the gaps are measured against." .
+rb:outlierSource a owl:ObjectProperty ; rdfs:subPropertyOf obo:SEPIO_0000438 ;
+    rdfs:label "outlier source" ;
+    rdfs:comment "The source whose results disagree with the others." .
+rb:consensusSource a owl:ObjectProperty ; rdfs:subPropertyOf obo:SEPIO_0000438 ;
+    rdfs:label "consensus source" ;
+    rdfs:comment "An independent source whose results make up the consensus." .
+rb:outlierResult a owl:ObjectProperty ; rdfs:subPropertyOf obo:SEPIO_0000440 ;
+    rdfs:label "outlier result" ;
+    rdfs:comment "A result from the outlier source that the rule compared." .
+rb:consensusResult a owl:ObjectProperty ; rdfs:subPropertyOf obo:SEPIO_0000440 ;
+    rdfs:label "consensus result" ;
+    rdfs:comment "A result from a consensus source that the rule compared." .
+rb:discrepancyScope a owl:DatatypeProperty ; rdfs:label "discrepancy scope" ;
+    rdfs:comment "same-protocol, same-task or cross-task: how closely the compared results' assessments match." .
+rb:identityBasis a owl:DatatypeProperty ; rdfs:label "identity basis" ;
+    rdfs:comment "reviewed if every configuration-to-model link used is backed by a checked claim, otherwise unreviewed." .
+rb:severity a owl:DatatypeProperty ; rdfs:label "severity" ;
+    rdfs:comment "high, medium or low, from the scope and the identity basis." .
+rb:outlierComparisons a owl:DatatypeProperty ; rdfs:label "outlier comparisons" ;
+    rdfs:comment "Number of pairwise comparisons from the outlier source (xsd:integer)." .
+rb:outlierReversals a owl:DatatypeProperty ; rdfs:label "outlier reversals" ;
+    rdfs:comment "Of those, how many reverse the consensus order (xsd:integer)." .
+rb:consensusComparisons a owl:DatatypeProperty ; rdfs:label "consensus comparisons" ;
+    rdfs:comment "Number of pairwise comparisons from the consensus sources (xsd:integer)." .
+rb:consensusAgreements a owl:DatatypeProperty ; rdfs:label "consensus agreements" ;
+    rdfs:comment "Of those, how many follow the consensus order (xsd:integer)." .
+rb:outlierGap a owl:DatatypeProperty ; rdfs:label "outlier gap" ;
+    rdfs:comment "For a gap outlier, the outlier source's median relative difference (xsd:decimal)." .
+rb:consensusGapMin a owl:DatatypeProperty ; rdfs:label "consensus gap minimum" ;
+    rdfs:comment "For a gap outlier, the smallest median relative difference among the other sources (xsd:decimal)." .
+rb:consensusGapMax a owl:DatatypeProperty ; rdfs:label "consensus gap maximum" ;
+    rdfs:comment "For a gap outlier, the largest median relative difference among the other sources (xsd:decimal)." .
+rb:discrepancySummary a owl:DatatypeProperty ; rdfs:label "discrepancy summary" ;
+    rdfs:comment "One plain sentence stating the disagreement." .

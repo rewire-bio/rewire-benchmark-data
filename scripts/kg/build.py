@@ -5,6 +5,9 @@ vocabulary (data/ontology/rb.ttl) and the pinned external vocabularies
 (data/ontology/imports/), then writes into public/kg/:
 
   inferred.nq      new facts about records, sorted, in the inferred named graph
+  derived.nq       discrepancies between studies' results (scripts/kg/contradictions.py),
+                   in the derived named graph
+  discrepancies.json  the same discrepancies as JSON, for the website; not part of the bundle
   ontology/        the vocabulary files the server loads into the ontology graph
   manifest.json    bundle format 1.0 (see rewire-bio/rdf-kg-mcp docs/bundle-format.md)
 
@@ -43,6 +46,8 @@ from owlrl.Namespaces import ERRNS
 import rdflib.collection
 from rdflib import OWL, RDF, RDFS, BNode, URIRef
 
+import contradictions
+
 ROOT = Path(__file__).resolve().parents[2]
 ONTOLOGY_DIR = ROOT / "data" / "ontology"
 VOCABULARY = ONTOLOGY_DIR / "rb.ttl"
@@ -59,6 +64,7 @@ ID = "https://benchmarks.rewire.it/id/"
 GRAPHS = {
     "asserted": "https://benchmarks.rewire.it/graph/asserted",
     "inferred": "https://benchmarks.rewire.it/graph/inferred",
+    "derived": "https://benchmarks.rewire.it/graph/derived",
     "ontology": "https://benchmarks.rewire.it/graph/ontology",
 }
 MLS_HAS_VALUE = URIRef("http://www.w3.org/ns/mls#hasValue")
@@ -331,6 +337,24 @@ EXAMPLE_QUERIES = [
         "} LIMIT 20",
     },
     {
+        "title": "Open discrepancies between studies",
+        "description": "Results from one study that disagree with other studies' results for the same systems. "
+        "Each is a lead to investigate, found by a rule; the review state says whether anyone has decided it.",
+        "query": "SELECT ?discrepancy ?summary ?severity ?scope ?state WHERE {\n"
+        "  GRAPH <https://benchmarks.rewire.it/graph/derived> {\n"
+        "    ?discrepancy a rb:Discrepancy ; rb:discrepancySummary ?summary ; rb:severity ?severity ;\n"
+        "                 rb:discrepancyScope ?scope ; rb:reviewState ?state .\n"
+        "  }\n"
+        "} ORDER BY ?severity LIMIT 50",
+    },
+    {
+        "title": "Discrepancies involving a system",
+        "query": "SELECT ?discrepancy ?summary ?outlier WHERE {\n"
+        "  ?discrepancy rb:comparedSystem ?system ; rb:discrepancySummary ?summary ; rb:outlierSource ?outlier .\n"
+        '  ?system rdfs:label ?name FILTER(CONTAINS(?name, "AlphaGenome"))\n'
+        "}",
+    },
+    {
         "title": "Asserted facts only",
         "description": "Restrict to the asserted graph to see exactly what the records say.",
         "query": "SELECT ?p (COUNT(*) AS ?n) WHERE { GRAPH <https://benchmarks.rewire.it/graph/asserted> "
@@ -356,13 +380,24 @@ def build(kg_dir: Path) -> dict:
     conforms, report = validate(asserted, inferred)
     if not conforms:
         raise BuildError("SHACL validation failed:\n" + report[:5000])
+    rules = contradictions.load_rules()
+    derived, discrepancies = contradictions.derive(asserted, inferred, ontology, rules)
+    problems = contradictions.check_derived(derived)
+    if problems:
+        raise BuildError("The discrepancy rules wrote statements they may not:\n  " + "\n  ".join(problems))
+    print(f"Derived {len(discrepancies)} discrepancies", file=sys.stderr)
 
     (kg_dir / "inferred.nq").write_text(nquads(inferred, GRAPHS["inferred"]), "utf-8")
+    (kg_dir / "derived.nq").write_text(nquads(derived, GRAPHS["derived"]), "utf-8")
+    (kg_dir / "discrepancies.json").write_text(json.dumps(
+        {"release_id": exported["release_id"], "rules": rules, "discrepancies": discrepancies},
+        indent=2, ensure_ascii=False) + "\n", "utf-8")
     target = kg_dir / "ontology"
     if target.exists():
         shutil.rmtree(target)
     files: dict[str, dict] = {"asserted.nq": exported["files"]["asserted.nq"]}
     files["inferred.nq"] = {"sha256": sha256(kg_dir / "inferred.nq"), "quads": len(inferred)}
+    files["derived.nq"] = {"sha256": sha256(kg_dir / "derived.nq"), "quads": len(derived)}
     for path in ontology_files():
         relative = bundle_path(path)
         dest = kg_dir / relative
@@ -383,7 +418,7 @@ def build(kg_dir: Path) -> dict:
         "title": "Rewire benchmark data",
         "description": "Reviewed biological benchmark records (models, methods, configurations, benchmarks, "
         "tasks, protocols, datasets, evaluations, results, sources and claims) as RDF, with OWL 2 RL "
-        "inferences in a separate graph.",
+        "inferences in a separate graph, and discrepancies between studies' results in a derived graph.",
         "homepage": "https://github.com/rewire-bio/rewire-benchmark-data",
         "graphs": GRAPHS,
         "files": dict(sorted(files.items())),
@@ -403,6 +438,19 @@ def build(kg_dir: Path) -> dict:
             "Superclasses and superproperties from imported vocabularies are left to the ontology graph. "
             "Protected links are never inferred.",
             "by_predicate": dict(sorted(by_predicate.items())),
+        },
+        "derived": {
+            "generator": "scripts/kg/contradictions.py",
+            "generator_sha256": sha256(Path(contradictions.__file__)),
+            "rules": "data/ontology/discrepancy-rules.json",
+            "rules_sha256": sha256(contradictions.RULES),
+            "kept": "Discrepancies only: SEPIO assertions that one study's results disagree with other "
+            "studies' results for the same systems. No record's status, value or links are derived.",
+            "discrepancies": len(discrepancies),
+            "by_rule": dict(sorted(Counter(d["rule"] for d in discrepancies).items())),
+            "by_severity": dict(sorted(Counter(d["severity"] for d in discrepancies).items())),
+            "by_review_state": dict(sorted(Counter(d["review_state"] for d in discrepancies).items())),
+            "discrepancies_json_sha256": sha256(kg_dir / "discrepancies.json"),
         },
         "shacl": {
             "conforms": True,
