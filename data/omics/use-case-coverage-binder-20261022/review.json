@@ -1,0 +1,289 @@
+{
+ "schema_version": "1.0",
+ "batch": "data/omics/use-case-coverage-binder-20261022",
+ "issue": "https://github.com/rewire-bio/rewire-benchmark-data/issues/176",
+ "use_case": "use-case-de-novo-binder-design",
+ "reviewed_at": "2026-10-22T15:00:00Z",
+ "reviewer": "Claude review agent, independent of the extraction agent; no human review claimed",
+ "extraction_reviewed": {
+  "commit": "8a2a61c7c2bd9a02f7e723930d136d035fba25cc",
+  "note": "The task named commit 2ec78cd. That commit was amended to 8a2a61c while this review was reading the batch; the amendment dropped an obsolete note about issue #177 from build_coverage.py, coverage.json and research.md. Every hash in this receipt is of the bytes reviewed and added."
+ },
+ "method": "Independent re-check of an extracted batch against its pinned sources, following docs/collection.md section 5 and .agents/skills/review-evidence/SKILL.md. All seven source artifacts were re-retrieved and their SHA-256 recomputed. Text layers and parsers were written for this review; the extraction pass's own modules were not rerun, so the value check is independent of the code that produced the values.",
+ "review_methods": [
+  "source-hash-verification",
+  "independent-cell-check",
+  "ai-assisted-source-review",
+  "scope-review"
+ ],
+ "scope": {
+  "records_reviewed": 420,
+  "by_kind": {
+   "result": 159,
+   "evaluation": 148,
+   "claim": 39,
+   "dataset": 33,
+   "protocol": 14,
+   "configuration": 13,
+   "source": 7,
+   "pipeline": 4,
+   "method": 2,
+   "use_case": 1
+  },
+  "results_checked_against_source": 159,
+  "automated_comparison": "Every result's and claim's printed_value was checked for verbatim presence in its own source's bytes (198 of 198 found), and every quoted sentence in a source_locator was checked verbatim against the source with a parser written for this review. 71 locators carry a prose quotation of more than 40 characters; one failed and was corrected. The remaining misses were multi-line PDF table column headers that no contiguous-string test can match, and each was confirmed by reading the table.",
+  "manual_sample": "All 81 AlphaProteo results were read cell by cell against Table 1, Table S2 and Table S3 in an independently generated text layer, and all 36 Bennett results against Supplementary Methods Table 6. That is 117 of 159 results checked by eye against the table, not a sample. The 24 BindCraft and 18 Adaptyv results sit in prose and were checked by the verbatim quotation test plus a reading of each cited passage.",
+  "recomputation": "No result in the batch carries a derivation, so there was nothing to rerun. BindCraft Supplementary Data 1 was reparsed independently to test the extraction pass's refusal to compute per-target rates from it; the refusal holds (see findings).",
+  "not_checked": [
+   "Figures were not read, by this review or by the extraction pass: BindCraft Fig. 1b, Adaptyv Figures 3, 8, 9 and 10, AlphaProteo Figures 1D, 1E and S1 to S7, Bennett Extended Data Fig. 10. They remain recorded gaps.",
+   "The sources behind AlphaProteo's compilation rows (Procko, Gainza, Cao, Berger, Yang, Watson) were not retrieved by either pass, so the published RFdiffusion rates this review rules on could not be checked against their own primary source.",
+   "No value was reproduced experimentally and no model was run."
+  ]
+ },
+ "limitations": "This is automated AI review. It is not human scientific review, it is not reproduction, and it is not experimental replication. What it establishes is that each stored value matches the pinned source at the stated locator, that the nulls are genuinely unstated, and that the relevance judgements, exclusions and summary describe what the sources actually support. It cannot establish that the sources' own measurements are correct. Independent human scientific review of this use case remains outstanding.",
+ "errors": [],
+ "files": {
+  "batch.jsonl": "821d03c1e6a1350cd1d2fd5c2998d3cecbb18bd6ea0c8aaeba55bf1d89882e15",
+  "claims.csv": "78edd86657b3736c652e2ae5d81781080b76f78eb987d9ad7c8f2f00f961727e",
+  "coverage.json": "395ae98b0ad99e135d473f14ec59a520932c4696734e482a958fd9a1d2c79746",
+  "research.md": "7f20ae87b15200f2afeabd87f81cfa709e15a24c22601819a6e91caac52578a8",
+  "retrieval-log.md": "0f0e5b13992a32b487c942e29b2c2b6e3309ce9844ee178826c18b8f6cdf1b21",
+  "sources.md": "f1a7708858c740a95117e101c9ed50ad489b3e54e7f8a241b5b7ff96488099a6",
+  "extract/adaptyv.py": "9804fc481d09a36d30d391ba0c91a49261cbb6f63566042be7459708658f6e5c",
+  "extract/alphaproteo.py": "d865cfff4ac76ed13207fa2ad7888f1ebe15694445908f248943e1210345d495",
+  "extract/bennett.py": "66f24d67375ae0cf0d4be4d55502fb5294fb45c1febd9fae84b09436d109fe96",
+  "extract/bindcraft.py": "2d0b4d27f1625959801d0a5c380b67076aa626bada688e3f660475aaa1411308",
+  "extract/build_batch.py": "b716e1b31726a7e51d1c9510d82ce587df00e8a6b3ab6b2433ce112c36d0d58c",
+  "extract/build_coverage.py": "bdfe4f0d742d0d70e867516a96a4ebcd36f57163cf129a2ccae05915f6046390",
+  "extract/common.py": "5249c7d6176f9a69c24e8abd8230c41975a175899ecc8a5b8253495a4c202a44",
+  "extract/usecase.py": "ac754bff602a3054df89f23b8c791a825817edc7ecd64c579bad3743228af825",
+  "extract/validate_batch.ts": "28ebc4295d6fbc7044dd8ce0f045c4c4566b03f74db7c55af7c85f404204f696"
+ },
+ "source_artifacts": {
+  "uc-binder-20261022-source-alphaproteo": {
+   "url": "https://arxiv.org/pdf/2409.08022v1",
+   "pinned_sha256": "953b35644c0fa06ff090d7614c2e19525831f8fde50242e176d54474133c5a42",
+   "recomputed_sha256": "953b35644c0fa06ff090d7614c2e19525831f8fde50242e176d54474133c5a42",
+   "bytes": 12333400,
+   "match": true,
+   "note": "Over the 10 MB page-fetch limit, so re-downloaded with curl. Own text layer with pdftotext -layout, poppler 26.08.0, reproducing the extraction pass's 2,811 lines. The three 'Badly formatted number' syntax warnings recur and fall outside the table pages."
+  },
+  "uc-binder-20261022-source-bindcraft": {
+   "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC12507698/fullTextXML",
+   "pinned_sha256": "74bd2902d46460ec387ed6ee46b5bf8fe61b9ea09f2d7be4daa2046ac7e59d5d",
+   "recomputed_sha256": "74bd2902d46460ec387ed6ee46b5bf8fe61b9ea09f2d7be4daa2046ac7e59d5d",
+   "bytes": 226059,
+   "match": true
+  },
+  "uc-binder-20261022-source-bindcraft-si": {
+   "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC12507698/supplementaryFiles",
+   "pinned_sha256": "a402ac50b4860e24430494cb4344c569bf29ef3b8e769372adcd3298659267de",
+   "recomputed_sha256": "992d4ef4f3bbae260cfd9eac86e47008fbdd5c702eb5688b845ac6a689022f12",
+   "bytes": 13409376,
+   "match": false,
+   "note": "FINDING, not reconciled by changing the hash. Europe PMC builds this archive per request, so the container bytes differ between retrievals while the byte count is identical. The pinned hash therefore does not identify a reproducible artifact. The members that the batch actually reads are stable and were verified instead: 41586_2025_9429_MOESM1_ESM.pdf faf09b8749f1d1785ab46beb917ad4d44b122904e4678c3a748f8dd4a600b2cd and 41586_2025_9429_MOESM4_ESM.csv c87fd6cd0a54fe57d840938be07449394abbd55318494c8cc0292b6417c16b4f.",
+   "verified_members": {
+    "41586_2025_9429_MOESM1_ESM.pdf": "faf09b8749f1d1785ab46beb917ad4d44b122904e4678c3a748f8dd4a600b2cd",
+    "41586_2025_9429_MOESM4_ESM.csv": "c87fd6cd0a54fe57d840938be07449394abbd55318494c8cc0292b6417c16b4f"
+   }
+  },
+  "uc-binder-20261022-source-bennett": {
+   "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC12727541/fullTextXML",
+   "pinned_sha256": "d7876bc73c47f2cb3fcb0fa1ef917c89c9b67750a22f6402bf515f978cd1564a",
+   "recomputed_sha256": "d7876bc73c47f2cb3fcb0fa1ef917c89c9b67750a22f6402bf515f978cd1564a",
+   "bytes": 169840,
+   "match": true
+  },
+  "uc-binder-20261022-source-bennett-si": {
+   "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC12727541/supplementaryFiles",
+   "member": "41586_2025_9721_MOESM1_ESM.pdf",
+   "pinned_sha256": "f5d4fc4f3a65a2dc3ab696e165bb86bf150b2437cdc1a7046cfbecae8ccab05c",
+   "recomputed_sha256": "f5d4fc4f3a65a2dc3ab696e165bb86bf150b2437cdc1a7046cfbecae8ccab05c",
+   "bytes": 100209865,
+   "match": true,
+   "note": "The pinned hash is of the Supplementary Information member, and it matched exactly. The enclosing archive differs from the extraction pass's retrieval: it now returns 107,210,814 bytes (SHA-256 f6345af47eac731c53f1a0bcb6b03fd3844c5a11566cbbfd84e97e301fb52ca3) and extracts cleanly with unzip, where the extraction pass received a truncated 103,690,987-byte archive with no end-of-central-directory record that it had to stream with bsdtar. The member is byte-identical either way. Own text layer with pdftotext -layout, poppler 26.08.0, reproducing 3,582 lines."
+  },
+  "uc-binder-20261022-source-adaptyv-preprint": {
+   "url": "https://www.biorxiv.org/content/10.1101/2025.04.17.648362v1.full",
+   "pinned_sha256": "17039d69ecc37f45f6c402511b8f4497ce631003689fa95ad1ab221f8f787a4f",
+   "recomputed_sha256": "d93ce3b657e0060df95eee0a232fa1083f155527856dd8bc23c12e6cb05d2091",
+   "bytes": 493217,
+   "match": false,
+   "note": "FINDING, not reconciled by changing the hash. A mutable bioRxiv page: the source record and sources.md already state that the hash describes one retrieval. The byte count is identical to the pinned retrieval and every extracted value and quoted sentence was located verbatim in this retrieval, so the difference is in page furniture rather than in the evidence. Values confirmed in the new retrieval include 2.5% (5/201), 95% (378 of 400), 73% to 94%, 3% to 13%, 53 confirmed binders, 1.21 nM, 82 nM, 9.94 nM, and the hand-selection counts 101 of 201 and 300 of 400."
+  },
+  "uc-binder-20261022-source-adaptyv-repo-round2": {
+   "url": "https://raw.githubusercontent.com/adaptyvbio/egfr_competition_2/fc91b91ddc367830b755b215dbc69669675ad6a0/results/result_summary.csv",
+   "pinned_sha256": "b98dd231fa663e10e2768ad0cb7c8b33ba993bc809bd6168390ac87120ce3b7b",
+   "recomputed_sha256": "b98dd231fa663e10e2768ad0cb7c8b33ba993bc809bd6168390ac87120ce3b7b",
+   "bytes": 239254,
+   "match": true,
+   "note": "Pinned to a commit. Reparsed independently: 402 data rows and the 14 stated columns."
+  }
+ },
+ "external_mappings_verified": {
+  "http://purl.obolibrary.org/obo/STATO_0000607": {
+   "resolves": true,
+   "label": "proportion",
+   "definition": "a proportion is a ratio which corresponds to the fraction of the total presenting a particular feature",
+   "used_as": "skos:broadMatch on metric hit-rate; the same file already uses it as skos:exactMatch on proportion and skos:broadMatch on success-rate",
+   "verdict": "Correct and kept. research.md recorded this IRI as not dereferenced; it has now been dereferenced."
+  },
+  "http://qudt.org/vocab/unit/NanoMOL-PER-L": {
+   "resolves": true,
+   "label": "Nanomole per Litre",
+   "symbol": "nmol/L",
+   "conversion_multiplier": "1.0E-6 (mol/m3)",
+   "used_as": "skos:exactMatch on unit nanomolar",
+   "verdict": "Correct and kept. research.md recorded the QUDT IRIs as written from a naming pattern and not dereferenced; both have now been dereferenced."
+  },
+  "http://qudt.org/vocab/unit/MicroMOL-PER-L": {
+   "resolves": true,
+   "label": "Micromole per Litre",
+   "symbol": "μmol/L",
+   "conversion_multiplier": "1.0E-3 (mol/m3)",
+   "used_as": "skos:exactMatch on unit micromolar",
+   "verdict": "Correct and kept."
+  }
+ },
+ "corrections": [
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-kd-rfdiffusion-published-designs-il7ra-main",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-kd-rfdiffusion-published-designs-il7ra-main",
+   "field": "description",
+   "previous_value": "Developer-reported outcome transcribed from the pinned source; not reproduced.",
+   "reason": "The outcome is not developer-reported: it is another group's published designs measured by this source's authors."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-kd-rfdiffusion-published-designs-pdl1-main",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-kd-rfdiffusion-published-designs-pdl1-main",
+   "field": "description",
+   "previous_value": "Developer-reported outcome transcribed from the pinned source; not reproduced.",
+   "reason": "The outcome is not developer-reported: it is another group's published designs measured by this source's authors."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-kd-rfdiffusion-published-designs-trka-main",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-kd-rfdiffusion-published-designs-trka-main",
+   "field": "description",
+   "previous_value": "Developer-reported outcome transcribed from the pinned source; not reproduced.",
+   "reason": "The outcome is not developer-reported: it is another group's published designs measured by this source's authors."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-rate-rfdiffusion-published-designs-il7ra-main",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-rate-rfdiffusion-published-designs-il7ra-main",
+   "field": "description",
+   "previous_value": "Developer-reported outcome transcribed from the pinned source; not reproduced.",
+   "reason": "The outcome is not developer-reported: it is another group's published designs measured by this source's authors."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-rate-rfdiffusion-published-designs-pdl1-main",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-rate-rfdiffusion-published-designs-pdl1-main",
+   "field": "description",
+   "previous_value": "Developer-reported outcome transcribed from the pinned source; not reproduced.",
+   "reason": "The outcome is not developer-reported: it is another group's published designs measured by this source's authors."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-rate-rfdiffusion-published-designs-trka-main",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-s2-rate-rfdiffusion-published-designs-trka-main",
+   "field": "description",
+   "previous_value": "Developer-reported outcome transcribed from the pinned source; not reproduced.",
+   "reason": "The outcome is not developer-reported: it is another group's published designs measured by this source's authors."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-table1-rfdiffusion-kd-il7ra",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-table1-rfdiffusion-kd-pdl1",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-table1-rfdiffusion-kd-trka",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-table1-rfdiffusion-rate-il7ra",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-table1-rfdiffusion-rate-pdl1",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-eval-alphaproteo-table1-rfdiffusion-rate-trka",
+   "field": "attributes.origin",
+   "previous_value": "author_reported",
+   "reason": "The evaluated method is RFdiffusion and the reporting authors are AlphaProteo's, which is independent_paper by the definitions in data/vocab/origin.ttl."
+  },
+  {
+   "record_id": "uc-binder-20261022-result-adaptyv-r1-hitrate-section-4-2",
+   "field": "attributes.source_locator",
+   "previous_value": "Section 4.2: 'from 3% in the first round to 13% (Figure 8)'",
+   "reason": "The quoted sentence is in Section 4.1, not 4.2, and the source reads 'Another exciting improvement', not 'the most exciting improvement'. The values are unchanged."
+  },
+  {
+   "record_id": "uc-binder-20261022-result-adaptyv-r2-hitrate-section-4-2",
+   "field": "attributes.source_locator",
+   "previous_value": "Section 4.2: 'the most exciting improvement has been in the percentage of successful binders to EGFR, from 3% in the first round to 13% (Figure 8)'",
+   "reason": "The quoted sentence is in Section 4.1, not 4.2, and the source reads 'Another exciting improvement', not 'the most exciting improvement'. The values are unchanged."
+  },
+  {
+   "record_id": "uc-binder-20261022-source-adaptyv-preprint",
+   "field": "attributes.evidence_concerns[].message",
+   "previous_value": "The paper prints three different round-1 binder rates and two round-2 expression rates. Section 2.4 gives round 1 as '2.5% (5/201)' and round 2 as 'a 95% expression rate (378 of 400 tested)'; Section 4.1 gives expression as improving 'from 73% to 94%'; Section 4.2 gives the binder percentage as rising 'from 3% in the first round to 13%'. All the printed values are recorded with their locators and none is reconciled here.",
+   "reason": "The binder percentage sentence is in Section 4.1, not 4.2."
+  },
+  {
+   "record_id": "use-case-summary-binder-20261022",
+   "field": "attributes.value (opening sentence)",
+   "previous_value": "Nine sources carry measured outcomes ...",
+   "reason": "Nine is the search pass's candidate count, not this use case's evidence: four studies and seven source records were extracted, and five of the nine were never retrieved, so nothing can be said about what they show."
+  },
+  {
+   "record_id": "use-case-de-novo-binder-design",
+   "field": "attributes.evidence_checked.records",
+   "previous_value": "[\"data/omics/lit-search-20261022-uc-binder/report.md\", \"data/omics/use-case-coverage-binder-20261022/research.md\", \"data/omics/search-ledger.jsonl\"]",
+   "reason": "docs/use-cases.md requires evidence_checked to name the pass's dated review, which only exists after review."
+  }
+ ],
+ "review_document": "docs/reviews/use-cases/binder-2026-10-22.md"
+}
