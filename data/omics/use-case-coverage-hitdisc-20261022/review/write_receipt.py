@@ -1,0 +1,299 @@
+"""Write data/omics/use-case-coverage-hitdisc-20261022/review.json."""
+import hashlib
+import json
+import os
+
+BATCH_DIR = "/Users/timrichardson/Documents/projects/personal/blog/wt/uc-hitdisc/data/omics/use-case-coverage-hitdisc-20261022"
+
+
+def sha(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+files = {}
+for root, dirs, names in os.walk(BATCH_DIR):
+    dirs[:] = [d for d in dirs if d != "__pycache__"]
+    for n in sorted(names):
+        rel = os.path.relpath(os.path.join(root, n), BATCH_DIR)
+        if rel == "review.json":
+            continue
+        files[rel] = sha(os.path.join(root, n))
+
+receipt = {
+    "schema_version": "1.0",
+    "method": "automated_source_review",
+    "review_methods": [
+        "source-hash-verification",
+        "independent-cell-check",
+        "deterministic-table-parse",
+        "pdf-text-parse",
+        "scope-review",
+        "automated-source-review",
+    ],
+    "reviewer": ("Claude review agent, independent of the extraction agent; no human review "
+                 "claimed. Separate Claude (Opus 5) agent on branch claude/uc-hitdisc; the "
+                 "extraction agent that built this batch did not take part."),
+    "reviewed_at": "2026-10-22T13:00:00Z",
+    "scope": (
+        "Independent review of use-case-coverage-hitdisc-20261022 (extraction commit 161dc5b) for "
+        "rewire-benchmark-data #177: 1,375 records as reviewed (1,091 results, 127 evaluations, 81 "
+        "configurations, 29 claims, 12 protocols, 10 datasets, 9 sources, 6 benchmarks, 5 dataset "
+        "subsets, 4 methods, 1 use case), of which the extraction pass left 1,366 and this review "
+        "added 9 metadata-correction claims. All nine source artifacts were re-downloaded and their "
+        "SHA-256 matched. The extractor's extract/build_batch.py was not run: three parsers written "
+        "for this review (review/myparse_shen.py, review/myparse_xlsx.py, review/compare.py) "
+        "re-parsed Shen et al. Tables 1 to 5 from the pinned JATS XML and CACHE #3 sheet S8 from "
+        "xl/worksheets/sheet9.xml, and compared all 1,091 printed values, their locators' row labels "
+        "and column headers, and all 332 raw_xml_value strings, with 0 mismatches. "
+        "review/coverage_check.py proved the batch covers exactly the 1,082 printed table cells, "
+        "none duplicated, omitted or invented, plus the 9 body-text values. 48 values were then "
+        "checked by hand against the raw markup. The 12 relevance judgements, the draft summary, the "
+        "seven descriptive claims, the use-case record and the six metric concepts added to "
+        "data/vocab/metric.ttl were checked against their sources."
+    ),
+    "comparison": {
+        "scripts": [
+            "review/myparse_shen.py",
+            "review/myparse_xlsx.py",
+            "review/compare.py",
+            "review/coverage_check.py",
+        ],
+        "independent_of_extractor": True,
+        "extractor_script_rerun": False,
+        "results_checked": 1091,
+        "mismatches": 0,
+        "seeded_errors_caught": 6,
+        "seeded_error_ids": "review/seeded-error-ids.json",
+        "cell_coverage": {
+            "printed_table_cells": 1082,
+            "batch_table_cells": 1082,
+            "duplicated": 0,
+            "omitted": 0,
+            "not_in_source": 0,
+            "body_text_values": 9,
+        },
+        "by_source": {
+            "shen2025 Table 1": "240 cells, all match",
+            "shen2025 Table 2": "230 cells, all match",
+            "shen2025 Table 3": "160 cells, all match",
+            "shen2025 Table 4": "84 cells, all match",
+            "shen2025 Table 5": "36 cells, all match",
+            "kim2026 Results body text": "9 printed AUC strings, all present verbatim; the XML holds no table-wrap element",
+            "cache3-si002 sheet S8 own selection": "161 cells (columns D to J, 23 workflows), all match including raw_xml_value",
+            "cache3-si002 sheet S8 merged library": "171 cells (columns L to T, 19 workflows), all match including raw_xml_value",
+        },
+    },
+    "manual_sample": {
+        "seed": 177,
+        "values": 48,
+        "mismatches": 0,
+        "stratified_over": ["Shen Table 1", "Shen Table 2", "Shen Table 3", "Shen Table 4",
+                            "Shen Table 5", "CACHE sheet S8", "Kim et al. body text"],
+        "listing": "review/manual-sample.json",
+        "method": ("Each sampled value was read from the raw markup (the <tr> elements of the JATS "
+                   "tables, the <row> elements of xl/worksheets/sheet9.xml, the Results paragraphs "
+                   "of the Kim et al. XML) rather than through either parser."),
+    },
+    "corrections": [
+        ("hitdisc-20261022-source-litpcba-audit: evidence_concerns removed. The LIT-PCBA leakage "
+         "audit is the source reporting the problem, not a source with a problem, and because the "
+         "use case and its summary cite it the entry withheld all twelve judgements and the summary "
+         "(shared/omics/use-cases.ts cleanSource). Its finding is kept as the leakage-audit claim, "
+         "as limitations on the LIT-PCBA benchmark and the five-target protocol, and as a source "
+         "warning on each of the 84 LIT-PCBA results."),
+        ("hitdisc-20261022-source-litpcba-page: the totals-conflict evidence_concerns entry now "
+         "names both artifact hashes, not only the page's."),
+        ("84 Shen Table 4 results: source_warnings added for the LIT-PCBA leakage audit and for the "
+         "unresolved actives-to-inactives conflict between the official page (7761/382674) and Shen "
+         "et al. (10030/2798737), with both hashes and locators. EF and NEF both depend on that "
+         "ratio."),
+        ("57 CACHE #3 normalised merged-library results (sheet S8 columns R, S and T): "
+         "metric_qualifier corrected to the stored formula and source_warnings rewritten. The cells "
+         "are stored as 1000*N/L, 1000*O/L and R+S, so each is confirmed Tier 1 or Tier 2 hits per "
+         "1000 compounds predicted active. The previous qualifier said only 'normalised value' and "
+         "hid the per-1000 scaling."),
+        ("data/vocab/metric.ttl, :cache-challenge-normalized-hit-score: definition and scope note "
+         "corrected to the stored formula. The previous definition quoted the Figure 6c caption "
+         "('the aggregated score of all compounds predicted active divided by the number of "
+         "compounds predicted to be actives'), which the formulas contradict: the numerator is a "
+         "count of confirmed tier hits, not an aggregated score, and the caption omits the factor "
+         "of 1000."),
+        ("hitdisc-20261022-protocol-cache3-merged-library: metric_definition and two limitations "
+         "corrected; the article's internal inconsistency about Figure 6b added as a limitation."),
+        ("hitdisc-20261022-protocol-cache3-own-selection: the 'source prints no per-workflow hit "
+         "rate' limitation corrected (none for this arm, but columns R, S and T are rates for the "
+         "merged-library arm), and the zero-score limitation added."),
+        ("54 CACHE #3 own-selection score results: source_warnings added. For the twelve workflows "
+         "with no confirmed hit the workbook stores 0 for score of best hit, aggregated score and "
+         "top novelty score; a 0 there means there was no hit to score, not a hit scored at zero."),
+        ("hitdisc-20261022-use-case-summary and "
+         "hitdisc-20261022-use-case-mapping-cache3-merged-library: the WF1696 wording corrected to "
+         "the source's own. 'Significantly more hits than any other' is what the article says of "
+         "WF1715's own-selection aggregated score; of WF1696 it says it 'did better than any other "
+         "method in retrieving hits from the collection of all molecules selected in Round 1'."),
+        ("use-case-hit-discovery-virtual-screening: evidence_checked.records now names this pass's "
+         "dated review, as docs/use-cases.md requires."),
+        ("The five LIT-PCBA dataset_subset records: used_in retargeted from the five-target "
+         "dataset to hitdisc-20261022-protocol-shen-litpcba5. shared/omics/relations.ts defines "
+         "used_in as data to an assessment, so a dataset is not a legal target and the store "
+         "refused the batch; each subset's parent dataset was already in attributes.source_dataset. "
+         "The extraction pass's shape checker reported that every link resolves to a record of an "
+         "allowed kind, but did not check the relation's from-kind and to-kind pair."),
+        ("Nine metadata-correction-* claims keep the previous value of every descriptive field and "
+         "link changed above."),
+    ],
+    "upheld_without_change": [
+        ("All nine source artifact hashes matched on re-download; no mismatch to raise."),
+        ("All 1,091 printed values, numeric values, locators, metric concepts, qualifiers, "
+         "directions, unit concepts and the configuration and protocol each result hangs off are "
+         "correct as extracted. No value was changed and no superseding result was needed."),
+        ("Every null is genuinely unstated in the pinned source, and no missing value is recorded as "
+         "zero: the four CACHE workflows with blank merged-library cells carry no result at all, "
+         "and the blank carboxylic-acid-penalty column and the unheaded rank column are recorded as "
+         "claims rather than as results."),
+        ("The extraction pass's correction that CACHE #3's relevant figure is Figure 6 and not "
+         "Figure 5, that panel c carries the 'divided by the number of compounds predicted to be "
+         "actives' wording, and that columns D and E must not be divided, is upheld. Its further "
+         "claim that CACHE #3 publishes no per-workflow hit rate is overturned: see corrections."),
+        ("The extraction pass's correction that DUD-E uses 50 property-matched decoys per clustered "
+         "ligand is upheld from the abstract, and the search pass's estimate of about 1:60 appears "
+         "nowhere in the batch, the batch documents or the vocabulary."),
+        ("enrichment-factor, normalized-enrichment-factor, bedroc, cache-challenge-activity-score "
+         "and cache-challenge-novelty-score are faithful to the sources that print them; the NEF "
+         "definition is quoted verbatim from Shen Table 4 footnote a and reference 71 is Truchon "
+         "and Bayly 2007, so the BEDROC attribution is verifiable from the pinned artifact. "
+         "Declining to invent a STATO closeMatch is right."),
+        ("All twelve relevance judgements are upheld: the five prospective wet-lab arms as direct "
+         "and the seven retrospective or cost arms as proxy. Every protocol records its "
+         "actives-to-decoys ratio and decoy construction, and every judgement says raw enrichment "
+         "factors are not comparable across benchmarks."),
+        ("The seven reviewer_must_judge design decisions are upheld: keeping the Table 2 reprints "
+         "with their source warnings, one evaluation per configuration and protocol with per-target "
+         "cells distinguished by qualifier, CACHE workflows as parentless configurations, three "
+         "CACHE metric concepts at the current granularity, printed_value as the shortest "
+         "round-tripping decimal with raw_xml_value alongside, the CACHE own-selection arm as "
+         "direct with its self-selection confound first, and a judgement for the GPCRrecent "
+         "six-target protocol."),
+        ("The draft summary is descriptive, makes no recommendation, names the decoy construction "
+         "of each benchmark and carries the leakage audit on every LIT-PCBA figure. Every figure in "
+         "it was matched to a result record and to the pinned source; one sentence of attribution "
+         "was wrong and is corrected."),
+        ("The use_case record carries every field docs/use-cases.md requires."),
+    ],
+    "limitations": [
+        ("Automated review by a Claude agent. It is not human scientific review, not qualified "
+         "domain review, and not reproduction of any result."),
+        ("Transcription was checked against the pinned bytes. Nothing was recomputed from primary "
+         "data, no model was run and no experiment was repeated."),
+        ("evidence_concerns is declared for source records only in "
+         "shared/omics/attribute-registry.ts, and source_warnings for result records only, so the "
+         "LIT-PCBA leakage audit could not be recorded as an evidence_concerns entry on the "
+         "benchmark or dataset records as the review brief asked. It is recorded as the "
+         "leakage-audit claim, as limitations on the benchmark and the protocol, and as a source "
+         "warning on each of the 84 LIT-PCBA results."),
+        ("No figure was read: Shen et al. Figures 1 to 5 and S1 to S17 (including the "
+         "ligand-similarity leakage analysis), Table 6 and tables S1 and S2; Kim et al. Figures 3 "
+         "and 5 and their supplements; CACHE #3 Figures 2 to 9, sheets S1 to S7 of "
+         "ci5c02441_si_002.xlsx, the whole of ci5c02441_si_003.xlsx and the Supporting Information "
+         "PDF."),
+        ("The LIT-PCBA leakage audit was read as an abstract only; its own tables were not "
+         "retrieved, so no per-target memorisation-baseline value is recorded."),
+        ("Five closed-access primaries were not retrieved by either pass: DEKOIS 2.0 and 1.0, the "
+         "LIT-PCBA primary paper, TocoDecoy, and the CACHE #1 and #2 results papers. Eight of Shen "
+         "Table 1's 24 arms are quoted from references 34, 35, 36, 38 and 39, none of which was "
+         "resolved, so no evaluation of those tools is independent of that compilation."),
+        ("The LIT-PCBA actives-to-inactives conflict is left unresolved and marked. It withholds "
+         "the shen-litpcba5 judgement, by design."),
+        ("The CACHE #3 article contradicts itself about Figure 6b, calling it a hit rate in the "
+         "Results text and an aggregated score in the caption. Recorded, not resolved; no value in "
+         "this batch comes from Figure 6."),
+        ("The store now carries the auroc concept on a 0-to-1 scale from Shen et al. and a 0-to-100 "
+         "scale from Kim et al.; unit_detail distinguishes them."),
+        ("No baseline claim was added. Docking alone would satisfy the definition in "
+         "docs/use-cases.md, and a claim naming Glide SP, Gnina, GOLD CHEMPLP, LeDock, "
+         "Surflex-Dock and DOCK3.7 is recommended for a later pass, but a review should not author "
+         "a judgement it would then review."),
+    ],
+    "derivation_check": {
+        "method": ("Ran deriveUseCaseInputs over the loaded store after the batch was added, rather "
+                   "than reading the blocker conditions off the code."),
+        "active_judgements": 11,
+        "withheld_judgements": ["hitdisc-20261022-use-case-mapping-shen-litpcba5"],
+        "withheld_reason": ("a cited source is unchecked or has evidence concerns, and no evaluation "
+                            "on the protocol is eligible: the judgement cites "
+                            "hitdisc-20261022-source-litpcba-page and so does the five-target "
+                            "dataset, so each of its evaluations is ineligible under "
+                            "evaluationBlocker. The unresolved actives-to-inactives conflict is the "
+                            "cause and the withholding is intended."),
+        "summary_published": True,
+        "before_the_audit_concern_was_removed": ("all twelve judgements and the summary would have "
+                                                 "been withheld, because the use case and the "
+                                                 "summary cite the audit source."),
+    },
+    "vocabulary": {
+        "keys_added_by_this_review": [],
+        "note": ("The six metric concepts came from the extraction commit 161dc5b. This review added "
+                 "no key to data/vocab/metric.ttl and nothing to data/vocab/unit.ttl; it changed only "
+                 "the definition and scope note of cache-challenge-normalized-hit-score. No "
+                 "collision with the hit-rate, dissociation-constant, nanomolar or micromolar keys "
+                 "the issue #176 batch adds."),
+        "relation_to_hit_rate": ("cache-challenge-normalized-hit-score is not a duplicate of "
+                                 "hit-rate but is a hit rate in kind: confirmed actives over "
+                                 "compounds predicted active, restricted to one hit tier and scaled "
+                                 "by 1000. Once hit-rate exists in the file the right triple is "
+                                 "skos:broader :hit-rate, as normalized-enrichment-factor already "
+                                 "carries skos:broader :enrichment-factor. Left for the merge: "
+                                 ":hit-rate does not exist on this branch, and a dangling "
+                                 "skos:broader is caught by nothing. Checked, not assumed: the "
+                                 "triple was added temporarily and tests/linked-data.test.ts and "
+                                 "tests/attributes.test.ts both passed with the reference "
+                                 "dangling."),
+    },
+    "tests": {
+        "records_check": "83,909 records match their provenance",
+        "test_fast": "43 files, 386 tests, all passed",
+        "typecheck": "clean",
+        "omics_coverage_floor": ("Passed. It requires a release directory: currentReleaseDir() in "
+                                 "tests/helpers/records.ts keeps only directory entries under "
+                                 "data/omics/releases and throws if there are none, and the "
+                                 "committed releases/*.json files are metadata, not directories. "
+                                 "This worktree has exactly one fetched release directory, "
+                                 "data/omics/releases/2026-10-16-09564dea9640/, present before this "
+                                 "review began, so the file ran rather than failing its "
+                                 "precondition. It reads that release's catalogue.json.gz, the "
+                                 "published 2026-10-16 snapshot, which does not contain this batch, "
+                                 "so its pass is a floor check on the previous release and is "
+                                 "neither evidence for nor against these records."),
+        "release_fetch_needed": False,
+    },
+    "errors": [],
+    "review_document": "docs/reviews/use-cases/hitdisc-2026-10-22.md",
+    "batch_sha256_before_review": "b54c088ab17ea6525ac4c8d16788f420f918c3c5bb7417cbb1d6260040c5b679",
+    "files": files,
+    "source_artifacts": {
+        "hitdisc-20261022-source-shen2025": "11a4cee97057d9e72f9393024d22fdd169e3134f493367eee2f7869facf9ccf8",
+        "hitdisc-20261022-source-kim2026": "9be510b7b0cc152ff56a03c96877bf06b6a6bdeffdb4baecf8e999a6bf155aa6",
+        "hitdisc-20261022-source-cache3": "43b920ac9f67fac3560bcf7d24a79f76b9a0d0d962088dfe4081742ec7b9b071",
+        "hitdisc-20261022-source-cache3-si002": "5e655da5728da46c6a57882c5fef0643c057536d7897d16b9c98f6d55c12f5fe",
+        "hitdisc-20261022-source-litpcba-audit": "e766c8aa4f94287672b2b1bacab2480a41ec7c806ecbaf5e2d1bf8773781310f",
+        "hitdisc-20261022-source-litpcba-page": "a2203612b553236d7f01da5573389d439d2f7aa0436080412f27da882e086e5e",
+        "hitdisc-20261022-source-dude2012": "8f20c3adec704671ea668742622567a7c6aec9b38f6d804f977c175209fa500d",
+        "hitdisc-20261022-source-mfpcba2023": "628c94a973118410ec616f9342237c141a139ca4f56c34c698c6d9dcb6d82241",
+        "hitdisc-20261022-source-chen2019": "b845c78815bb0c4eabb3e05e65212b343269c91292fedf00fae9ac00c7840f09",
+    },
+    "source_artifacts_also_hashed_not_used": {
+        "ci5c02441_si_003.xlsx": "09ac4876e44e7a5fee60aae5d1cee10325a6c99c7be6c7a6c2ca5ac01f56554b",
+        "ci5c02441_si_001.pdf": "f9457b0e14204cba21f57ba6a2ecabb882c4366f74dd4781384e4b70a38ca701",
+    },
+}
+
+with open(os.path.join(BATCH_DIR, "review.json"), "w") as f:
+    json.dump(receipt, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+print("files hashed:", len(files))
+for k in sorted(files):
+    print("  ", k, files[k][:12])
