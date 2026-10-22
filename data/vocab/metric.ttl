@@ -182,6 +182,14 @@
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by CAMI II (AMBER)"@en .
 
+:annotation-overlap-ratio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Annotation overlap ratio"@en ;
+    skos:altLabel "Pathway overlap (PO)"@en ;
+    skos:definition "Mean pairwise Jaccard overlap of the functional annotations (for example GO terms) of the items in a selected set, divided by the same quantity for a random set of equal size from the same pool. 1 matches random selection; above 1 the selected items share more annotations than chance."@en ;
+    skos:scopeNote "Used by Edwards et al. 2026 (AssayLoop, arXiv:2609.11877v1, Methods 4.3 and Appendix H) with GO biological-process annotations, per batch against a random batch from the screen library. Not the overlap ratio of two score distributions (see one-minus-overlap-ratio)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
 :antisymmetry-bias a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Antisymmetry bias"@en ;
@@ -618,6 +626,15 @@
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by BEELINE"@en .
 
+:effective-number-of-groups a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Effective number of groups"@en ;
+    skos:altLabel "Hill number of order 1"@en ;
+    skos:altLabel "EP"@en ;
+    skos:definition "Exponential of the Shannon entropy of the distribution of a set of items over annotation groups (for example pathways): the number of equally represented groups with the same entropy. The grouping, rarefaction size and scope go in metric_qualifier; values at different scopes or sample sizes are not comparable."@en ;
+    skos:scopeNote "Used by Edwards et al. 2026 (AssayLoop, arXiv:2609.11877v1, Appendix H) over Reactome level-2 pathway groups at batch, screen and dataset scope, rarefied to 30, 200 and 6000 annotated genes."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
 :energy-efficiency a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Energy efficiency"@en ;
@@ -791,6 +808,15 @@
     skos:definition "Genie 3 novelty score of designable structures against the PDB, computed from each structure's closest FoldSeek hit, with a maximum of 1 when there is no hit."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by Genie 3"@en .
+
+:hit-enrichment-factor a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Hit enrichment factor"@en ;
+    skos:altLabel "EF"@en ;
+    skos:altLabel "Enrichment factor"@en ;
+    skos:definition "Number of hits among the items a selection policy acquired under a fixed budget, divided by the number expected if the same budget were spent by random selection (budget times the hit rate). 1 is random; how invalid, unscoreable or unfilled acquisitions enter the denominator goes in metric_qualifier."@en ;
+    skos:scopeNote "Used by Edwards et al. 2026 (AssayLoop, arXiv:2609.11877v1, Methods 4.3 eq. 3 and Appendix H) with an adjusted denominator: hallucinated genes and unfilled slots count, valid genes outside the screen library do not. The classical virtual-screening enrichment factor is the same concept with the plain budget in the denominator."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :hit-rate a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1107,6 +1133,14 @@
     skos:altLabel "new_candidates_per_1000"@en ;
     skos:definition "Number of new candidate variants raised per 1000 cases in one reanalysis cycle. A rate with a different denominator and period from candidates per case."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:normalized-cumulative-hits-auc a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Normalised area under the cumulative-hits curve"@en ;
+    skos:altLabel "nAUC"@en ;
+    skos:definition "Area under the curve of the fraction of hits found against the fraction of candidates queried, over a sequential acquisition run, divided by the area an oracle that acquires all hits first would reach over the same budget. 1 is the oracle."@en ;
+    skos:scopeNote "Defined by Edwards et al. 2026 (AssayLoop, arXiv:2609.11877v1, Appendix H eq. 20): x is the fraction of the screen library effectively queried, unfilled slots do not advance x, and the oracle curve is evaluated over the same effective budget."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :normalized-enrichment-factor a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -2081,6 +2115,14 @@
     skos:definition "Virtual Cell Challenge 2026 overall leaderboard score: an organiser-defined composite. Negative values are worse than the baseline."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by Virtual Cell Challenge 2026"@en .
+
+:vendi-ratio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Vendi ratio"@en ;
+    skos:altLabel "VR"@en ;
+    skos:definition "Vendi score of a set of items (the exponential of the entropy of the eigenvalues of their normalised similarity matrix, an effective number of distinct items) divided by the number of items. 1 means all items are mutually dissimilar under the kernel; the kernel and embedding go in metric_qualifier."@en ;
+    skos:scopeNote "Used by Edwards et al. 2026 (AssayLoop, arXiv:2609.11877v1, Methods 4.3 and Appendix H) with a cosine kernel on GenePT gene embeddings, averaged over batches."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
 
 :weighted-f1 a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
