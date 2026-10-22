@@ -54,7 +54,23 @@ CHECKED = {concept("status", "source_checked"), concept("status", "reproduced")}
 AUTOMATIC = URIRef("http://purl.obolibrary.org/obo/ECO_0000203")
 MANUAL = URIRef("http://purl.obolibrary.org/obo/ECO_0000218")
 REVIEW_FIELD = "discrepancy_review"
-STATES = {"open", "explained", "confirmed-error", "false-positive"}
+# Working states say what has been done; the terminal three settle the discrepancy.
+WORKING_STATES = ("investigating", "reported-upstream", "awaiting-correction")
+TERMINAL_STATES = ("explained", "confirmed-error", "false-positive")
+STATES = {"open", *WORKING_STATES, *TERMINAL_STATES}
+# The resolution a review claim carries: our analysis, what we raised upstream, what we await.
+# Property names are the ones the attribute registry generates for the same claim attributes.
+RESOLUTION = {
+    "investigation_url": (RB.investigationUrl, "iri"),
+    "report_url": (RB.reportUrl, "iri"),
+    "reported_on": (RB.reportedOn, "date"),
+    "upstream_response": (RB.upstreamResponse, "text"),
+    "awaiting": (RB.awaiting, "text"),
+    "expected_by": (RB.expectedBy, "date"),
+    "next_check": (RB.nextCheck, "date"),
+    "resolved_by": (RB.resolvedBy, "iris"),
+    "rationale": (RB.rationale, "text"),
+}
 SEVERITY = ["low", "medium", "high"]
 
 # Every predicate the derived graph may use. check_derived refuses anything else.
@@ -64,6 +80,7 @@ DERIVED_PREDICATES = {
     RB.outlierResult, RB.consensusResult, RB.discrepancyScope, RB.identityBasis, RB.severity,
     RB.outlierComparisons, RB.outlierReversals, RB.consensusComparisons, RB.consensusAgreements,
     RB.outlierGap, RB.consensusGapMin, RB.consensusGapMax, RB.discrepancySummary,
+    *(prop for prop, _ in RESOLUTION.values()),
 }
 
 
@@ -315,18 +332,26 @@ def scope(finding: Finding, index: Index) -> str:
     return "same-task" if near else "cross-task"
 
 
-def reviews(index: Index) -> dict[str, tuple[URIRef, str]]:
-    """discrepancy id -> (claim, state) from checked discrepancy_review claims. The last claim by
-    IRI wins when there are several, so a later decision can be added without editing the first."""
-    decided = {}
+def reviews(index: Index) -> dict[str, dict]:
+    """discrepancy id -> the current review: its claim, state and resolution fields, from checked
+    discrepancy_review claims. Later steps are new claims; the one with the highest revision wins,
+    so the earlier steps stay in the store as history."""
+    decided: dict[str, dict] = {}
     claims = (c for c, value in index.g.subject_objects(RB.claimField) if str(value) == REVIEW_FIELD)
     for claim in sorted(claims):
         if index.g.value(claim, RB.status) not in CHECKED:
             continue
         target = index.g.value(claim, RB.discrepancyId)
         state = str(index.g.value(claim, RB.value) or "")
-        if target is not None and state in STATES:
-            decided[str(target)] = (claim, state)
+        if target is None or state not in STATES:
+            continue
+        revision = int(index.g.value(claim, RB.revision) or 0)
+        current = decided.get(str(target))
+        if current and current["revision"] > revision:
+            continue
+        fields = {name: index.g.value(claim, prop) for name, (prop, _) in RESOLUTION.items()}
+        fields["resolved_by"] = sorted(index.g.objects(claim, RB.resolvedBy))
+        decided[str(target)] = {"claim": claim, "state": state, "revision": revision, "fields": fields}
     return decided
 
 
@@ -346,7 +371,9 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
     for f in findings:
         node = f.iri
         identifier = str(node).removeprefix(ID)
-        claim, state = decided.get(identifier, (None, "open"))
+        review = decided.get(identifier)
+        claim = review["claim"] if review else None
+        state = review["state"] if review else "open"
         where = scope(f, index)
         reviewed = all(c.reviewed for c in f.comparisons + f.consensus)
         # A gap outlier is the weaker signal, so it is never more than medium.
@@ -380,8 +407,20 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
             (node, RB.severity, Literal(severity)),
             (node, RB.discrepancySummary, Literal(summary)),
         }
+        resolution: dict = {}
         if claim is not None:
             triples.add((node, RB.reviewClaim, claim))
+            for name, (prop, kind) in RESOLUTION.items():
+                value = review["fields"].get(name)
+                if not value:
+                    continue
+                if kind == "iris":
+                    triples |= {(node, prop, target) for target in value}
+                    resolution[name] = [str(t).removeprefix(ID) for t in value]
+                    continue
+                triples.add((node, prop, value if kind == "iri" else
+                             Literal(str(value), datatype=XSD.date) if kind == "date" else Literal(str(value))))
+                resolution[name] = str(value)
         triples |= {(node, RB.outlierSource, s) for s in outlier_sources}
         triples |= {(node, RB.consensusSource, s) for s in consensus_sources}
         triples |= {(node, RB.outlierResult, r) for r in outlier_results}
@@ -402,6 +441,10 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
             "id": identifier, "rule": f.rule, "label": label, "summary": summary, "severity": severity,
             "scope": where, "identity_basis": "reviewed" if reviewed else "unreviewed", "review_state": state,
             "review_claim": str(claim).removeprefix(ID) if claim else None,
+            "settled": state in TERMINAL_STATES,
+            # next_check is a date, not a flag: a consumer decides what is overdue when it reads
+            # this, so the same release always produces the same bytes.
+            "resolution": resolution,
             "systems": local([f.a, f.b]),
             "consensus_higher": str(f.higher).removeprefix(ID) if f.higher else None,
             "reference_system": str(f.reference).removeprefix(ID) if f.reference else None,

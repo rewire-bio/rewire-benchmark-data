@@ -436,12 +436,65 @@ class DiscrepancyTest(unittest.TestCase):
         self.assertIn((node, RB.assertionMethod, contradictions.MANUAL), triples)
         self.assertIn((node, RB.reviewState, V("discrepancy-state", "confirmed-error")), triples)
 
+    def review(self, graph: rdflib.Graph, discrepancy: str, state: str, **fields: str) -> None:
+        """A discrepancy_review claim: where it stands, and the work behind it."""
+        claim = ID[f"review-{state}"]
+        record(graph, claim, RB.Claim, subject=ID["result-3-0-a"], source=ID.study3)
+        graph.add((claim, RB.claimField, Literal(contradictions.REVIEW_FIELD)))
+        graph.add((claim, RB.discrepancyId, Literal(discrepancy)))
+        graph.add((claim, RB.value, Literal(state)))
+        for name, value in fields.items():
+            prop, kind = contradictions.RESOLUTION[name]
+            graph.add((claim, prop, URIRef(value) if kind == "iri" else
+                       Literal(value, datatype=rdflib.XSD.date) if kind == "date" else Literal(value)))
+
+    def test_resolution_records_the_work_and_what_is_awaited(self) -> None:
+        graph = disagreement()
+        [found] = self.reversals(self.derive(graph)[1])
+        self.assertEqual((found["resolution"], found["settled"]), ({}, False))
+        self.review(graph, found["id"], "awaiting-correction",
+                    investigation_url="https://github.com/rewire-bio/rewire-benchmark-data/issues/174",
+                    report_url="https://github.com/example/repo/issues/2",
+                    reported_on="2026-10-19", upstream_response="The author confirmed the bug on 2026-10-20.",
+                    awaiting="A corrected preprint and rerun scripts.", expected_by="2026-11-07",
+                    next_check="2026-11-10")
+        triples, report = self.derive(graph)
+        [found] = self.reversals(report)
+        self.assertEqual(found["review_state"], "awaiting-correction")
+        self.assertFalse(found["settled"])
+        self.assertEqual(found["resolution"]["next_check"], "2026-11-10")
+        self.assertEqual(found["resolution"]["awaiting"], "A corrected preprint and rerun scripts.")
+        node = URIRef(build.ID + found["id"])
+        self.assertIn((node, RB.reportedOn, Literal("2026-10-19", datatype=rdflib.XSD.date)), triples)
+        self.assertIn((node, RB.reportUrl, URIRef("https://github.com/example/repo/issues/2")), triples)
+        self.assertIn((node, RB.assertionMethod, contradictions.MANUAL), triples)
+        self.assertEqual(contradictions.check_derived(triples), [])
+
+    def test_terminal_states_settle_a_discrepancy_and_working_states_do_not(self) -> None:
+        for state in contradictions.WORKING_STATES + contradictions.TERMINAL_STATES:
+            graph = disagreement()
+            [found] = self.reversals(self.derive(graph)[1])
+            self.review(graph, found["id"], state)
+            [found] = self.reversals(self.derive(graph)[1])
+            self.assertEqual(found["review_state"], state)
+            self.assertEqual(found["settled"], state in contradictions.TERMINAL_STATES, state)
+
+    def test_the_latest_revision_wins(self) -> None:
+        graph = disagreement()
+        [found] = self.reversals(self.derive(graph)[1])
+        self.review(graph, found["id"], "reported-upstream", reported_on="2026-10-19")
+        self.review(graph, found["id"], "confirmed-error")
+        graph.add((ID["review-confirmed-error"], RB.revision, Literal(2)))
+        [found] = self.reversals(self.derive(graph)[1])
+        self.assertEqual(found["review_state"], "confirmed-error")
+
     def test_check_refuses_statements_about_records(self) -> None:
         problems = contradictions.check_derived({(ID.result1, RB.status, V("status", "disputed"))})
         self.assertEqual(len(problems), 2)
 
     def test_derived_terms_are_declared_and_rules_are_concepts(self) -> None:
-        vocab = rdflib.Graph().parse(build.VOCABULARY, format="turtle")
+        vocab = (rdflib.Graph().parse(build.VOCABULARY, format="turtle")
+                 .parse(build.ATTRIBUTE_DECLARATIONS, format="turtle"))
         for predicate in contradictions.DERIVED_PREDICATES - {RDF.type, RDFS.label}:
             self.assertIn((predicate, RDFS.label, None), vocab, predicate)
         for scheme, keys in (("discrepancy-rule", {"ordering-reversal", "gap-outlier"}),

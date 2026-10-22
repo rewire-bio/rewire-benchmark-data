@@ -66,7 +66,23 @@ Thresholds are in `data/ontology/discrepancy-rules.json`; the manifest records i
 
 The terms reuse existing ontologies where they fit. `rb:Discrepancy` is a SEPIO assertion (SEPIO_0000001). The results and sources it rests on are linked through subproperties of SEPIO `has_supporting_evidence` and `has_supporting_evidence_from_source`. `rb:assertionMethod` is ECO `automatic assertion` (ECO_0000203) until a reviewer decides, then `manual assertion` (ECO_0000218). The rule concepts match STATO `ranking` and `relative difference`. CiTO's `disagrees with` was not used, because it states a citing paper's intent, and the studies in a discrepancy rarely cite each other.
 
-To record a decision, add a claim with `field` `discrepancy_review`, `discrepancy_id` set to the discrepancy's ID (`discrepancy-<hash>`, stable while its rule, systems and outlier study stay the same), `value` one of `explained`, `confirmed-error` or `false-positive` (`data/vocab/discrepancy-state.ttl`), a `rationale`, and subject links to the results involved. A confirmed error is then fixed through a normal reviewed record change.
+### Recording what was done about one
+
+A discrepancy is rarely settled in one step: you investigate, raise it with the authors, and wait for a correction. A claim with `field` `discrepancy_review` records both where it stands and the work behind it. Set `discrepancy_id` to the discrepancy's ID (`discrepancy-<hash>`, stable while its rule, systems and outlier study stay the same), `value` to a state from `data/vocab/discrepancy-state.ttl`, and subject links to the results involved.
+
+The states are `open` (rule output, nobody has looked), then `investigating`, `reported-upstream` and `awaiting-correction` while the work is going on, then `explained`, `confirmed-error` or `false-positive`, which settle it. Only the last three clear the flag on the site; the working states show the discrepancy as being handled, with its latest step.
+
+| Attribute | Holds |
+| --- | --- |
+| `investigation_url` | Our own analysis: an issue, a dated review |
+| `report_url`, `reported_on` | What we raised with the authors, and when |
+| `upstream_response` | What they said, and when |
+| `awaiting`, `expected_by` | What has to happen next, and when they said it would |
+| `next_check` | When to chase it |
+| `resolved_by` | The corrected source or superseding results, once they exist |
+| `rationale` | Why the state is what it is |
+
+A later step is a new claim with a higher `revision`; the highest revision is the current state, and the earlier claims stay as history. `next_check` is published as a date, not an overdue flag, so the same release always produces the same bytes; the website and the monthly refresh decide what counts as overdue when they read it. A confirmed error is then fixed through a normal reviewed record change, which is what marks the affected results `disputed`.
 
 ## Commands
 
