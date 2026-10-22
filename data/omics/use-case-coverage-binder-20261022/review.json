@@ -126,7 +126,8 @@
    "label": "proportion",
    "definition": "a proportion is a ratio which corresponds to the fraction of the total presenting a particular feature",
    "used_as": "skos:broadMatch on metric hit-rate; the same file already uses it as skos:exactMatch on proportion and skos:broadMatch on success-rate",
-   "verdict": "Correct and kept. research.md recorded this IRI as not dereferenced; it has now been dereferenced."
+   "verdict": "Correct and kept. research.md recorded this IRI as not dereferenced; it has now been dereferenced.",
+   "dereferenced_by": "This review, via the purl 303 redirect to EBI OLS4. The brief had recorded this IRI as not dereferenced by anyone; that is superseded."
   },
   "http://qudt.org/vocab/unit/NanoMOL-PER-L": {
    "resolves": true,
@@ -134,7 +135,8 @@
    "symbol": "nmol/L",
    "conversion_multiplier": "1.0E-6 (mol/m3)",
    "used_as": "skos:exactMatch on unit nanomolar",
-   "verdict": "Correct and kept. research.md recorded the QUDT IRIs as written from a naming pattern and not dereferenced; both have now been dereferenced."
+   "verdict": "Correct and kept. research.md recorded the QUDT IRIs as written from a naming pattern and not dereferenced; both have now been dereferenced.",
+   "dereferenced_by": "This review (Accept: text/turtle) and, independently, the team lead. Two agreeing retrievals."
   },
   "http://qudt.org/vocab/unit/MicroMOL-PER-L": {
    "resolves": true,
@@ -142,7 +144,8 @@
    "symbol": "μmol/L",
    "conversion_multiplier": "1.0E-3 (mol/m3)",
    "used_as": "skos:exactMatch on unit micromolar",
-   "verdict": "Correct and kept."
+   "verdict": "Correct and kept.",
+   "dereferenced_by": "This review (Accept: text/turtle) and, independently, the team lead. Two agreeing retrievals."
   }
  },
  "corrections": [
@@ -285,5 +288,34 @@
    "reason": "docs/use-cases.md requires evidence_checked to name the pass's dated review, which only exists after review."
   }
  ],
- "review_document": "docs/reviews/use-cases/binder-2026-10-22.md"
+ "review_document": "docs/reviews/use-cases/binder-2026-10-22.md",
+ "validation": {
+  "records_add": "420 records added; conform to the SHACL shapes.",
+  "records_check": "82,954 records match their provenance.",
+  "test_fast": "43 files, 386 tests, all passed. tests/omics-coverage-floor.test.ts passed here in 8.2s; the extraction pass saw it fail in its own worktree on a missing release asset under data/omics/releases/, which is populated in this worktree. No test was skipped.",
+  "typecheck": "clean"
+ },
+ "changes_after_add": {
+  "note": "Made after the batch was in the store, so each went through npm run records -- change with this review, and the affected claims were repinned. The BindCraft 46.3% finding was raised by the team lead and verified independently here.",
+  "records": [
+   {
+    "record_id": "uc-binder-20261022-result-bindcraft-mean-success-rate",
+    "field": "attributes.source_warnings",
+    "previous_value": "absent",
+    "reason": "The printed 46.3% cannot be reproduced from the paper's own per-target counts: the ten printed rates sum to 526.613439 pp, a displayed 46.3% over twelve targets needs [555.0, 556.2), so CrSAS-6 (of 9) and CbAgo (of 12) would have to contribute [28.3866, 29.5866), and no integer pair does. A pooled rate over 156 designs does not fit either. The source states only \"an average success rate of 46.3%\" and never defines the basis. The stored value is unchanged. Recorded at result level rather than as a sixth source-level evidence_concerns entry, for the reason given in the dated review."
+   },
+   {
+    "record_id": "uc-binder-20261022-protocol-bindcraft-mean-success-rate-12-targets",
+    "field": "attributes.limitations",
+    "previous_value": "without the aggregation-not-stated limitation",
+    "reason": "The protocol's aggregation and comparison_limit fields assert an unweighted mean over twelve targets; the source states only \"average\". The limitation records that those fields are the extraction pass's reading, not a stated basis. aggregation and metric_qualifier were left unchanged as pinned comparison fields."
+   },
+   {
+    "record_id": "use-case-de-novo-binder-design",
+    "field": "attributes.exclusions",
+    "previous_value": "8 entries",
+    "reason": "Adds that a headline average is not always recoverable from the per-target numbers the same paper prints, so averages are not comparable across papers. exclusions is pinned, so all 16 claims were repinned."
+   }
+  ]
+ }
 }
