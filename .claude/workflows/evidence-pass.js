@@ -97,8 +97,15 @@ Return the candidates worth extracting, best first. State open points as questio
   { label: 'search', phase: 'Search', schema: SEARCH, effort: 'medium' })
 
 if (!search || !search.candidates.length) {
-  log('Search found no candidate to extract; stopping after the search pass.')
-  return { search }
+  log('Search found no candidate to extract; recording the search pass only.')
+  const recorded = await agent(`${COMMON}
+
+The search found nothing to extract. You may run store commands under ${a.heavy}, and commit (house style, referencing #${a.issue}, no AI attribution). Do not push.
+Write a short dated review docs/reviews/use-cases/<slug>-<date>.md saying what was searched and that nothing new was found, pointing to the ledger entry and ${B}/notes.md.
+If ${a.useCase} already exists in the store, set its evidence_checked (docs/use-cases.md) and record it with npm run records -- change <dated review> ${B} <use-case id>.
+Run npm run records -- check and npm run test:fast, then commit the ledger, scope-audit, notes and review.`,
+    { label: 'record-search', phase: 'Finalise', effort: 'medium' })
+  return { search, recorded }
 }
 const sources = search.candidates.slice(0, MAX)
 if (search.candidates.length > MAX) {
@@ -143,7 +150,7 @@ const parts = ready.map((d) => d.part.part).join(', ')
 const judged = await agent(`${COMMON}
 
 Parts reviewed and ready: ${parts}.
-Create or update the use_case record ${a.useCase} with every field docs/use-cases.md requires, one relevance judgement claim per protocol in these parts that bears on the use case, and a descriptive summary claim (no recommendation; every number traceable to a result). Status needs_review. Write them to ${B}/parts/use-case.jsonl.
+Create the use_case record ${a.useCase} with every field docs/use-cases.md requires, or, if it already exists in the store, write the updated copy (keep its ID; add assessed_by links, gaps and evidence_checked), one relevance judgement claim per protocol in these parts that bears on the use case, and a descriptive summary claim (no recommendation; every number traceable to a result). Status needs_review. Write them to ${B}/parts/use-case.jsonl.
 Questions to put to the judgement reviewer go in your answer.`,
   { label: 'judge', phase: 'Judge', schema: PART, effort: 'high' })
 
@@ -162,7 +169,7 @@ Finalise the batch. You may run store commands under ${a.heavy}, and commit (hou
 1. Merge ${parts}${judgeReview && judgeReview.ready ? `, ${judged.part}` : ''} into ${B}/batch.jsonl, sorted by id. Move any part not listed to data/omics/pending-review/ with a README.
 2. Append ${B}/notes/*.md to ${B}/notes.md under one heading per source, then delete ${B}/notes/ and ${B}/parts/. Write the dated review docs/reviews/use-cases/<slug>-<date>.md from those rulings and the value-check counts below. No per-value table.
 3. Fill review.json's descriptive fields, then: python3 scripts/omics/batch.py hash ${B} ${ready.map((d) => `${d.part.source_id}=${d.part.artifact}`).join(' ')}
-4. npm run records -- add ${B}/batch.jsonl ${B}; npm run use-cases:repin -- <dated review> <reviewed claim ids>; npm run records -- check; npm run test:fast; npm run typecheck.
+4. Records whose ID already exists in the store (an existing use_case record, existing judgements) are not added: take them out of batch.jsonl, edit them in their canonical file and record them with npm run records -- change <dated review> ${B} <ids>. Then npm run records -- add ${B}/batch.jsonl ${B} for the new records; npm run use-cases:repin -- <dated review> <reviewed claim ids>; npm run records -- check; npm run test:fast; npm run typecheck.
 5. Commit. Report failures as they are; do not regenerate the receipt to clear one.
 Value checks: ${ready.map((d) => `${d.key}: ${d.review.value_check}`).join('; ')}`,
   { label: 'finalise', phase: 'Finalise', effort: 'medium' })
