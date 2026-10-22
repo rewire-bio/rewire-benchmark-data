@@ -39,7 +39,7 @@
       "record_ids": [
         "156 uc-leadopt-20261022-result-t11/t12/t14-* results in the MAE, Perc. within 1 and Perc. within 2 columns"
       ],
-      "message": "metric_qualifier began 'target average as printed' for columns that do not print that label. Reading the rendered tables shows 'target avg.' is printed only over Pearson R, Kendall tau and PMAE (Pairwise MAE in Table 14); the centring sub-columns carry only 'non-cent.' and 'cent.'. Corrected to 'computed per assay and averaged across assays weighted by compound count'. The 88 results in the three labelled columns keep the original wording, which is accurate for them."
+      "message": "metric_qualifier began 'target average as printed' for columns that do not print that label. Reading the rendered tables shows 'target avg.' is printed only over Pearson R, Kendall tau and PMAE (Pairwise MAE in Table 14); the centring sub-columns carry only 'non-cent.' and 'cent.'. Corrected to 'computed per assay and averaged across assays weighted by compound count'. The 78 results in the three labelled columns keep the original wording, which is accurate for them."
     },
     {
       "status": "corrected",
@@ -48,6 +48,43 @@
         "uc-leadopt-20261022-judgement-boltz2-fep-4target"
       ],
       "message": "The rationale called a printed value 'the mean of per-series Pearson values', which reads the source's per-assay unit as a per-series one without saying so. Corrected to name the per-assay unit and the compound weighting, and to mark reading an assay as a congeneric series as an inference from appendix D.2.1 and Ross et al. 2023 rather than a statement of the supplement. The direct relevance call stands; no value changed."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "6 uc-leadopt-20261022-result-t11-* and 6 uc-leadopt-20261022-result-t12-* OpenFE and FEP+ non-centred cells"
+      ],
+      "message": "The note on these N/A cells said the source does not say why. Appendix D.2.2 bears on it: the centred variants exist because they allow 'a fair comparison with methods that only predict relative affinities, such as relative FEP', and these are the non-centred cells of the two relative-FEP arms, which fix no absolute scale for a non-centred error to measure. The ABFE arm, which computes absolute free energies, prints values in both columns of the same table. Notes sharpened to cite D.2.2 and that contrast. The other 42 N/A notes keep the non-committal wording, which is right for the ipTM, FMO, MM/PBSA and Chemgauss4 arms."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "uc-leadopt-20261022-protocol-boltz2-casp16",
+        "uc-leadopt-20261022-protocol-boltz2-fep-4target",
+        "uc-leadopt-20261022-protocol-boltz2-fep-openfe-subset"
+      ],
+      "message": "Added the directional fact behind the label discrepancy: one target can carry several assays, so a compound-weighted mean across assays is not a mean over targets even where the two coincide. Ross et al. 2023 Table 1 surveys this collection's own proteins measured in more than one assay, so the point is source-supported rather than asserted."
+    },
+    {
+      "status": "confirmed",
+      "record_ids": [
+        "uc-leadopt-20261022-config-fep-plus"
+      ],
+      "message": "One FEP+ configuration shared between the Ross Table 3 evaluation and the Boltz-2 Tables 11 and 12 evaluations stands. Both sources describe the same commercial per-system-tuned workflow and D.2.3 attributes its FEP+ arm to Ross by citation; splitting it would assert the setups differ, which the sources establish no better than that they are the same. The configuration already records that the supplement does not state whether its values were re-run or taken from Ross, and the three evaluations sit on three protocols with author_reported for Ross against unreported for both Boltz-2 rows."
+    },
+    {
+      "status": "confirmed",
+      "record_ids": [
+        "all Boltz-2 records in the batch"
+      ],
+      "message": "The Boltz-2 records cite the supplement alone and not the existing expansion-p3-boltz2 main-text snapshot, which is right. docs/record-contract.md defines source_ids as the sources supporting the entity, every one of these records has a source_locator pointing into the supplement, and the snapshot holds the main text, figure captions and Table 1 only, so it supports none of that content."
+    },
+    {
+      "status": "confirmed",
+      "record_ids": [
+        "uc-leadopt-20261022-source-boltz2-supplement"
+      ],
+      "message": "Figure 10's bin labels at text-layer lines 1503-1504 read N=289, N=288, N=108 and N=182, summing to 867 against the 876 complexes appendix D.2.1 gives for the OpenFE subset. Checked and not recorded as an evidence concern: the caption never defines what N counts and says the binned unit is the assay, D.2.1 scopes the figure to 'the FEP+ benchmark' rather than to that subset, and no record in this batch takes a value from Figure 10. Asserting a shortfall would require establishing that the two numbers denominate the same thing, which the source does not support. Written up in the dated review so a later pass does not re-find it."
     },
     {
       "status": "corrected",
@@ -118,7 +155,7 @@
     "supp-layout.txt (pdftotext -layout, poppler 26.08.0, of the pinned supplement PDF)": "6e19c85a90c118fd5fd045981a7ebfa5559d9b0a2b4c700b2da0c7393a417c17"
   },
   "files": {
-    "batch.jsonl": "936c09223cac5a3e9b9ed5d960f5b09639fda035d4e2ae0021c93631a98117f0",
+    "batch.jsonl": "e6d77b2976252cc9869f16aa6e02d5f2ad0fbd21bf7105f5047156fce3302c3f",
     "claims.csv": "c28139d4f0d8e1bb480fcd0c407822b37f7ae60fa5125bd8ce1ea22c0d19e974",
     "coverage.json": "060550b57ff767a50aa869f4a32bdb7a7bdb70902edd4cd8bac241e33f41f823",
     "extract/extract_leadopt.py": "f763d9dbb8d213621885c599bc8a587d5263352ade4ad775c9b8c8b7c1567b08",
