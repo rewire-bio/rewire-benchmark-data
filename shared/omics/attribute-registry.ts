@@ -48,6 +48,8 @@ export const attributeRegistry = {
     comparison_group: "text",
     comparison_title: "text",
     constraints: "texts",
+    // A discrepancy_review claim names the derived discrepancy it decides (scripts/kg/contradictions.py).
+    discrepancy_id: "text",
     endpoint: "text",
     excluded_evaluations: "json",
     field: "text",

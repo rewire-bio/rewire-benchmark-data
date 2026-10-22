@@ -1,0 +1,28 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix : <https://benchmarks.rewire.it/vocab/discrepancy-state/> .
+
+<https://benchmarks.rewire.it/vocab/discrepancy-state/> a skos:ConceptScheme ;
+    skos:prefLabel "Discrepancy review states"@en ;
+    skos:definition "Where a discrepancy found by the knowledge-graph build stands. A reviewer's decision is recorded as a discrepancy_review claim; without one the discrepancy is open."@en ;
+    dcterms:source <https://github.com/rewire-bio/rewire-benchmark-data/blob/main/docs/linked-data.md> .
+
+:open a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/discrepancy-state/> ;
+    skos:prefLabel "Open"@en ;
+    skos:definition "Found by a rule and not yet reviewed. A lead to investigate, not a finding that any result is wrong."@en .
+
+:explained a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/discrepancy-state/> ;
+    skos:prefLabel "Explained"@en ;
+    skos:definition "Reviewed: the results differ for a stated scientific reason, such as a different endpoint, population or threshold, and all are kept as reported."@en .
+
+:confirmed-error a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/discrepancy-state/> ;
+    skos:prefLabel "Confirmed error"@en ;
+    skos:definition "Reviewed: an error in one source explains the disagreement. The affected results are changed through a reviewed record change."@en .
+
+:false-positive a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/discrepancy-state/> ;
+    skos:prefLabel "False positive"@en ;
+    skos:definition "Reviewed: the rule matched results that should not have been compared, for example because the systems or metrics are not the same."@en .

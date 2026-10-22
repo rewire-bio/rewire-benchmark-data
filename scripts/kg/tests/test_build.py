@@ -16,6 +16,7 @@ from rdflib.collection import Collection
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import build  # noqa: E402
+import contradictions  # noqa: E402
 import extract_terms  # noqa: E402
 
 RB = build.RB
@@ -309,6 +310,149 @@ class InferenceTest(unittest.TestCase):
         broken.add((ID.result1, RDF.type, RB.Evaluation))
         with self.assertRaises(build.BuildError):
             build.infer(broken, ontology)
+
+
+def scored(g: rdflib.Graph, name: str, system: URIRef, source: URIRef, value: str, qualifier: str,
+           protocol: URIRef = ID.protocol, metric: str = "auroc", direction: str = "higher") -> URIRef:
+    """One evaluation and its result: `system` scored `value` on `protocol` in `source`."""
+    evaluation, result = ID[f"eval-{name}"], ID[f"result-{name}"]
+    record(g, evaluation, RB.Evaluation, testedSystem=system, testedOn=protocol, dataset=ID.data)
+    record(g, result, RB.Result, evaluation=evaluation, source=source)
+    g.add((result, RB.metric, V("metric", metric)))
+    g.add((result, RB.unit, V("unit", "unitless")))
+    g.add((result, RB.metricDirection, V("direction", direction)))
+    g.add((result, RB.metricQualifier, Literal(qualifier)))
+    g.add((result, RB.printedValue, Literal(value)))
+    g.add((result, MLS.hasValue, Literal(value, datatype=rdflib.XSD.decimal)))
+    return result
+
+
+def disagreement(outlier_system: URIRef = ID.modelB, outlier_values: tuple[str, str] = ("0.70", "0.80")) -> rdflib.Graph:
+    """Studies 1 and 2 put model A above model B on 6 and 3 subsets; study 3 puts B above A on 4.
+    `outlier_system` is what study 3 tested for B (a configuration in some tests)."""
+    g = rdflib.Graph()
+    for node in (ID.study1, ID.study2, ID.study3):
+        record(g, node, RB.Source)
+    record(g, ID.modelA, RB.Model)
+    record(g, ID.modelB, RB.Model)
+    record(g, ID.protocol, RB.Protocol)
+    record(g, ID.data, RB.Dataset)
+    for study, count in ((ID.study1, 6), (ID.study2, 3)):
+        for i in range(count):
+            name = f"{str(study)[-1]}-{i}"
+            scored(g, f"{name}-a", ID.modelA, study, "0.90", f"subset {i}")
+            scored(g, f"{name}-b", ID.modelB, study, "0.80", f"subset {i}")
+    for i in range(4):
+        scored(g, f"3-{i}-a", ID.modelA, ID.study3, outlier_values[0], f"subset {i}")
+        scored(g, f"3-{i}-b", outlier_system, ID.study3, outlier_values[1], f"subset {i}")
+    return g
+
+
+class DiscrepancyTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.ontology = build.load_ontology()
+        cls.rules = contradictions.load_rules()
+
+    def derive(self, graph: rdflib.Graph) -> tuple[set, list[dict]]:
+        return contradictions.derive(graph, build.infer(graph, self.ontology), self.ontology, self.rules)
+
+    def reversals(self, report: list[dict]) -> list[dict]:
+        return [d for d in report if d["rule"] == "ordering-reversal"]
+
+    def test_flags_the_study_that_reverses_the_consensus(self) -> None:
+        triples, report = self.derive(disagreement())
+        [found] = self.reversals(report)
+        self.assertEqual(found["outlier_sources"], ["study3"])
+        self.assertEqual(found["consensus_sources"], ["study1", "study2"])
+        self.assertEqual(found["consensus_higher"], "modelA")
+        self.assertEqual(found["numbers"], {"outlier_comparisons": 4, "outlier_reversals": 4,
+                                            "consensus_comparisons": 9, "consensus_agreements": 9})
+        self.assertEqual((found["scope"], found["identity_basis"], found["severity"], found["review_state"]),
+                         ("same-protocol", "reviewed", "high", "open"))
+        self.assertEqual(len(found["outlier_results"]), 8)
+        node = URIRef(build.ID + found["id"])
+        self.assertIn((node, RDF.type, RB.OrderingReversal), triples)
+        self.assertIn((node, RB.assertionMethod, contradictions.AUTOMATIC), triples)
+        self.assertIn((node, RB.outlierSource, ID.study3), triples)
+        self.assertEqual(contradictions.check_derived(triples), [])
+
+    def test_does_not_flag_the_consensus_studies(self) -> None:
+        _, report = self.derive(disagreement())
+        self.assertEqual({tuple(d["outlier_sources"]) for d in report}, {("study3",)})
+
+    def test_gap_outlier_needs_three_studies_on_one_protocol(self) -> None:
+        _, report = self.derive(disagreement())
+        [gap] = [d for d in report if d["rule"] == "gap-outlier"]
+        self.assertEqual(gap["outlier_sources"], ["study3"])
+        self.assertEqual(gap["reference_system"], "modelB")
+        self.assertLess(gap["numbers"]["outlier_gap"], gap["numbers"]["consensus_gap_min"])
+
+    def test_identifiers_and_output_are_deterministic(self) -> None:
+        first, report = self.derive(disagreement())
+        second, again = self.derive(disagreement())
+        self.assertEqual(build.nquads(first, build.GRAPHS["derived"]), build.nquads(second, build.GRAPHS["derived"]))
+        self.assertEqual(report, again)
+
+    def test_ties_are_not_reversals(self) -> None:
+        _, report = self.derive(disagreement(outlier_values=("0.800", "0.805")))
+        self.assertEqual(self.reversals(report), [])
+
+    def test_copied_results_do_not_count(self) -> None:
+        graph = disagreement()
+        for evaluation in [e for e in graph.subjects(RDF.type, RB.Evaluation) if str(e).startswith(str(ID["eval-3-"]))]:
+            graph.add((evaluation, RB.origin, V("origin", "paper_compilation")))
+        self.assertEqual(self.derive(graph)[1], [])
+
+    def test_results_without_a_direction_do_not_count(self) -> None:
+        graph = disagreement()
+        for result in graph.subjects(RB.evaluation, None):
+            if str(result).startswith(str(ID["result-3-"])):
+                graph.set((result, RB.metricDirection, V("direction", "unknown")))
+                graph.set((result, RB.metric, V("metric", "not-a-metric")))
+        self.assertEqual(self.reversals(self.derive(graph)[1]), [])
+
+    def test_unreviewed_configuration_links_are_used_and_marked(self) -> None:
+        graph = disagreement(outlier_system=ID.configB)
+        record(graph, ID.configB, RB.Configuration, configurationOf=ID.modelB)
+        [found] = self.reversals(self.derive(graph)[1])
+        self.assertEqual((found["identity_basis"], found["severity"]), ("unreviewed", "medium"))
+        record(graph, ID.linkClaim, RB.Claim, subject=ID.configB, source=ID.study3)
+        graph.add((ID.linkClaim, RB.claimField, Literal("links:configuration_of:modelB")))
+        [found] = self.reversals(self.derive(graph)[1])
+        self.assertEqual((found["identity_basis"], found["severity"]), ("reviewed", "high"))
+
+    def test_a_review_claim_sets_the_state_and_method(self) -> None:
+        graph = disagreement()
+        [found] = self.reversals(self.derive(graph)[1])
+        record(graph, ID.review, RB.Claim, subject=ID["result-3-0-a"], source=ID.study3)
+        graph.add((ID.review, RB.claimField, Literal(contradictions.REVIEW_FIELD)))
+        graph.add((ID.review, RB.discrepancyId, Literal(found["id"])))
+        graph.add((ID.review, RB.value, Literal("confirmed-error")))
+        triples, report = self.derive(graph)
+        [found] = self.reversals(report)
+        node = URIRef(build.ID + found["id"])
+        self.assertEqual((found["review_state"], found["review_claim"]), ("confirmed-error", "review"))
+        self.assertIn((node, RB.assertionMethod, contradictions.MANUAL), triples)
+        self.assertIn((node, RB.reviewState, V("discrepancy-state", "confirmed-error")), triples)
+
+    def test_check_refuses_statements_about_records(self) -> None:
+        problems = contradictions.check_derived({(ID.result1, RB.status, V("status", "disputed"))})
+        self.assertEqual(len(problems), 2)
+
+    def test_derived_terms_are_declared_and_rules_are_concepts(self) -> None:
+        vocab = rdflib.Graph().parse(build.VOCABULARY, format="turtle")
+        for predicate in contradictions.DERIVED_PREDICATES - {RDF.type, RDFS.label}:
+            self.assertIn((predicate, RDFS.label, None), vocab, predicate)
+        for scheme, keys in (("discrepancy-rule", {"ordering-reversal", "gap-outlier"}),
+                             ("discrepancy-state", contradictions.STATES)):
+            for key in keys:
+                self.assertIn((V(scheme, key), RDF.type, URIRef("http://www.w3.org/2004/02/skos/core#Concept")),
+                              self.ontology, key)
+
+    def test_no_record_property_specialises_a_derived_term(self) -> None:
+        for predicate in contradictions.DERIVED_PREDICATES - {RDF.type, RDFS.label}:
+            self.assertEqual(list(self.ontology.subjects(RDFS.subPropertyOf, predicate)), [], predicate)
 
 
 class ExtractTermsTest(unittest.TestCase):
