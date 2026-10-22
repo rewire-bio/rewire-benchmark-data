@@ -1,6 +1,7 @@
 /** Publish the knowledge-graph bundle as an immutable GitHub Release asset.
  * Tag `kg/<release_id>` holds `kg-<release_id>.tar.gz` (byte-reproducible, packed by
- * rdf-kg-mcp) and its manifest. An existing asset must be byte-identical; it is never replaced.
+ * rdf-kg-mcp), its manifest, and `discrepancies.json`, the derived discrepancies as JSON for the
+ * website (its SHA-256 is in the manifest). An existing asset must be byte-identical; it is never replaced.
  *   npm run kg:publish            publish (requires gh with write access and uv)
  *   npm run kg:publish -- --check verify the published asset only
  */
@@ -17,6 +18,8 @@ const manifestFile = "public/kg/manifest.json";
 if (!fs.existsSync(manifestFile)) throw new Error("No knowledge-graph bundle found; run npm run kg:build first");
 const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
 if (!manifest.files?.["inferred.nq"]) throw new Error("The bundle has no inferred graph; run npm run kg:build first");
+const discrepanciesFile = "public/kg/discrepancies.json";
+if (!fs.existsSync(discrepanciesFile)) throw new Error("No discrepancies.json found; run npm run kg:build first");
 
 const run = (command: string, ...args: string[]) =>
   execFileSync(command, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
@@ -39,6 +42,13 @@ if (exists) {
   const published = sha256(path.join(download, name));
   if (published !== built)
     throw new Error(`Published ${name} (${published}) differs from this build (${built}); releases are immutable`);
+  // Bundles published before discrepancies existed have no such asset; there is nothing to compare.
+  try {
+    gh("release", "download", tag, "--repo", repository, "--pattern", "discrepancies.json", "--dir", download);
+  } catch {}
+  const publishedDiscrepancies = path.join(download, "discrepancies.json");
+  if (fs.existsSync(publishedDiscrepancies) && sha256(publishedDiscrepancies) !== sha256(discrepanciesFile))
+    throw new Error("Published discrepancies.json differs from this build; releases are immutable");
   console.log(`${tag} already published and byte-identical (${built}).`);
 } else if (check) {
   throw new Error(`${tag} is not published`);
@@ -46,7 +56,8 @@ if (exists) {
   const files = manifest.files;
   const notes = [
     `Knowledge-graph bundle for release ${manifest.release_id}: ${files["asserted.nq"].quads} asserted and ` +
-      `${files["inferred.nq"].quads} inferred statements, SHACL validated.`,
+      `${files["inferred.nq"].quads} inferred statements, SHACL validated; ` +
+      `${manifest.derived?.discrepancies ?? 0} discrepancies between studies (discrepancies.json).`,
     "",
     `sha256: ${built}`,
     "",
@@ -57,7 +68,7 @@ if (exists) {
       `https://github.com/${repository}/releases/download/${tag}/${name}`,
     "```",
   ].join("\n");
-  gh("release", "create", tag, ...(process.env.RELEASE_TARGET_SHA ? ["--target", process.env.RELEASE_TARGET_SHA] : []), archive, manifestFile, "--repo", repository,
+  gh("release", "create", tag, ...(process.env.RELEASE_TARGET_SHA ? ["--target", process.env.RELEASE_TARGET_SHA] : []), archive, manifestFile, discrepanciesFile, "--repo", repository,
     "--title", `Knowledge graph ${manifest.release_id}`, "--notes", notes);
   console.log(`Published ${tag}: ${name} (${built}).`);
 }

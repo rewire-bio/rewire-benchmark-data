@@ -84,6 +84,10 @@ The states are `open` (rule output, nobody has looked), then `investigating`, `r
 
 A later step is a new claim with a higher `revision`; the highest revision is the current state, and the earlier claims stay as history. `next_check` is published as a date, not an overdue flag, so the same release always produces the same bytes; the website and the monthly refresh decide what counts as overdue when they read it. A confirmed error is then fixed through a normal reviewed record change, which is what marks the affected results `disputed`.
 
+### For the website
+
+The serving database is built in the data release, before the knowledge-graph bundle, so discrepancies are not in it. `kg:publish` uploads `discrepancies.json` to the `kg/<release id>` release beside the bundle and its manifest: `https://github.com/rewire-bio/rewire-benchmark-data/releases/download/kg/<release id>/discrepancies.json`. The manifest's `derived.discrepancies_json_sha256` is its checksum. The file holds `release_id`, the `rules` in force and a `discrepancies` list; each entry carries `rule`, `summary`, `severity`, `scope`, `identity_basis`, `review_state`, `settled`, `resolution`, the compared `systems`, and the `outlier_results` and `consensus_results` it rests on. A results page flags a result listed in `outlier_results` of an unsettled discrepancy. Bundles published before discrepancies existed have no such file, and a reader treats that as no discrepancies.
+
 ## Commands
 
 ```sh
