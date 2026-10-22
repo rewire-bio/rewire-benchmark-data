@@ -59,12 +59,13 @@ const PART = {
   properties: {
     part: { type: 'string', description: 'path of the part file written' },
     source_id: { type: 'string' },
-    artifact: { type: 'string', description: 'absolute path of the pinned artifact the values were read from (XML or pdftotext layer)' },
+    artifact: { type: 'string', description: 'absolute path of the pinned artifact whose SHA-256 is on the source record (the PDF or XML as downloaded)' },
+    text: { type: 'string', description: 'absolute path of what check-values reads: the XML itself, or the pdftotext -layout output of the PDF' },
     records: { type: 'number' },
     questions: { type: 'array', items: { type: 'string' }, description: 'what the reviewer must rule on' },
     gaps: { type: 'array', items: { type: 'string' } },
   },
-  required: ['part', 'source_id', 'artifact', 'records', 'questions', 'gaps'],
+  required: ['part', 'source_id', 'artifact', 'text', 'records', 'questions', 'gaps'],
 }
 
 const REVIEW = {
@@ -121,7 +122,8 @@ Tables to extract in full: ${c.tables.join('; ')}.
 Why it matters: ${c.why}
 Decide these from the source text and record your reasoning in ${B}/notes/${c.key}.md:
 ${c.questions.map((q) => `- ${q}`).join('\n') || '- none raised'}
-Retrieve and hash the artifact; keep it, and any pdftotext layer you read, under the scratchpad, not the repo.
+Retrieve and hash the artifact; keep it, and the pdftotext -layout output you read for a PDF, under the scratchpad, not the repo. Write locators in the documented form, with double quotes: Table 2, row "X", column "Y".
+Before returning, run python3 scripts/omics/batch.py check-values on a temporary folder holding your part as batch.jsonl, and fix any row it cannot confirm that is your error.
 Search the store and reuse existing IDs. Write ONLY your records to ${B}/parts/${c.key}.jsonl (other agents are writing other parts).
 Do not create the use_case record, relevance judgements or the summary; a later stage does that.
 Keep any table spec or parse script in ${B}/extract/${c.key}.*`,
@@ -130,7 +132,7 @@ Keep any table spec or parse script in ${B}/extract/${c.key}.*`,
 
 You are the independent reviewer for ${part.part} (source ${part.source_id}). You did not extract it.
 Run the review-evidence skill on this part only, but do NOT write review.json, do NOT add anything to the store and do NOT run repin: a later stage does those once.
-First run: python3 scripts/omics/batch.py check-values <a temporary folder holding this part as batch.jsonl> ${part.source_id}=${part.artifact}
+First run: python3 scripts/omics/batch.py check-values <a temporary folder holding this part as batch.jsonl> ${part.source_id}=${part.text}
 and investigate every row that is not in_cell or in_row. Then a sampled manual check, including column assignment for text-layer tables.
 Rule on each of these with the deciding source text:
 ${part.questions.map((q) => `- ${q}`).join('\n') || '- none raised'}
@@ -169,7 +171,7 @@ Finalise the batch. You may run store commands under ${a.heavy}, and commit (hou
 1. Merge ${parts}${judgeReview && judgeReview.ready ? `, ${judged.part}` : ''} into ${B}/batch.jsonl, sorted by id. Move any part not listed to data/omics/pending-review/ with a README.
 2. Append ${B}/notes/*.md to ${B}/notes.md under one heading per source, then delete ${B}/notes/ and ${B}/parts/. Write the dated review docs/reviews/use-cases/<slug>-<date>.md from those rulings and the value-check counts below. No per-value table.
 3. Fill review.json's descriptive fields, then: python3 scripts/omics/batch.py hash ${B} ${ready.map((d) => `${d.part.source_id}=${d.part.artifact}`).join(' ')}
-4. Records whose ID already exists in the store (an existing use_case record, existing judgements) are not added: take them out of batch.jsonl, edit them in their canonical file and record them with npm run records -- change <dated review> ${B} <ids>. Then npm run records -- add ${B}/batch.jsonl ${B} for the new records; npm run use-cases:repin -- <dated review> <reviewed claim ids>; npm run records -- check; npm run test:fast; npm run typecheck.
+4. Records whose ID already exists in the store (an existing use_case record, existing judgements) are not added: take them out of batch.jsonl, edit them in their canonical file and record them with npm run records -- change <dated review> ${B} <ids>. Then npm run records -- add ${B}/batch.jsonl ${B} for the new records; npm run use-cases:repin -- <dated review> <reviewed claim ids>; npm run release:fetch (once, so the release-dependent tests can load); npm run records -- check; npm run test:fast; npm run typecheck.
 5. Commit. Report failures as they are; do not regenerate the receipt to clear one.
 Value checks: ${ready.map((d) => `${d.key}: ${d.review.value_check}`).join('; ')}`,
   { label: 'finalise', phase: 'Finalise', effort: 'medium' })
