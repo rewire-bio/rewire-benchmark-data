@@ -278,6 +278,15 @@
     skos:broader :accuracy ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
+:bedroc a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Boltzmann-enhanced discrimination of ROC (BEDROC)"@en ;
+    skos:altLabel "BEDROC"@en ;
+    skos:altLabel "BEDROC (α = 80.5)"@en ;
+    skos:definition "Area measure over a ranked list that weights early recognition, with a weighting parameter alpha. Shen et al. 2025 set alpha = 80.5, \"meaning that the top 2% of ranked molecules contributed to 80% of the BEDROC score\". Alpha always goes in metric_qualifier: values at different alpha are not comparable."@en ;
+    skos:scopeNote "Defined by Truchon and Bayly; recorded here as reported in Shen et al. 2025, Chem Sci, doi 10.1039/d5sc06481c, Methods 'Evaluation metrics' and Tables 1 to 3."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
 :beeline-stability a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Stability across datasets"@en ;
@@ -315,6 +324,29 @@
     skos:altLabel "Bray-Curtis"@en ;
     skos:definition "Dissimilarity between a predicted and a true abundance profile: the sum of absolute differences in each component's abundance divided by the sum of both profiles' abundances, from 0 (identical) to 1 (no shared components)."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:cache-challenge-activity-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CACHE challenge activity score"@en ;
+    skos:altLabel "CACHE activity score"@en ;
+    skos:definition "Score the CACHE challenge's Hit Evaluation Committee assigns to an experimentally confirmed hit with a measurable KD, reflecting the quality and consistency of the binding signals and the chemical soundness of the molecule, including the absence of undesirable groups. Whether a value is one compound's score, the score of a workflow's best hit, or a sum over all of a workflow's hits goes in metric_qualifier."@en ;
+    skos:scopeNote "Defined by the CACHE challenges; recorded here as reported for CACHE #3 in Herasymenko et al. 2026, J Chem Inf Model, doi 10.1021/acs.jcim.5c02441, Results and Supporting Information table S8. A committee judgement, not a measurement."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:cache-challenge-normalized-hit-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CACHE challenge normalised merged-library hit score"@en ;
+    skos:definition "Normalised value the CACHE challenge reports for a workflow's predictions on the merged Round 1 library, defined in the source as \"the aggregated score of all compounds predicted active divided by the number of compounds predicted to be actives\". The hit tier, and whether a value is a per-tier figure or the sum of the tiers, go in metric_qualifier."@en ;
+    skos:scopeNote "Recorded as reported for CACHE #3 in Herasymenko et al. 2026, J Chem Inf Model, doi 10.1021/acs.jcim.5c02441, Figure 6 caption and Supporting Information table S8. The workbook labels these columns as normalised numbers of confirmed Tier 1 or Tier 2 hits, which does not agree with the caption's definition; results carry that disagreement as a source warning."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:cache-challenge-novelty-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "CACHE challenge chemical novelty score"@en ;
+    skos:altLabel "CACHE novelty score"@en ;
+    skos:definition "Chemical novelty of an experimentally confirmed hit, scored from 0 (not novel) to 3 (unanimously voted as novel) by three independent chemists of the CACHE Hit Evaluation Committee."@en ;
+    skos:scopeNote "Defined by the CACHE challenges; recorded here as reported for CACHE #3 in Herasymenko et al. 2026, J Chem Inf Model, doi 10.1021/acs.jcim.5c02441, Results and Supporting Information tables S7 and S8. A panel vote, not a measurement."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :candidates-per-case a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -581,6 +613,16 @@
     skos:prefLabel "Energy efficiency"@en ;
     skos:altLabel "performance per watt"@en ;
     skos:definition "Throughput of a stated computation divided by the mean power drawn while it runs, for example tokens per second per watt."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:enrichment-factor a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Enrichment factor (EF)"@en ;
+    skos:altLabel "EF"@en ;
+    skos:altLabel "EFx%"@en ;
+    skos:altLabel "enrichment factor at x%"@en ;
+    skos:definition "The ratio of true positives found in the top x% of a ranked compound list relative to random selection, as used for virtual-screening library ranking. The fraction x always goes in metric_qualifier."@en ;
+    skos:scopeNote "An enrichment factor moves with the actives-to-inactives ratio of the library and with how the negatives were built, so values from different benchmarks are not comparable; record the ratio and the decoy construction on the protocol. Definition as written out in Shen et al. 2025, Chem Sci, doi 10.1039/d5sc06481c, Methods 'Evaluation metrics'."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :eta-squared a skos:Concept, mls:EvaluationMeasure ;
@@ -1044,6 +1086,16 @@
     skos:altLabel "new_candidates_per_1000"@en ;
     skos:definition "Number of new candidate variants raised per 1000 cases in one reanalysis cycle. A rate with a different denominator and period from candidates per case."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:normalized-enrichment-factor a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Normalised enrichment factor (NEF)"@en ;
+    skos:altLabel "NEF"@en ;
+    skos:altLabel "NEFx%"@en ;
+    skos:definition "The observed enrichment factor at a threshold divided by its theoretical maximum at that threshold. Quoted from the source that prints it: \"The normalized enrichment factor (NEFx%) is calculated by dividing the observed EFx% by its theoretical maximum (EFmax) at a threshold x%. This normalization confines NEF to a [0, 1] range, which corrects for disparities in the ratio of actives to inactives among different targets and makes the results directly comparable.\" The fraction x goes in metric_qualifier."@en ;
+    skos:broader :enrichment-factor ;
+    skos:scopeNote "Definition quoted from Shen et al. 2025, Chem Sci, doi 10.1039/d5sc06481c, Table 4 footnote a. Not the same concept as DockM8's relative enrichment factor (REF): that formula has not been read and the two must not be merged until it has."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :normalized-mutual-information a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
