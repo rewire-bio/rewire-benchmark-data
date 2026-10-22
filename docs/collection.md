@@ -225,6 +225,7 @@ CI runs the full tests, the Python tests and the SHACL check of the whole store.
 - Workers write long reports to files in the batch folder and return a short summary.
 - Batch exploratory reads into one script rather than many single commands, and trim command output (`| tail`) before reading it.
 - Coordinate from a fresh session per pass. A coordinator carrying an unrelated long conversation re-reads all of it each time a worker reports.
+- `.claude/workflows/evidence-pass.js` runs a whole pass as a Claude Code workflow: one search agent, then per source an extractor followed by an independent reviewer, then the use-case judgements and their review, then one agent that merges the parts, writes the receipt, adds the batch and runs the checks. The script replaces the coordinating session. At most `maxSources` (default 4) sources run at once, and only the last agent runs store commands. It fixes the steps and prompts; the evidence is still made reproducible by the pinned sources, the extraction specs and the value check.
 
 ## Where each claim is tracked
 
