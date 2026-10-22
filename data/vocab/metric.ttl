@@ -336,6 +336,7 @@
 :cache-challenge-normalized-hit-score a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "CACHE challenge normalised merged-library hit score"@en ;
+    skos:broader :hit-rate ;
     skos:definition "Experimentally confirmed hits of one tier among a workflow's predicted actives on the CACHE challenge's merged library, per 1000 compounds the workflow predicted to be active. The source computes it in the cell itself: 1000 times the tier's confirmed-hit count divided by the count of compounds predicted active. The hit tier, and whether a value is a per-tier figure or the sum of the tiers, go in metric_qualifier."@en ;
     skos:scopeNote "Recorded as reported for CACHE #3 in Herasymenko et al. 2026, J Chem Inf Model, doi 10.1021/acs.jcim.5c02441, Supporting Information table S8, whose cells are stored as the formulas 1000*N/L, 1000*O/L and R+S. The article's Figure 6c caption instead defines the normalised quantity as \"the aggregated score of all compounds predicted active divided by the number of compounds predicted to be actives\", which does not describe that formula: the numerator is a count of confirmed tier hits, not an aggregated score, and the caption omits the factor of 1000. Divided by 1000 the value is the article's own hit-rate form restricted to one tier, so it is not interchangeable with a hit rate over all confirmed actives; results carry the disagreement as a source warning."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
@@ -592,6 +593,15 @@
     skos:scopeNote "Defined by AssayBench."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
 
+:dissociation-constant a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Dissociation constant"@en ;
+    skos:altLabel "KD"@en ;
+    skos:altLabel "Kd"@en ;
+    skos:definition "Equilibrium dissociation constant of a binder-target complex as measured by a stated binding assay. The assay, the valency of the tested construct and whether the value is apparent rather than a fitted monovalent constant go in metric_qualifier; the printed concentration scale goes in the unit concept."@en ;
+    skos:scopeNote "A measured affinity, not a predicted one. Values measured on different assays (yeast display, BLI, SPR, HTRF) or in different construct formats are not comparable."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
 :dockq a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "DockQ"@en ;
@@ -781,6 +791,17 @@
     skos:definition "Genie 3 novelty score of designable structures against the PDB, computed from each structure's closest FoldSeek hit, with a maximum of 1 when there is no hit."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by Genie 3"@en .
+
+:hit-rate a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Experimental hit rate"@en ;
+    skos:altLabel "experimental success rate"@en ;
+    skos:altLabel "hit rate"@en ;
+    skos:definition "Proportion of candidates that met a measured experimental criterion, out of the candidates that were actually synthesised and assayed. The denominator is the tested set, not the set generated and not the set that passed computational filters; the assay and the criterion that defines a hit go in metric_qualifier."@en ;
+    skos:broader :success-rate ;
+    skos:broadMatch <http://purl.obolibrary.org/obo/STATO_0000607> ;
+    skos:scopeNote "Narrower than success rate: the criterion is a wet-lab measurement and the denominator is the tested set, so the rate depends on how the tested set was chosen as much as on how the candidates were generated."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :hits-at-100 a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
