@@ -1,0 +1,126 @@
+{
+  "batch": "use-case-coverage-hitdisc-20261022",
+  "issue": "rewire-benchmark-data#177",
+  "use_case": "use-case-hit-discovery-virtual-screening",
+  "built_at": "2026-10-22",
+  "built_by": "Claude extraction agent; no human review claimed",
+  "record_counts": {
+    "benchmark": 6,
+    "claim": 20,
+    "configuration": 81,
+    "dataset": 10,
+    "evaluation": 127,
+    "method": 4,
+    "protocol": 12,
+    "result": 1091,
+    "source": 9,
+    "dataset_subset": 5,
+    "use_case": 1
+  },
+  "total_records": 1366,
+  "reused_ids": [
+    "catalog-model-boltz-2",
+    "discovery-model-alphafold-3",
+    "discovery-model-autodock-vina",
+    "discovery-model-boltz",
+    "reported-task-a7803ecf7708cc",
+    "ucc-research-model-protenix"
+  ],
+  "reused_id_roles": {
+    "discovery-model-alphafold-3": "parent model of the AF3 screening-score configurations",
+    "catalog-model-boltz-2": "parent model of the Boltz-2 screening-score configurations",
+    "ucc-research-model-protenix": "parent model of the Protenix screening-score configurations",
+    "discovery-model-boltz": "Boltz model family; recorded as reused context, not linked by this batch",
+    "discovery-model-autodock-vina": "AutoDock Vina method; the Vina scoring function is reached here through Gnina, so no configuration links to it",
+    "reported-task-a7803ecf7708cc": "protein-ligand virtual screening task, linked by evaluates_task from every protocol in this batch"
+  },
+  "ids_considered_and_not_used": {
+    "reported-model-1e51ccbfd2de61": "Vina configuration from the CASF-2016 screening work; its protocol and data differ from every protocol here, so it is not reused",
+    "reported-model-6c0bc8d297cc7a": "DiffDock-NMDN pipeline; no source in this batch scores it",
+    "reported-dataset-065b9fcc8da573": "CASF-2016 blind docked poses; a pose dataset, outside this use case's endpoint"
+  },
+  "vocabulary_added": {
+    "enrichment-factor": "Shen et al. 2025 Tables 1-4",
+    "normalized-enrichment-factor": "Shen et al. 2025 Table 4 and its footnote a",
+    "bedroc": "Shen et al. 2025 Tables 1-3",
+    "cache-challenge-activity-score": "Herasymenko et al. 2026 table S8 columns G, H and J",
+    "cache-challenge-novelty-score": "Herasymenko et al. 2026 table S8 column I",
+    "cache-challenge-normalized-hit-score": "Herasymenko et al. 2026 table S8 columns R, S and the unnamed final column"
+  },
+  "vocabulary_not_added": {
+    "hit-rate": "No source extracted here prints a hit rate with a denominator and threshold",
+    "relative-enrichment-factor": "DockM8 was not extracted and its formula was not read; it must not be merged with normalized-enrichment-factor",
+    "forward-screening-success-rate": "Lam et al. 2024 Table 1 was not extracted; casf-screening-success-rate already covers the CASF-2016 form of this measure",
+    "normalized-log-auc": "The Kim et al. normalised logAUC values belong to the Mac1 pose arm, which is outside this use case"
+  },
+  "tables_extracted": [
+    {
+      "source": "hitdisc-20261022-source-shen2025",
+      "locator": "Table 1",
+      "cells": 240,
+      "note": "24 arms x 10 columns"
+    },
+    {
+      "source": "hitdisc-20261022-source-shen2025",
+      "locator": "Table 2",
+      "cells": 230,
+      "note": "13 Protenix and 10 AF3 arms x 10 columns"
+    },
+    {
+      "source": "hitdisc-20261022-source-shen2025",
+      "locator": "Table 3",
+      "cells": 160,
+      "note": "16 arms x 10 columns"
+    },
+    {
+      "source": "hitdisc-20261022-source-shen2025",
+      "locator": "Table 4",
+      "cells": 84,
+      "note": "7 arms x 12 columns"
+    },
+    {
+      "source": "hitdisc-20261022-source-shen2025",
+      "locator": "Table 5",
+      "cells": 36,
+      "note": "6 rows x 6 columns"
+    },
+    {
+      "source": "hitdisc-20261022-source-kim2026",
+      "locator": "Results, body text AUC values for the sigma-2, D4 and AmpC hit lists",
+      "cells": 9,
+      "note": "no table carries these values; they are printed in the text"
+    },
+    {
+      "source": "hitdisc-20261022-source-cache3-si002",
+      "locator": "Sheet 'S8'",
+      "cells": 332,
+      "note": "23 workflows; 7 own-selection columns for all 23 and 9 merged-library columns for 19"
+    }
+  ],
+  "gaps": [
+    "Shen et al. 2025 Table 6 (pose analysis) was not extracted: pose plausibility is outside this use case's endpoint.",
+    "Shen et al. 2025 Figures 1 to 5 and S1 to S17, including the ligand-similarity leakage analysis (Figure 5 and Fig. S10) and the per-target composition tables S1 and S2, were not extracted. The similarity analysis is the authors' leakage control for DEKOIS 2.0 and is published as figures.",
+    "Eight of the 24 arms in Shen et al. Table 1 are values quoted from refs 34, 35, 36, 38 and 39. None of those papers was retrieved, so no evaluation of those tools is independent of this compilation.",
+    "Kim et al. 2026: the hit-rate curves (Figure 5-figure supplement 4), the semi-logarithmic ROC curves and early enrichment (Figure 5-figure supplement 3) and the per-target score distributions (Figure 5a-c) are figures and were not read. Supplementary file 5 (tested compound lists) was not downloaded.",
+    "Kim et al. 2026: the Mac1 pose arm (551 complexes, Figures 2 and 3) is deliberately excluded on endpoint grounds, as are the per-group score medians and the Pearson correlations of score against pKi.",
+    "CACHE #3: per-workflow hit rates are not printed anywhere in the article or table S8. The article's own hit-rate definition (confirmed actives divided by compounds predicted active) applies to the merged-library arm, and Figure 6b is an aggregated activity score, not a hit rate. The literature-search report described Figure 5b as a per-workflow hit rate; in the published version the relevant figure is Figure 6 and panel b is the aggregated score.",
+    "CACHE #3: sheets S1 to S7 of ci5c02441_si_002.xlsx, the second workbook ci5c02441_si_003.xlsx and the Supporting Information PDF were retrieved but not extracted.",
+    "CACHE #1 and #2 results papers (doi 10.1021/acs.jcim.4c01267 and 10.1021/acs.jcim.5c00535) are not open access and were not retrieved.",
+    "The LIT-PCBA leakage audit's own tables were not retrieved: only the arXiv abstract page was read, so the memorisation baseline's per-target enrichment values are not recorded.",
+    "TocoDecoy (doi 10.1021/acs.jmedchem.2c00460), DEKOIS 2.0 (doi 10.1021/ci400115b), DEKOIS 1.0 (doi 10.1021/ci2001549) and the LIT-PCBA primary paper (doi 10.1021/acs.jcim.0c00155) are closed access and were not retrieved. DEKOIS 2.0 and TocoDecoy are registered from Shen et al. 2025's description of them.",
+    "No evaluation on DUD-E or MF-PCBA is recorded; both are registered as discovered benchmarks only.",
+    "Kawano et al. 2026 (Boltz-2 prospective 70% hit rate), Hamza et al. 2026 (DockM8 relative enrichment), Lam et al. 2024 (BIND sequence-only screening), Agha et al. 2026 (MolDockLab), Furui and Ohue (Boltzina and Boltz-2 affinity-head fine-tuning), Luttens et al. 2025 and Wang and Kireev 2026 were identified in the search pass and not extracted in this pass.",
+    "No ligand-similarity or pharmacophore baseline is scored on any protocol here, so issue #177's pre-machine-learning comparator is only half met: docking is present, ligand similarity is not.",
+    "relative-enrichment-factor and forward-screening-success-rate were not added to data/vocab/metric.ttl: no cell extracted here uses them. DockM8's REF formula was not read, so it must not be merged with normalized-enrichment-factor.",
+    "hit-rate was not added to data/vocab/metric.ttl: no source extracted here prints a hit rate, so there was no cell that needed the concept."
+  ],
+  "reviewer_must_judge": [
+    "Whether the ipTM and Min-iPAE rows reprinted in Shen et al. Table 2 should be kept as separate results from their Table 1 twins. This batch keeps them, because they are printed cells of a table it extracted in full, and marks them with a source warning.",
+    "Whether a per-target column should become its own evaluation with a dataset subset. This batch keeps one evaluation per configuration and protocol and distinguishes per-target cells by metric_qualifier and source_locator, for Shen et al. Tables 4 and 5.",
+    "Whether the CACHE #3 workflows should be configuration records with no parent entity. This batch does that, because their computational steps appear only in figures and no primary source describes each workflow.",
+    "Whether the three cache-challenge-* metric concepts are the right granularity, or whether the activity score and the normalised score should be split further.",
+    "printed_value for every cell taken from the CACHE workbook is the shortest decimal that round-trips to the stored double, not the string the spreadsheet displays through its number format. raw_xml_value keeps the stored string for each.",
+    "The relevance of the CACHE #3 own-selection arm: it is prospective and wet-lab confirmed, but each workflow chose its own compounds, so it is recorded as direct with that confound as its first limitation.",
+    "Whether the GPCRrecent six-target protocol earns a judgement at all, given that only two Boltz-2 arms ran on it and there is no baseline within the protocol."
+  ]
+}
