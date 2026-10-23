@@ -219,6 +219,27 @@ The website and API read these tables from `catalogue-<id>.sqlite` ([serving-con
 
 A file built before 3.3, or without the knowledge graph, has no findings, and every reader returns empty. `npm run serving:parity` checks that the tables hold exactly the knowledge-graph build's findings.
 
+### Studies in a finding
+
+From `discrepancies.json` schema 3, each finding carries `studies`: every study that compared its two systems, with the outlier first and then the others by number of comparisons (most first), then key. The serving tables store it inside the gzipped finding, so `discrepancy(id)` returns it; a finding read from a schema 1 or 2 file has an empty list.
+
+| Field | Value |
+| --- | --- |
+| `key` | the study key, in the same form as the ID's `outlier_study` |
+| `role` | `outlier` or `consensus` |
+| `source_ids` | the sources that make up the study |
+| `higher` | for each of the finding's `systems`, the number of comparisons in which it scored better |
+| `ties` | comparisons within the tie tolerance |
+| `gap` | gap rule only: the study's median relative gap to the reference; `null` for an ordering reversal |
+| `comparisons_total` | all of the study's comparisons of the two systems |
+| `comparisons` | at most 200 of them, ordered by protocol, dataset, metric, unit, qualifier and split |
+
+Each comparison gives its `protocol`, `dataset`, `metric` and `unit` (concept keys), `qualifier` and `split`, the two systems' best `values`, the result each value comes from (`results`; the first by ID when several results share the best value), and `higher`, the better system or `null` for a tie. `higher` and `ties` always add up to `comparisons_total`.
+
+`studies` can list more studies than `consensus_sources`. An ordering reversal's consensus counts only comparisons that are not ties, so a study whose comparisons of the pair are all ties is in `studies` (role `consensus`, every comparison a tie) but not in `consensus_sources`. For the gap rule the two lists hold the same studies.
+
+The per-study breakdown is not in the derived graph: one row per comparison would make it much larger. The graph keeps the outlier and consensus sources and results.
+
 ### Knowledge graph and MCP
 
 The bundle's `derived.nq` holds the findings and their actions in the graph `https://benchmarks.rewire.it/graph/derived`. With [rdf-kg-mcp](https://github.com/rewire-bio/rdf-kg-mcp) 0.2 or later, the bundle's named queries answer the same questions as the site:
@@ -245,7 +266,7 @@ SELECT ?d ?severity ?state WHERE {
 
 The website shows:
 - `/contested/`: every finding, with filters for severity, state and model;
-- `/contested/<id>/`: the compared numbers per study, the results and sources, and the follow-up timeline, marking a `next_check` that has passed;
+- `/contested/<id>/`: the studies that agree with the consensus and the one that disagrees, as a table and a chart of each study's comparisons (from `studies`), the results and sources, and the follow-up timeline, marking a `next_check` that has passed;
 - a "Contested" badge on use-case rows and result pages built on an unsettled finding;
 - a count on model pages.
 

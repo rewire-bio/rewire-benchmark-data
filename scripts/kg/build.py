@@ -508,7 +508,7 @@ def build(kg_dir: Path) -> dict:
     (kg_dir / "inferred.nq").write_text(nquads(inferred, GRAPHS["inferred"]), "utf-8")
     (kg_dir / "derived.nq").write_text(nquads(derived, GRAPHS["derived"]), "utf-8")
     (kg_dir / "discrepancies.json").write_text(json.dumps(
-        {"schema_version": 2, "release_id": exported["release_id"], "rules": rules, "excluded": result.excluded,
+        {"schema_version": 3, "release_id": exported["release_id"], "rules": rules, "excluded": result.excluded,
          "discrepancies": discrepancies}, indent=2, ensure_ascii=False) + "\n", "utf-8")
     target = kg_dir / "ontology"
     if target.exists():

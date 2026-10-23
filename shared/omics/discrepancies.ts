@@ -5,7 +5,8 @@
  * discrepancy tables (contract 3.3). Each finding carries its follow-up history:
  * one action per accepted revision of its `discrepancy_review` claims. Files
  * written before the history existed (schema 1) only carry the latest review,
- * which becomes a single action. docs/discrepancies.md describes the whole feature. */
+ * which becomes a single action. Schema 3 adds each finding's per-study breakdown
+ * (`studies`); earlier files read as having none. docs/discrepancies.md describes the whole feature. */
 
 export const discrepancyStates = [
   "open", "investigating", "reported-upstream", "awaiting-correction", "explained", "confirmed-error", "false-positive",
@@ -31,6 +32,38 @@ export type DiscrepancyAction = {
   resolved_by: string[];
 };
 
+/** One comparison of the finding's two systems in one study: their best values in one group of results. */
+export type DiscrepancyComparison = {
+  protocol: string | null;
+  dataset: string | null;
+  metric: string | null;
+  unit: string | null;
+  qualifier: string | null;
+  split: string | null;
+  /** System ID to its best value. */
+  values: Record<string, number>;
+  /** System ID to the result that value comes from. */
+  results: Record<string, string>;
+  /** The system that scored better; null for a tie. */
+  higher: string | null;
+};
+
+/** A study that compared the finding's two systems, and how its comparisons came out. */
+export type DiscrepancyStudy = {
+  /** The study key: doi:..., repository:... or source:... */
+  key: string;
+  role: "outlier" | "consensus";
+  source_ids: string[];
+  /** System ID (as in `systems`) to the number of comparisons in which it scored better. */
+  higher: Record<string, number>;
+  ties: number;
+  /** Gap rule only: the study's median relative gap to the reference. */
+  gap: number | null;
+  comparisons_total: number;
+  /** At most 200; `comparisons_total` counts them all. */
+  comparisons: DiscrepancyComparison[];
+};
+
 export type Discrepancy = {
   id: string;
   previous_ids: string[];
@@ -50,6 +83,8 @@ export type Discrepancy = {
   outlier_results: string[];
   consensus_results: string[];
   numbers: Record<string, unknown>;
+  /** Outlier study first, then the others, most comparisons first. Empty before schema 3. */
+  studies?: DiscrepancyStudy[];
   /** Oldest first. Empty while no one has reviewed the finding. */
   actions: DiscrepancyAction[];
 };
@@ -112,6 +147,7 @@ export function normaliseDiscrepancies(raw: Record<string, unknown>): Discrepanc
       outlier_results: texts(d.outlier_results),
       consensus_results: texts(d.consensus_results),
       numbers: (d.numbers as Record<string, unknown>) ?? {},
+      studies: Array.isArray(d.studies) ? (d.studies as DiscrepancyStudy[]) : [],
       actions,
     };
   });

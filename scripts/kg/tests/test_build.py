@@ -9,6 +9,7 @@ import json
 import re
 import sys
 import unittest
+from unittest import mock
 from pathlib import Path
 
 import rdflib
@@ -413,6 +414,56 @@ class DiscrepancyTest(unittest.TestCase):
             graph.set((subject, RB.testedSystem, ID.modelC))
         record(graph, ID.modelC, RB.Model)
         self.assertEqual(self.gaps(self.derive(graph)[1]), [])
+
+    def test_lists_each_study_with_its_comparisons(self) -> None:
+        [found] = self.reversals(self.derive(disagreement())[1])
+        studies = found["studies"]
+        self.assertEqual([(s["key"], s["role"], s["source_ids"]) for s in studies],
+                         [("source:study3", "outlier", ["study3"]), ("source:study1", "consensus", ["study1"]),
+                          ("source:study2", "consensus", ["study2"])])
+        self.assertEqual([(s["higher"], s["ties"], s["gap"]) for s in studies],
+                         [({"modelA": 0, "modelB": 4}, 0, None), ({"modelA": 6, "modelB": 0}, 0, None),
+                          ({"modelA": 3, "modelB": 0}, 0, None)])
+        for s in studies:
+            self.assertEqual(sum(s["higher"].values()) + s["ties"], s["comparisons_total"])
+            self.assertEqual(len(s["comparisons"]), s["comparisons_total"])
+        first = studies[0]["comparisons"][0]
+        self.assertEqual(first, {
+            "protocol": "protocol", "dataset": "data", "metric": "auroc", "unit": "unitless", "qualifier": "subset 0",
+            "split": None, "values": {"modelA": 0.7, "modelB": 0.8},
+            "results": {"modelA": "result-3-0-a", "modelB": "result-3-0-b"}, "higher": "modelB"})
+        self.assertEqual(sorted(r for s in studies[:1] for c in s["comparisons"] for r in c["results"].values()),
+                         found["outlier_results"])
+
+    def test_a_study_of_only_ties_is_listed_but_not_a_consensus_source(self) -> None:
+        graph = disagreement()
+        record(graph, ID.study4, RB.Source)
+        for i in range(2):
+            scored(graph, f"4-{i}-a", ID.modelA, ID.study4, "0.80", f"subset {i}")
+            scored(graph, f"4-{i}-b", ID.modelB, ID.study4, "0.80", f"subset {i}")
+        [found] = self.reversals(self.derive(graph)[1])
+        self.assertEqual(found["consensus_sources"], ["study1", "study2"])
+        tied = next(s for s in found["studies"] if s["key"] == "source:study4")
+        self.assertEqual((tied["role"], tied["higher"], tied["ties"], tied["comparisons_total"]),
+                         ("consensus", {"modelA": 0, "modelB": 0}, 2, 2))
+        self.assertEqual({c["higher"] for c in tied["comparisons"]}, {None})
+
+    def test_caps_the_comparisons_listed_per_study(self) -> None:
+        with mock.patch.object(contradictions, "MAX_STUDY_COMPARISONS", 2):
+            [found] = self.reversals(self.derive(disagreement())[1])
+        outlier = found["studies"][0]
+        self.assertEqual((len(outlier["comparisons"]), outlier["comparisons_total"]), (2, 4))
+        self.assertEqual(sum(outlier["higher"].values()) + outlier["ties"], 4)
+
+    def test_gap_outlier_studies_carry_their_median_gap(self) -> None:
+        [gap] = self.gaps(self.derive(disagreement())[1])
+        studies = gap["studies"]
+        self.assertEqual([(s["key"], s["role"]) for s in studies],
+                         [("source:study3", "outlier"), ("source:study1", "consensus"), ("source:study2", "consensus")])
+        self.assertEqual(studies[0]["gap"], gap["numbers"]["outlier_gap"])
+        self.assertEqual({s["gap"] for s in studies[1:]},
+                         {gap["numbers"]["consensus_gap_min"], gap["numbers"]["consensus_gap_max"]})
+        self.assertEqual(list(studies[0]["higher"]), gap["systems"])
 
     def test_identifier_hashes_the_canonical_key(self) -> None:
         [found] = self.reversals(self.derive(disagreement())[1])
