@@ -84,7 +84,7 @@ export type Discrepancy = {
   consensus_results: string[];
   numbers: Record<string, unknown>;
   /** Outlier study first, then the others, most comparisons first. Empty before schema 3. */
-  studies: DiscrepancyStudy[];
+  studies?: DiscrepancyStudy[];
   /** Oldest first. Empty while no one has reviewed the finding. */
   actions: DiscrepancyAction[];
 };
