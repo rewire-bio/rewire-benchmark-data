@@ -68,7 +68,7 @@ class BatchToolTest(unittest.TestCase):
             result("free", "t", "0.66", "Section 3, paragraph 2"),
             result("nosrc", "z", "0.66", 'Table 12, row "Boltz-2"'),
         ])
-        self.assertEqual(got, {"ok": "in_row", "wrong": "not_in_row", "prefix": "row_not_found",
+        self.assertEqual(got, {"ok": "in_cell", "wrong": "not_in_row", "prefix": "row_not_found",
                                "free": "locator_not_parsed", "nosrc": "no_artifact_given"})
 
     def test_text_layouts_and_overclaims(self):
@@ -94,6 +94,37 @@ Table 5: Blocks.
         self.assertEqual(got, {"twocol": "in_row", "quoted": "in_row", "gat-a": "in_row", "gat-b": "in_row",
                                "block-4": "in_row", "block-20": "in_row",
                                "copy-a": "overclaimed_in_row", "copy-b": "overclaimed_in_row"})
+
+    def test_text_tables_check_the_column(self):
+        # A value copied from the neighbouring column is caught; a header with a group label
+        # names its sub-columns; a table whose header does not line up falls back to the row.
+        self.txt.write_text("""Table 4: Affinity.
+                       Pearson R           Kendall tau
+          method       test    val         test    val
+          Boltz-2      0.66    0.61        0.48    0.44
+          GAT          0.40    0.38        0.28    0.27
+
+Table 6: Unaligned.
+  method Pearson R Kendall tau
+          Boltz-2      0.66        0.48
+          GAT          0.40        0.28
+""")
+        got = self.statuses([
+            result("cell", "t", "0.61", 'Table 4, row "Boltz-2", column "Pearson R", sub-column "val"'),
+            result("swap", "t", "0.48", 'Table 4, row "Boltz-2", column "Pearson R", sub-column "test"'),
+            result("sub", "t", "0.27", 'Table 4, row "GAT", column "Kendall tau", sub-column "val"'),
+            result("fallback", "t", "0.48", 'Table 6, row "Boltz-2", column "Pearson R"'),
+        ])
+        self.assertEqual(got, {"cell": "in_cell", "swap": "wrong_column", "sub": "in_cell", "fallback": "in_row"})
+
+    def test_table_command_prints_columns(self):
+        import contextlib, io
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            batch.print_table(self.txt, "Table 12")
+        lines = out.getvalue().splitlines()
+        self.assertEqual(lines[0].split("\t")[2:], ["pearson r", "kendall tau"])
+        self.assertIn("boltz-2\t0.66\t0.48", lines[1])
 
     def test_hash_checks_artifacts_and_keeps_receipt_fields(self):
         digest = hashlib.sha256(self.xml.read_bytes()).hexdigest()
