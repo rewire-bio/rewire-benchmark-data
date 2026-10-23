@@ -6,13 +6,13 @@
  * An entry with `applies_to: [ids]` covers only those records and the evidence that rests on them,
  * so a source cited for context, or a paper that reports a problem in someone else's benchmark,
  * does not withhold evidence it never supported. A named result, evaluation, tested configuration,
- * dataset, protocol or the benchmark or protocol a protocol is directly part_of withholds every
- * result on that path, from any source; a named claim withholds that claim.
+ * dataset, the protocol, task or benchmark the evaluation was tested on, or what that is directly
+ * part_of, withholds every result on that path, from any source; a named claim withholds that claim.
  * scripts/kg/contradictions.py (_excluded) applies the same rules to discrepancy inference. */
 import type { CatalogueRecord } from "./catalogue-query.js";
 
 export const concernTargetKinds = [
-  "result", "evaluation", "configuration", "dataset", "dataset_subset", "protocol", "benchmark", "claim",
+  "result", "evaluation", "configuration", "dataset", "dataset_subset", "protocol", "task", "benchmark", "claim",
 ] as const;
 
 function entries(record: CatalogueRecord | undefined): Record<string, unknown>[] {
@@ -45,7 +45,7 @@ export function concernTargetsOf(byId: Map<string, CatalogueRecord>): Set<string
 }
 
 /** The IDs a result's value rests on: the result, its evaluation, the evaluation's tested system,
- * protocol and dataset, and what those protocols are directly part of. */
+ * dataset and assessments (protocols, tasks or benchmarks), and what those are directly part of. */
 export function evidencePath(
   result: CatalogueRecord | undefined, evaluation: CatalogueRecord | null | undefined, assessments: (CatalogueRecord | undefined)[],
 ): string[] {

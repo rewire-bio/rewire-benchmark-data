@@ -69,5 +69,9 @@ describe("unresolved primary-source concerns", () => {
     expect(compareResults("test", ids, rowFor, new Set()).reasons).not.toContain(reason);
     const evaluationId = rowFor(ids[0]).evaluation!.id;
     expect(compareResults("test", ids, rowFor, new Set(), new Set([evaluationId])).reasons).toContain(reason);
+    // The protocol, task or benchmark the evaluation was tested on, and what that is part of.
+    const assessment = rowFor(ids[0]).benchmarks[0];
+    for (const id of [assessment.id, ...assessment.links.filter((l) => l.relation === "part_of").map((l) => l.target_id)])
+      expect(compareResults("test", ids, rowFor, new Set(), new Set([id])).reasons).toContain(reason);
   });
 });
