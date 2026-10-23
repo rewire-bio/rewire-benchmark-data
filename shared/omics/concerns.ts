@@ -15,9 +15,13 @@ export const concernTargetKinds = [
   "result", "evaluation", "configuration", "dataset", "dataset_subset", "protocol", "task", "benchmark", "claim",
 ] as const;
 
+/** A source's concern entries. A plain-text entry, the form older records use, is a concern
+ * over the whole source, as it always was. */
 function entries(record: CatalogueRecord | undefined): Record<string, unknown>[] {
   const value = record?.attributes.evidence_concerns;
-  return Array.isArray(value) ? value.filter((e): e is Record<string, unknown> => !!e && typeof e === "object") : [];
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((e): Record<string, unknown>[] =>
+    typeof e === "string" ? (e.trim() ? [{ message: e }] : []) : e && typeof e === "object" ? [e as Record<string, unknown>] : []);
 }
 
 function scope(entry: Record<string, unknown>): string[] | undefined {

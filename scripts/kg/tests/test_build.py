@@ -816,6 +816,11 @@ class DiscrepancyTest(unittest.TestCase):
         self.assertEqual(self.reversals(result.report), [])
         self.assertEqual(result.excluded, {"disputed": 0, "concern": 8})
 
+    def test_a_plain_text_concern_covers_the_whole_source(self) -> None:
+        graph = disagreement()
+        graph.add((ID.study3, RB.evidenceConcerns, Literal(json.dumps(["Tables disagree."]), datatype=RDF.JSON)))
+        self.assertEqual(self.derived(graph).excluded, {"disputed": 0, "concern": 8})
+
     def test_a_source_wide_concern_covers_results_whose_evaluation_cites_it(self) -> None:
         graph = disagreement()
         concerned = URIRef(ID + "evaluation-paper")

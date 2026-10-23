@@ -111,6 +111,12 @@ describe("use cases as records", () => {
     expect(m.lifecycle).toBe("needs_review");
   });
 
+  it("treats a plain-text concern, the form older records use, as covering the whole source", () => {
+    const sourceId = mapping(store).citations[0].source_id;
+    const m = mapping(edit(sourceId, (r) => ({ ...r, attributes: { ...r.attributes, evidence_concerns: ["Tables disagree"] } })));
+    expect(m.lifecycle).toBe("needs_review");
+  });
+
   it("withholds only what a scoped concern names, from whichever source records it", () => {
     const original = mapping(store);
     const cited = new Set([...original.citations.map((c) => c.source_id), ...store.find((r) => r.id === original.use_case_id)!.source_ids]);
