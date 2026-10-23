@@ -13,6 +13,7 @@ import { createEvidenceIndex } from "../../shared/omics/evidence-table";
 import { deriveResearchReadiness, getResearch } from "../../shared/omics/research";
 import { useCaseState, type UseCaseArtifact, type UseCaseDeclaration } from "../../shared/omics/use-cases";
 import { PREPARED_CONTRACT_VERSION } from "../../shared/omics/prepared-catalogue";
+import { normaliseDiscrepancies, summarise, type DiscrepancyFile } from "../../shared/omics/discrepancies";
 import { createRecordEncoder, decodeRecords, packEvidence, slimListRecord, unpackEvidence } from "../../shared/omics/serving-codec";
 import { isBenchmarkSubject, isDatasetSubject } from "../../shared/omics/entity-kinds";
 import { benchmarkCoverage } from "../omics/audit-benchmark-evidence";
@@ -24,6 +25,7 @@ const { DatabaseSync } = process.getBuiltinModule("node:sqlite");
 export const generatorFiles = [
   "scripts/serving/sqlite.ts",
   "shared/omics/catalogue-query.ts",
+  "shared/omics/discrepancies.ts",
   "shared/omics/audit-query.ts",
   "shared/omics/audit.ts",
   "scripts/omics/audit-benchmark-evidence.ts",
@@ -94,6 +96,8 @@ export function buildPreparedCatalogue(input: {
   useCases?: { artifact: UseCaseArtifact; declaration: UseCaseDeclaration };
   /** The release's audit files: index rows, runs, resolutions and check chunks by file name. */
   audit?: { index: AuditIndexRow[]; runs: unknown[]; resolutions: unknown[]; chunks: Map<string, AuditCheck[]> };
+  /** Discrepancies the knowledge-graph build inferred for this release (3.3). */
+  discrepancies?: DiscrepancyFile;
   generatorSha256: string;
   file: string;
 }) {
@@ -116,6 +120,11 @@ export function buildPreparedCatalogue(input: {
     CREATE TABLE audit_checks (record_id TEXT PRIMARY KEY, gz BLOB NOT NULL);
     CREATE TABLE use_case_entries (section TEXT NOT NULL, key TEXT NOT NULL, gz BLOB NOT NULL, PRIMARY KEY (section, key)) WITHOUT ROWID;
     CREATE TABLE source_records (source_id TEXT NOT NULL, kind TEXT NOT NULL, pos INTEGER NOT NULL, count INTEGER NOT NULL, gz BLOB NOT NULL, PRIMARY KEY (source_id, pos)) WITHOUT ROWID;
+    CREATE TABLE discrepancies (id TEXT PRIMARY KEY, pos INTEGER NOT NULL, rule TEXT NOT NULL, severity TEXT NOT NULL, scope TEXT NOT NULL, state TEXT NOT NULL, settled INTEGER NOT NULL, gz BLOB NOT NULL) WITHOUT ROWID;
+    CREATE TABLE discrepancy_results (result_id TEXT NOT NULL, discrepancy_id TEXT NOT NULL, role TEXT NOT NULL, PRIMARY KEY (result_id, discrepancy_id)) WITHOUT ROWID;
+    CREATE TABLE discrepancy_systems (system_id TEXT NOT NULL, discrepancy_id TEXT NOT NULL, PRIMARY KEY (system_id, discrepancy_id)) WITHOUT ROWID;
+    CREATE TABLE discrepancy_actions (discrepancy_id TEXT NOT NULL, revision INTEGER NOT NULL, action TEXT, state TEXT NOT NULL, date TEXT, next_check TEXT, gz BLOB NOT NULL, PRIMARY KEY (discrepancy_id, revision)) WITHOUT ROWID;
+    CREATE TABLE discrepancy_aliases (previous_id TEXT PRIMARY KEY, discrepancy_id TEXT NOT NULL) WITHOUT ROWID;
   `);
   const meta = db.prepare("INSERT INTO meta VALUES (?, ?)");
   const blob = db.prepare("INSERT INTO blobs VALUES (?, ?)");
@@ -141,7 +150,7 @@ export function buildPreparedCatalogue(input: {
   };
   const evidence = createEvidenceIndex(snapshot);
   const evidenceSources: Parameters<typeof packEvidence>[1] = new Map();
-  const counts = { records: 0, details: 0, result_rows: 0, result_index: 0, evidence: 0, use_case_entries: 0, source_records: 0 };
+  const counts = { records: 0, details: 0, result_rows: 0, result_index: 0, evidence: 0, use_case_entries: 0, source_records: 0, discrepancies: 0, discrepancy_actions: 0 };
   const rowsWritten = new Set<string>();
   db.exec("BEGIN");
   for (const record of records) {
@@ -228,6 +237,35 @@ export function buildPreparedCatalogue(input: {
       insertUseCase.run(section, key, packed(value, `use case ${section} ${key}`));
       counts.use_case_entries++;
     }
+  // Discrepancies between studies (3.3): one row per finding with its actions, and indexes
+  // from results, systems and earlier IDs to it. The rows copy the knowledge-graph build's
+  // findings for this release; nothing here infers them.
+  const findings = input.discrepancies;
+  if (findings) {
+    if (findings.release_id !== snapshot.release_id)
+      throw new Error(`Discrepancies are for ${findings.release_id}, not ${snapshot.release_id}; rebuild the knowledge graph`);
+    const insertFinding = db.prepare("INSERT INTO discrepancies VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    const insertResult = db.prepare("INSERT OR IGNORE INTO discrepancy_results VALUES (?, ?, ?)");
+    const insertSystem = db.prepare("INSERT OR IGNORE INTO discrepancy_systems VALUES (?, ?)");
+    const insertAction = db.prepare("INSERT INTO discrepancy_actions VALUES (?, ?, ?, ?, ?, ?, ?)");
+    const insertAlias = db.prepare("INSERT INTO discrepancy_aliases VALUES (?, ?)");
+    findings.discrepancies.forEach((d, pos) => {
+      insertFinding.run(d.id, pos, d.rule, d.severity, d.scope, d.state, d.settled ? 1 : 0, gz(d));
+      counts.discrepancies++;
+      for (const id of d.outlier_results) insertResult.run(id, d.id, "outlier");
+      for (const id of d.consensus_results) insertResult.run(id, d.id, "consensus");
+      for (const id of d.systems) insertSystem.run(id, d.id);
+      for (const a of d.actions) {
+        insertAction.run(d.id, a.revision, a.action, a.state, a.date, a.next_check, gz(a));
+        counts.discrepancy_actions++;
+      }
+      for (const previous of d.previous_ids) insertAlias.run(previous, d.id);
+    });
+    blob.run("discrepancy_index", gz({
+      rules: findings.rules, excluded: findings.excluded, schema_version: findings.schema_version,
+      entries: findings.discrepancies.map(summarise),
+    }));
+  }
   const metadata: Record<string, string> = {
     serving_contract_version: PREPARED_CONTRACT_VERSION,
     record_schema_version: snapshot.schema_version,
@@ -266,11 +304,19 @@ if (process.argv[1]?.endsWith("sqlite.ts")) {
         ),
       }
     : undefined;
+  // The knowledge-graph build's findings for this release. A release build (build:release)
+  // requires them; a local build without a matching file serves no discrepancies.
+  const findingsFile = "public/kg/discrepancies.json";
+  const found = fs.existsSync(findingsFile) ? normaliseDiscrepancies(JSON.parse(fs.readFileSync(findingsFile, "utf8"))) : undefined;
+  const discrepancies = found?.release_id === snapshot.release_id ? found : undefined;
+  if (!discrepancies && process.argv.includes("--require-discrepancies"))
+    throw new Error(`No discrepancies for ${snapshot.release_id} in ${findingsFile}; run npm run kg:bundle first`);
+  if (!discrepancies) console.warn(`No discrepancies for ${snapshot.release_id}; the prepared file will serve none`);
   const generatorSha256 = sha256(generatorFiles.map((file) => fs.readFileSync(file, "utf8")).join("\n"));
   const file = path.join("public/serving", `catalogue-${snapshot.release_id}.sqlite`);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const started = Date.now();
-  const counts = buildPreparedCatalogue({ snapshot, catalogueBytes, useCases, audit, generatorSha256, file });
+  const counts = buildPreparedCatalogue({ snapshot, catalogueBytes, useCases, audit, discrepancies, generatorSha256, file });
   const bytes = fs.readFileSync(file);
   const receipt = {
     serving_contract_version: PREPARED_CONTRACT_VERSION,
@@ -280,6 +326,7 @@ if (process.argv[1]?.endsWith("sqlite.ts")) {
     sha256: sha256(bytes),
     generator_sha256: generatorSha256,
     counts,
+    ...(discrepancies ? { discrepancies_sha256: sha256(fs.readFileSync(findingsFile)) } : {}),
   };
   fs.writeFileSync(file.replace(/\.sqlite$/, ".json"), JSON.stringify(receipt, null, 2) + "\n");
   console.log(`Prepared ${snapshot.release_id}: ${(bytes.length / 1e6).toFixed(0)} MB in ${((Date.now() - started) / 1000).toFixed(0)} s, sha256 ${receipt.sha256}`);

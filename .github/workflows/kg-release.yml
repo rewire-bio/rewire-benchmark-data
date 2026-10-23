@@ -1,8 +1,9 @@
 name: Build and publish a knowledge-graph bundle
-# Started by release.yml after each data release, and on demand. Builds the knowledge-graph bundle (inference, checks, SHACL) for a published
-# data release, verifies its format with rdf-kg-mcp, and publishes it as `kg/<release id>`.
-# Data releases (release.yml) start it but never build or wait for it. An existing bundle is never replaced;
-# running this again for a published release only checks that the build reproduces it.
+# On demand only. Data releases build and publish their bundle themselves (release.yml), because
+# the prepared SQLite file serves the bundle's inferred discrepancies. Use this to publish a bundle
+# for a release cut before that change, or to check that a published bundle reproduces: it rebuilds
+# the bundle (inference, checks, SHACL) for a published release, verifies its format with rdf-kg-mcp
+# and publishes it as `kg/<release id>`. An existing bundle is never replaced.
 on:
   workflow_dispatch:
     inputs:
