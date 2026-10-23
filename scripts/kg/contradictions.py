@@ -91,6 +91,8 @@ RESOLUTION = {
     "rationale": (RB.rationale, "text"),
 }
 SEVERITY = ["low", "medium", "high"]
+# The most comparisons listed per study in discrepancies.json; comparisons_total gives the full count.
+MAX_STUDY_COMPARISONS = 200
 # Follow-up action types (data/vocab/discrepancy-action.ttl).
 ACTIONS = ("investigated", "contacted-authors", "reported-upstream", "awaiting-correction", "reran",
            "corrected-records", "closed")
@@ -131,6 +133,10 @@ class Comparison:
     results_a: tuple[URIRef, ...]
     results_b: tuple[URIRef, ...]
     reviewed: bool
+    dataset: URIRef | None = None
+    unit: URIRef | None = None
+    qualifier: str = ""
+    split: str = ""
 
     def better(self, tolerance: float) -> URIRef | None:
         """The better system, or None for a tie within tolerance of the larger magnitude."""
@@ -180,6 +186,10 @@ class Finding:
     reference: URIRef | None = None
     anchor: URIRef | None = None
     metric: URIRef | None = None
+    # Every comparison of the two systems the rule looked at, ties included, and (gap rule) each
+    # study's median relative gap to the reference. The per-study breakdown is built from these.
+    pool: list[Comparison] = field(default_factory=list)
+    gaps: dict[URIRef, float] = field(default_factory=dict)
 
 
 class Index:
@@ -386,7 +396,7 @@ def comparisons(index: Index) -> list[Comparison]:
 
     found = []
     for key, by_system in groups.items():
-        study, protocol, _, metric, *_, higher = key
+        study, protocol, dataset, metric, unit, qualifier, split, higher = key
         best = {}
         for system, rows in by_system.items():
             value = (max if higher else min)(number for number, _, _ in rows)
@@ -395,7 +405,8 @@ def comparisons(index: Index) -> list[Comparison]:
             for b in sorted(best):
                 if a < b:
                     (va, ra, rev_a), (vb, rb_, rev_b) = best[a], best[b]
-                    found.append(Comparison(study, protocol, metric, a, b, va, vb, higher, ra, rb_, rev_a and rev_b))
+                    found.append(Comparison(study, protocol, metric, a, b, va, vb, higher, ra, rb_, rev_a and rev_b,
+                                            dataset, unit, qualifier, split))
     return found
 
 
@@ -419,7 +430,7 @@ def ordering_reversals(pairs: dict, rules: dict) -> list[Finding]:
             if reversals < r["min_outlier_reversals"] or reversals / len(mine) < r["outlier_consistency"]:
                 continue
             findings.append(Finding(
-                "ordering-reversal", a, b, study, mine, others, higher=higher,
+                "ordering-reversal", a, b, study, mine, others, higher=higher, pool=items,
                 numbers={"outlier_comparisons": len(mine), "outlier_reversals": reversals,
                          "consensus_comparisons": len(others), "consensus_agreements": agreements},
             ))
@@ -475,7 +486,7 @@ def gap_outliers(found: list[Comparison], index: Index, rules: dict) -> list[Fin
                 best[key] = Finding(
                     "gap-outlier", system, reference, study,
                     [c for c in pair if c.study == study], [c for c in pair if c.study != study],
-                    reference=reference, anchor=anchor, metric=metric,
+                    reference=reference, anchor=anchor, metric=metric, pool=pair, gaps=medians,
                     numbers={"outlier_gap": median, "consensus_gap_min": low, "consensus_gap_max": high},
                 )
     return [best[k] for k in sorted(best, key=lambda k: tuple(str(x) for x in k))]
@@ -488,6 +499,48 @@ def scope(finding: Finding, index: Index) -> str:
         return "same-protocol"
     near = set().union(*(index.anchors(p) for p in mine)) & set().union(*(index.anchors(p) for p in theirs))
     return "same-task" if near else "cross-task"
+
+
+def concept_key(node: URIRef | None) -> str | None:
+    return None if node is None else str(node).rsplit("/", 1)[-1]
+
+
+def comparison_json(c: Comparison, tolerance: float) -> dict:
+    better = c.better(tolerance)
+    return {
+        "protocol": local(c.protocol), "dataset": local(c.dataset), "metric": concept_key(c.metric),
+        "unit": concept_key(c.unit), "qualifier": c.qualifier or None, "split": c.split or None,
+        "values": {local(c.a): float(c.value_a), local(c.b): float(c.value_b)},
+        # The first of the results that share a system's best value.
+        "results": {local(c.a): local(c.results_a[0]), local(c.b): local(c.results_b[0])},
+        "higher": local(better),
+    }
+
+
+def studies_json(f: Finding, index: Index, tolerance: float) -> list[dict]:
+    """Every study that compared the finding's two systems: the outlier first, then the others by
+    number of comparisons (most first) and key. For an ordering reversal this includes a study whose
+    comparisons are all ties, which consensus_sources leaves out."""
+    by_study: dict[URIRef, list[Comparison]] = defaultdict(list)
+    for c in f.pool:
+        by_study[c.study].append(c)
+    studies = []
+    for study, items in by_study.items():
+        items.sort(key=lambda c: tuple(str(x or "") for x in (c.protocol, c.dataset, c.metric, c.unit, c.qualifier, c.split)))
+        winners = Counter(c.better(tolerance) for c in items)
+        gap = f.gaps.get(study)
+        studies.append({
+            "key": index.study_keys[study],
+            "role": "outlier" if study == f.outlier else "consensus",
+            "source_ids": sorted(local(s) for s, member in index.study.items() if member == study),
+            "higher": {local(f.a): winners[f.a], local(f.b): winners[f.b]},
+            "ties": winners[None],
+            "gap": round(gap, 4) if gap is not None else None,
+            "comparisons_total": len(items),
+            "comparisons": [comparison_json(c, tolerance) for c in items[:MAX_STUDY_COMPARISONS]],
+        })
+    studies.sort(key=lambda s: (s["role"] != "outlier", -s["comparisons_total"], s["key"]))
+    return studies
 
 
 @dataclass
@@ -708,6 +761,7 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
             "numbers": {k: (round(v, 4) if isinstance(v, float) else v) for k, v in n.items()},
             "previous_ids": previous,
             "key": key,
+            "studies": studies_json(f, index, rules["tie_tolerance"]),
             "actions": [action_json(c) for c in history],
         })
     report.sort(key=lambda d: (-SEVERITY.index(d["severity"]), d["rule"], d["id"]))
