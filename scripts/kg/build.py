@@ -453,13 +453,15 @@ NAMED_QUERIES = [
         "name": "contested_results_for_use_case",
         "title": "Contested results for a use case",
         "description": "Results on the protocols a use case is assessed by that an unsettled discrepancy rests on, "
-        "as the outlier study's result or as part of the consensus. Contested results are flagged, not withheld.",
+        "as the outlier study's result, as part of the consensus, or as one side of a two-study conflict (party). "
+        "Contested results are flagged, not withheld.",
         "sparql": "SELECT DISTINCT ?result ?role ?discrepancy ?severity ?state ?summary WHERE {\n"
         "  $use_case rb:assessedBy ?protocol .\n"
         "  ?result rb:resultOn ?protocol .\n"
         f"  GRAPH {DERIVED_GRAPH} {{\n"
         '    { ?discrepancy rb:outlierResult ?result . BIND("outlier" AS ?role) }\n'
         '    UNION { ?discrepancy rb:consensusResult ?result . BIND("consensus" AS ?role) }\n'
+        '    UNION { ?discrepancy rb:partyResult ?result . BIND("party" AS ?role) }\n'
         "    ?discrepancy rb:severity ?severity ; rb:reviewState ?state ; rb:discrepancySummary ?summary .\n"
         "  }\n"
         f"  {UNSETTLED}\n"
@@ -502,6 +504,10 @@ def build(kg_dir: Path) -> dict:
     conforms, report = validate_derived(derived)
     if not conforms:
         raise BuildError("SHACL validation of the derived graph failed:\n" + report[:5000])
+    labelled, problems = contradictions.labelled_outcomes(discrepancies)
+    if problems:
+        raise BuildError("Hand-reviewed findings would be hidden (scripts/kg/fixtures/labelled-findings.json):\n  "
+                         + "\n  ".join(problems))
     print(f"Derived {sum(not d['resolved'] for d in discrepancies)} discrepancies and kept "
           f"{sum(d['resolved'] for d in discrepancies)} resolved ones; left out {result.excluded['disputed']} disputed results "
           f"and {result.excluded['concern']} under an evidence concern", file=sys.stderr)
@@ -509,7 +515,7 @@ def build(kg_dir: Path) -> dict:
     (kg_dir / "inferred.nq").write_text(nquads(inferred, GRAPHS["inferred"]), "utf-8")
     (kg_dir / "derived.nq").write_text(nquads(derived, GRAPHS["derived"]), "utf-8")
     (kg_dir / "discrepancies.json").write_text(json.dumps(
-        {"schema_version": 4, "release_id": exported["release_id"], "rules": rules, "excluded": result.excluded,
+        {"schema_version": 5, "release_id": exported["release_id"], "rules": rules, "excluded": result.excluded,
          "discrepancies": discrepancies}, indent=2, ensure_ascii=False) + "\n", "utf-8")
     target = kg_dir / "ontology"
     if target.exists():
@@ -576,6 +582,9 @@ def build(kg_dir: Path) -> dict:
             "by_rule": dict(sorted(Counter(d["rule"] for d in live).items())),
             "by_severity": dict(sorted(Counter(d["severity"] for d in live).items())),
             "by_review_state": dict(sorted(Counter(d["review_state"] for d in live).items())),
+            "by_scope": dict(sorted(Counter(d["scope"] for d in live).items())),
+            "by_listing": dict(sorted(Counter(d["listing"] for d in live).items())),
+            "labelled_findings": labelled,
             # Settled discrepancies the rules no longer find, kept with their follow-up history.
             "resolved": len(resolved),
             "resolved_by_review_state": dict(sorted(Counter(d["review_state"] for d in resolved).items())),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normaliseDiscrepancies, summarise } from "../shared/omics/discrepancies";
+import { discrepanciesPage, normaliseDiscrepancies, summarise } from "../shared/omics/discrepancies";
 
 const finding = (extra: Record<string, unknown> = {}) => ({
   id: "discrepancy-a", rule: "ordering-reversal", severity: "high", review_state: "open",
@@ -40,5 +40,25 @@ describe("normaliseDiscrepancies", () => {
     const [, r] = file.discrepancies;
     expect([r.rule, r.scope, r.state, r.settled]).toEqual(["", "", "confirmed-error", true]);
     expect(summarise(r)).toMatchObject({ resolved: true, actions: 1, last_action_date: "2026-11-12" });
+  });
+
+  it("reads a finding before schema 5 as public, with no party links or variant mismatch", () => {
+    const [d] = normaliseDiscrepancies({ release_id: "r", schema_version: 4, discrepancies: [finding({ scope: "cross-task" })] }).discrepancies;
+    expect([d.listing, d.variant_mismatch, d.unlinked_protocols, d.party_sources, d.party_results]).toEqual(["public", false, [], [], []]);
+  });
+
+  it("reads a schema 5 two-study conflict and filters by listing", () => {
+    const conflict = finding({
+      id: "discrepancy-c", rule: "two-study-conflict", severity: "medium", scope: "unknown", listing: "review",
+      variant_mismatch: true, unlinked_protocols: ["protocol-p"], party_sources: ["source-x", "source-y"],
+      party_results: ["result-1", "result-2"], outlier_sources: [], consensus_sources: [],
+    });
+    const file = normaliseDiscrepancies({ release_id: "r", schema_version: 5, discrepancies: [conflict, finding({ scope: "same-task", listing: "public" })] });
+    const c = file.discrepancies.find((d) => d.id === "discrepancy-c")!;
+    expect([c.listing, c.variant_mismatch, c.unlinked_protocols, c.party_sources]).toEqual(["review", true, ["protocol-p"], ["source-x", "source-y"]]);
+    const all = file.discrepancies.map(summarise);
+    expect(discrepanciesPage("r", all, { listing: "public" }).items.map((d) => d.id)).toEqual(["discrepancy-a"]);
+    expect(discrepanciesPage("r", all, { listing: "review" }).items.map((d) => d.id)).toEqual(["discrepancy-c"]);
+    expect(discrepanciesPage("r", all).counts.listing).toEqual({ public: 1, review: 1 });
   });
 });

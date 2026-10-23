@@ -6,27 +6,41 @@ SEPIO assertion (made by an ECO automatic assertion until a reviewer decides) th
 results disagree with other studies' results for the same systems. A discrepancy is a lead to
 investigate. Nothing here changes a record's status or value.
 
-Rules, with thresholds in data/ontology/discrepancy-rules.json:
+Rules, with thresholds in data/ontology/discrepancy-rules.json (version 4,
+docs/design/discrepancy-rules-v4.html):
 
-  ordering reversal  Other studies rank system A above system B in most of their comparisons;
-                     this study ranks B above A in most of its own.
+  ordering reversal  At least two other studies agree on which of systems A and B is better;
+                     this study says the opposite. Each study counts once: its comparisons of
+                     the pair become one verdict (A, B or split) before studies are counted.
+  two-study conflict Only two studies give a verdict on the pair, and they disagree. There is
+                     no consensus to stand out from, so neither is named the outlier.
   gap outlier        In a group of at least three studies of one metric on one protocol or task,
                      with a reference system that every study in the group measured (a named
                      baseline if there is one), this study's median relative difference between a
                      system and the reference lies outside the range of the others by more than a
                      margin. A group without such a reference is skipped.
 
-A comparison is two systems' best values in one group of results from one study: same protocol,
-dataset, metric, unit, qualifier, split and direction. Copied results (an rb:originalEvaluation
-link, or origin paper_compilation) are left out, so a compilation never counts as a second
-study. Sources that share a result are one study, and so are sources with one DOI (a paper and
-its supplement) and files from one GitHub repository (the summaries of one benchmark's
-leaderboard are not independent of each other).
+A comparison is two systems' values in one group of results from one study: same protocol,
+dataset, metric, unit, qualifier, split and direction. Each study uses one tested configuration
+per model for all its groups (the one with the most results), so a model's sizes or checkpoints
+are not mixed across metrics. Copied results (an rb:originalEvaluation link, or origin
+paper_compilation) are left out, so a compilation never counts as a second study. Sources that
+share a result are one study, and so are sources with one DOI (a paper and its supplement),
+files from one GitHub repository, and sources joined by rb:companionOf (a paper's repository,
+leaderboard, supplement or other version).
 
 Configurations are compared as the model or method they configure (rb:configurationOf, then
 rb:family). The vocabulary keeps those links out of inference because results roll up only
 when a claim backs the link; here an unbacked link is still used, and the discrepancy says so
-with rb:identityBasis "unreviewed", because a lead is worth raising before identity review.
+with rb:identityBasis "unreviewed", because a lead is worth raising before identity review. A
+configuration with a combination rule (a union, intersection or vote over other systems) is its
+own system and is never compared with one of its members.
+
+Each finding has a scope: same-protocol, same-task, different-task, or unknown when a compared
+protocol has no task, benchmark or suite link. Severity is capped by the scope, limited to medium
+unless at least three consensus studies agree, and lowered a step each for unreviewed identity
+and for studies that used different model sizes. A finding's listing is public (same-protocol or
+same-task, or under active review) or review (for curation only).
 
 Results a reviewer has marked disputed, and results covered by a source's evidence_concerns
 entry, are left out, so a confirmed error stops firing once it is recorded. A settled discrepancy
@@ -34,8 +48,9 @@ that no longer fires is kept as a resolved finding (rb:ResolvedDiscrepancy), wit
 actions, so what was done about it stays visible.
 
 A discrepancy's ID hashes a canonical key: rule, compared systems (after configuration, family
-and alias resolution), anchor, metric and outlier study key. Only the gap rule has an anchor and a
-metric; an ordering reversal pools every comparison of its two systems, so both are null. The
+and alias resolution), anchor, metric and outlier study key, or for a two-study conflict both
+study keys. Only the gap rule has an anchor and a metric; the ordering rules pool every comparison
+of their two systems, so both are null. The
 study key is the lowest DOI among the study's sources, else the lowest repository URL, else the
 source retrieved first (tie-break: ID). None of these change when a source joins the study.
 """
@@ -56,6 +71,9 @@ from rdflib import RDF, RDFS, XSD, Literal, URIRef
 
 ROOT = Path(__file__).resolve().parents[2]
 RULES = ROOT / "data" / "ontology" / "discrepancy-rules.json"
+LABELLED = ROOT / "scripts" / "kg" / "fixtures" / "labelled-findings.json"
+# Labels whose findings must stay visible: present, and public while they are live.
+MUST_STAY_VISIBLE = ("real-error", "lead")
 
 RB = rdflib.Namespace("https://benchmarks.rewire.it/vocab#")
 DCT = rdflib.Namespace("http://purl.org/dc/terms/")
@@ -73,6 +91,11 @@ CHECKED = {concept("status", "source_checked"), concept("status", "reproduced")}
 AUTOMATIC = URIRef("http://purl.obolibrary.org/obo/ECO_0000203")
 MANUAL = URIRef("http://purl.obolibrary.org/obo/ECO_0000218")
 DISPUTED = concept("status", "disputed")
+# A model size in a configuration's name or attributes: 650M, 1.6B, 15 billion.
+SIZE = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)\s*(k|m|b|t|thousand|million|billion|trillion)(?![a-z])", re.I)
+SIZE_UNITS = {"k": 1e3, "thousand": 1e3, "m": 1e6, "million": 1e6, "b": 1e9, "billion": 1e9, "t": 1e12, "trillion": 1e12}
+# A finding a reviewer is working on stays on the public list whatever its scope.
+PUBLIC_STATES = ("investigating", "reported-upstream", "awaiting-correction", "confirmed-error")
 REVIEW_FIELD = "discrepancy_review"
 BASELINE_FIELD = "baseline"
 # Working states say what has been done; the terminal three settle the discrepancy.
@@ -111,6 +134,8 @@ DERIVED_PREDICATES = {
     RB.outlierResult, RB.consensusResult, RB.discrepancyScope, RB.identityBasis, RB.severity,
     RB.outlierComparisons, RB.outlierReversals, RB.consensusComparisons, RB.consensusAgreements,
     RB.outlierGap, RB.consensusGapMin, RB.consensusGapMax, RB.discrepancySummary,
+    RB.partySource, RB.partyResult, RB.consensusStudies, RB.consensusStudyAgreements, RB.listing,
+    RB.variantMismatch, RB.unlinkedProtocol,
     RB.discrepancyKey, RB.previousIds, RB.hasAction, RB.actionType, RB.actionDate, RB.actionUrl,
     RB.actionRevision, RB.resultingState,
     *(prop for prop, _ in RESOLUTION.values()),
@@ -139,6 +164,9 @@ class Comparison:
     unit: URIRef | None = None
     qualifier: str = ""
     split: str = ""
+    # The tested systems (configurations, or the model itself) whose rows the values come from.
+    config_a: URIRef | None = None
+    config_b: URIRef | None = None
 
     def better(self, tolerance: float) -> URIRef | None:
         """The better system, or None for a tie within tolerance of the larger magnitude."""
@@ -162,12 +190,17 @@ def local(node: URIRef | None) -> str | None:
 
 
 def finding_key(rule: str, systems: list[URIRef], anchor: URIRef | None, metric: URIRef | None,
-                outlier_study: str) -> dict:
+                outlier_study: str | None = None, studies: list[str] | None = None) -> dict:
     """The canonical key a discrepancy's ID hashes. Systems are resolved model or method IRIs;
-    the metric is a concept key."""
-    return {"rule": rule, "systems": sorted(local(s) for s in systems), "anchor": local(anchor),
-            "metric": str(metric).rsplit("/", 1)[-1] if metric is not None else None,
-            "outlier_study": outlier_study}
+    the metric is a concept key. An outlier finding names its outlier study; a two-study conflict,
+    which has no outlier, names both studies instead."""
+    key = {"rule": rule, "systems": sorted(local(s) for s in systems), "anchor": local(anchor),
+           "metric": str(metric).rsplit("/", 1)[-1] if metric is not None else None}
+    if studies is not None:
+        key["studies"] = sorted(studies)
+    else:
+        key["outlier_study"] = outlier_study
+    return key
 
 
 def identifier(key: dict) -> str:
@@ -177,10 +210,13 @@ def identifier(key: dict) -> str:
 
 @dataclass
 class Finding:
+    """A discrepancy. For an outlier finding, `comparisons` are the outlier study's and `consensus`
+    the other studies'. A two-study conflict has no outlier: `parties` are its two studies, in
+    study-key order, and `comparisons` and `consensus` hold the first's and the second's."""
     rule: str
     a: URIRef
     b: URIRef
-    outlier: URIRef
+    outlier: URIRef | None
     comparisons: list[Comparison]
     consensus: list[Comparison]
     numbers: dict = field(default_factory=dict)
@@ -192,6 +228,9 @@ class Finding:
     # study's median relative gap to the reference. The per-study breakdown is built from these.
     pool: list[Comparison] = field(default_factory=list)
     gaps: dict[URIRef, float] = field(default_factory=dict)
+    parties: tuple[URIRef, ...] = ()
+    # Study to the system its comparisons favour, or None for a split (ordering rules only).
+    verdicts: dict[URIRef, URIRef | None] = field(default_factory=dict)
 
 
 class Index:
@@ -255,6 +294,9 @@ class Index:
                 keys.append("github:" + "/".join(match.groups()).lower().removesuffix(".git"))
             for key in keys:
                 union(publications.setdefault(key, source), source)
+        # A repository, leaderboard, supplement or other version of a paper is one study with it.
+        for source, paper in self.g.subject_objects(RB.companionOf):
+            union(source, paper)
         return {source: find(source) for source in parent}
 
     def _study_keys(self) -> dict[URIRef, str]:
@@ -343,6 +385,10 @@ class Index:
         if (system, RDF.type, RB.Configuration) not in self.g:
             target = self.g.value(system, RB.aliasOf)
             return (target or system), True
+        # A union, intersection or vote over other systems is a system of its own: two different
+        # combinations of callers are not one method, whatever they are a configuration of.
+        if (system, RB.combinationRule, None) in self.g:
+            return system, True
         options = []
         for relation, name in ((RB.configurationOf, "configuration_of"), (RB.family, "family")):
             for target in sorted(self.g.objects(system, relation)):
@@ -355,13 +401,36 @@ class Index:
         return self.g.value(target, RB.aliasOf) or target, reviewed
 
     def anchors(self, protocol: URIRef | None) -> set:
-        """The protocol, the tasks it evaluates and everything it sits within."""
+        """The protocol, everything it sits within, and the tasks that any of those evaluate (a
+        protocol of a benchmark measures the task the benchmark evaluates), with what they sit
+        within."""
         if protocol is None:
             return set()
         found = {protocol, *self.within.get(protocol, ())}
-        for task in self.g.objects(protocol, RB.evaluatesTask):
-            found |= {task, *self.within.get(task, ())}
+        for node in list(found):
+            for task in self.g.objects(node, RB.evaluatesTask):
+                found |= {task, *self.within.get(task, ())}
         return found
+
+    def unlinked(self, protocol: URIRef | None) -> bool:
+        """True when nothing places the protocol in a task, benchmark or suite (issue #208)."""
+        return protocol is None or self.anchors(protocol) == {protocol}
+
+    def members(self, system: URIRef) -> set[URIRef]:
+        """The systems a combined configuration combines (its uses_model links), resolved."""
+        if (system, RB.combinationRule, None) not in self.g:
+            return set()
+        return {resolved[0] for member in self.g.objects(system, RB.usesModel) if (resolved := self.identity(member))}
+
+    def size(self, system: URIRef | None) -> float | None:
+        """A configuration's model size, read from its name, version or checkpoint (650M, 1.6B)."""
+        if system is None:
+            return None
+        for prop in (RDFS.label, RB.modelVersion, RB.checkpoint, RB.reportedName):
+            for value in self.g.objects(system, prop):
+                if match := SIZE.search(str(value)):
+                    return float(match.group(1)) * SIZE_UNITS[match.group(2).lower()]
+        return None
 
     def direction(self, result: URIRef) -> bool | None:
         direction = self.g.value(result, RB.metricDirection)
@@ -372,8 +441,13 @@ class Index:
 
 
 def comparisons(index: Index) -> list[Comparison]:
+    """Every pair of systems in every group of one study's results. Each study uses one tested
+    system per resolved model for all of its groups (issue #206): the one with the most results in
+    that study, then the larger model size, then the IRI. Taking the best value per group would mix
+    a model's sizes or checkpoints, a different one per metric. A combined system is never compared
+    with one of its own members (issue #204)."""
     g = index.g
-    groups: dict[tuple, dict[URIRef, list]] = defaultdict(lambda: defaultdict(list))
+    rows = []
     for result in g.subjects(RDF.type, RB.Result):
         if result in index.excluded:
             continue
@@ -385,7 +459,8 @@ def comparisons(index: Index) -> list[Comparison]:
             continue
         if g.value(evaluation, RB.origin) == COPIED_ORIGIN or (evaluation, RB.originalEvaluation, None) in g:
             continue
-        resolved = index.identity(g.value(evaluation, RB.testedSystem))
+        tested = g.value(evaluation, RB.testedSystem)
+        resolved = index.identity(tested)
         if resolved is None:
             continue
         try:
@@ -398,47 +473,98 @@ def comparisons(index: Index) -> list[Comparison]:
             g.value(result, RB.unit), str(g.value(result, RB.metricQualifier) or ""),
             str(g.value(result, RB.split) or ""), higher,
         )
-        groups[key][resolved[0]].append((number, result, resolved[1]))
+        rows.append((key, resolved[0], tested, number, result, resolved[1]))
+
+    counts: dict[tuple, Counter] = defaultdict(Counter)
+    for key, system, tested, *_ in rows:
+        counts[(key[0], system)][tested] += 1
+    chosen = {
+        study_system: min(tested, key=lambda t: (-tested[t], -(index.size(t) or 0), str(t)))
+        for study_system, tested in counts.items()
+    }
+    groups: dict[tuple, dict[URIRef, list]] = defaultdict(lambda: defaultdict(list))
+    for key, system, tested, number, result, reviewed in rows:
+        if chosen[(key[0], system)] == tested:
+            groups[key][system].append((number, result, reviewed))
 
     found = []
     for key, by_system in groups.items():
         study, protocol, dataset, metric, unit, qualifier, split, higher = key
         best = {}
-        for system, rows in by_system.items():
-            value = (max if higher else min)(number for number, _, _ in rows)
-            best[system] = (value, tuple(sorted(r for n, r, _ in rows if n == value)), all(rev for _, _, rev in rows))
+        for system, items in by_system.items():
+            value = (max if higher else min)(number for number, _, _ in items)
+            best[system] = (value, tuple(sorted(r for n, r, _ in items if n == value)), all(rev for _, _, rev in items))
         for a in sorted(best):
             for b in sorted(best):
-                if a < b:
+                if a < b and b not in index.members(a) and a not in index.members(b):
                     (va, ra, rev_a), (vb, rb_, rev_b) = best[a], best[b]
                     found.append(Comparison(study, protocol, metric, a, b, va, vb, higher, ra, rb_, rev_a and rev_b,
-                                            dataset, unit, qualifier, split))
+                                            dataset, unit, qualifier, split, chosen[(study, a)], chosen[(study, b)]))
     return found
 
 
-def ordering_reversals(pairs: dict, rules: dict) -> list[Finding]:
+def verdicts(items: list[Comparison], rules: dict) -> dict[URIRef, URIRef | None]:
+    """Each study's answer for one pair of systems: the system that scored better in at least the
+    verdict share of its untied comparisons, or None for a split. A study with fewer untied
+    comparisons than the minimum gives no verdict and is left out."""
+    r, tolerance = rules["verdict"], rules["tie_tolerance"]
+    by_study: dict[URIRef, list[URIRef]] = defaultdict(list)
+    for c in items:
+        if (winner := c.better(tolerance)) is not None:
+            by_study[c.study].append(winner)
+    found = {}
+    for study, winners in by_study.items():
+        if len(winners) < r["min_comparisons"]:
+            continue
+        top, count = Counter(winners).most_common(1)[0]
+        found[study] = top if count / len(winners) >= r["consistency"] else None
+    return found
+
+
+def ordering_reversals(pairs: dict, index: Index, rules: dict) -> list[Finding]:
+    """Ordering findings, counted in studies rather than rows (issues #201, #205). With three or more
+    studies giving a verdict, a study is an outlier when the others (at least the minimum number of
+    studies) agree with each other at the consensus share and it says the opposite. With exactly
+    two studies that disagree there is no consensus to stand out from, so they make one two-study
+    conflict with no outlier."""
     r = rules["ordering_reversal"]
     tolerance = rules["tie_tolerance"]
     findings = []
     for (a, b), items in pairs.items():
-        studies = sorted({c.study for c in items})
-        for study in studies:
-            mine = [c for c in items if c.study == study and c.better(tolerance)]
-            others = [c for c in items if c.study != study and c.better(tolerance)]
-            if len(others) < r["min_consensus_comparisons"] or not mine:
+        verdict = verdicts(items, rules)
+        decisive = lambda study: [c for c in items if c.study == study and c.better(tolerance)]
+        if len(verdict) == 2:
+            first, second = sorted(verdict, key=lambda study: index.study_keys[study])
+            if verdict[first] and verdict[second] and verdict[first] != verdict[second]:
+                mine, theirs = decisive(first), decisive(second)
+                findings.append(Finding(
+                    "two-study-conflict", a, b, None, mine, theirs, pool=items, parties=(first, second), verdicts=verdict,
+                    numbers={"studies": 2},
+                ))
+            continue
+        for study in sorted(verdict):
+            if verdict[study] is None:
                 continue
-            for_a = sum(1 for c in others if c.better(tolerance) == a)
-            higher = a if for_a * 2 >= len(others) else b
-            agreements = sum(1 for c in others if c.better(tolerance) == higher)
-            if agreements / len(others) < r["consensus_consistency"]:
+            others = {s: v for s, v in verdict.items() if s != study}
+            if len(others) < r["min_consensus_studies"]:
                 continue
-            reversals = sum(1 for c in mine if c.better(tolerance) != higher)
-            if reversals < r["min_outlier_reversals"] or reversals / len(mine) < r["outlier_consistency"]:
+            for_a = sum(1 for v in others.values() if v == a)
+            for_b = sum(1 for v in others.values() if v == b)
+            if for_a == for_b:
                 continue
+            higher = a if for_a > for_b else b
+            agreements = max(for_a, for_b)
+            if agreements / len(others) < r["consensus_consistency"] or verdict[study] == higher:
+                continue
+            mine = decisive(study)
+            consensus = [c for c in items if c.study in others and c.better(tolerance)]
             findings.append(Finding(
-                "ordering-reversal", a, b, study, mine, others, higher=higher, pool=items,
-                numbers={"outlier_comparisons": len(mine), "outlier_reversals": reversals,
-                         "consensus_comparisons": len(others), "consensus_agreements": agreements},
+                "ordering-reversal", a, b, study, mine, consensus, higher=higher, pool=items, verdicts=verdict,
+                numbers={"outlier_comparisons": len(mine),
+                         "outlier_reversals": sum(1 for c in mine if c.better(tolerance) != higher),
+                         "consensus_comparisons": len(consensus),
+                         "consensus_agreements": sum(1 for c in consensus if c.better(tolerance) == higher),
+                         "consensus_studies": len(others), "consensus_study_agreements": agreements},
             ))
     return findings
 
@@ -498,13 +624,53 @@ def gap_outliers(found: list[Comparison], index: Index, rules: dict) -> list[Fin
     return [best[k] for k in sorted(best, key=lambda k: tuple(str(x) for x in k))]
 
 
-def scope(finding: Finding, index: Index) -> str:
+def scope(finding: Finding, index: Index) -> tuple[str, list[URIRef]]:
+    """Whether the two sides measured the same protocol, the same task, different tasks, or cannot
+    be told apart because a protocol on either side has no task, benchmark or suite link (issue
+    #208). Returns the scope and the unlinked protocols."""
     mine = {c.protocol for c in finding.comparisons}
     theirs = {c.protocol for c in finding.consensus}
+    unlinked = sorted({p for p in mine | theirs if p is not None and index.unlinked(p)})
     if mine & theirs - {None}:
-        return "same-protocol"
+        return "same-protocol", unlinked
     near = set().union(*(index.anchors(p) for p in mine)) & set().union(*(index.anchors(p) for p in theirs))
-    return "same-task" if near else "cross-task"
+    if near:
+        return "same-task", unlinked
+    if unlinked or None in mine | theirs:
+        return "unknown", unlinked
+    return "different-task", unlinked
+
+
+def variant_mismatch(finding: Finding, index: Index) -> bool:
+    """True when, for either system, the studies used configurations of different recorded sizes."""
+    for system in (finding.a, finding.b):
+        sizes = set()
+        for c in finding.comparisons + finding.consensus:
+            tested = c.config_a if system == c.a else c.config_b
+            if (size := index.size(tested)) is not None:
+                sizes.add(size)
+        if len(sizes) > 1:
+            return True
+    return False
+
+
+def severity(finding: Finding, where: str, reviewed: bool, mismatch: bool, rules: dict) -> str:
+    """The highest level the scope allows, limited to medium unless enough independent studies form
+    the consensus (always for the gap rule and two-study conflicts), then a step down each for
+    unreviewed identity and a variant mismatch. Nothing steps a finding up."""
+    r = rules["severity"]
+    level = SEVERITY.index(r["cap_by_scope"][where])
+    strong = (finding.rule == "ordering-reversal"
+              and finding.numbers["consensus_studies"] >= r["high_min_consensus_studies"])
+    if not strong:
+        level = min(level, SEVERITY.index("medium"))
+    level -= (not reviewed) + mismatch
+    return SEVERITY[max(0, level)]
+
+
+def listing(where: str, state: str) -> str:
+    """public: shown on the contested page by default. review: listed for curation."""
+    return "public" if where in ("same-protocol", "same-task") or state in PUBLIC_STATES else "review"
 
 
 def concept_key(node: URIRef | None) -> str | None:
@@ -524,9 +690,11 @@ def comparison_json(c: Comparison, tolerance: float) -> dict:
 
 
 def studies_json(f: Finding, index: Index, tolerance: float) -> list[dict]:
-    """Every study that compared the finding's two systems: the outlier first, then the others by
-    number of comparisons (most first) and key. For an ordering reversal this includes a study whose
-    comparisons are all ties, which consensus_sources leaves out."""
+    """Every study that compared the finding's two systems: the outlier first (or a conflict's two
+    parties), then the others by number of comparisons (most first) and key. For an ordering
+    finding this includes a study whose comparisons are all ties or too few for a verdict, which
+    consensus_sources leaves out. Each study names its verdict and the configuration it used for
+    each system."""
     by_study: dict[URIRef, list[Comparison]] = defaultdict(list)
     for c in f.pool:
         by_study[c.study].append(c)
@@ -535,9 +703,13 @@ def studies_json(f: Finding, index: Index, tolerance: float) -> list[dict]:
         items.sort(key=lambda c: tuple(str(x or "") for x in (c.protocol, c.dataset, c.metric, c.unit, c.qualifier, c.split)))
         winners = Counter(c.better(tolerance) for c in items)
         gap = f.gaps.get(study)
+        used = {local(f.a): local(items[0].config_a if items[0].a == f.a else items[0].config_b),
+                local(f.b): local(items[0].config_b if items[0].a == f.a else items[0].config_a)}
         studies.append({
             "key": index.study_keys[study],
-            "role": "outlier" if study == f.outlier else "consensus",
+            "role": "party" if study in f.parties else "outlier" if study == f.outlier else "consensus",
+            "verdict": (local(f.verdicts[study]) if f.verdicts[study] else "split") if study in f.verdicts else None,
+            "configurations": used,
             "source_ids": sorted(local(s) for s, member in index.study.items() if member == study),
             "higher": {local(f.a): winners[f.a], local(f.b): winners[f.b]},
             "ties": winners[None],
@@ -545,7 +717,7 @@ def studies_json(f: Finding, index: Index, tolerance: float) -> list[dict]:
             "comparisons_total": len(items),
             "comparisons": [comparison_json(c, tolerance) for c in items[:MAX_STUDY_COMPARISONS]],
         })
-    studies.sort(key=lambda s: (s["role"] != "outlier", -s["comparisons_total"], s["key"]))
+    studies.sort(key=lambda s: (s["role"] == "consensus", -s["comparisons_total"], s["key"]))
     return studies
 
 
@@ -707,10 +879,11 @@ def resolved_finding(target: str, history: list[dict], previous: list[str], inde
     return {
         "id": target, "resolved": True, "rule": None, "label": label, "summary": summary, "severity": "low",
         "scope": None, "identity_basis": None, "review_state": review["state"], "review_claim": local(review["claim"]),
+        "listing": "public", "variant_mismatch": False, "unlinked_protocols": [],
         "settled": True, "resolution": resolution, "systems": [local(s) for s in systems],
         "consensus_higher": None, "reference_system": None,
         "outlier_sources": [], "consensus_sources": [], "outlier_results": [], "consensus_results": [],
-        "numbers": {}, "previous_ids": previous, "key": None, "studies": [],
+        "party_sources": [], "party_results": [], "numbers": {}, "previous_ids": previous, "key": None, "studies": [],
         "actions": [action_json(c) for c in history],
     }
 
@@ -737,43 +910,61 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
     pairs: dict[tuple, list[Comparison]] = defaultdict(list)
     for c in found:
         pairs[(c.a, c.b)].append(c)
-    findings = ordering_reversals(pairs, rules) + gap_outliers(found, index, rules)
+    findings = ordering_reversals(pairs, index, rules) + gap_outliers(found, index, rules)
     decided = reviews(index)
 
     triples: set[tuple] = set()
     report = []
     for f in findings:
-        key = finding_key(f.rule, [f.a, f.b], f.anchor, f.metric, index.study_keys[f.outlier])
+        if f.rule == "two-study-conflict":
+            key = finding_key(f.rule, [f.a, f.b], None, None, studies=[index.study_keys[p] for p in f.parties])
+        else:
+            key = finding_key(f.rule, [f.a, f.b], f.anchor, f.metric, index.study_keys[f.outlier])
         identifier_ = identifier(key)
         node = URIRef(ID + identifier_)
         history = decided.actions.get(identifier_, [])
         review = history[-1] if history else None
         claim = review["claim"] if review else None
         state = review["state"] if review else "open"
-        where = scope(f, index)
+        where, unlinked = scope(f, index)
         reviewed = all(c.reviewed for c in f.comparisons + f.consensus)
-        # A step down each for different tasks, unreviewed identity and the gap rule; a step up for
-        # a reversal of a near-unanimous consensus. A gap outlier is never more than medium.
-        strong = rules["strong_consensus"]
-        unanimous = (f.rule == "ordering-reversal"
-                     and f.numbers["consensus_comparisons"] >= strong["min_comparisons"]
-                     and f.numbers["consensus_agreements"] / f.numbers["consensus_comparisons"] >= strong["min_consistency"])
-        steps = 2 - (where == "cross-task") - (not reviewed) - (f.rule == "gap-outlier") + unanimous
-        severity = SEVERITY[min(max(0, steps), 1 if f.rule == "gap-outlier" else 2)]
-        outlier_sources = sorted(s for s, study in index.study.items() if study == f.outlier)
-        consensus_sources = sorted({s for s, study in index.study.items() if study in {c.study for c in f.consensus}})
-        outlier_results = sorted({r for c in f.comparisons for r in c.results_a + c.results_b})
-        consensus_results = sorted({r for c in f.consensus for r in c.results_a + c.results_b})
-        name_a, name_b, study = index.label(f.a), index.label(f.b), index.label(f.outlier)
+        mismatch = variant_mismatch(f, index)
+        severity_ = severity(f, where, reviewed, mismatch, rules)
+        listing_ = listing(where, state)
+        members = lambda studies: sorted(s for s, study in index.study.items() if study in studies)
+        results = lambda items: sorted({r for c in items for r in c.results_a + c.results_b})
+        if f.rule == "two-study-conflict":
+            outlier_sources, consensus_sources, outlier_results, consensus_results = [], [], [], []
+            party_sources, party_results = members(set(f.parties)), results(f.comparisons + f.consensus)
+        else:
+            outlier_sources = members({f.outlier})
+            consensus_sources = members({c.study for c in f.consensus})
+            outlier_results, consensus_results = results(f.comparisons), results(f.consensus)
+            party_sources, party_results = [], []
+        name_a, name_b = index.label(f.a), index.label(f.b)
         n = f.numbers
-        if f.rule == "ordering-reversal":
+        tolerance = rules["tie_tolerance"]
+        if f.rule == "two-study-conflict":
+            kind = RB.TwoStudyConflict
+            first, second = (index.label(p) for p in f.parties)
+            label = f"{name_a} and {name_b}: {first} and {second} disagree"
+            parts = []
+            for party, items in zip(f.parties, (f.comparisons, f.consensus)):
+                winner = f.verdicts[party]
+                loser = f.b if winner == f.a else f.a
+                wins = sum(1 for c in items if c.better(tolerance) == winner)
+                parts.append(f"{index.label(party)} ranks {index.label(winner)} above {index.label(loser)} in {wins} of {len(items)} comparisons")
+            summary = "; ".join(parts) + ". No other study gives a verdict, so neither is the outlier."
+        elif f.rule == "ordering-reversal":
+            study = index.label(f.outlier)
             top, bottom = (name_a, name_b) if f.higher == f.a else (name_b, name_a)
             kind = RB.OrderingReversal
             label = f"{name_a} and {name_b}: {study} reverses the order"
             summary = (f"{study} ranks {bottom} above {top} in {n['outlier_reversals']} of {n['outlier_comparisons']} "
-                       f"comparisons; other studies rank {top} above {bottom} in {n['consensus_agreements']} of "
-                       f"{n['consensus_comparisons']}.")
+                       f"comparisons; {n['consensus_study_agreements']} of {n['consensus_studies']} other studies rank "
+                       f"{top} above {bottom}.")
         else:
+            study = index.label(f.outlier)
             kind = RB.GapOutlier
             label = f"{name_a} relative to {name_b}: {study} is outside the range of other studies"
             summary = (f"On {index.label(f.anchor)}, {study} reports {name_a} at a median relative difference of "
@@ -787,7 +978,9 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
             (node, RB.comparedSystem, f.a), (node, RB.comparedSystem, f.b),
             (node, RB.discrepancyScope, Literal(where)),
             (node, RB.identityBasis, Literal("reviewed" if reviewed else "unreviewed")),
-            (node, RB.severity, Literal(severity)),
+            (node, RB.severity, Literal(severity_)),
+            (node, RB.listing, Literal(listing_)),
+            (node, RB.variantMismatch, Literal(mismatch)),
             (node, RB.discrepancySummary, Literal(summary)),
             (node, RB.discrepancyKey, Literal(json.dumps(key, sort_keys=True, ensure_ascii=False))),
         }
@@ -797,21 +990,27 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
         triples |= {(node, RB.consensusSource, s) for s in consensus_sources}
         triples |= {(node, RB.outlierResult, r) for r in outlier_results}
         triples |= {(node, RB.consensusResult, r) for r in consensus_results}
+        triples |= {(node, RB.partySource, s) for s in party_sources}
+        triples |= {(node, RB.partyResult, r) for r in party_results}
+        triples |= {(node, RB.unlinkedProtocol, p) for p in unlinked}
         if f.rule == "ordering-reversal":
             triples.add((node, RB.consensusHigher, f.higher))
             for name, prop in (("outlier_comparisons", RB.outlierComparisons), ("outlier_reversals", RB.outlierReversals),
                                ("consensus_comparisons", RB.consensusComparisons),
-                               ("consensus_agreements", RB.consensusAgreements)):
+                               ("consensus_agreements", RB.consensusAgreements),
+                               ("consensus_studies", RB.consensusStudies),
+                               ("consensus_study_agreements", RB.consensusStudyAgreements)):
                 triples.add((node, prop, Literal(n[name], datatype=XSD.integer)))
-        else:
+        elif f.rule == "gap-outlier":
             triples.add((node, RB.referenceSystem, f.reference))
             for name, prop in (("outlier_gap", RB.outlierGap), ("consensus_gap_min", RB.consensusGapMin),
                                ("consensus_gap_max", RB.consensusGapMax)):
                 triples.add((node, prop, Literal(Decimal(f"{n[name]:.4f}"), datatype=XSD.decimal)))
         locals_ = lambda nodes: [local(x) for x in nodes]
         report.append({
-            "id": identifier_, "resolved": False, "rule": f.rule, "label": label, "summary": summary, "severity": severity,
+            "id": identifier_, "resolved": False, "rule": f.rule, "label": label, "summary": summary, "severity": severity_,
             "scope": where, "identity_basis": "reviewed" if reviewed else "unreviewed", "review_state": state,
+            "listing": listing_, "variant_mismatch": mismatch, "unlinked_protocols": locals_(unlinked),
             "review_claim": local(claim) if claim else None,
             "settled": state in TERMINAL_STATES,
             # next_check is a date, not a flag: a consumer decides what is overdue when it reads
@@ -822,6 +1021,7 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
             "reference_system": local(f.reference) if f.reference else None,
             "outlier_sources": locals_(outlier_sources), "consensus_sources": locals_(consensus_sources),
             "outlier_results": locals_(outlier_results), "consensus_results": locals_(consensus_results),
+            "party_sources": locals_(party_sources), "party_results": locals_(party_results),
             "numbers": {k: (round(v, 4) if isinstance(v, float) else v) for k, v in n.items()},
             "previous_ids": previous,
             "key": key,
@@ -845,6 +1045,32 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
     report.sort(key=lambda d: d["resolved"])
     excluded = Counter(index.excluded.values())
     return Derived(triples, report, {"disputed": excluded["disputed"], "concern": excluded["concern"]}, retired, problems)
+
+
+def labelled_outcomes(report: list[dict], path: Path = LABELLED) -> tuple[list[dict], list[str]]:
+    """What became of each hand-reviewed finding (scripts/kg/fixtures/labelled-findings.json), and
+    problems for a real error or lead that is missing or left off the public listing."""
+    labelled = json.loads(path.read_text("utf-8"))["findings"]
+    by_id = {}
+    for d in report:
+        for identifier_ in [d["id"], *d.get("previous_ids", [])]:
+            by_id.setdefault(identifier_, d)
+    outcomes, problems = [], []
+    for entry in labelled:
+        found = [by_id[i] for i in entry["ids"] if i in by_id]
+        unique = list({d["id"]: d for d in found}.values())
+        outcomes.append({"label": entry["label"], "name": entry["name"], "ids": entry["ids"],
+                         "findings": [{"id": d["id"], "rule": d["rule"], "severity": d["severity"], "scope": d["scope"],
+                                       "listing": d["listing"], "resolved": d["resolved"]} for d in unique]})
+        if entry["label"] not in MUST_STAY_VISIBLE:
+            continue
+        if not unique:
+            problems.append(f"{entry['name']} ({entry['label']}) no longer has a finding; list its old ID in previous_ids "
+                            "or settle its review")
+        for d in unique:
+            if not d["resolved"] and d["listing"] != "public":
+                problems.append(f"{entry['name']} ({entry['label']}) is {d['id']} on the {d['listing']} listing, not public")
+    return outcomes, problems
 
 
 def check_derived(triples: set[tuple]) -> list[str]:

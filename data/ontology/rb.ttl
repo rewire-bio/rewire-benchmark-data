@@ -314,6 +314,10 @@ rb:GapOutlier a owl:Class ; rdfs:subClassOf rb:Discrepancy ;
     rdfs:label "gap outlier" ;
     rdfs:comment "The outlier source's relative difference between a system and a reference system lies outside the range of the other sources (vocab/discrepancy-rule/gap-outlier)." .
 
+rb:TwoStudyConflict a owl:Class ; rdfs:subClassOf rb:Discrepancy ;
+    rdfs:label "two-study conflict" ;
+    rdfs:comment "Only two independent sources give a verdict on a pair of systems, and they rank them opposite ways. Neither is the outlier (vocab/discrepancy-rule/two-study-conflict)." .
+
 rb:ResolvedDiscrepancy a owl:Class ; rdfs:subClassOf rb:Discrepancy ;
     rdfs:label "resolved discrepancy" ;
     rdfs:comment "A discrepancy settled by review (explained, confirmed error or false positive) that the rules no longer find, for example because its results were disputed. It keeps its follow-up actions and the systems its review claims are about, but no rule, evidence links or numbers." .
@@ -344,12 +348,24 @@ rb:outlierResult a owl:ObjectProperty ; rdfs:subPropertyOf obo:SEPIO_0000440 ;
 rb:consensusResult a owl:ObjectProperty ; rdfs:subPropertyOf obo:SEPIO_0000440 ;
     rdfs:label "consensus result" ;
     rdfs:comment "A result from a consensus source that the rule compared." .
+rb:partySource a owl:ObjectProperty ; rdfs:subPropertyOf obo:SEPIO_0000438 ;
+    rdfs:label "party source" ;
+    rdfs:comment "For a two-study conflict, a source of one of the two studies." .
+rb:partyResult a owl:ObjectProperty ; rdfs:subPropertyOf obo:SEPIO_0000440 ;
+    rdfs:label "party result" ;
+    rdfs:comment "For a two-study conflict, a result from either study that the rule compared." .
+rb:unlinkedProtocol a owl:ObjectProperty ; rdfs:label "unlinked protocol" ;
+    rdfs:comment "A protocol the discrepancy compares that has no task, benchmark or suite link, so the scope may be unknown." .
 rb:discrepancyScope a owl:DatatypeProperty ; rdfs:label "discrepancy scope" ;
-    rdfs:comment "same-protocol, same-task or cross-task: how closely the compared results' assessments match." .
+    rdfs:comment "same-protocol, same-task, different-task, or unknown when a compared protocol has no task, benchmark or suite link." .
+rb:listing a owl:DatatypeProperty ; rdfs:label "listing" ;
+    rdfs:comment "public: shown on the contested page by default (same-protocol or same-task, or under active review). review: listed for curation." .
+rb:variantMismatch a owl:DatatypeProperty ; rdfs:label "variant mismatch" ;
+    rdfs:comment "true when the studies used configurations of a system with different recorded model sizes (xsd:boolean)." .
 rb:identityBasis a owl:DatatypeProperty ; rdfs:label "identity basis" ;
     rdfs:comment "reviewed if every configuration-to-model link used is backed by a checked claim, otherwise unreviewed." .
 rb:severity a owl:DatatypeProperty ; rdfs:label "severity" ;
-    rdfs:comment "high, medium or low, from the scope and the identity basis." .
+    rdfs:comment "high, medium or low: capped by the scope, limited by the number of consensus studies, and lowered for unreviewed identity or a variant mismatch." .
 rb:outlierComparisons a owl:DatatypeProperty ; rdfs:label "outlier comparisons" ;
     rdfs:comment "Number of pairwise comparisons from the outlier source (xsd:integer)." .
 rb:outlierReversals a owl:DatatypeProperty ; rdfs:label "outlier reversals" ;
@@ -358,6 +374,10 @@ rb:consensusComparisons a owl:DatatypeProperty ; rdfs:label "consensus compariso
     rdfs:comment "Number of pairwise comparisons from the consensus sources (xsd:integer)." .
 rb:consensusAgreements a owl:DatatypeProperty ; rdfs:label "consensus agreements" ;
     rdfs:comment "Of those, how many follow the consensus order (xsd:integer)." .
+rb:consensusStudies a owl:DatatypeProperty ; rdfs:label "consensus studies" ;
+    rdfs:comment "For an ordering reversal, the number of other studies that give a verdict (xsd:integer)." .
+rb:consensusStudyAgreements a owl:DatatypeProperty ; rdfs:label "consensus study agreements" ;
+    rdfs:comment "Of those, how many rank the systems in the consensus order (xsd:integer)." .
 rb:outlierGap a owl:DatatypeProperty ; rdfs:label "outlier gap" ;
     rdfs:comment "For a gap outlier, the outlier source's median relative difference (xsd:decimal)." .
 rb:consensusGapMin a owl:DatatypeProperty ; rdfs:label "consensus gap minimum" ;

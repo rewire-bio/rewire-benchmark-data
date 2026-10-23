@@ -1,23 +1,31 @@
 {
   "note": "Thresholds for scripts/kg/contradictions.py. Changing a value changes the derived graph and the bundle; record why in docs/reviews/.",
-  "version": "3",
+  "version": "4",
   "notes": {
+    "4": "Evidence is counted in studies: each study gives one verdict per pair (at least 2 untied comparisons, 75% one way). An ordering reversal needs at least 2 other studies agreeing at 80%; two studies that disagree make one two-study conflict. Each study uses one configuration per model; combined configurations are their own systems and are not compared with their members; companion_of joins sources into one study. Scope is same-protocol, same-task, different-task or unknown. Severity is capped by scope, limited to medium below 3 consensus studies, and steps down for unreviewed identity and a variant mismatch; nothing steps it up. See docs/design/discrepancy-rules-v4.html and docs/reviews/2026-10-24-discrepancy-rules-v4.md.",
     "3": "Gap outliers are measured against a reference system every study in the group measured, preferring a named baseline, per protocol or task and metric; groups without one are skipped. Disputed results and results under an evidence concern are left out. IDs hash rule, systems, anchor, metric and a stable outlier study key. See docs/reviews/2026-10-23-discrepancy-identity.md.",
     "2": "Sources with one DOI, and files from one GitHub repository, are one study; a reversal of a strong consensus goes up a severity step. See docs/reviews/2026-10-22-discrepancy-severity.md."
   },
   "tie_tolerance": 0.01,
+  "verdict": {
+    "min_comparisons": 2,
+    "consistency": 0.75
+  },
   "ordering_reversal": {
-    "min_consensus_comparisons": 5,
-    "consensus_consistency": 0.8,
-    "min_outlier_reversals": 2,
-    "outlier_consistency": 0.75
+    "min_consensus_studies": 2,
+    "consensus_consistency": 0.8
   },
   "gap_outlier": {
     "min_studies": 3,
     "margin": 0.1
   },
-  "strong_consensus": {
-    "min_comparisons": 20,
-    "min_consistency": 0.95
+  "severity": {
+    "cap_by_scope": {
+      "same-protocol": "high",
+      "same-task": "high",
+      "unknown": "medium",
+      "different-task": "low"
+    },
+    "high_min_consensus_studies": 3
   }
 }
