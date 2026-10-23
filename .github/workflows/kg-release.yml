@@ -63,3 +63,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TARGET_SHA: ${{ steps.release.outputs.sha }}
         run: npm run kg:publish
+      # The website pins this release's discrepancies.json once it is published. The data release
+      # dispatched the website before this bundle existed, so dispatch it again now.
+      - name: Ask the website to adopt the discrepancies
+        env:
+          GH_TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
+        run: node scripts/release/dispatch-website.mjs
