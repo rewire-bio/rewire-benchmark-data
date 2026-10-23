@@ -51,7 +51,7 @@ A **comparison** is two systems' best values within one group of one study's res
 - Results marked `disputed`.
 - Results covered by a source's `evidence_concerns`: all of that source's results, or, when the concern lists `applies_to`, the named records and the results resting on them.
 
-A result on a scoped concern's path is one whose result, evaluation, tested configuration, protocol, dataset, or a benchmark the protocol is `part_of`, is named in `applies_to`. This follows `shared/omics/concerns.ts`.
+A concern without `applies_to` (or with an empty list) covers every result that cites the source, directly or through its evaluation. A result on a scoped concern's path is one whose result, evaluation, tested configuration, protocol, dataset, or the benchmark or protocol its protocol is directly `part_of`, is named in `applies_to`, from any source. These are the same rules the website and use cases apply (`shared/omics/concerns.ts`, `evidencePath` and `sourceWideConcern`); `_excluded` in `scripts/kg/contradictions.py` implements them in Python, and a change to one must be made to the other.
 
 A confirmed error therefore stops re-firing once it is recorded. The bundle manifest's `derived.excluded` and the top-level `excluded` in `discrepancies.json` count the results left out: `disputed` (by status) and `concern` (by an evidence concern). With rules version 3, the evidence concern exclusion removed 6,712 results and the disputed exclusion none. That is why 37 findings from version 2 stopped firing (32 low, 5 medium), and 4 new ones appeared where the consensus changed: 254 findings became 221 ([the 2026-10-23 review](reviews/2026-10-23-discrepancy-identity.md)).
 

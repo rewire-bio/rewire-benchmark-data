@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { profileSchema, validateProfileSources } from "../lib/omics-profile";
 import { buildRelease } from "../scripts/omics/release";
-import { createCatalogueQuery } from "../shared/omics/catalogue-query";
+import { compareResults, createCatalogueQuery } from "../shared/omics/catalogue-query";
 import { movedAttributes, records, recordsById } from "./helpers/records";
 
 const sources = new Map(records.filter((record) => record.kind === "source").map((record) => [record.id, record]));
@@ -58,5 +58,16 @@ describe("unresolved primary-source concerns", () => {
     expect(comparison.reasons).toContain(
       "A source has unresolved evidence concerns; this result cannot support a comparison.",
     );
+  });
+  it("prevents comparison when a scoped concern names the result's evaluation, from any source", () => {
+    const query = createCatalogueQuery(
+      buildRelease(records, "2026-09-16T21:00:00Z", { entity_schema_version: "1.1" }).snapshot,
+    );
+    const rowFor = (id: string) => query.results({ id }).items[0];
+    const ids = ["b2-barcodebert-2026", "lit-b4-017"];
+    const reason = "An evidence concern applies to this result; it cannot support a comparison.";
+    expect(compareResults("test", ids, rowFor, new Set()).reasons).not.toContain(reason);
+    const evaluationId = rowFor(ids[0]).evaluation!.id;
+    expect(compareResults("test", ids, rowFor, new Set(), new Set([evaluationId])).reasons).toContain(reason);
   });
 });

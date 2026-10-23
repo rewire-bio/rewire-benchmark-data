@@ -187,6 +187,10 @@ That updates each record's provenance hash and appends a `changed_by` entry (inp
 
 - A wrong descriptive field: change the field, and add a `claim` record that keeps the old value (`field`, `previous_value`, `value`, `source_locator`, `review`, with a `subject` link). Existing examples have IDs starting `metadata-correction-`.
 - A problem with a source or result that should block comparison (conflicting tables, unclear units, abstract and body disagree): add an entry to the source record's `attributes.evidence_concerns` with `source_id`, `message`, `source_locator`, `artifact_sha256` and review date. The value is kept and marked.
+  - Name what the concern covers in `applies_to`, a list of record IDs: results, evaluations, configurations, datasets, dataset subsets, protocols, benchmarks or claims. A named record withholds every result that rests on it (its evaluation, the evaluation's tested configuration, protocol and dataset, and what the protocol is directly `part_of`), from any source, from comparisons, use-case judgements and discrepancy inference; a named claim withholds that claim. The source itself stays usable as a citation.
+  - Leave `applies_to` out only when the whole source is unreliable. Every record citing the source is then withheld, including every use case that cites it for context.
+  - The website, use cases and comparisons apply these rules through `shared/omics/concerns.ts`; the discrepancy rules apply the same ones in Python (`_excluded` in `scripts/kg/contradictions.py`, [discrepancies.md](discrepancies.md#what-the-rules-flag)). Change both together.
+  - A paper that reports a problem in someone else's benchmark records the concern on its own source record and names the affected protocols or benchmark in `applies_to`.
 - A wrong numerical result: add a corrected result that supersedes the old one, with the evidence. Do not edit the old record's value.
 
 ### Discrepancies between studies
@@ -257,6 +261,6 @@ CI runs the full tests, the Python tests and the SHACL check of the whole store.
 | The value was checked | `result.attributes.review`, batch `review.json`, dated review | actor, method, time; file hashes |
 | The record has not changed since review | `data/provenance/records/` | per-record SHA-256 and `changed_by` history |
 | A descriptive fact about a model or benchmark | `claim` record, profile facts | `source_locator`, `status` |
-| A known problem | source `attributes.evidence_concerns` | artifact hash and locator |
+| A known problem | source `attributes.evidence_concerns`, scoped by `applies_to` | artifact hash and locator |
 | A correction | `metadata-correction-*` claim, superseding records, provenance `changed_by` | linked evidence and review |
 | What was not covered | ledger `gaps`, `coverage.json`, `missing_metadata` | explicit entries |

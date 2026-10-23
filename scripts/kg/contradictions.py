@@ -290,13 +290,18 @@ class Index:
             if self.g.value(result, RB.status) == DISPUTED:
                 excluded[result] = "disputed"
                 continue
-            if whole_sources.intersection(self.g.objects(result, DCT.source)):
+            evaluations = set(self.g.objects(result, RB.evaluation))
+            # A source-wide concern covers results that cite the source or whose evaluation does.
+            cited = set(self.g.objects(result, DCT.source))
+            for evaluation in evaluations:
+                cited |= set(self.g.objects(evaluation, DCT.source))
+            if whole_sources & cited:
                 excluded[result] = "concern"
                 continue
             if not targets:
                 continue
             path = {result}
-            for evaluation in self.g.objects(result, RB.evaluation):
+            for evaluation in evaluations:
                 path.add(evaluation)
                 for prop in EVALUATION_PATH:
                     path |= set(self.g.objects(evaluation, prop))

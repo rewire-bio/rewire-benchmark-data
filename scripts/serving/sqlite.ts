@@ -16,6 +16,7 @@ import { PREPARED_CONTRACT_VERSION } from "../../shared/omics/prepared-catalogue
 import { normaliseDiscrepancies, summarise, type DiscrepancyFile } from "../../shared/omics/discrepancies";
 import { createRecordEncoder, decodeRecords, packEvidence, slimListRecord, unpackEvidence } from "../../shared/omics/serving-codec";
 import { isBenchmarkSubject, isDatasetSubject } from "../../shared/omics/entity-kinds";
+import { concernTargets } from "../../shared/omics/concerns";
 import { benchmarkCoverage } from "../omics/audit-benchmark-evidence";
 import { buildBaselineAudit } from "../../lib/baseline-coverage";
 import type { CatalogueRecord } from "../../shared/omics/catalogue-query";
@@ -226,6 +227,8 @@ export function buildPreparedCatalogue(input: {
         .sort(),
     ),
   );
+  // Records named by scoped evidence concerns, for the comparison gate.
+  blob.run("concern_target_ids", gz([...concernTargets(snapshot.records)].sort()));
   // Use cases: the small index (entries and backlinks) as one blob, and each
   // mapping list, result list and source list as its own row.
   const { mappings, results, sources, ...base } = useCaseState(

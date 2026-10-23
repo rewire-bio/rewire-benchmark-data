@@ -12,6 +12,7 @@ import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { recordSchema, validateRecords, type RecordEntry } from "./schema";
 import { loadSchemes, validateVocabularies } from "./vocab";
+import { validateConcerns } from "../../shared/omics/concerns";
 import { validateAttributes } from "../../shared/omics/attributes";
 import { validateDerivations } from "./derivations";
 import { descriptionProblems, validateDescriptions } from "../../shared/omics/descriptions";
@@ -196,6 +197,7 @@ export function loadRecords(root = "."): RecordEntry[] {
   validateAttributes(records);
   validateDerivations(records, root);
   validateDescriptions(records);
+  validateConcerns(records);
   return validateRecords(records.sort(byId));
 }
 
@@ -222,6 +224,7 @@ export function addBatch(batchFile: string, batchDir: string, root = "."): numbe
   validateAttributes(additions);
   validateDescriptions([...existing, ...additions]);
   validateDerivations([...existing, ...additions], root);
+  validateConcerns([...existing, ...additions]);
   validateRecords([...existing, ...additions]);
   writeStore([...existing, ...additions], provenance, root);
   return additions.length;
