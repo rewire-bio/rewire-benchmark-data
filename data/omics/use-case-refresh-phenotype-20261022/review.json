@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "independent-cell-check",
+    "rendered-page-check",
+    "ai-assisted-source-review",
+    "scope-review"
+  ],
+  "reviewer": "Claude (Opus 5.5) review agents in the evidence-pass workflow, one per source plus one for the use-case judgements, each separate from the agent that extracted or drafted the records; finalised by a Claude (Opus 5.5) merge agent; no human review claimed.",
+  "reviewed_at": "2026-10-22T00:00:00Z",
+  "scope": "Use-case refresh for use-case-phenotype-perturbation-selection (rewire-benchmark-data #184). batch.jsonl: 1,279 new records from three sources (Edwards et al. 2026 AssayLoop, arXiv:2609.11877v1; Qin et al. 2025 NAIAD, PMLR 267; Song et al. 2025 Virtual CRISPR, BioNLP 2025) and three new relevance judgements. changes.jsonl: reviewed copies of three existing records (the use case, its baseline claim and its summary claim) applied with records -- change. Every result (866) was compared with its pinned source.",
+  "comparison": {
+    "by_source": {
+      "ucpheno-20261022-source-edwards2026": {
+        "results": 530,
+        "check_values": {
+          "in_row": 470,
+          "row_not_found": 60
+        },
+        "independent_parse": "530/530 match (review/edwards2026assayloop-check.py)",
+        "manual": "seeded sample of 36 (seed 20261022) plus every Supplementary Table 4 block, including the 60 overflow results, against rendered pages 8 and 31, column order included",
+        "row_not_found_cause": "last six Supplementary Table 4 Ablations rows lie beyond the checker's 80-line caption window"
+      },
+      "pheno-20261022-qin2025-source-pmlr": {
+        "results": 212,
+        "check_values": {
+          "in_row": 200,
+          "row_not_found": 12
+        },
+        "independent_parse": "212/212 match on value, numeric value and SE; 0 locator inconsistencies (review/qin2025naiad-check.py)",
+        "manual": "rendered pages 6-8, 18 and 20 by eye, column order included; all 12 row_not_found confirmed by hand; 16 Table 3 cells recomputed as (P4-P0)/4",
+        "row_not_found_cause": "Table 1 GEARS x8 and Table 6 Linear x4 lines start with the gene-frequency label"
+      },
+      "pheno-20261022-source-song2025": {
+        "results": 124,
+        "check_values": {
+          "in_row": 0,
+          "in_cell": 0,
+          "row_not_found": 124
+        },
+        "independent_parse": "124/124 ok on value, numeric value, uncertainty, column, configuration, Table 7 version and protocol (review/song2025virtualcrispr_verify.py)",
+        "manual": "Tables 1, 2 and 8 rendered and checked by eye",
+        "row_not_found_cause": "layout: Table 1 in the right text column; Tables 2 and 8 have captions below the rows"
+      }
+    },
+    "results_checked": 866,
+    "mismatches": 0
+  },
+  "limitations": [
+    "Automated review by Claude agents; not human scientific review and not reproduction of any result.",
+    "batch.py check-values could not place 196 of 866 results (60 AssayLoop, 12 NAIAD, 124 Virtual CRISPR) because of text-layer layout; these were covered by independent column-aware parses and by rendered-page checks.",
+    "For text layers check-values does not check the column; column assignment rests on the independent parses and the rendered-page checks.",
+    "Figures were not read: AssayLoop Figures 4 and 6 and per-screen results, NAIAD Figures 3 to 9 and drug-combination results.",
+    "Code repositories (NAIAD, Virtual CRISPR) were not read; BioBO and Probability-of-Hit papers are retrieval gaps.",
+    "Relevance judgements are reviewed decisions, not facts from a source."
+  ],
+  "corrections": [
+    "AssayLoop: RF (greedy) and RF + UCB origin author_reported (was independent_paper); Random configuration no longer states the sampling universe; same_data_as link from the test subset to the AssayBench test set removed.",
+    "NAIAD: limitations added for the Table 7 / Table 4 Norman Uniform slip, Table 8 beta 0 and Uniform runs, and the TPR wording in Table 8's caption.",
+    "Virtual CRISPR: locators normalised; training release v1.1.16 and 'pooled' removed as unstated; random and embedding evaluations corrected; evidence concern added for the per-screen random baseline.",
+    "Use case: baseline claim rationale revised; summary rewritten (revision 2) with corrected handoff wording, screen-selection floor and pre-training caveat.",
+    "Finalising: records -- add rejected four attribute forms (Song ORCS training dataset version duplicated its missing reason, so omitted; AssayBench-Loop protocol heldout_test and heldout_validation made lists and uncertainty_reporting made an object); missing_metadata keys sorted in 55 records to the normaliser's form. No value, locator or link changed.",
+    "See docs/reviews/use-cases/phenotype-perturbation-selection-2026-10-22.md and notes.md."
+  ],
+  "errors": [],
+  "review_document": "docs/reviews/use-cases/phenotype-perturbation-selection-2026-10-22.md",
+  "files": {
+    "batch.jsonl": "93614d65209c72371b7ef8f4d2ba906d8197f5f607eec3918e6496a8ad65e720",
+    "changes.jsonl": "e2dda40cf98e84799d0ab8e88196a40cad51ceef1a92314cb525d8a52bfa78b3",
+    "extract/edwards2026assayloop.metric-concepts.ttl": "6d074744995ddd733d027ea1b646f03903da16d687411f22ded0bdc7b574f5e7",
+    "extract/edwards2026assayloop.py": "eaff7843ab124cc2bad94ff70c95b8700ce8a204a4e98c2fa0878734d039dd0a",
+    "extract/qin2025naiad.py": "af20a718ce4be1eb55ffc7f2511a1c353c0aa3ba0ce8501983d9178aed9f5448",
+    "extract/song2025virtualcrispr.py": "26f135d8bee11a0783b46d71cd4d6ff2df71e682b212ee859054ed18822d48ec",
+    "extract/use-case.py": "2627fa728d38e77fa5e824a82bc968244789c568f6d53b73c7346e93c23896e1",
+    "notes.md": "023b81aa7ad88f29e1d25aa5f1904e4b7c4815957a0ee77548ba28d80bcfd21a",
+    "review/edwards2026assayloop-check.py": "68fc024f18c759df7115817a70f6176b86c87cd1c4daa882668147c5e080dcba",
+    "review/edwards2026assayloop-independent-check.tsv": "8b5c6d06a2c34b496ccb3e1d57a618363a68972705ff403d9e83d70bdda11bef",
+    "review/edwards2026assayloop-value-check.tsv": "6c6d94d40563b91a0e8682eb0ffb3875976dc21842a66329a76c57d655a67800",
+    "review/edwards2026assayloop_apply.py": "14091e7d4abe502449191ee4621fcfa3ad4935def1ca44532b6cc6ec1b5f5bdd",
+    "review/qin2025naiad-check.py": "bb4b1e4afdf55b2a3fcfb79dda71a230ea7c6e75dd4cff5f567d7dcd40cfc199",
+    "review/qin2025naiad-independent-check.tsv": "c24334aa550a0dc94a2ebb799e8b4064544f5bea2f92ff22f04717fecb95674a",
+    "review/qin2025naiad-value-check.tsv": "04350f6ab3c25ca2a08def3be68c24f28f67747949c24255091ef3804e116da2",
+    "review/song2025virtualcrispr-value-check.tsv": "e8f044e8cbe0e23ea63bd905606491a4780e905d896b730c63e48e56380cf474",
+    "review/song2025virtualcrispr-verify.tsv": "727b08eaad4d43264361b1eed34a0bd5d80ae86f76e82a5460c80258a920a064",
+    "review/song2025virtualcrispr_apply.py": "f64a254e4f63c5205e4f7abca7c5f85917c363bc6d979514c935a0bac87fdcce",
+    "review/song2025virtualcrispr_verify.py": "004f46736e468e85a46313b21ed1058e996bf3b4aea288ffabd6d2b464bbcdc5",
+    "review/use-case_apply.py": "94496a525fc0df8deabbef9759ce776f130498db54cc279c7c3c193f6910f548"
+  },
+  "source_artifacts": {
+    "pheno-20261022-qin2025-source-pmlr": "983b2da8aed78f0aced27053301c15f0f67ebd0fac706435bb6800e309dd64eb",
+    "pheno-20261022-source-song2025": "6c53ffec88444768fbb5c1a65031c096f07b3d9ac48de8163bc8f47d0d51205c",
+    "ucpheno-20261022-source-edwards2026": "adcaaa5b7f9bd0e3bc1f91d94d26c8d4924c5c0b3064b6625c01ba92c6eaef28"
+  }
+}
