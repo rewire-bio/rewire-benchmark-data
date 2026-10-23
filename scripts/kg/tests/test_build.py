@@ -9,6 +9,7 @@ import json
 import re
 import sys
 import unittest
+from functools import reduce
 from unittest import mock
 from pathlib import Path
 
@@ -724,6 +725,75 @@ class DiscrepancyTest(unittest.TestCase):
         result = self.derived(graph)
         self.assertEqual(self.reversals(result.report), [])
         self.assertEqual((result.problems, result.retired), ([], [found["id"]]))
+
+    def resolved_graph(self) -> tuple[rdflib.Graph, dict]:
+        """A reversal reviewed in two steps, settled as a confirmed error, whose outlier results are
+        then disputed so that the rule stops firing."""
+        graph = disagreement()
+        [found] = self.reversals(self.derive(graph)[1])
+        self.claim(graph, "r1", found["id"], "reported-upstream", 1, "reported-upstream", "2026-10-19",
+                   previous=("discrepancy-00000000000000aa",))
+        graph.add((ID.r1, RB.subject, ID["result-3-0-b"]))
+        self.claim(graph, "r2", found["id"], "confirmed-error", 2, "corrected-records", "2026-11-12",
+                   rationale="The authors corrected an off-by-one error.")
+        for result in [r for r in graph.subjects(RDF.type, RB.Result) if str(r).startswith(str(ID["result-3-"]))]:
+            graph.set((result, RB.status, V("status", "disputed")))
+        return graph, found
+
+    def test_a_settled_finding_that_stops_firing_is_kept_as_resolved(self) -> None:
+        graph, found = self.resolved_graph()
+        result = self.derived(graph)
+        [resolved] = [d for d in result.report if d["resolved"]]
+        self.assertEqual(result.report[-1], resolved)
+        self.assertEqual(
+            {k: resolved[k] for k in ("id", "rule", "label", "summary", "severity", "review_state", "review_claim",
+                                      "settled", "systems", "previous_ids", "studies", "numbers", "key")},
+            {"id": found["id"], "rule": None, "label": "modelA and modelB: resolved",
+             "summary": "The authors corrected an off-by-one error.", "severity": "low", "review_state": "confirmed-error",
+             "review_claim": "r2", "settled": True, "systems": ["modelA", "modelB"],
+             "previous_ids": ["discrepancy-00000000000000aa"], "studies": [], "numbers": {}, "key": None})
+        self.assertEqual([(a["revision"], a["action"], a["state"]) for a in resolved["actions"]],
+                         [(1, "reported-upstream", "reported-upstream"), (2, "corrected-records", "confirmed-error")])
+        self.assertEqual(resolved["resolution"]["rationale"], "The authors corrected an off-by-one error.")
+        self.assertEqual(result.problems, [])
+        self.assertTrue(all(not d["resolved"] for d in result.report[:-1]))
+        node = URIRef(build.ID + found["id"])
+        self.assertIn((node, RDF.type, RB.ResolvedDiscrepancy), result.triples)
+        self.assertIn((node, RB.reviewState, V("discrepancy-state", "confirmed-error")), result.triples)
+        self.assertEqual(len({o for s, p, o in result.triples if s == node and p == RB.hasAction}), 2)
+        self.assertEqual(contradictions.check_derived(result.triples), [])
+        conforms, report = build.validate_derived(result.triples)
+        self.assertTrue(conforms, report)
+
+    def test_derived_shapes_reject_a_resolved_finding_with_live_links_or_an_open_state(self) -> None:
+        graph, found = self.resolved_graph()
+        triples = self.derived(graph).triples
+        node = URIRef(build.ID + found["id"])
+        with_result = triples | {(node, RB.outlierResult, ID["result-3-0-a"])}
+        self.assertFalse(build.validate_derived(with_result)[0])
+        reopened = {t for t in triples if not (t[0] == node and t[1] == RB.reviewState)} | {
+            (node, RB.reviewState, V("discrepancy-state", "investigating"))}
+        self.assertFalse(build.validate_derived(reopened)[0])
+
+    def test_named_queries_show_a_resolved_finding_only_where_settled_ones_belong(self) -> None:
+        graph, found = self.resolved_graph()
+        inferred = build.infer(graph, self.ontology)
+        derived = contradictions.derive(graph, inferred, self.ontology, self.rules).triples
+        dataset = rdflib.Dataset()
+        for triple in derived:
+            dataset.graph(URIRef(build.GRAPHS["derived"])).add(triple)
+        for triple in graph:
+            dataset.graph(URIRef(build.GRAPHS["asserted"])).add(triple)
+        dataset.default_union = True
+        node = URIRef(build.ID + found["id"])
+        queries = {q["name"]: q["sparql"] for q in build.NAMED_QUERIES}
+        run = lambda name, **values: list(dataset.query(
+            reduce(lambda q, kv: q.replace(f"${kv[0]}", kv[1].n3()), values.items(), queries[name]),
+            initNs={"rb": RB, "rdfs": RDFS}))
+        self.assertNotIn(node, {row[0] for row in run("open_discrepancies", severity=Literal("low"))})
+        self.assertEqual([(int(r[0]), str(r[2]).rsplit("/", 1)[-1]) for r in run("discrepancy_history", discrepancy=node)],
+                         [(1, "reported-upstream"), (2, "confirmed-error")])
+        self.assertIn(node, {row[0] for row in run("discrepancies_for_system", system=ID.modelA)})
 
     def test_disputed_results_are_left_out(self) -> None:
         graph = disagreement()

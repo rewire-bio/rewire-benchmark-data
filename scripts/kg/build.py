@@ -502,13 +502,14 @@ def build(kg_dir: Path) -> dict:
     conforms, report = validate_derived(derived)
     if not conforms:
         raise BuildError("SHACL validation of the derived graph failed:\n" + report[:5000])
-    print(f"Derived {len(discrepancies)} discrepancies; left out {result.excluded['disputed']} disputed results "
+    print(f"Derived {sum(not d['resolved'] for d in discrepancies)} discrepancies and kept "
+          f"{sum(d['resolved'] for d in discrepancies)} resolved ones; left out {result.excluded['disputed']} disputed results "
           f"and {result.excluded['concern']} under an evidence concern", file=sys.stderr)
 
     (kg_dir / "inferred.nq").write_text(nquads(inferred, GRAPHS["inferred"]), "utf-8")
     (kg_dir / "derived.nq").write_text(nquads(derived, GRAPHS["derived"]), "utf-8")
     (kg_dir / "discrepancies.json").write_text(json.dumps(
-        {"schema_version": 3, "release_id": exported["release_id"], "rules": rules, "excluded": result.excluded,
+        {"schema_version": 4, "release_id": exported["release_id"], "rules": rules, "excluded": result.excluded,
          "discrepancies": discrepancies}, indent=2, ensure_ascii=False) + "\n", "utf-8")
     target = kg_dir / "ontology"
     if target.exists():
@@ -526,6 +527,8 @@ def build(kg_dir: Path) -> dict:
             entry["triples"] = count_lines(dest)
         files[relative] = entry
 
+    live = [d for d in discrepancies if not d["resolved"]]
+    resolved = [d for d in discrepancies if d["resolved"]]
     mapping = json.loads(MAPPING.read_text("utf-8"))
     by_predicate = Counter(str(p) for _, p, _ in inferred)
     manifest = {
@@ -569,10 +572,13 @@ def build(kg_dir: Path) -> dict:
             "rules_sha256": sha256(contradictions.RULES),
             "kept": "Discrepancies only: SEPIO assertions that one study's results disagree with other "
             "studies' results for the same systems. No record's status, value or links are derived.",
-            "discrepancies": len(discrepancies),
-            "by_rule": dict(sorted(Counter(d["rule"] for d in discrepancies).items())),
-            "by_severity": dict(sorted(Counter(d["severity"] for d in discrepancies).items())),
-            "by_review_state": dict(sorted(Counter(d["review_state"] for d in discrepancies).items())),
+            "discrepancies": len(live),
+            "by_rule": dict(sorted(Counter(d["rule"] for d in live).items())),
+            "by_severity": dict(sorted(Counter(d["severity"] for d in live).items())),
+            "by_review_state": dict(sorted(Counter(d["review_state"] for d in live).items())),
+            # Settled discrepancies the rules no longer find, kept with their follow-up history.
+            "resolved": len(resolved),
+            "resolved_by_review_state": dict(sorted(Counter(d["review_state"] for d in resolved).items())),
             "excluded": result.excluded,
             "retired_reviews": result.retired,
             "shapes": "data/ontology/derived-shapes.ttl",

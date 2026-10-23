@@ -131,6 +131,8 @@ export function checkDiscrepancyParity(file: string, findings: DiscrepancyFile):
       for (const id of [...d.outlier_results, ...d.consensus_results])
         same(by[id]?.some((x) => x.discrepancy.id === d.id), true, `${d.id} result ${id}`);
       for (const system of d.systems) same(prepared.discrepanciesForSystem(system).some((x) => x.id === d.id), true, `${d.id} system ${system}`);
+      // A resolved finding has no results, so readers often reach it by an earlier ID.
+      for (const previous of d.previous_ids) same(prepared.discrepancy(previous)?.id, d.id, `${d.id} previous ID ${previous}`);
     });
   } finally {
     prepared.close();
