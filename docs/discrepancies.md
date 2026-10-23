@@ -2,7 +2,7 @@
 
 When one study reports results for two systems that disagree with what other studies report for the same systems, the database flags it. Each flag is a **discrepancy**: a lead to investigate, not a finding that any result is wrong. Discrepancies are inferred from all the evidence on every release, published in the serving database and the knowledge-graph bundle, shown on the website, and queryable over MCP. The work done to resolve each one is recorded as a series of follow-up actions and shown with it.
 
-This page is the reference for the whole feature. The rules' internals are in `scripts/kg/contradictions.py`, and the thresholds in `data/ontology/discrepancy-rules.json`.
+This page is the reference for the whole feature. The rules' internals are in `scripts/kg/contradictions.py`, and the thresholds in `data/ontology/discrepancy-rules.json`. Rules version 4 came from [ADR 0001](adr/0001-comparable-evidence.html); [the design](design/discrepancy-rules-v4.html) explains it with worked examples.
 
 ## Why it exists
 
@@ -21,7 +21,7 @@ flowchart TD
   shacl --> bundle["Knowledge-graph bundle<br/>kg/&lt;id&gt;: asserted, inferred,<br/>derived, ontology"]
   shacl --> json["public/kg/discrepancies.json<br/>(build product)"]
   release --> serving
-  json --> serving["Prepared SQLite file<br/>serving/&lt;id&gt; (contract 3.3)"]
+  json --> serving["Prepared SQLite file<br/>serving/&lt;id&gt; (contract 3.4)"]
   serving --> site["benchmarks.rewirebio.io<br/>/contested/, badges, API"]
   bundle --> mcp["rdf-kg-mcp<br/>SPARQL and named queries"]
 ```
@@ -37,11 +37,14 @@ The website reads only the SQLite file. The knowledge graph is the only place th
 
 ## What the rules flag
 
-A **comparison** is two systems' best values within one group of one study's results: the same protocol, dataset, metric, unit, qualifier, split and direction. Values within the tie tolerance (1%) do not count. A **study** is a set of sources that share results, a DOI (a paper and its supplement) or a GitHub repository.
+A **comparison** is two systems' values within one group of one study's results: the same protocol, dataset, metric, unit, qualifier, split and direction. Values within the tie tolerance (1%) do not count. A **study** is a set of sources that share results, a DOI (a paper and its supplement), a GitHub repository, or a `companion_of` link (a paper's repository, leaderboard, supplement or other version). Each study uses one configuration per model for all its groups: the one with the most results in that study, then the larger model size, then the ID. So a model's sizes or checkpoints are not mixed, a different one per metric ([#206](https://github.com/rewire-bio/rewire-benchmark-data/issues/206)).
 
-| Rule | Flags a study when |
+A study's **verdict** on a pair of systems is the system that scored better in at least 75% of its untied comparisons, or "split". A study with fewer than two untied comparisons gives no verdict. Studies, not rows, are counted: a paper that reports 150 numbers is one opinion ([#201](https://github.com/rewire-bio/rewire-benchmark-data/issues/201)).
+
+| Rule | Flags when |
 | --- | --- |
-| Ordering reversal | Other studies rank system A above B in at least 5 comparisons, 80% of the time or more, and this study ranks B above A in at least 2 comparisons, 75% of the time or more. |
+| Ordering reversal | At least two other studies give a verdict, at least 80% of them agree that A is better, and this study's verdict is B. This study is the outlier. |
+| Two-study conflict | Exactly two studies give a verdict on the pair, and they disagree. There is no consensus to stand out from, so neither is named the outlier ([#205](https://github.com/rewire-bio/rewire-benchmark-data/issues/205)). |
 | Gap outlier | At least three studies report the same metric on the same protocol, task or benchmark, and every one of them measured a common reference system. This study's median relative gap between a system A and the reference, (A - ref) / ref, lies more than 0.10 outside the range of the other studies' gaps. Never above medium severity. |
 
 **The gap rule's reference.** A comparison group is one anchor (a protocol, or a task or benchmark it belongs to) and one metric, with at least three studies. The reference is a system that every study in the group measured. If more than one qualifies, a named baseline wins: a system that a baseline record is `implemented_by`, or that a use case's `baseline` claim names in `method_ids` ([#121](https://github.com/rewire-bio/rewire-benchmark-data/issues/121)). Otherwise the system with the lowest IRI is used. Every other shared system is compared with that reference. A group in which no system was measured by every study is skipped. When a system, reference and study fire on several anchors, the most specific anchor is kept: protocol, then task, then benchmark. On the store at release `2026-10-23-a1a0ac69daa3`, rules version 3 find no gap outliers.
@@ -55,24 +58,33 @@ A concern without `applies_to` (or with an empty list) covers every result that 
 
 A confirmed error therefore stops re-firing once it is recorded. The bundle manifest's `derived.excluded` and the top-level `excluded` in `discrepancies.json` count the results left out: `disputed` (by status) and `concern` (by an evidence concern). With rules version 3, the evidence concern exclusion removed 6,712 results and the disputed exclusion none. That is why 37 findings from version 2 stopped firing (32 low, 5 medium), and 4 new ones appeared where the consensus changed: 254 findings became 221 ([the 2026-10-23 review](reviews/2026-10-23-discrepancy-identity.md)).
 
-**Identity.** A configuration is compared as the model it configures (`configuration_of`, then `family`, then `alias_of`). Links without a checked claim are still used, and the finding is marked `identity_basis: unreviewed`.
+**Identity.** A configuration is compared as the model it configures (`configuration_of`, then `family`, then `alias_of`). Links without a checked claim are still used, and the finding is marked `identity_basis: unreviewed`. A configuration with a `combination_rule` (a union, intersection or vote over other systems, with its members as `uses_model` links) is compared as itself, and never against one of its own members ([#204](https://github.com/rewire-bio/rewire-benchmark-data/issues/204)).
 
-**Severity.** Severity starts at high and drops one step for each of:
-- comparisons on different tasks (`cross-task`);
-- unreviewed identity links;
-- the gap rule.
+**Scope.** Each finding says how closely its two sides' assessments match:
 
-An ordering reversal against a strong consensus, at least 20 comparisons agreeing 95% of the time or more, goes up one step. The calibration is in [the 2026-10-22 review](reviews/2026-10-22-discrepancy-severity.md).
+| Scope | When |
+| --- | --- |
+| `same-protocol` | the two sides share a protocol |
+| `same-task` | they share a task, benchmark or suite: what each assessment sits within, and the tasks that any of those evaluate |
+| `unknown` | neither, and an assessment on either side has no task, benchmark or suite link; the finding lists them in `unlinked_protocols` ([#208](https://github.com/rewire-bio/rewire-benchmark-data/issues/208)) |
+| `different-task` | neither, and every assessment is linked |
+
+**Severity.** The scope sets the highest level: high for same-protocol and same-task, medium for unknown, low for different-task. A finding is limited to medium unless it is an ordering reversal with at least three consensus studies; the gap rule and two-study conflicts never go above medium. It then drops one step for unreviewed identity, and one for a variant mismatch (the studies used configurations with different recorded model sizes). Nothing raises a finding.
+
+**Listing.** A finding is `public`, for the default contested page, when its scope is same-protocol or same-task, or a reviewer is working on it (investigating, reported upstream, awaiting correction, or confirmed error). Otherwise it is `review`: still in the bundle, the API and MCP, but listed for curation rather than as a public lead.
+
+**Hand-reviewed findings.** `scripts/kg/fixtures/labelled-findings.json` lists the findings reviewed by hand and what the review found. The build fails if a real error or lead loses its finding, or its live finding is not public, and reports every outcome in the bundle manifest (`derived.labelled_findings`). The manifest also lists `derived.split_study_candidates`: benchmarks with results from both a DOI study and a repository or single-source study, which may need a `companion_of` link.
 
 **IDs.** A finding's ID is `discrepancy-` plus the first 16 hex characters of the SHA-256 of its key, written as JSON with sorted keys and no spaces. The key is published as `key` in `discrepancies.json` and as `rb:discrepancyKey`:
 
 | Key field | Value |
 | --- | --- |
-| `rule` | `ordering-reversal` or `gap-outlier` |
+| `rule` | `ordering-reversal`, `two-study-conflict` or `gap-outlier` |
 | `systems` | the two compared models or methods, after `configuration_of`, `family` and `alias_of` resolution, as sorted record IDs |
-| `anchor` | for a gap outlier, the protocol, task or benchmark ID of its comparison group; `null` for an ordering reversal, which pools every comparison of its two systems |
-| `metric` | for a gap outlier, the metric concept key; `null` for an ordering reversal |
-| `outlier_study` | `doi:<lowest DOI among the study's sources, lower case>`, else `repository:https://github.com/<owner>/<repo>` (lowest), else `source:<ID of the source with the earliest retrieved_at>` (ties broken by ID; records have no creation date) |
+| `anchor` | for a gap outlier, the protocol, task or benchmark ID of its comparison group; `null` for the ordering rules, which pool every comparison of their two systems |
+| `metric` | for a gap outlier, the metric concept key; `null` for the ordering rules |
+| `outlier_study` | `doi:<lowest DOI among the study's sources, lower case>`, else `repository:https://github.com/<owner>/<repo>` (lowest), else `source:<ID of the source with the earliest retrieved_at>` (ties broken by ID; records have no creation date). Not used by a two-study conflict |
+| `studies` | a two-study conflict only: both study keys, sorted, in place of `outlier_study` |
 
 For example, the Alavi finding's key is `{"anchor":null,"metric":null,"outlier_study":"doi:10.64898/2026.10.02.756289","rule":"ordering-reversal","systems":["catalog-model-alphagenome","regulatory-variant-20261009-model-borzoi"]}`, giving `discrepancy-52a714eb6bb63442`.
 
@@ -218,21 +230,21 @@ The claims are in `data/omics/discrepancy-review-20261022-alavi-alphagenome/`. T
 
 ## Where to read them
 
-### Serving database (contract 3.3)
+### Serving database (contract 3.3, 3.4)
 
 The website and API read these tables from `catalogue-<id>.sqlite` ([serving-contract.md](serving-contract.md)):
 
 | Table | Content |
 | --- | --- |
-| `discrepancies` | one row per finding, in display order (`pos`, most severe first): `rule`, `severity`, `scope`, `state`, `settled`, and the full finding gzipped |
-| `discrepancy_results` | `result_id`, `discrepancy_id`, `role` (`outlier` or `consensus`) |
+| `discrepancies` | one row per finding, in display order (`pos`, most severe first): `rule`, `severity`, `scope`, `listing` (from 3.4), `state`, `settled`, and the full finding gzipped |
+| `discrepancy_results` | `result_id`, `discrepancy_id`, `role` (`outlier`, `consensus`, or from 3.4 `party` for a two-study conflict) |
 | `discrepancy_systems` | `system_id`, `discrepancy_id` |
 | `discrepancy_actions` | one row per follow-up action: `revision`, `action`, `state`, `date`, `next_check`, and the action gzipped |
 | `discrepancy_aliases` | `previous_id` to current `discrepancy_id` |
 | `blobs.discrepancy_index` | list entries for every finding, the rules in force and the exclusion counts |
 
 `shared/omics/prepared-catalogue.ts` reads them:
-- `discrepancies({ severity, state, settled, system, rule, cursor, limit })`
+- `discrepancies({ severity, state, settled, system, rule, listing, cursor, limit })`; the page's `counts` include `listing`
 - `discrepancy(id)`
 - `contestedBy(resultIds)`
 - `discrepanciesForSystem(id)`
@@ -244,12 +256,14 @@ A file built before 3.3, or without the knowledge graph, has no findings, and ev
 
 ### Studies in a finding
 
-From `discrepancies.json` schema 3, each finding carries `studies`: every study that compared its two systems, with the outlier first and then the others by number of comparisons (most first), then key. The serving tables store it inside the gzipped finding, so `discrepancy(id)` returns it; a finding read from a schema 1 or 2 file has an empty list.
+From `discrepancies.json` schema 3, each finding carries `studies`: every study that compared its two systems, with the outlier (or a conflict's two parties) first and then the others by number of comparisons (most first), then key. The serving tables store it inside the gzipped finding, so `discrepancy(id)` returns it; a finding read from a schema 1 or 2 file has an empty list.
 
 | Field | Value |
 | --- | --- |
 | `key` | the study key, in the same form as the ID's `outlier_study` |
-| `role` | `outlier` or `consensus` |
+| `role` | `outlier`, `consensus`, or `party` for a two-study conflict |
+| `verdict` | from schema 5: the system the study's comparisons favour, `split`, or `null` when it has too few untied comparisons for a verdict |
+| `configurations` | from schema 5: for each of the finding's `systems`, the configuration (or model) whose values the study used |
 | `source_ids` | the sources that make up the study |
 | `higher` | for each of the finding's `systems`, the number of comparisons in which it scored better |
 | `ties` | comparisons within the tie tolerance |
@@ -259,7 +273,9 @@ From `discrepancies.json` schema 3, each finding carries `studies`: every study 
 
 Each comparison gives its `protocol`, `dataset`, `metric` and `unit` (concept keys), `qualifier` and `split`, the two systems' best `values`, the result each value comes from (`results`; the first by ID when several results share the best value), and `higher`, the better system or `null` for a tie. `higher` and `ties` always add up to `comparisons_total`.
 
-`studies` can list more studies than `consensus_sources`. An ordering reversal's consensus counts only comparisons that are not ties, so a study whose comparisons of the pair are all ties is in `studies` (role `consensus`, every comparison a tie) but not in `consensus_sources`. For the gap rule the two lists hold the same studies.
+`studies` can list more studies than `consensus_sources`. An ordering reversal's consensus counts only studies with a verdict, so a study whose comparisons of the pair are all ties, or too few, is in `studies` (role `consensus`, `verdict` null) but not in `consensus_sources`.
+
+Schema 5 (rules version 4) also adds, per finding: `listing`, `variant_mismatch`, `unlinked_protocols`, and for a two-study conflict `party_sources` and `party_results` (its `outlier_*` and `consensus_*` lists are empty). An ordering reversal's `numbers` add `consensus_studies` and `consensus_study_agreements`; a conflict's are `{"studies": 2}`. A finding read from an earlier file is `public`, with no variant mismatch, unlinked protocols or parties. For the gap rule the two lists hold the same studies.
 
 The per-study breakdown is not in the derived graph: one row per comparison would make it much larger. The graph keeps the outlier and consensus sources and results.
 
@@ -297,4 +313,4 @@ See `docs/contested-results.md` in rewire-database.
 
 ## Changing the rules
 
-Change the thresholds in `data/ontology/discrepancy-rules.json`, bump its `version`, and record why in a dated `docs/reviews/` file. The rules and their thresholds are part of the release coverage (`discrepancy_generator_sha256`), so a rule change cuts a new release even when no record changed. If the change re-keys findings that have review claims, add the old IDs to `previous_ids` in the same pull request; otherwise the build fails.
+Change the thresholds in `data/ontology/discrepancy-rules.json`, bump its `version`, and record why in a dated `docs/reviews/` file. The rules and their thresholds are part of the release coverage (`discrepancy_generator_sha256`), so a rule change cuts a new release even when no record changed. If the change re-keys findings that have review claims, add the old IDs to `previous_ids` in the same pull request; otherwise the build fails. `scripts/kg/migrate-discrepancy-ids.py` writes those claims: it derives the new findings, matches each re-keyed review to the new finding of the same two systems and study, and writes the next revision of the claim with the same state and resolution. Two old IDs cannot both map to one new finding (their revision 1 claims would collide), so the longest chain is carried forward and the other must be settled, to retire as a resolved finding.
