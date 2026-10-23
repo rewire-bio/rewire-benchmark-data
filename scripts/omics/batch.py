@@ -9,8 +9,10 @@
 
 Artifacts are PMC/JATS XML (tables read from <tr> rows) or text (a PDF text layer from
 pdftotext -layout, rows read as lines). The value check confirms the printed string is in the
-named row. For XML it also checks the named column (`in_cell`); for text it cannot, so column
-assignment there stays with the reviewer's sampled check.
+named row. For XML it also checks the named column (`in_cell`). For text it cannot, but because
+every cell is extracted it flags a value claimed by more results in a row than the row prints
+(`overclaimed_in_row`), which catches most values copied from a neighbouring column. Column
+assignment for text layers still needs the reviewer's sampled check.
 """
 import hashlib
 import json
@@ -20,9 +22,9 @@ import unicodedata
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-LOCATOR = re.compile(r'^(?P<table>(?:Supplementary |Extended Data )?Table [A-Z]?\d+[a-z]?)\b.*?row "(?P<row>[^"]+)"'
-                     r'(?:.*?col(?:umn)? "(?P<col>[^"]+)")?')
-WINDOW = 80  # text lines searched after a table caption
+LOCATOR = re.compile(r'^(?:Appendix |Supplementary |Extended Data )?(?P<table>Table [A-Z]?\d+[a-z]?)\b.*?row ["\'](?P<row>[^"\']+)["\']'
+                     r'(?:.*?col(?:umn)? ["\'](?P<col>[^"\']+)["\'])?')
+WINDOW = 150  # text lines searched on each side of a table caption, which may sit above or below the rows
 
 
 def norm(text):
@@ -66,13 +68,28 @@ def xml_tables(path):
     return tables
 
 
+def after_label(line, row):
+    """The tokens after `row` where it occurs as whole tokens in `line`, or None.
+
+    Two-column layouts put a table row after unrelated text on the same line, so the
+    label can sit anywhere; only what follows it is the row's cells."""
+    have, want = tokens(line), tokens(row)
+    for i in range(len(have) - len(want) + 1):
+        if have[i:i + len(want)] == want:
+            return " ".join(have[i + len(want):])
+    return None
+
+
 def text_rows(lines, table, row):
-    """Lines within WINDOW of each caption for `table` whose start matches `row`."""
-    caption = re.compile(re.escape(norm(table)) + r"\b[:.]")
+    """Cells after `row` on lines within WINDOW of a caption for `table`, above or below it."""
+    caption = re.compile(r"(^|\s)" + re.escape(norm(table)) + r"\b[:.]")
     hits = []
     for i, line in enumerate(lines):
-        if caption.match(line):
-            hits += [l for l in lines[i + 1:i + 1 + WINDOW] if l.startswith(row + " ")]
+        if caption.search(line):
+            for l in lines[max(0, i - WINDOW):i + 1 + WINDOW]:
+                cells = after_label(l, row)
+                if cells is not None and cells not in hits:
+                    hits.append(cells)
     return hits
 
 
@@ -88,7 +105,7 @@ def check_values(folder, artifacts):
             cache[sid] = ("xml", xml_tables(path))
         else:
             cache[sid] = ("text", [norm(l) for l in path.read_text(errors="replace").splitlines()])
-    rows_out, counts = [], {}
+    rows_out, claims = [], {}
     for rec in records:
         if rec.get("kind") != "result":
             continue
@@ -129,11 +146,25 @@ def check_values(folder, artifacts):
                 hit = [c for c in candidates
                        if any(tokens(c)[i:i + len(want)] == want for i in range(len(tokens(c))))]
                 status = "in_row" if hit else "not_in_row"
+                if hit:
+                    claims.setdefault((sid, table, row, value), (candidates, []))[1].append(len(rows_out))
                 if hit and column is not None:
                     # XML keeps cells apart, so the named column can be checked too.
                     status = "in_cell" if any(squash(c) == squash(value) for c in column) else "wrong_column"
-        counts[status] = counts.get(status, 0) + 1
-        rows_out.append((rec["id"], status, printed or "", loc))
+        rows_out.append([rec["id"], status, printed or "", loc])
+    # Every cell of a table is extracted, so a value claimed by more results than the row
+    # prints it is a misread: usually a value copied from a neighbouring column.
+    # A row label can repeat (blocks within one table), so count over every line carrying it.
+    for (_, _, _, value), (lines, idxs) in claims.items():
+        want = tokens(value)
+        printed_times = sum(tokens(l)[i:i + len(want)] == want for l in lines for i in range(len(tokens(l))))
+        if len(idxs) > printed_times:
+            for i in idxs:
+                if rows_out[i][1] == "in_row":
+                    rows_out[i][1] = "overclaimed_in_row"
+    counts = {}
+    for r in rows_out:
+        counts[r[1]] = counts.get(r[1], 0) + 1
     report = Path(folder) / "value-check.tsv"
     report.write_text("id\tstatus\tprinted_value\tsource_locator\n" +
                       "".join("\t".join(r) + "\n" for r in rows_out))

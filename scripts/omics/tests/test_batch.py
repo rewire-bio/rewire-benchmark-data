@@ -71,6 +71,30 @@ class BatchToolTest(unittest.TestCase):
         self.assertEqual(got, {"ok": "in_row", "wrong": "not_in_row", "prefix": "row_not_found",
                                "free": "locator_not_parsed", "nosrc": "no_artifact_given"})
 
+    def test_text_layouts_and_overclaims(self):
+        # Two-column page with the caption below the rows, a table with a repeated row label,
+        # and a row whose value was copied from its neighbouring column.
+        self.txt.write_text("""Prose on the left.      Linear   6.2 (1.7)   6.4 (0.9)
+more prose               GAT      0.40        0.40
+more prose               Table 2: Results.
+Table 5: Blocks.
+  4    Linear   6.1 (1.1)   6.4 (0.9)
+  20   Linear   6.0 (1.0)   6.4 (0.9)
+""")
+        got = self.statuses([
+            result("twocol", "t", "6.2 (1.7)", 'Table 2, row "Linear", column "A"'),
+            result("quoted", "t", "6.4 (0.9)", "Appendix Table 2, row 'Linear', column 'B'"),
+            result("gat-a", "t", "0.40", 'Table 2, row "GAT", column "A"'),
+            result("gat-b", "t", "0.40", 'Table 2, row "GAT", column "B"'),
+            result("block-4", "t", "6.4 (0.9)", 'Table 5, block 4, row "Linear", column "B"'),
+            result("block-20", "t", "6.4 (0.9)", 'Table 5, block 20, row "Linear", column "B"'),
+            result("copy-a", "t", "6.1 (1.1)", 'Table 5, block 4, row "Linear", column "A"'),
+            result("copy-b", "t", "6.1 (1.1)", 'Table 5, block 20, row "Linear", column "A"'),
+        ])
+        self.assertEqual(got, {"twocol": "in_row", "quoted": "in_row", "gat-a": "in_row", "gat-b": "in_row",
+                               "block-4": "in_row", "block-20": "in_row",
+                               "copy-a": "overclaimed_in_row", "copy-b": "overclaimed_in_row"})
+
     def test_hash_checks_artifacts_and_keeps_receipt_fields(self):
         digest = hashlib.sha256(self.xml.read_bytes()).hexdigest()
         self.write([{"id": "x", "kind": "source", "attributes": {"artifact_sha256": digest}}])
