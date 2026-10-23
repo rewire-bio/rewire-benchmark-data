@@ -45,6 +45,9 @@ jobs:
       - name: Validate the record store, vocabularies and provenance
         if: matrix.task == 'store'
         run: npm run records -- check
+      - name: Keep the list of protocols without a task link from growing (#208)
+        if: matrix.task == 'store'
+        run: npm run check:task-links
       # GitHub warns above 50 MB and rejects pushes with a file over 100 MB. Split a growing
       # store file into more shards (docs/collection.md, "Where records live") before it gets there.
       - name: Keep every file under data/ below 50 MB
