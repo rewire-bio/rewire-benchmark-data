@@ -288,6 +288,10 @@ class Index:
             except ValueError:
                 continue
             for entry in entries if isinstance(entries, list) else [entries]:
+                # A plain-text entry, the form older records use, covers the whole source.
+                if isinstance(entry, str) and entry.strip():
+                    whole_sources.add(source)
+                    continue
                 if not isinstance(entry, dict):
                     continue
                 scoped = entry.get("applies_to")
