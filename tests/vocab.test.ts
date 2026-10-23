@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { readMapping } from "../scripts/kg/export";
 import { migratedSchemes, readCsv, readTable } from "../scripts/omics/migrate-vocab";
@@ -48,6 +50,28 @@ describe("controlled vocabularies", () => {
     expect(() => validateVocabularies(mapping, [record], schemes)).toThrow(/is not a concept in the (area|metric) vocabulary/);
     const fixed = { ...record, facets: { areas: ["dna-genomes"] }, attributes: { metric: "auprc" } };
     expect(() => validateVocabularies(mapping, [fixed], schemes)).not.toThrow();
+  });
+
+  it("rejects links to concepts that do not exist, scheme mismatches and broader cycles", () => {
+    const head = (name: string) => `@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n@prefix : <${schemeIri(name)}> .\n<${schemeIri(name)}> a skos:ConceptScheme .\n`;
+    const concept = (name: string, key: string, extra = "") =>
+      `:${key} a skos:Concept ; skos:inScheme <${schemeIri(name)}> ; skos:prefLabel "${key}"@en${extra} .\n`;
+    const load = (files: Record<string, string>) => {
+      const root = fs.mkdtempSync(path.join(os.tmpdir(), "vocab-"));
+      fs.mkdirSync(path.join(root, "data/vocab"), { recursive: true });
+      for (const [name, body] of Object.entries(files)) fs.writeFileSync(path.join(root, "data/vocab", `${name}.ttl`), head(name) + body);
+      return () => loadSchemes(root);
+    };
+    const dir = concept("direction", "higher");
+    const ok = load({ direction: dir, metric: concept("metric", "a") + concept("metric", "b", ` ; skos:broader :a ; skos:related <${schemeIri("direction")}higher>`) });
+    expect(ok).not.toThrow();
+    expect(load({ direction: dir, metric: concept("metric", "b", " ; skos:broader :missing") })).toThrow(/metric\/missing>, which is not a concept/);
+    expect(load({ direction: dir, metric: concept("metric", "b", ` ; skos:related <${schemeIri("direction")}lower>`) })).toThrow(/direction\/lower>, which is not a concept/);
+    expect(load({ direction: dir, metric: concept("metric", "a") + `:x skos:inScheme <${schemeIri("direction")}> .\n` }))
+      .toThrow(/metric\/x> is in scheme <.*direction\/>/);
+    expect(load({ direction: dir, metric: concept("metric", "a", " ; skos:broader :b") + concept("metric", "b", " ; skos:narrower :a") })).not.toThrow();
+    expect(load({ direction: dir, metric: concept("metric", "a", " ; skos:broader :b") + concept("metric", "b", " ; skos:broader :c") + concept("metric", "c") + `:a skos:narrower :c .\n` }))
+      .toThrow(/skos:broader cycle/);
   });
 
   it("reads quoted CSV fields with commas, quotes and line breaks", () => {
