@@ -189,6 +189,24 @@ That updates each record's provenance hash and appends a `changed_by` entry (inp
 - A problem with a source or result that should block comparison (conflicting tables, unclear units, abstract and body disagree): add an entry to the source record's `attributes.evidence_concerns` with `source_id`, `message`, `source_locator`, `artifact_sha256` and review date. The value is kept and marked.
 - A wrong numerical result: add a corrected result that supersedes the old one, with the evidence. Do not edit the old record's value.
 
+### Discrepancies between studies
+
+The knowledge-graph build flags results from one study that disagree with other studies' results for the same systems ([discrepancies.md](discrepancies.md)). A flag is a lead, not a finding of error, and never withholds a result. When reviewing a batch, check the discrepancies that list its results in `outlier_results` or `consensus_results`.
+
+Each step taken about a discrepancy is one `discrepancy_review` claim revision, added like any other record (step 6) in a small batch with its receipt. The claim carries:
+
+| Attribute | Holds |
+| --- | --- |
+| `discrepancy_id` | The discrepancy's current ID |
+| `previous_ids` | IDs it had under earlier rules, if its ID changed |
+| `revision` | One above the last accepted claim for the same discrepancy |
+| `value` | The state after this step, from `data/vocab/discrepancy-state.ttl` |
+| `action` | What was done, from `data/vocab/discrepancy-action.ttl` |
+| `date` | When it was done; if absent, `reported_on` is used |
+| `rationale`, `investigation_url`, `report_url`, `reported_on`, `upstream_response`, `awaiting`, `expected_by`, `next_check`, `resolved_by` | The evidence and what happens next |
+
+Every accepted revision is kept as the discrepancy's follow-up history; the highest revision sets its state. The KG build fails if an accepted claim that has not settled its discrepancy names an ID that no current discrepancy has, directly or through `previous_ids`. A confirmed error is fixed through a record change that marks the results `disputed` or adds an evidence concern (above); the rules then leave those results out.
+
 ### Auditing existing records
 
 Audits are append-only checks on a specific catalogue release, stored in `data/omics/audits/`. To audit:

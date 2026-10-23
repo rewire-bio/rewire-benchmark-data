@@ -12,8 +12,10 @@ vocabulary (data/ontology/rb.ttl) and the pinned external vocabularies
   manifest.json    bundle format 1.0 (see rewire-bio/rdf-kg-mcp docs/bundle-format.md)
 
 The build fails if the reasoner finds an inconsistency, if a protected link is inferred,
-if a result's inferred system differs from what its evaluation tested, or if SHACL
-validation fails.
+if a result's inferred system differs from what its evaluation tested, if SHACL
+validation fails (data/ontology/shapes.ttl and attribute-shapes.ttl for the records,
+derived-shapes.ttl for the derived graph), or if an accepted discrepancy_review claim names
+a discrepancy that is not derived and not settled.
 
 Usage: npm run kg:build   (or: python scripts/kg/build.py [--kg-dir public/kg])
        python scripts/kg/build.py --shapes-only [--kg-dir public/kg] [--context FILE] [--shard I/N]
@@ -55,6 +57,7 @@ IMPORTS = ONTOLOGY_DIR / "imports"
 SHAPES = ONTOLOGY_DIR / "shapes.ttl"
 ATTRIBUTE_SHAPES = ONTOLOGY_DIR / "attribute-shapes.ttl"
 ATTRIBUTE_DECLARATIONS = ONTOLOGY_DIR / "rb-attributes.ttl"
+DERIVED_SHAPES = ONTOLOGY_DIR / "derived-shapes.ttl"
 VOCAB_DIR = ROOT / "data" / "vocab"
 MAPPING = ONTOLOGY_DIR / "mapping.json"
 
@@ -281,6 +284,21 @@ def validate(asserted: rdflib.Graph, inferred: set[tuple], asserted_only: bool =
     return False, "\n".join(lines)
 
 
+def validate_derived(triples: set[tuple]) -> tuple[bool, str]:
+    """SHACL over the derived graph, with the vocabulary and concept schemes mixed in so the shapes
+    can check rule, state and action concepts. Record IRIs the discrepancies point at are not
+    loaded, so the shapes check only that they are IRIs."""
+    data = rdflib.Graph()
+    for triple in triples:
+        data.add(triple)
+    data.parse(VOCABULARY, format="turtle")
+    for path in sorted(VOCAB_DIR.glob("*.ttl")):
+        data.parse(path, format="turtle")
+    shapes = rdflib.Graph().parse(DERIVED_SHAPES, format="turtle")
+    conforms, _, report = pyshacl.validate(data, shacl_graph=shapes, inference="none", advanced=False)
+    return bool(conforms), str(report)
+
+
 def record_of(node: str) -> str:
     """The record IRI a node belongs to: the record itself, or <record>/<path> for its nodes."""
     return ID + node[len(ID):].split("/", 1)[0] if node.startswith(ID) else node
@@ -363,6 +381,98 @@ EXAMPLE_QUERIES = [
 ]
 
 
+DERIVED_GRAPH = "<https://benchmarks.rewire.it/graph/derived>"
+STATE = "https://benchmarks.rewire.it/vocab/discrepancy-state/"
+UNSETTLED = (f"FILTER(?state NOT IN (<{STATE}explained>, <{STATE}confirmed-error>, <{STATE}false-positive>))")
+SEVERITY_RANK = 'BIND(IF(?severity = "high", 0, IF(?severity = "medium", 1, 2)) AS ?rank)'
+
+# Parameterised queries for rdf-kg-mcp's list_queries and run_query (bundle format, rdf-kg-mcp
+# v0.2.0). A parameter appears as $name; the server puts in the validated value. An optional
+# parameter left unset stays an unbound variable, so it is only used in FILTER(COALESCE(?x = $p, true)),
+# and never in the SELECT list or BOUND().
+NAMED_QUERIES = [
+    {
+        "name": "open_discrepancies",
+        "title": "Open discrepancies between studies",
+        "description": "Discrepancies not yet settled as explained, a confirmed error or a false positive, most "
+        "severe first. Each is a lead found by a rule, not a finding that a result is wrong.",
+        "sparql": "SELECT ?discrepancy ?severity ?state ?rule ?scope ?summary WHERE {\n"
+        f"  GRAPH {DERIVED_GRAPH} {{\n"
+        "    ?discrepancy a rb:Discrepancy ; rb:severity ?severity ; rb:reviewState ?state ;\n"
+        "                 rb:discrepancyRule ?rule ; rb:discrepancyScope ?scope ; rb:discrepancySummary ?summary .\n"
+        "  }\n"
+        "  FILTER(COALESCE(?severity = $severity, true))\n"
+        f"  {UNSETTLED}\n"
+        f"  {SEVERITY_RANK}\n"
+        "} ORDER BY ?rank ?discrepancy",
+        "params": [
+            {"name": "severity", "type": "string", "required": False,
+             "description": "Only discrepancies of this severity: high, medium or low. Leave unset for all."},
+        ],
+    },
+    {
+        "name": "discrepancies_for_system",
+        "title": "Discrepancies involving a model or method",
+        "description": "Every discrepancy, settled or not, that compares the given model or method. Configurations "
+        "are compared as the model or method they configure, so pass the model or method IRI.",
+        "sparql": "SELECT ?discrepancy ?other ?otherName ?severity ?state ?summary WHERE {\n"
+        f"  GRAPH {DERIVED_GRAPH} {{\n"
+        "    ?discrepancy rb:comparedSystem $system , ?other ; rb:severity ?severity ; rb:reviewState ?state ;\n"
+        "                 rb:discrepancySummary ?summary .\n"
+        "    FILTER(?other != $system)\n"
+        "  }\n"
+        "  OPTIONAL { ?other rdfs:label ?otherName }\n"
+        f"  {SEVERITY_RANK}\n"
+        "} ORDER BY ?rank ?discrepancy",
+        "params": [
+            {"name": "system", "type": "iri", "required": True,
+             "description": "The model or method, e.g. id:catalog-model-alphagenome."},
+        ],
+    },
+    {
+        "name": "discrepancy_history",
+        "title": "Follow-up history of a discrepancy",
+        "description": "What was done about one discrepancy, in revision order: each accepted discrepancy_review "
+        "claim is one action, with the state it left, its date, a link and when to check again.",
+        "sparql": "SELECT ?revision ?actionType ?state ?date ?url ?nextCheck ?claim WHERE {\n"
+        f"  GRAPH {DERIVED_GRAPH} {{\n"
+        "    $discrepancy rb:hasAction ?action .\n"
+        "    ?action rb:actionRevision ?revision ; rb:resultingState ?state ; rb:reviewClaim ?claim .\n"
+        "    OPTIONAL { ?action rb:actionType ?actionType }\n"
+        "    OPTIONAL { ?action rb:actionDate ?date }\n"
+        "    OPTIONAL { ?action rb:actionUrl ?url }\n"
+        "    OPTIONAL { ?action rb:nextCheck ?nextCheck }\n"
+        "  }\n"
+        "} ORDER BY ?revision",
+        "params": [
+            {"name": "discrepancy", "type": "iri", "required": True,
+             "description": "The discrepancy, e.g. id:discrepancy-0123456789abcdef."},
+        ],
+    },
+    {
+        "name": "contested_results_for_use_case",
+        "title": "Contested results for a use case",
+        "description": "Results on the protocols a use case is assessed by that an unsettled discrepancy rests on, "
+        "as the outlier study's result or as part of the consensus. Contested results are flagged, not withheld.",
+        "sparql": "SELECT DISTINCT ?result ?role ?discrepancy ?severity ?state ?summary WHERE {\n"
+        "  $use_case rb:assessedBy ?protocol .\n"
+        "  ?result rb:resultOn ?protocol .\n"
+        f"  GRAPH {DERIVED_GRAPH} {{\n"
+        '    { ?discrepancy rb:outlierResult ?result . BIND("outlier" AS ?role) }\n'
+        '    UNION { ?discrepancy rb:consensusResult ?result . BIND("consensus" AS ?role) }\n'
+        "    ?discrepancy rb:severity ?severity ; rb:reviewState ?state ; rb:discrepancySummary ?summary .\n"
+        "  }\n"
+        f"  {UNSETTLED}\n"
+        f"  {SEVERITY_RANK}\n"
+        "} ORDER BY ?rank ?discrepancy ?role ?result",
+        "params": [
+            {"name": "use_case", "type": "iri", "required": True,
+             "description": "The use case record, e.g. id:use-case-splicing-follow-up."},
+        ],
+    },
+]
+
+
 def build(kg_dir: Path) -> dict:
     started = time.monotonic()
     manifest_path = kg_dir / "manifest.json"
@@ -381,17 +491,25 @@ def build(kg_dir: Path) -> dict:
     if not conforms:
         raise BuildError("SHACL validation failed:\n" + report[:5000])
     rules = contradictions.load_rules()
-    derived, discrepancies = contradictions.derive(asserted, inferred, ontology, rules)
+    result = contradictions.derive(asserted, inferred, ontology, rules)
+    derived, discrepancies = result.triples, result.report
     problems = contradictions.check_derived(derived)
     if problems:
         raise BuildError("The discrepancy rules wrote statements they may not:\n  " + "\n  ".join(problems))
-    print(f"Derived {len(discrepancies)} discrepancies", file=sys.stderr)
+    if result.problems:
+        raise BuildError("Discrepancy review claims do not match the derived discrepancies:\n  "
+                         + "\n  ".join(result.problems[:20]))
+    conforms, report = validate_derived(derived)
+    if not conforms:
+        raise BuildError("SHACL validation of the derived graph failed:\n" + report[:5000])
+    print(f"Derived {len(discrepancies)} discrepancies; left out {result.excluded['disputed']} disputed results "
+          f"and {result.excluded['concern']} under an evidence concern", file=sys.stderr)
 
     (kg_dir / "inferred.nq").write_text(nquads(inferred, GRAPHS["inferred"]), "utf-8")
     (kg_dir / "derived.nq").write_text(nquads(derived, GRAPHS["derived"]), "utf-8")
     (kg_dir / "discrepancies.json").write_text(json.dumps(
-        {"release_id": exported["release_id"], "rules": rules, "discrepancies": discrepancies},
-        indent=2, ensure_ascii=False) + "\n", "utf-8")
+        {"schema_version": 2, "release_id": exported["release_id"], "rules": rules, "excluded": result.excluded,
+         "discrepancies": discrepancies}, indent=2, ensure_ascii=False) + "\n", "utf-8")
     target = kg_dir / "ontology"
     if target.exists():
         shutil.rmtree(target)
@@ -421,6 +539,11 @@ def build(kg_dir: Path) -> dict:
         "inferences in a separate graph, and discrepancies between studies' results in a derived graph.",
         "homepage": "https://github.com/rewire-bio/rewire-benchmark-data",
         "graphs": GRAPHS,
+        "graph_descriptions": {
+            "derived": "Discrepancies between studies' results found by the rules in scripts/kg/contradictions.py, "
+            "with their review state and follow-up actions. Each is a lead for review, not a finding that a "
+            "result is wrong.",
+        },
         "files": dict(sorted(files.items())),
         "prefixes": {
             **mapping["prefixes"],
@@ -450,6 +573,10 @@ def build(kg_dir: Path) -> dict:
             "by_rule": dict(sorted(Counter(d["rule"] for d in discrepancies).items())),
             "by_severity": dict(sorted(Counter(d["severity"] for d in discrepancies).items())),
             "by_review_state": dict(sorted(Counter(d["review_state"] for d in discrepancies).items())),
+            "excluded": result.excluded,
+            "retired_reviews": result.retired,
+            "shapes": "data/ontology/derived-shapes.ttl",
+            "shapes_sha256": sha256(DERIVED_SHAPES),
             "discrepancies_json_sha256": sha256(kg_dir / "discrepancies.json"),
         },
         "shacl": {
@@ -461,6 +588,7 @@ def build(kg_dir: Path) -> dict:
             "attribute_shapes_sha256": sha256(ATTRIBUTE_SHAPES),
         },
         "example_queries": EXAMPLE_QUERIES,
+        "queries": NAMED_QUERIES,
     }
     manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", "utf-8")
     print(

@@ -10,9 +10,11 @@ Rules, with thresholds in data/ontology/discrepancy-rules.json:
 
   ordering reversal  Other studies rank system A above system B in most of their comparisons;
                      this study ranks B above A in most of its own.
-  gap outlier        For systems A and B tested on the same protocol or task by at least three
-                     studies, this study's median relative difference between A and B lies
-                     outside the range of the others by more than a margin.
+  gap outlier        In a group of at least three studies of one metric on one protocol or task,
+                     with a reference system that every study in the group measured (a named
+                     baseline if there is one), this study's median relative difference between a
+                     system and the reference lies outside the range of the others by more than a
+                     margin. A group without such a reference is skipped.
 
 A comparison is two systems' best values in one group of results from one study: same protocol,
 dataset, metric, unit, qualifier, split and direction. Copied results (an rb:originalEvaluation
@@ -25,6 +27,15 @@ Configurations are compared as the model or method they configure (rb:configurat
 rb:family). The vocabulary keeps those links out of inference because results roll up only
 when a claim backs the link; here an unbacked link is still used, and the discrepancy says so
 with rb:identityBasis "unreviewed", because a lead is worth raising before identity review.
+
+Results a reviewer has marked disputed, and results covered by a source's evidence_concerns
+entry, are left out, so a confirmed error stops firing once it is recorded.
+
+A discrepancy's ID hashes a canonical key: rule, compared systems (after configuration, family
+and alias resolution), anchor, metric and outlier study key. Only the gap rule has an anchor and a
+metric; an ordering reversal pools every comparison of its two systems, so both are null. The
+study key is the lowest DOI among the study's sources, else the lowest repository URL, else the
+source retrieved first (tie-break: ID). None of these change when a source joins the study.
 """
 
 from __future__ import annotations
@@ -33,7 +44,7 @@ import hashlib
 import json
 import re
 import statistics
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -59,7 +70,9 @@ COPIED_ORIGIN = concept("origin", "paper_compilation")
 CHECKED = {concept("status", "source_checked"), concept("status", "reproduced")}
 AUTOMATIC = URIRef("http://purl.obolibrary.org/obo/ECO_0000203")
 MANUAL = URIRef("http://purl.obolibrary.org/obo/ECO_0000218")
+DISPUTED = concept("status", "disputed")
 REVIEW_FIELD = "discrepancy_review"
+BASELINE_FIELD = "baseline"
 # Working states say what has been done; the terminal three settle the discrepancy.
 WORKING_STATES = ("investigating", "reported-upstream", "awaiting-correction")
 TERMINAL_STATES = ("explained", "confirmed-error", "false-positive")
@@ -78,6 +91,14 @@ RESOLUTION = {
     "rationale": (RB.rationale, "text"),
 }
 SEVERITY = ["low", "medium", "high"]
+# Follow-up action types (data/vocab/discrepancy-action.ttl).
+ACTIONS = ("investigated", "contacted-authors", "reported-upstream", "awaiting-correction", "reran",
+           "corrected-records", "closed")
+# The fields of one follow-up action in discrepancies.json, in order.
+ACTION_FIELDS = ("revision", "claim_id", "action", "state", "date", "rationale", "investigation_url", "report_url",
+                 "upstream_response", "awaiting", "expected_by", "next_check", "resolved_by")
+# What a result's value rests on, for scoped evidence concerns (shared/omics/concerns.ts).
+EVALUATION_PATH = (RB.testedSystem, RB.testedOn, RB.dataset)
 
 # Every predicate the derived graph may use. check_derived refuses anything else.
 DERIVED_PREDICATES = {
@@ -86,6 +107,8 @@ DERIVED_PREDICATES = {
     RB.outlierResult, RB.consensusResult, RB.discrepancyScope, RB.identityBasis, RB.severity,
     RB.outlierComparisons, RB.outlierReversals, RB.consensusComparisons, RB.consensusAgreements,
     RB.outlierGap, RB.consensusGapMin, RB.consensusGapMax, RB.discrepancySummary,
+    RB.discrepancyKey, RB.previousIds, RB.hasAction, RB.actionType, RB.actionDate, RB.actionUrl,
+    RB.actionRevision, RB.resultingState,
     *(prop for prop, _ in RESOLUTION.values()),
 }
 
@@ -99,6 +122,7 @@ class Comparison:
     """Two systems' best values in one group of one study's results."""
     study: URIRef
     protocol: URIRef | None
+    metric: URIRef | None
     a: URIRef
     b: URIRef
     value_a: Decimal
@@ -115,12 +139,32 @@ class Comparison:
             return None
         return self.a if (self.value_a > self.value_b) == self.higher_is_better else self.b
 
-    def relative_gap(self) -> float | None:
-        """(A - B) / |B|, signed so that positive means A is better."""
-        if self.value_b == 0:
+    def relative_gap(self, reference: URIRef) -> float | None:
+        """(system - reference) / |reference|, signed so that positive means the other system is
+        better than the reference."""
+        mine, theirs = (self.value_b, self.value_a) if reference == self.a else (self.value_a, self.value_b)
+        if theirs == 0:
             return None
-        gap = float((self.value_a - self.value_b) / abs(self.value_b))
+        gap = float((mine - theirs) / abs(theirs))
         return gap if self.higher_is_better else -gap
+
+
+def local(node: URIRef | None) -> str | None:
+    return None if node is None else str(node).removeprefix(ID)
+
+
+def finding_key(rule: str, systems: list[URIRef], anchor: URIRef | None, metric: URIRef | None,
+                outlier_study: str) -> dict:
+    """The canonical key a discrepancy's ID hashes. Systems are resolved model or method IRIs;
+    the metric is a concept key."""
+    return {"rule": rule, "systems": sorted(local(s) for s in systems), "anchor": local(anchor),
+            "metric": str(metric).rsplit("/", 1)[-1] if metric is not None else None,
+            "outlier_study": outlier_study}
+
+
+def identifier(key: dict) -> str:
+    canonical = json.dumps(key, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return f"discrepancy-{hashlib.sha256(canonical.encode()).hexdigest()[:16]}"
 
 
 @dataclass
@@ -134,11 +178,8 @@ class Finding:
     numbers: dict = field(default_factory=dict)
     higher: URIRef | None = None
     reference: URIRef | None = None
-
-    @property
-    def iri(self) -> URIRef:
-        key = "|".join([self.rule, str(self.a), str(self.b), str(self.outlier)])
-        return URIRef(f"{ID}discrepancy-{hashlib.sha256(key.encode()).hexdigest()[:16]}")
+    anchor: URIRef | None = None
+    metric: URIRef | None = None
 
 
 class Index:
@@ -155,6 +196,9 @@ class Index:
             self.within[s].add(o)
         self.backed = self._backed_links()
         self.study = self._studies()
+        self.study_keys = self._study_keys()
+        self.excluded = self._excluded()
+        self.baselines = self._baselines()
 
     def label(self, node: URIRef) -> str:
         return str(self.g.value(node, RDFS.label) or str(node).removeprefix(ID))
@@ -201,6 +245,76 @@ class Index:
                 union(publications.setdefault(key, source), source)
         return {source: find(source) for source in parent}
 
+    def _study_keys(self) -> dict[URIRef, str]:
+        """study -> its stable key: lowest DOI, else lowest repository URL, else the source
+        retrieved first (tie-break: ID)."""
+        members: dict[URIRef, list[URIRef]] = defaultdict(list)
+        for source, study in self.study.items():
+            members[study].append(source)
+        keys = {}
+        for study, sources in members.items():
+            dois = sorted(re.sub(r"^https?://(dx\.)?doi\.org/", "", str(d).strip(), flags=re.I).lower()
+                          for s in sources for d in self.g.objects(s, RB.doi))
+            repositories = sorted(
+                "https://github.com/" + "/".join(match.groups()).lower().removesuffix(".git")
+                for s in sources if (match := REPOSITORY.match(str(self.g.value(s, SCHEMA_URL) or ""))))
+            if dois:
+                keys[study] = f"doi:{dois[0]}"
+            elif repositories:
+                keys[study] = f"repository:{repositories[0]}"
+            else:
+                first = min(sources, key=lambda s: (self.g.value(s, RB.retrievedAt) is None,
+                                                    str(self.g.value(s, RB.retrievedAt) or ""), str(s)))
+                keys[study] = f"source:{local(first)}"
+        return keys
+
+    def _excluded(self) -> dict[URIRef, str]:
+        """result -> why it is left out: "disputed" (its status), or "concern" (a source's
+        evidence_concerns entry covers it; the logic of shared/omics/concerns.ts)."""
+        whole_sources, targets = set(), set()
+        for source, value in self.g.subject_objects(RB.evidenceConcerns):
+            try:
+                entries = json.loads(str(value))
+            except ValueError:
+                continue
+            for entry in entries if isinstance(entries, list) else [entries]:
+                if not isinstance(entry, dict):
+                    continue
+                scoped = entry.get("applies_to")
+                if isinstance(scoped, list) and scoped:
+                    targets |= {URIRef(ID + str(target)) for target in scoped}
+                else:
+                    whole_sources.add(source)
+        excluded = {}
+        for result in self.g.subjects(RDF.type, RB.Result):
+            if self.g.value(result, RB.status) == DISPUTED:
+                excluded[result] = "disputed"
+                continue
+            if whole_sources.intersection(self.g.objects(result, DCT.source)):
+                excluded[result] = "concern"
+                continue
+            if not targets:
+                continue
+            path = {result}
+            for evaluation in self.g.objects(result, RB.evaluation):
+                path.add(evaluation)
+                for prop in EVALUATION_PATH:
+                    path |= set(self.g.objects(evaluation, prop))
+                for assessment in self.g.objects(evaluation, RB.testedOn):
+                    path |= set(self.g.objects(assessment, RB.partOf))
+            if path & targets:
+                excluded[result] = "concern"
+        return excluded
+
+    def _baselines(self) -> set[URIRef]:
+        """Systems named as a baseline: what a baseline record is implemented by, and the methods a
+        use case's baseline claim names (issue #121)."""
+        named = set(self.g.objects(None, RB.implementedBy))
+        for claim, value in self.g.subject_objects(RB.claimField):
+            if str(value) == BASELINE_FIELD:
+                named |= set(self.g.objects(claim, RB.methodIds))
+        return {resolved[0] for system in named if (resolved := self.identity(system))}
+
     def identity(self, system: URIRef) -> tuple[URIRef, bool] | None:
         """The model or method a tested system stands for, and whether that link is reviewed."""
         if system is None:
@@ -240,6 +354,8 @@ def comparisons(index: Index) -> list[Comparison]:
     g = index.g
     groups: dict[tuple, dict[URIRef, list]] = defaultdict(lambda: defaultdict(list))
     for result in g.subjects(RDF.type, RB.Result):
+        if result in index.excluded:
+            continue
         evaluation = g.value(result, RB.evaluation)
         value = g.value(result, MLS_HAS_VALUE)
         sources = sorted(g.objects(result, DCT.source))
@@ -265,7 +381,7 @@ def comparisons(index: Index) -> list[Comparison]:
 
     found = []
     for key, by_system in groups.items():
-        study, protocol, *_, higher = key
+        study, protocol, _, metric, *_, higher = key
         best = {}
         for system, rows in by_system.items():
             value = (max if higher else min)(number for number, _, _ in rows)
@@ -274,7 +390,7 @@ def comparisons(index: Index) -> list[Comparison]:
             for b in sorted(best):
                 if a < b:
                     (va, ra, rev_a), (vb, rb_, rev_b) = best[a], best[b]
-                    found.append(Comparison(study, protocol, a, b, va, vb, higher, ra, rb_, rev_a and rev_b))
+                    found.append(Comparison(study, protocol, metric, a, b, va, vb, higher, ra, rb_, rev_a and rev_b))
     return found
 
 
@@ -305,20 +421,38 @@ def ordering_reversals(pairs: dict, rules: dict) -> list[Finding]:
     return findings
 
 
-def gap_outliers(pairs: dict, index: Index, rules: dict) -> list[Finding]:
-    """Per anchor (a protocol, or a task or benchmark it sits within), compare each study's
-    median relative gap with the other studies'. Keep the widest miss per pair and study."""
+def anchor_rank(index: Index, anchor: URIRef) -> tuple:
+    """Most specific first: a protocol, then a task, then a benchmark or suite; then by IRI."""
+    kind = 0 if (anchor, RDF.type, RB.Protocol) in index.g else 1 if (anchor, RDF.type, RB.Task) in index.g else 2
+    return kind, str(anchor)
+
+
+def gap_outliers(found: list[Comparison], index: Index, rules: dict) -> list[Finding]:
+    """Per comparison group (a protocol, or a task or benchmark it sits within, and one metric),
+    take a reference system every study in the group measured, preferring a named baseline. For
+    each other system, compare each study's median relative gap to the reference with the other
+    studies'. A pair and study that fire on several anchors keep the most specific one."""
     r = rules["gap_outlier"]
+    groups: dict[tuple, list[Comparison]] = defaultdict(list)
+    for c in found:
+        for anchor in index.anchors(c.protocol):
+            groups[(anchor, c.metric)].append(c)
     best: dict[tuple, Finding] = {}
-    for (a, b), items in pairs.items():
-        by_anchor: dict[URIRef, list[Comparison]] = defaultdict(list)
+    for (anchor, metric), items in sorted(groups.items(), key=lambda kv: (str(kv[0][0]), str(kv[0][1]))):
+        measured: dict[URIRef, set] = defaultdict(set)
         for c in items:
-            for anchor in index.anchors(c.protocol):
-                by_anchor[anchor].append(c)
-        for anchor in sorted(by_anchor):
+            measured[c.study] |= {c.a, c.b}
+        if len(measured) < r["min_studies"]:
+            continue
+        shared = set.intersection(*measured.values())
+        if not shared:
+            continue
+        reference = min(shared, key=lambda s: (s not in index.baselines, str(s)))
+        for system in sorted(shared - {reference}):
+            pair = [c for c in items if {c.a, c.b} == {system, reference}]
             gaps: dict[URIRef, list[float]] = defaultdict(list)
-            for c in by_anchor[anchor]:
-                gap = c.relative_gap()
+            for c in pair:
+                gap = c.relative_gap(reference)
                 if gap is not None:
                     gaps[c.study].append(gap)
             if len(gaps) < r["min_studies"]:
@@ -330,17 +464,16 @@ def gap_outliers(pairs: dict, index: Index, rules: dict) -> list[Finding]:
                 miss = max(low - median, median - high)
                 if miss <= r["margin"]:
                     continue
-                key = (a, b, study)
-                if key in best and best[key].numbers["miss"] >= miss:
+                key = (system, reference, metric, study)
+                if key in best and anchor_rank(index, best[key].anchor) <= anchor_rank(index, anchor):
                     continue
-                anchored = by_anchor[anchor]
                 best[key] = Finding(
-                    "gap-outlier", a, b, study,
-                    [c for c in anchored if c.study == study], [c for c in anchored if c.study != study],
-                    reference=b, numbers={"outlier_gap": median, "consensus_gap_min": low,
-                                          "consensus_gap_max": high, "miss": miss},
+                    "gap-outlier", system, reference, study,
+                    [c for c in pair if c.study == study], [c for c in pair if c.study != study],
+                    reference=reference, anchor=anchor, metric=metric,
+                    numbers={"outlier_gap": median, "consensus_gap_min": low, "consensus_gap_max": high},
                 )
-    return [best[k] for k in sorted(best)]
+    return [best[k] for k in sorted(best, key=lambda k: tuple(str(x) for x in k))]
 
 
 def scope(finding: Finding, index: Index) -> str:
@@ -352,46 +485,115 @@ def scope(finding: Finding, index: Index) -> str:
     return "same-task" if near else "cross-task"
 
 
-def reviews(index: Index) -> dict[str, dict]:
-    """discrepancy id -> the current review: its claim, state and resolution fields, from checked
-    discrepancy_review claims. Later steps are new claims; the one with the highest revision wins,
-    so the earlier steps stay in the store as history."""
-    decided: dict[str, dict] = {}
-    claims = (c for c, value in index.g.subject_objects(RB.claimField) if str(value) == REVIEW_FIELD)
-    for claim in sorted(claims):
-        if index.g.value(claim, RB.status) not in CHECKED:
+@dataclass
+class Reviews:
+    """Accepted discrepancy_review claims, as follow-up actions grouped by the discrepancy they
+    decide after previous_ids are mapped forward."""
+    actions: dict[str, list[dict]]
+    previous: dict[str, list[str]]
+    problems: list[str]
+
+
+def reviews(index: Index) -> Reviews:
+    """Checked discrepancy_review claims. Each claim is one action; a later step is a new claim
+    with a higher revision, so the actions of one discrepancy ordered by revision are its history
+    and the last one is where it stands. A claim's previous_ids map those IDs forward to its
+    discrepancy_id, for every claim that names them."""
+    g = index.g
+    claims = []
+    for claim, value in g.subject_objects(RB.claimField):
+        if str(value) != REVIEW_FIELD or g.value(claim, RB.status) not in CHECKED:
             continue
-        target = index.g.value(claim, RB.discrepancyId)
-        state = str(index.g.value(claim, RB.value) or "")
+        target = g.value(claim, RB.discrepancyId)
+        state = str(g.value(claim, RB.value) or "")
         if target is None or state not in STATES:
             continue
-        revision = int(index.g.value(claim, RB.revision) or 0)
-        current = decided.get(str(target))
-        if current and current["revision"] > revision:
-            continue
-        fields = {name: index.g.value(claim, prop) for name, (prop, _) in RESOLUTION.items()}
-        fields["resolved_by"] = sorted(index.g.objects(claim, RB.resolvedBy))
-        decided[str(target)] = {"claim": claim, "state": state, "revision": revision, "fields": fields}
-    return decided
+        action = g.value(claim, RB.action)
+        fields = {name: g.value(claim, prop) for name, (prop, _) in RESOLUTION.items()}
+        fields["resolved_by"] = sorted(g.objects(claim, RB.resolvedBy))
+        claims.append({
+            "claim": claim, "target": str(target), "state": state, "revision": int(g.value(claim, RB.revision) or 0),
+            "action": str(action).rsplit("/", 1)[-1] if action is not None else None,
+            # The action's date: the claim's date attribute, else the day it was reported upstream.
+            "date": g.value(claim, RB.date) or fields["reported_on"], "fields": fields,
+            "previous_ids": sorted(str(p) for p in g.objects(claim, RB.previousIds)),
+        })
+    forward: dict[str, str] = {}
+    problems = []
+    for c in sorted(claims, key=lambda c: str(c["claim"])):
+        for old in c["previous_ids"]:
+            if forward.setdefault(old, c["target"]) != c["target"]:
+                problems.append(f"{local(c['claim'])}: previous ID {old} is mapped to both {forward[old]} and {c['target']}")
+
+    def resolve(identifier: str) -> str:
+        seen = {identifier}
+        while identifier in forward:
+            identifier = forward[identifier]
+            if identifier in seen:
+                problems.append(f"previous_ids form a cycle through {identifier}")
+                break
+            seen.add(identifier)
+        return identifier
+
+    actions: dict[str, list[dict]] = defaultdict(list)
+    for c in claims:
+        actions[resolve(c["target"])].append(c)
+    previous: dict[str, list[str]] = defaultdict(list)
+    for old in sorted(forward):
+        previous[resolve(old)].append(old)
+    for target, items in actions.items():
+        items.sort(key=lambda c: (c["revision"], str(c["claim"])))
+        revisions = [c["revision"] for c in items]
+        for revision in sorted({n for n in revisions if revisions.count(n) > 1}):
+            problems.append(f"{target}: more than one accepted review claim has revision {revision}")
+    return Reviews(dict(actions), dict(previous), problems)
+
+
+def action_json(c: dict) -> dict:
+    fields = c["fields"]
+    text = lambda name: str(fields[name]) if fields.get(name) is not None else None
+    return {
+        "revision": c["revision"], "claim_id": local(c["claim"]), "action": c["action"], "state": c["state"],
+        "date": str(c["date"]) if c["date"] is not None else None,
+        "rationale": text("rationale"), "investigation_url": text("investigation_url"), "report_url": text("report_url"),
+        "upstream_response": text("upstream_response"), "awaiting": text("awaiting"),
+        "expected_by": text("expected_by"), "next_check": text("next_check"),
+        "resolved_by": [local(t) for t in fields["resolved_by"]],
+    }
+
+
+@dataclass
+class Derived:
+    triples: set[tuple]
+    report: list[dict]
+    excluded: dict[str, int]
+    # Accepted review claims whose discrepancy is no longer derived, directly or through
+    # previous_ids. A settled one is retired: a confirmed error stops firing once its results
+    # are disputed. Any other fails the build (check_reviews).
+    retired: list[str]
+    problems: list[str]
 
 
 def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
-           rules: dict | None = None) -> tuple[set[tuple], list[dict]]:
+           rules: dict | None = None) -> Derived:
     """The derived graph's statements, and the same discrepancies as JSON-ready dicts."""
     rules = rules or load_rules()
     index = Index(asserted, inferred, ontology)
+    found = comparisons(index)
     pairs: dict[tuple, list[Comparison]] = defaultdict(list)
-    for c in comparisons(index):
+    for c in found:
         pairs[(c.a, c.b)].append(c)
-    findings = ordering_reversals(pairs, rules) + gap_outliers(pairs, index, rules)
+    findings = ordering_reversals(pairs, rules) + gap_outliers(found, index, rules)
     decided = reviews(index)
 
     triples: set[tuple] = set()
     report = []
     for f in findings:
-        node = f.iri
-        identifier = str(node).removeprefix(ID)
-        review = decided.get(identifier)
+        key = finding_key(f.rule, [f.a, f.b], f.anchor, f.metric, index.study_keys[f.outlier])
+        identifier_ = identifier(key)
+        node = URIRef(ID + identifier_)
+        history = decided.actions.get(identifier_, [])
+        review = history[-1] if history else None
         claim = review["claim"] if review else None
         state = review["state"] if review else "open"
         where = scope(f, index)
@@ -420,8 +622,9 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
         else:
             kind = RB.GapOutlier
             label = f"{name_a} relative to {name_b}: {study} is outside the range of other studies"
-            summary = (f"{study} reports {name_a} at a median relative difference of {n['outlier_gap']:+.2f} from {name_b}; "
-                       f"other studies report {n['consensus_gap_min']:+.2f} to {n['consensus_gap_max']:+.2f}.")
+            summary = (f"On {index.label(f.anchor)}, {study} reports {name_a} at a median relative difference of "
+                       f"{n['outlier_gap']:+.2f} from {name_b}; other studies report {n['consensus_gap_min']:+.2f} to "
+                       f"{n['consensus_gap_max']:+.2f}.")
         triples |= {
             (node, RDF.type, RB.Discrepancy), (node, RDF.type, kind), (node, RDFS.label, Literal(label)),
             (node, RB.discrepancyRule, concept("discrepancy-rule", f.rule)),
@@ -432,7 +635,10 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
             (node, RB.identityBasis, Literal("reviewed" if reviewed else "unreviewed")),
             (node, RB.severity, Literal(severity)),
             (node, RB.discrepancySummary, Literal(summary)),
+            (node, RB.discrepancyKey, Literal(json.dumps(key, sort_keys=True, ensure_ascii=False))),
         }
+        previous = decided.previous.get(identifier_, [])
+        triples |= {(node, RB.previousIds, Literal(old)) for old in previous}
         resolution: dict = {}
         if claim is not None:
             triples.add((node, RB.reviewClaim, claim))
@@ -442,44 +648,77 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
                     continue
                 if kind == "iris":
                     triples |= {(node, prop, target) for target in value}
-                    resolution[name] = [str(t).removeprefix(ID) for t in value]
+                    resolution[name] = [local(t) for t in value]
                     continue
                 triples.add((node, prop, value if kind == "iri" else
                              Literal(str(value), datatype=XSD.date) if kind == "date" else Literal(str(value))))
                 resolution[name] = str(value)
+        for c in history:
+            action = URIRef(f"{node}/action/{c['revision']}")
+            fields = c["fields"]
+            url = fields.get("report_url") or fields.get("investigation_url")
+            triples |= {
+                (node, RB.hasAction, action), (action, RDF.type, RB.FollowUpAction),
+                (action, RB.actionRevision, Literal(c["revision"], datatype=XSD.integer)),
+                (action, RB.reviewClaim, c["claim"]),
+                (action, RB.resultingState, concept("discrepancy-state", c["state"])),
+            }
+            if c["action"]:
+                triples.add((action, RB.actionType, concept("discrepancy-action", c["action"])))
+            if c["date"] is not None:
+                triples.add((action, RB.actionDate, Literal(str(c["date"]), datatype=XSD.date)))
+            if url is not None:
+                triples.add((action, RB.actionUrl, url))
+            if fields.get("next_check") is not None:
+                triples.add((action, RB.nextCheck, Literal(str(fields["next_check"]), datatype=XSD.date)))
         triples |= {(node, RB.outlierSource, s) for s in outlier_sources}
         triples |= {(node, RB.consensusSource, s) for s in consensus_sources}
         triples |= {(node, RB.outlierResult, r) for r in outlier_results}
         triples |= {(node, RB.consensusResult, r) for r in consensus_results}
         if f.rule == "ordering-reversal":
             triples.add((node, RB.consensusHigher, f.higher))
-            for key, prop in (("outlier_comparisons", RB.outlierComparisons), ("outlier_reversals", RB.outlierReversals),
-                              ("consensus_comparisons", RB.consensusComparisons),
-                              ("consensus_agreements", RB.consensusAgreements)):
-                triples.add((node, prop, Literal(n[key], datatype=XSD.integer)))
+            for name, prop in (("outlier_comparisons", RB.outlierComparisons), ("outlier_reversals", RB.outlierReversals),
+                               ("consensus_comparisons", RB.consensusComparisons),
+                               ("consensus_agreements", RB.consensusAgreements)):
+                triples.add((node, prop, Literal(n[name], datatype=XSD.integer)))
         else:
             triples.add((node, RB.referenceSystem, f.reference))
-            for key, prop in (("outlier_gap", RB.outlierGap), ("consensus_gap_min", RB.consensusGapMin),
-                              ("consensus_gap_max", RB.consensusGapMax)):
-                triples.add((node, prop, Literal(Decimal(f"{n[key]:.4f}"), datatype=XSD.decimal)))
-        local = lambda nodes: [str(x).removeprefix(ID) for x in nodes]
+            for name, prop in (("outlier_gap", RB.outlierGap), ("consensus_gap_min", RB.consensusGapMin),
+                               ("consensus_gap_max", RB.consensusGapMax)):
+                triples.add((node, prop, Literal(Decimal(f"{n[name]:.4f}"), datatype=XSD.decimal)))
+        locals_ = lambda nodes: [local(x) for x in nodes]
         report.append({
-            "id": identifier, "rule": f.rule, "label": label, "summary": summary, "severity": severity,
+            "id": identifier_, "rule": f.rule, "label": label, "summary": summary, "severity": severity,
             "scope": where, "identity_basis": "reviewed" if reviewed else "unreviewed", "review_state": state,
-            "review_claim": str(claim).removeprefix(ID) if claim else None,
+            "review_claim": local(claim) if claim else None,
             "settled": state in TERMINAL_STATES,
             # next_check is a date, not a flag: a consumer decides what is overdue when it reads
             # this, so the same release always produces the same bytes.
             "resolution": resolution,
-            "systems": local([f.a, f.b]),
-            "consensus_higher": str(f.higher).removeprefix(ID) if f.higher else None,
-            "reference_system": str(f.reference).removeprefix(ID) if f.reference else None,
-            "outlier_sources": local(outlier_sources), "consensus_sources": local(consensus_sources),
-            "outlier_results": local(outlier_results), "consensus_results": local(consensus_results),
-            "numbers": {k: (round(v, 4) if isinstance(v, float) else v) for k, v in n.items() if k != "miss"},
+            "systems": locals_([f.a, f.b]),
+            "consensus_higher": local(f.higher) if f.higher else None,
+            "reference_system": local(f.reference) if f.reference else None,
+            "outlier_sources": locals_(outlier_sources), "consensus_sources": locals_(consensus_sources),
+            "outlier_results": locals_(outlier_results), "consensus_results": locals_(consensus_results),
+            "numbers": {k: (round(v, 4) if isinstance(v, float) else v) for k, v in n.items()},
+            "previous_ids": previous,
+            "key": key,
+            "actions": [action_json(c) for c in history],
         })
     report.sort(key=lambda d: (-SEVERITY.index(d["severity"]), d["rule"], d["id"]))
-    return triples, report
+    derived_ids = {d["id"] for d in report}
+    retired, problems = [], list(decided.problems)
+    for target, history in sorted(decided.actions.items()):
+        if target in derived_ids:
+            continue
+        names = ", ".join(local(c["claim"]) for c in history)
+        if history[-1]["state"] in TERMINAL_STATES:
+            retired.append(target)
+        else:
+            problems.append(f"review claim(s) {names} name {target}, which is not derived and is not settled; "
+                            "if its ID changed, list the old ID in a claim's previous_ids")
+    excluded = Counter(index.excluded.values())
+    return Derived(triples, report, {"disputed": excluded["disputed"], "concern": excluded["concern"]}, retired, problems)
 
 
 def check_derived(triples: set[tuple]) -> list[str]:

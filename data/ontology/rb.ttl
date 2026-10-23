@@ -358,3 +358,23 @@ rb:consensusGapMax a owl:DatatypeProperty ; rdfs:label "consensus gap maximum" ;
     rdfs:comment "For a gap outlier, the largest median relative difference among the other sources (xsd:decimal)." .
 rb:discrepancySummary a owl:DatatypeProperty ; rdfs:label "discrepancy summary" ;
     rdfs:comment "One plain sentence stating the disagreement." .
+
+# Follow-up actions: one node per accepted discrepancy_review claim revision, so the history of
+# what was done stays visible after later revisions. The latest revision also sets rb:reviewState.
+rb:FollowUpAction a owl:Class ;
+    rdfs:label "follow-up action" ;
+    rdfs:comment "One step taken about a discrepancy, recorded by one discrepancy_review claim revision: what was done, when, and the review state it left." .
+rb:hasAction a owl:ObjectProperty ; rdfs:label "has action" ;
+    rdfs:comment "Discrepancy to a follow-up action recorded for it." .
+rb:actionType a owl:ObjectProperty ; rdfs:label "action type" ;
+    rdfs:comment "What was done (vocab/discrepancy-action). Absent when the claim records a state change only." .
+rb:actionDate a owl:DatatypeProperty ; rdfs:label "action date" ;
+    rdfs:comment "When the action was taken (xsd:date). Taken from the claim's date attribute, else its reported_on." .
+rb:actionUrl a owl:ObjectProperty ; rdfs:label "action URL" ;
+    rdfs:comment "Where the action can be read: the claim's report_url, or else its investigation_url." .
+rb:actionRevision a owl:DatatypeProperty ; rdfs:label "action revision" ;
+    rdfs:comment "The revision of the claim that recorded the action (xsd:integer); actions are ordered by it." .
+rb:resultingState a owl:ObjectProperty ; rdfs:label "resulting state" ;
+    rdfs:comment "The review state the action left the discrepancy in (vocab/discrepancy-state)." .
+rb:discrepancyKey a owl:DatatypeProperty ; rdfs:label "discrepancy key" ;
+    rdfs:comment "The canonical key the discrepancy's ID hashes: rule, compared systems, anchor, metric and outlier study key." .

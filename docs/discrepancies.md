@@ -42,14 +42,18 @@ A **comparison** is two systems' best values within one group of one study's res
 | Rule | Flags a study when |
 | --- | --- |
 | Ordering reversal | Other studies rank system A above B in at least 5 comparisons, 80% of the time or more, and this study ranks B above A in at least 2 comparisons, 75% of the time or more. |
-| Gap outlier | At least three studies measured A against the same reference system, one that every one of those studies also ran, preferring a named baseline. This study's relative gap to the reference, (A - ref) / ref, lies more than 0.10 outside the range of the others. Never above medium severity. Groups with no shared reference are not tested. |
+| Gap outlier | At least three studies report the same metric on the same protocol, task or benchmark, and every one of them measured a common reference system. This study's median relative gap between a system A and the reference, (A - ref) / ref, lies more than 0.10 outside the range of the other studies' gaps. Never above medium severity. |
+
+**The gap rule's reference.** A comparison group is one anchor (a protocol, or a task or benchmark it belongs to) and one metric, with at least three studies. The reference is a system that every study in the group measured. If more than one qualifies, a named baseline wins: a system that a baseline record is `implemented_by`, or that a use case's `baseline` claim names in `method_ids` ([#121](https://github.com/rewire-bio/rewire-benchmark-data/issues/121)). Otherwise the system with the lowest IRI is used. Every other shared system is compared with that reference. A group in which no system was measured by every study is skipped. When a system, reference and study fire on several anchors, the most specific anchor is kept: protocol, then task, then benchmark. On the store at release `2026-10-23-a1a0ac69daa3`, rules version 3 find no gap outliers.
 
 **What is not compared.**
 - Copied results: origin `paper_compilation`, or an `original_evaluation` link.
 - Results marked `disputed`.
 - Results covered by a source's `evidence_concerns`: all of that source's results, or, when the concern lists `applies_to`, the named records and the results resting on them.
 
-A confirmed error therefore stops re-firing once it is recorded. The bundle manifest's `derived.excluded` counts what was left out.
+A result on a scoped concern's path is one whose result, evaluation, tested configuration, protocol, dataset, or a benchmark the protocol is `part_of`, is named in `applies_to`. This follows `shared/omics/concerns.ts`.
+
+A confirmed error therefore stops re-firing once it is recorded. The bundle manifest's `derived.excluded` and the top-level `excluded` in `discrepancies.json` count the results left out: `disputed` (by status) and `concern` (by an evidence concern). With rules version 3, the evidence concern exclusion removed 6,712 results and the disputed exclusion none. That is why 37 findings from version 2 stopped firing (32 low, 5 medium), and 4 new ones appeared where the consensus changed: 254 findings became 221 ([the 2026-10-23 review](reviews/2026-10-23-discrepancy-identity.md)).
 
 **Identity.** A configuration is compared as the model it configures (`configuration_of`, then `family`, then `alias_of`). Links without a checked claim are still used, and the finding is marked `identity_basis: unreviewed`.
 
@@ -60,14 +64,21 @@ A confirmed error therefore stops re-firing once it is recorded. The bundle mani
 
 An ordering reversal against a strong consensus, at least 20 comparisons agreeing 95% of the time or more, goes up one step. The calibration is in [the 2026-10-22 review](reviews/2026-10-22-discrepancy-severity.md).
 
-**IDs.** A finding's ID is `discrepancy-` plus 16 hex characters of a SHA-256 over:
-- the rule;
-- the compared models, after configuration and alias resolution;
-- the anchor (the protocol, or the task for cross-task findings);
-- the metric;
-- the outlier study's key: its DOI, or failing that its repository URL, or failing that its earliest source.
+**IDs.** A finding's ID is `discrepancy-` plus the first 16 hex characters of the SHA-256 of its key, written as JSON with sorted keys and no spaces. The key is published as `key` in `discrepancies.json` and as `rb:discrepancyKey`:
 
-Adding a source to a study, or another configuration of the same model, does not change the ID. When a rule change does change IDs, a review claim lists the old ID in `previous_ids`; the build maps it forward, and readers still find the finding under the old ID. The build fails if any accepted review claim names an ID that no finding has, so a recorded resolution can never be dropped silently.
+| Key field | Value |
+| --- | --- |
+| `rule` | `ordering-reversal` or `gap-outlier` |
+| `systems` | the two compared models or methods, after `configuration_of`, `family` and `alias_of` resolution, as sorted record IDs |
+| `anchor` | for a gap outlier, the protocol, task or benchmark ID of its comparison group; `null` for an ordering reversal, which pools every comparison of its two systems |
+| `metric` | for a gap outlier, the metric concept key; `null` for an ordering reversal |
+| `outlier_study` | `doi:<lowest DOI among the study's sources, lower case>`, else `repository:https://github.com/<owner>/<repo>` (lowest), else `source:<ID of the source with the earliest retrieved_at>` (ties broken by ID; records have no creation date) |
+
+For example, the Alavi finding's key is `{"anchor":null,"metric":null,"outlier_study":"doi:10.64898/2026.10.02.756289","rule":"ordering-reversal","systems":["catalog-model-alphagenome","regulatory-variant-20261009-model-borzoi"]}`, giving `discrepancy-52a714eb6bb63442`.
+
+Adding a source to a study, or another configuration of the same model, does not change the ID. When a rule change does change IDs, a review claim lists the old ID in `previous_ids`; the build maps it forward, and readers still find the finding under the old ID.
+
+**Orphan check.** The build fails if an accepted review claim names an ID that no finding has, directly or through `previous_ids`, and the claim's latest revision has not settled it. So a review in progress can never be dropped silently. A settled review (`explained`, `confirmed-error` or `false-positive`) whose finding no longer fires is retired instead: a confirmed error stops firing once its results are disputed. Retired IDs are listed in the bundle manifest's `derived.retired_reviews`. The build also fails if two accepted claims for one finding share a revision, or if `previous_ids` map one old ID to two findings.
 
 **What a finding never does.** It never changes a record's status, value or links. `check_derived` and the derived-graph SHACL shapes (`data/ontology/derived-shapes.ttl`) fail the build if the rules write anything but discrepancy and follow-up statements. On the website a finding marks results as contested; it does not withhold them. Results are withheld only by a reviewer: through the `disputed` status, or a scoped evidence concern ([collection.md](collection.md)).
 
@@ -112,6 +123,20 @@ classDiagram
   FollowUpAction --> "0..*" Result : resolvedBy
 ```
 
+Each accepted review claim revision becomes an `rb:FollowUpAction` node, `<discrepancy IRI>/action/<revision>`, linked from the discrepancy by `rb:hasAction`:
+
+| Property | Value |
+| --- | --- |
+| `rb:actionRevision` | the claim's `revision` (xsd:integer) |
+| `rb:reviewClaim` | the claim |
+| `rb:resultingState` | the state after the step (`discrepancy-state` concept) |
+| `rb:actionType` | the claim's `action` (`discrepancy-action` concept); absent for a state change only |
+| `rb:actionDate` | the claim's `date`, else its `reported_on` (xsd:date) |
+| `rb:actionUrl` | the claim's `report_url`, else its `investigation_url` |
+| `rb:nextCheck` | the claim's `next_check` (xsd:date) |
+
+The latest revision also sets the discrepancy's `rb:reviewState` and `rb:reviewClaim`. A discrepancy carries `rb:previousIds` for each old ID mapped to it. `data/ontology/derived-shapes.ttl` holds the SHACL shapes for all of this.
+
 `rb:Discrepancy` is a SEPIO assertion (SEPIO_0000001). Its evidence links are subproperties of SEPIO `has_supporting_evidence` and `has_supporting_evidence_from_source`. `rb:assertionMethod` is ECO `automatic assertion` (ECO_0000203) until a reviewer acts, then `manual assertion` (ECO_0000218). The rule concepts match STATO `ranking` and `relative difference`. The terms are in `data/ontology/rb.ttl`; the states are in `data/vocab/discrepancy-state.ttl` and the action types in `data/vocab/discrepancy-action.ttl`.
 
 ## Following one up
@@ -140,6 +165,7 @@ Each step is a claim with `field: discrepancy_review`, reviewed like any other r
 - `discrepancy_id`, the finding's ID;
 - `revision`: 1, 2, 3 and so on;
 - `action`, what was done (from `discrepancy-action.ttl`);
+- `date`, when it was done;
 - `value`, the state after the step;
 - subject links to the results involved.
 
@@ -149,6 +175,7 @@ The highest revision sets the current state. Every revision is kept and publishe
 | --- | --- |
 | `action` | investigated, contacted-authors, reported-upstream, awaiting-correction, reran, corrected-records or closed |
 | `investigation_url` | Our own analysis: an issue, a dated review |
+| `date` | When this step was taken. If absent, the action's date is `reported_on` |
 | `report_url`, `reported_on` | What we raised with the authors, and when |
 | `upstream_response` | What they said |
 | `awaiting`, `expected_by` | What has to happen next, and when they said it would |
@@ -164,7 +191,7 @@ Only `explained`, `confirmed-error` and `false-positive` settle a finding. A con
 2. We traced it to an off-by-one in the authors' scripts and reported it upstream on 19 October 2026.
 3. The author confirmed the error and is rerunning.
 
-The claims are in `data/omics/discrepancy-review-20261022-alavi-alphagenome/`. The finding's current state is `awaiting-correction`, with a next check on 10 November 2026.
+The claims are in `data/omics/discrepancy-review-20261022-alavi-alphagenome/`. The finding's current state is `awaiting-correction`, with a next check on 10 November 2026. Rules version 3 re-keyed it from `discrepancy-ead251c24ba272c1` to `discrepancy-52a714eb6bb63442`; its claim keeps the old ID in `previous_ids` and records the step as `action: reported-upstream`, dated 19 October 2026 from `reported_on`.
 
 ## Where to read them
 
@@ -198,12 +225,12 @@ The bundle's `derived.nq` holds the findings and their actions in the graph `htt
 
 | Query | Parameters | Returns |
 | --- | --- | --- |
-| `open_discrepancies` | `severity` (optional) | unsettled findings, most severe first |
-| `discrepancies_for_system` | `system` (IRI) | findings comparing that model, method or configuration |
-| `discrepancy_history` | `discrepancy` (IRI) | the finding's follow-up actions in order |
-| `contested_results_for_use_case` | `use_case` (IRI) | the use case's results that take part in unsettled findings |
+| `open_discrepancies` | `severity` (string, optional: `high`, `medium` or `low`) | unsettled findings, most severe first |
+| `discrepancies_for_system` | `system` (IRI, required, e.g. `id:catalog-model-alphagenome`) | every finding comparing that model or method, settled or not. Configurations are compared as their model, so pass the model or method |
+| `discrepancy_history` | `discrepancy` (IRI, required, e.g. `id:discrepancy-52a714eb6bb63442`) | the finding's follow-up actions in revision order: type, resulting state, date, URL, next check, claim |
+| `contested_results_for_use_case` | `use_case` (IRI, required, e.g. `id:use-case-patient-rna-splicing-validation`) | results on the use case's protocols that an unsettled finding rests on, with their role (`outlier` or `consensus`) |
 
-`list_queries` lists them and `run_query` runs one. `sparql_query` with `graphs: ["derived"]` runs any other read-only query, for example:
+Install the server with `uvx --from git+https://github.com/rewire-bio/rdf-kg-mcp@v0.2.0 rdf-kg-mcp serve <bundle>` ([linked-data.md](linked-data.md#bundle)). `list_queries` lists them and `run_query` runs one. `sparql_query` with `graphs: ["derived"]` runs any other read-only query, for example:
 
 ```sparql
 PREFIX rb: <https://benchmarks.rewire.it/vocab#>

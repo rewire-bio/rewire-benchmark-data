@@ -48,45 +48,14 @@ The build fails, and nothing is published, if:
 
 ## Discrepancies
 
-After inference, `scripts/kg/contradictions.py` looks for results from one study that disagree with results from other studies for the same systems, and writes each case to a separate derived graph as an `rb:Discrepancy`. OWL 2 RL cannot compare numbers, so this is a separate step, and its output is kept out of the inferred graph, which holds only what the vocabulary entails.
+After inference, `scripts/kg/contradictions.py` looks for results from one study that disagree with other studies' results for the same systems, and writes each case to the derived graph as an `rb:Discrepancy`. A discrepancy is a lead to investigate, not a finding that a result is wrong: it never changes a record. The rules, thresholds, severity, identity, exclusions and how to record follow-up work are in [discrepancies.md](discrepancies.md).
 
-A discrepancy is a lead to investigate, not a finding that a result is wrong. It never changes a record's status, value or links; `check_derived` fails the build if it tries. The results stay on the site with a flag until a reviewer decides.
+What the bundle holds:
 
-| Rule | Flags a study when |
-| --- | --- |
-| Ordering reversal | Other studies rank system A above system B in at least 5 comparisons, 80% of the time or more, and this study ranks B above A in at least 2 comparisons, 75% of the time or more. |
-| Gap outlier | At least three studies compare A and B on the same protocol or task, and this study's median relative difference, (A - B) / B, is more than 0.10 outside the range of the others. Never above medium severity. |
-
-Thresholds are in `data/ontology/discrepancy-rules.json`; the manifest records its checksum. How it counts:
-
-- A comparison is two systems' best values in one group of one study's results: same protocol, dataset, metric, unit, qualifier, split and direction. Values within 1% are ties and do not count.
-- Copied results (origin `paper_compilation`, or an `original_evaluation` link) are left out. Sources that share a result are one study, and so are sources with the same DOI (a paper and its supplement) and files from one GitHub repository (one benchmark's leaderboard summaries).
-- A configuration is compared as the model it configures (`configuration_of`, then `family`). Links without a checked claim are used, and the discrepancy is marked `rb:identityBasis "unreviewed"`. A configuration with no link is not compared, so linking comparators to their models is what lets the rules see them.
-- Severity starts at high and drops a step each for comparisons on different tasks (`cross-task`), unreviewed identity links, and the gap rule. An ordering reversal against a consensus of at least 20 comparisons that agree 95% of the time or more goes up a step. The calibration is in [the 2026-10-22 review](reviews/2026-10-22-discrepancy-severity.md).
-
-The terms reuse existing ontologies where they fit. `rb:Discrepancy` is a SEPIO assertion (SEPIO_0000001). The results and sources it rests on are linked through subproperties of SEPIO `has_supporting_evidence` and `has_supporting_evidence_from_source`. `rb:assertionMethod` is ECO `automatic assertion` (ECO_0000203) until a reviewer decides, then `manual assertion` (ECO_0000218). The rule concepts match STATO `ranking` and `relative difference`. CiTO's `disagrees with` was not used, because it states a citing paper's intent, and the studies in a discrepancy rarely cite each other.
-
-### Recording what was done about one
-
-A discrepancy is rarely settled in one step: you investigate, raise it with the authors, and wait for a correction. A claim with `field` `discrepancy_review` records both where it stands and the work behind it. Set `discrepancy_id` to the discrepancy's ID (`discrepancy-<hash>`, stable while its rule, systems and outlier study stay the same), `value` to a state from `data/vocab/discrepancy-state.ttl`, and subject links to the results involved.
-
-The states are `open` (rule output, nobody has looked), then `investigating`, `reported-upstream` and `awaiting-correction` while the work is going on, then `explained`, `confirmed-error` or `false-positive`, which settle it. Only the last three clear the flag on the site; the working states show the discrepancy as being handled, with its latest step.
-
-| Attribute | Holds |
-| --- | --- |
-| `investigation_url` | Our own analysis: an issue, a dated review |
-| `report_url`, `reported_on` | What we raised with the authors, and when |
-| `upstream_response` | What they said, and when |
-| `awaiting`, `expected_by` | What has to happen next, and when they said it would |
-| `next_check` | When to chase it |
-| `resolved_by` | The corrected source or superseding results, once they exist |
-| `rationale` | Why the state is what it is |
-
-A later step is a new claim with a higher `revision`; the highest revision is the current state, and the earlier claims stay as history. `next_check` is published as a date, not an overdue flag, so the same release always produces the same bytes; the website and the monthly refresh decide what counts as overdue when they read it. A confirmed error is then fixed through a normal reviewed record change, which is what marks the affected results `disputed`.
-
-### For the website
-
-The serving database is built in the data release, before the knowledge-graph bundle, so discrepancies are not in it. `kg:publish` uploads `discrepancies.json` to the `kg/<release id>` release beside the bundle and its manifest: `https://github.com/rewire-bio/rewire-benchmark-data/releases/download/kg/<release id>/discrepancies.json`. The manifest's `derived.discrepancies_json_sha256` is its checksum. The file holds `release_id`, the `rules` in force and a `discrepancies` list; each entry carries `rule`, `summary`, `severity`, `scope`, `identity_basis`, `review_state`, `settled`, `resolution`, the compared `systems`, and the `outlier_results` and `consensus_results` it rests on. A results page flags a result listed in `outlier_results` of an unsettled discrepancy. Bundles published before discrepancies existed have no such file, and a reader treats that as no discrepancies.
+- `derived.nq`: each `rb:Discrepancy` (a SEPIO assertion, SEPIO_0000001) with its rule, severity, scope, review state, compared systems, the outlier and consensus results and sources it rests on, `rb:discrepancyKey` (the JSON key its ID hashes) and any `rb:previousIds`. Each accepted `discrepancy_review` claim revision is an `rb:FollowUpAction` under `rb:hasAction`, with `rb:actionRevision`, `rb:actionType`, `rb:actionDate`, `rb:actionUrl`, `rb:nextCheck` and `rb:resultingState`. `rb:assertionMethod` is ECO `automatic assertion` (ECO_0000203) until a reviewer decides, then `manual assertion` (ECO_0000218).
+- `data/ontology/derived-shapes.ttl` is the SHACL contract for this graph. The build validates `derived.nq` against it and fails on a violation; `check_derived` runs first and fails if a rule wrote a statement about a record.
+- `discrepancies.json` (schema version 2): the same findings as JSON, with `release_id`, `rules`, `excluded` (`disputed` and `concern` result counts) and a `discrepancies` list. The manifest's `derived` block has its checksum, counts by rule, severity and review state, the excluded counts and any retired reviews.
+- Named queries in the manifest's `queries`, for rdf-kg-mcp v0.2.0 and later: `open_discrepancies`, `discrepancies_for_system`, `discrepancy_history` and `contested_results_for_use_case`.
 
 ## Commands
 
@@ -96,7 +65,7 @@ npm run kg -- export    # write public/kg/asserted.nq and an export manifest
 npm run kg -- terms     # regenerate rb-attributes.ttl and attribute-shapes.ttl from the attribute registry
 npm run kg -- subset <ids-file> <dir>  # the given records, the records linking to them and their link targets
 npm run kg:shapes       # export, then SHACL on the asserted graph without inference (a few minutes)
-npm run kg:build        # inference, checks, SHACL and discrepancies; writes inferred.nq, derived.nq, discrepancies.json, ontology/ and the bundle manifest
+npm run kg:build        # inference, checks, SHACL and discrepancies (with derived SHACL); writes inferred.nq, derived.nq, discrepancies.json, ontology/ and the bundle manifest
 npm run kg:bundle       # export, then kg:build: the whole bundle for the current release
 npm run test:kg         # vocabulary and inference tests
 ```
@@ -115,14 +84,14 @@ To update a pinned vocabulary, download it, re-run the extraction command in `da
 | `inferred.nq` | `https://benchmarks.rewire.it/graph/inferred` | Inferred statements about records |
 | `derived.nq` | `https://benchmarks.rewire.it/graph/derived` | Discrepancies between studies |
 | `ontology/` | `https://benchmarks.rewire.it/graph/ontology` | `rb.ttl`, the pinned imports and the concept schemes (`ontology/vocab/`) |
-| `manifest.json` | | Checksums, counts, graph roles, prefixes, reasoner and SHACL details, example queries |
+| `manifest.json` | | Checksums, counts, graph roles and descriptions, prefixes, reasoner and SHACL details, example and named queries |
 
 Bundles are built after each data release, in their own workflow, "Build and publish a knowledge-graph bundle" (`.github/workflows/kg-release.yml`), which the release workflow starts once the release is published; it can also be run by hand for any published release ([release.md](release.md#knowledge-graph)). It runs `npm run kg:publish`, which packs a byte-reproducible `kg-<release id>.tar.gz` and publishes it with the manifest on a GitHub release tagged `kg/<release id>`. An existing asset must be byte-identical and is never replaced (`npm run kg:publish -- --check` verifies it).
 
 The simplest way to use it is the `bio-model-benchmarks` plugin for Claude Code, which installs the knowledge-graph server and a skill for running the benchmarks; setup for other agents is at [benchmarks.rewirebio.io/agents/](https://benchmarks.rewirebio.io/agents/). To add only the server:
 
 ```sh
-claude mcp add rewire-benchmark-graph -- uvx --from git+https://github.com/rewire-bio/rdf-kg-mcp@v0.1.0 \
+claude mcp add rewire-benchmark-graph -- uvx --from git+https://github.com/rewire-bio/rdf-kg-mcp@v0.2.0 \
   rdf-kg-mcp serve https://benchmarks.rewirebio.io/agents/kg.tar.gz
 ```
 

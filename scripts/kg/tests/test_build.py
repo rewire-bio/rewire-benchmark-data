@@ -6,6 +6,7 @@ Run with: npm run test:kg
 from __future__ import annotations
 
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -355,8 +356,12 @@ class DiscrepancyTest(unittest.TestCase):
         cls.ontology = build.load_ontology()
         cls.rules = contradictions.load_rules()
 
-    def derive(self, graph: rdflib.Graph) -> tuple[set, list[dict]]:
+    def derived(self, graph: rdflib.Graph) -> contradictions.Derived:
         return contradictions.derive(graph, build.infer(graph, self.ontology), self.ontology, self.rules)
+
+    def derive(self, graph: rdflib.Graph) -> tuple[set, list[dict]]:
+        result = self.derived(graph)
+        return result.triples, result.report
 
     def reversals(self, report: list[dict]) -> list[dict]:
         return [d for d in report if d["rule"] == "ordering-reversal"]
@@ -382,12 +387,56 @@ class DiscrepancyTest(unittest.TestCase):
         _, report = self.derive(disagreement())
         self.assertEqual({tuple(d["outlier_sources"]) for d in report}, {("study3",)})
 
+    def gaps(self, report: list[dict]) -> list[dict]:
+        return [d for d in report if d["rule"] == "gap-outlier"]
+
     def test_gap_outlier_needs_three_studies_on_one_protocol(self) -> None:
         _, report = self.derive(disagreement())
-        [gap] = [d for d in report if d["rule"] == "gap-outlier"]
+        [gap] = self.gaps(report)
         self.assertEqual(gap["outlier_sources"], ["study3"])
+        # Every study measured both models and neither is a baseline, so the first is the reference.
+        self.assertEqual((gap["reference_system"], gap["systems"]), ("modelA", ["modelB", "modelA"]))
+        self.assertGreater(gap["numbers"]["outlier_gap"], gap["numbers"]["consensus_gap_max"])
+        self.assertEqual((gap["key"]["anchor"], gap["key"]["metric"]), ("protocol", "auroc"))
+
+    def test_gap_reference_prefers_a_named_baseline(self) -> None:
+        graph = disagreement()
+        record(graph, ID.baselineB, RB.Baseline, implementedBy=ID.modelB)
+        [gap] = self.gaps(self.derive(graph)[1])
         self.assertEqual(gap["reference_system"], "modelB")
         self.assertLess(gap["numbers"]["outlier_gap"], gap["numbers"]["consensus_gap_min"])
+
+    def test_gap_rule_skips_a_group_without_a_shared_reference(self) -> None:
+        graph = disagreement()
+        # Study 2 compares model A with model C instead: no system is measured by every study.
+        for subject in [r for r in graph.subjects(RB.testedSystem, ID.modelB) if str(r).startswith(str(ID["eval-2-"]))]:
+            graph.set((subject, RB.testedSystem, ID.modelC))
+        record(graph, ID.modelC, RB.Model)
+        self.assertEqual(self.gaps(self.derive(graph)[1]), [])
+
+    def test_identifier_hashes_the_canonical_key(self) -> None:
+        [found] = self.reversals(self.derive(disagreement())[1])
+        self.assertEqual(found["key"], {"rule": "ordering-reversal", "systems": ["modelA", "modelB"], "anchor": None,
+                                        "metric": None, "outlier_study": "source:study3"})
+        self.assertEqual(found["id"], contradictions.identifier(found["key"]))
+
+    def test_adding_a_source_to_a_study_keeps_its_identifier(self) -> None:
+        for doi in (None, "10.1000/Outlier"):
+            graph = disagreement()
+            graph.add((ID.study3, RB.retrievedAt, Literal("2026-01-01T00:00:00Z", datatype=rdflib.XSD.dateTime)))
+            if doi:
+                graph.add((ID.study3, RB.doi, Literal(doi)))
+            before = {d["rule"]: d["id"] for d in self.derive(graph)[1]}
+            # A later source that shares a result with study 3, with an IRI that sorts first, so it
+            # now names the merged study.
+            record(graph, ID.aSupplement, RB.Source)
+            graph.add((ID.aSupplement, RB.retrievedAt, Literal("2026-05-01T00:00:00Z", datatype=rdflib.XSD.dateTime)))
+            graph.add((ID["result-3-0-a"], DCT.source, ID.aSupplement))
+            _, report = self.derive(graph)
+            self.assertEqual({d["rule"]: d["id"] for d in report}, before, doi)
+            self.assertIn("aSupplement", self.reversals(report)[0]["outlier_sources"])
+            self.assertEqual(self.reversals(report)[0]["key"]["outlier_study"],
+                             "doi:10.1000/outlier" if doi else "source:study3")
 
     def test_identifiers_and_output_are_deterministic(self) -> None:
         first, report = self.derive(disagreement())
@@ -526,13 +575,213 @@ class DiscrepancyTest(unittest.TestCase):
         problems = contradictions.check_derived({(ID.result1, RB.status, V("status", "disputed"))})
         self.assertEqual(len(problems), 2)
 
+    def claim(self, graph: rdflib.Graph, name: str, discrepancy: str, state: str, revision: int | None = None,
+              action: str | None = None, date: str | None = None, previous: tuple[str, ...] = (), **fields: str) -> URIRef:
+        node = ID[name]
+        record(graph, node, RB.Claim, subject=ID["result-3-0-a"], source=ID.study3)
+        graph.add((node, RB.claimField, Literal(contradictions.REVIEW_FIELD)))
+        graph.add((node, RB.discrepancyId, Literal(discrepancy)))
+        graph.add((node, RB.value, Literal(state)))
+        if revision is not None:
+            graph.add((node, RB.revision, Literal(revision)))
+        if action:
+            graph.add((node, RB.action, V("discrepancy-action", action)))
+        if date:
+            graph.add((node, RB.date, Literal(date, datatype=rdflib.XSD.date)))
+        for old in previous:
+            graph.add((node, RB.previousIds, Literal(old)))
+        for name_, value in fields.items():
+            prop, kind = contradictions.RESOLUTION[name_]
+            graph.add((node, prop, URIRef(value) if kind == "iri" else
+                       Literal(value, datatype=rdflib.XSD.date) if kind == "date" else Literal(value)))
+        return node
+
+    def test_every_revision_is_kept_as_an_action(self) -> None:
+        graph = disagreement()
+        [found] = self.reversals(self.derive(graph)[1])
+        self.claim(graph, "r2", found["id"], "awaiting-correction", 2, "awaiting-correction", "2026-10-20",
+                   next_check="2026-11-10", upstream_response="Accepted.")
+        self.claim(graph, "r1", found["id"], "reported-upstream", 1, "reported-upstream", "2026-10-19",
+                   report_url="https://github.com/example/repo/issues/2")
+        self.claim(graph, "r0", found["id"], "investigating")
+        triples, report = self.derive(graph)
+        [found] = self.reversals(report)
+        self.assertEqual([(a["revision"], a["claim_id"], a["action"], a["state"], a["date"]) for a in found["actions"]],
+                         [(0, "r0", None, "investigating", None),
+                          (1, "r1", "reported-upstream", "reported-upstream", "2026-10-19"),
+                          (2, "r2", "awaiting-correction", "awaiting-correction", "2026-10-20")])
+        self.assertEqual(list(found["actions"][0]), list(contradictions.ACTION_FIELDS))
+        self.assertEqual((found["review_state"], found["review_claim"]), ("awaiting-correction", "r2"))
+        self.assertEqual(found["actions"][2]["next_check"], "2026-11-10")
+        node = URIRef(build.ID + found["id"])
+        action = URIRef(f"{node}/action/1")
+        self.assertIn((node, RB.hasAction, action), triples)
+        self.assertIn((action, RB.actionType, V("discrepancy-action", "reported-upstream")), triples)
+        self.assertIn((action, RB.actionUrl, URIRef("https://github.com/example/repo/issues/2")), triples)
+        self.assertIn((URIRef(f"{node}/action/2"), RB.nextCheck, Literal("2026-11-10", datatype=rdflib.XSD.date)), triples)
+        self.assertFalse(any(p == RB.actionType for s, p, _ in triples if s == URIRef(f"{node}/action/0")))
+        self.assertEqual(contradictions.check_derived(triples), [])
+        conforms, shacl_report = build.validate_derived(triples)
+        self.assertTrue(conforms, shacl_report)
+
+    def test_an_action_without_a_date_takes_the_reported_date(self) -> None:
+        graph = disagreement()
+        [found] = self.reversals(self.derive(graph)[1])
+        self.claim(graph, "r1", found["id"], "reported-upstream", 1, "reported-upstream", reported_on="2026-10-19")
+        self.claim(graph, "r2", found["id"], "awaiting-correction", 2, "awaiting-correction", "2026-10-21",
+                   reported_on="2026-10-19")
+        [found] = self.reversals(self.derive(graph)[1])
+        self.assertEqual([a["date"] for a in found["actions"]], ["2026-10-19", "2026-10-21"])
+        self.assertEqual([a["resolved_by"] for a in found["actions"]], [[], []])
+
+    def test_two_claims_with_one_revision_fail(self) -> None:
+        graph = disagreement()
+        [found] = self.reversals(self.derive(graph)[1])
+        self.claim(graph, "r1", found["id"], "investigating", 1)
+        self.claim(graph, "r1b", found["id"], "reported-upstream", 1)
+        self.assertEqual(len(self.derived(graph).problems), 1)
+
+    def test_previous_ids_map_claims_forward(self) -> None:
+        graph = disagreement()
+        [found] = self.reversals(self.derive(graph)[1])
+        old = "discrepancy-0000000000000000"
+        self.claim(graph, "old", old, "investigating", 1)
+        self.claim(graph, "new", found["id"], "reported-upstream", 2, previous=(old,))
+        result = self.derived(graph)
+        self.assertEqual(result.problems, [])
+        [found] = self.reversals(result.report)
+        self.assertEqual(found["previous_ids"], [old])
+        self.assertEqual([a["claim_id"] for a in found["actions"]], ["old", "new"])
+        self.assertIn((URIRef(build.ID + found["id"]), RB.previousIds, Literal(old)), result.triples)
+
+    def test_a_claim_naming_no_derived_discrepancy_fails(self) -> None:
+        graph = disagreement()
+        self.claim(graph, "lost", "discrepancy-0000000000000000", "awaiting-correction")
+        result = self.derived(graph)
+        self.assertEqual(len(result.problems), 1)
+        self.assertIn("discrepancy-0000000000000000", result.problems[0])
+        # Unchecked claims are not accepted, so they cannot fail the build.
+        graph.set((ID.lost, RB.status, V("status", "needs_review")))
+        self.assertEqual(self.derived(graph).problems, [])
+
+    def test_a_settled_claim_retires_when_its_discrepancy_stops_firing(self) -> None:
+        graph = disagreement()
+        [found] = self.reversals(self.derive(graph)[1])
+        self.claim(graph, "settled", found["id"], "confirmed-error", action="corrected-records")
+        for result in [r for r in graph.subjects(RDF.type, RB.Result) if str(r).startswith(str(ID["result-3-"]))]:
+            graph.set((result, RB.status, V("status", "disputed")))
+        result = self.derived(graph)
+        self.assertEqual(self.reversals(result.report), [])
+        self.assertEqual((result.problems, result.retired), ([], [found["id"]]))
+
+    def test_disputed_results_are_left_out(self) -> None:
+        graph = disagreement()
+        for result in [r for r in graph.subjects(RDF.type, RB.Result) if str(r).startswith(str(ID["result-3-"]))]:
+            graph.set((result, RB.status, V("status", "disputed")))
+        result = self.derived(graph)
+        self.assertEqual(result.report, [])
+        self.assertEqual(result.excluded, {"disputed": 8, "concern": 0})
+
+    def concern(self, graph: rdflib.Graph, source: URIRef, applies_to: list[str] | None = None) -> None:
+        entry = {"source_id": str(source).rsplit("/", 1)[-1], "message": "Tables disagree."}
+        if applies_to is not None:
+            entry["applies_to"] = applies_to
+        graph.add((source, RB.evidenceConcerns, Literal(json.dumps([entry]), datatype=RDF.JSON)))
+
+    def test_a_source_wide_concern_leaves_out_its_results(self) -> None:
+        graph = disagreement()
+        self.concern(graph, ID.study3)
+        result = self.derived(graph)
+        self.assertEqual(self.reversals(result.report), [])
+        self.assertEqual(result.excluded, {"disputed": 0, "concern": 8})
+
+    def test_a_scoped_concern_leaves_out_only_what_rests_on_its_targets(self) -> None:
+        graph = disagreement()
+        # A paper cited for context reports a problem in two of study 3's evaluations.
+        self.concern(graph, ID.study1, ["eval-3-0-a", "result-3-1-b"])
+        result = self.derived(graph)
+        self.assertEqual(result.excluded, {"disputed": 0, "concern": 2})
+        [found] = self.reversals(result.report)
+        self.assertEqual(found["numbers"]["outlier_comparisons"], 2)
+        # A named protocol covers every result on it, from any source.
+        self.concern(graph, ID.study2, ["protocol"])
+        self.assertEqual(self.derived(graph).excluded["concern"], 26)
+
+    def test_derived_shapes_reject_a_malformed_discrepancy(self) -> None:
+        triples, report = self.derive(disagreement())
+        self.assertTrue(build.validate_derived(triples)[0])
+        node = URIRef(build.ID + self.reversals(report)[0]["id"])
+        broken = {t for t in triples if not (t[0] == node and t[1] == RB.severity)} | {(node, RB.severity, Literal("urgent"))}
+        self.assertFalse(build.validate_derived(broken)[0])
+        dangling = triples | {(URIRef(f"{node}/action/1"), RB.actionType, V("discrepancy-action", "closed"))}
+        self.assertFalse(build.validate_derived(dangling)[0])
+
+    def test_named_queries_run_over_the_derived_graph(self) -> None:
+        graph = disagreement()
+        [found] = self.reversals(self.derive(graph)[1])
+        self.claim(graph, "r1", found["id"], "reported-upstream", 1, "reported-upstream", "2026-10-19")
+        record(graph, ID.useCase, RB.UseCase, assessedBy=ID.protocol)
+        inferred = build.infer(graph, self.ontology)
+        derived = contradictions.derive(graph, inferred, self.ontology, self.rules).triples
+        dataset = rdflib.Dataset()
+        for triple in graph:
+            dataset.graph(URIRef(build.GRAPHS["asserted"])).add(triple)
+        for triple in inferred:
+            dataset.graph(URIRef(build.GRAPHS["inferred"])).add(triple)
+        for triple in derived:
+            dataset.graph(URIRef(build.GRAPHS["derived"])).add(triple)
+        dataset.default_union = True
+        node = URIRef(build.ID + found["id"])
+        given = {"severity": Literal("high"), "system": ID.modelA, "discrepancy": node,
+                 "use_case": ID.useCase}
+        rows = {}
+        for query in build.NAMED_QUERIES:
+            names = {p["name"] for p in query["params"]}
+            self.assertEqual(names, {n for n in names if f"${n}" in query["sparql"]}, query["name"])
+            sparql = query["sparql"]
+            for name in names:
+                sparql = sparql.replace(f"${name}", given[name].n3())
+            rows[query["name"]] = list(dataset.query(sparql, initNs={"rb": RB, "rdfs": RDFS}))
+        self.assertIn(node, {row[0] for row in rows["open_discrepancies"]})
+        # An optional parameter left unset stays a variable and matches every value.
+        [query] = [q for q in build.NAMED_QUERIES if q["name"] == "open_discrepancies"]
+        unset = list(dataset.query(query["sparql"].replace("$severity", "?unset"), initNs={"rb": RB, "rdfs": RDFS}))
+        self.assertEqual(len(unset), len(contradictions.derive(graph, inferred, self.ontology, self.rules).report))
+        for query in build.NAMED_QUERIES:
+            select = query["sparql"].split("WHERE", 1)[0]
+            self.assertNotIn("$", select, query["name"])
+            self.assertNotIn("BOUND(", query["sparql"], query["name"])
+        # Both findings, the reversal and the gap outlier, compare model A with model B.
+        self.assertEqual({row[0] for row in rows["discrepancies_for_system"]},
+                         {URIRef(build.ID + d["id"]) for d in contradictions.derive(graph, inferred, self.ontology, self.rules).report})
+        self.assertEqual([(int(r[0]), str(r[1]).rsplit("/", 1)[-1]) for r in rows["discrepancy_history"]],
+                         [(1, "reported-upstream")])
+        self.assertEqual({str(r[1]) for r in rows["contested_results_for_use_case"]}, {"outlier", "consensus"})
+
+    def test_named_queries_follow_the_bundle_format(self) -> None:
+        names = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+        self.assertEqual({q["name"] for q in build.NAMED_QUERIES},
+                         {"open_discrepancies", "discrepancies_for_system", "discrepancy_history",
+                          "contested_results_for_use_case"})
+        for query in build.NAMED_QUERIES:
+            self.assertLessEqual(set(query), {"name", "title", "sparql", "description", "params"}, query["name"])
+            self.assertRegex(query["name"], names)
+            self.assertTrue(query["sparql"].lstrip().startswith("SELECT"), query["name"])
+            for param in query.get("params", []):
+                self.assertLessEqual(set(param), {"name", "type", "description", "required", "default"})
+                self.assertRegex(param["name"], names)
+                self.assertIn(param["type"], {"iri", "string", "integer"})
+                self.assertIn(f"${param['name']}", query["sparql"])
+        self.assertIn("derived", build.GRAPHS)
+
     def test_derived_terms_are_declared_and_rules_are_concepts(self) -> None:
         vocab = (rdflib.Graph().parse(build.VOCABULARY, format="turtle")
                  .parse(build.ATTRIBUTE_DECLARATIONS, format="turtle"))
         for predicate in contradictions.DERIVED_PREDICATES - {RDF.type, RDFS.label}:
             self.assertIn((predicate, RDFS.label, None), vocab, predicate)
         for scheme, keys in (("discrepancy-rule", {"ordering-reversal", "gap-outlier"}),
-                             ("discrepancy-state", contradictions.STATES)):
+                             ("discrepancy-state", contradictions.STATES),
+                             ("discrepancy-action", contradictions.ACTIONS)):
             for key in keys:
                 self.assertIn((V(scheme, key), RDF.type, URIRef("http://www.w3.org/2004/02/skos/core#Concept")),
                               self.ontology, key)

@@ -74,6 +74,13 @@ describe("controlled vocabularies", () => {
       .toThrow(/skos:broader cycle/);
   });
 
+  it("controls a discrepancy review's follow-up action", () => {
+    const record = { id: "x", facets: {}, attributes: { field: "discrepancy_review", value: "investigating", action: "looked" } };
+    expect(() => validateVocabularies(mapping, [record], schemes)).toThrow(/is not a concept in the discrepancy-action vocabulary/);
+    const fixed = { ...record, attributes: { ...record.attributes, action: "investigated" } };
+    expect(() => validateVocabularies(mapping, [fixed], schemes)).not.toThrow();
+  });
+
   it("reads quoted CSV fields with commas, quotes and line breaks", () => {
     const rows = readCsv('a,b\n"x, ""y""","line one\nline two"\nplain,\n');
     expect(rows).toEqual([{ a: 'x, "y"', b: "line one\nline two" }, { a: "plain", b: "" }]);

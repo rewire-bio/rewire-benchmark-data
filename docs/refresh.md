@@ -21,6 +21,7 @@ Each cycle includes:
 - New eligible papers, models, benchmarks, datasets, and protocols within the frozen coverage window.
 - Existing source revisions, changed URLs or versions, corrections, withdrawals/retractions, and relevant changes to evaluation conditions.
 - Unresolved source access, conflicting measurements, unmapped evidence, and previously recorded coverage gaps.
+- Open discrepancies between studies ([discrepancies.md](discrepancies.md)) whose latest action's `next_check` has passed: check the upstream report or source for news and record what was found as a new `discrepancy_review` claim revision.
 - Changes to use-case applicability and whether existing evidence still supports its exact recorded scope.
 
 Use current primary sources and preserve source URLs, version identifiers, retrieval times, artifact hashes, and exact numerical locators where relevant. Queries and documented exclusion decisions are evidence too. A failed retrieval, unavailable supplement, search-service failure, or unreviewed source remains blocked; do not describe it as checked or as proof that no evidence exists.
