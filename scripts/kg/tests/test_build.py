@@ -695,6 +695,14 @@ class DiscrepancyTest(unittest.TestCase):
         self.assertEqual(self.reversals(result.report), [])
         self.assertEqual(result.excluded, {"disputed": 0, "concern": 8})
 
+    def test_a_source_wide_concern_covers_results_whose_evaluation_cites_it(self) -> None:
+        graph = disagreement()
+        concerned = URIRef(ID + "evaluation-paper")
+        for evaluation in [e for e in graph.subjects(RDF.type, RB.Evaluation) if str(e).startswith(str(ID["eval-3-"]))]:
+            graph.add((evaluation, DCT.source, concerned))
+        self.concern(graph, concerned)
+        self.assertEqual(self.derived(graph).excluded, {"disputed": 0, "concern": 8})
+
     def test_a_scoped_concern_leaves_out_only_what_rests_on_its_targets(self) -> None:
         graph = disagreement()
         # A paper cited for context reports a problem in two of study 3's evaluations.

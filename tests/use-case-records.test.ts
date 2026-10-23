@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { loadRecords } from "../scripts/omics/records";
 import { buildUseCaseArtifact, claimPins, deriveUseCaseInputs, nextMonthlyCheck, useCaseHash, type JudgementPin } from "../shared/omics/use-cases";
 import { publicRecords } from "../scripts/omics/schema";
+import { validateConcerns } from "../shared/omics/concerns";
 import type { CatalogueRecord } from "../shared/omics/catalogue-query";
 
 const store = loadRecords() as unknown as CatalogueRecord[];
@@ -108,6 +109,38 @@ describe("use cases as records", () => {
     const sourceId = mapping(store).citations[0].source_id;
     const m = mapping(edit(sourceId, (r) => ({ ...r, attributes: { ...r.attributes, evidence_concerns: [{ message: "test" }] } })));
     expect(m.lifecycle).toBe("needs_review");
+  });
+
+  it("withholds only what a scoped concern names, from whichever source records it", () => {
+    const original = mapping(store);
+    const cited = new Set([...original.citations.map((c) => c.source_id), ...store.find((r) => r.id === original.use_case_id)!.source_ids]);
+    const sourceId = original.citations[0].source_id;
+    const elsewhere = store.find((r) => r.kind === "source" && !cited.has(r.id) && r.status === "source_checked")!.id;
+    const concern = (id: string, applies_to: string[]) => edit(id, (r) => ({
+      ...r, attributes: { ...r.attributes, evidence_concerns: [{ message: "test", applies_to }] },
+    }));
+    const resultOn = (evaluationId: string) => store.find((r) => r.kind === "result" && r.links.some((l) => l.target_id === evaluationId))!.id;
+    const unrelated = store.find((r) => r.kind === "result" && !original.evaluation_ids.some((e) => r.links.some((l) => l.target_id === e)))!.id;
+    // On a cited source, a concern about something else no longer withholds the judgement.
+    expect(mapping(concern(sourceId, [unrelated])).lifecycle).toBe("active");
+    // A concern recorded on any source withholds what it names.
+    const byResult = mapping(concern(elsewhere, [resultOn(original.evaluation_ids[0])]));
+    expect(byResult.lifecycle).toBe("needs_review");
+    expect(byResult.reason).toContain("no longer eligible");
+    expect(mapping(concern(elsewhere, [protocolId])).reason).toContain("an evidence concern names the protocol");
+    expect(mapping(concern(elsewhere, [mappingId])).reason).toContain("an evidence concern names the judgement");
+    const summaryId = "use-case-summary-cnv-detection-characterisation";
+    expect(derive(concern(elsewhere, [summaryId])).use_cases.find((u) => u.id === "use-case-cnv-detection-characterisation")!.summary).toBeUndefined();
+  });
+
+  it("rejects scoped concerns that name missing records or sit off a source", () => {
+    const sourceId = mapping(store).citations[0].source_id;
+    const withConcern = (id: string, applies_to: unknown) => edit(id, (r) => ({ ...r, attributes: { ...r.attributes, evidence_concerns: [{ message: "test", applies_to }] } }));
+    expect(() => validateConcerns(withConcern(sourceId, [protocolId]))).not.toThrow();
+    expect(() => validateConcerns(withConcern(sourceId, ["no-such-record"]))).toThrow(/does not exist/);
+    expect(() => validateConcerns(withConcern(sourceId, []))).toThrow(/non-empty list/);
+    expect(() => validateConcerns(withConcern(sourceId, [sourceId]))).toThrow(/a concern can name/);
+    expect(() => validateConcerns(withConcern(protocolId, [protocolId]))).toThrow(/belong on a source/);
   });
 
   it("treats an unreviewed judgement as a draft", () => {
