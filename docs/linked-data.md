@@ -91,7 +91,7 @@ Bundles are built after each data release, in their own workflow, "Build and pub
 The simplest way to use it is the `bio-model-benchmarks` plugin for Claude Code, which installs the knowledge-graph server and a skill for running the benchmarks; setup for other agents is at [benchmarks.rewirebio.io/agents/](https://benchmarks.rewirebio.io/agents/). To add only the server:
 
 ```sh
-claude mcp add rewire-benchmark-graph -- uvx --from git+https://github.com/rewire-bio/rdf-kg-mcp@v0.1.0 \
+claude mcp add rewire-benchmark-graph -- uvx --from git+https://github.com/rewire-bio/rdf-kg-mcp@v0.2.0 \
   rdf-kg-mcp serve https://benchmarks.rewirebio.io/agents/kg.tar.gz
 ```
 
