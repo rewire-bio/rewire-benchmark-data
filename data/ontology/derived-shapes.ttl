@@ -26,32 +26,61 @@ rbs:DiscrepancyActionConcept a sh:NodeShape ;
 
 rbs:Discrepancy a sh:NodeShape ;
     sh:targetClass rb:Discrepancy ;
-    rdfs:comment "A discrepancy names its rule, review state, two compared systems, its outlier study's sources and results, and the key its ID hashes. Exactly one of the rule-specific shapes applies." ;
+    rdfs:comment "Every discrepancy has a label, summary, severity, review state and assertion method. A live one (found by a rule on this release) or a resolved one (settled, and no longer found): exactly one of the rule-specific shapes or the resolved shape applies." ;
     sh:nodeKind sh:IRI ;
     sh:pattern "^https://benchmarks\\.rewire\\.it/id/discrepancy-[0-9a-f]{16}$" ;
-    sh:xone ( rbs:OrderingReversalNumbers rbs:GapOutlierNumbers ) ;
+    sh:xone ( rbs:OrderingReversalNumbers rbs:GapOutlierNumbers rbs:ResolvedDiscrepancy ) ;
     sh:property
         [ sh:path rdfs:label ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
         [ sh:path rb:discrepancySummary ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
-        [ sh:path rb:discrepancyKey ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
-        [ sh:path rb:discrepancyRule ; sh:minCount 1 ; sh:maxCount 1 ; sh:node rbs:DiscrepancyRuleConcept ] ,
         [ sh:path rb:reviewState ; sh:minCount 1 ; sh:maxCount 1 ; sh:node rbs:DiscrepancyStateConcept ] ,
         [ sh:path rb:assertionMethod ; sh:minCount 1 ; sh:maxCount 1 ;
           sh:in ( <http://purl.obolibrary.org/obo/ECO_0000203> <http://purl.obolibrary.org/obo/ECO_0000218> ) ] ,
-        [ sh:path rb:comparedSystem ; sh:minCount 2 ; sh:maxCount 2 ; sh:nodeKind sh:IRI ] ,
-        [ sh:path rb:discrepancyScope ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "same-protocol" "same-task" "cross-task" ) ] ,
-        [ sh:path rb:identityBasis ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "reviewed" "unreviewed" ) ] ,
+        [ sh:path rb:comparedSystem ; sh:maxCount 2 ; sh:nodeKind sh:IRI ] ,
         [ sh:path rb:severity ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "low" "medium" "high" ) ] ,
-        [ sh:path rb:outlierSource ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ,
-        [ sh:path rb:consensusSource ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ,
-        [ sh:path rb:outlierResult ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ,
-        [ sh:path rb:consensusResult ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ,
         [ sh:path rb:reviewClaim ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
         [ sh:path rb:previousIds ; sh:datatype xsd:string ; sh:pattern "^discrepancy-[0-9a-f]{16}$" ] ,
         [ sh:path rb:hasAction ; sh:class rb:FollowUpAction ] .
 
+rbs:LiveDiscrepancy a sh:NodeShape ;
+    rdfs:comment "A discrepancy a rule found on this release: its rule, the key its ID hashes, two compared systems, and the outlier and consensus sources and results." ;
+    sh:property
+        [ sh:path rb:discrepancyKey ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:discrepancyRule ; sh:minCount 1 ; sh:maxCount 1 ; sh:node rbs:DiscrepancyRuleConcept ] ,
+        [ sh:path rb:comparedSystem ; sh:minCount 2 ] ,
+        [ sh:path rb:discrepancyScope ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "same-protocol" "same-task" "cross-task" ) ] ,
+        [ sh:path rb:identityBasis ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "reviewed" "unreviewed" ) ] ,
+        [ sh:path rb:outlierSource ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:consensusSource ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:outlierResult ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:consensusResult ; sh:minCount 1 ; sh:nodeKind sh:IRI ] .
+
+rbs:ResolvedDiscrepancy a sh:NodeShape ;
+    sh:class rb:ResolvedDiscrepancy ;
+    rdfs:comment "A settled discrepancy the rules no longer find: a terminal review state, the review claim and its actions, and none of a live discrepancy's rule, key, evidence links or numbers." ;
+    sh:property
+        [ sh:path rb:reviewState ; sh:in ( <https://benchmarks.rewire.it/vocab/discrepancy-state/explained>
+              <https://benchmarks.rewire.it/vocab/discrepancy-state/confirmed-error>
+              <https://benchmarks.rewire.it/vocab/discrepancy-state/false-positive> ) ] ,
+        [ sh:path rb:assertionMethod ; sh:hasValue <http://purl.obolibrary.org/obo/ECO_0000218> ] ,
+        [ sh:path rb:reviewClaim ; sh:minCount 1 ] ,
+        [ sh:path rb:hasAction ; sh:minCount 1 ] ,
+        [ sh:path rb:discrepancyKey ; sh:maxCount 0 ] ,
+        [ sh:path rb:discrepancyRule ; sh:maxCount 0 ] ,
+        [ sh:path rb:discrepancyScope ; sh:maxCount 0 ] ,
+        [ sh:path rb:identityBasis ; sh:maxCount 0 ] ,
+        [ sh:path rb:outlierSource ; sh:maxCount 0 ] ,
+        [ sh:path rb:consensusSource ; sh:maxCount 0 ] ,
+        [ sh:path rb:outlierResult ; sh:maxCount 0 ] ,
+        [ sh:path rb:consensusResult ; sh:maxCount 0 ] ,
+        [ sh:path rb:consensusHigher ; sh:maxCount 0 ] ,
+        [ sh:path rb:referenceSystem ; sh:maxCount 0 ] ,
+        [ sh:path rb:outlierComparisons ; sh:maxCount 0 ] ,
+        [ sh:path rb:outlierGap ; sh:maxCount 0 ] .
+
 rbs:OrderingReversalNumbers a sh:NodeShape ;
     sh:class rb:OrderingReversal ;
+    sh:node rbs:LiveDiscrepancy ;
     sh:property
         [ sh:path rb:consensusHigher ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
         [ sh:path rb:outlierComparisons ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ] ,
@@ -62,6 +91,7 @@ rbs:OrderingReversalNumbers a sh:NodeShape ;
 
 rbs:GapOutlierNumbers a sh:NodeShape ;
     sh:class rb:GapOutlier ;
+    sh:node rbs:LiveDiscrepancy ;
     sh:property
         [ sh:path rb:referenceSystem ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
         [ sh:path rb:outlierGap ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:decimal ] ,

@@ -78,7 +78,7 @@ For example, the Alavi finding's key is `{"anchor":null,"metric":null,"outlier_s
 
 Adding a source to a study, or another configuration of the same model, does not change the ID. When a rule change does change IDs, a review claim lists the old ID in `previous_ids`; the build maps it forward, and readers still find the finding under the old ID.
 
-**Orphan check.** The build fails if an accepted review claim names an ID that no finding has, directly or through `previous_ids`, and the claim's latest revision has not settled it. So a review in progress can never be dropped silently. A settled review (`explained`, `confirmed-error` or `false-positive`) whose finding no longer fires is retired instead: a confirmed error stops firing once its results are disputed. Retired IDs are listed in the bundle manifest's `derived.retired_reviews`. The build also fails if two accepted claims for one finding share a revision, or if `previous_ids` map one old ID to two findings.
+**Orphan check.** The build fails if an accepted review claim names an ID that no finding has, directly or through `previous_ids`, and the claim's latest revision has not settled it. So a review in progress can never be dropped silently. A settled review (`explained`, `confirmed-error` or `false-positive`) whose finding no longer fires is retired instead: a confirmed error stops firing once its results are disputed. A retired finding is kept as a resolved finding (see [Resolved findings](#resolved-findings)), and its ID is also listed in the bundle manifest's `derived.retired_reviews`. The build also fails if two accepted claims for one finding share a revision, or if `previous_ids` map one old ID to two findings.
 
 **What a finding never does.** It never changes a record's status, value or links. `check_derived` and the derived-graph SHACL shapes (`data/ontology/derived-shapes.ttl`) fail the build if the rules write anything but discrepancy and follow-up statements. On the website a finding marks results as contested; it does not withhold them. Results are withheld only by a reviewer: through the `disputed` status, or a scoped evidence concern ([collection.md](collection.md)).
 
@@ -152,9 +152,10 @@ stateDiagram-v2
   reported_upstream --> awaiting_correction
   reported_upstream --> explained
   awaiting_correction --> confirmed_error
-  confirmed_error --> [*] : records corrected, results disputed
-  explained --> [*]
-  false_positive --> [*]
+  confirmed_error --> resolved : records corrected, results disputed
+  explained --> resolved : rule stops firing
+  false_positive --> resolved : rule stops firing
+  resolved --> [*]
   state "reported-upstream" as reported_upstream
   state "awaiting-correction" as awaiting_correction
   state "confirmed-error" as confirmed_error
@@ -185,6 +186,28 @@ The highest revision sets the current state. Every revision is kept and publishe
 | `previous_ids` | Earlier IDs of the same finding, if a rule change re-keyed it |
 
 Only `explained`, `confirmed-error` and `false-positive` settle a finding. A confirmed error is fixed by a normal reviewed record change that marks the affected results `disputed` and, when corrected values exist, adds superseding results. From then on the rules no longer compare those results.
+
+### Resolved findings
+
+A settled finding often stops firing: once a confirmed error's results are marked `disputed`, the rules no longer compare them. The finding is then kept as a **resolved finding**, so its follow-up stays visible on the site, in the API and over MCP. A finding that stops firing without being settled still fails the build (the orphan check).
+
+A resolved finding is built from its review claims, not from the rules:
+
+| Field | Value |
+| --- | --- |
+| `id`, `previous_ids` | the claims' `discrepancy_id` and the old IDs mapped to it |
+| `resolved` | `true` (`false` for every live finding) |
+| `review_state`, `review_claim`, `settled` | the latest revision's state and claim; always settled |
+| `actions`, `resolution` | the full follow-up history and the latest revision's resolution, as for a live finding |
+| `summary` | the latest revision's `rationale`, else a sentence giving the state |
+| `systems`, `label` | the models or methods tested by the claims' subject results and evaluations, resolved like compared systems (empty if more than two), and a label naming them, e.g. "AlphaGenome and Borzoi: resolved" |
+| `severity` | `low`: no record holds the severity it last fired with |
+| `rule`, `key`, `scope`, `identity_basis` | `null`: the rule it last fired with is not recorded |
+| `studies`, `numbers`, sources and results | empty |
+
+In `discrepancies.json` (schema 4) resolved findings follow the live ones. The bundle manifest counts them apart from the live findings: `derived.discrepancies`, `by_rule`, `by_severity` and `by_review_state` count live findings only, and `derived.resolved` and `resolved_by_review_state` count resolved ones. In the serving file a resolved finding has rule `""`; it is settled, so the open filter (`settled: "open"`) leaves it out. It has no results, so it marks nothing as contested.
+
+In the derived graph a resolved finding is an `rb:Discrepancy` and an `rb:ResolvedDiscrepancy`, with its label, summary, severity, review state, review claim, compared systems, previous IDs and follow-up actions, but no rule, key, evidence links or numbers. `open_discrepancies` leaves it out, `discrepancy_history` returns its actions, and `discrepancies_for_system` lists it when its systems are known. The SHACL shape `rbs:ResolvedDiscrepancy` requires a settled state and at least one action.
 
 **Worked example.** Alavi 2026 ranked AlphaGenome below other splicing models, against the consensus of the other studies.
 1. The rule flagged it as an ordering reversal.

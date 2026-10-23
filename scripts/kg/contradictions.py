@@ -29,7 +29,9 @@ when a claim backs the link; here an unbacked link is still used, and the discre
 with rb:identityBasis "unreviewed", because a lead is worth raising before identity review.
 
 Results a reviewer has marked disputed, and results covered by a source's evidence_concerns
-entry, are left out, so a confirmed error stops firing once it is recorded.
+entry, are left out, so a confirmed error stops firing once it is recorded. A settled discrepancy
+that no longer fires is kept as a resolved finding (rb:ResolvedDiscrepancy), with its follow-up
+actions, so what was done about it stays visible.
 
 A discrepancy's ID hashes a canonical key: rule, compared systems (after configuration, family
 and alias resolution), anchor, metric and outlier study key. Only the gap rule has an anchor and a
@@ -620,6 +622,95 @@ def action_json(c: dict) -> dict:
     }
 
 
+def review_triples(node: URIRef, history: list[dict], previous: list[str], triples: set[tuple]) -> dict:
+    """Add a discrepancy's review statements to `triples`: its previous IDs, the latest claim and
+    its resolution, and one follow-up action per revision. Returns the resolution as JSON."""
+    triples |= {(node, RB.previousIds, Literal(old)) for old in previous}
+    resolution: dict = {}
+    if history:
+        review = history[-1]
+        triples.add((node, RB.reviewClaim, review["claim"]))
+        for name, (prop, kind) in RESOLUTION.items():
+            value = review["fields"].get(name)
+            if not value:
+                continue
+            if kind == "iris":
+                triples |= {(node, prop, target) for target in value}
+                resolution[name] = [local(t) for t in value]
+                continue
+            triples.add((node, prop, value if kind == "iri" else
+                         Literal(str(value), datatype=XSD.date) if kind == "date" else Literal(str(value))))
+            resolution[name] = str(value)
+    for c in history:
+        action = URIRef(f"{node}/action/{c['revision']}")
+        fields = c["fields"]
+        url = fields.get("report_url") or fields.get("investigation_url")
+        triples |= {
+            (node, RB.hasAction, action), (action, RDF.type, RB.FollowUpAction),
+            (action, RB.actionRevision, Literal(c["revision"], datatype=XSD.integer)),
+            (action, RB.reviewClaim, c["claim"]),
+            (action, RB.resultingState, concept("discrepancy-state", c["state"])),
+        }
+        if c["action"]:
+            triples.add((action, RB.actionType, concept("discrepancy-action", c["action"])))
+        if c["date"] is not None:
+            triples.add((action, RB.actionDate, Literal(str(c["date"]), datatype=XSD.date)))
+        if url is not None:
+            triples.add((action, RB.actionUrl, url))
+        if fields.get("next_check") is not None:
+            triples.add((action, RB.nextCheck, Literal(str(fields["next_check"]), datatype=XSD.date)))
+    return resolution
+
+
+def claimed_systems(index: Index, history: list[dict]) -> list[URIRef]:
+    """The models or methods a discrepancy's review claims are about: the tested systems of their
+    subject results and evaluations, resolved like compared systems. Empty if there are more than two."""
+    g = index.g
+    systems = set()
+    for c in history:
+        for subject in g.objects(c["claim"], RB.subject):
+            if (subject, RDF.type, RB.Result) in g:
+                evaluations = list(g.objects(subject, RB.evaluation))
+            elif (subject, RDF.type, RB.Evaluation) in g:
+                evaluations = [subject]
+            else:
+                continue
+            for evaluation in evaluations:
+                if resolved := index.identity(g.value(evaluation, RB.testedSystem)):
+                    systems.add(resolved[0])
+    return sorted(systems) if len(systems) <= 2 else []
+
+
+def resolved_finding(target: str, history: list[dict], previous: list[str], index: Index,
+                     triples: set[tuple]) -> dict:
+    """A settled discrepancy the rules no longer find (its results were disputed, say), kept so that
+    its follow-up stays visible. Nothing records the rule, key or severity it last fired with, so
+    the rule and key are null and the severity is low."""
+    node = URIRef(ID + target)
+    review = history[-1]
+    systems = claimed_systems(index, history)
+    names = " and ".join(index.label(s) for s in systems)
+    label = f"{names}: resolved" if names else "Resolved discrepancy"
+    rationale = review["fields"].get("rationale")
+    summary = str(rationale) if rationale else f"Settled as {review['state']}; the rules no longer find this discrepancy."
+    triples |= {
+        (node, RDF.type, RB.Discrepancy), (node, RDF.type, RB.ResolvedDiscrepancy), (node, RDFS.label, Literal(label)),
+        (node, RB.assertionMethod, MANUAL), (node, RB.reviewState, concept("discrepancy-state", review["state"])),
+        (node, RB.severity, Literal("low")), (node, RB.discrepancySummary, Literal(summary)),
+    }
+    triples |= {(node, RB.comparedSystem, s) for s in systems}
+    resolution = review_triples(node, history, previous, triples)
+    return {
+        "id": target, "resolved": True, "rule": None, "label": label, "summary": summary, "severity": "low",
+        "scope": None, "identity_basis": None, "review_state": review["state"], "review_claim": local(review["claim"]),
+        "settled": True, "resolution": resolution, "systems": [local(s) for s in systems],
+        "consensus_higher": None, "reference_system": None,
+        "outlier_sources": [], "consensus_sources": [], "outlier_results": [], "consensus_results": [],
+        "numbers": {}, "previous_ids": previous, "key": None, "studies": [],
+        "actions": [action_json(c) for c in history],
+    }
+
+
 @dataclass
 class Derived:
     triples: set[tuple]
@@ -627,7 +718,8 @@ class Derived:
     excluded: dict[str, int]
     # Accepted review claims whose discrepancy is no longer derived, directly or through
     # previous_ids. A settled one is retired: a confirmed error stops firing once its results
-    # are disputed. Any other fails the build (check_reviews).
+    # are disputed. It stays in the report and the derived graph as a resolved finding
+    # (resolved_finding). Any other fails the build (check_reviews).
     retired: list[str]
     problems: list[str]
 
@@ -696,39 +788,7 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
             (node, RB.discrepancyKey, Literal(json.dumps(key, sort_keys=True, ensure_ascii=False))),
         }
         previous = decided.previous.get(identifier_, [])
-        triples |= {(node, RB.previousIds, Literal(old)) for old in previous}
-        resolution: dict = {}
-        if claim is not None:
-            triples.add((node, RB.reviewClaim, claim))
-            for name, (prop, kind) in RESOLUTION.items():
-                value = review["fields"].get(name)
-                if not value:
-                    continue
-                if kind == "iris":
-                    triples |= {(node, prop, target) for target in value}
-                    resolution[name] = [local(t) for t in value]
-                    continue
-                triples.add((node, prop, value if kind == "iri" else
-                             Literal(str(value), datatype=XSD.date) if kind == "date" else Literal(str(value))))
-                resolution[name] = str(value)
-        for c in history:
-            action = URIRef(f"{node}/action/{c['revision']}")
-            fields = c["fields"]
-            url = fields.get("report_url") or fields.get("investigation_url")
-            triples |= {
-                (node, RB.hasAction, action), (action, RDF.type, RB.FollowUpAction),
-                (action, RB.actionRevision, Literal(c["revision"], datatype=XSD.integer)),
-                (action, RB.reviewClaim, c["claim"]),
-                (action, RB.resultingState, concept("discrepancy-state", c["state"])),
-            }
-            if c["action"]:
-                triples.add((action, RB.actionType, concept("discrepancy-action", c["action"])))
-            if c["date"] is not None:
-                triples.add((action, RB.actionDate, Literal(str(c["date"]), datatype=XSD.date)))
-            if url is not None:
-                triples.add((action, RB.actionUrl, url))
-            if fields.get("next_check") is not None:
-                triples.add((action, RB.nextCheck, Literal(str(fields["next_check"]), datatype=XSD.date)))
+        resolution = review_triples(node, history, previous, triples)
         triples |= {(node, RB.outlierSource, s) for s in outlier_sources}
         triples |= {(node, RB.consensusSource, s) for s in consensus_sources}
         triples |= {(node, RB.outlierResult, r) for r in outlier_results}
@@ -746,7 +806,7 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
                 triples.add((node, prop, Literal(Decimal(f"{n[name]:.4f}"), datatype=XSD.decimal)))
         locals_ = lambda nodes: [local(x) for x in nodes]
         report.append({
-            "id": identifier_, "rule": f.rule, "label": label, "summary": summary, "severity": severity,
+            "id": identifier_, "resolved": False, "rule": f.rule, "label": label, "summary": summary, "severity": severity,
             "scope": where, "identity_basis": "reviewed" if reviewed else "unreviewed", "review_state": state,
             "review_claim": local(claim) if claim else None,
             "settled": state in TERMINAL_STATES,
@@ -773,9 +833,12 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
         names = ", ".join(local(c["claim"]) for c in history)
         if history[-1]["state"] in TERMINAL_STATES:
             retired.append(target)
+            report.append(resolved_finding(target, history, decided.previous.get(target, []), index, triples))
         else:
             problems.append(f"review claim(s) {names} name {target}, which is not derived and is not settled; "
                             "if its ID changed, list the old ID in a claim's previous_ids")
+    # Resolved findings go after the live ones, which keep their order.
+    report.sort(key=lambda d: d["resolved"])
     excluded = Counter(index.excluded.values())
     return Derived(triples, report, {"disputed": excluded["disputed"], "concern": excluded["concern"]}, retired, problems)
 
