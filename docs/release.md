@@ -7,11 +7,11 @@ A release is an immutable, content-addressed snapshot of every reviewed record. 
 `.github/workflows/release.yml` runs after "Benchmark data checks" pass for a push to `main`, and on demand (Actions, "Cut and publish a release"). Evidence PRs leave `release-config.json` alone; the workflow cuts the release. It:
 
 1. Runs `node scripts/release/next.mjs prepare`, which dates a candidate release now and writes into the release config the commit it is built from (`source_revision`) and the release notes.
-2. Fetches the current release's files (`npm run release:fetch -- <id>`), then builds the candidate once with `npm run build`.
+2. Fetches the current release's files (`npm run release:fetch -- <id>`), then builds the candidate once with `npm run build:release`: the release, then the knowledge-graph bundle and its inference, then the prepared SQLite file with the inferred discrepancies, then the website package.
 3. Compares it with the current release, ignoring only the release ID and date (`next.mjs pending`). If nothing else differs, and the serving contract is unchanged, it stops: pushes that change no data cost one build.
 4. Refuses a release that withholds or drops use-case mappings the current release serves, unless their judgement was excluded or superseded (`next.mjs withheld`); re-review and re-pin those relevance judgements first ([use-cases.md](use-cases.md)).
 5. Checks the packaging (`npm run verify:package`: the receipt and manifest are committed, no release file is, and every file has the bytes the manifest lists) and the prepared file against the live query engine (`npm run serving:parity`). Types, tests, the store check and SHACL already passed for this commit in "Benchmark data checks".
-6. Commits the receipt, the website manifest and the release config to `main` as `Cut release <id>`, publishes `serving/<id>` tagged at that commit with the prepared SQLite file and the release files (`npm run serving:publish`), and dispatches `data-release` to rewire-database. That starts its adopt-data-release workflow, which checks and deploys the release.
+6. Commits the receipt, the website manifest and the release config to `main` as `Cut release <id>`, publishes `serving/<id>` tagged at that commit with the prepared SQLite file and the release files (`npm run serving:publish`), publishes the knowledge-graph bundle as `kg/<id>` (`npm run kg:publish`), and dispatches `data-release` to rewire-database. That starts its adopt-data-release workflow, which checks and deploys the release.
 
 The build never changes an archived file: packaging (`scripts/package-website.mjs`) refuses to overwrite a file in `data/omics/releases/<id>/` with different bytes, and `serving:publish` never replaces a published asset; a published release file must have the bytes the committed manifest lists. There is no second build to confirm reproduction.
 
@@ -29,7 +29,9 @@ Merge reviewed PRs whenever they are ready; there is no need to wait for a relea
 
 ## Knowledge graph
 
-The knowledge-graph bundle is not built in the data release, which does not need Python, uv, the reasoner or rdf-kg-mcp. Once a release is published, the release workflow starts "Build and publish a knowledge-graph bundle" (`.github/workflows/kg-release.yml`) for it, so every release still gets its bundle a few minutes later without the release waiting for it. To build one by hand, run "Build and publish a knowledge-graph bundle" (`.github/workflows/kg-release.yml`) from the Actions tab, with a release ID or none for the newest published release. It checks out the commit `serving/<id>` was published from, rebuilds the catalogue and confirms it matches the receipt, builds the bundle (`npm run kg:bundle`), checks it with `npm run kg:verify` and publishes it as `kg/<id>`, with `discrepancies.json` beside it for the website ([linked-data.md](linked-data.md#bundle)). Running it again for a release that has a bundle only checks that the build reproduces it.
+The release builds the knowledge-graph bundle before the prepared SQLite file, because the bundle's inference finds the discrepancies between studies that the prepared file serves ([discrepancies.md](discrepancies.md)). The release job therefore needs uv and Python, and takes 20 to 30 minutes longer than the catalogue alone. A failing graph build stops the release; nothing is published. `npm run build` still builds without the graph, for local work and checks; its prepared file then serves no discrepancies unless `public/kg/discrepancies.json` was built for the same release.
+
+"Build and publish a knowledge-graph bundle" (`.github/workflows/kg-release.yml`) is now run only by hand: to publish a bundle for a release cut before this change, or to check that a published bundle reproduces. It checks out the commit `serving/<id>` was published from, rebuilds the catalogue and confirms it matches the receipt, builds the bundle (`npm run kg:bundle`), checks it with `npm run kg:verify` and publishes it as `kg/<id>`. An existing bundle is never replaced.
 
 ## Cutting a release by hand
 
@@ -40,7 +42,7 @@ Cut a release by hand when you want it reviewed as a pull request first:
 
    ```sh
    npm run release:fetch
-   npm run build
+   npm run build:release
    npm test
    npm run typecheck
    git add -A data website
@@ -49,7 +51,7 @@ Cut a release by hand when you want it reviewed as a pull request first:
 
    `release:fetch` downloads the current release's files, which the build checks withdrawn use-case mappings against and some tests read. The build writes the new release's receipt (`data/omics/releases/<release-id>.json`, the exact manifest bytes) and its gzipped files (`data/omics/releases/<release-id>/`), builds the prepared SQLite file in `public/serving/` (see [serving-contract.md](serving-contract.md)), and packages the website inputs (`website/manifest.json` and `website/files/`). It never overwrites existing bytes.
 3. Open the PR with the config change, the receipt and `website/manifest.json`. The release files are ignored by Git and are not part of the PR. Review scientific changes separately from packaging. CI rebuilds the release and fails if the receipt or manifest differs from the PR's; they list the SHA-256 of every release file, so a match means the files were reproduced.
-4. After merge, CI rebuilds the release, publishes the prepared file and release files (tag `serving/<release-id>`) and dispatches `data-release` to the website, as for an automated release. The publish job then starts the knowledge-graph bundle build for it.
+4. After merge, CI rebuilds the release, publishes the prepared file and release files (tag `serving/<release-id>`) publishes the bundle (tag `kg/<release-id>`) and dispatches `data-release` to the website, as for an automated release.
 5. Once the release is live, record it with `npm run refresh -- record-publication` and `npm run refresh -- export` (see [refresh.md](refresh.md#review-prs-and-publication)).
 
 Never edit a frozen release in place. Corrections always go into a new release.
@@ -68,7 +70,7 @@ gh run download <failed run id> -n unpublished-release   # the files the failed 
 RELEASE_TARGET_SHA=$(git rev-parse HEAD) npm run serving:publish
 ```
 
-If the artifact has expired, rebuild instead of downloading it: `npm run release:fetch -- <previous id>` then `npm run build`, with Node 24 as in CI (the prepared SQLite file's bytes depend on Node's bundled SQLite; the release files are compared by their expanded bytes, so any Node version reproduces them). Then run "Adopt the newest data release" in rewire-database, and start the knowledge-graph build (`kg-release.yml`) for the release. The same command completes a `serving/<id>` release that has the prepared file but lacks some release files; the website refuses to adopt a release until it has them all.
+If the artifact has expired, rebuild instead of downloading it: `npm run release:fetch -- <previous id>` then `npm run build`, with Node 24 as in CI (the prepared SQLite file's bytes depend on Node's bundled SQLite; the release files are compared by their expanded bytes, so any Node version reproduces them). Publish the bundle the same way (`RELEASE_TARGET_SHA=$(git rev-parse HEAD) npm run kg:publish`, from the same artifact's `public/kg`), then run "Adopt the newest data release" in rewire-database. The same command completes a `serving/<id>` release that has the prepared file but lacks some release files; the website refuses to adopt a release until it has them all.
 
 rewire-database reads the manifest from Git at the pinned revision and downloads the assets, checking each against it ("Where the release files come from" in its `docs/hosting/benchmark-data-separation.md`). Downloads on the website redirect to the assets. Releases cut before the files left Git (up to `2026-10-14-87122402bd1c`) have no such assets; the website reads their files from Git at their tag, as before.
 

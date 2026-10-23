@@ -4,10 +4,11 @@ import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { buildRelease } from "../scripts/omics/release";
 import { buildPreparedCatalogue } from "../scripts/serving/sqlite";
-import { checkParity } from "../scripts/serving/parity";
+import { checkDiscrepancyParity, checkParity } from "../scripts/serving/parity";
 import { gunzipSync, gzipSync } from "node:zlib";
 import { openPreparedCatalogue } from "../shared/omics/prepared-catalogue";
 import { decodeRecords, unpackEvidence } from "../shared/omics/serving-codec";
+import { normaliseDiscrepancies } from "../shared/omics/discrepancies";
 import { records } from "./helpers/records";
 const { DatabaseSync } = process.getBuiltinModule("node:sqlite");
 
@@ -187,5 +188,87 @@ describe("prepared release file", () => {
     db.prepare("UPDATE meta SET value = '9.0' WHERE key = 'serving_contract_version'").run();
     db.close();
     expect(() => openPreparedCatalogue(copy)).toThrow("Unsupported prepared release contract");
+  });
+});
+
+describe("discrepancies between studies (3.3)", () => {
+  const results = snapshot.records.filter((r) => r.kind === "result" && r.status !== "excluded").slice(0, 4).map((r) => r.id);
+  const finding = (id: string, severity: string, extra: Record<string, unknown> = {}) => ({
+    id, rule: "ordering-reversal", label: `Finding ${id}`, summary: "One study ranks the pair the other way.",
+    severity, scope: "same-protocol", identity_basis: "reviewed", review_state: "open", review_claim: null,
+    settled: false, resolution: {}, systems: ["model-a", "model-b"], consensus_higher: "model-a", reference_system: null,
+    outlier_sources: ["source-x"], consensus_sources: ["source-y"], outlier_results: [results[0]],
+    consensus_results: [results[1], results[2]], numbers: { outlier_reversals: 2 }, ...extra,
+  });
+  const file2 = path.join(directory, "discrepancies.sqlite");
+  const findings = normaliseDiscrepancies({
+    release_id: snapshot.release_id, schema_version: 2, rules: { version: 3 }, excluded: { disputed: 1, concern: 2 },
+    discrepancies: [
+      finding("discrepancy-low", "low"),
+      finding("discrepancy-high", "high", {
+        review_state: "awaiting-correction", review_claim: "claim-r2", previous_ids: ["discrepancy-old"],
+        actions: [
+          { revision: 2, claim_id: "claim-r2", action: "awaiting-correction", state: "awaiting-correction", date: "2026-10-22", next_check: "2026-11-10" },
+          { revision: 1, claim_id: "claim-r1", action: "reported-upstream", state: "reported-upstream", date: "2026-10-19", report_url: "https://example.org/issue/2" },
+        ],
+      }),
+    ],
+  });
+  buildPreparedCatalogue({
+    snapshot, catalogueBytes: Buffer.from(JSON.stringify(snapshot)), discrepancies: findings, generatorSha256: "0".repeat(64), file: file2,
+  });
+  const prepared = openPreparedCatalogue(file2);
+  afterAll(() => prepared.close());
+
+  it("lists findings most severe first, with counts and filters", () => {
+    const page = prepared.discrepancies();
+    expect(page.items.map((d) => d.id)).toEqual(["discrepancy-high", "discrepancy-low"]);
+    expect(page.counts.severity).toEqual({ high: 1, low: 1 });
+    expect(prepared.discrepancies({ settled: "open", severity: "low" }).total).toBe(1);
+    const first = prepared.discrepancies({ limit: 1 });
+    expect(prepared.discrepancies({ limit: 1, cursor: first.next_cursor! }).items[0].id).toBe("discrepancy-low");
+    expect(prepared.discrepancyRules()).toEqual({ rules: { version: 3 }, excluded: { disputed: 1, concern: 2 } });
+  });
+
+  it("holds exactly the knowledge-graph build's findings", () => {
+    expect(checkDiscrepancyParity(file2, findings)).toBeGreaterThan(5);
+  });
+
+  it("returns a finding's follow-up actions oldest first, also under an earlier ID", () => {
+    const d = prepared.discrepancy("discrepancy-old")!;
+    expect(d.id).toBe("discrepancy-high");
+    expect(d.actions.map((a) => a.action)).toEqual(["reported-upstream", "awaiting-correction"]);
+    expect(prepared.discrepancies().items[0]).toMatchObject({ actions: 2, next_check: "2026-11-10", last_action_date: "2026-10-22" });
+  });
+
+  it("finds the findings a result or a system takes part in", () => {
+    const by = prepared.contestedBy([results[0], results[1], results[3]]);
+    expect(by[results[0]].map((x) => x.role)).toEqual(["outlier", "outlier"]);
+    expect(by[results[1]][0]).toMatchObject({ role: "consensus", discrepancy: { id: "discrepancy-high" } });
+    expect(by[results[3]]).toBeUndefined();
+    expect(prepared.discrepanciesForSystem("model-a").map((d) => d.id)).toEqual(["discrepancy-high", "discrepancy-low"]);
+  });
+
+  it("reads a schema 1 file's latest review as one action", () => {
+    const old = normaliseDiscrepancies({
+      release_id: "r", rules: {},
+      discrepancies: [finding("d", "medium", { review_state: "reported-upstream", review_claim: "c", resolution: { report_url: "https://example.org", reported_on: "2026-10-19" } })],
+    });
+    expect(old.discrepancies[0].actions).toEqual([expect.objectContaining({ claim_id: "c", state: "reported-upstream", date: "2026-10-19", report_url: "https://example.org" })]);
+  });
+
+  it("refuses findings built for another release", () => {
+    expect(() => buildPreparedCatalogue({
+      snapshot, catalogueBytes: Buffer.from("{}"), discrepancies: { ...findings, release_id: "other" },
+      generatorSha256: "0".repeat(64), file: path.join(directory, "wrong.sqlite"),
+    })).toThrow("rebuild the knowledge graph");
+  });
+
+  it("serves no findings from a file built without the knowledge graph", () => {
+    const plain = openPreparedCatalogue(file);
+    expect(plain.hasDiscrepancies()).toBe(false);
+    expect(plain.discrepancies().total).toBe(0);
+    expect(plain.contestedBy(results)).toEqual({});
+    plain.close();
   });
 });

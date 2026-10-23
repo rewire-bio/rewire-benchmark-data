@@ -1,7 +1,8 @@
 /** Check that the prepared release file answers exactly as the live query
  * engine does for the same release: details, results and evidence across
  * cursor pages and filters, list searches and facets, comparisons, research
- * readiness, investigations and use cases. Run after `npm run serving`.
+ * readiness, investigations and use cases, and that its discrepancies are the
+ * knowledge-graph build's. Run after `npm run serving`.
  *   npm run serving:parity
  */
 import fs from "node:fs";
@@ -9,6 +10,7 @@ import assert from "node:assert/strict";
 import { createCatalogueQuery, type CatalogueSnapshot } from "../../shared/omics/catalogue-query";
 import { openPreparedCatalogue } from "../../shared/omics/prepared-catalogue";
 import { createUseCaseQuery } from "../../shared/omics/use-cases";
+import { normaliseDiscrepancies, summarise, type DiscrepancyFile } from "../../shared/omics/discrepancies";
 
 type Query = Record<string, (input?: unknown) => unknown>;
 
@@ -111,10 +113,41 @@ export function checkParity(snapshot: CatalogueSnapshot, file: string, useCaseAr
   return checks;
 }
 
+/** The prepared file's discrepancies must be exactly the knowledge-graph build's findings
+ * for the release: every finding, in order, with its actions, results and systems. */
+export function checkDiscrepancyParity(file: string, findings: DiscrepancyFile): number {
+  const prepared = openPreparedCatalogue(file);
+  let checks = 0;
+  const same = (a: unknown, b: unknown, label: string) => {
+    checks++;
+    if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`Prepared discrepancies differ: ${label}`);
+  };
+  try {
+    same(prepared.discrepancies({ limit: 500 }).total, findings.discrepancies.length, "count");
+    findings.discrepancies.forEach((d, i) => {
+      same(prepared.discrepancy(d.id), d, d.id);
+      same(prepared.discrepancies({ limit: 1, ...(i ? { cursor: Buffer.from(`${findings.release_id}:${i}`).toString("base64url") } : {}) }).items[0], summarise(d), `order ${i}`);
+      const by = prepared.contestedBy([...d.outlier_results, ...d.consensus_results]);
+      for (const id of [...d.outlier_results, ...d.consensus_results])
+        same(by[id]?.some((x) => x.discrepancy.id === d.id), true, `${d.id} result ${id}`);
+      for (const system of d.systems) same(prepared.discrepanciesForSystem(system).some((x) => x.id === d.id), true, `${d.id} system ${system}`);
+    });
+  } finally {
+    prepared.close();
+  }
+  return checks;
+}
+
 if (process.argv[1]?.endsWith("parity.ts")) {
   const snapshot = JSON.parse(fs.readFileSync("public/omics/catalogue.json", "utf8")) as CatalogueSnapshot;
   const useCaseFile = `public/omics/releases/${snapshot.release_id}/use-cases.json`;
   const artifact = fs.existsSync(useCaseFile) ? JSON.parse(fs.readFileSync(useCaseFile, "utf8")) : undefined;
   const checks = checkParity(snapshot, `public/serving/catalogue-${snapshot.release_id}.sqlite`, artifact);
   console.log(`Prepared release matches the live query engine: ${checks} checks.`);
+  const findingsFile = "public/kg/discrepancies.json";
+  const findings = fs.existsSync(findingsFile) ? normaliseDiscrepancies(JSON.parse(fs.readFileSync(findingsFile, "utf8"))) : undefined;
+  if (findings?.release_id === snapshot.release_id) {
+    const found = checkDiscrepancyParity(`public/serving/catalogue-${snapshot.release_id}.sqlite`, findings);
+    console.log(`Prepared discrepancies match the knowledge-graph build: ${found} checks.`);
+  }
 }
