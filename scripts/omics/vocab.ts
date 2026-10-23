@@ -6,7 +6,7 @@
  * concept IRIs, and validateVocabularies rejects any value that is not a key in its scheme. */
 import fs from "node:fs";
 import path from "node:path";
-import { Parser } from "n3";
+import { Parser, type Quad } from "n3";
 
 export const vocabBase = "https://benchmarks.rewire.it/vocab/";
 export const vocabDir = "data/vocab";
@@ -23,10 +23,12 @@ export function loadSchemes(root = "."): Map<string, Scheme> {
   const dir = path.join(root, vocabDir);
   const schemes = new Map<string, Scheme>();
   if (!fs.existsSync(dir)) return schemes;
+  const parsed: { file: string; quads: Quad[] }[] = [];
   for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".ttl")).sort()) {
     const name = file.replace(/\.ttl$/, "");
     const iri = schemeIri(name);
     const quads = new Parser({ format: "Turtle" }).parse(fs.readFileSync(path.join(dir, file), "utf8"));
+    parsed.push({ file, quads });
     if (!quads.some((q) => q.subject.value === iri && q.predicate.value === RDF_TYPE && q.object.value === `${SKOS}ConceptScheme`))
       throw new Error(`${file} does not declare the concept scheme <${iri}>`);
     const concepts = new Map<string, Concept>();
@@ -43,7 +45,56 @@ export function loadSchemes(root = "."): Map<string, Scheme> {
     }
     schemes.set(name, { name, iri, concepts });
   }
+  checkReferences(parsed, schemes);
   return schemes;
+}
+
+/** The scheme name and key of a concept IRI, or undefined for anything outside vocab/<scheme>/<key>. */
+function conceptParts(iri: string): { scheme: string; key: string } | undefined {
+  const m = iri.startsWith(vocabBase) ? /^([a-z0-9-]+)\/(.+)$/.exec(iri.slice(vocabBase.length)) : null;
+  return m ? { scheme: m[1], key: m[2] } : undefined;
+}
+
+/** Links between concepts are checked here because no test or shape dereferences them: every
+ * object IRI in a vocab/<scheme>/ namespace (skos:broader, narrower, related, rb:defaultDirection)
+ * must be a concept that exists, every skos:inScheme must name the scheme its subject's IRI sits in,
+ * and skos:broader (with narrower read as its inverse) must not loop. External mappings such as
+ * skos:closeMatch to STATO are not dereferenced. */
+function checkReferences(parsed: { file: string; quads: Quad[] }[], schemes: Map<string, Scheme>): void {
+  const problems: string[] = [];
+  const parents = new Map<string, Set<string>>();
+  const addParent = (child: string, parent: string) => parents.set(child, (parents.get(child) || new Set()).add(parent));
+  for (const { file, quads } of parsed)
+    for (const q of quads) {
+      const subject = conceptParts(q.subject.value);
+      if (q.predicate.value === `${SKOS}inScheme`) {
+        if (subject && schemeIri(subject.scheme) !== q.object.value)
+          problems.push(`${file}: <${q.subject.value}> is in scheme <${q.object.value}> but its IRI is in <${schemeIri(subject.scheme)}>`);
+        continue;
+      }
+      if (q.object.termType !== "NamedNode") continue;
+      const target = conceptParts(q.object.value);
+      if (!target) continue;
+      if (!schemes.get(target.scheme)?.concepts.has(target.key))
+        problems.push(`${file}: <${q.subject.value}> ${q.predicate.value.replace(SKOS, "skos:")} <${q.object.value}>, which is not a concept`);
+      else if (q.predicate.value === `${SKOS}broader`) addParent(q.subject.value, q.object.value);
+      else if (q.predicate.value === `${SKOS}narrower`) addParent(q.object.value, q.subject.value);
+    }
+  // Depth-first search; a node met again while still on the stack closes a cycle.
+  const state = new Map<string, "open" | "done">();
+  const visit = (node: string, trail: string[]) => {
+    if (state.get(node) === "done") return;
+    if (state.get(node) === "open") {
+      const loop = trail.slice(trail.indexOf(node)).concat(node).map((iri) => iri.slice(vocabBase.length));
+      problems.push(`skos:broader cycle: ${loop.join(", then ")}`);
+      return;
+    }
+    state.set(node, "open");
+    for (const parent of parents.get(node) || []) visit(parent, [...trail, node]);
+    state.set(node, "done");
+  };
+  for (const node of parents.keys()) visit(node, []);
+  if (problems.length) throw new Error(`Vocabulary references do not resolve:\n  ${problems.slice(0, 20).join("\n  ")}`);
 }
 
 type Term = { property: string; scheme?: string };
