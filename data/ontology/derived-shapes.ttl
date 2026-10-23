@@ -1,0 +1,95 @@
+# SHACL shapes for the derived graph (derived.nq): the discrepancies scripts/kg/contradictions.py
+# writes after inference, and their follow-up actions. scripts/kg/build.py validates the derived
+# statements against these, with the vocabulary and concept schemes mixed in; a violation fails
+# the build. check_derived in contradictions.py runs first as a fast check that no statement is
+# about a record. Changes are reviewed like record changes.
+
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rb: <https://benchmarks.rewire.it/vocab#> .
+@prefix rbs: <https://benchmarks.rewire.it/shapes#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+rbs:DiscrepancyRuleConcept a sh:NodeShape ;
+    sh:class skos:Concept ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/discrepancy-rule/> ; sh:minCount 1 ] .
+
+rbs:DiscrepancyStateConcept a sh:NodeShape ;
+    sh:class skos:Concept ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/discrepancy-state/> ; sh:minCount 1 ] .
+
+rbs:DiscrepancyActionConcept a sh:NodeShape ;
+    sh:class skos:Concept ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue <https://benchmarks.rewire.it/vocab/discrepancy-action/> ; sh:minCount 1 ] .
+
+rbs:Discrepancy a sh:NodeShape ;
+    sh:targetClass rb:Discrepancy ;
+    rdfs:comment "A discrepancy names its rule, review state, two compared systems, its outlier study's sources and results, and the key its ID hashes. Exactly one of the rule-specific shapes applies." ;
+    sh:nodeKind sh:IRI ;
+    sh:pattern "^https://benchmarks\\.rewire\\.it/id/discrepancy-[0-9a-f]{16}$" ;
+    sh:xone ( rbs:OrderingReversalNumbers rbs:GapOutlierNumbers ) ;
+    sh:property
+        [ sh:path rdfs:label ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:discrepancySummary ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:discrepancyKey ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ,
+        [ sh:path rb:discrepancyRule ; sh:minCount 1 ; sh:maxCount 1 ; sh:node rbs:DiscrepancyRuleConcept ] ,
+        [ sh:path rb:reviewState ; sh:minCount 1 ; sh:maxCount 1 ; sh:node rbs:DiscrepancyStateConcept ] ,
+        [ sh:path rb:assertionMethod ; sh:minCount 1 ; sh:maxCount 1 ;
+          sh:in ( <http://purl.obolibrary.org/obo/ECO_0000203> <http://purl.obolibrary.org/obo/ECO_0000218> ) ] ,
+        [ sh:path rb:comparedSystem ; sh:minCount 2 ; sh:maxCount 2 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:discrepancyScope ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "same-protocol" "same-task" "cross-task" ) ] ,
+        [ sh:path rb:identityBasis ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "reviewed" "unreviewed" ) ] ,
+        [ sh:path rb:severity ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "low" "medium" "high" ) ] ,
+        [ sh:path rb:outlierSource ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:consensusSource ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:outlierResult ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:consensusResult ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:reviewClaim ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:previousIds ; sh:datatype xsd:string ; sh:pattern "^discrepancy-[0-9a-f]{16}$" ] ,
+        [ sh:path rb:hasAction ; sh:class rb:FollowUpAction ] .
+
+rbs:OrderingReversalNumbers a sh:NodeShape ;
+    sh:class rb:OrderingReversal ;
+    sh:property
+        [ sh:path rb:consensusHigher ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:outlierComparisons ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ] ,
+        [ sh:path rb:outlierReversals ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ] ,
+        [ sh:path rb:consensusComparisons ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ] ,
+        [ sh:path rb:consensusAgreements ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ] ,
+        [ sh:path rb:referenceSystem ; sh:maxCount 0 ] .
+
+rbs:GapOutlierNumbers a sh:NodeShape ;
+    sh:class rb:GapOutlier ;
+    sh:property
+        [ sh:path rb:referenceSystem ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:outlierGap ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:decimal ] ,
+        [ sh:path rb:consensusGapMin ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:decimal ] ,
+        [ sh:path rb:consensusGapMax ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:decimal ] ,
+        [ sh:path rb:consensusHigher ; sh:maxCount 0 ] .
+
+rbs:FollowUpAction a sh:NodeShape ;
+    sh:targetClass rb:FollowUpAction ;
+    rdfs:comment "One accepted discrepancy_review claim revision, under the discrepancy it is about. The action type is absent for a claim that records a state change only." ;
+    sh:nodeKind sh:IRI ;
+    sh:pattern "^https://benchmarks\\.rewire\\.it/id/discrepancy-[0-9a-f]{16}/action/-?[0-9]+$" ;
+    sh:property
+        [ sh:path [ sh:inversePath rb:hasAction ] ; sh:minCount 1 ; sh:maxCount 1 ; sh:class rb:Discrepancy ] ,
+        [ sh:path rb:actionRevision ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ] ,
+        [ sh:path rb:reviewClaim ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:resultingState ; sh:minCount 1 ; sh:maxCount 1 ; sh:node rbs:DiscrepancyStateConcept ] ,
+        [ sh:path rb:actionType ; sh:maxCount 1 ; sh:node rbs:DiscrepancyActionConcept ] ,
+        [ sh:path rb:actionDate ; sh:maxCount 1 ; sh:datatype xsd:date ] ,
+        [ sh:path rb:actionUrl ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ,
+        [ sh:path rb:nextCheck ; sh:maxCount 1 ; sh:datatype xsd:date ] .
+
+rbs:DerivedSubjects a sh:NodeShape ;
+    sh:targetSubjectsOf rb:hasAction, rb:discrepancyRule, rb:outlierResult, rb:consensusResult ;
+    rdfs:comment "Only discrepancies carry discrepancy links." ;
+    sh:class rb:Discrepancy .
+
+rbs:ActionSubjects a sh:NodeShape ;
+    sh:targetSubjectsOf rb:actionRevision, rb:resultingState, rb:actionType, rb:actionUrl ;
+    rdfs:comment "Only follow-up actions carry action properties." ;
+    sh:class rb:FollowUpAction .
