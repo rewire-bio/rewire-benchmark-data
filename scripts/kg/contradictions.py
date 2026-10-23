@@ -1047,6 +1047,26 @@ def derive(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph,
     return Derived(triples, report, {"disputed": excluded["disputed"], "concern": excluded["concern"]}, retired, problems)
 
 
+def split_study_candidates(asserted: rdflib.Graph, inferred: set[tuple], ontology: rdflib.Graph) -> list[dict]:
+    """Benchmarks whose results come from both a study keyed by DOI and one keyed by a repository
+    or a single source: perhaps a paper and its own repository or leaderboard that a companion_of
+    link should join (issue #207). A report for curators; nothing is changed or failed."""
+    index = Index(asserted, inferred, ontology)
+    by_benchmark: dict[URIRef, set[URIRef]] = defaultdict(set)
+    for c in comparisons(index):
+        for anchor in index.anchors(c.protocol):
+            if (anchor, RDF.type, RB.Benchmark) in index.g:
+                by_benchmark[anchor].add(c.study)
+    found = []
+    for benchmark, studies in sorted(by_benchmark.items()):
+        keys = sorted(index.study_keys[s] for s in studies)
+        papers = [k for k in keys if k.startswith("doi:")]
+        others = [k for k in keys if not k.startswith("doi:")]
+        if papers and others:
+            found.append({"benchmark": local(benchmark), "paper_studies": papers, "other_studies": others})
+    return found
+
+
 def labelled_outcomes(report: list[dict], path: Path = LABELLED) -> tuple[list[dict], list[str]]:
     """What became of each hand-reviewed finding (scripts/kg/fixtures/labelled-findings.json), and
     problems for a real error or lead that is missing or left off the public listing."""

@@ -585,6 +585,9 @@ def build(kg_dir: Path) -> dict:
             "by_scope": dict(sorted(Counter(d["scope"] for d in live).items())),
             "by_listing": dict(sorted(Counter(d["listing"] for d in live).items())),
             "labelled_findings": labelled,
+            # Report only: benchmarks whose results come from a DOI study and a repository or
+            # single-source study, which may be one piece of work missing a companion_of link.
+            "split_study_candidates": contradictions.split_study_candidates(asserted, inferred, ontology),
             # Settled discrepancies the rules no longer find, kept with their follow-up history.
             "resolved": len(resolved),
             "resolved_by_review_state": dict(sorted(Counter(d["review_state"] for d in resolved).items())),
