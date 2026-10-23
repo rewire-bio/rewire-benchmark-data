@@ -17,6 +17,7 @@ Each record is an object. Fields marked as concept keys hold the last segment of
   - baseline: `implemented_by`, `measured_in`, `uses_data`, `applicable_to`;
   - task and protocol: `part_of`, `parent`, `evaluates_task`, `uses_data`; dataset subset: `used_in`, `same_data_as`;
   - model and configuration identity: `family`, `variant_of` (model to model), `configuration_of` (configuration to what it configures), `alias_of`, `uses_model`;
+  - source: `companion_of` (a repository, leaderboard, supplement or another version of a paper, to that paper's source);
   - any record: `supersedes`, `source`.
 
   References resolve within a release. Releases written before October 2026 used other names (`model`, `benchmark`, `dataset` and typed names on evaluations, and the same names with other meanings on baselines and subsets); readers translate them with `normalizeRecords`.
