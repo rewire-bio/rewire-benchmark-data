@@ -129,7 +129,7 @@ def build(b, text, layout):
            "status": "needs_review", "facets": {"areas": AREAS, "contexts": ["research", "clinical_research"]}, "source_ids": [], "links": [],
            "attributes": {
                "url": "https://doi.org/10.64898/2026.09.16.26363192", "artifact_url": PDF_URL, "doi": "10.64898/2026.09.16.26363192",
-               "version": "medRxiv preprint version 1, posted 2026-09-20; full-text PDF with supplementary figures and tables (53 pages)",
+               "version": "medRxiv preprint version 1, posted 2026-09-20; full-text PDF with supplementary figures and tables (83 pages)",
                "retrieved_at": RETRIEVED, "artifact_sha256": PDF_SHA, "publication_status": "preprint", "licence": "CC-BY-NC-4.0",
                "media_type": "application/pdf",
                "source_locator": "Main text Fig. 2 and 3 and their Results paragraphs; Materials and methods; fig. S7 and S9; Tables S1 and S2",
@@ -537,7 +537,9 @@ def build(b, text, layout):
                                   if key == "retrained-all-except-alphagenome" else {})},
                               links=[{"relation": "configuration_of", "target_id": avi}], method_types=["supervised_machine_learning"])
         for c, cl, printed in zip(cols, col_labels, vals):
-            loc = f"Table S2 (page 70), section '{section}', row '{label}', column '{cl}'"
+            # review correction 2026-11-01: the two '+ No Indel Type' rows had identical locators
+            row = label + (" (second occurrence, below 'No AlphaMissense Indel Features')" if key == "zero-alphamissense-indel-and-indel-type" else "")
+            loc = f"Table S2 (page 70), section '{section}', row '{row}', column '{cl}'"
             ev = b.evaluation(f"{P}-eval-table-s2-{key}-{c}", f"AVI {label} ({section}) on {cl} (AlphaGenome Atlas Table S2)", sys_id, protocols[c], datasets[c],
                               {"dataset_version": None, "split": None, "population": None, "inputs": "AVI feature vector with the stated features zeroed",
                                "adaptation": "Retrained" if section == "Retrained" else "None (frozen AVI ensemble)",
@@ -553,7 +555,7 @@ def build(b, text, layout):
                 b.result(f"{P}-result-table-s2-{key}-{c}-auprc-relative-difference", f"AVI ablation '{label}' AUPRC difference, {cl} (Table S2)", ev,
                          printed, "auprc-relative-difference", "percent", loc, TABLE_PARSE,
                          "Parsed from pdftotext -layout text of Table S2 with every row label and the column header asserted (extract/build_batch.py).",
-                         f"relative to the AVI baseline row ({section}, '{label}'), {cl} column")
+                         f"ablation '{row}' ({section}) relative to the AVI baseline row, {cl} column")
 
     # ------------------------------------------------------------------ claims on scoring setup and gaps
     need(text, "we re-ran the AlphaGenome paper evaluations with variants placed at their windowed positions rather than centered on the interval, and observed no statistically significant differences in any evaluation metric.")
