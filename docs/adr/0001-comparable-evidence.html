@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR 0001: Comparable evidence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,650&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+html, body { margin: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+/* Layout: one reading column for prose, figures allowed a little wider; every section leads with its figure. */
+:root {
+  --bg: #f4f6f9; --surface: #ffffff; --fg: #1a2230; --muted: #5a6574; --line: #d3d9e2;
+  --accent: #1d5ea8; --accent-soft: #e2ebf7;
+  --real: #b0281f; --lead: #a76300; --explained: #4b6889; --fp: #7f8a99;
+  --high: #b0281f; --med: #a76300; --low: #66717f;
+  --display: "Literata", Georgia, "Times New Roman", serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10151c; --surface: #17202a; --fg: #e4e9ef; --muted: #9ba6b4; --line: #2d3846;
+  --accent: #74abee; --accent-soft: #1b2a3d;
+  --real: #f08b80; --lead: #eeb25a; --explained: #8fb0d6; --fp: #8d97a5;
+  --high: #f08b80; --med: #eeb25a; --low: #a3adba; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #10151c; --surface: #17202a; --fg: #e4e9ef; --muted: #9ba6b4; --line: #2d3846;
+  --accent: #74abee; --accent-soft: #1b2a3d;
+  --real: #f08b80; --lead: #eeb25a; --explained: #8fb0d6; --fp: #8d97a5;
+  --high: #f08b80; --med: #eeb25a; --low: #a3adba; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body); }
+.wrap { max-width: 960px; margin: 0 auto; padding-block: 40px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 2.1rem; font-weight: 650; }
+h2 { font-size: 1.5rem; font-weight: 650; margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line); }
+h3 { font-size: 1.15rem; font-weight: 650; margin-top: 28px; }
+p, ul, ol { margin: 12px 0 0; }
+ul, ol { padding-left: 1.2em; }
+li + li { margin-top: 4px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.eyebrow { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 16px; font-size: 0.92rem; color: var(--muted); }
+.meta b { color: var(--fg); font-weight: 600; }
+.status { display: inline-block; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); font-weight: 600; font-size: 0.85rem; }
+.lede { font-size: 1.12rem; margin-top: 20px; max-width: 64ch; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 24px; }
+.summary > div { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.summary .k { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.summary p { margin-top: 6px; font-size: 0.95rem; }
+
+figure { margin: 24px 0 0; }
+figcaption { font-size: 0.88rem; color: var(--muted); margin-top: 8px; max-width: 72ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
+.scroll { overflow-x: auto; }
+.scroll svg { min-width: 620px; }
+svg { display: block; width: 100%; height: auto; }
+svg text { font-family: var(--body); }
+.bx { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+.bx2 { fill: var(--bg); stroke: var(--line); stroke-width: 1.2; }
+.bxa { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.4; }
+.bxr { fill: color-mix(in srgb, var(--real) 12%, var(--surface)); stroke: var(--real); stroke-width: 1.4; }
+.t { fill: var(--fg); font-size: 13px; }
+.tb { fill: var(--fg); font-size: 13px; font-weight: 700; }
+.ts { fill: var(--muted); font-size: 11.5px; }
+.tr { fill: var(--real); font-size: 12px; font-weight: 600; }
+.ta { fill: var(--accent); font-size: 12px; font-weight: 600; }
+.hd { fill: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; }
+.ln { stroke: var(--muted); stroke-width: 1.4; fill: none; }
+.lna { stroke: var(--accent); stroke-width: 1.8; fill: none; }
+.lnr { stroke: var(--real); stroke-width: 1.8; fill: none; }
+.lnd { stroke: var(--accent); stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; }
+.grid { stroke: var(--line); stroke-width: 1; }
+.ah { fill: var(--muted); } .aha { fill: var(--accent); } .ahr { fill: var(--real); }
+.dot-a { fill: var(--accent); } .dot-l { fill: var(--lead); } .dot-r { fill: var(--real); }
+
+/* stacked bars */
+.bars { display: grid; gap: 18px; }
+.bar-row .lab { font-size: 0.9rem; font-weight: 600; }
+.bar { display: flex; height: 30px; border-radius: 4px; overflow: hidden; margin-top: 6px; background: var(--bg); }
+.bar span { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 8px; font-size: 0.86rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.legend b { color: var(--fg); }
+
+/* waffle */
+.waffle { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 6px; max-width: 560px; }
+.waffle span { aspect-ratio: 1; border-radius: 4px; max-width: 100%; }
+
+/* outcome colours */
+.c-real { background: var(--real); } .c-lead { background: var(--lead); }
+.c-exp { background: var(--explained); } .c-fp { background: var(--fp); }
+.s-unl { background: var(--accent); } .s-dif { background: color-mix(in srgb, var(--accent) 45%, var(--surface)); } .s-same { background: var(--lead); }
+.s-one { background: var(--explained); } .s-two { background: color-mix(in srgb, var(--explained) 40%, var(--surface)); }
+
+/* lanes */
+.lanes { display: grid; gap: 10px; }
+.lane-head, .lane { display: grid; grid-template-columns: 112px repeat(4, minmax(0, 1fr)); gap: 8px; }
+.lane-head div { font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.lane > div { min-width: 0; }
+.lane .name { font-weight: 700; font-size: 0.9rem; padding-top: 4px; }
+.lane .name small { display: block; font-weight: 400; color: var(--muted); font-size: 0.78rem; line-height: 1.3; }
+.cell { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-height: 44px; }
+.chip { font-size: 0.74rem; line-height: 1.25; padding: 3px 7px; border-radius: 4px; border: 1px solid; white-space: nowrap; }
+.chip.real { border-color: var(--real); background: color-mix(in srgb, var(--real) 14%, var(--surface)); }
+.chip.lead { border-color: var(--lead); background: color-mix(in srgb, var(--lead) 16%, var(--surface)); }
+.chip.exp { border-color: var(--explained); background: color-mix(in srgb, var(--explained) 12%, var(--surface)); }
+.chip.fp { border-color: var(--fp); border-style: dashed; background: var(--surface); color: var(--muted); }
+.lane-wrap { overflow-x: auto; }
+.lane-wrap .lanes { min-width: 640px; }
+
+/* options */
+.opt { margin-top: 40px; }
+.opt-tag { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-family: var(--display); font-weight: 650; margin-right: 10px; }
+.opt h3 { display: flex; align-items: center; margin-top: 0; font-size: 1.3rem; }
+.rec { margin-left: 12px; font-family: var(--body); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 1px 9px; }
+.pc { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+.pc > div { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; }
+.pc h4 { margin: 0; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.pc .pro h4 { color: var(--accent); } .pc .con h4 { color: var(--real); }
+.pc ul { margin-top: 6px; font-size: 0.94rem; }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; margin-top: 16px; }
+.tbl table { min-width: 600px; }
+.r-good { color: var(--accent); font-weight: 700; } .r-part { color: var(--lead); font-weight: 700; } .r-poor { color: var(--real); font-weight: 700; }
+.sev { display: inline-block; font-size: 0.76rem; font-weight: 700; padding: 1px 8px; border-radius: 4px; text-transform: lowercase; }
+.sev.high { color: var(--high); background: color-mix(in srgb, var(--high) 14%, var(--surface)); }
+.sev.medium { color: var(--med); background: color-mix(in srgb, var(--med) 16%, var(--surface)); }
+.sev.low { color: var(--low); background: color-mix(in srgb, var(--low) 14%, var(--surface)); }
+.sev.none { color: var(--muted); border: 1px dashed var(--line); }
+.matrix td, .matrix th { text-align: center; }
+.matrix th:first-child, .matrix td:first-child { text-align: left; }
+
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 20px; counter-reset: step; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; position: relative; }
+.step .n { font-family: var(--display); font-weight: 650; font-size: 1.6rem; color: var(--accent); line-height: 1; }
+.step h4 { margin: 8px 0 0; font-size: 1rem; }
+.step ul { font-size: 0.92rem; }
+.step .closes { margin-top: 10px; font-size: 0.82rem; color: var(--muted); }
+
+.callout { margin-top: 20px; border-left: 3px solid var(--accent); padding: 10px 16px; background: var(--surface); border-radius: 0 6px 6px 0; max-width: 72ch; }
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 560px) {
+  h1 { font-size: 1.7rem; }
+  .waffle { gap: 4px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Architecture decision record 0001 · rewire-benchmark-data</div>
+  <h1 style="margin-top:8px">Comparable evidence for contested results</h1>
+  <div class="meta">
+    <span><span class="status">Accepted</span></span>
+    <span><b>Date</b> 2026-10-23</span>
+    <span><b>Decider</b> Tim Richardson</span>
+    <span><b>Accepted</b> 2026-10-23, option B</span>
+    <span><b>Bundle measured</b> <span class="mono">kg/2026-10-23-9f59283abc5a</span></span>
+  </div>
+  <div class="meta">
+    <span><b>Umbrella for</b>
+      <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/201">#201</a>,
+      <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/204">#204</a>,
+      <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/205">#205</a>,
+      <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/206">#206</a>,
+      <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/207">#207</a>,
+      <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/208">#208</a></span>
+    <span><b>Related</b>
+      <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/174">#174</a>,
+      <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/209">#209</a> to
+      <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/211">#211</a>,
+      <a href="https://github.com/rewire-bio/rewire-benchmark-data/pull/212">PR #212</a></span>
+  </div>
+  <p class="lede">The discrepancy rules count result rows as if each were independent evidence about one well-defined system, from one independent study, on a known task. The store guarantees none of those. This record compares three ways to fix that. Option B was accepted; <a href="../design/discrepancy-rules-v4.html">the design</a> implements it.</p>
+
+  <div class="summary">
+    <div><div class="k">Problem</div><p>Of 14 reviewed medium and high findings, 1 was a real error and 3 were leads. 220 of 221 open findings are labelled cross-task, mostly because task links are missing.</p></div>
+    <div><div class="k">Decision</div><p>Option B: define system, study, evidence and task scope explicitly, in the data and in the rules. Until precision is measured, show medium and high publicly only for same-task findings.</p></div>
+    <div><div class="k">Expected effect</div><p>The three leads sit at medium. Every explained finding drops to low. Both false positives stop firing. The real error stays visible at low with its review.</p></div>
+  </div>
+</header>
+
+<!-- ============ CONTEXT ============ -->
+<h2>Context</h2>
+
+<figure>
+  <div class="panel bars" role="img" aria-label="Of 221 open findings, 174 compare an assessment with no task link, 46 are linked to different tasks and 1 is same-task. 155 rest on a one-study consensus.">
+    <div class="bar-row">
+      <div class="lab">Task scope of the 221 open findings</div>
+      <div class="bar"><span class="s-unl" style="width:78.73%"></span><span class="s-dif" style="width:20.81%"></span><span class="s-same" style="width:0.45%;min-width:3px"></span></div>
+      <div class="legend"><span><i class="s-unl"></i><b>174</b> cross-task, but a side has an unlinked protocol, task or benchmark</span><span><i class="s-dif"></i><b>46</b> cross-task, both sides linked</span><span><i class="s-same"></i><b>1</b> same-task</span></div>
+    </div>
+    <div class="bar-row">
+      <div class="lab">Size of the consensus side</div>
+      <div class="bar"><span class="s-one" style="width:70.14%"></span><span class="s-two" style="width:29.86%"></span></div>
+      <div class="legend"><span><i class="s-one"></i><b>155</b> one consensus study</span><span><i class="s-two"></i><b>66</b> two or more</span></div>
+    </div>
+  </div>
+  <figcaption>The scope label is nearly constant, so it carries almost no information: in 174 of the 220 cross-task findings it means "unknown". Across the store, 425 of 1,336 protocols, 118 of 515 tasks and 104 of 108 benchmarks have no task, benchmark or parent link. In 160 findings one study supplies at least 80% of the consensus rows, and 66 system pairs fire more than once.</figcaption>
+</figure>
+
+<figure>
+  <div class="panel">
+    <div class="waffle" role="img" aria-label="14 reviewed findings: 1 real error, 3 leads, 8 explained by a different task or setting, 2 false positives.">
+      <span class="c-real"></span><span class="c-lead"></span><span class="c-lead"></span><span class="c-lead"></span><span class="c-exp"></span><span class="c-exp"></span><span class="c-exp"></span><span class="c-exp"></span><span class="c-exp"></span><span class="c-exp"></span><span class="c-exp"></span><span class="c-exp"></span><span class="c-fp"></span><span class="c-fp"></span>
+    </div>
+    <div class="legend"><span><i class="c-real"></i><b>1</b> real error (Alavi)</span><span><i class="c-lead"></i><b>3</b> leads (#209 to #211)</span><span><i class="c-exp"></i><b>8</b> explained: different task or setting</span><span><i class="c-fp"></i><b>2</b> false positives</span></div>
+  </div>
+  <figcaption>The review of the 13 open medium findings plus the one high (#201, PR #212). The only real error was already known from an email (#174).</figcaption>
+</figure>
+
+<div class="prose">
+  <p>The feature exists because of the Alavi miss: a wrong AlphaGenome splicing result went live although other studies in the store ranked the same models the other way (#174). The rules are meant to surface that kind of disagreement as a lead. Today most of what they surface is a task difference or an artefact of how the store is modelled.</p>
+</div>
+
+<!-- ============ PROBLEM ============ -->
+<h2>Problem: four assumptions the rules make</h2>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 340" role="img" aria-label="Four assumptions in the rules, each mapped to the issues that show it is broken.">
+      <defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <text x="10" y="14" class="hd">ASSUMPTION</text><text x="470" y="14" class="hd">ISSUE THAT BREAKS IT</text>
+      <rect x="10" y="26" width="250" height="58" rx="5" class="bx"/><text x="24" y="50" class="tb">A system is one runnable thing</text><text x="24" y="70" class="ts">Ensembles and sizes are merged</text>
+      <rect x="10" y="106" width="250" height="58" rx="5" class="bx"/><text x="24" y="130" class="tb">A study is one evaluation</text><text x="24" y="150" class="ts">A paper and its repository split</text>
+      <rect x="10" y="186" width="250" height="58" rx="5" class="bx"/><text x="24" y="210" class="tb">Evidence is counted in studies</text><text x="24" y="230" class="ts">Rows are counted instead</text>
+      <rect x="10" y="266" width="250" height="58" rx="5" class="bx"/><text x="24" y="290" class="tb">The task is known</text><text x="24" y="310" class="ts">425 protocols have no task link</text>
+
+      <rect x="470" y="22" width="240" height="40" rx="5" class="bx2"/><text x="484" y="47" class="t"><tspan font-weight="700">#204</tspan>  Ensemble identity</text>
+      <rect x="470" y="75" width="240" height="40" rx="5" class="bx2"/><text x="484" y="100" class="t"><tspan font-weight="700">#206</tspan>  Best value across configs</text>
+      <rect x="470" y="128" width="240" height="40" rx="5" class="bx2"/><text x="484" y="153" class="t"><tspan font-weight="700">#207</tspan>  ProteinGym split in two</text>
+      <rect x="470" y="181" width="240" height="40" rx="5" class="bx2"/><text x="484" y="206" class="t"><tspan font-weight="700">#205</tspan>  Mirror findings</text>
+      <rect x="470" y="234" width="240" height="40" rx="5" class="bx2"/><text x="484" y="259" class="t"><tspan font-weight="700">#201</tspan>  Consensus step, row counts</text>
+      <rect x="470" y="287" width="240" height="40" rx="5" class="bx2"/><text x="484" y="312" class="t"><tspan font-weight="700">#208</tspan>  Missing task links</text>
+
+      <path d="M260,55 C360,55 370,42 466,42" class="ln" marker-end="url(#m1)"/>
+      <path d="M260,55 C360,55 370,95 466,95" class="ln" marker-end="url(#m1)"/>
+      <path d="M260,135 C360,135 370,148 466,148" class="ln" marker-end="url(#m1)"/>
+      <path d="M260,215 C360,215 370,201 466,201" class="ln" marker-end="url(#m1)"/>
+      <path d="M260,215 C360,215 370,254 466,254" class="ln" marker-end="url(#m1)"/>
+      <path d="M260,295 C360,295 370,254 466,254" class="ln" marker-end="url(#m1)"/>
+      <path d="M260,295 C360,295 370,307 466,307" class="ln" marker-end="url(#m1)"/>
+    </svg>
+  </div>
+  <figcaption>Each bug is one assumption failing. Fixing the bugs one at a time leaves the assumptions in place, so new false-positive classes keep appearing.</figcaption>
+</figure>
+
+<h3>How each assumption fails</h3>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 270" role="img" aria-label="Three Hasan 2026 ensembles that all contain DeepSomatic resolve to one majority-vote method; best-value selection takes recall from the union and precision from the intersection, so DeepSomatic loses every comparison.">
+      <defs><marker id="m2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+      <marker id="m2r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ahr"/></marker></defs>
+      <text x="10" y="14" class="hd">HASAN 2026 CONFIGURATIONS</text>
+      <rect x="10" y="26" width="230" height="62" rx="5" class="bx"/><text x="22" y="49" class="tb">Union of 3 callers</text><text x="22" y="69" class="ts">Mutect2, Strelka2, DeepSomatic</text>
+      <rect x="10" y="104" width="230" height="62" rx="5" class="bx"/><text x="22" y="127" class="tb">Majority, 2 of 3</text><text x="22" y="147" class="ts">Mutect2, Strelka2, DeepSomatic</text>
+      <rect x="10" y="182" width="230" height="62" rx="5" class="bx"/><text x="22" y="205" class="tb">Strict intersection</text><text x="22" y="225" class="ts">Mutect2, Strelka2, DeepSomatic</text>
+      <rect x="300" y="104" width="170" height="62" rx="5" class="bxr"/><text x="385" y="131" class="tb" text-anchor="middle">majority-vote</text><text x="385" y="150" class="ts" text-anchor="middle">one generic method</text>
+      <path d="M240,57 C275,57 270,125 298,128" class="ln" marker-end="url(#m2)"/>
+      <path d="M240,135 L298,135" class="ln" marker-end="url(#m2)"/>
+      <path d="M240,213 C275,213 270,145 298,142" class="ln" marker-end="url(#m2)"/>
+      <text x="268" y="98" class="ts" text-anchor="middle">configuration_of</text>
+      <rect x="530" y="80" width="180" height="110" rx="5" class="bx"/>
+      <text x="544" y="104" class="tb">vs DeepSomatic</text>
+      <text x="544" y="126" class="ts">recall: from the union</text>
+      <text x="544" y="145" class="ts">precision: from intersection</text>
+      <text x="544" y="172" class="tr">wins 20 of 20</text>
+      <path d="M470,135 L527,135" class="lnr" marker-end="url(#m2r)"/>
+      <text x="499" y="126" class="ts" text-anchor="middle">best per</text><text x="499" y="152" class="ts" text-anchor="middle">metric</text>
+      <text x="10" y="264" class="ts">Every ensemble contains DeepSomatic, so the union's recall and the intersection's precision cannot fall below it.</text>
+    </svg>
+  </div>
+  <figcaption><b>System identity (#204, #206).</b> Different combinations resolve to one generic method, and best-value selection picks a different configuration per metric. The same mechanism mixes ESM-2 sizes and scGPT checkpoints.</figcaption>
+</figure>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 240" role="img" aria-label="Today two disagreeing studies produce two findings, each naming the other as consensus. Under option B they produce one two-study conflict.">
+      <defs><marker id="m3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+      <marker id="m3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="aha"/></marker></defs>
+      <text x="10" y="14" class="hd">TODAY</text><text x="400" y="14" class="hd">OPTION B</text>
+      <line x1="378" y1="8" x2="378" y2="232" class="grid"/>
+      <rect x="10" y="30" width="180" height="60" rx="5" class="bx"/><text x="22" y="54" class="tb">ProteinBench</text><text x="22" y="74" class="ts">MPNN above ESM3, 10 of 10</text>
+      <rect x="10" y="160" width="180" height="60" rx="5" class="bx"/><text x="22" y="184" class="tb">ProteinGym</text><text x="22" y="204" class="ts">ESM3 above MPNN, 18 of 19</text>
+      <rect x="250" y="30" width="112" height="60" rx="5" class="bxr"/><text x="306" y="56" class="tb" text-anchor="middle">Finding 1</text><text x="306" y="74" class="ts" text-anchor="middle">f82ed80f</text>
+      <rect x="250" y="160" width="112" height="60" rx="5" class="bxr"/><text x="306" y="186" class="tb" text-anchor="middle">Finding 2</text><text x="306" y="204" class="ts" text-anchor="middle">fed245c4</text>
+      <path d="M190,60 L247,60" class="ln" marker-end="url(#m3)"/><text x="218" y="53" class="ts" text-anchor="middle">outlier</text>
+      <path d="M190,190 L247,190" class="ln" marker-end="url(#m3)"/><text x="218" y="183" class="ts" text-anchor="middle">outlier</text>
+      <path d="M190,175 L250,82" class="ln" marker-end="url(#m3)" stroke-dasharray="4 3"/>
+      <path d="M190,75 L250,168" class="ln" marker-end="url(#m3)" stroke-dasharray="4 3"/>
+      <text x="236" y="128" class="ts" text-anchor="middle">consensus</text>
+
+      <rect x="400" y="30" width="170" height="60" rx="5" class="bx"/><text x="412" y="54" class="tb">ProteinBench</text><text x="412" y="74" class="ts">verdict: MPNN</text>
+      <rect x="400" y="160" width="170" height="60" rx="5" class="bx"/><text x="412" y="184" class="tb">ProteinGym</text><text x="412" y="204" class="ts">verdict: ESM3</text>
+      <rect x="600" y="85" width="110" height="80" rx="5" class="bxa"/><text x="655" y="110" class="tb" text-anchor="middle">One</text><text x="655" y="128" class="tb" text-anchor="middle">two-study</text><text x="655" y="146" class="tb" text-anchor="middle">conflict</text>
+      <path d="M570,60 C590,60 585,105 598,108" class="lna" marker-end="url(#m3a)"/>
+      <path d="M570,190 C590,190 585,145 598,142" class="lna" marker-end="url(#m3a)"/>
+      <text x="655" y="186" class="ts" text-anchor="middle">no outlier named</text>
+    </svg>
+  </div>
+  <figcaption><b>Evidence counting (#205, #201).</b> With two studies there is no consensus to be an outlier from. Rows are also counted, so one study with 154 F1 values over replicates (Sahraeian, Octopus against Mutect2) reads as overwhelming agreement.</figcaption>
+</figure>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 240" role="img" aria-label="Today the ProteinGym paper and its repository files form two studies that disagree with each other on ESM-2 against ESM-1v. Under option B a companion_of link makes them one study.">
+      <defs><marker id="m4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+      <marker id="m4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="aha"/></marker>
+      <marker id="m4r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ahr"/></marker>
+      <marker id="m4rs" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10,0 L0,5 L10,10 z" class="ahr"/></marker></defs>
+      <text x="10" y="14" class="hd">TODAY</text><text x="400" y="14" class="hd">OPTION B</text>
+      <line x1="378" y1="8" x2="378" y2="232" class="grid"/>
+      <rect x="10" y="30" width="160" height="60" rx="5" class="bx2"/><text x="22" y="54" class="tb">Paper (DOI)</text><text x="22" y="74" class="ts">ESM-2 15B only</text>
+      <rect x="10" y="160" width="160" height="60" rx="5" class="bx2"/><text x="22" y="184" class="tb">Repo files (GitHub)</text><text x="22" y="204" class="ts">ESM-2 150M to 15B</text>
+      <rect x="212" y="30" width="150" height="60" rx="5" class="bx"/><text x="224" y="54" class="tb">Study 1</text><text x="224" y="74" class="ts">ESM-1v wins</text>
+      <rect x="212" y="160" width="150" height="60" rx="5" class="bx"/><text x="224" y="184" class="tb">Study 2</text><text x="224" y="204" class="ts">ESM-2 wins (650M)</text>
+      <path d="M170,60 L209,60" class="ln" marker-end="url(#m4)"/>
+      <path d="M170,190 L209,190" class="ln" marker-end="url(#m4)"/>
+      <path d="M287,94 L287,156" class="lnr" marker-end="url(#m4r)" marker-start="url(#m4rs)"/>
+      <text x="296" y="122" class="tr">finding</text><text x="296" y="138" class="tr">6e0a1543</text>
+
+      <rect x="400" y="30" width="160" height="60" rx="5" class="bx2"/><text x="412" y="54" class="tb">Paper (DOI)</text><text x="412" y="74" class="ts">ESM-2 15B only</text>
+      <rect x="400" y="160" width="160" height="60" rx="5" class="bx2"/><text x="412" y="184" class="tb">Repo files (GitHub)</text><text x="412" y="204" class="ts">ESM-2 150M to 15B</text>
+      <path d="M480,156 L480,94" class="lnd" marker-end="url(#m4a)"/><text x="490" y="129" class="ta">companion_of</text>
+      <rect x="600" y="85" width="110" height="80" rx="5" class="bxa"/><text x="655" y="112" class="tb" text-anchor="middle">One study</text><text x="655" y="132" class="ts" text-anchor="middle">ProteinGym</text><text x="655" y="150" class="ts" text-anchor="middle">one ESM-2 config</text>
+      <path d="M560,60 C585,60 582,105 598,108" class="lna" marker-end="url(#m4a)"/>
+      <path d="M560,190 C585,190 582,145 598,142" class="lna" marker-end="url(#m4a)"/>
+    </svg>
+  </div>
+  <figcaption><b>Study identity (#207).</b> Grouping by DOI and by repository puts one benchmark into two studies, which then disagree with each other. The same split makes the ProteinGym slices count as two of the "6 studies" on #201.</figcaption>
+</figure>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 230" role="img" aria-label="Severity steps today. The ESM-IF1 against ProteinMPNN finding goes from high to medium for cross-task and back to high for strong consensus. The Alavi finding goes high, medium, low, then medium.">
+      <line x1="110" y1="40" x2="700" y2="40" class="grid"/><line x1="110" y1="95" x2="700" y2="95" class="grid"/><line x1="110" y1="150" x2="700" y2="150" class="grid"/>
+      <text x="96" y="44" class="t" text-anchor="end">high</text><text x="96" y="99" class="t" text-anchor="end">medium</text><text x="96" y="154" class="t" text-anchor="end">low</text>
+      <text x="170" y="186" class="ts" text-anchor="middle">start</text>
+      <text x="330" y="186" class="ts" text-anchor="middle">cross-task</text><text x="330" y="201" class="ts" text-anchor="middle">down one</text>
+      <text x="490" y="186" class="ts" text-anchor="middle">unreviewed identity</text><text x="490" y="201" class="ts" text-anchor="middle">down one</text>
+      <text x="650" y="186" class="ts" text-anchor="middle">strong consensus</text><text x="650" y="201" class="ts" text-anchor="middle">up one</text>
+      <polyline points="170,40 330,95 490,95 650,40" class="lnr"/>
+      <circle cx="170" cy="40" r="5" class="dot-r"/><circle cx="330" cy="95" r="5" class="dot-r"/><circle cx="490" cy="95" r="5" class="dot-r"/><circle cx="650" cy="40" r="5" class="dot-r"/>
+      <polyline points="170,40 330,95 490,150 650,95" class="lna" stroke-dasharray="6 4"/>
+      <circle cx="170" cy="40" r="3" class="dot-a"/><circle cx="330" cy="95" r="3" class="dot-a"/><circle cx="490" cy="150" r="4" class="dot-a"/><circle cx="650" cy="95" r="4" class="dot-a"/>
+      <text x="640" y="28" class="tr" text-anchor="end">ESM-IF1 / MPNN: high</text>
+      <text x="640" y="118" class="ta" text-anchor="end">Alavi: medium</text>
+    </svg>
+  </div>
+  <figcaption><b>Severity arithmetic (#201).</b> The step up for a strong consensus (20 or more comparisons, 95% agreement) cancels the cross-task penalty. Both lines get that step from row counts in one study, ProteinGym and the AlphaGenome paper. Any fix that removes it drops Alavi to low.</figcaption>
+</figure>
+
+<!-- ============ DRIVERS ============ -->
+<h2>Decision drivers</h2>
+<div class="prose">
+<ol>
+  <li><b>Keep the cases that matter.</b> Alavi and the three leads must still fire. Of these four, only #211 has a consensus of more than one study.</li>
+  <li><b>Precision of what is public.</b> A reader who sees "medium" should usually find a real disagreement on the same task.</li>
+  <li><b>Stable IDs.</b> The orphan check fails the release if an unsettled review claim loses its finding, so any re-keying needs <code>previous_ids</code>.</li>
+  <li><b>Curation cost.</b> 425 unlinked protocols and about 5,000 configurations without size or checkpoint metadata.</li>
+  <li><b>Honest scope.</b> The site should claim no more than cross-paper evidence can support (see <a href="#meta">On a meta score</a>).</li>
+</ol>
+</div>
+
+<!-- ============ OPTIONS ============ -->
+<h2>Options</h2>
+
+<figure>
+  <div class="panel lane-wrap">
+    <div class="lanes" role="img" aria-label="Where the 14 reviewed findings land today and under each option.">
+      <div class="lane-head"><div></div><div>High</div><div>Medium</div><div>Low</div><div>No public finding</div></div>
+      <div class="lane"><div class="name">Today<small>rules v3</small></div>
+        <div class="cell"><span class="chip exp">ESM-IF1/MPNN</span></div>
+        <div class="cell"><span class="chip real">Alavi</span><span class="chip lead">#209</span><span class="chip lead">#210</span><span class="chip lead">#211</span><span class="chip exp">ESM3/MPNN a</span><span class="chip exp">ESM3/MPNN b</span><span class="chip exp">DNABERT-2/RNA-FM</span><span class="chip exp">Eigen/MA</span><span class="chip exp">Geneformer/scGPT a</span><span class="chip exp">Geneformer/scGPT b</span><span class="chip exp">Mutect2/Octopus</span><span class="chip fp">DeepSomatic/ens.</span><span class="chip fp">ESM-1v/ESM-2</span></div>
+        <div class="cell"></div><div class="cell"></div></div>
+      <div class="lane"><div class="name">A<small>patch each issue</small></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="chip lead">#211</span></div>
+        <div class="cell"><span class="chip exp">DNABERT-2/RNA-FM</span><span class="chip exp">Eigen/MA</span><span class="chip exp">Geneformer/scGPT a</span><span class="chip exp">Geneformer/scGPT b</span></div>
+        <div class="cell"><span class="chip real">Alavi</span><span class="chip lead">#209</span><span class="chip lead">#210</span><span class="chip exp">ESM-IF1/MPNN</span><span class="chip exp">ESM3/MPNN a</span><span class="chip exp">ESM3/MPNN b</span><span class="chip exp">Mutect2/Octopus</span><span class="chip fp">DeepSomatic/ens.</span><span class="chip fp">ESM-1v/ESM-2</span></div></div>
+      <div class="lane"><div class="name">B<small>comparable evidence, after data fixes</small></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="chip lead">#209</span><span class="chip lead">#210</span><span class="chip lead">#211</span></div>
+        <div class="cell"><span class="chip real">Alavi</span><span class="chip exp">ESM-IF1/MPNN</span><span class="chip exp">ESM3/MPNN (one)</span><span class="chip exp">DNABERT-2/RNA-FM</span><span class="chip exp">Eigen/MA</span><span class="chip exp">Geneformer/scGPT a</span><span class="chip exp">Geneformer/scGPT b</span><span class="chip exp">Mutect2/Octopus</span></div>
+        <div class="cell"><span class="chip fp">DeepSomatic/ens.</span><span class="chip fp">ESM-1v/ESM-2</span></div></div>
+      <div class="lane"><div class="name">C<small>comparison blocks only</small></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="chip lead">#211</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="chip real">Alavi</span><span class="chip lead">#209</span><span class="chip lead">#210</span><span class="chip exp">8 explained</span><span class="chip fp">2 false positives</span><small style="flex-basis:100%;color:var(--muted);font-size:.75rem">all in the curation queue</small></div></div>
+    </div>
+    <div class="legend" style="margin-top:14px"><span><i class="c-real"></i>real error</span><span><i class="c-lead"></i>lead</span><span><i class="c-exp"></i>explained</span><span><i class="c-fp"></i>false positive</span></div>
+  </div>
+  <figcaption>Expected placements, worked out by hand from each finding's study count, identity basis and task links in the measured bundle. They become fixtures to assert when the rules change (see <a href="#validation">Validation</a>). B assumes the data fixes in rollout step 1. Until the ProteinBench and ProteinGym protocols are linked, ESM-IF1/MPNN and ESM3/MPNN stay at medium as "unknown task".</figcaption>
+</figure>
+
+<!-- Option A -->
+<section class="opt">
+  <h3><span class="opt-tag">A</span>Patch each issue</h3>
+  <figure>
+    <div class="panel scroll">
+      <svg viewBox="0 0 720 200" role="img" aria-label="Option A adds a filter that requires two or more consensus studies. The filter drops the real error and two of three leads along with the false positives.">
+        <defs><marker id="m5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+        <marker id="m5r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ahr"/></marker></defs>
+        <rect x="10" y="60" width="150" height="70" rx="5" class="bx"/><text x="85" y="90" class="tb" text-anchor="middle">Findings v3</text><text x="85" y="110" class="ts" text-anchor="middle">rules unchanged</text>
+        <rect x="220" y="50" width="190" height="90" rx="5" class="bxr"/><text x="315" y="80" class="tb" text-anchor="middle">Two or more</text><text x="315" y="98" class="tb" text-anchor="middle">consensus studies</text><text x="315" y="120" class="ts" text-anchor="middle">new filter for #205</text>
+        <path d="M160,95 L217,95" class="ln" marker-end="url(#m5)"/>
+        <rect x="480" y="20" width="230" height="64" rx="5" class="bx"/><text x="494" y="45" class="tb">Kept</text><text x="494" y="66" class="ts">#211 and 4 explained findings</text>
+        <rect x="480" y="110" width="230" height="74" rx="5" class="bxr"/><text x="494" y="135" class="tb">Dropped</text><text x="494" y="155" class="ts">Alavi, #209, #210,</text><text x="494" y="172" class="ts">2 false positives, 4 explained</text>
+        <path d="M410,80 C445,80 445,52 477,52" class="ln" marker-end="url(#m5)"/>
+        <path d="M410,112 C445,112 445,147 477,147" class="lnr" marker-end="url(#m5r)"/>
+        <text x="444" y="40" class="ts" text-anchor="middle">pass</text><text x="444" y="178" class="tr" text-anchor="middle">fail</text>
+      </svg>
+    </div>
+    <figcaption>Option A's filter for #205 removes the cases the feature exists for: Alavi, #209 and #210 each have a single consensus study.</figcaption>
+  </figure>
+  <div class="prose">
+    <p>Close each issue as written:</p>
+    <ul>
+      <li>no strong-consensus step for cross-task findings (#201);</li>
+      <li>require two or more consensus studies (#205);</li>
+      <li>re-link the ensembles (#204);</li>
+      <li>group the ProteinGym paper and repository (#207);</li>
+      <li>add the three task links (#208);</li>
+      <li>use one configuration per study (#206).</li>
+    </ul>
+  </div>
+  <div class="pc">
+    <div class="pro"><h4>Pros</h4><ul><li>Small diffs that can merge separately.</li><li>Each issue closes against its own acceptance list.</li><li>Little curation work.</li></ul></div>
+    <div class="con"><h4>Cons</h4><ul><li>Drops the real error and two of three leads.</li><li>"Cross-task" still mostly means "unknown".</li><li>Rows are still counted as evidence, so one dense study still dominates.</li><li>New false-positive classes will need new patches.</li></ul></div>
+  </div>
+</section>
+
+<!-- Option B -->
+<section class="opt">
+  <h3><span class="opt-tag">B</span>Comparable-evidence model<span class="rec">Recommended</span></h3>
+  <figure>
+    <div class="panel scroll">
+      <svg viewBox="0 0 720 470" role="img" aria-label="Option B pipeline in six stages: resolve systems, group into studies, one verdict per study and pair, classify task scope, choose the finding type, set severity. Each stage names the issues it fixes.">
+        <defs><marker id="m6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+        <text x="10" y="14" class="hd">STAGE</text><text x="430" y="14" class="hd">FIXES</text>
+        <!-- stage boxes: y = 26, 100, 174, 248, 322, 396 ; h=54 -->
+        <rect x="10" y="26" width="380" height="54" rx="5" class="bxa"/><text x="24" y="48" class="tb">1  Resolve systems</text><text x="24" y="68" class="ts">Combined configs stay themselves; one config per system per study</text>
+        <rect x="10" y="100" width="380" height="54" rx="5" class="bxa"/><text x="24" y="122" class="tb">2  Group sources into studies</text><text x="24" y="142" class="ts">DOI, repository, and the new companion_of link</text>
+        <rect x="10" y="174" width="380" height="54" rx="5" class="bxa"/><text x="24" y="196" class="tb">3  One verdict per study and pair</text><text x="24" y="216" class="ts">Rows collapse to A, B or split, at 75% internal agreement</text>
+        <rect x="10" y="248" width="380" height="54" rx="5" class="bxa"/><text x="24" y="270" class="tb">4  Classify task scope</text><text x="24" y="290" class="ts">same-task, different-task, or unknown (a side unlinked)</text>
+        <rect x="10" y="322" width="380" height="54" rx="5" class="bxa"/><text x="24" y="344" class="tb">5  Choose the finding type</text><text x="24" y="364" class="ts">2+ consensus studies: outlier. 1: one two-study conflict</text>
+        <rect x="10" y="396" width="380" height="54" rx="5" class="bxa"/><text x="24" y="418" class="tb">6  Set severity</text><text x="24" y="438" class="ts">Cap by scope, step down for deficits, limit by study count</text>
+        <path d="M200,80 L200,97" class="ln" marker-end="url(#m6)"/><text x="210" y="93" class="ts">comparisons</text>
+        <path d="M200,154 L200,171" class="ln" marker-end="url(#m6)"/><text x="210" y="167" class="ts">per-study comparisons</text>
+        <path d="M200,228 L200,245" class="ln" marker-end="url(#m6)"/><text x="210" y="241" class="ts">verdicts</text>
+        <path d="M200,302 L200,319" class="ln" marker-end="url(#m6)"/><text x="210" y="315" class="ts">scoped verdicts</text>
+        <path d="M200,376 L200,393" class="ln" marker-end="url(#m6)"/><text x="210" y="389" class="ts">findings</text>
+        <rect x="430" y="33" width="280" height="40" rx="5" class="bx2"/><text x="444" y="58" class="t"><tspan font-weight="700">#204 #206</tspan>  ensembles, sizes</text>
+        <rect x="430" y="107" width="280" height="40" rx="5" class="bx2"/><text x="444" y="132" class="t"><tspan font-weight="700">#207</tspan>  paper and repo as one</text>
+        <rect x="430" y="181" width="280" height="40" rx="5" class="bx2"/><text x="444" y="206" class="t"><tspan font-weight="700">#201</tspan>  row counting</text>
+        <rect x="430" y="255" width="280" height="40" rx="5" class="bx2"/><text x="444" y="280" class="t"><tspan font-weight="700">#208 #201</tspan>  unknown is not different</text>
+        <rect x="430" y="329" width="280" height="40" rx="5" class="bx2"/><text x="444" y="354" class="t"><tspan font-weight="700">#205</tspan>  no mirror findings</text>
+        <rect x="430" y="403" width="280" height="40" rx="5" class="bx2"/><text x="444" y="428" class="t"><tspan font-weight="700">#201</tspan>  no step up</text>
+        <line x1="390" y1="53" x2="430" y2="53" class="grid"/><line x1="390" y1="127" x2="430" y2="127" class="grid"/><line x1="390" y1="201" x2="430" y2="201" class="grid"/><line x1="390" y1="275" x2="430" y2="275" class="grid"/><line x1="390" y1="349" x2="430" y2="349" class="grid"/><line x1="390" y1="423" x2="430" y2="423" class="grid"/>
+      </svg>
+    </div>
+    <figcaption>Each stage replaces one assumption with an explicit definition. Stages 1, 2 and 4 depend on data: member links for combined configurations, <code>companion_of</code> links, and task links.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="tbl">
+      <table class="matrix">
+        <thead><tr><th>Task scope</th><th>1 consensus study<br>(two-study conflict)</th><th>2 consensus studies</th><th>3 or more</th></tr></thead>
+        <tbody>
+          <tr><td><b>Same task</b></td><td><span class="sev medium">medium</span></td><td><span class="sev medium">medium</span></td><td><span class="sev high">high</span></td></tr>
+          <tr><td><b>Unknown</b> (a side unlinked)</td><td><span class="sev medium">medium</span></td><td><span class="sev medium">medium</span></td><td><span class="sev medium">medium</span></td></tr>
+          <tr><td><b>Different task</b></td><td><span class="sev low">low</span></td><td><span class="sev low">low</span></td><td><span class="sev low">low</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figcaption>Option B severity: the highest level a finding can reach. It then drops one step each for unreviewed identity and for a variant mismatch (the studies used different recorded sizes or checkpoints). Nothing steps it up.</figcaption>
+  </figure>
+
+  <div class="prose">
+    <ul>
+      <li><b>System.</b> A configuration that combines others (union, intersection, k of n) is compared as itself. Its members are recorded as <code>uses_model</code> links. It is never compared with one of its own members. Each study uses one configuration per system for every metric: the one with the most results, then the larger recorded size, then the ID.</li>
+      <li><b>Study.</b> A new <code>companion_of</code> relation from source to source covers a repository, leaderboard or supplement released with a paper. <code>Index._studies</code> unions on it.</li>
+      <li><b>Evidence.</b> Consensus and the high threshold count studies. Row counts stay on the page for reading only.</li>
+      <li><b>Scope.</b> Unknown is not treated as different. Each unknown finding names the protocols that need a task link, which turns the detector into a curation queue for #208.</li>
+    </ul>
+  </div>
+  <div class="pc">
+    <div class="pro"><h4>Pros</h4><ul><li>Fixes the cause, so the same classes of false positive do not come back.</li><li>Leads rank above every explained finding.</li><li>Keeps Alavi and all three leads.</li><li>Task links and study grouping also improve use-case pages and search.</li></ul></div>
+    <div class="con"><h4>Cons</h4><ul><li>Rules version 4. Two-study conflicts get new IDs, so unsettled claims need a <code>previous_ids</code> revision.</li><li>Depends on curating 425 protocols. Unknown findings stay at medium until that is done.</li><li>Alavi drops to low. That is honest, but less visible.</li><li>Most work of the three.</li></ul></div>
+  </div>
+</section>
+
+<!-- Option C -->
+<section class="opt">
+  <h3><span class="opt-tag">C</span>Narrow the claim to comparison blocks</h3>
+  <figure>
+    <div class="panel scroll">
+      <svg viewBox="0 0 720 280" role="img" aria-label="A comparison block is one task where three or more studies measured a shared comparator. Findings inside a block are public. Tasks without a shared comparator feed the curation queue.">
+        <defs><marker id="m7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+        <rect x="10" y="20" width="420" height="250" rx="8" class="bx2"/>
+        <text x="26" y="42" class="hd">BLOCK: ONE TASK, SHARED COMPARATOR, 3+ STUDIES</text>
+        <circle cx="220" cy="155" r="44" class="bxa"/><text x="220" y="151" class="tb" text-anchor="middle">Shared</text><text x="220" y="168" class="tb" text-anchor="middle">comparator</text>
+        <rect x="30" y="60" width="120" height="44" rx="5" class="bx"/><text x="90" y="87" class="t" text-anchor="middle">Study 1</text>
+        <rect x="290" y="60" width="120" height="44" rx="5" class="bx"/><text x="350" y="87" class="t" text-anchor="middle">Study 2</text>
+        <rect x="160" y="216" width="120" height="44" rx="5" class="bx"/><text x="220" y="243" class="t" text-anchor="middle">Study 3</text>
+        <line x1="150" y1="96" x2="186" y2="126" class="lna"/><line x1="290" y1="96" x2="254" y2="126" class="lna"/><line x1="220" y1="199" x2="220" y2="216" class="lna"/>
+        <text x="132" y="128" class="ta" text-anchor="end">measured</text>
+        <text x="310" y="128" class="ta">measured</text>
+        <rect x="470" y="20" width="240" height="130" rx="8" class="bx2"/>
+        <text x="486" y="42" class="hd">OTHER TASKS</text>
+        <rect x="486" y="60" width="96" height="40" rx="5" class="bx"/><text x="534" y="85" class="t" text-anchor="middle">Study 4</text>
+        <rect x="598" y="60" width="96" height="40" rx="5" class="bx"/><text x="646" y="85" class="t" text-anchor="middle">Study 5</text>
+        <text x="590" y="130" class="ts" text-anchor="middle">no system in common</text>
+        <rect x="470" y="200" width="240" height="60" rx="5" class="bxr"/><text x="590" y="226" class="tb" text-anchor="middle">Curation queue</text><text x="590" y="245" class="ts" text-anchor="middle">internal only</text>
+        <path d="M590,150 L590,197" class="ln" marker-end="url(#m7)"/>
+      </svg>
+    </div>
+    <figcaption>A comparison block is the smallest unit in which separate papers can be compared fairly: one task, with a system that every study measured.</figcaption>
+  </figure>
+  <div class="prose">
+    <p>Only compare inside curated blocks: one task, a shared comparator, and three or more independent studies. Everything else becomes an internal curation queue. The same blocks are the basis for per-task rankings later.</p>
+  </div>
+  <div class="pc">
+    <div class="pro"><h4>Pros</h4><ul><li>Highest precision of the three.</li><li>The public claim matches what the evidence supports.</li><li>Gives the natural base for a defensible per-task score.</li></ul></div>
+    <div class="con"><h4>Cons</h4><ul><li>Hides cross-task signals like the one that would have flagged Alavi.</li><li>Small public coverage at first. Probably only #211 of the 14 would show.</li><li>The contested page shrinks to a few findings.</li></ul></div>
+  </div>
+</section>
+
+<!-- ============ COMPARISON ============ -->
+<h2>Comparison</h2>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Driver</th><th>A: patch</th><th>B: comparable evidence</th><th>C: blocks only</th></tr></thead>
+    <tbody>
+      <tr><td>Keeps Alavi and the leads</td><td class="r-poor">Poor: loses 3 of 4</td><td class="r-good">Good: all 4, Alavi at low</td><td class="r-part">Partial: public shows 1, queue holds the rest</td></tr>
+      <tr><td>Precision of public medium and high</td><td class="r-part">Partial: 1 of 1</td><td class="r-good">Good: 3 of 3</td><td class="r-good">Good: 1 of 1</td></tr>
+      <tr><td>Stable IDs</td><td class="r-good">Good</td><td class="r-part">Partial: two-study conflicts re-keyed</td><td class="r-part">Partial: most findings leave the public set</td></tr>
+      <tr><td>Curation cost</td><td class="r-good">Low</td><td class="r-poor">High: 425 protocols</td><td class="r-part">Medium: blocks curated as needed</td></tr>
+      <tr><td>Honest scope</td><td class="r-poor">Poor</td><td class="r-good">Good</td><td class="r-good">Good</td></tr>
+      <tr><td>Stops recurrence</td><td class="r-poor">No</td><td class="r-good">Yes</td><td class="r-part">Inside blocks only</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<figure>
+  <div class="panel" style="max-width:620px">
+    <svg viewBox="0 0 560 360" role="img" aria-label="Effort against expected precision. A is low effort and low precision. B is high effort and high precision. C is medium effort and highest precision but low coverage.">
+      <line x1="70" y1="20" x2="70" y2="300" class="ln"/><line x1="70" y1="300" x2="540" y2="300" class="ln"/>
+      <line x1="305" y1="20" x2="305" y2="300" class="grid" stroke-dasharray="3 4"/><line x1="70" y1="160" x2="540" y2="160" class="grid" stroke-dasharray="3 4"/>
+      <text x="305" y="336" class="t" text-anchor="middle">Effort: engineering and curation</text>
+      <text x="76" y="318" class="ts">low</text><text x="540" y="318" class="ts" text-anchor="end">high</text>
+      <text x="22" y="160" class="t" text-anchor="middle" transform="rotate(-90 22 160)">Precision of public findings</text>
+      <text x="62" y="296" class="ts" text-anchor="end">low</text><text x="62" y="30" class="ts" text-anchor="end">high</text>
+      <circle cx="140" cy="240" r="11" class="dot-r"/><text x="158" y="245" class="tb">A</text><text x="158" y="262" class="ts">fast, loses the leads</text>
+      <circle cx="270" cy="60" r="11" class="dot-l"/><text x="288" y="65" class="tb">C</text><text x="288" y="82" class="ts">precise, small coverage</text>
+      <circle cx="440" cy="90" r="13" class="dot-a"/><text x="430" y="125" class="tb" text-anchor="middle">B</text><text x="430" y="142" class="ts" text-anchor="middle">precise, broad coverage</text>
+    </svg>
+  </div>
+  <figcaption>A qualitative placement. B costs the most because it needs the task-link backlog done. Most of B's gain comes from that data work, not from the rule code.</figcaption>
+</figure>
+
+<!-- ============ DECISION ============ -->
+<h2>Decision</h2>
+<div class="prose">
+  <p><b>Adopt option B</b> for the data model and the rules.</p>
+  <p><b>From option C, adopt the presentation rule.</b> Until fixture precision has been measured on a release, the public contested page shows medium and high only for same-task findings. Everything else is listed as "needs review" in a curation view. That removes the main risk of B (unknown-task findings at medium) while the 425-protocol backlog is worked down.</p>
+  <p><b>Reject option A.</b> Its two-study filter removes the real error and two of the three leads, and it leaves the counting problem in place.</p>
+</div>
+
+<!-- ============ META SCORE ============ -->
+<h2 id="meta">On a meta score</h2>
+<div class="prose">
+  <p>Separate benchmark papers can be consolidated into one database, and that database is useful as a checked, citable index of what each paper reported. They cannot be consolidated into one global score. The papers differ in task, dataset, split, metric, configuration and training overlap, and for most pairs of papers no system was measured by both.</p>
+  <p>A ranking is defensible inside a comparison block (the figure under option C), for the same reason network meta-analysis works in clinical trials: a shared comparator links trials that never tested the same pair directly. Outside a block, a single number would hide the very differences this review found.</p>
+</div>
+<div class="callout">
+  <b>The test that settles coverage.</b> After rollout steps 1 and 2, count the tasks that have three or more independent studies and a shared comparator. Fit per-task rankings on study-level verdicts for those tasks only, with uncertainty. The count is the honest answer to how much of the field can have a score. Expect a handful of tasks, such as ProteinGym-style variant effects and splicing, not most of the site.
+</div>
+
+<!-- ============ ROLLOUT ============ -->
+<h2>Consequences and rollout</h2>
+<div class="steps">
+  <div class="step"><div class="n">1</div><h4>Data fixes</h4>
+    <ul><li>Split union, intersection and k-of-n into separate methods with member links.</li><li>Add <code>companion_of</code> for ProteinGym; check RNAGym, ProteinBench and PFMBench.</li><li>Task links for the three lead protocols, then the ProteinBench and ProteinGym protocols.</li></ul>
+    <div class="closes">Closes #204 and #207. Starts #208. No rule change.</div></div>
+  <div class="step"><div class="n">2</div><h4>Checks</h4>
+    <ul><li>Unlinked-protocol ratchet: the count cannot rise; a new protocol needs a task link or a stated reason.</li><li>Report of studies that look split.</li><li>Shape rule: a combined configuration needs two or more member links.</li></ul>
+    <div class="closes">Closes #208.</div></div>
+  <div class="step"><div class="n">3</div><h4>Rules version 4</h4>
+    <ul><li>Stages 1 to 6 above, each with a unit test on a small synthetic graph.</li><li>The 14 labelled findings as fixtures.</li><li>Before-and-after counts in <code>docs/reviews/</code>.</li><li><code>previous_ids</code> revisions for unsettled claims whose IDs change, Alavi first.</li></ul>
+    <div class="closes">Closes #201, #205 and #206.</div></div>
+</div>
+<div class="prose">
+  <p>Settled claims whose findings stop firing are kept as resolved findings, so the two false positives in PR #212 need no new revision. Step 3 also adds the presentation rule to the website's contested page.</p>
+</div>
+
+<!-- ============ VALIDATION ============ -->
+<h2 id="validation">Validation</h2>
+<div class="tbl">
+  <table>
+    <thead><tr><th>Finding</th><th>Systems</th><th>Review</th><th>Today</th><th>Option B</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">52a714eb</td><td>AlphaGenome / Borzoi</td><td>real error</td><td><span class="sev medium">medium</span></td><td><span class="sev low">low</span></td><td>Two-study conflict, task unknown, unreviewed identity</td></tr>
+      <tr><td class="mono">8c69346a</td><td>RNAErnie / AIDO.RNA</td><td>lead #209</td><td><span class="sev medium">medium</span></td><td><span class="sev medium">medium</span></td><td>Same task once linked; unreviewed identity</td></tr>
+      <tr><td class="mono">4db3e5d2</td><td>ESM-2 / ESM3</td><td>lead #210</td><td><span class="sev medium">medium</span></td><td><span class="sev medium">medium</span></td><td>Same task once linked; two-study limit</td></tr>
+      <tr><td class="mono">36711e25</td><td>ESM-1b / EVE</td><td>lead #211</td><td><span class="sev medium">medium</span></td><td><span class="sev medium">medium</span></td><td>Same task once linked; unreviewed identity</td></tr>
+      <tr><td class="mono">d7349300</td><td>ESM-IF1 / ProteinMPNN</td><td>explained</td><td><span class="sev high">high</span></td><td><span class="sev low">low</span></td><td>One ProteinGym study; design against fitness</td></tr>
+      <tr><td class="mono">f82ed80f, fed245c4</td><td>ESM3 / ProteinMPNN</td><td>explained</td><td><span class="sev medium">medium</span> x2</td><td><span class="sev low">low</span> x1</td><td>One two-study conflict; different tasks</td></tr>
+      <tr><td class="mono">14ca3a59</td><td>DNABERT-2 / RNA-FM</td><td>explained</td><td><span class="sev medium">medium</span></td><td><span class="sev low">low</span></td><td>Task unknown, unreviewed identity</td></tr>
+      <tr><td class="mono">34c6589a</td><td>Eigen / MutationAssessor</td><td>explained</td><td><span class="sev medium">medium</span></td><td><span class="sev low">low</span></td><td>Task unknown, unreviewed identity</td></tr>
+      <tr><td class="mono">1980d1e1, 80cbd3e7</td><td>Geneformer / scGPT</td><td>explained</td><td><span class="sev medium">medium</span> x2</td><td><span class="sev low">low</span> x2</td><td>Task unknown, unreviewed; one scGPT checkpoint per study</td></tr>
+      <tr><td class="mono">826efbc8</td><td>Mutect2 / Octopus</td><td>explained</td><td><span class="sev medium">medium</span></td><td><span class="sev low">low</span></td><td>154 replicate rows become one verdict</td></tr>
+      <tr><td class="mono">90953ef9</td><td>DeepSomatic / ensembles</td><td>false positive</td><td><span class="sev medium">medium</span></td><td><span class="sev none">none</span></td><td>Ensembles are their own systems; not compared with members</td></tr>
+      <tr><td class="mono">6e0a1543</td><td>ESM-1v / ESM-2</td><td>false positive</td><td><span class="sev medium">medium</span></td><td><span class="sev none">none</span></td><td>Paper and repository become one study</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="prose">
+  <p>The table becomes a fixture file. The rules version 4 test asserts each expected severity. The release report states the precision of the public set: the share of public medium and high findings whose review is a real error or a lead. Today that share is 4 of 14. The target under option B is 3 of 3, plus any new findings, which are reviewed before the presentation rule is relaxed.</p>
+</div>
+
+<footer>
+  Measured from the release bundle <span class="mono">kg/2026-10-23-9f59283abc5a</span> (<span class="mono">discrepancies.json</span>, 221 open findings) and <span class="mono">data/entities/*.jsonl</span>. Rule code: <span class="mono">scripts/kg/contradictions.py</span> (severity at lines 755 to 762, <span class="mono">scope()</span> at 501, <span class="mono">Index._studies</span>, <span class="mono">comparisons()</span> at 374). Thresholds: <span class="mono">data/ontology/discrepancy-rules.json</span>, version 3. Reviews: PR #212.
+  <br>Correction, 2026-10-24: the first version counted only protocol records when it said how many cross-task findings rest on an unlinked assessment (178, with 42 linked). Counting the tasks and benchmarks that results are also tested on gives 174 and 46.
+</footer>
+
+</div>
+</body>
+</html>

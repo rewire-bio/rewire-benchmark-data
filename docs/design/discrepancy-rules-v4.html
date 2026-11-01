@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discrepancy Rules v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,650&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+html, body { margin: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+/* Layout: one reading column for prose, figures allowed a little wider; every section leads with its figure. */
+:root {
+  --bg: #f4f6f9; --surface: #ffffff; --fg: #1a2230; --muted: #5a6574; --line: #d3d9e2;
+  --accent: #1d5ea8; --accent-soft: #e2ebf7;
+  --real: #b0281f; --lead: #a76300; --explained: #4b6889; --fp: #7f8a99;
+  --high: #b0281f; --med: #a76300; --low: #66717f;
+  --display: "Literata", Georgia, "Times New Roman", serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10151c; --surface: #17202a; --fg: #e4e9ef; --muted: #9ba6b4; --line: #2d3846;
+  --accent: #74abee; --accent-soft: #1b2a3d;
+  --real: #f08b80; --lead: #eeb25a; --explained: #8fb0d6; --fp: #8d97a5;
+  --high: #f08b80; --med: #eeb25a; --low: #a3adba; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #10151c; --surface: #17202a; --fg: #e4e9ef; --muted: #9ba6b4; --line: #2d3846;
+  --accent: #74abee; --accent-soft: #1b2a3d;
+  --real: #f08b80; --lead: #eeb25a; --explained: #8fb0d6; --fp: #8d97a5;
+  --high: #f08b80; --med: #eeb25a; --low: #a3adba; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body); }
+.wrap { max-width: 960px; margin: 0 auto; padding-block: 40px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 2.1rem; font-weight: 650; }
+h2 { font-size: 1.5rem; font-weight: 650; margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line); }
+h3 { font-size: 1.15rem; font-weight: 650; margin-top: 28px; }
+p, ul, ol { margin: 12px 0 0; }
+ul, ol { padding-left: 1.2em; }
+li + li { margin-top: 4px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.eyebrow { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 16px; font-size: 0.92rem; color: var(--muted); }
+.meta b { color: var(--fg); font-weight: 600; }
+.status { display: inline-block; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); font-weight: 600; font-size: 0.85rem; }
+.lede { font-size: 1.12rem; margin-top: 20px; max-width: 64ch; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 24px; }
+.summary > div { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.summary .k { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.summary p { margin-top: 6px; font-size: 0.95rem; }
+
+figure { margin: 24px 0 0; }
+figcaption { font-size: 0.88rem; color: var(--muted); margin-top: 8px; max-width: 72ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
+.scroll { overflow-x: auto; }
+.scroll svg { min-width: 620px; }
+svg { display: block; width: 100%; height: auto; }
+svg text { font-family: var(--body); }
+.bx { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+.bx2 { fill: var(--bg); stroke: var(--line); stroke-width: 1.2; }
+.bxa { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.4; }
+.bxr { fill: color-mix(in srgb, var(--real) 12%, var(--surface)); stroke: var(--real); stroke-width: 1.4; }
+.t { fill: var(--fg); font-size: 13px; }
+.tb { fill: var(--fg); font-size: 13px; font-weight: 700; }
+.ts { fill: var(--muted); font-size: 11.5px; }
+.tr { fill: var(--real); font-size: 12px; font-weight: 600; }
+.ta { fill: var(--accent); font-size: 12px; font-weight: 600; }
+.hd { fill: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; }
+.ln { stroke: var(--muted); stroke-width: 1.4; fill: none; }
+.lna { stroke: var(--accent); stroke-width: 1.8; fill: none; }
+.lnr { stroke: var(--real); stroke-width: 1.8; fill: none; }
+.lnd { stroke: var(--accent); stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; }
+.grid { stroke: var(--line); stroke-width: 1; }
+.ah { fill: var(--muted); } .aha { fill: var(--accent); } .ahr { fill: var(--real); }
+.dot-a { fill: var(--accent); } .dot-l { fill: var(--lead); } .dot-r { fill: var(--real); }
+
+/* stacked bars */
+.bars { display: grid; gap: 18px; }
+.bar-row .lab { font-size: 0.9rem; font-weight: 600; }
+.bar { display: flex; height: 30px; border-radius: 4px; overflow: hidden; margin-top: 6px; background: var(--bg); }
+.bar span { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 8px; font-size: 0.86rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.legend b { color: var(--fg); }
+
+/* waffle */
+.waffle { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 6px; max-width: 560px; }
+.waffle span { aspect-ratio: 1; border-radius: 4px; max-width: 100%; }
+
+/* outcome colours */
+.c-real { background: var(--real); } .c-lead { background: var(--lead); }
+.c-exp { background: var(--explained); } .c-fp { background: var(--fp); }
+.s-unl { background: var(--accent); } .s-dif { background: color-mix(in srgb, var(--accent) 45%, var(--surface)); } .s-same { background: var(--lead); }
+.s-one { background: var(--explained); } .s-two { background: color-mix(in srgb, var(--explained) 40%, var(--surface)); }
+
+/* lanes */
+.lanes { display: grid; gap: 10px; }
+.lane-head, .lane { display: grid; grid-template-columns: 112px repeat(4, minmax(0, 1fr)); gap: 8px; }
+.lane-head div { font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.lane > div { min-width: 0; }
+.lane .name { font-weight: 700; font-size: 0.9rem; padding-top: 4px; }
+.lane .name small { display: block; font-weight: 400; color: var(--muted); font-size: 0.78rem; line-height: 1.3; }
+.cell { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-height: 44px; }
+.chip { font-size: 0.74rem; line-height: 1.25; padding: 3px 7px; border-radius: 4px; border: 1px solid; white-space: nowrap; }
+.chip.real { border-color: var(--real); background: color-mix(in srgb, var(--real) 14%, var(--surface)); }
+.chip.lead { border-color: var(--lead); background: color-mix(in srgb, var(--lead) 16%, var(--surface)); }
+.chip.exp { border-color: var(--explained); background: color-mix(in srgb, var(--explained) 12%, var(--surface)); }
+.chip.fp { border-color: var(--fp); border-style: dashed; background: var(--surface); color: var(--muted); }
+.lane-wrap { overflow-x: auto; }
+.lane-wrap .lanes { min-width: 640px; }
+
+/* options */
+.opt { margin-top: 40px; }
+.opt-tag { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-family: var(--display); font-weight: 650; margin-right: 10px; }
+.opt h3 { display: flex; align-items: center; margin-top: 0; font-size: 1.3rem; }
+.rec { margin-left: 12px; font-family: var(--body); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 1px 9px; }
+.pc { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+.pc > div { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; }
+.pc h4 { margin: 0; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.pc .pro h4 { color: var(--accent); } .pc .con h4 { color: var(--real); }
+.pc ul { margin-top: 6px; font-size: 0.94rem; }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; margin-top: 16px; }
+.tbl table { min-width: 600px; }
+.r-good { color: var(--accent); font-weight: 700; } .r-part { color: var(--lead); font-weight: 700; } .r-poor { color: var(--real); font-weight: 700; }
+.sev { display: inline-block; font-size: 0.76rem; font-weight: 700; padding: 1px 8px; border-radius: 4px; text-transform: lowercase; }
+.sev.high { color: var(--high); background: color-mix(in srgb, var(--high) 14%, var(--surface)); }
+.sev.medium { color: var(--med); background: color-mix(in srgb, var(--med) 16%, var(--surface)); }
+.sev.low { color: var(--low); background: color-mix(in srgb, var(--low) 14%, var(--surface)); }
+.sev.none { color: var(--muted); border: 1px dashed var(--line); }
+.matrix td, .matrix th { text-align: center; }
+.matrix th:first-child, .matrix td:first-child { text-align: left; }
+
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 20px; counter-reset: step; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; position: relative; }
+.step .n { font-family: var(--display); font-weight: 650; font-size: 1.6rem; color: var(--accent); line-height: 1; }
+.step h4 { margin: 8px 0 0; font-size: 1rem; }
+.step ul { font-size: 0.92rem; }
+.step .closes { margin-top: 10px; font-size: 0.82rem; color: var(--muted); }
+
+.callout { margin-top: 20px; border-left: 3px solid var(--accent); padding: 10px 16px; background: var(--surface); border-radius: 0 6px 6px 0; max-width: 72ch; }
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 560px) {
+  h1 { font-size: 1.7rem; }
+  .waffle { gap: 4px; }
+}
+</style>
+
+<style>
+.muted { color: var(--muted); }
+.bxl { fill: color-mix(in srgb, var(--lead) 16%, var(--surface)); stroke: var(--lead); stroke-width: 1.4; }
+.toc { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 4px 20px; margin-top: 28px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; font-size: 0.92rem; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.defs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-top: 14px; }
+.defs > div { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; }
+.defs dt { font-weight: 700; }
+.defs dd { margin: 4px 0 0; font-size: 0.92rem; color: var(--muted); }
+.calc { display: grid; gap: 8px; margin-top: 16px; max-width: 820px; }
+.calc > div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; padding: 8px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; font-size: 0.94rem; }
+.calc .k { font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 700; padding-top: 2px; }
+@media (max-width: 560px) { .calc > div { grid-template-columns: 1fr; gap: 2px; } }
+.mock { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 720px; }
+.mock-tabs { display: flex; gap: 4px; padding: 10px 12px 0; border-bottom: 1px solid var(--line); background: var(--bg); }
+.mock-tabs span { padding: 8px 14px; font-size: 0.9rem; font-weight: 600; color: var(--muted); border-radius: 6px 6px 0 0; }
+.mock-tabs span.on { background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-bottom-color: var(--surface); margin-bottom: -1px; }
+.mock-list { display: grid; gap: 10px; padding: 14px; }
+.mock-card { border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; min-width: 0; }
+.mock-card.dim { opacity: 0.6; border-style: dashed; }
+.mock-top { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pill { font-size: 0.74rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.mock-title { font-weight: 700; margin-top: 6px; }
+.mock-sub { font-size: 0.9rem; color: var(--muted); margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Design document · rewire-benchmark-data · implements ADR 0001 option B</div>
+  <h1 style="margin-top:8px">Discrepancy rules version 4</h1>
+  <div class="meta">
+    <span><span class="status">Implemented</span></span>
+    <span><b>Date</b> 2026-10-23</span>
+    <span><b>Owner</b> Tim Richardson</span>
+    <span><b>Decision</b> <a href="../adr/0001-comparable-evidence.html">ADR 0001</a>, option B accepted</span>
+  </div>
+  <div class="meta"><span><b>Closes</b> #201, #204, #205, #206, #207, #208</span><span><b>Code</b> <span class="mono">scripts/kg/contradictions.py</span> and friends</span></div>
+  <p class="lede">The contested-results checker compares what different papers report about the same two models. This version changes what it counts and how it labels what it finds, so it stops flagging differences that come from comparing different tasks, different model sizes or the same benchmark twice.</p>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <a href="#plain">1. The idea in plain terms</a>
+  <a href="#examples">2. Three worked examples</a>
+  <a href="#data">3. Data model changes</a>
+  <a href="#rules">4. Rule changes</a>
+  <a href="#outputs">5. Outputs and the website</a>
+  <a href="#checks">6. Checks</a>
+  <a href="#ids">7. IDs and migration</a>
+  <a href="#tests">8. Tests</a>
+  <a href="#rollout">9. Rollout</a>
+  <a href="#open">10. Open questions</a>
+</nav>
+
+<!-- ================= 1 PLAIN ================= -->
+<h2 id="plain">1. The idea in plain terms</h2>
+
+<div class="prose">
+  <p>Every release, the checker asks one question for each pair of models: <i>do the papers that tested both of them agree on which is better?</i> If one paper says the opposite of the others, it flags that paper's result as contested, as a lead for us to look into.</p>
+  <p>That question only makes sense if the papers were measuring the same thing. Version 3 doesn't check that carefully enough. Version 4 adds four checks before it compares anything.</p>
+</div>
+
+<figure>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Before comparing, v4 asks</th><th>Why it matters</th><th>v3 got it wrong here</th></tr></thead>
+      <tbody>
+        <tr><td><b>Are these the same model?</b><br><span class="muted">One runnable thing, one size</span></td><td>"ESM-2" covers models from 8M to 15B parameters. A union of three callers is not the same system as a vote among them.</td><td>DeepSomatic lost to an ensemble that contained it (#204). ESM-2 sizes were mixed (#206).</td></tr>
+        <tr><td><b>Are these different studies?</b><br><span class="muted">One paper with its own code and tables counts once</span></td><td>A benchmark's paper and its GitHub files are one piece of work. They should not be able to disagree with each other.</td><td>ProteinGym disagreed with itself (#207).</td></tr>
+        <tr><td><b>How many studies agree?</b><br><span class="muted">Not how many table rows</span></td><td>One paper that reports 150 numbers is still one opinion.</td><td>One paper's 154 replicate rows looked like overwhelming agreement (#201).</td></tr>
+        <tr><td><b>Were they measuring the same task?</b><br><span class="muted">Same task, different task, or we don't know</span></td><td>Designing a protein and scoring mutations are different jobs. A model can be best at one and worst at the other.</td><td>220 of 221 findings said "different task", mostly because links were missing (#208).</td></tr>
+      </tbody>
+    </table>
+  </div>
+</figure>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 360" role="img" aria-label="Version 3 has four steps. Version 4 has seven: it adds resolving systems, picking one configuration per study, and classifying task scope, and counts verdicts per study instead of rows.">
+      <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <text x="10" y="14" class="hd">VERSION 3 (TODAY)</text><text x="390" y="14" class="hd">VERSION 4</text>
+      <line x1="370" y1="6" x2="370" y2="352" class="grid"/>
+      <rect x="10" y="26" width="330" height="36" rx="5" class="bx"/><text x="24" y="49" class="t">Group each paper's rows by protocol and metric</text>
+      <rect x="10" y="80" width="330" height="36" rx="5" class="bx"/><text x="24" y="103" class="t">Take each model's best value in each group</text>
+      <rect x="10" y="134" width="330" height="36" rx="5" class="bx"/><text x="24" y="157" class="t">Count rows where A beats B</text>
+      <rect x="10" y="188" width="330" height="36" rx="5" class="bx"/><text x="24" y="211" class="t">Flag a paper that disagrees; add up severity</text>
+      <path d="M175,62 L175,77" class="ln" marker-end="url(#a1)"/><path d="M175,116 L175,131" class="ln" marker-end="url(#a1)"/><path d="M175,170 L175,185" class="ln" marker-end="url(#a1)"/>
+
+      <rect x="390" y="26" width="320" height="36" rx="5" class="bxa"/><text x="404" y="49" class="t"><tspan font-weight="700">New</tspan>  Resolve each system (ensembles stay apart)</text>
+      <rect x="390" y="72" width="320" height="36" rx="5" class="bxa"/><text x="404" y="95" class="t"><tspan font-weight="700">Changed</tspan>  Group sources into studies</text>
+      <rect x="390" y="118" width="320" height="36" rx="5" class="bxa"/><text x="404" y="141" class="t"><tspan font-weight="700">New</tspan>  Pick one configuration per model per study</text>
+      <rect x="390" y="164" width="320" height="36" rx="5" class="bxa"/><text x="404" y="187" class="t"><tspan font-weight="700">New</tspan>  Turn each study's rows into one verdict</text>
+      <rect x="390" y="210" width="320" height="36" rx="5" class="bxa"/><text x="404" y="233" class="t"><tspan font-weight="700">New</tspan>  Classify task scope (same, different, unknown)</text>
+      <rect x="390" y="256" width="320" height="36" rx="5" class="bxa"/><text x="404" y="279" class="t"><tspan font-weight="700">Changed</tspan>  Outlier finding, or two-study conflict</text>
+      <rect x="390" y="302" width="320" height="36" rx="5" class="bxa"/><text x="404" y="325" class="t"><tspan font-weight="700">Changed</tspan>  Severity from a table; public or review list</text>
+      <path d="M550,62 L550,69" class="ln" marker-end="url(#a1)"/><path d="M550,108 L550,115" class="ln" marker-end="url(#a1)"/><path d="M550,154 L550,161" class="ln" marker-end="url(#a1)"/><path d="M550,200 L550,207" class="ln" marker-end="url(#a1)"/><path d="M550,246 L550,253" class="ln" marker-end="url(#a1)"/><path d="M550,292 L550,299" class="ln" marker-end="url(#a1)"/>
+    </svg>
+  </div>
+  <figcaption>The pipeline before and after. Steps 1, 3 and 5 of version 4 are new. The others change what they count.</figcaption>
+</figure>
+
+<h3>Words used in this document</h3>
+<div class="defs">
+  <div><dt>System</dt><dd>A model or method you could run: ESM-2 650M, or "union of Mutect2, Strelka2 and DeepSomatic". A <b>configuration</b> is one recorded setup of a system.</dd></div>
+  <div><dt>Study</dt><dd>One independent piece of work: a paper with its supplement, code and leaderboard files.</dd></div>
+  <div><dt>Comparison</dt><dd>Two systems scored on the same protocol, dataset and metric in one study. One study usually has many.</dd></div>
+  <div><dt>Verdict</dt><dd>A study's overall answer for a pair: A is better, B is better, or split. New in v4.</dd></div>
+  <div><dt>Task scope</dt><dd>Whether the studies being compared measured the same task, different tasks, or we can't tell because links are missing.</dd></div>
+  <div><dt>Outlier finding</dt><dd>Three or more studies have a verdict, and one disagrees with the others.</dd></div>
+  <div><dt>Two-study conflict</dt><dd>Only two studies have a verdict, and they disagree. Neither is called the outlier. New in v4.</dd></div>
+  <div><dt>Listing</dt><dd>Whether a finding shows on the public contested page, or only on the "needs review" list. New in v4.</dd></div>
+</div>
+
+<!-- ================= 2 EXAMPLES ================= -->
+<h2 id="examples">2. Three worked examples</h2>
+
+<h3>Example 1: ESM3 against ProteinMPNN, from rows to verdicts</h3>
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 230" role="img" aria-label="ProteinBench has 10 comparisons, all won by ProteinMPNN. ProteinGym has 19, 18 won by ESM3. Version 4 turns each into one verdict, giving a single two-study conflict.">
+      <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <text x="10" y="16" class="hd">EACH DOT IS ONE COMPARISON</text><text x="560" y="16" class="hd">VERDICT</text>
+      <text x="10" y="60" class="tb">ProteinBench</text><text x="10" y="77" class="ts">10 comparisons</text>
+      <g class="dot-a">
+        <circle cx="150" cy="62" r="7"/><circle cx="168" cy="62" r="7"/><circle cx="186" cy="62" r="7"/><circle cx="204" cy="62" r="7"/><circle cx="222" cy="62" r="7"/><circle cx="240" cy="62" r="7"/><circle cx="258" cy="62" r="7"/><circle cx="276" cy="62" r="7"/><circle cx="294" cy="62" r="7"/><circle cx="312" cy="62" r="7"/>
+      </g>
+      <text x="10" y="132" class="tb">ProteinGym</text><text x="10" y="149" class="ts">19 comparisons</text>
+      <g class="dot-l">
+        <circle cx="150" cy="134" r="7"/><circle cx="168" cy="134" r="7"/><circle cx="186" cy="134" r="7"/><circle cx="204" cy="134" r="7"/><circle cx="222" cy="134" r="7"/><circle cx="240" cy="134" r="7"/><circle cx="258" cy="134" r="7"/><circle cx="276" cy="134" r="7"/><circle cx="294" cy="134" r="7"/><circle cx="312" cy="134" r="7"/><circle cx="330" cy="134" r="7"/><circle cx="348" cy="134" r="7"/><circle cx="366" cy="134" r="7"/><circle cx="384" cy="134" r="7"/><circle cx="402" cy="134" r="7"/><circle cx="420" cy="134" r="7"/><circle cx="438" cy="134" r="7"/><circle cx="456" cy="134" r="7"/>
+      </g>
+      <circle cx="474" cy="134" r="7" class="dot-a"/>
+      <path d="M330,62 L547,62" class="ln" marker-end="url(#a2)"/><text x="440" y="54" class="ts" text-anchor="middle">10 of 10 = 100%</text>
+      <path d="M490,134 L547,134" class="ln" marker-end="url(#a2)"/><text x="518" y="124" class="ts" text-anchor="middle">18 of 19</text>
+      <rect x="560" y="40" width="150" height="44" rx="5" class="bxa"/><text x="635" y="67" class="tb" text-anchor="middle">ProteinMPNN</text>
+      <rect x="560" y="112" width="150" height="44" rx="5" class="bxl"/><text x="635" y="139" class="tb" text-anchor="middle">ESM3</text>
+      <circle cx="160" cy="200" r="6" class="dot-a"/><text x="172" y="204" class="ts">ProteinMPNN better</text>
+      <circle cx="320" cy="200" r="6" class="dot-l"/><text x="332" y="204" class="ts">ESM3 better</text>
+      <text x="710" y="204" class="ts" text-anchor="end">A verdict needs 75% of a study's comparisons</text>
+    </svg>
+  </div>
+  <figcaption>Version 3 made two findings here, each calling the other study the outlier, and counted the rows as agreement. Version 4 sees two verdicts that disagree and makes one two-study conflict.</figcaption>
+</figure>
+
+<div class="calc">
+  <div><span class="k">Finding type</span>Two studies with a verdict, and they disagree: <b>two-study conflict</b> (now <span class="mono">discrepancy-d586dd34b17efa52</span>)</div>
+  <div><span class="k">Task scope</span>ProteinBench protocols have no task link yet: <b>unknown</b>. Once they are linked to protein design: <b>different task</b></div>
+  <div><span class="k">Severity</span>Unknown caps at medium, identity is reviewed: <span class="sev medium">medium</span>. After linking: <span class="sev low">low</span></div>
+  <div><span class="k">Listing</span>Scope is not same-task, and the review is settled (explained): <b>needs review</b> list, marked explained</div>
+</div>
+
+<h3>Example 2: ESM-2 in ProteinGym, one configuration per study</h3>
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 250" role="img" aria-label="Illustration. In version 3, each metric uses whichever ESM-2 size scored best, so different metrics use different sizes. In version 4 one size is chosen for the study and used for every metric.">
+      <text x="10" y="16" class="hd">VERSION 3: BEST SIZE PER METRIC</text><text x="390" y="16" class="hd">VERSION 4: ONE SIZE PER STUDY</text>
+      <line x1="370" y1="6" x2="370" y2="244" class="grid"/>
+      <!-- left grid -->
+      <text x="130" y="44" class="ts" text-anchor="middle">150M</text><text x="190" y="44" class="ts" text-anchor="middle">650M</text><text x="250" y="44" class="ts" text-anchor="middle">3B</text><text x="310" y="44" class="ts" text-anchor="middle">15B</text>
+      <text x="90" y="80" class="t" text-anchor="end">Spearman</text><text x="90" y="130" class="t" text-anchor="end">AUC</text><text x="90" y="180" class="t" text-anchor="end">NDCG</text>
+      <g class="bx"><rect x="105" y="60" width="50" height="34" rx="4"/><rect x="165" y="60" width="50" height="34" rx="4"/><rect x="225" y="60" width="50" height="34" rx="4"/><rect x="285" y="60" width="50" height="34" rx="4"/>
+      <rect x="105" y="110" width="50" height="34" rx="4"/><rect x="165" y="110" width="50" height="34" rx="4"/><rect x="225" y="110" width="50" height="34" rx="4"/><rect x="285" y="110" width="50" height="34" rx="4"/>
+      <rect x="105" y="160" width="50" height="34" rx="4"/><rect x="165" y="160" width="50" height="34" rx="4"/><rect x="225" y="160" width="50" height="34" rx="4"/><rect x="285" y="160" width="50" height="34" rx="4"/></g>
+      <rect x="165" y="60" width="50" height="34" rx="4" class="bxl"/><rect x="285" y="110" width="50" height="34" rx="4" class="bxl"/><rect x="225" y="160" width="50" height="34" rx="4" class="bxl"/>
+      <text x="220" y="222" class="ts" text-anchor="middle">three metrics, three different models</text>
+      <!-- right grid -->
+      <text x="510" y="44" class="ts" text-anchor="middle">150M</text><text x="570" y="44" class="ts" text-anchor="middle">650M</text><text x="630" y="44" class="ts" text-anchor="middle">3B</text><text x="690" y="44" class="ts" text-anchor="middle">15B</text>
+      <text x="470" y="80" class="t" text-anchor="end">Spearman</text><text x="470" y="130" class="t" text-anchor="end">AUC</text><text x="470" y="180" class="t" text-anchor="end">NDCG</text>
+      <g class="bx"><rect x="485" y="60" width="50" height="34" rx="4"/><rect x="545" y="60" width="50" height="34" rx="4"/><rect x="605" y="60" width="50" height="34" rx="4"/>
+      <rect x="485" y="110" width="50" height="34" rx="4"/><rect x="545" y="110" width="50" height="34" rx="4"/><rect x="605" y="110" width="50" height="34" rx="4"/>
+      <rect x="485" y="160" width="50" height="34" rx="4"/><rect x="545" y="160" width="50" height="34" rx="4"/><rect x="605" y="160" width="50" height="34" rx="4"/></g>
+      <rect x="665" y="60" width="50" height="134" rx="4" class="bxa"/>
+      <text x="600" y="222" class="ts" text-anchor="middle">the configuration with the most results, for every metric</text>
+    </svg>
+  </div>
+  <figcaption>An illustration of the mechanism, not measured values. Highlighted cells are the configuration each method uses. In v4 the choice is: most results in the study, then the larger recorded size, then the record ID. The finding records which configuration each study used.</figcaption>
+</figure>
+
+<div class="calc">
+  <div><span class="k">Study grouping</span>The ProteinGym paper and its repository files become one study through a <code>companion_of</code> link</div>
+  <div><span class="k">Result</span>ESM-1v against ESM-2 (finding <span class="mono">6e0a1543</span>) now has fewer than two disagreeing studies: <b>no finding</b></div>
+  <div><span class="k">Variant check</span>If two studies' chosen ESM-2 configurations record different sizes, the finding drops one severity step and says why</div>
+</div>
+
+<h3>Example 3: Alavi, AlphaGenome against Borzoi</h3>
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 200" role="img" aria-label="Alavi's verdict is Borzoi, from 9 of 12 comparisons. The AlphaGenome paper's verdict is AlphaGenome, from 25 of 25. Two disagreeing studies make a two-study conflict at low severity, listed publicly because a correction is awaited.">
+      <defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <rect x="10" y="24" width="210" height="60" rx="5" class="bx"/><text x="24" y="48" class="tb">Alavi 2026</text><text x="24" y="68" class="ts">Borzoi better in 9 of 12 (75%)</text>
+      <rect x="10" y="116" width="210" height="60" rx="5" class="bx"/><text x="24" y="140" class="tb">AlphaGenome paper</text><text x="24" y="160" class="ts">AlphaGenome better in 25 of 25</text>
+      <rect x="270" y="70" width="150" height="60" rx="5" class="bxa"/><text x="345" y="96" class="tb" text-anchor="middle">Two-study</text><text x="345" y="114" class="tb" text-anchor="middle">conflict</text>
+      <path d="M220,54 C250,54 245,90 267,92" class="ln" marker-end="url(#a3)"/><path d="M220,146 C250,146 245,110 267,108" class="ln" marker-end="url(#a3)"/>
+      <rect x="470" y="24" width="240" height="152" rx="5" class="bx2"/>
+      <text x="486" y="48" class="t">Scope: <tspan font-weight="700">unknown</tspan> (Alavi unlinked)</text>
+      <text x="486" y="72" class="t">Cap: medium</text>
+      <text x="486" y="96" class="t">Unreviewed identity: down one</text>
+      <text x="486" y="120" class="t">Severity: <tspan font-weight="700">low</tspan></text>
+      <text x="486" y="150" class="t">Listing: <tspan font-weight="700">public</tspan></text>
+      <text x="486" y="166" class="ts">review state is awaiting-correction</text>
+      <path d="M420,100 L467,100" class="ln" marker-end="url(#a3)"/>
+    </svg>
+  </div>
+  <figcaption>The real error stays public. It drops from medium to low because its support is one paper on other tasks; the medium in version 3 came only from counting that paper's 25 rows. A finding someone is actively working on is always listed publicly.</figcaption>
+</figure>
+
+<!-- ================= 3 DATA ================= -->
+<h2 id="data">3. Data model changes</h2>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 300" role="img" aria-label="Three data changes. A new companion_of link joins a repository source to its paper. A combined configuration has a combination rule and two or more uses_model links to its members. Protocols link to tasks with evaluates_task, as today, and a protocol with no task can carry a stated reason.">
+      <defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+      <marker id="a4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="aha"/></marker></defs>
+      <text x="10" y="16" class="hd">STUDY GROUPING</text>
+      <rect x="10" y="30" width="200" height="50" rx="5" class="bx"/><text x="24" y="52" class="tb">Source: repo files</text><text x="24" y="70" class="ts">github.com/OATML-Markslab/...</text>
+      <rect x="10" y="130" width="200" height="50" rx="5" class="bx"/><text x="24" y="152" class="tb">Source: paper</text><text x="24" y="170" class="ts">has a DOI</text>
+      <path d="M110,80 L110,127" class="lnd" marker-end="url(#a4a)"/><text x="120" y="108" class="ta">companion_of (new)</text>
+
+      <text x="250" y="16" class="hd">SYSTEM IDENTITY</text>
+      <rect x="250" y="30" width="210" height="62" rx="5" class="bxa"/><text x="264" y="52" class="tb">Configuration</text><text x="264" y="70" class="ts">"Union of Mutect2, Strelka2,</text><text x="264" y="85" class="ts">DeepSomatic" · combination_rule</text>
+      <rect x="250" y="150" width="62" height="34" rx="5" class="bx"/><text x="281" y="172" class="ts" text-anchor="middle">Mutect2</text>
+      <rect x="324" y="150" width="62" height="34" rx="5" class="bx"/><text x="355" y="172" class="ts" text-anchor="middle">Strelka2</text>
+      <rect x="398" y="150" width="62" height="34" rx="5" class="bx"/><text x="429" y="172" class="ts" text-anchor="middle">DeepSom.</text>
+      <path d="M300,92 L283,147" class="lna" marker-end="url(#a4a)"/><path d="M355,92 L355,147" class="lna" marker-end="url(#a4a)"/><path d="M410,92 L427,147" class="lna" marker-end="url(#a4a)"/>
+      <text x="355" y="125" class="ta" text-anchor="middle">uses_model</text>
+      <rect x="250" y="226" width="210" height="44" rx="5" class="bx2"/><text x="355" y="246" class="ts" text-anchor="middle">configuration_of: union-of-callers</text><text x="355" y="262" class="ts" text-anchor="middle">(not the generic majority-vote)</text>
+      <path d="M355,184 L355,223" class="ln" marker-end="url(#a4)" stroke-dasharray="3 3"/>
+
+      <text x="500" y="16" class="hd">TASK SCOPE</text>
+      <rect x="500" y="30" width="210" height="50" rx="5" class="bx"/><text x="514" y="52" class="tb">Protocol</text><text x="514" y="70" class="ts">PFMBench PROTEINGYM-ZS</text>
+      <rect x="500" y="130" width="210" height="50" rx="5" class="bx"/><text x="514" y="152" class="tb">Task</text><text x="514" y="170" class="ts">ProteinGym zero-shot DMS</text>
+      <path d="M605,80 L605,127" class="ln" marker-end="url(#a4)"/><text x="615" y="108" class="ts">evaluates_task (exists)</text>
+      <rect x="500" y="210" width="210" height="60" rx="5" class="bxa"/><text x="514" y="232" class="tb">task_link_exemption (new)</text><text x="514" y="250" class="ts">text: why a protocol has</text><text x="514" y="264" class="ts">no task, if it has none</text>
+    </svg>
+  </div>
+  <figcaption>Blue marks what is new. Each change is a record change that goes through the normal batch workflow.</figcaption>
+</figure>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Change</th><th>Where</th><th>Meaning and rule</th></tr></thead>
+    <tbody>
+      <tr><td><code>companion_of</code> relation</td><td><span class="mono">shared/omics/relations.ts</span>, <span class="mono">data/ontology/mapping.json</span>, <span class="mono">rb.ttl</span> (<code>rb:companionOf</code>)</td><td>Source to source: "a repository, leaderboard or supplement released with this paper". Used only for study grouping. It never merges results or changes record status.</td></tr>
+      <tr><td><code>combination_rule</code> attribute</td><td><span class="mono">shared/omics/attribute-registry.ts</span> (configuration), shape in <span class="mono">data/ontology/shapes.ttl</span></td><td>Text, such as "at least 2 of 3" or "all 3 of 3 (intersection)". It marks a configuration that combines other systems' outputs. It must have two or more <code>uses_model</code> links, one per member. The 15 somatic vote, union and intersection configurations have it. Their <code>configuration_of</code> link to the generic majority-vote method stays, because a combined configuration is now compared as itself.</td></tr>
+      <tr><td><code>task_link_exemption</code> attribute</td><td><span class="mono">shared/omics/attribute-registry.ts</span> (protocol)</td><td>Text. A protocol with no task link must have this, or the ratchet check fails for new protocols.</td></tr>
+      <tr><td>Task links</td><td>task, protocol and benchmark records</td><td>PFMBench PROTEINGYM-ZS evaluates the ProteinGym mutation-effects task. Two new <code>needs_review</code> task records name shared questions: clinical missense pathogenicity (evaluated by the Brandes 2023 benchmark, the ProteinGym clinical track and Livesey and Marsh 2025) and zero-shot fitness on the RNAGym ncRNA assays (the RNAGym leaderboard and Wang 2026). The ProteinBench design tasks were already linked to their benchmark, so they read as a different task. The backlog of 425 unlinked protocols continues in batches.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ================= 4 RULES ================= -->
+<h2 id="rules">4. Rule changes</h2>
+<div class="prose"><p>All in <span class="mono">scripts/kg/contradictions.py</span>. New thresholds go in <span class="mono">data/ontology/discrepancy-rules.json</span>, which moves to version 4.</p></div>
+
+<h3>4.1 Resolve systems</h3>
+<div class="prose">
+<ul>
+  <li><code>Index.identity()</code>: a configuration with a <code>combination_rule</code> resolves to itself, not to its <code>configuration_of</code> target. Two combined configurations compare as one system only if they are the same record.</li>
+  <li>New <code>Index.members(system)</code>: the resolved <code>uses_model</code> targets of a combined configuration.</li>
+  <li><code>comparisons()</code> skips a pair where one system is combined and the other is one of its members.</li>
+</ul>
+</div>
+
+<h3>4.2 Group into studies</h3>
+<div class="prose"><ul><li><code>Index._studies()</code> also unions a source with its <code>companion_of</code> target. Study keys (<code>_study_keys</code>) are unchanged: lowest DOI first, so a merged ProteinGym study keeps the paper's DOI key.</li></ul></div>
+
+<h3>4.3 One configuration per system per study</h3>
+<div class="prose">
+<ul>
+  <li>New first pass in <code>comparisons()</code>: for each (study, resolved system), count results per tested configuration and choose one: most results, then the larger model size, then the configuration ID. The size is read from the configuration's name, model version, checkpoint or reported name (650M, 1.6B, 15 billion); the <code>parameters</code> attribute holds settings, not sizes.</li>
+  <li>The second pass keeps only the chosen configuration's rows. Within a group, if the chosen configuration has several rows, the best value is still used, as today; this case is rare because qualifier and split are already in the group key.</li>
+  <li><code>Comparison</code> gains <code>config_a</code> and <code>config_b</code>.</li>
+</ul>
+</div>
+
+<h3>4.4 One verdict per study</h3>
+<figure>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Threshold (v4)</th><th>Value</th><th>Replaces</th></tr></thead>
+      <tbody>
+        <tr><td><code>verdict.min_comparisons</code></td><td>2 non-tied comparisons</td><td><code>min_outlier_reversals</code></td></tr>
+        <tr><td><code>verdict.consistency</code></td><td>75% of non-tied comparisons</td><td><code>outlier_consistency</code></td></tr>
+        <tr><td><code>outlier.min_consensus_studies</code></td><td>2 studies</td><td><code>min_consensus_comparisons</code> (5 rows)</td></tr>
+        <tr><td><code>outlier.consensus_consistency</code></td><td>80% of the other studies' verdicts</td><td>the same name, over rows</td></tr>
+        <tr><td><code>severity.high_min_studies</code></td><td>3 consensus studies</td><td><code>strong_consensus</code> (20 rows, 95%), removed</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <figcaption>New function <code>verdicts(pairs)</code> returns, for each pair and study, the winner or "split", with counts. A study below the minimum gives no verdict. Ties stay excluded, as today.</figcaption>
+</figure>
+
+<h3>4.5 Classify task scope</h3>
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 230" role="img" aria-label="Scope decision: share a protocol means same-protocol; otherwise share a task or benchmark through links means same-task; otherwise any unlinked protocol on either side means unknown; otherwise different-task.">
+      <defs><marker id="a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <rect x="10" y="20" width="160" height="60" rx="5" class="bx"/><text x="90" y="45" class="t" text-anchor="middle">Share a</text><text x="90" y="63" class="t" text-anchor="middle">protocol?</text>
+      <rect x="200" y="20" width="160" height="60" rx="5" class="bx"/><text x="280" y="45" class="t" text-anchor="middle">Share a task or</text><text x="280" y="63" class="t" text-anchor="middle">benchmark?</text>
+      <rect x="390" y="20" width="160" height="60" rx="5" class="bx"/><text x="470" y="45" class="t" text-anchor="middle">Any protocol on</text><text x="470" y="63" class="t" text-anchor="middle">either side unlinked?</text>
+      <rect x="580" y="20" width="130" height="60" rx="5" class="bx2"/><text x="645" y="55" class="tb" text-anchor="middle">different-task</text>
+      <path d="M170,50 L197,50" class="ln" marker-end="url(#a5)"/><text x="184" y="42" class="ts" text-anchor="middle">no</text>
+      <path d="M360,50 L387,50" class="ln" marker-end="url(#a5)"/><text x="374" y="42" class="ts" text-anchor="middle">no</text>
+      <path d="M550,50 L577,50" class="ln" marker-end="url(#a5)"/><text x="564" y="42" class="ts" text-anchor="middle">no</text>
+      <rect x="10" y="140" width="160" height="50" rx="5" class="bxa"/><text x="90" y="170" class="tb" text-anchor="middle">same-protocol</text>
+      <rect x="200" y="140" width="160" height="50" rx="5" class="bxa"/><text x="280" y="170" class="tb" text-anchor="middle">same-task</text>
+      <rect x="390" y="140" width="160" height="50" rx="5" class="bxl"/><text x="470" y="170" class="tb" text-anchor="middle">unknown</text>
+      <path d="M90,80 L90,137" class="ln" marker-end="url(#a5)"/><text x="100" y="114" class="ts">yes</text>
+      <path d="M280,80 L280,137" class="ln" marker-end="url(#a5)"/><text x="290" y="114" class="ts">yes</text>
+      <path d="M470,80 L470,137" class="ln" marker-end="url(#a5)"/><text x="480" y="114" class="ts">yes</text>
+      <text x="470" y="212" class="ts" text-anchor="middle">lists the unlinked protocols</text>
+    </svg>
+  </div>
+  <figcaption><code>scope()</code> compares the outlier study's protocols with the consensus studies' (or the two parties' in a conflict), using <code>Index.anchors()</code>, which now also follows the tasks that a protocol's benchmark evaluates. "Unlinked" means <code>anchors(p)</code> contains only <code>p</code> itself; this applies to any assessment a result is tested on (a protocol, task or benchmark). <code>cross-task</code> is replaced by <code>different-task</code> and <code>unknown</code>.</figcaption>
+</figure>
+
+<h3>4.6 Choose the finding type</h3>
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 210" role="img" aria-label="Finding type: fewer than two studies with a verdict gives nothing. Two studies that disagree give a two-study conflict. Three or more, where the others agree and one study disagrees, give an outlier finding. Mixed verdicts give nothing.">
+      <defs><marker id="a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <rect x="10" y="75" width="170" height="60" rx="5" class="bx"/><text x="95" y="100" class="t" text-anchor="middle">How many studies</text><text x="95" y="118" class="t" text-anchor="middle">gave a verdict?</text>
+      <rect x="250" y="10" width="200" height="44" rx="5" class="bx2"/><text x="350" y="37" class="t" text-anchor="middle">0 or 1: no finding</text>
+      <rect x="250" y="83" width="200" height="44" rx="5" class="bx"/><text x="350" y="110" class="t" text-anchor="middle">2: do they disagree?</text>
+      <rect x="250" y="156" width="200" height="44" rx="5" class="bx"/><text x="350" y="176" class="t" text-anchor="middle">3 or more: do 80% of the</text><text x="350" y="192" class="t" text-anchor="middle">others agree, and one not?</text>
+      <path d="M180,95 L247,34" class="ln" marker-end="url(#a6)"/><path d="M180,105 L247,105" class="ln" marker-end="url(#a6)"/><path d="M180,115 L247,176" class="ln" marker-end="url(#a6)"/>
+      <rect x="510" y="83" width="200" height="44" rx="5" class="bxa"/><text x="610" y="110" class="tb" text-anchor="middle">two-study conflict</text>
+      <rect x="510" y="156" width="200" height="44" rx="5" class="bxa"/><text x="610" y="183" class="tb" text-anchor="middle">outlier finding</text>
+      <path d="M450,105 L507,105" class="ln" marker-end="url(#a6)"/><text x="478" y="97" class="ts" text-anchor="middle">yes</text>
+      <path d="M450,178 L507,178" class="ln" marker-end="url(#a6)"/><text x="478" y="170" class="ts" text-anchor="middle">yes</text>
+      <text x="610" y="40" class="ts" text-anchor="middle">"no" on either: no finding</text>
+    </svg>
+  </div>
+  <figcaption><code>ordering_reversals()</code> is rewritten over verdicts. A new rule, <code>two-study-conflict</code>, joins <code>ordering-reversal</code> and <code>gap-outlier</code>. The gap rule keeps its logic but uses the chosen configurations and the new study grouping.</figcaption>
+</figure>
+
+<h3>4.7 Severity and listing</h3>
+<figure>
+  <div class="tbl">
+    <table class="matrix">
+      <thead><tr><th>Task scope</th><th>Two-study conflict</th><th>Outlier, 2 consensus studies</th><th>Outlier, 3 or more</th></tr></thead>
+      <tbody>
+        <tr><td><b>same-protocol or same-task</b></td><td><span class="sev medium">medium</span></td><td><span class="sev medium">medium</span></td><td><span class="sev high">high</span></td></tr>
+        <tr><td><b>unknown</b></td><td><span class="sev medium">medium</span></td><td><span class="sev medium">medium</span></td><td><span class="sev medium">medium</span></td></tr>
+        <tr><td><b>different-task</b></td><td><span class="sev low">low</span></td><td><span class="sev low">low</span></td><td><span class="sev low">low</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <figcaption>The starting level. Then one step down each for unreviewed identity and for a variant mismatch, never below low. A gap outlier is never above medium, as today. The additive formula at lines 755 to 762 is replaced by this table, which lives in <span class="mono">discrepancy-rules.json</span>.</figcaption>
+</figure>
+
+<div class="calc">
+  <div><span class="k">Variant mismatch</span>For either system, the configurations the studies used have different recorded model sizes (read as in 4.3)</div>
+  <div><span class="k">Listing: public</span>Scope is same-protocol or same-task, <b>or</b> the review state is investigating, reported-upstream, awaiting-correction or confirmed-error</div>
+  <div><span class="k">Listing: review</span>Everything else. The finding still exists in the bundle, the API and MCP. Only the default page view changes</div>
+</div>
+
+<!-- ================= 5 OUTPUTS ================= -->
+<h2 id="outputs">5. Outputs and the website</h2>
+
+<figure>
+  <div class="mock">
+    <div class="mock-tabs"><span class="on">Contested</span><span>Needs review</span></div>
+    <div class="mock-list">
+      <div class="mock-card"><div class="mock-top"><span class="sev medium">medium</span><span class="pill">same task</span><span class="pill">two studies disagree</span></div><div class="mock-title">ESM-2 and ESM3</div><div class="mock-sub">PFMBench and ProteinGym disagree on ProteinGym zero-shot substitutions. Investigating (#210).</div></div>
+      <div class="mock-card"><div class="mock-top"><span class="sev low">low</span><span class="pill">task unknown</span><span class="pill">two studies disagree</span></div><div class="mock-title">AlphaGenome and Borzoi</div><div class="mock-sub">Alavi 2026 and the AlphaGenome paper disagree. Awaiting correction from the authors.</div></div>
+      <div class="mock-card dim"><div class="mock-top"><span class="sev low">low</span><span class="pill">task unknown</span></div><div class="mock-title">DNABERT-2 and RNA-FM <span class="muted">· in Needs review</span></div><div class="mock-sub">3 protocols need a task link before this can be judged.</div></div>
+    </div>
+  </div>
+  <figcaption>A sketch of the contested page, not a final layout. The default tab shows <code>listing = public</code>. "Needs review" shows the rest, each with what would let it be judged.</figcaption>
+</figure>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Output</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td><span class="mono">public/kg/discrepancies.json</span></td><td>Schema 5. <code>rule</code> adds <code>two-study-conflict</code>. <code>scope</code> values become same-protocol, same-task, different-task, unknown. New per finding: <code>listing</code>, <code>variant_mismatch</code>, <code>unlinked_protocols</code>. New per study: <code>verdict</code> (system ID or <code>split</code>) and <code>configurations</code> (system ID to configuration ID, parameters, checkpoint). <code>studies[].role</code> adds <code>party</code> for conflicts. <code>numbers</code> for a conflict: comparisons and agreements for each party.</td></tr>
+      <tr><td>Derived graph (<span class="mono">derived-shapes.ttl</span>, <span class="mono">rb.ttl</span>)</td><td>New class <code>rb:TwoStudyConflict</code> with its own numbers shape and <code>rb:partySource</code> and <code>rb:partyResult</code> in place of outlier and consensus. New <code>rb:listing</code>, <code>rb:variantMismatch</code>, <code>rb:unlinkedProtocol</code>. The scope list in <code>LiveDiscrepancy</code> changes. <code>check_derived</code> still refuses any statement about records.</td></tr>
+      <tr><td>Serving database</td><td>Contract 3.4: a <code>listing</code> column on <code>discrepancies</code> (<span class="mono">scripts/serving/sqlite.ts</span>). <span class="mono">shared/omics/discrepancies.ts</span>: new types, <code>normaliseDiscrepancies</code> reads schema 4 and 5 (schema 4 reads as <code>listing = public</code>), <code>summarise</code> carries <code>listing</code>, <code>discrepanciesPage</code> takes a <code>listing</code> filter and counts by it.</td></tr>
+      <tr><td>Website</td><td>The contested page defaults to <code>listing=public</code>, adds the "Needs review" tab, words a conflict as "two studies disagree" with no outlier, and shows unlinked protocols. The page code is not in this repository; its owner needs to be confirmed.</td></tr>
+      <tr><td>Docs</td><td><span class="mono">docs/discrepancies.md</span> rewritten for v4. A review in <span class="mono">docs/reviews/</span> with before-and-after counts.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ================= 6 CHECKS ================= -->
+<h2 id="checks">6. Checks</h2>
+<div class="tbl">
+  <table>
+    <thead><tr><th>Check</th><th>Runs</th><th>Fails when</th></tr></thead>
+    <tbody>
+      <tr><td>Task-link ratchet (new script, baseline in <span class="mono">data/ontology/task-link-baseline.json</span>)</td><td>PR CI</td><td>A protocol not in the baseline has no task, benchmark or parent link and no <code>task_link_exemption</code>. The baseline (425 today) may only shrink.</td></tr>
+      <tr><td>Combined configuration shape (<span class="mono">shapes.ttl</span>)</td><td>PR CI</td><td>A configuration with a <code>combination_rule</code> has fewer than two <code>uses_model</code> links.</td></tr>
+      <tr><td>Split-study report</td><td>Release, report only</td><td>Never fails. Lists pairs of studies on the same benchmark where one is the benchmark's own paper and the other is a repository or leaderboard source with no <code>companion_of</code> link.</td></tr>
+      <tr><td>Labelled findings</td><td>Release</td><td>A finding labelled real error or lead disappears or leaves the public listing. Other severity changes are reported, not failed.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ================= 7 IDS ================= -->
+<h2 id="ids">7. IDs and migration</h2>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 250" role="img" aria-label="Outlier findings keep their key and ID. Findings that become two-study conflicts get new IDs; a new review claim revision lists the old IDs in previous_ids. Settled findings that stop firing are kept as resolved.">
+      <defs><marker id="a7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+      <marker id="a7a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="aha"/></marker></defs>
+      <text x="10" y="16" class="hd">VERSION 3 ID</text><text x="490" y="16" class="hd">VERSION 4</text>
+      <rect x="10" y="30" width="190" height="36" rx="5" class="bx"/><text x="24" y="53" class="t mono">36711e25 (#211)</text>
+      <rect x="490" y="30" width="220" height="36" rx="5" class="bx"/><text x="504" y="53" class="t">same ID, still an outlier</text>
+      <path d="M200,48 L487,48" class="ln" marker-end="url(#a7)"/><text x="344" y="40" class="ts" text-anchor="middle">key unchanged</text>
+
+      <rect x="10" y="90" width="190" height="36" rx="5" class="bx"/><text x="24" y="113" class="t mono">f82ed80f</text>
+      <rect x="10" y="134" width="190" height="36" rx="5" class="bx"/><text x="24" y="157" class="t mono">fed245c4</text>
+      <rect x="490" y="110" width="220" height="40" rx="5" class="bxa"/><text x="504" y="135" class="t">new conflict ID</text>
+      <path d="M200,108 C350,108 340,126 487,128" class="lna" marker-end="url(#a7a)"/><path d="M200,152 C350,152 340,132 487,132" class="lna" marker-end="url(#a7a)"/>
+      <text x="344" y="102" class="ta" text-anchor="middle">previous_ids</text>
+
+      <rect x="10" y="194" width="190" height="36" rx="5" class="bx"/><text x="24" y="217" class="t mono">90953ef9 (false pos.)</text>
+      <rect x="490" y="194" width="220" height="36" rx="5" class="bx2"/><text x="504" y="217" class="t">resolved, no new claim</text>
+      <path d="M200,212 L487,212" class="ln" marker-end="url(#a7)" stroke-dasharray="4 3"/><text x="344" y="204" class="ts" text-anchor="middle">stops firing; settled, so retired</text>
+    </svg>
+  </div>
+  <figcaption>The three ways an existing ID can go. The release fails if an unsettled claim's ID disappears, so the migration has to land in the same PR as rules version 4.</figcaption>
+</figure>
+
+<div class="prose">
+<ul>
+  <li><b>Outlier findings</b> keep today's key, <code>{rule, systems, anchor, metric, outlier_study}</code>, so their IDs only change if their systems do (combined configurations) or their outlier study's key does.</li>
+  <li><b>Two-study conflicts</b> use <code>{rule: "two-study-conflict", systems, anchor: null, metric: null, studies: [key1, key2]}</code> with the two study keys sorted.</li>
+  <li><b>Migration script</b> (new, <span class="mono">scripts/kg/migrate-discrepancy-ids.py</span>): derives the v4 findings, and for each review claim whose finding stopped firing, finds the one new ordering finding of the same two systems that includes the old outlier study (looked up in the previous release's <span class="mono">discrepancies.json</span>). It writes the next claim revision with the new ID, the old one in <code>previous_ids</code>, and the same state and rationale, plus a table of every decision.</li>
+  <li><b>One chain per new finding.</b> Two old IDs cannot both be forwarded to one new finding: their revision 1 claims would collide. So when the ESM3/ProteinMPNN mirrors (<span class="mono">f82ed80f</span>, <span class="mono">fed245c4</span>) became one conflict, one chain was carried forward and the other, already explained, retired as a resolved finding. The script fails if the one left behind is unsettled.</li>
+  <li><b>What happened</b> (<span class="mono">data/omics/discrepancy-review-20261024-rules-v4-migration/</span>): four claims carried forward, #210 (<span class="mono">4db3e5d2</span>, investigating), #209 (<span class="mono">8c69346a</span>), ESM-IF1/ProteinMPNN (<span class="mono">d7349300</span>) and ESM3/ProteinMPNN (<span class="mono">f82ed80f</span>). #211 kept its ID. The two false positives, both Geneformer/scGPT findings and Mutect2/Octopus stopped firing and are kept as resolved findings.</li>
+</ul>
+</div>
+
+<!-- ================= 8 TESTS ================= -->
+<h2 id="tests">8. Tests</h2>
+<div class="tbl">
+  <table>
+    <thead><tr><th>Test (in <span class="mono">scripts/kg/tests/test_build.py</span>)</th><th>Synthetic graph</th><th>Expect</th></tr></thead>
+    <tbody>
+      <tr><td>an ensemble is not compared with its member</td><td>union config with members A, B; A also measured alone</td><td>no comparison of union with A</td></tr>
+      <tr><td>combined configurations stay apart</td><td>two different unions both <code>configuration_of</code> one method</td><td>two systems</td></tr>
+      <tr><td>one configuration per study</td><td>model with 150M on 1 metric, 650M on 3</td><td>650M used for all, recorded in output</td></tr>
+      <tr><td>companions are one study</td><td>paper with DOI, repository source with <code>companion_of</code></td><td>one study key, the DOI</td></tr>
+      <tr><td>rows count once per study</td><td>study X with 50 agreeing rows, Y and Z disagreeing</td><td>X counts as one verdict</td></tr>
+      <tr><td>two studies make one conflict</td><td>X says A, Y says B</td><td>exactly one finding, rule <code>two-study-conflict</code></td></tr>
+      <tr><td>unknown is not different</td><td>one side's protocol unlinked</td><td>scope <code>unknown</code>, unlinked protocol listed</td></tr>
+      <tr><td>no step up</td><td>different-task outlier against 10 studies</td><td>low</td></tr>
+      <tr><td>variant mismatch steps down</td><td>chosen configurations 15B and 650M</td><td>one step lower, flag set</td></tr>
+      <tr><td>working reviews stay public</td><td>unknown-scope finding with awaiting-correction claim</td><td>listing public</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="prose"><p>Existing tests that encode v3 behaviour change with it, notably <code>test_reversing_a_near_unanimous_consensus_raises_severity</code> (removed) and the scope assertions. The labelled-findings file (<span class="mono">scripts/kg/fixtures/labelled-findings.json</span>) holds the 14 reviewed findings with their expected v4 outcome from ADR 0001. It is checked at release, not in PR CI, because it needs the full store.</p></div>
+
+<!-- ================= 9 ROLLOUT ================= -->
+<h2 id="rollout">9. Rollout</h2>
+<div class="steps">
+  <div class="step"><div class="n">1</div><h4>Data</h4><ul><li><code>companion_of</code> relation and ProteinGym link</li><li><code>combination_rule</code> and member links on the somatic ensembles</li><li>Task links for the three leads, ProteinBench and ProteinGym</li></ul><div class="closes">Closes #204, #207. Findings change on the next release; check the orphan risk first.</div></div>
+  <div class="step"><div class="n">2</div><h4>Checks</h4><ul><li>Task-link ratchet with today's baseline</li><li>Combined configuration shape</li><li>Split-study report</li></ul><div class="closes">Closes #208. The backlog of 425 continues in batches.</div></div>
+  <div class="step"><div class="n">3</div><h4>Rules v4</h4><ul><li>Sections 4 and 5 in one PR, with tests</li><li>Migration batch for re-keyed claims</li><li>Before-and-after review in <span class="mono">docs/reviews/</span></li></ul><div class="closes">Closes #201, #205, #206.</div></div>
+  <div class="step"><div class="n">4</div><h4>Website</h4><ul><li>Default to the public listing</li><li>"Needs review" tab</li><li>Conflict wording</li></ul><div class="closes">Needs serving contract 3.4 from step 3.</div></div>
+</div>
+
+<!-- ================= 10 OPEN ================= -->
+<h2 id="open">10. Open questions</h2>
+<div class="tbl">
+  <table>
+    <thead><tr><th>Question</th><th>Proposed answer</th></tr></thead>
+    <tbody>
+      <tr><td>Four studies split two against two: is that a finding?</td><td>Not in v4. Report the count at release so we know how often it happens.</td></tr>
+      <tr><td>"Most results" may pick a small model a study only used for ablations.</td><td>Accept for v4. If the release review shows bad picks, add an optional <code>headline</code> flag on configurations.</td></tr>
+      <tr><td>Alavi passes the verdict threshold at exactly 75% (9 of 12).</td><td>Keep 75%. The labelled-findings check fails the release if it drops out, so a change to the threshold has to be deliberate.</td></tr>
+      <tr><td>Who owns the website's contested page?</td><td>To confirm. Step 4 depends on it.</td></tr>
+      <tr><td>A same-task verdict can pool other tasks: Wang 2026 gives one verdict over structure, classification and fitness, though only fitness shares the RNAGym task.</td><td>Next refinement: compute verdicts per shared task when the two sides overlap on only some of their assessments.</td></tr>
+      <tr><td>Almost every finding is low, because 123 of 126 have unreviewed identity links.</td><td>Expected. Review the configuration links of the findings worth raising; do not loosen the rules for them.</td></tr>
+      <tr><td>Should "unknown" findings stay medium while the backlog is large?</td><td>Yes, but they are listed under "Needs review", so they don't overstate anything publicly.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>Outcome on the store: <a href="../reviews/2026-10-24-discrepancy-rules-v4.md">the before-and-after review</a>. Based on <span class="mono">scripts/kg/contradictions.py</span>, <span class="mono">data/ontology/discrepancy-rules.json</span> (version 3), <span class="mono">data/ontology/derived-shapes.ttl</span>, <span class="mono">shared/omics/discrepancies.ts</span>, <span class="mono">scripts/serving/sqlite.ts</span> and the release bundle <span class="mono">kg/2026-10-23-9f59283abc5a</span>. Decision record: <a href="../adr/0001-comparable-evidence.html">ADR 0001</a>.</footer>
+</div>
+</body>
+</html>

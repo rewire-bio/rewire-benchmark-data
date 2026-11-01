@@ -92,6 +92,13 @@ rbs:Source a sh:NodeShape ;
         sh:path rb:artifactSha256 ; sh:maxCount 1 ; sh:pattern "^[0-9a-f]{64}$" ;
     ] .
 
+rbs:CombinedConfiguration a sh:NodeShape ;
+    sh:targetSubjectsOf rb:combinationRule ;
+    rdfs:comment "A configuration that combines other systems' outputs (a union, intersection or vote) names at least two members with uses_model. The discrepancy rules compare it as its own system and never against one of its members." ;
+    sh:property [
+        sh:path rb:usesModel ; sh:minCount 2 ;
+    ] .
+
 # Controlled values: every value of these properties is a concept of the named scheme in
 # data/vocab/. The build mixes the schemes into the data graph for this check.
 

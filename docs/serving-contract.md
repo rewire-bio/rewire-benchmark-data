@@ -17,7 +17,7 @@ The data is read-only and changes about once a month. One file gives indexed loo
 
 | Table | Content |
 | --- | --- |
-| `meta` | `serving_contract_version` (`3.3`), `record_schema_version`, `release_id`, `released_at`, `catalogue_sha256`, `generator_sha256`, `release_json` (the `release()` answer), `counts_json` |
+| `meta` | `serving_contract_version` (`3.4`), `record_schema_version`, `release_id`, `released_at`, `catalogue_sha256`, `generator_sha256`, `release_json` (the `release()` answer), `counts_json` |
 | `records` | every non-excluded record, by ID, with kind and status, its JSON gzipped |
 | `details` | gzipped `get({ id, include_comparisons: true })` per record |
 | `result_rows` | gzipped full result row per result |
@@ -26,7 +26,7 @@ The data is read-only and changes about once a month. One file gives indexed loo
 | `audit_checks` | gzipped audit checks per audited record, in index order |
 | `use_case_entries` | gzipped use-case mappings and sources per use case, and result rows per mapping and evaluation, keyed by section and ID |
 | `source_records` | per source, one row per kind of citing record: the count and the gzipped record IDs in display order (3.1) |
-| `discrepancies`, `discrepancy_results`, `discrepancy_systems`, `discrepancy_actions`, `discrepancy_aliases` | discrepancies between studies inferred by the knowledge-graph build for this release, with their follow-up actions, indexed by result, system and earlier ID (3.3; [discrepancies.md](discrepancies.md#serving-database-contract-33)) |
+| `discrepancies`, `discrepancy_results`, `discrepancy_systems`, `discrepancy_actions`, `discrepancy_aliases` | discrepancies between studies inferred by the knowledge-graph build for this release, with their follow-up actions, indexed by result, system and earlier ID (3.3; [discrepancies.md](discrepancies.md#serving-database-contract-33)). 3.4 adds `discrepancies.listing` (`public` or `review`) and the `party` role in `discrepancy_results` for a two-study conflict's results |
 | `blobs` | gzipped list entries (the record's ID, kind, status, facets and origin, search text, readiness, row origins, counts, and from 3.2 the linked counts below), the use-case index (entries and backlinks), evidence source fields, research readiness, research data, inactive assessment IDs, the homepage summary, the evidence-guide counts, the baseline coverage audit, reviewed association keys, the audit index, runs and resolutions, from 3.3 the discrepancy list entries (`discrepancy_index`), and the record IDs named by scoped evidence concerns (`concern_target_ids`; absent in older files, read as none) |
 
 Each record is stored once. In `details`, `result_rows` and `use_case_entries`, an embedded object that is exactly a stored record is written as `{"$r": "<id>"}`, and one that is exactly its `recordReference` form as `{"$ref": "<id>"}` (`shared/omics/serving-codec.ts`). An evidence row keeps only the fields that cannot be derived: its record fields, `row_id` and `value` are rebuilt from the record and `value_json`, and its source fields come from the `evidence_sources` blob. The producer decodes every value it writes and refuses the file unless the result equals the engine's answer.

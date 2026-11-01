@@ -375,9 +375,11 @@ class DiscrepancyTest(unittest.TestCase):
         self.assertEqual(found["consensus_sources"], ["study1", "study2"])
         self.assertEqual(found["consensus_higher"], "modelA")
         self.assertEqual(found["numbers"], {"outlier_comparisons": 4, "outlier_reversals": 4,
-                                            "consensus_comparisons": 9, "consensus_agreements": 9})
-        self.assertEqual((found["scope"], found["identity_basis"], found["severity"], found["review_state"]),
-                         ("same-protocol", "reviewed", "high", "open"))
+                                            "consensus_comparisons": 9, "consensus_agreements": 9,
+                                            "consensus_studies": 2, "consensus_study_agreements": 2})
+        # Two consensus studies: below the three that high needs.
+        self.assertEqual((found["scope"], found["identity_basis"], found["severity"], found["review_state"],
+                          found["listing"]), ("same-protocol", "reviewed", "medium", "open", "public"))
         self.assertEqual(len(found["outlier_results"]), 8)
         node = URIRef(build.ID + found["id"])
         self.assertIn((node, RDF.type, RB.OrderingReversal), triples)
@@ -518,11 +520,11 @@ class DiscrepancyTest(unittest.TestCase):
         graph = disagreement(outlier_system=ID.configB)
         record(graph, ID.configB, RB.Configuration, configurationOf=ID.modelB)
         [found] = self.reversals(self.derive(graph)[1])
-        self.assertEqual((found["identity_basis"], found["severity"]), ("unreviewed", "medium"))
+        self.assertEqual((found["identity_basis"], found["severity"]), ("unreviewed", "low"))
         record(graph, ID.linkClaim, RB.Claim, subject=ID.configB, source=ID.study3)
         graph.add((ID.linkClaim, RB.claimField, Literal("links:configuration_of:modelB")))
         [found] = self.reversals(self.derive(graph)[1])
-        self.assertEqual((found["identity_basis"], found["severity"]), ("reviewed", "high"))
+        self.assertEqual((found["identity_basis"], found["severity"]), ("reviewed", "medium"))
 
     def test_files_from_one_repository_are_one_study(self) -> None:
         graph = disagreement()
@@ -540,15 +542,23 @@ class DiscrepancyTest(unittest.TestCase):
             graph.add((study, RB.doi, Literal("10.1000/Example")))
         self.assertEqual(self.reversals(self.derive(graph)[1]), [])
 
-    def test_reversing_a_near_unanimous_consensus_raises_severity(self) -> None:
-        graph = disagreement(outlier_system=ID.configB)
-        record(graph, ID.configB, RB.Configuration, configurationOf=ID.modelB)
-        self.assertEqual(self.reversals(self.derive(graph)[1])[0]["severity"], "medium")
-        for i in range(6, 20):
+    def test_many_rows_from_one_study_do_not_raise_severity(self) -> None:
+        graph = disagreement()
+        for i in range(6, 40):
             scored(graph, f"1-{i}-a", ID.modelA, ID.study1, "0.90", f"subset {i}")
             scored(graph, f"1-{i}-b", ID.modelB, ID.study1, "0.80", f"subset {i}")
         [found] = self.reversals(self.derive(graph)[1])
-        self.assertEqual((found["numbers"]["consensus_comparisons"], found["severity"]), (23, "high"))
+        self.assertEqual((found["numbers"]["consensus_comparisons"], found["numbers"]["consensus_studies"],
+                          found["severity"]), (43, 2, "medium"))
+
+    def test_three_consensus_studies_reach_high(self) -> None:
+        graph = disagreement()
+        record(graph, ID.study4, RB.Source)
+        for i in range(3):
+            scored(graph, f"4-{i}-a", ID.modelA, ID.study4, "0.90", f"subset {i}")
+            scored(graph, f"4-{i}-b", ID.modelB, ID.study4, "0.80", f"subset {i}")
+        [found] = self.reversals(self.derive(graph)[1])
+        self.assertEqual((found["numbers"]["consensus_studies"], found["severity"]), (3, "high"))
 
     def test_a_configuration_of_an_alias_compares_as_the_aliased_model(self) -> None:
         graph = disagreement(outlier_system=ID.configB)
@@ -866,7 +876,7 @@ class DiscrepancyTest(unittest.TestCase):
             dataset.graph(URIRef(build.GRAPHS["derived"])).add(triple)
         dataset.default_union = True
         node = URIRef(build.ID + found["id"])
-        given = {"severity": Literal("high"), "system": ID.modelA, "discrepancy": node,
+        given = {"severity": Literal("medium"), "system": ID.modelA, "discrepancy": node,
                  "use_case": ID.useCase}
         rows = {}
         for query in build.NAMED_QUERIES:
@@ -923,6 +933,135 @@ class DiscrepancyTest(unittest.TestCase):
     def test_no_record_property_specialises_a_derived_term(self) -> None:
         for predicate in contradictions.DERIVED_PREDICATES - {RDF.type, RDFS.label}:
             self.assertEqual(list(self.ontology.subjects(RDFS.subPropertyOf, predicate)), [], predicate)
+
+
+def pairs(spec: list[tuple]) -> rdflib.Graph:
+    """Studies comparing model A with a system for B. Each entry is (study, A wins, count,
+    protocol, B system); A scores 0.90 or 0.70 against B's 0.80 on `count` subsets."""
+    g = rdflib.Graph()
+    record(g, ID.modelA, RB.Model)
+    record(g, ID.modelB, RB.Model)
+    record(g, ID.data, RB.Dataset)
+    for study, a_wins, count, protocol, system in spec:
+        record(g, study, RB.Source)
+        if (protocol, RDF.type, RB.Protocol) not in g:
+            record(g, protocol, RB.Protocol)
+        for i in range(count):
+            name = f"{str(study).rsplit('/', 1)[-1]}-{str(protocol).rsplit('/', 1)[-1]}-{str(system).rsplit('/', 1)[-1]}-{i}"
+            scored(g, f"{name}-a", ID.modelA, study, "0.90" if a_wins else "0.70", f"subset {i}", protocol=protocol)
+            scored(g, f"{name}-b", system, study, "0.80", f"subset {i}", protocol=protocol)
+    return g
+
+
+class RulesV4Test(unittest.TestCase):
+    """Rules version 4 (docs/design/discrepancy-rules-v4.html): systems, studies, verdicts, scope,
+    severity and listing."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.ontology = build.load_ontology()
+        cls.rules = contradictions.load_rules()
+
+    def derive(self, graph: rdflib.Graph) -> list[dict]:
+        return contradictions.derive(graph, build.infer(graph, self.ontology), self.ontology, self.rules).report
+
+    def test_an_ensemble_is_not_compared_with_its_member(self) -> None:
+        graph = pairs([(ID.study1, False, 3, ID.protocol, ID.union), (ID.study2, False, 3, ID.protocol, ID.union),
+                       (ID.study3, True, 3, ID.protocol, ID.union)])
+        record(graph, ID.union, RB.Configuration, usesModel=[ID.modelA, ID.modelC])
+        graph.add((ID.union, RB.combinationRule, Literal("at least 1 of 2 (union)")))
+        record(graph, ID.modelC, RB.Model)
+        self.assertEqual(self.derive(graph), [])
+        graph.remove((ID.union, RB.usesModel, ID.modelA))
+        self.assertEqual({tuple(d["systems"]) for d in self.derive(graph) if d["rule"] == "ordering-reversal"},
+                         {("modelA", "union")})
+
+    def test_combined_configurations_stay_apart(self) -> None:
+        graph = rdflib.Graph()
+        record(graph, ID.vote, RB.Method)
+        for node in (ID.union1, ID.union2):
+            record(graph, node, RB.Configuration, configurationOf=ID.vote, usesModel=[ID.modelA, ID.modelB])
+            graph.add((node, RB.combinationRule, Literal("at least 1 of 2 (union)")))
+        index = contradictions.Index(graph, set(), self.ontology)
+        self.assertEqual((index.identity(ID.union1), index.identity(ID.union2)), ((ID.union1, True), (ID.union2, True)))
+        self.assertEqual(index.members(ID.union1), {ID.modelA, ID.modelB})
+
+    def test_one_configuration_per_study(self) -> None:
+        # Study 3 tested B as a 650M configuration on 4 subsets and a 15B one on 1 extra subset.
+        graph = pairs([(ID.study1, True, 3, ID.protocol, ID.modelB), (ID.study2, True, 3, ID.protocol, ID.modelB),
+                       (ID.study3, False, 4, ID.protocol, ID["b-650M"]), (ID.study3, True, 1, ID.protocol2, ID["b-15B"])])
+        for node in (ID["b-650M"], ID["b-15B"]):
+            record(graph, node, RB.Configuration, configurationOf=ID.modelB)
+        [found] = [d for d in self.derive(graph) if d["rule"] == "ordering-reversal"]
+        [outlier] = [s for s in found["studies"] if s["role"] == "outlier"]
+        self.assertEqual((outlier["configurations"]["modelB"], outlier["comparisons_total"], outlier["verdict"]),
+                         ("b-650M", 4, "modelB"))
+
+    def test_companions_are_one_study(self) -> None:
+        graph = disagreement()
+        graph.add((ID.study3, RB.companionOf, ID.study2))
+        # Study 3 joins study 2, whose comparisons then split 3 to 4: no verdict against study 1.
+        self.assertEqual([d for d in self.derive(graph) if d["rule"] != "gap-outlier"], [])
+
+    def test_rows_count_once_per_study(self) -> None:
+        graph = pairs([(ID.study1, True, 50, ID.protocol, ID.modelB), (ID.study2, False, 3, ID.protocol, ID.modelB),
+                       (ID.study3, False, 3, ID.protocol, ID.modelB)])
+        [found] = [d for d in self.derive(graph) if d["rule"] == "ordering-reversal"]
+        self.assertEqual((found["outlier_sources"], found["numbers"]["consensus_studies"], found["consensus_higher"]),
+                         (["study1"], 2, "modelB"))
+
+    def test_two_studies_make_one_conflict(self) -> None:
+        graph = pairs([(ID.study1, True, 3, ID.protocol, ID.modelB), (ID.study2, False, 3, ID.protocol, ID.modelB)])
+        [found] = self.derive(graph)
+        self.assertEqual((found["rule"], found["party_sources"], found["outlier_sources"], found["consensus_sources"]),
+                         ("two-study-conflict", ["study1", "study2"], [], []))
+        self.assertEqual(sorted(s["role"] for s in found["studies"]), ["party", "party"])
+        self.assertEqual(found["key"]["studies"], ["source:study1", "source:study2"])
+        self.assertNotIn("outlier_study", found["key"])
+        self.assertEqual(found["severity"], "medium")
+
+    def test_unknown_is_not_different_task(self) -> None:
+        spec = [(ID.study1, True, 3, ID.protocol, ID.modelB), (ID.study2, True, 3, ID.protocol, ID.modelB),
+                (ID.study3, False, 3, ID.protocol2, ID.modelB)]
+        graph = pairs(spec)
+        record(graph, ID.bench, RB.Benchmark)
+        graph.add((ID.protocol, RB.partOf, ID.bench))
+        [found] = [d for d in self.derive(graph) if d["rule"] == "ordering-reversal"]
+        self.assertEqual((found["scope"], found["unlinked_protocols"], found["severity"], found["listing"]),
+                         ("unknown", ["protocol2"], "medium", "review"))
+        record(graph, ID.bench2, RB.Benchmark)
+        graph.add((ID.protocol2, RB.partOf, ID.bench2))
+        [found] = [d for d in self.derive(graph) if d["rule"] == "ordering-reversal"]
+        self.assertEqual((found["scope"], found["unlinked_protocols"], found["severity"]), ("different-task", [], "low"))
+        # A benchmark's task is the task of its protocols: both benchmarks evaluate one task.
+        record(graph, ID.task, RB.Task)
+        graph.add((ID.bench, RB.evaluatesTask, ID.task))
+        graph.add((ID.bench2, RB.evaluatesTask, ID.task))
+        [found] = [d for d in self.derive(graph) if d["rule"] == "ordering-reversal"]
+        self.assertEqual((found["scope"], found["severity"], found["listing"]), ("same-task", "medium", "public"))
+
+    def test_variant_mismatch_steps_down(self) -> None:
+        def severity(consensus: str) -> tuple:
+            graph = pairs([(ID.study1, True, 3, ID.protocol, ID[consensus]), (ID.study2, True, 3, ID.protocol, ID[consensus]),
+                           (ID.study3, False, 3, ID.protocol, ID["b-650M"]), (ID.study4, True, 3, ID.protocol, ID[consensus])])
+            for node in {ID[consensus], ID["b-650M"]}:
+                record(graph, node, RB.Model, aliasOf=ID.modelB)
+            [found] = [d for d in self.derive(graph) if d["rule"] == "ordering-reversal"]
+            return found["variant_mismatch"], found["severity"]
+        self.assertEqual(severity("b-650M"), (False, "high"))
+        self.assertEqual(severity("b-15B"), (True, "medium"))
+
+    def test_working_reviews_stay_public(self) -> None:
+        self.assertEqual([contradictions.listing("unknown", s) for s in ("open", "investigating", "explained")],
+                         ["review", "public", "review"])
+        self.assertEqual(contradictions.listing("same-task", "open"), "public")
+
+    def test_derived_shapes_accept_v4_findings(self) -> None:
+        graph = pairs([(ID.study1, True, 3, ID.protocol, ID.modelB), (ID.study2, False, 3, ID.protocol2, ID.modelB)])
+        result = contradictions.derive(graph, build.infer(graph, self.ontology), self.ontology, self.rules)
+        self.assertEqual(contradictions.check_derived(result.triples), [])
+        conforms, report = build.validate_derived(result.triples)
+        self.assertTrue(conforms, report)
 
 
 class ExtractTermsTest(unittest.TestCase):
