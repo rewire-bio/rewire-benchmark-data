@@ -127,9 +127,11 @@ export function checkDiscrepancyParity(file: string, findings: DiscrepancyFile):
     findings.discrepancies.forEach((d, i) => {
       same(prepared.discrepancy(d.id), d, d.id);
       same(prepared.discrepancies({ limit: 1, ...(i ? { cursor: Buffer.from(`${findings.release_id}:${i}`).toString("base64url") } : {}) }).items[0], summarise(d), `order ${i}`);
-      const by = prepared.contestedBy([...d.outlier_results, ...d.consensus_results]);
-      for (const id of [...d.outlier_results, ...d.consensus_results])
+      const evidence = [...d.outlier_results, ...d.consensus_results, ...d.party_results];
+      const by = prepared.contestedBy(evidence);
+      for (const id of evidence)
         same(by[id]?.some((x) => x.discrepancy.id === d.id), true, `${d.id} result ${id}`);
+      same(prepared.discrepancies({ limit: 500, listing: d.listing }).items.some((x) => x.id === d.id), true, `${d.id} listing`);
       for (const system of d.systems) same(prepared.discrepanciesForSystem(system).some((x) => x.id === d.id), true, `${d.id} system ${system}`);
       // A resolved finding has no results, so readers often reach it by an earlier ID.
       for (const previous of d.previous_ids) same(prepared.discrepancy(previous)?.id, d.id, `${d.id} previous ID ${previous}`);

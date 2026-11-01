@@ -121,7 +121,7 @@ export function buildPreparedCatalogue(input: {
     CREATE TABLE audit_checks (record_id TEXT PRIMARY KEY, gz BLOB NOT NULL);
     CREATE TABLE use_case_entries (section TEXT NOT NULL, key TEXT NOT NULL, gz BLOB NOT NULL, PRIMARY KEY (section, key)) WITHOUT ROWID;
     CREATE TABLE source_records (source_id TEXT NOT NULL, kind TEXT NOT NULL, pos INTEGER NOT NULL, count INTEGER NOT NULL, gz BLOB NOT NULL, PRIMARY KEY (source_id, pos)) WITHOUT ROWID;
-    CREATE TABLE discrepancies (id TEXT PRIMARY KEY, pos INTEGER NOT NULL, rule TEXT NOT NULL, severity TEXT NOT NULL, scope TEXT NOT NULL, state TEXT NOT NULL, settled INTEGER NOT NULL, gz BLOB NOT NULL) WITHOUT ROWID;
+    CREATE TABLE discrepancies (id TEXT PRIMARY KEY, pos INTEGER NOT NULL, rule TEXT NOT NULL, severity TEXT NOT NULL, scope TEXT NOT NULL, listing TEXT NOT NULL, state TEXT NOT NULL, settled INTEGER NOT NULL, gz BLOB NOT NULL) WITHOUT ROWID;
     CREATE TABLE discrepancy_results (result_id TEXT NOT NULL, discrepancy_id TEXT NOT NULL, role TEXT NOT NULL, PRIMARY KEY (result_id, discrepancy_id)) WITHOUT ROWID;
     CREATE TABLE discrepancy_systems (system_id TEXT NOT NULL, discrepancy_id TEXT NOT NULL, PRIMARY KEY (system_id, discrepancy_id)) WITHOUT ROWID;
     CREATE TABLE discrepancy_actions (discrepancy_id TEXT NOT NULL, revision INTEGER NOT NULL, action TEXT, state TEXT NOT NULL, date TEXT, next_check TEXT, gz BLOB NOT NULL, PRIMARY KEY (discrepancy_id, revision)) WITHOUT ROWID;
@@ -240,23 +240,25 @@ export function buildPreparedCatalogue(input: {
       insertUseCase.run(section, key, packed(value, `use case ${section} ${key}`));
       counts.use_case_entries++;
     }
-  // Discrepancies between studies (3.3): one row per finding with its actions, and indexes
+  // Discrepancies between studies (3.3; 3.4 adds the listing column and party results): one row
+  // per finding with its actions, and indexes
   // from results, systems and earlier IDs to it. The rows copy the knowledge-graph build's
   // findings for this release; nothing here infers them.
   const findings = input.discrepancies;
   if (findings) {
     if (findings.release_id !== snapshot.release_id)
       throw new Error(`Discrepancies are for ${findings.release_id}, not ${snapshot.release_id}; rebuild the knowledge graph`);
-    const insertFinding = db.prepare("INSERT INTO discrepancies VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    const insertFinding = db.prepare("INSERT INTO discrepancies VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
     const insertResult = db.prepare("INSERT OR IGNORE INTO discrepancy_results VALUES (?, ?, ?)");
     const insertSystem = db.prepare("INSERT OR IGNORE INTO discrepancy_systems VALUES (?, ?)");
     const insertAction = db.prepare("INSERT INTO discrepancy_actions VALUES (?, ?, ?, ?, ?, ?, ?)");
     const insertAlias = db.prepare("INSERT INTO discrepancy_aliases VALUES (?, ?)");
     findings.discrepancies.forEach((d, pos) => {
-      insertFinding.run(d.id, pos, d.rule, d.severity, d.scope, d.state, d.settled ? 1 : 0, gz(d));
+      insertFinding.run(d.id, pos, d.rule, d.severity, d.scope, d.listing, d.state, d.settled ? 1 : 0, gz(d));
       counts.discrepancies++;
       for (const id of d.outlier_results) insertResult.run(id, d.id, "outlier");
       for (const id of d.consensus_results) insertResult.run(id, d.id, "consensus");
+      for (const id of d.party_results) insertResult.run(id, d.id, "party");
       for (const id of d.systems) insertSystem.run(id, d.id);
       for (const a of d.actions) {
         insertAction.run(d.id, a.revision, a.action, a.state, a.date, a.next_check, gz(a));

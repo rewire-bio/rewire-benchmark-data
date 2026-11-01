@@ -205,6 +205,10 @@ describe("discrepancies between studies (3.3)", () => {
     release_id: snapshot.release_id, schema_version: 2, rules: { version: 3 }, excluded: { disputed: 1, concern: 2 },
     discrepancies: [
       finding("discrepancy-low", "low"),
+      finding("discrepancy-conflict", "low", {
+        rule: "two-study-conflict", scope: "different-task", listing: "review", outlier_sources: [], consensus_sources: [],
+        outlier_results: [], consensus_results: [], party_sources: ["source-x", "source-y"], party_results: [results[3]],
+      }),
       finding("discrepancy-high", "high", {
         review_state: "awaiting-correction", review_claim: "claim-r2", previous_ids: ["discrepancy-old"],
         actions: [
@@ -222,9 +226,10 @@ describe("discrepancies between studies (3.3)", () => {
 
   it("lists findings most severe first, with counts and filters", () => {
     const page = prepared.discrepancies();
-    expect(page.items.map((d) => d.id)).toEqual(["discrepancy-high", "discrepancy-low"]);
-    expect(page.counts.severity).toEqual({ high: 1, low: 1 });
-    expect(prepared.discrepancies({ settled: "open", severity: "low" }).total).toBe(1);
+    expect(page.items.map((d) => d.id)).toEqual(["discrepancy-high", "discrepancy-low", "discrepancy-conflict"]);
+    expect(page.counts.severity).toEqual({ high: 1, low: 2 });
+    expect(prepared.discrepancies({ listing: "review" }).items.map((d) => d.id)).toEqual(["discrepancy-conflict"]);
+    expect(prepared.discrepancies({ settled: "open", severity: "low" }).total).toBe(2);
     const first = prepared.discrepancies({ limit: 1 });
     expect(prepared.discrepancies({ limit: 1, cursor: first.next_cursor! }).items[0].id).toBe("discrepancy-low");
     expect(prepared.discrepancyRules()).toEqual({ rules: { version: 3 }, excluded: { disputed: 1, concern: 2 } });
@@ -245,8 +250,8 @@ describe("discrepancies between studies (3.3)", () => {
     const by = prepared.contestedBy([results[0], results[1], results[3]]);
     expect(by[results[0]].map((x) => x.role)).toEqual(["outlier", "outlier"]);
     expect(by[results[1]][0]).toMatchObject({ role: "consensus", discrepancy: { id: "discrepancy-high" } });
-    expect(by[results[3]]).toBeUndefined();
-    expect(prepared.discrepanciesForSystem("model-a").map((d) => d.id)).toEqual(["discrepancy-high", "discrepancy-low"]);
+    expect(by[results[3]].map((x) => [x.role, x.discrepancy.id])).toEqual([["party", "discrepancy-conflict"]]);
+    expect(prepared.discrepanciesForSystem("model-a").map((d) => d.id)).toEqual(["discrepancy-high", "discrepancy-low", "discrepancy-conflict"]);
   });
 
   it("reads a schema 1 file's latest review as one action", () => {
