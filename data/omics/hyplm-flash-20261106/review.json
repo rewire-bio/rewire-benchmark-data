@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "method": "independent_source_review",
+  "reviewer": "Claude research agent; no human review claimed",
+  "reviewed_at": "2026-11-06T00:00:00Z",
+  "errors": [],
+  "review_methods": [
+    "independent-cell-check",
+    "deterministic-table-parse",
+    "pdf-text-parse",
+    "source-hash-verification",
+    "ai-assisted-source-review"
+  ],
+  "scope": "Independent review of the 1,131 records of the HyPLM-Flash batch (6 sources, 5 models, 22 configurations, 1 benchmark, 22 datasets, 42 protocols, 484 evaluations, 484 results, 65 claims) and of the two concepts the batch adds to data/vocab/metric.ttl, by a different agent from the extractor, against the extraction frozen at commit b4c9fbf3ce7851ff4fd72fd5ac03f3ee49bca67e. All six pinned artifacts were re-downloaded at commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a from the artifact_url each source record gives, and every SHA-256 matched its record; pdftotext -layout reproduced the archived text layer byte for byte (f33684ea943f32412567b239e5d4fd6b6688605c7375db4d791e565fee312fa5). The report's printed date (2026-10-12 on page 1) and its build stamp (CreationDate and ModDate both D:20261029232847+08'00', pdfTeX-1.40.19, 13 pages) were both read from the pinned bytes. npm run batch -- check-values reproduced the extractor's figures exactly: 267 in_cell, 202 in_row, 15 locator_not_parsed, with no not_in_row, wrong_column or overclaimed_in_row. The 469 recorded cells of Tables 3, 5, 6 and 7 were then re-read by a reviewer script written for this pass, which takes each table's column order from its printed header line and splits every body row by printed cell without using extract/parse.py: every printed value and every column matched. The two arithmetic constraints were re-derived independently rather than taken from the extractor's checker: each of the 20 Table 3 perplexities against exp of its NLL over the NLL's own rounding interval, and each of the 14 Table 5 averages against the mean of its five categories. extract/check_cells.py was rerun on the refetched PDF and reproduces cell-check.tsv (88 rows). Column assignment in Tables 6 and 7 is anchored outside those tables: Table 3's ten NLL rows reappear in the two likelihood rows of Tables 6 and 7, Figure 3a's and Table 5's ProteinGym values reappear in the ProteinGym row, and the four printed paired differences of Section 4.1 reconcile with that row (0.409 minus 0.415, 0.406, 0.410 and 0.420). The 15 locators check-values cannot parse were read by hand against the text layer: four Figure 3a bar labels, where each label and its value share one line, and eleven prose values in Sections 3, 4.1 and 4.2. Manual sample: 25 of the 484 results drawn with random.sample and seed 20261106 over the IDs in sorted order, each read by eye in the text layer with its row and its column; 19 from Table 6, 5 from Table 7 and 1 from Table 3, and all 25 matched including column assignment. Every missing_metadata entry was checked against the source.",
+  "limitations": [
+    "Automated review by a Claude research agent, independent of the extractor but not human scientific review. Transcription was checked against the pinned source; nothing was reproduced and no value was recomputed.",
+    "A check-values in_row pass is weak evidence on this source, and more weakly than the coordinator's earlier note describes. Tables 6 and 7 are a part-1 and part-2 split of one table on adjacent pages with the same 32 task row labels, and the checker's window of 150 lines spans both, so 188 of the 202 in_row results sit in a window where their row label occurs on more than one line. For 16 of them the printed value appears in more than one candidate row, so a row-level pass cannot say which table satisfied it. None is wrong: the reviewer's column-keyed parse confirmed all 469. The 267 in_cell results are unaffected, since the checker placed those in the named column.",
+    "The report prints no interval for any table cell, though Appendix A says intervals were computed from 5,000 bootstrap replicates. Only the four Section 4.1 paired differences carry one.",
+    "No accuracy value is printed for the INT8 engine on any task, while INT8 is the released default. Every accuracy result in the batch is a BF16 run, which each regression protocol and the INT8 configuration state.",
+    "The report PDF is not archived in the batch. Its gzipped pdftotext -layout text layer is, and the PDF can be refetched at the pinned commit and checked against artifact_sha256.",
+    "Whether the 2026-10-29 rebuild changed content relative to the printed date of 2026-10-12 was not checked: no earlier PDF of this report exists at or before the pinned commit to compare against."
+  ],
+  "files": {
+    "artifacts/HyPLM_Technical_Report.txt.gz": "e051bbea5e0c0ddb2f61f11cfb0fb9247c51b031cbd5568db70e25e720b3067f",
+    "artifacts/engine-graphs.py": "29df2c0d012c6e2f03b2618efb1cc76e070097b531494e5553f548b0bdf3f1bc",
+    "artifacts/engine-model.py": "8bba607aaac45d7365ac011644fcee65157a1f29f306c646aaa29d4258fd4255",
+    "artifacts/engine-packing.py": "3eb213e8483bb09551b253aeea9f4ff5a0c5b2e7cd53d985f226f1cbf52c1828",
+    "artifacts/hyplm-flash-LICENSE": "a0a9dc95e81d7a1374275195bccb72442e0126be826919b13ff67f52eb64a031",
+    "artifacts/hyplm-flash-README.md": "db6ab273ef190a40199a5a8d17c474a2809fd9cedac6013c45ec7c06642542a3",
+    "batch.jsonl": "69f36db83f16ce1d95180dc18156f46a594973225876be97588fad75d84ef4b8",
+    "cell-check.tsv": "624dc595b00a50cd21fd7ea189ed88492342032ae904acb134312db449d80367",
+    "extract/build.py": "06391ac5112fcd924b8c3dd423dc8984764a07237ac1390bee7712c115f82511",
+    "extract/check_cells.py": "6423c720b7b36f10c05efd44b915ec1828056d9838da0f05f237fa6db8ba12ed",
+    "extract/claims.py": "c0484394d3f25836b41856d9a4b896a873a1d40f12660cfb53b0c7a48a9cd963",
+    "extract/claims2.py": "9dfb9439f5dff33687266a25f7787104e49eace974ddd250481e0c6b5e8c6712",
+    "extract/core.py": "b3af01bd77351cbcd3fba58a73a67908a36f34990a69848b1a86d5d7b1dd8e65",
+    "extract/entities.py": "3bf3250baf47152297c09776c45e7883c77236c89a2b96b9e35619fbd4f1bcb6",
+    "extract/entities2.py": "736c54036865da9943aa92a55a22ff53d511f4ffcc3817e85fb6b6fbecf53bae",
+    "extract/parse.py": "897316852042afd2f059f4b83b45d8695451d38c590cbffc4c8de37ed158455e",
+    "extract/rows.py": "a3a209bce9f43c8c71425646a3f328472bd7005abcf5704023a8880e6a722a58",
+    "extract/rows2.py": "772928432aaf81734d6b8982c2ed92b9b0460e01bb50cdd1267720b54dc8d231",
+    "extract/tasks.py": "b20da3c4f9c4d94b255eed838e6cdf92b9e84a720671d7c1dee468695c7899fd",
+    "extract/tasks2.py": "3f143201625757386a3ae6f7931349b3530893198010720349f20fa15c127d3d",
+    "extract/validate-batch.mts": "2aa03089054853eeff208e4fcdcbe5b7a5f6de4fce495ac277a442b0b7827ed1",
+    "notes.md": "f7b2be690c24fc5353ce0539404287f427e6fb9fcc5e2b1fdb468ccde0da2308",
+    "review/apply-review.py": "3c7720508cc0762f26fd2ff58357e67bf8c475cae2fa85c119976bc214e42b39",
+    "review/check-cells.py": "a3725d5ca8bbb3b3eb50f50e8ac2097cadd01f81f06b6d34a95c42cdf7148320",
+    "value-check.tsv": "9bcec8ad463463dfe67b1b9d999a293d3a5a050564952f2350c8a2761d53a795"
+  },
+  "source_artifacts": {
+    "hyplm-flash-20261106-source-engine-graphs": "29df2c0d012c6e2f03b2618efb1cc76e070097b531494e5553f548b0bdf3f1bc",
+    "hyplm-flash-20261106-source-engine-model": "8bba607aaac45d7365ac011644fcee65157a1f29f306c646aaa29d4258fd4255",
+    "hyplm-flash-20261106-source-engine-packing": "3eb213e8483bb09551b253aeea9f4ff5a0c5b2e7cd53d985f226f1cbf52c1828",
+    "hyplm-flash-20261106-source-licence": "a0a9dc95e81d7a1374275195bccb72442e0126be826919b13ff67f52eb64a031",
+    "hyplm-flash-20261106-source-model-readme": "db6ab273ef190a40199a5a8d17c474a2809fd9cedac6013c45ec7c06642542a3",
+    "hyplm-flash-20261106-source-report": "d81d88a415a91c2b00d8e97513a90c03ccffd857ec75033fa7de77227dea1710"
+  }
+}
