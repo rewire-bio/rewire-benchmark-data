@@ -98,25 +98,25 @@ note(f"ruling 3: fit and interpolation wording added to {counts['table8']} Table
      f"and to 4 protocol qualifiers; 'measured at equal diversity' corrected on one configuration "
      f"and {fixed_adapt} evaluation adaptation fields")
 
-# Rulings 6 and 10. A vocabulary concept must not encode one source's estimator, and
-# sequence-diversity keeps direction unknown with the matched-not-ranked qualifier. The estimator
-# already sits in the result qualifier; the matched-not-ranked sense was only in the definition.
-diversity = 0
+# Ruling 6, as the coordinator later clarified it: sequence-diversity must KEEP direction unknown
+# with the matched-not-ranked qualifier, which is a hold, not an addition. The concept definition
+# and the 55 result qualifiers were already right (the definition carries the matched-not-ranked
+# sense, the qualifiers carry this report's estimator and its valid-sites reasoning), so nothing is
+# edited here. The direction is asserted rather than assumed.
+checked = 0
 for r in records:
     a = r["attributes"]
-    if r["kind"] == "result" and a["metric"] == "sequence-diversity":
+    if r["kind"] in ("result", "protocol") and a.get("metric") == "sequence-diversity":
         assert a["metric_direction"] == "unknown", r["id"]
-        a["metric_qualifier"] += (" Matched rather than ranked when generators are compared: the "
-                                  "value describes the design set, not its quality, so a higher "
-                                  "value is not better and the direction is unknown.")
-        diversity += 1
+        checked += 1
+# The matched-not-ranked sense sits in the concept definition and in the protocol's limitations,
+# which is where the extractor put it and where the coordinator confirmed it belongs. The result
+# qualifiers carry the estimator and its valid-sites reasoning instead.
 proto = by_id["hyinv-20261106-protocol-sequence-diversity"]["attributes"]
-assert proto["metric_direction"] == "unknown"
-proto["metric_qualifier"] += (" Matched rather than ranked when generators are compared: the value "
-                              "describes the design set, not its quality, so a higher value is not "
-                              "better and the direction is unknown.")
-note(f"rulings 6 and 10: matched-not-ranked statement added to {diversity} sequence-diversity "
-     f"result qualifiers and the protocol qualifier, direction unknown confirmed on all of them")
+assert any("matched rather than ranked" in line for line in proto["limitations"])
+note(f"ruling 6: direction unknown asserted on {checked} sequence-diversity records and the "
+     f"matched-not-ranked statement confirmed on the protocol; concept definition and result "
+     f"qualifiers left exactly as extracted")
 
 # Ruling 11. A claim holding many numbers under one locator is split so each number has its own
 # locator. The gain exists where the source prints the numbers in separate rows that the claim
@@ -175,10 +175,14 @@ SPLITS = [
      "The reproduction check regenerates the baseline on RecentPDB, folds it with ESMFold2 and "
      "compares the target-averaged scTM with the released value. {row}: {detail}. All baselines use "
      "the released weights and a temperature of 0.1.",
-     "Regenerated baseline cells are used only where the same procedure reproduces the released "
+     "Some ESMFold2 cells were regenerated for the report with the same weights, temperature and "
+     "sampler. A regenerated cell is used only where the same procedure reproduces the released "
      "score on RecentPDB; the printed absolute differences run from 0.0001 to 0.0022, all within "
-     "0.003. All RecentPDB cells under the three predictors are released values, and the "
-     "ProteinMPNN temperatures other than the published one were generated for this report. The "
+     "0.003, and the identical-sequence fraction is 100.0% for every regenerated baseline except "
+     "DPLM-2 3B at 99.2%. ProteinMPNN and ProteinZero V2 (ESM2) were not regenerated: the table "
+     "prints a dash in both columns for each of them. All RecentPDB cells under the three "
+     "predictors are released values, and the ProteinMPNN temperatures other than the published "
+     "one were generated for this report. All ten baselines use the released weights. The "
      "per-baseline figures are in the claims for each row of Table 5.",
      "Table 5 'Baseline settings, weights and reproduction check', the paragraph after the table"),
     ("hyinv-20261106-claim-benchmark-application-homology-screen", "application_homology_screen",
@@ -262,6 +266,70 @@ for slug, field, name, locator, value in [
     by_id[claim["id"]] = claim
 note("ruling 12: 2 claims added for the 52.1x and 8.7x speed-ups against HyInv's own reference "
      "sampler, beside the 57x and 9.6x results against ProteinMPNN")
+
+# Follow-up item: facets.method_types on the 23 configurations, set only where the report says what
+# kind of method the system is.
+#
+# For HyInv the report is explicit: "a 1.96-million-parameter message-passing graph network with an
+# encoder-decoder architecture" built for inverse folding, "trained with random-order supervision
+# and structure-reward reinforcement learning" (Conclusion). That is specialist ("built for a
+# specific task rather than broad pretraining") and, on the report's own word "supervision",
+# supervised_machine_learning.
+#
+# For the baselines the report gives decoding strategy, temperature, weights and residue limits, and
+# nothing about architecture class or training data. Appendix D.1's descriptions still establish that
+# ProteinMPNN and its two variants, LigandMPNN and PiFold are task-specific sequence decoders for a
+# given backbone, with no language-model component mentioned anywhere; catalog-model-proteinmpnn
+# already carries specialist, so this agrees with the store. The other five couple a protein language
+# model or are named for one (ProteinZero V2's ESM1 and ESM2 weights, LM-Design 650M, DPLM-2 3B,
+# CMLM), and the report never says whether any of them is broadly pretrained. Their names and
+# parameter counts are not evidence, so those stay unset with a reason.
+HYINV_TYPES = ["specialist", "supervised_machine_learning"]
+BASELINE_SPECIALIST = ["ligandmpnn", "pifold", "proteinmpnn", "proteinmpnn-grouped",
+                       "proteinmpnn-low-noise-grouped"]
+UNCLASSIFIED = {
+    "cmlm": "CMLM is described only as decoding all positions in parallel from one categorical "
+            "distribution (Appendix D.1). The report does not say whether it is a broadly "
+            "pretrained masked language model or a task-specific decoder, and its name is not "
+            "evidence.",
+    "dplm-2-3b": "DPLM-2 3B is described only as decoding by argmax with deterministic unmasking "
+                 "(Appendix D.1). The report does not state its architecture class or training "
+                 "data, and its name and parameter count are not evidence.",
+    "lm-design-650m": "Section 1 calls this line of work 'language-model-assisted' but the report "
+                      "never states whether LM-Design 650M is a broadly pretrained foundation "
+                      "model or a specialist decoder with a language-model component.",
+    "proteinzero-v2-esm1": "The report states only that ProteinZero V2 is run with ESM1 weights at "
+                           "its published setting and is declared for backbones of up to 100 "
+                           "residues (Appendix D.1). Whether the ESM component makes it a "
+                           "foundation model is not stated.",
+    "proteinzero-v2-esm2": "The report states only that ProteinZero V2 is run with ESM2 weights at "
+                           "its published setting and is declared for backbones of up to 100 "
+                           "residues (Appendix D.1). Whether the ESM component makes it a "
+                           "foundation model is not stated.",
+}
+set_types = unset_types = 0
+for r in records:
+    if r["kind"] != "configuration":
+        continue
+    slug = r["id"].replace("hyinv-20261106-config-", "")
+    facets = r.setdefault("facets", {})
+    assert "method_types" not in facets, r["id"]
+    if slug.startswith("hyinv-"):
+        facets["method_types"] = list(HYINV_TYPES)
+        set_types += 1
+    elif slug in BASELINE_SPECIALIST:
+        facets["method_types"] = ["specialist"]
+        set_types += 1
+    else:
+        # missing_metadata takes only declared attributes, not facets, so the reason goes in
+        # provenance_note, whose documented purpose is what was not inferred about identity.
+        a = r["attributes"]
+        prefix = (a["provenance_note"] + " ") if a.get("provenance_note") else ""
+        a["provenance_note"] = prefix + "method_types is left unset: " + UNCLASSIFIED[slug]
+        unset_types += 1
+note(f"follow-up: method_types set on {set_types} configurations (13 HyInv as specialist and "
+     f"supervised_machine_learning, 5 baselines as specialist) and left unset with an unreported "
+     f"reason on {unset_types} whose method class the report does not state")
 
 records.sort(key=lambda r: r["id"])
 with open(PATH, "w") as out:
