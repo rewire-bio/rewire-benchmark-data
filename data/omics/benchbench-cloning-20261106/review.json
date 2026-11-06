@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "method": "independent_source_review",
+  "reviewer": "Claude research agent; no human review claimed",
+  "reviewed_at": "2026-11-06T00:00:00Z",
+  "errors": [],
+  "review_methods": [
+    "independent-cell-check",
+    "deterministic-table-parse",
+    "pdf-text-parse",
+    "source-hash-verification",
+    "ai-assisted-source-review"
+  ],
+  "scope": "Independent review of the 756 records of the BenchBench-Cloning batch (3 sources, 8 models, 5 methods, 24 configurations, 3 benchmarks, 15 tasks, 1 dataset, 13 dataset subsets, 9 protocols, 4 evaluators, 224 evaluations, 224 results, 223 claims) by a different agent from the extractor, against the extraction frozen at commit 36414d4. No vocabulary concept is added by this batch and data/vocab is untouched. All three pinned artifacts were re-downloaded and every SHA-256 matched its source record; the archived gzipped text layer matches its recorded archive_sha256 and decompresses byte for byte to a pdftotext -layout run on the refetched PDF, so the archive is provably derived from the pinned bytes. The repository 404 was rechecked at review time, 2026-11-06T12:33:21Z: https://github.com/benchling/benchbench-cloning returns 404 from the web page and https://api.github.com/repos/benchling/benchbench-cloning returns 404 from the REST API, while the arXiv abstract page returns 200. npm run batch -- check-values reproduced the extractor's figures exactly: 224 of 224 found, 112 in_cell and 112 in_row, with no wrong_column, no overclaimed_in_row and nothing missing. All 224 results were then re-read by a reviewer script written for this pass (review/check-cells.py), which locates each table body by its own printed header line rather than by caption proximity, takes the column order from that header and splits each body row on runs of two or more spaces, without using extract/parse_tables.py or extract/check_tables.py: every printed value and every printed interval matched its own field, with zero disagreements, and the only printed cells of Tables D2, G1 and G2 the batch does not record are Table G1's eight pass@1 cells, which duplicate Table D2's top-effort column. Three arithmetic constraints were re-derived independently: each of the eight Table G2 columns sums to the printed top-effort construct-design numerator over 75, each Table G1 Solved-at-least-once count over 50 equals the printed pass@10, and every Table D2 aggregate equals (50 x protocol + 15 x construct) / 65 within rounding, the one residue being GPT-6.1 Sol at max effort where the unrounded construct value 31/75 reproduces the printed 22.2. The 1/75 grid test was recomputed over all 24 lanes using each printed value's own rounding window, confirming that 31.9% is the only printed construct rate with no integer numerator available to it. The protocol-development denominator was tested per system against both the stated 500-attempt budget and the published graded count. Manual check: all 16 Table G1 count cells, which are the cells the extractor's own audit flags as having the value more than once in their row or on another line with the same system label, were read in full by eye, plus a 20-result sample drawn from all 224 with random.sample and seed 20261106; all matched, column assignment included. Every missing_metadata entry was checked against the source. A second pass then replaced the vendor reasoning-effort label in every result's metric_qualifier with the tier the source prints, and removed configuration_type \"default\" from the 24 configurations, which is not a concept in the vocabulary and blocked records -- add.",
+  "limitations": [
+    "Automated review by a Claude research agent, independent of the extractor but not human scientific review. Transcription was checked against the pinned source; nothing was reproduced and no value was recomputed.",
+    "The code and data repository is not retrievable, so no grader, no hidden target sequence and no task file was inspected. Every record describing the graders rests on the paper's own description of them. The dataset is not marked openly downloadable and no evaluation is marked reproduced.",
+    "The code and data licence is unverified and stays so. CC BY 4.0 covers the article text only and is not a code or data licence.",
+    "The protocol-development pass rate's denominator is not established. Appendix B states a budget of 500 attempts per lane, but the paper never states the denominator of the rate, and for the two systems whose graded count differs from the budget the printed value rounds the same way over either. Those two results carry a warning and a coverage note; the other 16 non-top-effort lanes have no published graded count at all.",
+    "Table D2's construct-design rate for Gemini 4 Argon at low effort is withheld from automatic comparison by an evidence concern scoped to it: the value cannot be a mean of binary outcomes over the stated attempt grid and its interval duplicates another row's. The printed value is kept as published.",
+    "The four evaluator records carry no source_locator, so they remain at status discovered rather than source_checked: there is no place in the paper against which their descriptions could be said to have been checked.",
+    "The reasoning-effort clause in every result's metric_qualifier named the vendor's own setting (max, high, xhigh), so systems at the same tier did not compare and the paper's top-effort cross-system comparison was blocked. The review replaced it with the tier printed in Table D2's Tier column and in the Table G1 and G2 captions, cutting the distinct comparability keys over the 224 results from 36 to 15. The vendor label remains on each configuration."
+  ],
+  "files": {
+    "artifacts/arxiv-2610.33355v1.layout.txt.gz": "c52ec41e171a81180ed0b9110e6ff26999740a73d7ecf2ab1fd600591357a616",
+    "batch.jsonl": "aeb0fe9d5fe99cafcea04b5de4caec4fb5e0a4e3be3637aef0f5359d97cbc8eb",
+    "build.py": "d6d16c1b6d17abd704dc872c7d2d027c170e058d28b9df86ddc31f57049c9353",
+    "extract/check_tables.py": "405f8f76e52f41bb61f16b69e94bff5467114df572385dff548de9ab61ff622d",
+    "extract/parse_tables.py": "21468bcc9ad14d0b64e13ee8d822d44206996fd3d3f5899d97fa5b2a34a7ad7c",
+    "extract/second-parse.txt": "77953de39eacb73cab3b6b7cfea8ad0baf395988e05e79064ba33d58d08661d3",
+    "extract/tables.json": "97e4a0097433398f8a2af38a95ceaa894b9c42284148edd93e78807cada65b8d",
+    "extract/validate_batch.ts": "97e1ad6228bbf1fea2758cd468ffc23bce4f201246c8afc2561ce2558edcaf63",
+    "notes.md": "1a148d21b756d7aca29fed39e3a6ef6c686ed2ae2eae599a2c9f9db18e4756b8",
+    "review/apply-review.py": "0d24994c525bf8eddf17d1f11436ef896fe04f65f063439809797b6482bb0e4d",
+    "review/check-cells.py": "95a62f4e5716f63ba0818fb265e178df72b39d939f61b5d10aba99971e60df0b",
+    "value-check.tsv": "2b92fab98aa06200a8447a9eedbfc1e371aa7612d6b5932ca69c42b248ab613f"
+  },
+  "source_artifacts": {
+    "benchbench-cloning-20261106-source-arxiv-abs": "f9e233e9c65ab7470e5817defe75e749436122d677da9e540d51b5384100ee65",
+    "benchbench-cloning-20261106-source-arxiv-v1": "6f5044b1bbbd81ad86b23cb536e2cae6428e0d9126f11546041355518febdc39",
+    "benchbench-cloning-20261106-source-benchling-announcement": "eb67d3c73b14e40232bb5ea7633c64572c893c60b4f22a225320dcbac20354bf"
+  }
+}
