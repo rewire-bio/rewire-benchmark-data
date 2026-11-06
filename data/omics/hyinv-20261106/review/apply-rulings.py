@@ -327,6 +327,28 @@ for r in records:
         prefix = (a["provenance_note"] + " ") if a.get("provenance_note") else ""
         a["provenance_note"] = prefix + "method_types is left unset: " + UNCLASSIFIED[slug]
         unset_types += 1
+# Follow-up, second ruling: the five configurations whose method class the report does not state
+# carried foundation_model_eligible: false, which asserts the same classification the review
+# declined to make, in the opposite direction and on no more evidence. The coordinator ruled that
+# the flag is architectural rather than curational, so it takes a missing reason instead. The
+# eighteen classified above keep false, which the report's own words support. Unlike method_types
+# this is a declared configuration attribute, so missing_metadata accepts it, and the contract
+# forbids a field from holding both a value and a missing reason, so the boolean comes off.
+flag_unset = 0
+for slug in UNCLASSIFIED:
+    a = by_id[f"hyinv-20261106-config-{slug}"]["attributes"]
+    assert a.pop("foundation_model_eligible") is False, slug
+    a.setdefault("missing_metadata", {})["foundation_model_eligible"] = {
+        "reason": "unreported",
+        "note": ("The report does not say whether this system is a broadly pretrained foundation "
+                 "model. " + UNCLASSIFIED[slug] + " Recording false here would assert the "
+                 "classification that method_types leaves unset, on the same absent evidence."),
+    }
+    flag_unset += 1
+note(f"follow-up: foundation_model_eligible replaced by an unreported missing reason on "
+     f"{flag_unset} configurations whose method class the report does not state; the 18 classified "
+     f"configurations keep false")
+
 note(f"follow-up: method_types set on {set_types} configurations (13 HyInv as specialist and "
      f"supervised_machine_learning, 5 baselines as specialist) and left unset with an unreported "
      f"reason on {unset_types} whose method class the report does not state")
