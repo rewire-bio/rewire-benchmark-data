@@ -274,3 +274,31 @@ ProteinMPNN speed-up, is carried by the records themselves, not only by these no
 The open questions are in the handover message. The ones that would change many records are the
 evaluation granularity (one protocol per metric, hence 485 evaluations) and whether the printed
 numeric matrices inside Figures 14 and 15 should be results at all.
+
+## Review addendum, 2026-11-06
+
+Everything above is the extractor's record, written before review, and is left as it was. The batch
+has since been reviewed independently by a different Claude agent against the pinned sources:
+`docs/reviews/2026-11-06-hyinv.md` holds the rulings, `review.json` the receipt, and
+`value-check.tsv` the repository value check. Every record now carries status `source_checked`, and
+every result and claim carries a `review` object naming the reviewer. The statement above that the
+batch is not reviewed and that every record carries `needs_review` describes the frozen extraction,
+not the current bytes.
+
+`batch.jsonl` is no longer the direct output of `extract/build.py`. Reproduce it with:
+
+```
+python3 -I data/omics/hyinv-20261106/extract/build.py /tmp/hyinv/HyInv_Technical_Report.pdf \
+  data/omics/hyinv-20261106/batch.jsonl
+python3 -I data/omics/hyinv-20261106/review/apply-review.py data/omics/hyinv-20261106/batch.jsonl
+```
+
+`review/apply-review.py` lists each change the review made. `review/check-tables.py` and
+`review/check-figures.py` are the reviewer's own parses of Tables 6 to 9 and of the Figure 14 and
+Figure 15 matrices, written for the review pass without using `extract/parse.py`.
+
+On the report's date, which this file records only as 2026-10-14: the printed date on page 1 is
+2026-10-14 and the pinned PDF's own `CreationDate` and `ModDate` are both `D:20261030105208+08'00'`
+(2026-10-30 02:52 UTC, producer pdfTeX-1.40.25). The review kept 2026-10-14 in the source record and
+recorded the production timestamp in the source's `version_note`. See the dated review for why it is
+a note and not an evidence concern.
