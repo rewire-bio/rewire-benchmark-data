@@ -61,7 +61,8 @@ REVIEW = {
         "each row by its printed label and splits the printed cells by position, written for this "
         "pass without using the extractor's parser; every printed value and column matched. Column "
         "assignment in Figure 14 was confirmed against the labelled columns of Table 2 and against "
-        "Section 5.2's prose figures; Figure 15's rests on its caption 'Same layout as Figure 14'. "
+        "Section 5.2's prose figures; Figure 15's was confirmed by the coordinator reading the "
+        "rotated column headers on the rendered page 17, which match Figure 14's order. "
         "Table 1, Figure 4a and the eleven prose values were read by hand against the text layer. "
         "Each claim was re-read against the passage its locator names."),
     "reviewer": ["claude"],

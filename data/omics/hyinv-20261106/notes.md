@@ -302,3 +302,22 @@ On the report's date, which this file records only as 2026-10-14: the printed da
 (2026-10-30 02:52 UTC, producer pdfTeX-1.40.25). The review kept 2026-10-14 in the source record and
 recorded the production timestamp in the source's `version_note`. See the dated review for why it is
 a note and not an evidence concern.
+
+### Second round, the coordinator's rulings
+
+`review/apply-rulings.py` applies rulings 3, 6, 10, 11 and 12 of the review round on top of
+`review/apply-review.py`, so the full chain is:
+
+```
+python3 -I data/omics/hyinv-20261106/extract/build.py /tmp/hyinv/HyInv_Technical_Report.pdf \
+  data/omics/hyinv-20261106/batch.jsonl
+python3 -I data/omics/hyinv-20261106/review/apply-review.py data/omics/hyinv-20261106/batch.jsonl
+python3 -I data/omics/hyinv-20261106/review/apply-rulings.py data/omics/hyinv-20261106/batch.jsonl
+```
+
+The batch is 1,103 records, not the 1,080 the counts above give: 55 claims in place of 32, after
+Table 5's reproduction check, Table 10's homology screen and Table 3's evaluation panels were split
+into one claim per printed row plus one for each table's rule, and after two claims were added for
+the speed-ups against HyInv's own reference sampler (52.1x in Section 4, 8.7x in the abstract). No
+result value changed. The `sequence-diversity` definition in `data/vocab/metric.ttl` no longer pins
+this report's estimator, which belongs in the metric qualifier and was already there.
