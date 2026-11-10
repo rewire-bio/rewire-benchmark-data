@@ -41,10 +41,12 @@ A **comparison** is two systems' values within one group of one study's results:
 
 A study's **verdict** on a pair of systems is the system that scored better in at least 75% of its untied comparisons, or "split". A study with fewer than two untied comparisons gives no verdict. Studies, not rows, are counted: a paper that reports 150 numbers is one opinion ([#201](https://github.com/rewire-bio/rewire-benchmark-data/issues/201)).
 
+Only a study that takes a side counts toward an ordering finding (rules version 5). A split study has no side to be an outlier from and none to add to a consensus, so it is neither a party to a conflict nor part of a consensus share. It is still listed in the finding's `studies` with verdict `split`. Counting it in the share read "no opinion" as "disagrees", so one split study arriving could end a two-study conflict and push every reversal candidate under the consensus threshold, silencing a disagreement between two studies whose results had not changed ([the 2026-11-10 review](reviews/2026-11-10-discrepancy-split-studies.html)).
+
 | Rule | Flags when |
 | --- | --- |
-| Ordering reversal | At least two other studies give a verdict, at least 80% of them agree that A is better, and this study's verdict is B. This study is the outlier. |
-| Two-study conflict | Exactly two studies give a verdict on the pair, and they disagree. There is no consensus to stand out from, so neither is named the outlier ([#205](https://github.com/rewire-bio/rewire-benchmark-data/issues/205)). |
+| Ordering reversal | At least two other studies take a side, at least 80% of them agree that A is better, and this study's verdict is B. This study is the outlier. |
+| Two-study conflict | Exactly two studies take a side on the pair, and they disagree. There is no consensus to stand out from, so neither is named the outlier ([#205](https://github.com/rewire-bio/rewire-benchmark-data/issues/205)). |
 | Gap outlier | At least three studies report the same metric on the same protocol, task or benchmark, and every one of them measured a common reference system. This study's median relative gap between a system A and the reference, (A - ref) / ref, lies more than 0.10 outside the range of the other studies' gaps. Never above medium severity. |
 
 **The gap rule's reference.** A comparison group is one anchor (a protocol, or a task or benchmark it belongs to) and one metric, with at least three studies. The reference is a system that every study in the group measured. If more than one qualifies, a named baseline wins: a system that a baseline record is `implemented_by`, or that a use case's `baseline` claim names in `method_ids` ([#121](https://github.com/rewire-bio/rewire-benchmark-data/issues/121)). Otherwise the system with the lowest IRI is used. Every other shared system is compared with that reference. A group in which no system was measured by every study is skipped. When a system, reference and study fire on several anchors, the most specific anchor is kept: protocol, then task, then benchmark. On the store at release `2026-10-23-a1a0ac69daa3`, rules version 3 find no gap outliers.
@@ -273,7 +275,7 @@ From `discrepancies.json` schema 3, each finding carries `studies`: every study 
 
 Each comparison gives its `protocol`, `dataset`, `metric` and `unit` (concept keys), `qualifier` and `split`, the two systems' best `values`, the result each value comes from (`results`; the first by ID when several results share the best value), and `higher`, the better system or `null` for a tie. `higher` and `ties` always add up to `comparisons_total`.
 
-`studies` can list more studies than `consensus_sources`. An ordering reversal's consensus counts only studies with a verdict, so a study whose comparisons of the pair are all ties, or too few, is in `studies` (role `consensus`, `verdict` null) but not in `consensus_sources`.
+`studies` can list more studies than `consensus_sources`. An ordering reversal's consensus counts only studies that took a side, so a study whose comparisons of the pair are all ties or too few (`verdict` null), and from rules version 5 a split study (`verdict` `split`), is in `studies` with role `consensus` but not in `consensus_sources`.
 
 Schema 5 (rules version 4) also adds, per finding: `listing`, `variant_mismatch`, `unlinked_protocols`, and for a two-study conflict `party_sources` and `party_results` (its `outlier_*` and `consensus_*` lists are empty). An ordering reversal's `numbers` add `consensus_studies` and `consensus_study_agreements`; a conflict's are `{"studies": 2}`. A finding read from an earlier file is `public`, with no variant mismatch, unlinked protocols or parties. For the gap rule the two lists hold the same studies.
 

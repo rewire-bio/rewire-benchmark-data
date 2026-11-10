@@ -955,7 +955,8 @@ def pairs(spec: list[tuple]) -> rdflib.Graph:
 
 class RulesV4Test(unittest.TestCase):
     """Rules version 4 (docs/design/discrepancy-rules-v4.html): systems, studies, verdicts, scope,
-    severity and listing."""
+    severity and listing. Version 5 keeps all of it and counts only studies that take a side
+    (docs/reviews/2026-11-10-discrepancy-split-studies.md)."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1019,6 +1020,26 @@ class RulesV4Test(unittest.TestCase):
         self.assertEqual(found["key"]["studies"], ["source:study1", "source:study2"])
         self.assertNotIn("outlier_study", found["key"])
         self.assertEqual(found["severity"], "medium")
+
+    def test_a_split_study_does_not_end_a_two_study_conflict(self) -> None:
+        # Rules version 5: study3 is split 2 to 2, so the conflict between study1 and study2 stands.
+        graph = pairs([(ID.study1, True, 3, ID.protocol, ID.modelB), (ID.study2, False, 3, ID.protocol, ID.modelB),
+                       (ID.study3, True, 2, ID.protocol, ID.modelB), (ID.study3, False, 2, ID.protocol2, ID.modelB)])
+        [found] = [d for d in self.derive(graph) if d["rule"] == "two-study-conflict"]
+        self.assertEqual((found["party_sources"], found["key"]["studies"]),
+                         (["study1", "study2"], ["source:study1", "source:study2"]))
+        split = next(s for s in found["studies"] if s["key"] == "source:study3")
+        self.assertEqual((split["verdict"], split["role"]), ("split", "consensus"))
+
+    def test_a_split_study_does_not_dilute_a_consensus(self) -> None:
+        # study4 takes no side, so the consensus is study2 and study3 alone and study1 reverses it.
+        graph = pairs([(ID.study1, True, 3, ID.protocol, ID.modelB), (ID.study2, False, 3, ID.protocol, ID.modelB),
+                       (ID.study3, False, 3, ID.protocol, ID.modelB),
+                       (ID.study4, True, 2, ID.protocol, ID.modelB), (ID.study4, False, 2, ID.protocol2, ID.modelB)])
+        [found] = [d for d in self.derive(graph) if d["rule"] == "ordering-reversal"]
+        self.assertEqual((found["outlier_sources"], found["consensus_higher"]), (["study1"], "modelB"))
+        self.assertEqual((found["numbers"]["consensus_studies"], found["numbers"]["consensus_study_agreements"]),
+                         (2, 2))
 
     def test_unknown_is_not_different_task(self) -> None:
         spec = [(ID.study1, True, 3, ID.protocol, ID.modelB), (ID.study2, True, 3, ID.protocol, ID.modelB),
