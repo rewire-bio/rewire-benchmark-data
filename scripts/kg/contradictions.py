@@ -523,29 +523,33 @@ def verdicts(items: list[Comparison], rules: dict) -> dict[URIRef, URIRef | None
 
 def ordering_reversals(pairs: dict, index: Index, rules: dict) -> list[Finding]:
     """Ordering findings, counted in studies rather than rows (issues #201, #205). With three or more
-    studies giving a verdict, a study is an outlier when the others (at least the minimum number of
+    studies taking a side, a study is an outlier when the others (at least the minimum number of
     studies) agree with each other at the consensus share and it says the opposite. With exactly
     two studies that disagree there is no consensus to stand out from, so they make one two-study
-    conflict with no outlier."""
+    conflict with no outlier.
+
+    Only a study that takes a side counts (rules version 5). A split study has no opinion to be an
+    outlier from and none to add to a consensus, so it neither forms a party nor sits in the
+    consensus denominator: counting it there read "no opinion" as "disagrees", and one split study
+    arriving could silence a disagreement between two others that had not changed."""
     r = rules["ordering_reversal"]
     tolerance = rules["tie_tolerance"]
     findings = []
     for (a, b), items in pairs.items():
         verdict = verdicts(items, rules)
+        decided = {s: v for s, v in verdict.items() if v is not None}
         decisive = lambda study: [c for c in items if c.study == study and c.better(tolerance)]
-        if len(verdict) == 2:
-            first, second = sorted(verdict, key=lambda study: index.study_keys[study])
-            if verdict[first] and verdict[second] and verdict[first] != verdict[second]:
+        if len(decided) == 2:
+            first, second = sorted(decided, key=lambda study: index.study_keys[study])
+            if decided[first] != decided[second]:
                 mine, theirs = decisive(first), decisive(second)
                 findings.append(Finding(
                     "two-study-conflict", a, b, None, mine, theirs, pool=items, parties=(first, second), verdicts=verdict,
                     numbers={"studies": 2},
                 ))
             continue
-        for study in sorted(verdict):
-            if verdict[study] is None:
-                continue
-            others = {s: v for s, v in verdict.items() if s != study}
+        for study in sorted(decided):
+            others = {s: v for s, v in decided.items() if s != study}
             if len(others) < r["min_consensus_studies"]:
                 continue
             for_a = sum(1 for v in others.values() if v == a)
@@ -554,7 +558,7 @@ def ordering_reversals(pairs: dict, index: Index, rules: dict) -> list[Finding]:
                 continue
             higher = a if for_a > for_b else b
             agreements = max(for_a, for_b)
-            if agreements / len(others) < r["consensus_consistency"] or verdict[study] == higher:
+            if agreements / len(others) < r["consensus_consistency"] or decided[study] == higher:
                 continue
             mine = decisive(study)
             consensus = [c for c in items if c.study in others and c.better(tolerance)]
