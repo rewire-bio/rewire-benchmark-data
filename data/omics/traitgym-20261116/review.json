@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "method": "Independent review of the TraitGym benchmark-paper batch, by a worker that did not extract it. The pinned bioRxiv v2 PDF was re-downloaded; its container bytes do not reproduce and cannot, because bioRxiv restamps each download, so the check used is the pdftotext -layout text layer, which hashed to the value the source record's hash_scope names as stable and which every value in the batch was read from. npm run batch -- check-values was re-run and reproduced the extractor's report byte for byte (96 in_cell, 36 in_row). All 132 results were then re-read by review/recheck_values.py, written for this pass and importing nothing from extract/: it fixes a character-column band per table column from the start offset of each column header token and accepts a numeric token only when its own offset falls in exactly one band, so column assignment is verified directly for all 132 results, including the 36 that check-values could place only in a row. 132 of 132 agree, 0 mismatches. Three negative controls confirm it is a cell check and not a row check. All 100 cells of Table S8 were also transcribed by hand before the extractor's comparison file was opened, and all 36 in_row cells were read by eye. The 100-cell reconciliation of Table S8 against the stored Hugging Face metric results was re-done by review/reconcile_s8.py with the cell-to-file mapping written out again: no differences on any of four axes (reviewer reading against stored rounded values, reviewer reading against the extractor's paper values, reviewer rounding against the extractor's, reviewer mapping against the extractor's). All 156 stored results were re-accounted from their metric file names alone. Publication status was checked at the publisher, PubMed, Europe PMC, Crossref, OpenAlex and Semantic Scholar, by author and topic as well as by title. The pinned Hugging Face revision behind the stored metrics source was re-checked. 25 claims were read against the paper at their locators. Four rulings were applied as stored-record changes with correction claims; one question was answered without a change.",
+  "review_methods": [
+    "source-hash-verification",
+    "deterministic-table-parse",
+    "pdf-text-parse",
+    "independent-cell-check",
+    "scope-review",
+    "transcription"
+  ],
+  "reviewer": "Claude review agent (independent of the extractor); no human review claimed",
+  "reviewed_at": "2026-11-16T02:10:00Z",
+  "scope": "data/omics/traitgym-20261116: 1 source, 1 model, 15 configurations, 10 methods, 8 protocols, 26 dataset subsets, 132 evaluations, 132 results and 36 claims (25 descriptive claims from the extractor and 11 correction claims added by this review). Stored records changed under this review: lit-genomics-20261011-traitgym-source-hf-metrics (limitations and a companion_of link), lit-genomics-20261011-traitgym-benchmark-traitgym (source_ids) and the eight lit-genomics-20261011-traitgym-config-gpn-final-* configurations (configuration_of relinked to traitgym-20261116-model-gpn-promoter). Review write-up: docs/reviews/2026-11-16-traitgym.md.",
+  "limitations": [
+    "Automated review by a Claude agent, independent of the extractor but not human scientific review. Every value was transcribed from a pinned artifact and checked against it; nothing was reproduced, no model was run and no value was recomputed from source data.",
+    "The source record's artifact_sha256 does not reproduce and cannot: bioRxiv restamps the PDF container on every request. The reviewer's download hashed to 961933ed2396ecb0a75737cc27f0655db07ca62be49654f9139ae95815d050f9 against the pinned 80426c499e0b498e07c07ea598a2f68049adea7569b30fda58cdc0ebafa6c7aa, differing from the extractor's two downloads in 41 and 44 bytes, every one a download-time stamp (XMP ModifyDate and MetadataDate, document ModDate, trailer ID), with the same 37 pages, the same CreationDate of 2025-03-04 and a byte-identical pdftotext -layout text layer. The pinned hash is left unchanged; hash_scope already says what it describes and names the text layer as the stable check. The receipt's source_artifacts therefore carries the pinned PDF hash, which was not re-verified, while every record's review.artifact_sha256 carries the text-layer hash 23ae4d67751f1092e5cc2da66b52091fa9bbc3ec59310f06bc65be28f93c5097, which was.",
+    "Five of the six Mendelian-only duplicate scoring variants cannot be told apart from their Embeddings.* twin by the printed value: both files round to the same three decimal places. The reconciliation is unaffected, because the paper's cell matches either, but the mapping for those five cells rests on the column's name and on Embeddings.* being the set published for both datasets, not on the number. The reconciliation claim now says so; the extractor's wording did not.",
+    "The effect of the two stored-record changes on the discrepancy findings could not be computed. public/kg/discrepancies.json is a build product and the knowledge-graph build was not run here, per the coordinator's instruction. No accepted discrepancy_review claim in the store names TraitGym or GPN, so no accepted review can be orphaned. The companion_of link is expected to merge the paper and the metrics table into one study, which is its purpose: without it the same authors' one analysis would carry two verdicts.",
+    "Figures 6 to 10 and Figures S1 to S11 print no values and bioRxiv publishes no source data file for this preprint, so the paper's headline comparisons and its expanded-dataset result for GPN-MSA have no result record anywhere in the store. Confirmed as at extraction; not a defect of the batch.",
+    "Table S7 and the per-trait variant counts remain unextracted, as at extraction. The GitHub repository and the leaderboard Space named in the availability statement were not pinned; the repository would be a reasonable companion source for a later pass.",
+    "Whether a Table S11 cell is the zero-shot or the linear probing score, and whether the AUPRC of Tables 4, 5 and S11 is the weighted average or global, are unstated in the paper and are recorded as unreported rather than inferred. Checked, not resolved.",
+    "No use-case work. The eight new protocols are per-trait slices and feature ablations that inform how the benchmark was built rather than how a tool would be used, and the four stored TraitGym protocols already carry judgements from the 2026-10-11 pass. No relevance judgement, coverage.json or summary claim was written, and none is owed.",
+    "npm run test:fast, npm run typecheck and npm run build were not run here, per the coordinator's instruction that they are run once over the merged branch."
+  ],
+  "errors": [],
+  "files": {
+    "batch.jsonl": "2c6105497cf4c14a5eadac1002459dfaff8d8d2ca352834f47c178c7f7a07347",
+    "extract/build.py": "c7ce4895ad08dac067662757735605a10b555c4b9901e6da493dc8c2ef0ca994",
+    "extract/compare_s8.py": "e334d9c1bdef2da2eb39471ae7f01893d332db74183884a831a6ce643a26f45d",
+    "extract/comparison.tsv": "4738647b64fd72eef4140c04ce7d0ee1ffc1866cdde59efaf29ba8b229098227",
+    "extract/parse_tables.py": "088bd266ccc97b562ac1d52cd5cd7fa22bedcd8382f7f7ee1017d7c5ec23cbea",
+    "extract/table-1.tsv": "8d633e03d65f40d016840f360bdc02c566e106c4ac06d79e62afba20c3b7bf49",
+    "extract/table-2.tsv": "9828e5955aeee80b713ee92f2d5b0fee7189bef17603c0dcd02197b63f0bd617",
+    "extract/table-4.tsv": "9f37ca12591ec292fc6901d87ca138614e9e87c5dabb87dd2fb061365d287d9d",
+    "extract/table-5.tsv": "cf8a79b9d8d73bceecd87c7955efe9817f038cdae04aa4ebf347521c22dc537c",
+    "extract/table-s10.tsv": "93b471289767f9f978948792b1262bb379910004d8d4d281776352f29c89e975",
+    "extract/table-s11.tsv": "18cca36b1816a99b1210761c311cc8a224743c40743f821ccd2c109a0f110cd9",
+    "extract/table-s4.tsv": "2abb8fa7e56debe5c1ff91b7bbf7e7604d3c4482d1338e04b97410a49f9a46c1",
+    "extract/table-s5.tsv": "c4720f5be4b9706cbd6c47dda0974f7971decc623304e7d22581447c7d2d95e9",
+    "extract/table-s6.tsv": "aee4c2d8c9c4984f2eb45977cad7df5d4c75338be3233c2ca5d60a87fe63d675",
+    "extract/table-s8.tsv": "a9aa9d0e3e7ee190c81fdf142c925a25ec5eb4c54dcee36f07e8047334c56be6",
+    "extract/table-s9.tsv": "3f21b055d1397c35d4b91eda44f18b4d3cde91f1fccf93a96cae513838c12b0f",
+    "ledger.jsonl": "0c0a4ba757b3e8d66c0f2bc5b3ff5bc7d12e463ab488e873e8191cc099b3d8fb",
+    "notes.md": "4797ff9bc138e4d6e5add15c6e4becc2f414a8e83bf4352455124ad22b329cd6",
+    "review/apply_review.py": "dc626f2b296c193a1c6fdbb99fd09bb4fe5dfc20c4e4a6a29e43b4ab2afe7fbc",
+    "review/recheck-values.tsv": "a7af1a23af763f45c547d3e5f076ca60c0b192ca6a20f94f92623e4554389549",
+    "review/recheck_values.py": "ffc7eb184e0b95666e43a4a689156682b7de61430e7c7c11292e29b93eb93c59",
+    "review/reconcile-s8.tsv": "c2d1be4f276c477a4b39cf0ab6ec452cfe46ed7255dd0d9ae5beefaa45cd65d3",
+    "review/reconcile_s8.py": "4c197d53ee4e8e9e4703449b4002b80c904fc02da623d1b89e9eae86aab93cdd",
+    "review/s8-reviewer-reading.tsv": "773252b87c407a3e7375c77ee67e1b70296dc17d08d00086bf2b4ef59ca4202b",
+    "scope-audit.jsonl": "7fc69681663b897fe764f71fe9fcffacbeb39a74bc3a5163edcdf0f8861785d5",
+    "value-check.tsv": "833d889b45b5ca12ae217edd517605061298e1258460aae094db25bd4dc05e17"
+  },
+  "source_artifacts": {
+    "traitgym-20261116-source-biorxiv-v2": "80426c499e0b498e07c07ea598a2f68049adea7569b30fda58cdc0ebafa6c7aa"
+  }
+}

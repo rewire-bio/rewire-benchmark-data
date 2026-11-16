@@ -1,0 +1,63 @@
+# Proposed additions to data/vocab/metric.ttl for the PerturbPFN batch (issue #246).
+# Written by the extraction agent; the coordinator adds them before the batch is stored.
+# Checked against the 259 existing metric concepts on 2026-11-15: none holds these quantities.
+# - l2-distance, pearson-correlation and the PerturBench metrics are raw measurements; Table 2
+#   prints only scores rescaled within the compared methods, so a raw concept would mislabel them.
+# - r-precision is the information-retrieval measure (precision among the R top-ranked items);
+#   GeneRNIB's R-Precision is a regression-based score, so reusing it would be a false match.
+# - log-loss is defined for class probabilities; Obs. NLL is a likelihood of continuous responses.
+# No STATO, QUDT or EDAM term was found for these quantities, so none carries an external match.
+
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rb: <https://benchmarks.rewire.it/vocab#> .
+@prefix mls: <http://www.w3.org/ns/mls#> .
+@prefix : <https://benchmarks.rewire.it/vocab/metric/> .
+
+:min-max-normalised-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Min-max normalised score"@en ;
+    skos:altLabel "min-max normalized score"@en ;
+    skos:definition "A metric rescaled to [0, 1] within a stated comparison set: each method's value, oriented so that higher is better, minus the lowest value among the compared methods, divided by the range across them; usually averaged over strata. metric_qualifier names the underlying metric, the comparison set and the aggregation."@en ;
+    skos:scopeNote "Relative to the methods compared: adding or removing a method changes every value, so values are comparable only within one table."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:magnitude-ratio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Magnitude ratio"@en ;
+    skos:altLabel "|psi| ratio"@en ;
+    skos:definition "Mean absolute predicted value divided by mean absolute true value over stated items, for example predicted over true intervention strengths on true target genes. 1 means the overall scale is recovered; values above or below 1 are over- or under-estimates. metric_qualifier names the quantity and the items."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:negative-log-likelihood a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Negative log-likelihood"@en ;
+    skos:altLabel "NLL"@en ;
+    skos:altLabel "Obs. NLL"@en ;
+    skos:definition "Mean negative log-likelihood of observed values under a model's predictive distribution for continuous or count data. Narrower measures for class probabilities use log-loss. metric_qualifier names the predictive distribution and what the mean is taken over."@en ;
+    skos:related :log-loss ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:genernib-regression-precision a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "GeneRNIB regression precision"@en ;
+    skos:altLabel "R-Precision"@en ;
+    skos:altLabel "R-Prec."@en ;
+    skos:definition "GeneRNIB score of how well regulators selected from an inferred network predict held-out target-gene expression under a conservative regulator budget, computed by the official all_metrics pipeline (ridge regression in arXiv:2607.23447v1). Not the information-retrieval R-precision."@en ;
+    skos:scopeNote "Defined by GeneRNIB (Nourisa et al. 2025, bioRxiv); described here from arXiv:2607.23447v1 Section 4.3 and Appendix E.3, as the GeneRNIB paper was not retrieved."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:genernib-regression-recall a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "GeneRNIB regression recall"@en ;
+    skos:altLabel "R-Recall"@en ;
+    skos:definition "GeneRNIB score of how well regulators selected from an inferred network predict held-out target-gene expression under a broader regulator budget, computed by the official all_metrics pipeline (ridge regression in arXiv:2607.23447v1)."@en ;
+    skos:scopeNote "Defined by GeneRNIB (Nourisa et al. 2025, bioRxiv); described here from arXiv:2607.23447v1 Section 4.3 and Appendix E.3, as the GeneRNIB paper was not retrieved."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:genernib-virtual-cell-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "GeneRNIB virtual-cell score"@en ;
+    skos:altLabel "VC"@en ;
+    skos:definition "GeneRNIB score of whether a virtual-cell model constrained by the inferred network predicts held-out perturbed expression, computed by the official all_metrics pipeline."@en ;
+    skos:scopeNote "Defined by GeneRNIB (Nourisa et al. 2025, bioRxiv); described here from arXiv:2607.23447v1 Section 4.3 and Appendix E.3, as the GeneRNIB paper was not retrieved. Not the Virtual Cell Challenge score (vcc-score)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .

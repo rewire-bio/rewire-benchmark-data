@@ -1,0 +1,30 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix : <https://benchmarks.rewire.it/vocab/review-method/> .
+
+# Proposed by the review of data/omics/gpn-msa-published-20261116 (2026-11-16).
+#
+# Why it is needed. This batch's only values table, the published GPN-MSA ablation study, is
+# distributed as a raster JPEG with no text layer. The review read all 136 cells with the macOS
+# Vision framework (VNRecognizeTextRequest) and rebuilt the grid from the observation geometry.
+# None of the existing concepts describes that honestly:
+#
+#   transcription               a person or AI agent copying values by eye, which this is not
+#   rendered-source-visual-check  values compared by eye with a rendered page, likewise not
+#   pdf-text-parse              a text layer, which this artifact does not have
+#   deterministic-table-parse   a structured record (HTML, XML, OOXML, TSV), which a JPEG is not
+#
+# The distinction matters for how much a later reader should trust the values. OCR is a machine
+# reading, so it is independent of whoever ran it, which eye transcription is not; but it is a
+# recognition step with its own error mode, so it is weaker than a parse of a text layer. It
+# deserves its own concept rather than being filed under either neighbour.
+#
+# Pending the coordinator adding this, the batch records the nearest existing concepts
+# (independent-cell-check, rendered-source-visual-check, source-hash-verification) and names the
+# technique in full in each method_note.
+
+:optical-character-recognition a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/review-method/> ;
+    skos:prefLabel "Optical character recognition"@en ;
+    skos:definition "Values read from a raster image of a table or figure by an OCR engine, with the grid reconstructed from the recognised text geometry. A machine reading, so independent of the operator, but a recognition step rather than a parse of a text layer: it should be reported with the engine named and, where possible, corroborated by a second pass or a second channel."@en ;
+    skos:scopeNote "Use when the source publishes the values only as an image. Do not use for a PDF or HTML that carries a text layer: those are pdf-text-parse or deterministic-table-parse."@en ;
+    skos:closeMatch <http://www.wikidata.org/entity/Q167555> .

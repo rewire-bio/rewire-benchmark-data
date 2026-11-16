@@ -1,0 +1,100 @@
+# Proposed additions to data/vocab/metric.ttl for data/omics/editjumps-20261115.
+#
+# The EditJumps paper reports ten metrics. Only one of them, Jensen-Shannon divergence, already
+# has a concept in metric.ttl, and the reused concept carries the positional formulation in
+# metric_qualifier. The eight concepts below are the other metrics. None of them respells an
+# existing concept:
+#
+#   edit-count                              `count` is a tally of items meeting a criterion;
+#                                           this is a mean number of edit operations per sequence,
+#                                           and it is matched rather than ranked.
+#   levenshtein-distance                    `sequence-diversity` is a mean pairwise normalised
+#                                           Hamming distance at fixed length, which cannot express
+#                                           insertions or deletions. Levenshtein distance is an
+#                                           unnormalised edit distance over unequal lengths.
+#   maximum-mean-discrepancy                `perturbench-energy-mmd` is one benchmark's own energy
+#                                           distance; this is the general kernel two-sample
+#                                           statistic, used here over k-mer spectra.
+#   kullback-leibler-divergence             `jensen-shannon-divergence` is the symmetrised,
+#                                           bounded relative of it; KL is neither.
+#   covariance-agreement                    Not `correlation`: the scalar reduction of the
+#                                           covariance matrix is not defined upstream, so the
+#                                           concept must not imply a correlation coefficient.
+#   mutual-information-product-agreement    Not `normalized-mutual-information`: the quantity is
+#                                           an agreement between two MIP matrices, with the
+#                                           reduction again undefined upstream.
+#   entropy-delta                           A signed difference of positional entropies whose
+#                                           target is zero, so no existing divergence fits.
+#   log-likelihood                          `negative-log-likelihood` has the opposite sign and
+#                                           direction; these values are printed negative with
+#                                           higher being better.
+#
+# External matches are given where one exists. STATO has no term for the four antibody-evaluation
+# agreement measures, whose reductions the upstream paper leaves undefined, so those four carry
+# no exactMatch and say so in their definition.
+
+:covariance-agreement a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Covariance agreement"@en ;
+    skos:altLabel "covariance recovery"@en ;
+    skos:altLabel "cov. agr."@en ;
+    skos:definition "Agreement between the residue pair covariance structure of a generated sequence set and that of a reference set of natural sequences of the same family, usually normalised against a ceiling computed on held-out natural sequences. The scalar reduction of the covariance matrix is not fixed by the concept: sources that report it have not always defined one, so metric_qualifier must name the reduction, the reference set and its size. A distribution comparison between sequence sets, not a measured structural or functional property."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:edit-count a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Edits per sequence"@en ;
+    skos:altLabel "edit budget"@en ;
+    skos:altLabel "edits/seq"@en ;
+    skos:altLabel "realized edit count"@en ;
+    skos:definition "Mean number of single-token edit operations, insertions, deletions and substitutions, realised between a starting sequence and a generated sequence, averaged over a generated set. It describes the size of the change a generator made rather than its quality, so it is matched across generators rather than ranked, and metric_qualifier names the set it is averaged over."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:entropy-delta a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Entropy delta"@en ;
+    skos:altLabel "delta H"@en ;
+    skos:definition "Signed difference between the positional sequence entropy of a generated set and that of a reference set of natural sequences, where the desirable value is zero rather than a maximum or a minimum. Sources reporting it have not always defined the positional formulation, so metric_qualifier must name it."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:kullback-leibler-divergence a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Kullback-Leibler divergence"@en ;
+    skos:altLabel "KL"@en ;
+    skos:altLabel "KL divergence"@en ;
+    skos:altLabel "relative entropy"@en ;
+    skos:definition "Kullback-Leibler divergence from a reference distribution to a predicted or generated one: the expected log ratio of the two, asymmetric and unbounded above. metric_qualifier names what the distributions are over, for example a pooled or a per-position amino-acid composition, and unit_detail records any printed scaling such as a factor of ten cubed."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000471> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:levenshtein-distance a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Levenshtein distance"@en ;
+    skos:altLabel "edit distance"@en ;
+    skos:altLabel "pairwise Levenshtein"@en ;
+    skos:definition "Minimum number of single-token insertions, deletions and substitutions that carries one sequence to another, so it applies to sequences of unequal length. metric_qualifier says which pairs are measured, for example within a generated set or between a generated sequence and its template, and how per-pair distances are reduced, for example pooled over all pairs or averaged within each template."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
+:log-likelihood a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Log-likelihood"@en ;
+    skos:altLabel "LL"@en ;
+    skos:altLabel "profile log-likelihood"@en ;
+    skos:definition "Log of the probability a stated model assigns to the scored sequences, reported on its natural negative scale so that a larger value is a better fit. metric_qualifier names the model the likelihood is taken under, for example a position-specific profile of a family alignment or a protein language model, and whether the value is summed or averaged per position."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:maximum-mean-discrepancy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Maximum mean discrepancy"@en ;
+    skos:altLabel "MMD"@en ;
+    skos:altLabel "spectrum MMD"@en ;
+    skos:definition "Kernel two-sample statistic: the distance between the mean embeddings of two sample sets in the feature space of a stated kernel, zero when the two distributions match. metric_qualifier names the kernel and its features, for example a k-mer spectrum kernel over amino-acid sequences, and the reference set and its size, because the estimator is sensitive to reference sample size."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
+:mutual-information-product-agreement a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Mutual information product agreement"@en ;
+    skos:altLabel "MIP agreement"@en ;
+    skos:altLabel "MIP agr."@en ;
+    skos:definition "Agreement between the mutual information product matrix of a generated sequence set and that of a reference set of natural sequences of the same family, usually normalised against a ceiling computed on held-out natural sequences. As with covariance agreement, the scalar reduction of the matrix is not fixed by the concept and metric_qualifier must name it, along with the reference set, its size and the alignment frame the ceiling was computed in. A distribution comparison between sequence sets, not a measured coevolutionary or structural property."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .

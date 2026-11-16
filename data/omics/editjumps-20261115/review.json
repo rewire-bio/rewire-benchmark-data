@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "method": "independent_source_review",
+  "reviewer": "Claude (Opus 5) review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-11-16T01:30:00Z",
+  "review_methods": [
+    "independent-cell-check",
+    "deterministic-table-parse",
+    "pdf-text-parse",
+    "source-hash-verification",
+    "ai-assisted-source-review"
+  ],
+  "errors": [],
+  "scope": "Independent review of the 465 records of the EditJumps batch (9 sources, 5 methods, 14 configurations, 1 task, 26 protocols, 6 datasets, 11 dataset subsets, 175 evaluations, 175 results, 43 claims) by a different agent from the one that extracted it, against the extraction frozen at batch.jsonl sha256 8c6cf9464cc3a31ada50a8b11b30440e049369c377dbf24251518b836b8556e1. All nine pinned artifacts were re-retrieved from the URLs in their source records and every SHA-256 matched. The arXiv PDF's text layer was regenerated with pdftotext -layout from poppler 26.08.0 and matches the hash notes.md records, so the value check ran against a text layer provably derived from the pinned bytes. The five GitHub files were additionally checked against a tarball of commit d827d47c3bcd29e0f4c15a15f9ac92a6cd859e99 and are byte-identical in it. npm run batch -- check-values over the whole batch reproduced the extractor's figures exactly: 8 in_cell, 164 in_row, 3 locator_not_parsed, no wrong_column and no overclaimed_in_row. Because 164 results sit at in_row only, column assignment was checked separately by review/column_check.py, written for this pass and using neither extract/tables.py nor extract/check_tables.py: it builds two independent column models, the PDF text layer with Tables 2 and 4 assigned by clustering printed field right edges and Table 1 by ordinal position within the printed row, and the arXiv HTML rendering parsed as a cell grid from the table markup. The two models agree on every cell of Tables 1, 2 and 4, and all 172 table-located results match the column and the block their locator names under both. Four negative controls are rejected by both models: two adjacent columns exchanged within a row, a row shifted one column left, a Ty1 and HER2 sub-column exchanged, and the Table 1 upper and lower blocks exchanged for one row label. The three results check-values cannot parse are the Appendix E prose values and were read by hand from the sentence they cite. A manual sample of 14 cells covering every table, both blocks of Table 1, both family blocks of Table 2, both columns of Table 4, both printed spreads and all four printed dashes is listed in the dated review. Every claim was re-read at its locator in each source it cites. Eight metric concepts proposed in vocab-proposal.ttl were checked against the existing metric vocabulary and all eight were accepted and added to data/vocab/metric.ttl, with the proposed STATO match on kullback-leibler-divergence dropped as wrong. The review changed four content fields and added one limitation to 24 results and 24 evaluations; everything it changed is listed in notes.md and justified in the dated review.",
+  "limitations": [
+    "Automated review by a Claude agent, independent of the extractor but not human scientific review. Transcription was checked against the pinned sources; nothing was reproduced, no model was run and no value was recomputed.",
+    "Every value in the batch is developer-reported. The arm the paper scores, its baselines and the ceilings were all produced and reported by the EditJumps authors, and the EvoFlows column of Table 4 and the whole lower block of Table 1 were recovered by those authors from a figure in someone else's paper by vector-path extraction.",
+    "Nothing in any of the nine sources measures binding affinity, specificity, expression, stability or retained function. Every stored number is a comparison between generated sequences and a reference set of natural sequences, and the paper states that its evaluation is strictly in silico.",
+    "The 697 MB of released weight files were not downloaded, so no weight hash is recorded and the released configuration rests on the model card and the encoder configuration alone.",
+    "The identity of the Table 2 arms BF-DiT and BF-ESM is unresolved and their 40 printed cells are not stored. The repository names 'the four Branching Flows cells' and a Branching Flows run mode it does not implement, which is a strong lead but not a stated definition, and neither file is a pinned source.",
+    "No independent evaluation of EditJumps was searched for. This batch is a source-resolution pass over three URLs, not a literature search, and the review did not widen it.",
+    "No discrepancy was checked. discrepancies.json is a build output and is not present in the repository, and every result here is new, so none can yet appear in outlier_results or consensus_results. The next knowledge-graph build is what will flag any."
+  ],
+  "files": {
+    "batch.jsonl": "3b6019e9c935fadf359e14edc0b26f17a03f40b50623bc02786ef11238b4b259",
+    "extract/build_batch.py": "3c2b01e7f860a5e7d18e795da8c10272c69cbe96533e31203925f99039fd60dc",
+    "extract/check_tables.py": "47cddc19edd74c3854a60b54be101c4d5f425316b9b154c7ffe301c2324770cf",
+    "extract/tables.py": "88ee7106b168cd3fcc0dfaa97b9e0ebc2500702f829bc0691ce2a95fd174ca76",
+    "extract/validate_batch.py": "c932ac38dc316885ca607c73684b8d8caa5df8f5b13297368a0ca015847a5c2a",
+    "ledger.jsonl": "a7e75d7181fbf44dea789c1c7da492370a6e99c54e51ef99ad432f9c0bb9b4c5",
+    "notes.md": "172efca6297b90c98ba98b8d59375c35731c6739d191abdd23476fc917a82706",
+    "review/column_check.py": "140abac4b8e2904451820628745de95430bd338e3bf1d99db329870433277d17",
+    "scope-audit.jsonl": "9d0d01e84c6b380dd6fc360088f1e6aa71630b8b4c61ef6623036b047ba5842e",
+    "value-check.tsv": "4e1ce1943a5039d82cd0dd4d429c36b7320967bcf707a65b827c83feaed55e83",
+    "vocab-proposal.ttl": "a2df51dc3d00f1b5de7f3a382a3122b1930da4a7034f9236f5c51b4ab92f6b09"
+  },
+  "source_artifacts": {
+    "editjumps-20261115-source-arxiv-html-v1": "ae0b05f6a7488dabd73990f02b6a6280a6673e0a6a0f2917713f913a5ec3ec4f",
+    "editjumps-20261115-source-arxiv-pdf-v1": "4211d8ef46c55efe8d89ba4ee6c0b4e57cca1e78d0856e9cdfbde37046a7f4e1",
+    "editjumps-20261115-source-code-claims": "7c7103723b23aa8b36e58974717d5a6e4bc368c83167caac9e8954127c0bcfcc",
+    "editjumps-20261115-source-code-licence": "9f1abe28a25b5f6f95c58a81a647de3fa72ff6388d228c59bddd079255709989",
+    "editjumps-20261115-source-code-limitations": "e11bb92210012e08e6a0bc0e6298d098818419f3d661bdae6082c71de9c0b6d8",
+    "editjumps-20261115-source-code-performance": "01e59ef27b2e93b118b15239e57c6500045c99facd72f0b956e78ecf161217e3",
+    "editjumps-20261115-source-code-readme": "fbf05022b8140519c13bf60db99276df3edcbaeac57f091f54a0dc3921716c05",
+    "editjumps-20261115-source-model-card": "552199e1e3be6d07de661baf23876fcbc354f8cfd33b391d2913291a3a5a8c32",
+    "editjumps-20261115-source-model-encoder-config": "5ab36d96756d5a5f78582be7143e89fff113e15f36101f2658d7208d73667be9"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "method": "independent_source_review",
+  "reviewer": "Claude review agent (independent of the extractor); no human review claimed",
+  "reviewed_at": "2026-11-16T02:10:00Z",
+  "errors": [],
+  "review_methods": [
+    "independent-cell-check",
+    "deterministic-table-parse",
+    "pdf-text-parse",
+    "automated-source-review",
+    "source-hash-verification",
+    "transcription"
+  ],
+  "review": "docs/reviews/2026-11-16-phylogpn.md",
+  "reused_source_artifacts": {
+    "phylogpn-2025": "807f3a26cbfa9b5ce238d92164bd523302c67d1c5794b08273c51cca1acd4224",
+    "evidence-expansion-bend-final-f709b6be": "not re-retrieved; the stored BEND values were read from the store and cross-checked against the arXiv rendition arXiv:2311.12570, sha256 bfb40a6afe8028a52ea6c810bba3729510f1e768cc1288026b46e458df2d4ec9, retrieved 2026-11-16"
+  },
+  "scope": "Independent review of the PhyloGPN batch by a different agent from the extractor, on the extraction frozen at batch.jsonl SHA-256 fbf8f6410ec0063a5e7beea4b0c8842052cafe5d26be31d70cbe9e341dce4903 (287 records: 124 results, 124 evaluations, 13 configurations, 12 dataset subsets, 10 claims, 2 sources, 1 dataset, 1 protocol). The reviewed batch holds 294 records; the seven added are the metadata-correction claims this review wrote for the stored records it changed. The pinned Europe PMC full text JATS XML was re-retrieved and its SHA-256 matched the stored source record byte for byte; the supplement PDF was re-retrieved and its member hash matched inside a third, differently hashed Europe PMC zip; the publisher page gave a third distinct hash, confirming its recorded hash_scope; both archived files under artifacts/ decompress to the hashes their source records pin. All 124 results were re-read by review/reread.py, written for this pass, which parses the two table-wrap elements with xml.etree and does not use extract/parse_tables.py or extract/tables.json: it checks the printed value, the numeric value, the metric concept against the printed column header's own parenthetical, the direction, the unit, that uncertainty and denominator are recorded as unreported, that each locator resolves to exactly one cell, that no cell is claimed twice, that every printed cell has exactly one result, and each evaluation's row-to-configuration assignment against a mapping written independently from the paper. review/controls.py shows the check rejects a swapped value, a value shifted one column, a row label shifted one row and a zero recorded for a printed N/A cell; all four were caught and the mutated record named. npm run batch -- check-values reported 124 in_cell and reproduced the extractor's value-check.tsv byte for byte. The manual sample was ten rows and 70 cells read by eye in the raw <tr> markup (review/manual-sample.txt): Table 1 rows '3' UTR', 'Start Codon' and 'Upstream of Transcript'; Table 2 rows 'PhyloGPN', 'PhyloGPN-X', 'GENA-LM', 'Nucleotide Transformer', 'GPN-MSA (LLR)' and 'Expert Method', plus the parenthesised expert-method name row, covering all three asterisked cells and one row of each family-best row. The six printed N/A cells were read in the raw markup and no result, no evaluation and no zero stands in for them. The ten descriptive claims were re-read against the Methods, Results, Discussion, footnotes and permissions statement of the pinned XML and against Appendix A.2 to A.4 of the supplement. review/family-best.py recomputed all 35 compiled Table 2 cells from the BEND results already in the store. No vocabulary concept is added and data/vocab is untouched.",
+  "limitations": [
+    "Automated review by a Claude review agent, independent of the extractor but not human scientific review. Transcription was checked against the pinned sources; nothing was reproduced, no model was run and no value was recomputed from raw data.",
+    "The version of record, the RECOMB 2025 Springer chapter, is paywalled. Its identity was confirmed independently by three routes (Europe PMC's core record for PMCID:PMC11908359, which carries PMID 40093357 and the chapter DOI; Crossref; the publisher page's own citation metadata), but its text was not read, so the preprint and the chapter were not compared. A table that changed between them would not be visible here.",
+    "Europe PMC's TITLE and DOI search index returns no hits for this paper, so it cannot be found by search; only PMCID:PMC11908359 resolves it. That is a property of the index, not of the record.",
+    "The publisher page is mutable: three retrievals on 2026-11-16 gave three different hashes. Its artifact_sha256 describes one retrieval, as its hash_scope says, and no value in the batch rests on it.",
+    "One compiled cell is withheld rather than resolved. Table 2's GENA-LM Chromatin Accessibility value, 0.84, is above every GENA-LM value BEND prints in its main results table in either rendition checked, and no subset of the family reproduces all seven printed cells of the row. The printed value is kept and a scoped evidence concern on phylogpn-2025 names that one result. Its origin is still unknown and would need an upstream question or the version of record.",
+    "Figures 3a, 3b, 4, 5, 6 and S1 print no values and were not read by eye. The OMIM regulatory comparison in Figure 3b has no printed numbers anywhere in the paper.",
+    "Table S1 (31 experiments by 5 models, 155 cells) and Table S2 (13 categories by 2 models, 26 cells, not the 24 the extractor's notes and ledger record) are in the pinned supplement, deferred with locators and not extracted.",
+    "Three values printed in prose are listed in notes.md and not recorded, because each needs its own protocol: PhyloGPN 0.55 and Nucleotide Transformer 0.36 AUROC on the BEND Expression VEP variants by likelihood ratio, and PhyloGPN-X 0.03 AUPRC on Enhancer Annotation at classifier hidden size 32.",
+    "No use-case judgements and no coverage.json: the batch was scoped without them.",
+    "The legacy silo behind b2-phylogpn-2025 (reported-task-ed3dd3b83c4505, reported-dataset-a28180d33f7a23, reported-model-cbbe04b826ceff) and the duplicate source's remaining reference in that task's source_ids and benchmark_research are left for the coordinator as one decision."
+  ],
+  "files": {
+    "artifacts/NIHPP2503.03773v1-supplement-1.pdf.gz": "29b1855dd6807ce39722f37b7db6bae0aa18b6036bb10be561e6574f5ccc3e71",
+    "artifacts/pmc11908359-fulltext.xml.gz": "2b971a17c520b01a5b564929fa250af0d6da7a1298fb740fe72c1d8b0f1c139c",
+    "batch.jsonl": "3647adcfedb3f96ff9b364c43284579447667fa04df0dd5c0f906827a161d1db",
+    "extract/build_batch.py": "b8cfb92bd9ded9dcb11c693c8929727f87cf6226816c2de4ee7af7e473897225",
+    "extract/parse_tables.py": "58fee969ac273afe41604731af01fc9f03358ec23b36f6b408c119c5b198ee36",
+    "extract/tables.json": "0cc9e41cc67e1c38774f727364b38a06ed185a1ceb77e90e873e65cdc5576468",
+    "extract/validate_batch.ts": "2bb9f82ae7517a48c200d26e9f9b2f9ab332075f8ab45f7f64fe9a543bd41a10",
+    "ledger.jsonl": "1725fcf88dce0c6380161150d17862e14a736436d90dacee4dcdd39db0a613d4",
+    "notes.md": "824aa6bfe0c8de525a4b3113fcd08cdc6d020eef962c4a8400a400bdf4c01cf0",
+    "review/apply-review.py": "1c84dc6792fb27209ebe0259a6111d9b3d5118c3be38dfaeb148d8b202d9f361",
+    "review/change-stored.py": "25441cfaf22e8f5bb0c9d09bfb10aff773546b4be12c914f9546516c23d57b31",
+    "review/controls.py": "f7749524c6d3130eb60bd2ad9404c3a40046c155f782265ee558108c8b4ae40f",
+    "review/controls.txt": "4a51ee6f33bf4b536d8da83407c51c7535d97da635695a09c21bdb6b56927824",
+    "review/family-best.py": "824aa37fb6a8dda9e6b70018375219373dc0251bc75595908b261aebb16e4ffd",
+    "review/family-best.txt": "df679d28370d7c1d5ef0ac167f64c5e6b5c075ad6acfe4b49b40e81c0ef4c757",
+    "review/manual-sample.txt": "97eb4f64384a86ba286827aaa0d165de87458eb7158abf10376bbe4ede15c809",
+    "review/reread.py": "593ead8f598acf811884b8c49d249506ef263f8b672f6993ec73a1bcdf8c5e17",
+    "review/reread.txt": "7ae1fc2f42ef87dd2260cfec3272ea130aa81aaf5f8377874000572f01638664",
+    "scope-audit.jsonl": "fad868805525e8399ece76182cefec5fafa1d393897a88a3647d5e009e21a46d",
+    "value-check.tsv": "8e47761c22635271dce7ee41f708345c6e348a147056c5f7171d73426e0ef9fd"
+  },
+  "source_artifacts": {
+    "phylogpn-20261116-source-springer-chapter": "31d3954fe7909256c70099ca0153500b1ab4c72314208e825dbd298276d4f0e7",
+    "phylogpn-20261116-source-supplement": "b4885d288e03ae976acafb2b6b1c3837572dce224c8803715f4d329966ba65f4"
+  }
+}

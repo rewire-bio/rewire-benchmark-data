@@ -1,0 +1,130 @@
+{
+  "attempts_per_target": 200,
+  "conditioning_note": "Conditioning differs between some methods: PPI uses RFD4 backbone conditioning versus all-atom conditioning for several baselines; DNA compares unfixed RFD4 inputs with fixed-DNA baselines; Proteina-Complexa's small-molecule route uses fixed ligands. Only three DNA targets are included. Computational passers do not establish experimental activity.",
+  "inputs": {
+    "model_card_sha256": "38479d8e4c6e46ed7e1ec4ece0dd02c358ae46d73d56790c44be813201fd9b98",
+    "summary_csv_sha256": "5c6d525d988d0df7fecb74396f86401c1ddb4c31fa83f00b357ba77d855d8a10"
+  },
+  "metric_definition": "mean per-target structurally distinct computational passers per GPU-hour, including generation and common AF3 evaluation",
+  "rows": [
+    {
+      "benchmark_label": "Protein binders",
+      "comparator_printed_cell": "Proteina-Complexa · 13.24",
+      "comparator_printed_name": "Proteina-Complexa",
+      "comparator_printed_value": "13.24",
+      "rfd4_printed_cell": "**71.60**",
+      "rfd4_printed_value": "71.60",
+      "targets_printed": "24"
+    },
+    {
+      "benchmark_label": "Small-molecule binders",
+      "comparator_printed_cell": "BoltzGen · 15.48",
+      "comparator_printed_name": "BoltzGen",
+      "comparator_printed_value": "15.48",
+      "rfd4_printed_cell": "**112.25**",
+      "rfd4_printed_value": "112.25",
+      "targets_printed": "77"
+    },
+    {
+      "benchmark_label": "Atomic Motif Enzyme",
+      "comparator_printed_cell": "AlphaProtein-novo (Codesign) · 26.02",
+      "comparator_printed_name": "AlphaProtein-novo (Codesign)",
+      "comparator_printed_value": "26.02",
+      "rfd4_printed_cell": "**91.18**",
+      "rfd4_printed_value": "91.18",
+      "targets_printed": "37"
+    },
+    {
+      "benchmark_label": "DNA binders",
+      "comparator_printed_cell": "BoltzGen (fixed DNA) · 9.46",
+      "comparator_printed_name": "BoltzGen (fixed DNA)",
+      "comparator_printed_value": "9.46",
+      "rfd4_printed_cell": "**41.97**",
+      "rfd4_printed_value": "41.97",
+      "targets_printed": "3"
+    }
+  ],
+  "scope_note": "**These numbers were measured on the previous release pair**, in the October 9, 2026 frozen project benchmark, which predates the current checkpoints. They have not been re-measured on the current release and should not be read as describing it.",
+  "summary_cross_check": {
+    "Atomic Motif Enzyme|other": {
+      "recomputed_per_gpu_hour": "26.02",
+      "summary_attempts": 7400,
+      "summary_criterion": "ame",
+      "summary_dataset": "mcsa_fixed",
+      "summary_label": "AlphaProtein-novo (Codesign)",
+      "summary_panel": "ame",
+      "summary_protocol": "one_shot",
+      "summary_unique_per_10_gpu_min": "4.336287958764792"
+    },
+    "Atomic Motif Enzyme|rfd4": {
+      "recomputed_per_gpu_hour": "91.18",
+      "summary_attempts": 7400,
+      "summary_criterion": "ame",
+      "summary_dataset": "mcsa_fixed",
+      "summary_label": "RFD4-Proteina (high thinking)",
+      "summary_panel": "ame",
+      "summary_protocol": "one_shot",
+      "summary_unique_per_10_gpu_min": "15.197139241828658"
+    },
+    "DNA binders|other": {
+      "recomputed_per_gpu_hour": "9.46",
+      "summary_attempts": 600,
+      "summary_criterion": "dna",
+      "summary_dataset": "dna_fixed",
+      "summary_label": "BoltzGen (fixed)",
+      "summary_panel": "dna",
+      "summary_protocol": "one_shot",
+      "summary_unique_per_10_gpu_min": "1.5767861157347076"
+    },
+    "DNA binders|rfd4": {
+      "recomputed_per_gpu_hour": "41.97",
+      "summary_attempts": 600,
+      "summary_criterion": "dna",
+      "summary_dataset": "dna_unfixed",
+      "summary_label": "RFD4-Proteina (high thinking)",
+      "summary_panel": "dna",
+      "summary_protocol": "one_shot",
+      "summary_unique_per_10_gpu_min": "6.995141754963048"
+    },
+    "Protein binders|other": {
+      "recomputed_per_gpu_hour": "13.24",
+      "summary_attempts": 4800,
+      "summary_criterion": "ppi",
+      "summary_dataset": "ppi_all_atom",
+      "summary_label": "Proteina-Complexa",
+      "summary_panel": "ppi",
+      "summary_protocol": "one_shot",
+      "summary_unique_per_10_gpu_min": "2.207096244584333"
+    },
+    "Protein binders|rfd4": {
+      "recomputed_per_gpu_hour": "71.60",
+      "summary_attempts": 4800,
+      "summary_criterion": "ppi",
+      "summary_dataset": "ppi_backbone",
+      "summary_label": "RFD4-Proteina (high thinking)",
+      "summary_panel": "ppi",
+      "summary_protocol": "one_shot",
+      "summary_unique_per_10_gpu_min": "11.933874547020181"
+    },
+    "Small-molecule binders|other": {
+      "recomputed_per_gpu_hour": "15.48",
+      "summary_attempts": 15400,
+      "summary_criterion": "sm_binder",
+      "summary_dataset": "studio_figure_2c_unfixed",
+      "summary_label": "BoltzGen",
+      "summary_panel": "small_molecule",
+      "summary_protocol": "one_shot",
+      "summary_unique_per_10_gpu_min": "2.579619122276541"
+    },
+    "Small-molecule binders|rfd4": {
+      "recomputed_per_gpu_hour": "112.25",
+      "summary_attempts": 15400,
+      "summary_criterion": "sm_binder",
+      "summary_dataset": "studio_figure_2c_unfixed",
+      "summary_label": "RFD4-Proteina (high thinking)",
+      "summary_panel": "small_molecule",
+      "summary_protocol": "one_shot",
+      "summary_unique_per_10_gpu_min": "18.708070088438323"
+    }
+  }
+}

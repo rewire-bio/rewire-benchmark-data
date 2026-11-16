@@ -1,0 +1,20 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rb: <https://benchmarks.rewire.it/vocab#> .
+@prefix mls: <http://www.w3.org/ns/mls#> .
+@prefix : <https://benchmarks.rewire.it/vocab/metric/> .
+
+# Proposed addition to data/vocab/metric.ttl for the Ladon batch (ladon-20261115).
+# Needed by the 14 Figure 3 results (held-out trial risk-group hazard ratios). No existing concept
+# fits: odds-ratio is a ratio of odds from a two-by-two table, not a ratio of hazards from a
+# survival model. External matches checked on 2026-11-15 with the EBI OLS search API:
+# STATO_0000677 "hazard ratio" (exact) and NCIT_C93150 "Hazard Ratio" (close).
+
+:hazard-ratio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Hazard ratio"@en ;
+    skos:altLabel "HR"@en ;
+    skos:definition "Ratio of the hazard (instantaneous event rate among those still at risk) in one group to that in a reference group, usually estimated by a Cox proportional-hazards model. 1 means no difference. In benchmark use, often the hazard of the predicted higher-risk group relative to the predicted lower-risk group, where a larger ratio means stronger separation. The two groups, how they are formed (for example a median split of predicted risk), the endpoint, the model (stratification, tie handling) and any aggregation over cohorts go in metric_qualifier."@en ;
+    skos:scopeNote "Used by the Ladon technical report (Blank Bio, Zenodo 10.5281/zenodo.24157116, Figure 3): higher-risk half against lower-risk half at each method's median predicted risk, Cox stratified by treatment arm with Efron ties, summarised as an equal-trial geometric mean. Hazard ratios from different group definitions or endpoints are not comparable."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000677> ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/NCIT_C93150> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
