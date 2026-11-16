@@ -555,6 +555,16 @@
     skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000047> ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
 
+:covariance-agreement a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Covariance agreement"@en ;
+    skos:altLabel "covariance recovery"@en ;
+    skos:altLabel "cov. agr."@en ;
+    skos:definition "Agreement between the residue pair covariance structure of a generated sequence set and that of a reference set of natural sequences of the same family, usually normalised against a ceiling computed on held-out natural sequences. The scalar reduction of the covariance matrix is not fixed by the concept: sources that report it have not always defined one, so metric_qualifier must name the reduction, the reference set and its size. A distribution comparison between sequence sets, not a measured structural or functional property."@en ;
+    skos:scopeNote "Not a correlation coefficient. Use :correlation, or one of its narrower concepts, when the source reports a named correlation between predicted and observed values."@en ;
+    skos:related :correlation ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
 :cppc-mean-cell-state-l1 a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Mean summed cell-state L1 error"@en ;
@@ -634,6 +644,16 @@
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by BEELINE"@en .
 
+:edit-count a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Mean edits per sequence"@en ;
+    skos:altLabel "edit budget"@en ;
+    skos:altLabel "edits/seq"@en ;
+    skos:altLabel "realized edit count"@en ;
+    skos:definition "Mean number of single-token edit operations, insertions, deletions and substitutions, realised between a starting sequence and a generated sequence, averaged over a generated set. It describes the size of the change a generator made rather than its quality, so it is matched across generators rather than ranked, and metric_qualifier names the set it is averaged over."@en ;
+    skos:scopeNote "A mean over a generated set, so the value need not be a whole number. Not :count, which is a tally of items meeting a criterion."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
+
 :effective-number-of-groups a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Effective number of groups"@en ;
@@ -659,6 +679,14 @@
     skos:definition "The ratio of true positives found in the top x% of a ranked compound list relative to random selection, as used for virtual-screening library ranking. The fraction x always goes in metric_qualifier."@en ;
     skos:scopeNote "An enrichment factor moves with the actives-to-inactives ratio of the library and with how the negatives were built, so values from different benchmarks are not comparable; record the ratio and the decoy construction on the protocol. Definition as written out in Shen et al. 2025, Chem Sci, doi 10.1039/d5sc06481c, Methods 'Evaluation metrics'."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:entropy-delta a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Entropy delta"@en ;
+    skos:altLabel "delta H"@en ;
+    skos:definition "Signed difference between the positional sequence entropy of a generated set and that of a reference set of natural sequences, where the desirable value is zero rather than a maximum or a minimum. Sources reporting it have not always defined the positional formulation, so metric_qualifier must name it."@en ;
+    skos:scopeNote "The target is zero, which the direction scheme cannot express, so the default direction is unknown and the source's own marker belongs in metric_qualifier."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
 
 :eta-squared a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -781,6 +809,30 @@
     skos:definition "Global distance test total score: mean fraction of residues within 1, 2, 4 and 8 Å of the reference after superposition (reported on 0-1 or 0-100 scales)."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
+:genernib-regression-precision a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "GeneRNIB regression precision"@en ;
+    skos:altLabel "R-Precision"@en ;
+    skos:altLabel "R-Prec."@en ;
+    skos:definition "GeneRNIB score of how well regulators selected from an inferred network predict held-out target-gene expression under a conservative regulator budget, computed by the official all_metrics pipeline (ridge regression in arXiv:2607.23447v1). Not the information-retrieval R-precision (r-precision)."@en ;
+    skos:scopeNote "Defined by GeneRNIB (Nourisa et al. 2025, bioRxiv); described here from arXiv:2607.23447v1 Section 4.3 and Appendix E.3, as the GeneRNIB paper was not retrieved."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:genernib-regression-recall a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "GeneRNIB regression recall"@en ;
+    skos:altLabel "R-Recall"@en ;
+    skos:definition "GeneRNIB score of how well regulators selected from an inferred network predict held-out target-gene expression under a broader regulator budget, computed by the official all_metrics pipeline (ridge regression in arXiv:2607.23447v1). Not the classification recall (recall)."@en ;
+    skos:scopeNote "Defined by GeneRNIB (Nourisa et al. 2025, bioRxiv); described here from arXiv:2607.23447v1 Section 4.3 and Appendix E.3, as the GeneRNIB paper was not retrieved."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:genernib-virtual-cell-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "GeneRNIB virtual-cell score"@en ;
+    skos:altLabel "VC"@en ;
+    skos:definition "GeneRNIB score of whether a virtual-cell model constrained by the inferred network predicts held-out perturbed expression, computed by the official all_metrics pipeline."@en ;
+    skos:scopeNote "Defined by GeneRNIB (Nourisa et al. 2025, bioRxiv); described here from arXiv:2607.23447v1 Section 4.3 and Appendix E.3, as the GeneRNIB paper was not retrieved. Not the Virtual Cell Challenge overall score (vcc-score)."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 :genie-diversity-tm-0-5 a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Diversity at TM-score 0.5"@en ;
@@ -816,6 +868,16 @@
     skos:definition "Genie 3 novelty score of designable structures against the PDB, computed from each structure's closest FoldSeek hit, with a maximum of 1 when there is no hit."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by Genie 3"@en .
+
+:hazard-ratio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Hazard ratio"@en ;
+    skos:altLabel "HR"@en ;
+    skos:definition "Ratio of the hazard (instantaneous event rate among those still at risk) in one group to that in a reference group, usually estimated by a Cox proportional-hazards model. 1 means no difference. In benchmark use, often the hazard of the predicted higher-risk group relative to the predicted lower-risk group, where a larger ratio means stronger separation. The two groups, how they are formed (for example a median split of predicted risk), the endpoint, the model (stratification, tie handling) and any aggregation over cohorts go in metric_qualifier. Not a ratio of odds from a two-by-two table (odds-ratio)."@en ;
+    skos:scopeNote "Direction depends on what the groups are: for risk-group separation larger is better, while for a treatment effect smaller is better, so the scheme default is unknown and each result states its own direction. Hazard ratios from different group definitions or endpoints are not comparable. Used by the Ladon technical report (Blank Bio, Zenodo 10.5281/zenodo.24157116, Figure 3): higher-risk half against lower-risk half at each method's median predicted risk, Cox stratified by treatment arm with Efron ties, summarised as an equal-trial geometric mean."@en ;
+    skos:exactMatch <http://purl.obolibrary.org/obo/STATO_0000677> ;
+    skos:closeMatch <http://purl.obolibrary.org/obo/NCIT_C93150> ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
 
 :hit-enrichment-factor a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -890,6 +952,17 @@
     skos:definition "Rank of an established disease gene among the genes of the affected individual's sample when ordered by the method's outlier score; 1 is the top-ranked gene."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
 
+:kullback-leibler-divergence a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Kullback-Leibler divergence"@en ;
+    skos:altLabel "KL"@en ;
+    skos:altLabel "KL divergence"@en ;
+    skos:altLabel "relative entropy"@en ;
+    skos:definition "Kullback-Leibler divergence from a reference distribution to a predicted or generated one: the expected log ratio of the two, asymmetric and unbounded above. metric_qualifier names what the distributions are over, for example a pooled or a per-position amino-acid composition, and unit_detail records any printed scaling such as a factor of ten cubed."@en ;
+    skos:scopeNote "No external match: STATO holds no Kullback-Leibler term."@en ;
+    skos:related :jensen-shannon-divergence ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
+
 :l2-distance a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "L2 distance"@en ;
@@ -929,6 +1002,16 @@
     skos:altLabel "Leaderboard Percentile"@en ;
     skos:definition "Position of a submission's score within the submissions on a stated public leaderboard for the same task, on a 0 to 100 scale where higher means the score beats more leaderboard entries. Depends on who submitted to that leaderboard and when; it is not a measure of the task metric itself. metric_qualifier states how failed runs are scored and how percentiles are aggregated over tasks."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:levenshtein-distance a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Levenshtein distance"@en ;
+    skos:altLabel "edit distance"@en ;
+    skos:altLabel "pairwise Levenshtein"@en ;
+    skos:definition "Minimum number of single-token insertions, deletions and substitutions that carries one sequence to another, so it applies to sequences of unequal length. metric_qualifier says which pairs are measured, for example within a generated set or between a generated sequence and its template, and how per-pair distances are reduced, for example pooled over all pairs or averaged within each template."@en ;
+    skos:scopeNote "Not :sequence-diversity, which is a mean pairwise normalised Hamming distance at fixed length and so cannot express insertions or deletions. A source that heads this quantity 'diversity' keeps that wording in metric_qualifier."@en ;
+    skos:related :sequence-diversity ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
 
 :ligand-pass-rate a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -980,6 +1063,16 @@
     skos:scopeNote "The detection rule, replicate count and grid of tested levels belong in metric_qualifier or the protocol; values from different grids or rules are not comparable."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
 
+:log-likelihood a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Log-likelihood"@en ;
+    skos:altLabel "LL"@en ;
+    skos:altLabel "profile log-likelihood"@en ;
+    skos:definition "Log of the probability a stated model assigns to the scored sequences, reported on its natural negative scale so that a larger value is a better fit. metric_qualifier names the model the likelihood is taken under, for example a position-specific profile of a family alignment or a protein language model, and whether the value is summed or averaged per position."@en ;
+    skos:scopeNote "The sign complement of :negative-log-likelihood, not a respelling of it: values are printed negative and higher is better. Store the value as the source prints it and pick the concept whose sign matches."@en ;
+    skos:related :negative-log-likelihood ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
 :log-loss a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Log loss"@en ;
@@ -1027,6 +1120,13 @@
     skos:broader :matthews-correlation-coefficient ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
+:magnitude-ratio a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Magnitude ratio"@en ;
+    skos:altLabel "|psi| ratio"@en ;
+    skos:definition "Mean absolute predicted value divided by mean absolute true value over stated items, for example predicted over true intervention strengths on true target genes. 1 means the overall scale is recovered; values above or below 1 are over- or under-estimates. metric_qualifier names the quantity and the items."@en ;
+    skos:scopeNote "The target value is 1, so neither higher nor lower is better and the direction is unknown. Not a regression slope (regression-slope), which is fitted rather than a ratio of means."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/unknown> .
 :matthews-correlation-coefficient a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Matthews correlation coefficient"@en ;
@@ -1041,6 +1141,16 @@
     skos:prefLabel "Maximum batch size"@en ;
     skos:definition "Largest number of inputs processed together that fits in a stated device memory for a stated input length."@en ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:maximum-mean-discrepancy a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Maximum mean discrepancy"@en ;
+    skos:altLabel "MMD"@en ;
+    skos:altLabel "spectrum MMD"@en ;
+    skos:definition "Kernel two-sample statistic: the distance between the mean embeddings of two sample sets in the feature space of a stated kernel, zero when the two distributions match. metric_qualifier names the kernel and its features, for example a k-mer spectrum kernel over amino-acid sequences, and the reference set and its size, because the estimator is sensitive to reference sample size."@en ;
+    skos:scopeNote "The general statistic. PerturBench reports an energy distance under the name MMD; that is :perturbench-energy-mmd and is a different quantity."@en ;
+    skos:related :perturbench-energy-mmd ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
 
 :mean-absolute-error a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1108,6 +1218,13 @@
     skos:broader :f1-score ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
+:min-max-normalised-score a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Min-max normalised score"@en ;
+    skos:altLabel "min-max normalized score"@en ;
+    skos:definition "A metric rescaled to [0, 1] within a stated comparison set: each method's value, oriented so that higher is better, minus the lowest value among the compared methods, divided by the range across them; usually averaged over strata. metric_qualifier names the underlying metric, the comparison set and the aggregation."@en ;
+    skos:scopeNote "Relative to the methods compared: adding or removing a method changes every value, so values are comparable only within one table. A composite of several such scores is a weighted-composite-score."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 :modified-squared-correlation a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Modified squared correlation coefficient"@en ;
@@ -1116,6 +1233,16 @@
     skos:definition "Roy's modified squared correlation, r_m^2 = r^2 (1 - sqrt(|r^2 - r0^2|)), where r^2 is the squared Pearson correlation between predicted and observed values and r0^2 is the coefficient of determination of the regression through the origin. Penalises predictions that correlate with but are offset from the observed values."@en ;
     skos:broader :correlation ;
     skos:scopeNote "Introduced by Roy et al. for QSAR validation; restated in Wang and Cheng 2026 (PLABench), Methods, Equation 5."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+:mutual-information-product-agreement a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Mutual information product agreement"@en ;
+    skos:altLabel "MIP agreement"@en ;
+    skos:altLabel "MIP agr."@en ;
+    skos:definition "Agreement between the mutual information product matrix of a generated sequence set and that of a reference set of natural sequences of the same family, usually normalised against a ceiling computed on held-out natural sequences. As with covariance agreement, the scalar reduction of the matrix is not fixed by the concept and metric_qualifier must name it, along with the reference set, its size and the alignment frame the ceiling was computed in. A distribution comparison between sequence sets, not a measured coevolutionary or structural property."@en ;
+    skos:scopeNote "Not :normalized-mutual-information, which scores cluster assignments against labels on a bounded scale."@en ;
+    skos:related :normalized-mutual-information ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :ndcg a skos:Concept, mls:EvaluationMeasure ;
@@ -1135,6 +1262,15 @@
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by ProteinGym"@en .
 
+:negative-log-likelihood a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Negative log-likelihood"@en ;
+    skos:altLabel "NLL"@en ;
+    skos:altLabel "Obs. NLL"@en ;
+    skos:definition "Mean negative log-likelihood of observed values under a model's predictive distribution for continuous or count data. metric_qualifier names the predictive distribution and what the mean is taken over."@en ;
+    skos:scopeNote "A likelihood of continuous data, so the value can be negative. Narrower measures over class probabilities use log-loss, which cannot be negative."@en ;
+    skos:related :log-loss ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/lower> .
 :negative-predictive-value a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Negative predictive value"@en ;
@@ -1197,10 +1333,12 @@
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
     skos:prefLabel "Paired accuracy"@en ;
     skos:altLabel "paired_accuracy"@en ;
-    skos:definition "Proportion of matched element/control sequence pairs in which the model scores the regulatory element above its matched control."@en ;
+    skos:altLabel "Pairwise accuracy"@en ;
+    skos:altLabel "pairwise_accuracy"@en ;
+    skos:definition "Proportion of matched positive/control pairs in which the model scores the positive member above its matched control. The pair population, how each control was matched to its positive, and how exact ties are handled go in metric_qualifier."@en ;
     skos:broader :accuracy ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
-    skos:scopeNote "Defined by DART-Eval"@en .
+    skos:scopeNote "The definition was first written for DART-Eval, whose pairs are a regulatory element and its matched control sequence; a regulatory element scored above its control is one instance of it. Widened on 2026-11-16 (docs/reviews/2026-11-16-poisk.md) so it also covers the POISK antibody endpoint, where the pair is a patent-supported binder and a matched putative decoy antibody against the same antigen and exact ties take half credit. Results under this concept are only comparable when their metric_qualifier agrees, so a regulatory-element figure and an antibody figure never pool. No STATO, QUDT or EDAM term for a matched-pair discrimination accuracy was found; the concept's external anchor is its broader :accuracy."@en .
 
 :pairwise-win-rate a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
@@ -1218,6 +1356,15 @@
     skos:broader :accuracy ;
     rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> ;
     skos:scopeNote "Defined by Cell2Sentence"@en .
+
+:passing-design-clusters-per-accelerator-hour a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Passing design clusters per accelerator hour"@en ;
+    skos:altLabel "distinct passers per GPU-hour"@en ;
+    skos:altLabel "passing structural clusters per GPU-hour"@en ;
+    skos:definition "Number of structurally distinct generated designs that meet a stated computational criterion, divided by the accelerator time the source says it counted. Passing designs are grouped into structural clusters first, so the numerator counts distinct passing structures rather than passing designs. The clustering rule, the pass criterion, the accelerator time the denominator includes and the aggregation over targets go in metric_qualifier."@en ;
+    skos:scopeNote "A computational yield per unit of compute, not an experimental hit rate: the numerator is designs that passed a structural or confidence criterion, not designs that were synthesised and assayed. Not comparable with a pass rate, which has a per-attempt denominator, nor with inference throughput, which counts samples processed rather than samples that passed. No STATO, QUDT or EDAM term was found for it."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
 
 :peak-memory a skos:Concept, mls:EvaluationMeasure ;
     skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;

@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "method": "independent_source_review",
+  "reviewer": "Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-11-16T01:30:00Z",
+  "errors": [],
+  "review_methods": [
+    "independent-cell-check",
+    "pdf-text-parse",
+    "automated-source-review",
+    "source-hash-verification",
+    "scope-review"
+  ],
+  "scope": "Independent review of the GPN paper batch (PNAS 120(44) e2311219120, DOI 10.1073/pnas.2311219120, PMC10622914) by a different agent from the extractor, against the extraction frozen at batch.jsonl sha256 6d4b99a755d9bb72f6ecdd8b469ea4717d1a04e492761689581ae6fc2d7d48b0, 80 records including 23 results, 16 claims, 15 evaluations, 7 protocols, 5 configurations, 4 datasets, 4 dataset subsets, 2 benchmarks and 4 sources. The reviewed batch holds 81 records: the one added is metadata-correction-gpn-msa-configuration-of-20261116, which keeps the previous value of a link this review corrected in already-stored data. No vocabulary concept is added and data/vocab is untouched. All four pinned artifacts were re-checked and every hash matched: the Europe PMC full text JATS XML and the bioRxiv details API response were re-downloaded byte-identically; the SI Appendix PDF was re-downloaded as the member of a freshly built Europe PMC zip whose own hash (c7a1b20e8796c4bd384ba6f0308134e32a66e40dc881b0c1e3d0201da26e8498) is a third distinct value, confirming the extractor's warning that the zip is built per request, while the pnas.2311219120.sapp.pdf member inside it matched the pinned hash; and the bioRxiv v3 XML could not be re-retrieved live (Cloudflare error code 1015, rate limited) and was checked against the archive only. Every archived file under artifacts/ decompresses to the hash its source record pins, and extract/si-appendix.layout.txt regenerates byte for byte from the archived PDF with pdftotext -layout, poppler 26.08.0, so it was not hand-edited. The central finding was confirmed independently: the whole JATS document, parsed with xml.etree.ElementTree rather than with a regular expression over the markup, holds zero table-wrap and zero table elements, and a scan of every decimal number on the SI Appendix figure pages found no comparator value, only axis ticks, the GPN score bin edges of the Figure S7 legend, threshold quantiles, the method legends of Figures S9, S11 and S12, the per-class rare and common counts of the Figure S9 subplot titles and the two threshold definitions above Figure S8. No printed comparator value the extractor missed was found. All 23 results were re-read, not a sample: npm run -s batch -- check-values reproduced the extractor's figures exactly (6 in_cell, 17 locator_not_parsed, no not_in_row, no wrong_column, no overclaimed_in_row, which matters because Table S2 prints 2.92 in two rows), and review/recheck_values.py, written for this pass and importing nothing from extract/parse_values.py, re-checked the 17 prose values inside the section each source_locator names (the value with its label must occur exactly once in that section and exactly once in the body, with a negative control carrying the value under a neighbouring label absent everywhere) and the 6 Table S2 cells by column position, taking each column's character span from the printed header line and the locator's named row and column from the record; 37 checks, all passing. review/mutation_test.py drove the same script over six corrupted copies of the batch and all six were caught, including the stop codon median changed from the published 2.8 to the bioRxiv v3 value 2.81. The 16 descriptive claims were each read against their own locators, which found two locators that did not cover the whole claim; both were extended in batch.jsonl before the batch was stored. Every null and missing_metadata entry was checked and all are genuinely unstated in the source. All eight questions the extractor raised were ruled on with the deciding source text in docs/reviews/2026-11-16-gpn-paper.md, including the main-model assignment (upheld, on SI Appendix Table S3 printing Repeat weight 0.1 as the paper's one hyperparameter set) and the odds ratio against fold enrichment reading (upheld as odds-ratio, on Materials and Methods naming Fisher's exact test and the Figure 5c and 6c captions naming the contingency table and odds ratio). A pre-existing error in already-stored data was confirmed and fixed: gfm-guide-20261014-config-evee-gpn-msa, a GPN-MSA configuration, was linked configuration_of to the GPN family record, so one GPN-MSA result (gfm-guide-20261014-result-evee-deconfounded-gpn-msa, AUROC 0.952) counted as a GPN result; the link now points at gfm-guides-20261014-gpnmsa-model-gpn-msa and the change is recorded against this review.",
+  "limitations": [
+    "Automated review by a Claude review agent, independent of the extractor but not human scientific review. Every value was transcribed from a pinned artifact and checked against it; nothing was reproduced and no model was run.",
+    "The bioRxiv v3 XML was not re-retrieved live at review time. The bioRxiv server returned Cloudflare error code 1015 (rate limited) to a plain request, and the review did not disguise the request to get round it. The archived copy regenerates the pinned hash, which is weaker evidence than a live refetch. It affects nothing in the batch: the preprint supports only the version history claim and the version difference claim, both checked against the archived bytes.",
+    "The Europe PMC supplementaryFiles endpoint builds a zip per request, so the zip hash is not a stable identity. Three downloads across the extraction and this review gave three distinct zip hashes. Only the pnas.2311219120.sapp.pdf member is stable, and it is what the source record pins and what attributes.artifact_member names.",
+    "The paper's whole model-versus-baseline story is unextractable and is not in the store. Every comparison of GPN against phyloP, phastCons, abs(phyloP), LD Score and their LD-weighted forms is a bar chart with no values in its text layer (Figures 5d, 6d, 6e and SI Appendix Figures S6, S8 to S12), as are the contingency tables of Figures 5c and 6c and the confusion matrix of Figure 2b. The supplementary zip carries raster JPEGs of Figures 1 to 6; reading a bar height off them would be reading pixels, which docs/collection.md forbids, so they were not opened for values and are not pinned. The only comparator figure recorded anywhere in this batch is the bound 'less than 7.5-fold enrichment was observed for other methods'.",
+    "The typeset PNAS PDF was not retrievable (pnas.org HTTP 403, PMC proof-of-work interstitial). If a later pass obtains it and its figures carry vector text, some of the figure-only comparisons may become extractable. That is the one route worth trying.",
+    "The denominator of the 10.3-fold GWAS odds ratio stays unreported. The sentence names neither variant set, and although the following sentence implies it is the 453,281 aligned variants of Figure 6d, the paper does not say so and the review did not infer it.",
+    "'Accuracy on CDS (96%)' is recorded with the metric concept the paper's own wording gives. The paper defines no per-class quantity and Figure 2b, the confusion matrix that would settle whether it is recall, prints no values, so nothing could be checked against an inference. The ambiguity is kept in the result's scope note.",
+    "Whether r = 0.22 and r = 0.13 are Pearson or Spearman correlations is unstated in the paper and was not inferred. Both are recorded as claims rather than results, because they measure agreement between two scores and not a model's performance on a protocol.",
+    "The preprint's own SI Appendix was not retrieved, so its Table S2 was not compared with the published one.",
+    "The effect of the GPN-MSA relink on the discrepancy rules could not be computed. A finding's systems key is derived after configuration_of resolution, so the relink changes which systems any finding over the EVEE deconfounded SNV protocol compares; public/kg/discrepancies.json is a build product and the build was not run here. No accepted discrepancy_review claim in the store mentions GPN, among the 21 of them, so no accepted review can be orphaned by the change.",
+    "No use-case work. The pinned source is Arabidopsis thaliana only, so no variant interpretation use case is in scope; no relevance judgement, no coverage.json and no summary claim were written, and none is owed.",
+    "npm run test:fast, npm run typecheck and npm run build were not run here, per the coordinator's instruction that they are run once over the merged branch."
+  ],
+  "files": {
+    "artifacts/biorxiv-2022.08.22.504706v3.source.xml.gz": "bf0f7edd9cb99644edf9990c9f31cde85a0ba3300dbb44880fd0fb49cef4039e",
+    "artifacts/biorxiv-versions.json": "f9072577d1af56d94f5a9696d50d623b1e8fa8ab7934ced515689971cc642414",
+    "artifacts/pnas-2311219120-si-appendix.pdf.gz": "48af0c5cb25661a7d730b19068cc2a4d9f2dfa5011cee666411814f91a1454bd",
+    "artifacts/pnas-2311219120.fulltext.xml.gz": "7cf97bb9df79fd9dddcc5b058213e767eea686e4b13958d182921d2ad95a7e1c",
+    "batch.jsonl": "eac7a589d66ddbdefe5aa6cf79c47c0fb44398c90faa1b80dafdb9fb087d154a",
+    "build.py": "45193c67c307d2d5f2010f1ce00ea08004c11366dc915af707171b8f5f66b638",
+    "extract/parse_values.py": "d68a5dbc5dc5f82b9823d4f9327df62fc294956b39279047bba80fa87586c981",
+    "extract/si-appendix.layout.txt": "6ee1d0c99cc16aa2f5781755204665f0ee08a8f966a9a52c4e1e804ba3bf335a",
+    "extract/validate_batch.ts": "4b48be1589d11abcf4697966242f62fcacb9fbef2f21d1aac4383dc4efe7c507",
+    "extract/values.json": "af5ecc6330822c801c5c2ff13586532150e1b61413eb58b934965cb1bac9303e",
+    "ledger.jsonl": "6b82ae98695f76f3986b1daef6950bbcc4c020c7e5ddf2091f5a2a468fde08a3",
+    "notes.md": "935af8ea63f3c8d85f39b7ffc05c5d18180929b4c6b05c32693244fba623e838",
+    "review/apply_review.py": "00c67e3d8d84cf843bf371f207807f3cd504fe2ffa3a00f5444136b2af61a252",
+    "review/mutation_test.py": "ac3e92e47ba6dd0c20e077d658bed4460c1dd9cd84ca733fed31c47d935256b0",
+    "review/recheck.json": "42d68ad65b4d4fee433aa5ca1a9f0c2d072e594e5ad974bea39b928d1ad98399",
+    "review/recheck_values.py": "27eca92eecb88a677596bfad0527d9926b43cd7a10720b1bcab6e80e4fb46877",
+    "scope-audit.jsonl": "5c237f585921e824f61b72c7f2b40a1615684231e73618ff60e6ae960500d326",
+    "value-check.tsv": "3d23e547b22b451bb259b83858d352c05b5ed3247aea8532eb82a493b80fd35f"
+  },
+  "source_artifacts": {
+    "gpn-paper-20261116-source-biorxiv-v3": "4faeb24f27e8db7fd57f65f10e2885e9bea82f539b6acf37b356d2bd5864ef15",
+    "gpn-paper-20261116-source-biorxiv-version-list": "f9072577d1af56d94f5a9696d50d623b1e8fa8ab7934ced515689971cc642414",
+    "gpn-paper-20261116-source-pnas-2023": "8ff2184c07f5e6807af0b9d5103d669e1920e735ab5a4b1ea856c070077ae1e0",
+    "gpn-paper-20261116-source-pnas-2023-si-appendix": "e9ea2399b54c66f17b6088f205e17242521bd31fcb6b608841cdaf69cf363b16"
+  }
+}

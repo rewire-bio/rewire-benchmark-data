@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "method": "independent_source_review",
+  "reviewer": "Claude review agent (independent of the extractor); no human review claimed",
+  "reviewed_at": "2026-11-15T00:00:00Z",
+  "errors": [],
+  "review_methods": [
+    "independent-cell-check",
+    "deterministic-table-parse",
+    "pdf-text-parse",
+    "source-hash-verification",
+    "ai-assisted-source-review"
+  ],
+  "scope": "Independent review of the 135 records of the PerturbPFN batch (2 sources, 1 model, 10 methods, 6 configurations, 2 benchmarks, 3 protocols, 2 datasets, 1 dataset subset, 14 evaluations, 81 results, 13 claims) by a different agent from the extractor, against the extraction frozen at batch.jsonl SHA-256 1b50664da2bfe60287cbe48e3b996d562f6c5594539bb07a06f46505560a12ca. Both pinned artifacts were re-retrieved on 2026-11-15 and both SHA-256 values matched their source records, the mutable arXiv abstract page included (1f42d94a62e4251c24e7e138abd0a4904a6863a3e1ab94c5b155c885c929922a from a fresh fetch of https://arxiv.org/abs/2607.23447), and the refetched page still prints 'Submitted on 26 Jul 2026', the CC BY 4.0 licence link and the FMSD 2026 comments line. A pdftotext -layout run (poppler 26.08.0) on the refetched PDF hashes to 28b341ce3c893e7d734d05de5e522973152a3b0936bf0e6dd16565112eb9c0bb, which is the decompressed content of the archived artifacts/arxiv-2607.23447v1.pdftotext-layout.txt.gz, so the archive is provably derived from the pinned bytes. npm run batch -- check-values was rerun against that regenerated text layer and reproduced the extractor's figures exactly: 64 in_cell, 11 in_row, 6 locator_not_parsed, no not_in_row, no wrong_column and no overclaimed_in_row, writing a value-check.tsv byte-identical to the extractor's (9ea6f87b679db972807b832b538b1b4c063c45d08c0cfc67c0d8d761eebe8df8). The command exits 1 because of the six unparsed locators, which are the five PerturbPFN Table 2 score cells on the unlabelled line between the two runtime rows and the Section 4.1 prose value 0.6287; it is not a mismatch report. All 81 results were then re-read by review/recheck_tables.py, written for this pass and using neither extract/parse_tables.py nor extract/check_tables.py: it takes each table's column spans from the character offsets of that table's own printed header line, assigns every numeric token on a body line to the column whose header centre is nearest, and matches cells to records through each result's source_locator text rather than its ID, checking printed_value, numeric_value, the printed spread and the system the result's evaluation names. It covers all six locators check-values could not parse. Two negative controls confirmed it fails as intended: swapping RF X-Learner's printed 0.8793 and 0.9696 in the text layer fails on printed_value, and pushing PORTIA's R-Prec. cell one column to the right fails on geometry. It also re-derived each row's printed overall score as the equal-weight mean of its three normalised columns, the largest residue being under 0.00006. Manual sample of 16 cells, covering column assignment in all three tables: Table 1's third label and value pair on each of its three rows (|psi| ratio 0.9386, delta cosine 0.7437, Obs. NLL -0.1375) and its first and second pairs on the third row (Proj. F1 0.3261, target F1 0.7649); Table 2's unlabelled PerturbPFN score line (0.7186, 0.8813, 0.9183, 0.8394, #2) read against the header offsets of the RF X-Learner row above it, the GIM time 4495.6 ± 116.9, and the two PerturbPFN times 432.8 ± 0.34 and 1.11 ± 0.34; Table 3's middle columns (PORTIA R-Prec. 0.3970 and R-Recall 0.2668, SCENIC TFB-F1 0.1180 and R-Prec. 0.3802, PPCOR TFB-F1 0.0000). The 54 descriptive records were read against Sections 2 to 5, Appendices A to E and Tables 4 to 8: the step-3100 checkpoint of a 3,500-step seed-17 run and its 14.98M parameters (Tables 6 and 7), the top-k gate k = 3 (Table 6), 1.44 GPU-hours on one RTX 4090 (Appendix B), the four Sci-Plex baseline settings (Appendix D.4), the GeneRNIB panel settings (Table 8, Appendix E.2) and the Section 5 limitations all match. Six metric concepts proposed in vocab-proposal.ttl were checked against the 259 existing concepts and all six were added to data/vocab/metric.ttl; no proposed concept was rejected and no result was remapped. One data change was made: the two same_data_as links on the Sci-Plex subset were removed and replaced by a reuse_note. Every record's review object was replaced with this pass's and every status raised from needs_review to source_checked.",
+  "limitations": [
+    "Automated review by a Claude agent, independent of the extractor but not human scientific review. Transcription was checked against the pinned source; nothing was reproduced and no value was recomputed from data.",
+    "Table 2's scores are min-max normalised within the seven compared rows, so they carry no meaning outside that table. No evidence concern was added, because the concern mechanism withholds a result from every comparison including the paper's own, and the normalisation is a documented property of the metric rather than a fault in the source. The guard is the metric concept min-max-normalised-score, whose scope note says values are comparable only within one table, the metric qualifier on all 21 values, which names the seven compared methods and the per-protocol then 12-protocol aggregation, and a limitation on every value. A residual risk stays recorded here: the cross-study gap-outlier rule groups by metric concept and by the protocol or the task it sits within, so a future study reporting min-max-normalised-score on another protocol under catalog-task-cell-perturbation would pool with these values. Nothing in the store does today.",
+    "The GeneRNIB paper, repository and score archive were not retrieved. The benchmark, its 300BCG dataset, the three new GeneRNIB metric concepts and the five baseline rows all rest on arXiv:2607.23447v1's own description of them, and the archive version and retrieval date are not printed. The mapping of GS-F1 and TFB-F1 to the generic f1-score concept is provisional for the same reason: Appendix E.3 calls TFB-F1 'normalized agreement and coverage', which may not be a plain F1.",
+    "The GIM paper and codebase were not retrieved, so the Sci-Plex preprocessing, the 50 marker genes per protocol and the highest-dose split are recorded from the PerturbPFN text alone.",
+    "No code, weights, checkpoint hash or code licence exists to check. The extractor's searches on 2026-11-15 found none and were not repeated in this pass; the records state access as unavailable rather than open.",
+    "Figure 2's raw per-protocol mean distance, Pearson r and W2 distributions are box plots with no printed values and are not extracted.",
+    "Section 4.3's edge AUROC 0.9168 and edge average precision 0.7570 are cited to an Appendix E that describes only the GeneRNIB protocol. They are recorded in a claim on the source and deliberately not extracted as results, because v1 gives no reference edge set, dataset or protocol for them.",
+    "No seeds, repeated runs, cell counts per condition or number of doses per drug are reported, and the paper does not say what the Table 2 runtime spread is taken over or whether Table 1 is pooled over the 1,024 episodes or averaged over the 128 batches. Those stay recorded as missing metadata.",
+    "No discrepancy could be checked. The discrepancy rules run on the built store, so no entry of discrepancies.json can name a result of a batch that has not yet been built."
+  ],
+  "files": {
+    "artifacts/arxiv-2607.23447v1.pdftotext-layout.txt.gz": "bb23dabbced4f8a40a42d8d0f74c10a0b27b1c54dddbbb53d314bff9c04221c6",
+    "batch.jsonl": "3f44d5e4a18b62e1eb195d60b7da8c7815ab99d50d707042ed90545ac5bf4abd",
+    "extract/build.py": "9a490971d8c0e3e9562ef330e2c40a8c24b1c23d71026891f15ad73e3a6712d1",
+    "extract/check_tables.py": "09950c8aa41540ddc6e00dfed3cbc05135edf8ea1d553ee26852edf98f8a5e4f",
+    "extract/parse_tables.py": "8e051b99aa9095232aefbaa88b0fe8eda3d3d04643535a36f32ac70a5170a8d0",
+    "extract/tables.json": "6a32a346708be539680cd1aa55213397d9b1efb12fa8de63fad9199f517454be",
+    "extract/validate_batch.ts": "d446d5b99d343146670c14cabddf722bfc3c7c2bc5ca310cf0720b532a773cca",
+    "ledger.jsonl": "db62f206f30bd93f8bbe46030021189bfdcc61aa9aa0619364a6a098e32ef459",
+    "notes.md": "a7671af483cfa7795286d05a2ce6d5a9fb1d6b26fa28379d0716dbab62d59e00",
+    "review/apply_review.py": "0ce74ac6b8c118ffb61e0c6a1235ef25dee8f09531d19c475e55bfebbf909d25",
+    "review/recheck_tables.py": "78d16c70430957f345738d0e3d8a60a964b75130d11179b64232e7cc2a5741fc",
+    "scope-audit.jsonl": "8ffb7f6aa32fac11cc40b2c25bcbaab493688f97f27eea17929d6573fd2d21f4",
+    "value-check.tsv": "9ea6f87b679db972807b832b538b1b4c063c45d08c0cfc67c0d8d761eebe8df8",
+    "vocab-proposal.ttl": "b44f01c9593f4c961e76bdd7bbfe542726a6869a5f6ebfbf3a9d6562764e46c5"
+  },
+  "source_artifacts": {
+    "perturbpfn-20261115-source-arxiv-abs": "1f42d94a62e4251c24e7e138abd0a4904a6863a3e1ab94c5b155c885c929922a",
+    "perturbpfn-20261115-source-arxiv-v1": "42191efa04b45ca04b2be38b51ea374cd9bf891efe2399d331fec9eaeab200b1"
+  }
+}

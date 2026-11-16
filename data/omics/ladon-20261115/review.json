@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "method": "independent_source_review",
+  "reviewer": "Claude review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-11-15T23:30:00Z",
+  "errors": [],
+  "review_methods": [
+    "independent-cell-check",
+    "pdf-text-parse",
+    "source-hash-verification",
+    "automated-source-review"
+  ],
+  "scope": "Independent review of the 317 records of the Ladon batch (4 sources, 4 models, 22 methods, 12 configurations, 1 benchmark, 6 tasks, 19 protocols, 7 datasets, 16 dataset subsets, 93 evaluations, 101 results, 32 claims) by a different agent from the extractor, against the extraction frozen at batch.jsonl SHA-256 faa416c7837bbc20b7b5520c5b2b18dd6baa41bdbcb6e4765104969342f1ec7c. The report prints no tables, so npm run batch -- check-values returns locator_not_parsed for all 101 results and value-check.tsv is kept as that record; all 101 printed figure labels were re-read instead by review/check_figure_labels.py, which uses the word-level geometry of a pdftotext -bbox-layout run and shares no code with the extractor's scripts, plus a manual sample covering every multi-column figure. One vocabulary concept was added for this batch, :hazard-ratio in data/vocab/metric.ttl, used by the 14 Figure 3 results; nothing else outside the batch folder was changed. One scoped evidence concern was added, the two combined configurations gained a uses_model link to Ladon after a SHACL violation of rbs:CombinedConfiguration, and no stored value was changed.",
+  "limitations": [
+    "Automated review by a Claude agent, independent of the extractor but not human scientific review. Transcription was checked against the pinned sources, which is not reproduction: nothing was rerun and no value was recomputed.",
+    "Every evaluation is developer-reported. Blank Bio built Ladon and ran every comparator, no weights or code are published, and no independent evaluation of Ladon exists three days after release, so none of these numbers has been checked by anyone outside the developer.",
+    "All four sources are hashed, but the three HTML artifacts are mutable and each hash describes one retrieval. The PDF's licence is all rights reserved, so neither it nor its text layer is archived here; to recheck, re-download the Zenodo file and regenerate the text layer with pdftotext -layout.",
+    "The report prints no tables and no underlying rows, so the repository's locator-based value check cannot place any result and the review rests on the reviewer's own geometric re-read plus the manual sample.",
+    "For the 216 non-result records, pages 11, 14, 18, 22, 29, 38 and 40 to 43 were covered by review/check_claim_quotes.py, which looks for each stated quotation and number in the cited source, and not by a full read of those pages.",
+    "Two defects in the reviewer's own review objects were found after the batch had been added and fixed with npm run records -- change over 209 records: the PDF's hash and URL had been written into records whose source is an HTML page, and the shared descriptive method note claimed a fuller re-read than had been done. The dated review records both.",
+    "Per-trial values, exact p-values and most confidence intervals exist only in the web figures' embedded data and are not stored; the per-figure web pages other than Figure 6 are not pinned as source records, so they were used to cross-check values and never as the source of one.",
+    "ClinBench is registered as a discovered benchmark. Its task list and scores are not published, so nothing about its results could be checked.",
+    "The 19 new protocols carry no use-case relevance judgements; this batch is a model registration, and linking them to use cases was not in its scope."
+  ],
+  "files": {
+    "batch.jsonl": "c2fa1d8f370ebac59b085e3af678fa041141cc4e6d295da04fd073b376e72eb5",
+    "extract/build_batch.py": "687f65f84c7ae11dff6f2960e3eff1b2f4f0ee2847fedfe832577438936c4d05",
+    "extract/check_against_web.py": "2703f1ada88ba94afb560d6f464469223bbad7a121456105943946952c7c303c",
+    "extract/check_locators.py": "c8cf8b3fb89097e17b0f6e935fbc3ea907f1dcdd3731a1485694683e318f7017",
+    "extract/figures.json": "51e6e1cb88baf1017d960419c13c6ceb9e0cf94d3e20768c4422c187ca1862b1",
+    "extract/locator-check.txt": "f268e4079519bcd778db90ac46b6ba3f6711b25941c29762e498cf22e3f85d28",
+    "extract/parse_figures.py": "f198975556e90bbde48445e8b8e16b039ffe12b3ee5632cccc11bd3ee04d867b",
+    "extract/validate_batch.ts": "167137de31edf9ae08f14ab94bdb7f899aec2fccc00f18f2399293c36a8a0242",
+    "extract/web-check.txt": "977e3dd34fa94ffd593fe82985b7b92f4d9d2ea162bf31cc4469ae916750dc98",
+    "ledger.jsonl": "5e43ff21ba2b4594997d379f727953d3fd8f868a24ce26293c05420f52536917",
+    "notes.md": "a7c227e8ea3056f9d3db91d576799e1da97f9120d2b5b0ac32cdefebf5739ff6",
+    "review/apply_review.py": "399156bef4aadc1ef62ba95460c06926d7d6bcb0c68103301ede053b424beebd",
+    "review/apply_store_changes.py": "20c2b8f8516c5ea71f6a9509b3fc3da7d12b131c48f31b36dab7ca66a2216763",
+    "review/changed-record-ids.txt": "19e2c571545e2e68392a0141373400d2512e69256484e12f92eca1601ebe7a40",
+    "review/check_claim_quotes.py": "d298907501c196bb462d1157e528ce0474b8d2959d348fb785b595c2e4061c6e",
+    "review/check_figure_labels.py": "44d4d686dfde23f722a426a067f76c0629a3595c837026d55b55934392ae6c04",
+    "review/claim-quote-check.tsv": "53e0c047991b210d4a533344464cdb10284739a1e00ddf55eca5dbce687cb7ca",
+    "review/figure-label-check.tsv": "5bc5169c591f11eba5ab3902e7ccba0da14717b91faeef43c3cd157632bda1d4",
+    "scope-audit.jsonl": "e1c8cbcf3c348d070c655862f486630d0b0ff97ef407c7130f16c394b24dc4de",
+    "value-check.tsv": "bbdc91d25ea2235fe81b48d8cd3b9fe76bed3620897712dac2f0555ef4a2d739",
+    "vocab-proposal.ttl": "719d7a5bfa23423dcfea204d516aed890a3e6c460b6f058d4cc29426842dd83d"
+  },
+  "source_artifacts": {
+    "ladon-20261115-source-blog": "53e62f1d679bc8f0063d49d6fd688e7fe7e0a520a4c34ac6c466810185ce0dfc",
+    "ladon-20261115-source-web-fig06": "afa0d46855e1c3b15efa9a6cca8c621d4314ad445dd7777216e62c7ac646629f",
+    "ladon-20261115-source-web-report": "f60c00508f8672048047477beb23b1e2ea9244abb099e863f68f3554ce05c97f",
+    "ladon-20261115-source-zenodo-pdf": "64edf7c3c956c50a65aa01a0dcaa13f0cfef28ab4373ecfd50c431e67143893c"
+  }
+}
