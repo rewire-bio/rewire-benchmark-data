@@ -23,6 +23,14 @@ Merge reviewed PRs whenever they are ready; there is no need to wait for a relea
 
 "Benchmark data checks" also accepts `merge_group` events, so a merge queue can be enabled for `main` in the repository settings. If it is, the release bot must be allowed to push to `main` directly.
 
+### Failure alerts
+
+`.github/workflows/pipeline-alert.yml` watches "Benchmark data checks" and "Cut and publish a release" on `main`. A failed or timed-out run opens one issue labelled `pipeline-broken`, assigned to timini, with the run link and the log lines before the first error; a later failure updates the same issue and comments on it. The issue records each failing source and closes when every one has succeeded again. Skipped and cancelled runs change nothing.
+
+Once a day it also reads `release_id` from `https://benchmarks.rewirebio.io/deployment.json` and compares it with the newest `serving/` release. If the site serves an older release and the newest was published more than 24 hours ago, the same issue gets a `live-release` source, which clears when the site catches up. rewire-database runs the same script (`scripts/ops/pipeline-alert.mjs`, kept identical in both repositories) for its adoption and deploy workflows and files its own issue there.
+
+To try it without writing anything, run the workflow by hand with `dry_run` set (the default), optionally with a `run_id`, or run `node scripts/ops/pipeline-alert.mjs run --run-id <id> --dry-run` locally with `GH_TOKEN` and `GITHUB_REPOSITORY` set.
+
 ### Release notes
 
 `next.mjs prepare` lists every pull request merged on `main` (first-parent history) after the previous release's `source_revision`, one line each: its title and number (`scripts/release/changelog.mjs`). Commits pushed directly to `main`, such as release commits, are left out. Write PR titles so they read as release notes. The notes go in the receipt (`data/omics/releases/<id>.json`) only; nothing in `scripts/omics/release.ts` needs editing for a release.
