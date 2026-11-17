@@ -8,6 +8,14 @@
  * data/omics/checks-baseline.json pins each rule's count and tests/checks-baseline.test.ts
  * fails when a later run raises one.
  *
+ * That failure is a backlog ratchet, not a correctness failure. Every check is report severity:
+ * nothing here gates `records -- add`, and a finding is a lead to read, not a wrong value. The
+ * ratchet bites on growth, so an evidence pull request may leave the existing backlog alone but
+ * may not add to it. When it fires, the failure names the check and rule that rose and by how
+ * much, and gives the two ways forward: fix the new findings (they are rows of the TSV under the
+ * named rule), or raise the baseline in the same pull request with a dated review in
+ * docs/reviews/. ratchetRemedy below is the wording, and the baseline file's `note` carries it.
+ *
  * The store is read with readKind, which returns the stored JSON as it is. loadRecords would
  * validate it against the schema, five validators and the provenance hashes, which is a
  * different job: these checks are meant to report on records the store already accepted.
@@ -136,14 +144,53 @@ export function ratchetCounts(source: Baseline | RunResult): Record<string, numb
   return counts;
 }
 
-/** Counts above their baseline, as readable lines. Empty when nothing grew. */
-export function aboveBaseline(baseline: Baseline, run: RunResult): string[] {
+/** Why a count may not rise and what to do when one has. The baseline file's `note` carries the
+ * same words, the ratchet test fails with them, and `checks -- report` prints them. */
+export const ratchetRemedy =
+  "Every check is report severity: nothing here gates records -- add, and a finding is a lead to read, not a wrong value. " +
+  "tests/checks-baseline.test.ts fails when a run raises any count above the number pinned in data/omics/checks-baseline.json, " +
+  "so the backlog can be worked down but not grown. A failure on an unrelated evidence pull request means the records that " +
+  "pull request adds raised the check and rule the failure names: a backlog ratchet, not a correctness failure. Two ways " +
+  "forward, both in that same pull request. Fix the new findings: npm run checks -- report writes one row per finding to " +
+  "maintenance/reports/checks-<date>.tsv, and the rows carrying the named rule are the ones to read. Or raise the baseline: " +
+  "rerun npm run checks -- baseline and add a dated review in docs/reviews/ saying which rule rose, by how much, and why the " +
+  "new findings stand.";
+
+/** The baseline file's `note`. Written by `checks -- baseline`, so the file and this string match. */
+export const ratchetNote =
+  "Counts of every deterministic check in scripts/omics/checks/, pinned from the first run. " + ratchetRemedy;
+
+export type RatchetRise = { key: string; count: number; baseline: number; rise: number };
+
+function risesAboveBaseline(baseline: Baseline, run: RunResult): RatchetRise[] {
   const want = ratchetCounts(baseline);
   const got = ratchetCounts(run);
   return Object.entries(got)
     .filter(([key, n]) => want[key] !== undefined && n > want[key])
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-    .map(([key, n]) => `${key}: ${n}, baseline ${want[key]}`);
+    .map(([key, n]) => ({ key, count: n, baseline: want[key], rise: n - want[key] }));
+}
+
+/** Counts above their baseline, as readable lines. Empty when nothing grew. */
+export function aboveBaseline(baseline: Baseline, run: RunResult): string[] {
+  return risesAboveBaseline(baseline, run).map((rise) => `${rise.key}: ${rise.count}, baseline ${rise.baseline}`);
+}
+
+/** The whole failure a maintainer should see: which check and rule rose, by how much, and the two
+ * ways forward. Empty when nothing grew. */
+export function ratchetFailure(baseline: Baseline, run: RunResult): string {
+  const grown = risesAboveBaseline(baseline, run);
+  if (!grown.length) return "";
+  const name = (key: string): string => {
+    if (key === "total") return "total findings";
+    const dot = key.indexOf(".");
+    const id = dot < 0 ? key : key.slice(0, dot);
+    const title = baseline.checks[id]?.title;
+    const check = title ? `${id} ${title}` : id;
+    return dot < 0 ? `${check} (check total)` : `${check}, rule ${key.slice(dot + 1)}`;
+  };
+  const lines = grown.map((rise) => `  ${name(rise.key)}: ${rise.count}, baseline ${rise.baseline}, up ${rise.rise}`);
+  return [`Check counts rose above ${baselineFile}:`, ...lines, "", ratchetRemedy].join("\n");
 }
 
 const storeCounts = (input: CheckInput): Record<string, number> => ({
@@ -194,7 +241,7 @@ if (process.argv[1]?.endsWith(path.join("checks", "cli.ts"))) {
   if (command === "baseline") {
     const commit = argValue(args, "--commit") ?? "";
     const baseline: Baseline = {
-      note: "Counts of every deterministic check in scripts/omics/checks/, pinned from the first run. Every check is report severity: nothing here gates records -- add. tests/checks-baseline.test.ts fails when a run raises any count above the number recorded here, so the backlog can be worked down but not grown. Raising a number needs a dated review saying why.",
+      note: ratchetNote,
       notes: [
         "The commit is the HEAD the pack was written against. The checks themselves were not committed when this file was written, so the run was from the working tree at that commit. Rerun npm run checks -- baseline --commit <sha> after committing: the run is deterministic, so only this field changes.",
         "The sentences below carry the numbers of the first run. Re-pinning this file after a count changes means rewriting them in scripts/omics/checks/cli.ts first, or they describe a run that no longer exists.",
@@ -217,11 +264,11 @@ if (process.argv[1]?.endsWith(path.join("checks", "cli.ts"))) {
     console.log(`Wrote ${baselineFile}.`);
   } else if (fs.existsSync(baselineFile)) {
     const baseline = JSON.parse(fs.readFileSync(baselineFile, "utf8")) as Baseline;
-    const grown = aboveBaseline(baseline, run);
+    const failure = ratchetFailure(baseline, run);
     const want = ratchetCounts(baseline);
     const got = ratchetCounts(run);
     const shrunk = Object.entries(got).filter(([key, n]) => want[key] !== undefined && n < want[key]);
-    if (grown.length) console.log(`\nAbove ${baselineFile}:\n  ${grown.join("\n  ")}`);
+    if (failure) console.log(`\n${failure}`);
     else if (shrunk.length) console.log(`\nBelow ${baselineFile} on ${shrunk.length} counts; lower the baseline in the same PR.`);
     else console.log(`\nCounts equal ${baselineFile}.`);
   } else {

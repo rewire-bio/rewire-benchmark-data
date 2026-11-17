@@ -5,10 +5,14 @@
  * that bites. It bites on growth: a PR may leave the existing backlog alone, but it may not
  * add to it. Working a count down and lowering the baseline in the same PR is the way to make
  * progress; raising a baseline number needs a dated review saying why.
+ *
+ * A maintainer usually meets this test on a pull request that touched no check. ratchetFailure
+ * is therefore the assertion message: it names the check and rule that rose, by how much, and
+ * the two ways forward, so the failure alone is enough to act on.
  */
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
-import { aboveBaseline, baselineFile, loadInput, ratchetCounts, runAll, type Baseline } from "../scripts/omics/checks/cli";
+import { aboveBaseline, baselineFile, loadInput, ratchetCounts, ratchetFailure, runAll, type Baseline } from "../scripts/omics/checks/cli";
 import type { Rec } from "../scripts/omics/checks/finding";
 
 const baseline = JSON.parse(fs.readFileSync(baselineFile, "utf8")) as Baseline;
@@ -17,7 +21,7 @@ const run = runAll(input);
 
 describe("deterministic checks", () => {
   it("raises no count above its baseline", () => {
-    expect(aboveBaseline(baseline, run)).toEqual([]);
+    expect(aboveBaseline(baseline, run), ratchetFailure(baseline, run)).toEqual([]);
   });
 
   // A count worked down is not failed here. The ratchet bites on growth, not on the backlog,
@@ -45,6 +49,25 @@ describe("deterministic checks", () => {
       `C4.verdict-or-vendor-token: ${before + 1}, baseline ${before}`,
       `total: ${baseline.total_findings + 1}, baseline ${baseline.total_findings}`,
     ]);
+  });
+
+  it("says in the failure which rule rose, by how much, and what to do", () => {
+    const seeded: Rec = {
+      id: "seeded-result-for-the-ratchet-message",
+      kind: "result",
+      status: "source_checked",
+      source_ids: [],
+      links: [],
+      attributes: { metric: "auroc", metric_direction: "higher", unit: "unitless", metric_qualifier: "high", printed_value: "0.9", numeric_value: "0.9", source_locator: "Table 1, column 'AUROC'" },
+    };
+    const message = ratchetFailure(baseline, runAll({ ...input, results: [...input.results, seeded] }));
+    const before = baseline.checks.C4.rules["verdict-or-vendor-token"];
+    expect(message).toContain(`C4 ${baseline.checks.C4.title}, rule verdict-or-vendor-token: ${before + 1}, baseline ${before}, up 1`);
+    expect(message).toContain("report severity");
+    expect(message).toContain("not a correctness failure");
+    expect(message).toContain("npm run checks -- report");
+    expect(message).toContain("docs/reviews/");
+    expect(ratchetFailure(baseline, { findings: [], summaries: [] })).toBe("");
   });
 
   it("fails when a baseline count is lowered under an unchanged store", () => {

@@ -18,8 +18,8 @@ Agents should use the matching skills: `literature-search` (step 2), `extract-ev
 
 - Record what was done, not what should have been done. A failed search, a paywalled supplement or an unreadable figure is a recorded gap. It is never evidence that nothing exists.
 - Never change a stored value, ID or source hash. Corrections are new records that supersede old ones (see [Corrections and concerns](#corrections-and-concerns)).
-- Never guess. Unknown fields are `null` with a reason in `missing_metadata`. An unidentified model version stays at family level and is not assigned to a specific checkpoint.
-- Name the actual actor. Automated or AI review is recorded as such (for example `"reviewer": "Codex research agent; no human review claimed"`). It is never described as human scientific review, and source transcription is never described as reproduction.
+- Never guess. A value that is not known is absent: the key is left out and `missing_metadata.<field>` gives `{reason, note?}`, with `reason` from [data/vocab/missingness.ttl](../data/vocab/missingness.ttl). A null is rejected, except in `numeric_value`. An unidentified model version stays at family level and is not assigned to a specific checkpoint.
+- Name the actual actor. Automated or AI review is recorded as such (for example `"reviewer": ["codex"]` with `"reviewer_note": "Codex research agent; no human review claimed"`). It is never described as human scientific review, and source transcription is never described as reproduction.
 - Search results, mirrors, press releases and summaries are leads. Only primary sources (the paper, its supplement, the official repository or project page, the official leaderboard) support a record.
 - Keep work bounded. State the time window, budget and scope at the start, and report coverage against what was actually screened, not against a target count.
 
@@ -157,17 +157,19 @@ Review is a separate pass by a different worker from the one that extracted the 
 Start review only on a frozen extraction: a commit the extractor has finished and will not change. Make every ruling and edit in `batch.jsonl` first, then write the receipt, then add the batch (step 6) and run the checks once. Adding the batch before the rulings are done turns each later fix into a `records -- change` and repin cycle.
 
 1. Re-open the pinned source (check the hash matches) and check every result against it. For a large batch, an automated comparison of every value against the source (for example a deterministic parse with asserted row labels) plus a sampled manual check of values is enough; record the sample and the comparison in the receipt. Run `npm run -s batch -- check-values data/omics/<batch> <source-id>=<artifact> ...` over the whole batch. It finds the row each `source_locator` names in the pinned artifact (JATS XML tables, or a `pdftotext -layout` text layer), checks the printed value is there, and for XML checks the named column too. It writes `value-check.tsv` to the batch folder; every result should be `in_cell` or `in_row`. For text layers the column is not checked directly; `overclaimed_in_row` marks a value claimed by more results in a row than the row prints, which is how a value copied from a neighbouring column usually shows. The sampled manual check must still cover column assignment. Locators it cannot parse (figures, prose) are listed for manual checking. Check printed value, numeric value, locator, metric, direction, denominator and the model/benchmark identity. For a result with a `derivation`, re-download each input, check its SHA-256 and row count, rerun the script and compare its output with `printed_value`; check the quoted aggregation against the source and that the script applies it.
-2. Check that `missing_metadata` and `null` fields are genuinely unstated in the source, and that nothing was inferred.
-3. Fill each result's `review` object. The usual shape is:
+2. Check that every absent field named in `missing_metadata`, and any null `numeric_value`, is genuinely unstated in the source, and that nothing was inferred.
+3. Fill each result's `review` object. The shape is strict: `method` and `reviewer` are lists of concept keys, the free text describing either goes in `method_note` and `reviewer_note`, and the free-text key is `note`. The usual shape is:
 
    ```json
    {
-     "method": "Plain description of how the value was checked, e.g. deterministic parse of the pinned PDF text layer with row labels asserted",
-     "reviewer": "Who did it, e.g. Codex research agent; no human review claimed",
+     "method": ["pdf-text-parse", "independent-cell-check"],
+     "reviewer": ["codex"],
      "date": "2026-10-08",
      "artifact_sha256": "<hash of the source artifact checked>",
      "retrieval_url": "<URL the artifact was retrieved from>",
-     "notes": "Anything a later reader needs: conflicts, rounding, what was not checked"
+     "method_note": "How the value was checked, e.g. deterministic parse of the pinned PDF text layer with row labels asserted",
+     "reviewer_note": "Who did it, e.g. Codex research agent; no human review claimed",
+     "note": "Anything a later reader needs: conflicts, rounding, what was not checked"
    }
    ```
 
@@ -230,7 +232,7 @@ npm run records -- add data/omics/<batch>/batch.jsonl data/omics/<batch>
 
 This appends each record to the right canonical file or shard, keeps the files sorted, and writes its provenance line. It then validates the new records, the records that link to them and their link targets against the SHACL shapes (`npm run kg -- subset`, then `kg:build --shapes-only`; needs [uv](https://docs.astral.sh/uv/) and takes well under a minute); if any of them fails, the store is put back as it was. `records -- change` runs the same check on the changed records. CI checks the whole store against the shapes on every pull request (`npm run kg:shapes`). It refuses any ID that already exists; to change an existing record, use `records -- change` (step 5). `npm run records -- check` confirms the whole store matches its provenance.
 
-For use-case work, also add a relevance judgement for each new protocol that bears on a use case: an `assessed_by` link on the `use_case` record and a judgement claim (`field` `links:assessed_by:<protocol>`) recording relevance, endpoint, rationale, caveats and sources, with status `needs_review`. Evaluations on the protocol are found automatically. The reviewer lists the evaluations it checked in `reviewed_evaluations` and records the pins with `npm run use-cases:repin -- <review.md> <claim-id>...`. Fill `method_types`, version and access on each new configuration, so the use-case page can say what kind of method it is. See [use-cases.md](use-cases.md).
+For use-case work, also add a relevance judgement for each new protocol that bears on a use case: an `assessed_by` link on the `use_case` record and a judgement claim (`field` `links:assessed_by:<protocol>`) recording relevance, endpoint, rationale, constraints, limitations and the sources it rests on, with status `needs_review`. Evaluations on the protocol are found automatically. The reviewer lists the evaluations it checked in `reviewed_evaluations` and records the pins with `npm run use-cases:repin -- <review.md> <claim-id>...`. Each new configuration carries its `method_types` facet and its `version`, so the use-case page can say what kind of method it is; `access` is declared on the model or method the configuration is of, not on the configuration. See [use-cases.md](use-cases.md).
 
 ## 7. Validate and open a PR
 

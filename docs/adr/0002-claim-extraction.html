@@ -144,18 +144,21 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
     <span><span class="status">Proposed</span></span>
     <span><b>Date</b> 2026-11-17</span>
     <span><b>Decider</b> Tim Richardson</span>
-    <span><b>Proposed</b> 2026-11-17, three open questions below</span>
+    <span><b>Proposed</b> 2026-11-17, two open questions below</span>
   </div>
   <div class="meta">
     <span><b>Answers</b> <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/228">#228</a></span>
     <span><b>Store measured</b> 52,278 results, 24,726 evaluations, 4,155 claims, 1,483 sources, 93,187 provenance lines, at <span class="mono">991a09e</span></span>
+  </div>
+  <div class="meta">
+    <span><b>Related records</b> <a href="0003-source-preservation.html">0003</a> decides how source bytes are captured, identified by two hashes and tiered by licence, and it captures the layers this record addresses; <a href="0004-storage-substrate.html">0004</a> decides the storage substrate, and its object store holds those layer bytes; <a href="0005-run-recipes.html">0005</a> decides how a model or benchmark carries a runnable how-to</span>
   </div>
   <p class="lede">A stored value is checked for shape and for provenance-hash integrity. Nothing checks that it means what the source says, and nothing binds it to a place in the source that a second reader can find. This record decides what to build: deterministic checks first, over a locator that carries byte spans into a pinned text layer, with a language model at exactly one place in the pipeline and its output admitted only on a byte-span match.</p>
 
   <div class="summary">
     <div><div class="k">Problem</div><p>In the 2026-11-15/16 pass, 13 of 13 batches needed a correction and the deterministic value check caught none of them. The one locator grammar parses 39.3% of stored locators and has been run on 14 of 194 batch folders.</p></div>
     <div><div class="k">Decision</div><p>A layer registry over the hashed derived text, a key-value locator grammar authored structured and rendered to the printed string, fifteen model-free checks that ship as a report with a ratchet, one model stage group behind a span check.</p></div>
-    <div><div class="k">Status</div><p>Proposed. The first PR is report only and writes nothing to the store. Three questions below need the owner's ruling before the layer and the gates can land.</p></div>
+    <div><div class="k">Status</div><p>Proposed. The first PR is report only and writes nothing to the store, and its ratchet is already shipped. Two questions below need the owner's ruling before the gates can land; a third, where layer bytes live, is answered by ADR 0004.</p></div>
   </div>
 </header>
 
@@ -290,7 +293,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
       <tr><td>C1, minority unit for the metric: 5,093</td><td><span class="r-good">Reproduced.</span> 5,093 over 43 metrics.</td></tr>
       <tr><td>C2, direction against <code>rb:defaultDirection</code>: 1,256</td><td><span class="r-good">Reproduced.</span> 58 opposite, 206 unknown where the metric declares one, 992 asserted where the metric declares none. The three parts sum to 1,256; tm-score 28 and pearson 25 among the opposites.</td></tr>
       <tr><td>C4, verdict or vendor token in <code>metric_qualifier</code>: 338</td><td><span class="r-good">Reproduced.</span> high 171, no 161, max 6.</td></tr>
-      <tr><td>C9, same <code>artifact_sha256</code> and url: 171 groups</td><td><span class="r-good">Reproduced.</span></td></tr>
+      <tr><td>C9, same <code>artifact_sha256</code> and url: 171 groups</td><td><span class="r-good">Reproduced.</span> The shipped check reports 187 under its own grouping, which is the number the baseline pins.</td></tr>
       <tr><td>C3, <code>numeric_value</code> does not round to <code>printed_value</code>: 170</td><td><span class="r-poor">Not reproduced.</span> The prototype's strict bucket is 1,640; an independent half-up check at printed precision gives 603, whose printed examples are Unicode minus, E-notation with a Unicode hyphen and leading-dot forms. The parser is the variable, not the store. The real number needs <code>parseCell</code>.</td></tr>
       <tr><td>C5, incoherent printed columns: 676 of 2,446, 19,374 results</td><td><span class="r-poor">Not reproduced.</span> The prototype groups by source and anchor and gives 362 of 530 tables and 32,141 results. The design flags its own grouping as prototyped, not reviewed.</td></tr>
       <tr><td>No <code>derivation.script</code> points under <code>data/omics</code></td><td><span class="r-good">Confirmed.</span> One script value in the whole store, <code>scripts/omics/derive/ahlmann_eltze_2025.py</code>, on 59 results.</td></tr>
@@ -407,7 +410,8 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
 <h3>1. The span substrate is a layer registry over the hashed derived text</h3>
 <div class="prose">
   <p>A layer is a byte-exact derived representation of one artifact, produced by one declared command from bytes whose SHA-256 is pinned. All addressing, all spans and all resolution happen against a layer. Five layer kinds with one pinned builder each: <code>pdf_text</code> (the existing <code>readPinnedPdfText</code>, <code>pdftotext -layout -enc UTF-8 - -</code> with verified bytes on stdin), <code>jats_text</code>, <code>sheet_tsv</code> (the promoted <code>rawxlsx.py</code>), <code>delimited</code> and <code>json</code>.</p>
-  <p>Each layer gets one line in <code>data/omics/&lt;batch&gt;/extract/layers.jsonl</code> with <code>layer_id</code>, <code>source_id</code>, <code>artifact_sha256</code>, <code>layer_kind</code>, <code>tool</code>, <code>tool_version</code>, <code>argv</code>, <code>builder_sha256</code>, <code>layer_sha256</code>, <code>bytes</code>, <code>lines</code>, <code>built_at</code> and <code>sanity</code>. This replaces <code>hash_scope</code>, which is free prose on 587 sources and read by no code. A layer is never rebuilt in place: a fix adds a new <code>layer_id</code>.</p>
+  <p>Each layer gets one line in <code>data/omics/&lt;batch&gt;/extract/layers.jsonl</code> with <code>layer_id</code>, <code>source_id</code>, <code>artifact_sha256</code>, <code>layer_kind</code>, <code>tool</code>, <code>tool_version</code>, <code>argv</code>, <code>builder_sha256</code>, <code>layer_sha256</code>, <code>bytes</code>, <code>lines</code>, <code>built_at</code> and <code>sanity</code>. This replaces <code>hash_scope</code> as the machine-readable record of what a hash covers, <code>hash_scope</code> being free prose on 587 sources and read by no code; the strings themselves are kept and not rewritten, which is <a href="0003-source-preservation.html">ADR 0003</a>'s call. A layer is never rebuilt in place: a fix adds a new <code>layer_id</code>.</p>
+  <p>One hash, one home. The layer bytes are a single object in <a href="0004-storage-substrate.html">ADR 0004</a>'s content-addressed store at <code>layer: text-layer</code>; <code>layer_sha256</code> is the same hash ADR 0003 records as that capture's evidence identity; and this file is a generated projection of those capture entries for the sources a batch cites, checked byte-equal in CI rather than hand-written. Nothing here stores a second copy of a layer or a second name for its hash.</p>
   <p>Offsets are recorded twice and both are checked. <code>start</code> and <code>end</code> are Unicode code point offsets, which is what <code>oa:TextPositionSelector</code> counts; <code>byte_start</code> and <code>byte_end</code> are UTF-8 byte offsets, which is what the checker slices. The layer is never Unicode-normalised, because NFC would move every stored offset when an ICU version changes. Normalisation lives in a versioned comparison function named on every check result. Every resolvable locator also carries an <code>oa:TextQuoteSelector</code> with <code>exact</code>, <code>prefix</code> and <code>suffix</code> at 48 code points.</p>
   <p>A layer sanity gate runs before extraction and records <code>pass</code>, <code>suspect</code> or <code>fail</code> from the U+FFFD count, the printable ratio, the digit-to-alphanumeric ratio, a punctuation-run mojibake signature, and the page-break count against <code>pdfinfo</code>. No record, claim or candidate may cite a layer at <code>fail</code>. bacformer version 2, which rendered <code>0.81 ± 0.07</code> as <code>+.)! +.+(</code> and had a conclusion drawn from it anyway, must come out <code>fail</code>.</p>
 </div>
@@ -612,7 +616,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
   <ul>
     <li>The validator pack's own correctness test is reproducing the 14 existing <code>value-check.tsv</code> files. In the first PR this is the parse split only: the 551 <code>locator_not_parsed</code> rows must be exactly the rows the ported regex rejects and the other 1,881 exactly the rows it accepts. Row-for-row agreement on <code>in_cell</code> against <code>in_row</code> becomes an acceptance test when the resolvers land, because that status needs a resolver.</li>
     <li>Seeded mutations are the only way to measure value-transcription sensitivity, because there are zero real instances: all 1,591 keyed re-read rows are matches. Seven deterministic generators, each drawn from an experiment the repository already ran by hand, are a 300-line module and a report, not a gold set.</li>
-    <li><code>data/omics/checks-baseline.json</code> carries the pinned finding count per check plus the implementation commit and date, and <code>tests/checks-baseline.test.ts</code> fails when a store change raises any count. Raising a baseline needs a dated review. Baselines are pinned from the implementation's own first run, not from a prototype's numbers, because two prototype numbers did not reproduce.</li>
+    <li><code>data/omics/checks-baseline.json</code> carries the pinned finding count per check plus the implementation commit and date, and <code>tests/checks-baseline.test.ts</code> fails when a store change raises any count. That test is in this commit, so option (a) of question 2 is the policy in force until the owner rules otherwise: an evidence PR that raises an inherited count fails, and the author either fixes the finding or raises the baseline in the same PR with a dated review. Baselines are pinned from the implementation's own first run, not from a prototype's numbers, because two prototype numbers did not reproduce.</li>
   </ul>
   <p>Option C's 1,200-item gold set, seven gates, method registry and <code>gold_digest</code> discipline are not adopted now. They become the right next decision if, after the pilot, the C1 and C5 hand audits show the checks cannot be made precise enough to gate.</p>
 </div>
@@ -641,10 +645,11 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
     <tbody>
       <tr><td>Locator grammar</td><td><code>npm run locator -- coverage</code> reports fully addressed at or above 72.0% of 52,278. The 551 <code>locator_not_parsed</code> rows across the 14 <code>value-check.tsv</code> files are exactly the rows the ported regex rejects, and the other 1,881 exactly the rows it accepts, asserted row by row.</td></tr>
       <tr><td>Round trip</td><td><code>renderLocator(parse(x)) === x</code> reported as a percentage of the addressed subset. It becomes a gate at 90% when the resolvers land, or stays a report if the measured figure is below that, decided in the resolver PR rather than guessed now.</td></tr>
-      <tr><td>Check pack</td><td><code>npm run checks -- report</code> finishes in under 120 s on a laptop and its counts equal <code>data/omics/checks-baseline.json</code> exactly: C1 5,093, C2 1,256 splitting 58, 206 and 992, C4 338, C9 171. C3 and C5 are whatever this implementation measures, written down with a note that the prototype's 170 and 19,374 did not reproduce and are not inherited.</td></tr>
-      <tr><td>Ratchet</td><td><code>tests/checks-baseline.test.ts</code> fails when a store change raises any count above its baseline.</td></tr>
+      <tr><td>Check pack</td><td><code>npm run checks -- report</code> finishes in under 120 s on a laptop and its counts equal <code>data/omics/checks-baseline.json</code> exactly. The seven checks in this commit pin 10,754 findings: C1 5,391, of which 5,093 are minority-unit and 298 the new unit-scope-note rule; C2 1,256 splitting 58, 206 and 992; C3 3,436; C4 338; C5 146; C9 187; C13 0. C3 and C5 are what this implementation measures, with the note that the prototype's 170 and 19,374 did not reproduce and are not inherited. C9 reports 187 groups where the design carried 171, and <code>duplicate_artifact.ts</code> says why: the difference is the grouping, not the store.</td></tr>
+      <tr><td>Ratchet</td><td><code>tests/checks-baseline.test.ts</code> fails when a store change raises any count above its baseline, whatever the PR touched. That is option (a) of question 2 and it is in this commit, so the policy is shipped rather than proposed.</td></tr>
       <tr><td>Layer builder</td><td>Rebuilding the layer for each of the 7 batches that already hold one reproduces the archived bytes byte for byte. bacformer's must hash to <code>86636e89b167d7304b3a83ee7f159cad0a9bdbe97019588ce836087b8fe3b0b2</code>.</td></tr>
-      <tr><td>Layer sanity</td><td><code>layer_sanity</code> returns <code>fail</code> on the bacformer version 2 layer and <code>pass</code> on version 3.</td></tr>
+      <tr><td>Layer sanity</td><td><code>layer_sanity</code> returns <code>fail</code> on the bacformer version 2 layer and <code>pass</code> on version 3. It is one function with ADR 0003's gate, whose <code>unusable</code> verdict is this <code>fail</code>.</td></tr>
+      <tr><td>One hash, one home</td><td>Regenerating <code>layers.jsonl</code> from the capture ledger is a no-op on a second run, and a test asserts that every <code>layer_sha256</code> in it equals a <code>derived[].sha256</code> on the capture ADR 0003 records for that source, so a layer cannot acquire a second hash or a second copy.</td></tr>
       <tr><td>Freeze</td><td><code>tests/extraction-lane.test.ts</code> fails a synthetic PR adding <code>data/omics/x/lib.py</code> and passes on the 115 allow-listed paths at their recorded sha256.</td></tr>
       <tr><td>Ontology generator</td><td>A test enumerates the attribute registry and greps the generated files, so no <code>oa:</code> or <code>prov:</code> field property can be silently dropped. <code>npm run kg -- terms</code> is a no-op on a second run.</td></tr>
       <tr><td>Span grounding</td><td>Every candidate whose declared span does not match the layer bytes is rejected with a diff, asserted by a test that mutates one offset by one byte.</td></tr>
@@ -718,7 +723,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
     <ul><li>Steps 1 to 3: the grammar with <code>parseLocator</code> and <code>renderLocator</code>, seven checks with a pinned baseline, the <code>buildBatch</code> repair.</li><li>About 1,800 new lines plus about 120 changed.</li></ul>
     <div class="closes">Writes nothing to the store, changes no vocabulary, touches no ontology file, calls no model. <code>git status --porcelain data/</code> stays empty except <code>checks-baseline.json</code>.</div></div>
   <div class="step"><div class="n">2</div><h4>Substrate</h4>
-    <ul><li>Steps 4 and 5: layer builders and the sanity gate, the promoted Python, the freeze test, then the resolvers, the typed locator and the ontology change including the external-prefix allowlist.</li><li>About 2,100 new lines.</li></ul>
+    <ul><li>Steps 4 and 5: layer builders and the sanity gate, <code>layers.jsonl</code> generated from the capture ledger with its no-op test, the promoted Python, the freeze test, then the resolvers, the typed locator and the ontology change including the external-prefix allowlist.</li><li>About 2,100 new lines.</li></ul>
     <div class="closes">The first part of the work that writes new attributes. Additive only: no stored value changes.</div></div>
   <div class="step"><div class="n">3</div><h4>Gates and the model stage</h4>
     <ul><li>Steps 6 to 10: the unit vocabulary and the two hand audits, receipt enforcement, the claims pipeline with its prompt registry, the recall sweep, the seeded mutations.</li><li>About 1,700 new lines.</li></ul>
@@ -731,7 +736,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
 <h3>What gets better, with numbers</h3>
 <div class="prose">
 <ul>
-  <li>The 19 defect classes stop being anecdotes and become pinned numbers in one command. Confirmed today: 5,093 minority-unit results, 1,256 direction findings of which 58 are opposite to the metric's declared default, 338 verdict or vendor tokens in <code>metric_qualifier</code>, 171 duplicate source groups. C3 and C5 are set by the implementation's first run.</li>
+  <li>The 19 defect classes stop being anecdotes and become pinned numbers in one command. Confirmed today: 5,093 minority-unit results, 1,256 direction findings of which 58 are opposite to the metric's declared default, 338 verdict or vendor tokens in <code>metric_qualifier</code>, 187 duplicate source groups. C3 and C5 are set by the implementation's first run, at 3,436 and 146.</li>
   <li>Machine-readable locator coverage goes from 39.3% to a measured 72.9% fully addressed, and new batches reach 100% by construction.</li>
   <li>Four defect classes become impossible to author rather than merely discouraged: a wrong-place locator, a silent wrong-table match, a conclusion drawn from an unreadable rendering, and metadata asserted as source-reported with no span.</li>
   <li><code>check-values</code>, run on 14 of 194 batch folders because it was an optional review step, is replaced by a check pack that gates <code>records -- add</code>.</li>
@@ -744,7 +749,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
   <li>39 working days over ten steps, of which 2 to 3 are a human vocabulary pass. About 5,600 new lines plus about 120 changed.</li>
   <li>Triage of the measured backlog is 20 to 40 agent-days spread over months. The ratchet means it can be paid at whatever rate two people can afford, and it blocks nothing.</li>
   <li>Model spend is bounded by the prose of one paper per batch, on the order of 40,000 to 150,000 input tokens per source. Every check in the pack is CPU only; the measured backlog ran over 52,278 results in seconds.</li>
-  <li>Layer bytes add roughly 0.5 to 3 MB gzipped per batch, so 100 to 600 MB over the next 200 batches, against a 50 MB per-file CI cap it never approaches. See the first open question.</li>
+  <li>Layer bytes add roughly 0.5 to 3 MB gzipped per batch, so 100 to 600 MB over the next 200 batches. None of it lands in git: they are objects in ADR 0004's store, whose eviction gate keeps new binaries out of the tree, so the cost is archive storage rather than clone weight.</li>
   <li>Standing cost: one more command and two more files per evidence PR, about 60 seconds of CI, and a baseline update on perhaps one PR in five.</li>
 </ul>
 </div>
@@ -752,7 +757,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
 <h3>What gets worse or stays broken</h3>
 <div class="prose">
 <ul>
-  <li>Resolution coverage is hostage to the archival decision, not to this one. 7 batches hold a derived text layer, and 45.2% of evidence citations (47,081 of 104,243) rest on a source whose bytes are not stored. For most legacy records the honest status is <code>artifact_not_held</code> forever, and the locator object is a well-typed pointer at nothing.</li>
+  <li>Resolution coverage is hostage to the archival decision, which is ADR 0003's rescue waves, not to this one. 7 batches hold a derived text layer, and 45.2% of evidence citations (47,081 of 104,243) rest on a source whose bytes are not stored. For most legacy records the honest status is <code>artifact_not_held</code> forever, and the locator object is a well-typed pointer at nothing.</li>
   <li>Six of the 19 classes stay human: aggregation truth, rate semantics, configuration identity, <code>companion_of</code>, scope over-reach, and whether a sentence is worth recording. Those six produced a large share of the scientific corrections in the last pass. A design judged on class coverage scores this well; a design judged on whether the next pass needs fewer human corrections may not see much change.</li>
   <li>A grammar that parses more strings also parses more into the wrong structure, and resolving silently to a plausible neighbouring cell is worse than failing to parse. The defences are the cell-plus-label cross-check, <code>expected_row_labels</code> and <code>expected_shape</code>; a locator with no internal redundancy has none. Measure before gating resolution: resolve all 38,103 parseable locators against the sources whose bytes are held and compare <code>wrong_column</code> and <code>not_in_row</code> rates against the 14 existing <code>value-check.tsv</code> files as the control.</li>
   <li>C1's 5,093 rows may be mostly store convention that was never written down. <code>f1-score</code> alone splits 2,603 percent against 928 fraction and 434 unitless over 3,965 results. If a 100-row hand audit shows above 20% false positives, C1 can never be a gate, and the real deliverable is writing the convention into <code>metric.ttl</code>.</li>
@@ -770,19 +775,20 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
 <!-- ============ OPEN QUESTIONS ============ -->
 <h2>Open questions for the owner</h2>
 <div class="prose">
-  <p>These three are why the status is Proposed. Each is a closed choice, and each blocks a specific step.</p>
+  <p>Two are open and are why the status is Proposed. Each is a closed choice, and each blocks a specific step. A third, where the layer bytes live, was asked here and is answered elsewhere; it is kept below as closed so a reader of all four records does not find it open in one and decided in another.</p>
 </div>
 
 <div class="q">
-  <div class="k">Question 1 &middot; blocks step 4</div>
-  <p>Archive the gzipped derived text layer in git under <code>data/omics/&lt;batch&gt;/artifacts/</code>, or publish layers as release assets through the mechanism <code>scripts/release/files.ts</code> already uses and keep only the hash manifest in git?</p>
-  <p class="mono" style="font-size:0.82rem;color:var(--muted)">In git: about 0.5 to 3 MB per batch, 100 to 600 MB over the next 200 batches, against a 50 MB per-file CI cap it never approaches. As assets: the same mechanism already carries 894 MB across 35 assets. The layer registry's archive path field and the resolver's <code>artifact_not_held</code> status both depend on the answer, and seven batches already hold layers under five filename conventions.</p>
+  <div class="k">Question 1 &middot; closed, answered by ADR 0004</div>
+  <p>Archive the gzipped derived text layer in git under <code>data/omics/&lt;batch&gt;/artifacts/</code>, or publish layers as release assets and keep only the hash manifest in git?</p>
+  <p>Release assets. <a href="0004-storage-substrate.html">ADR 0004</a> decides the substrate: a layer is an object in its content-addressed store at <code>layer: text-layer</code>, published on a shard tag, with the manifest committed at <code>data/archive/objects/&lt;0-f&gt;.jsonl</code>. Its eviction gate refuses a new tracked binary over 1 MiB in git, so the in-git branch is not available anyway. <a href="0003-source-preservation.html">ADR 0003</a> is where a layer's identity is recorded, as the evidence identity on a capture. The layer registry below holds the same hash, not a second copy of the bytes, and <code>artifact_not_held</code> resolves against that one store.</p>
 </div>
 
 <div class="q">
-  <div class="k">Question 2 &middot; blocks the first PR</div>
+  <div class="k">Question 2 &middot; option (a) is in force as shipped, pending the ruling</div>
   <p>Does the ratchet in <code>data/omics/checks-baseline.json</code> (a) block any PR that raises a finding count, including an evidence PR that only adds records to a benchmark whose unit convention is already inconsistent, so the author either fixes the inherited finding or raises the baseline with a dated review, or (b) block only PRs that change <code>scripts/omics/checks/</code> or the vocabulary, and stay advisory on record-adding PRs?</p>
-  <p class="mono" style="font-size:0.82rem;color:var(--muted)">Option (a) is what makes a report-only PR bite, and will be resented on roughly one PR in five. Option (b) risks the backlog growing faster than triage.</p>
+  <p><code>tests/checks-baseline.test.ts</code> is in this commit and implements (a): it runs the seven checks over the whole store and fails when any count rises above its pinned baseline, whatever the PR touched. So (a) is the policy in force, not a proposal, and the ruling either confirms it or narrows the test.</p>
+  <p>What (a) costs, stated plainly: an evidence PR that adds results to a benchmark with an existing minority-unit convention fails, and the author either fixes the inherited finding or raises the baseline in the same PR with a dated review saying why. That is expected on roughly one PR in five. Option (b) risks the backlog growing faster than triage, and moving to it is a change to this test's scope, which rules it to the files a PR changed. It is not a change to any check: the checks are report severity either way and nothing here gates <code>records -- add</code>.</p>
 </div>
 
 <div class="q">

@@ -130,6 +130,9 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
   <div class="meta">
     <span><b>Measured in</b> worktree <span class="mono">claims-arch-20261117</span> at <span class="mono">991a09e</span>, and in the siblings <span class="mono">rewire-database</span> and <span class="mono">rewire-benchmarks</span></span>
   </div>
+  <div class="meta">
+    <span><b>Related records</b> <a href="0002-claim-extraction.html">0002</a> decides how claims and values are extracted and checked against a hashed text layer; <a href="0003-source-preservation.html">0003</a> decides how source bytes are captured, identified and tiered by licence, and is where a recipe's cited bytes and their drift sweep live; <a href="0004-storage-substrate.html">0004</a> decides the storage substrate, and holds those bytes as objects</span>
+  </div>
   <p class="lede">Every model and benchmark should carry a how-to that a scientist can run, evidenced the way a result is evidenced, and promotable later into an independent Rewire run. The store already holds the mechanism and almost none of the coverage. This record weighs three ways to close that, picks one, and states the coverage ceiling honestly rather than promising a how-to on every record.</p>
 
   <div class="summary">
@@ -535,7 +538,7 @@ export const isRunnableSubject = (kind: string): boolean =&gt;
 <h3>6. Evidencing an instruction</h3>
 <div class="prose">
 <p>Unchanged, because it already works: per-instruction <code>source_ids</code> plus <code>source_locator</code>, every cited source a <code>source</code> record on the owner with a 64-hex <code>artifact_sha256</code>. A Hugging Face model card is <code>README.md</code>, so the locator form the existing test enforces fits with no regex change: <span class="mono">README.md at 6d2af6ac, How to use, lines 41-58</span>. The deep link for a GitHub source is a blob URL with a <code>#L&lt;a&gt;-L&lt;b&gt;</code> anchor; whether Hugging Face blob pages honour the same anchor is unmeasured, so the Hugging Face link is emitted without one until someone checks.</p>
-<p>The grammar moves into one module, <code>shared/omics/run-locator.ts</code>, with one parser and one <code>deepLink()</code>, and the regex now duplicated in <code>tests/omics-recipe-sources.test.ts</code> is imported from it. A link is built, never stored, so a stored record cannot carry a wrong one. The archived bytes are named by <code>source.attributes.artifact</code>, a declared key used by 0 of 1,483 sources today; recipes are its first use.</p>
+<p>The grammar moves into one module, <code>shared/omics/run-locator.ts</code>, with one parser and one <code>deepLink()</code>, and the regex now duplicated in <code>tests/omics-recipe-sources.test.ts</code> is imported from it. A link is built, never stored, so a stored record cannot carry a wrong one. The archived bytes are reached the way <a href="0003-source-preservation.html">ADR 0003</a> reaches them, through the source's <code>primary_capture_id</code> into the capture ledger and from there into ADR 0004's object store, not through a second pointer: <code>source.attributes.artifact</code> is declared and used by 0 of 1,483 sources, and recipes do not make it the join.</p>
 </div>
 
 <h3>7. Comparability, and the departure that is real</h3>
@@ -645,7 +648,7 @@ export const isRunnableSubject = (kind: string): boolean =&gt;
       <text x="10" y="362" class="ts">pythia-14m-deduped on CPU, HELM runs simple/model1 on 10 instances, OpenProblems runs viash test on 2 CPUs.</text>
     </svg>
   </div>
-  <figcaption>Three of the four tiers are free. Known lint failures live in <code>data/omics/recipes/lint-waivers.json</code> with a reason each and a test that the file never grows. A release pins its check ledger by path and hash in <code>data/omics/release-config.json</code>, and the card takes the ledger as an argument rather than reading the newest file, so a nightly run can never change an old release's bytes.</figcaption>
+  <figcaption>Tier 1 is not a third refetch job. It runs ADR 0003's capture tool and drift classifier over the roughly 60 artifacts a recipe pins, nightly rather than on that record's slower whole-store cadence, and adds the dry-run pin resolves ADR 0003 does not do. One fetcher, one classifier, one drift vocabulary. Three of the four tiers are free. Known lint failures live in <code>data/omics/recipes/lint-waivers.json</code> with a reason each and a test that the file never grows. A release pins its check ledger by path and hash in <code>data/omics/release-config.json</code>, and the card takes the ledger as an argument rather than reading the newest file, so a nightly run can never change an old release's bytes.</figcaption>
 </figure>
 
 <!-- ============ IMPLEMENTATION ============ -->
