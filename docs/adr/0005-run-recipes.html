@@ -238,7 +238,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
 </figure>
 
 <div class="prose">
-<p>The first pass for model how-tos is therefore 9 records from one project, bacformer. One example of what makes them pinnable: <code>bacformer-20261115-model-bacformer-causal-complete-genomes</code> carries <span class="mono">Public Hugging Face repository macwiatrak/bacformer-causal-complete-genomes, served at revision 6d2af6ac98f5aaf420ab33b475b891c8398e3bb9 on 2026-11-15.</span> The repository id, the pinned revision and the check date are all in one prose string today.</p>
+<p>The first pass for model how-tos is therefore 9 records. Correction, 2026-11-17: they span three projects, not one. Seven are bacformer, one is <code>finedna-20261101-model-carbon-x</code> and one is <code>hycell-20261106-model-hycell</code>, which pins a <code>weights_sha256</code> verified against the downloaded weights rather than a revision, so 8 of the 9 are a 40-hex revision. Two further bacformer records carry no revision because the repository returned HTTP 401 on 2026-11-15. Measured for a second time in <a href="../../maintenance/reports/adr-open-questions-2026-11-17.md">maintenance/reports/adr-open-questions-2026-11-17.md</a>. One example of what makes them pinnable: <code>bacformer-20261115-model-bacformer-causal-complete-genomes</code> carries <span class="mono">Public Hugging Face repository macwiatrak/bacformer-causal-complete-genomes, served at revision 6d2af6ac98f5aaf420ab33b475b891c8398e3bb9 on 2026-11-15.</span> The repository id, the pinned revision and the check date are all in one prose string today.</p>
 </div>
 
 <h3>Comparability by equality can never pass</h3>
@@ -437,7 +437,7 @@ export const isRunnableSubject = (kind: string): boolean =&gt;
   <table>
     <thead><tr><th>Subject</th><th class="num">Runnable records</th><th>Pinnable from today's evidence</th></tr></thead>
     <tbody>
-      <tr><td>kind <code>model</code>, <code>entity_level: checkpoint</code></td><td class="num">29</td><td>9 (bacformer, one project), plus 1 through a linked source</td></tr>
+      <tr><td>kind <code>model</code>, <code>entity_level: checkpoint</code></td><td class="num">29</td><td>9 across three projects (7 bacformer, finedna, hycell), 8 of them a 40-hex revision, plus 1 through a linked source</td></tr>
       <tr><td>kind <code>model</code>, <code>entity_level: service</code></td><td class="num">35</td><td>13 have a GitHub link, 22 have nothing</td></tr>
       <tr><td>kind <code>model</code>, <code>entity_level: method</code></td><td class="num">14</td><td>8 have a GitHub link</td></tr>
       <tr><td>kind <code>model</code>, <code>entity_level: family</code></td><td class="num">0</td><td>Not applicable; reason <code>inapplicable</code> on 308 records</td></tr>
@@ -678,7 +678,7 @@ export const isRunnableSubject = (kind: string): boolean =&gt;
       <text x="500" y="143" class="ts">about 320 lines, 3 days</text>
 
       <rect x="124" y="158" width="360" height="24" rx="4" class="bx"/>
-      <text x="136" y="175" class="tn"><tspan font-weight="700">PR 4</tspan>  the first model batch: 9 bacformer checkpoints</text>
+      <text x="136" y="175" class="tn"><tspan font-weight="700">PR 4</tspan>  the first model batch: 8 pinned checkpoints</text>
       <text x="500" y="175" class="ts">curation, roughly 12 hours</text>
 
       <rect x="152" y="190" width="332" height="24" rx="4" class="bx"/>
@@ -766,7 +766,7 @@ export const isRunnableSubject = (kind: string): boolean =&gt;
 <div class="prose">
 <ul>
   <li>Coverage tops out near 20 percent of model records, 78 of 386, and only because 308 are families that correctly get a reason. Benchmarks top out near 30 percent. Read literally, "a how-to section for each model and benchmark" is not delivered, and no design delivers it without inventing values.</li>
-  <li>The first model batch is 9 records from one project. Until a second project's pins resolve, the model programme is a bacformer programme.</li>
+  <li>The first model batch is 9 records across three projects, 7 of them bacformer, and 12 checkpoints in all are writable from bytes already in the repository, 8 with both an obtainable weights pin and a readable how-to. The model programme is bacformer-dominated until more pins resolve, but it is not a single-project programme.</li>
   <li>Two places hold the same hardware fact, the prose string and <code>hardware_floor</code>, and nothing deterministic can check they agree.</li>
   <li>Every real run above a synthetic smoke needs a pull request in rewire-benchmarks first. If those are slow, the receipt machinery stays decorative, which is the state it has been in since 2026-09-20.</li>
   <li>Model-owned recipes do not render until rewire-database ships a model how-to surface; its docs state that <code>attributes.run_recipes</code> belongs to evaluation-design records.</li>
@@ -798,8 +798,8 @@ export const isRunnableSubject = (kind: string): boolean =&gt;
   </div>
   <div>
     <h4>2. Gate width</h4>
-    <p><code>model</code> only, or <code>model</code> plus <code>pipeline</code> (133 records, recipe yield unmeasured)? <code>kind: method</code> (618) and <code>kind: configuration</code> (5,564) are excluded either way, and the <code>service</code> kind (6 records) needs no change because the 35 real hosted services are already kind <code>model</code> at <code>entity_level: service</code>.</p>
-    <p class="r"><b>Recommendation</b> model plus pipeline, with PR 3 measuring pipeline yield before any curation is spent on it.</p>
+    <p><code>model</code> only, or <code>model</code> plus <code>pipeline</code> (133 records, yield measured 2026-11-17 at 31, 23 percent, carrying a 40-hex-pinned code location, 24 of them in their own attributes; 0 carry a weights pin, 0 a container image, and 101 have no code location at all)? <code>kind: method</code> (618) and <code>kind: configuration</code> (5,564) are excluded either way, and the <code>service</code> kind (6 records) needs no change because the 35 real hosted services are already kind <code>model</code> at <code>entity_level: service</code>.</p>
+    <p class="r"><b>Recommendation</b> model plus pipeline, and the deferral is withdrawn now that the yield is measured. 23 percent is the same order as the 38-of-128 benchmark yield this record already commits curation to, the gate change is one array element, and the model gate reaches none of it: the 7 pipelines whose pinned repository belongs to an upstream model point at 3 model records, all <code>entity_level: family</code>, which this record rules inapplicable. Sequencing goes the other way, though: 12 checkpoints are writable from bytes already in the repository, while each pipeline recipe needs a fetch, a <code>source_ids</code> edit and, for 25 of the 31, a review pass first. Figures: <a href="../../maintenance/reports/adr-open-questions-2026-11-17.md">maintenance/reports/adr-open-questions-2026-11-17.md</a>.</p>
   </div>
   <div>
     <h4>3. GPU budget</h4>
@@ -808,7 +808,7 @@ export const isRunnableSubject = (kind: string): boolean =&gt;
   </div>
   <div>
     <h4>4. Sequencing</h4>
-    <p>Given that the first model batch is 9 bacformer checkpoints from one project: start the curation programme with those 9 models, or start with the 23 benchmarks that have a reachable GitHub repository and defer models until a second project's pins resolve? Models prove the new gate end to end on one project. Benchmarks give more breadth per hour but prove nothing new about the schema.</p>
+    <p>Given that the first model batch is 9 pinned checkpoints across three projects: start the curation programme with the 8 that carry both an obtainable weights pin and a readable how-to, or start with the 23 benchmarks that have a reachable GitHub repository? Models prove the new gate end to end. Benchmarks give more breadth per hour but prove nothing new about the schema.</p>
     <p class="r"><b>Recommendation</b> none stated; both are defensible and the choice is about what the catalogue should show first.</p>
   </div>
 </div>
