@@ -33,7 +33,8 @@ export function encoding(type: string): Encoding {
   if (type.startsWith("concept:")) return { kind: "concept", scheme: type.slice(8) };
   if (type.startsWith("concepts:")) return { kind: "concept", scheme: type.slice(9), list: true };
   switch (type) {
-    case "integer": return { kind: "literal", datatype: "xsd:integer" };
+    case "integer":
+    case "depth-tier": return { kind: "literal", datatype: "xsd:integer" };
     case "number": return { kind: "literal", datatype: "xsd:double" };
     case "boolean": return { kind: "literal", datatype: "xsd:boolean" };
     case "decimal":
