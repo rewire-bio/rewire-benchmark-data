@@ -114,7 +114,7 @@ describe("source-defined uncertainty", () => {
   });
   it("does not infer a standard deviation merely from a printed spread", () => {
     const result = buildBatch(fixture()).find((record) => record.kind === "result")!;
-    expect(result.attributes.uncertainty).toEqual({ type: "reported_plus_minus_type_unresolved", value: "0.01" });
+    expect(result.attributes.uncertainty).toEqual({ type: "unresolved_spread", value: "0.01" });
   });
   it.each(["standard_deviation", "standard_error"] as const)("preserves an explicitly sourced %s", (uncertaintyType) => {
     const result = buildBatch({ ...fixture(), uncertaintyType }).find((record) => record.kind === "result")!;

@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR 0002: Claim and value extraction</title>
+<style>
+html, body { margin: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+/* Layout: one reading column for prose, figures allowed a little wider. */
+:root {
+  --bg: #f4f6f9; --surface: #ffffff; --fg: #1a2230; --muted: #5a6574; --line: #d3d9e2;
+  --accent: #1d5ea8; --accent-soft: #e2ebf7;
+  --real: #b0281f; --lead: #a76300; --explained: #4b6889; --fp: #7f8a99;
+  --high: #b0281f; --med: #a76300; --low: #66717f;
+  --display: Georgia, "Times New Roman", serif;
+  --body: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10151c; --surface: #17202a; --fg: #e4e9ef; --muted: #9ba6b4; --line: #2d3846;
+  --accent: #74abee; --accent-soft: #1b2a3d;
+  --real: #f08b80; --lead: #eeb25a; --explained: #8fb0d6; --fp: #8d97a5;
+  --high: #f08b80; --med: #eeb25a; --low: #a3adba; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #10151c; --surface: #17202a; --fg: #e4e9ef; --muted: #9ba6b4; --line: #2d3846;
+  --accent: #74abee; --accent-soft: #1b2a3d;
+  --real: #f08b80; --lead: #eeb25a; --explained: #8fb0d6; --fp: #8d97a5;
+  --high: #f08b80; --med: #eeb25a; --low: #a3adba; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body); }
+.wrap { max-width: 960px; margin: 0 auto; padding-block: 40px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 2.1rem; font-weight: 650; }
+h2 { font-size: 1.5rem; font-weight: 650; margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line); }
+h3 { font-size: 1.15rem; font-weight: 650; margin-top: 28px; }
+h4 { margin: 20px 0 0; font-size: 1rem; }
+p, ul, ol { margin: 12px 0 0; }
+ul, ol { padding-left: 1.2em; }
+li + li { margin-top: 4px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.eyebrow { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 16px; font-size: 0.92rem; color: var(--muted); }
+.meta b { color: var(--fg); font-weight: 600; }
+.status { display: inline-block; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--lead); color: var(--lead); font-weight: 600; font-size: 0.85rem; }
+.lede { font-size: 1.12rem; margin-top: 20px; max-width: 64ch; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 24px; }
+.summary > div { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.summary .k { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.summary p { margin-top: 6px; font-size: 0.95rem; }
+
+figure { margin: 24px 0 0; }
+figcaption { font-size: 0.88rem; color: var(--muted); margin-top: 8px; max-width: 72ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
+.scroll { overflow-x: auto; }
+.scroll svg { min-width: 620px; }
+svg { display: block; width: 100%; height: auto; }
+svg text { font-family: var(--body); }
+
+/* Figures carry literal colours, so a diagram stays legible whatever the page theme is. */
+svg .f-bg { fill: #ffffff; stroke: #c3cbd6; stroke-width: 1; }
+svg .f-box { fill: #ffffff; stroke: #8e99a8; stroke-width: 1.2; }
+svg .f-box2 { fill: #eef1f6; stroke: #8e99a8; stroke-width: 1.2; }
+svg .f-boxa { fill: #e2ebf7; stroke: #1d5ea8; stroke-width: 1.4; }
+svg .f-boxr { fill: #f8e4e2; stroke: #b0281f; stroke-width: 1.4; }
+svg .f-boxw { fill: #fbefd9; stroke: #8a5300; stroke-width: 1.4; }
+svg .f-t { fill: #1a2230; font-size: 13px; }
+svg .f-tb { fill: #1a2230; font-size: 13px; font-weight: 700; }
+svg .f-ts { fill: #4c576a; font-size: 11.5px; }
+svg .f-tm { fill: #1a2230; font-size: 11.5px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+svg .f-ta { fill: #174c88; font-size: 11.5px; font-weight: 700; }
+svg .f-tr { fill: #8f2019; font-size: 11.5px; font-weight: 700; }
+svg .f-tw { fill: #7a4a00; font-size: 11.5px; font-weight: 700; }
+svg .f-hd { fill: #4c576a; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; }
+svg .f-ln { stroke: #5a6574; stroke-width: 1.4; fill: none; }
+svg .f-lna { stroke: #1d5ea8; stroke-width: 1.6; fill: none; }
+svg .f-lnd { stroke: #5a6574; stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; }
+svg .f-ah { fill: #5a6574; } svg .f-aha { fill: #1d5ea8; }
+svg .f-hl { fill: #fbefd9; stroke: #8a5300; stroke-width: 1.2; }
+
+/* stacked bars */
+.bars { display: grid; gap: 18px; }
+.bar-row .lab { font-size: 0.9rem; font-weight: 600; }
+.bar { display: flex; height: 30px; border-radius: 4px; overflow: hidden; margin-top: 6px; background: var(--bg); }
+.bar span { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 8px; font-size: 0.86rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.legend b { color: var(--fg); }
+.s-ok { background: var(--accent); }
+.s-part { background: color-mix(in srgb, var(--accent) 45%, var(--surface)); }
+.s-res { background: var(--lead); }
+.s-none { background: var(--fp); }
+
+/* options */
+.opt { margin-top: 40px; }
+.opt-tag { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-family: var(--display); font-weight: 650; margin-right: 10px; }
+.opt h3 { display: flex; align-items: center; flex-wrap: wrap; margin-top: 0; font-size: 1.3rem; }
+.rec { margin-left: 12px; font-family: var(--body); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 1px 9px; }
+.pc { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+.pc > div { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; }
+.pc h4 { margin: 0; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.pc .pro h4 { color: var(--accent); } .pc .con h4 { color: var(--real); }
+.pc ul { margin-top: 6px; font-size: 0.94rem; }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; margin-top: 16px; }
+.tbl table { min-width: 600px; }
+.r-good { color: var(--accent); font-weight: 700; } .r-part { color: var(--lead); font-weight: 700; } .r-poor { color: var(--real); font-weight: 700; }
+.sev { display: inline-block; font-size: 0.76rem; font-weight: 700; padding: 1px 8px; border-radius: 4px; text-transform: lowercase; }
+.sev.high { color: var(--high); background: color-mix(in srgb, var(--high) 14%, var(--surface)); }
+.sev.medium { color: var(--med); background: color-mix(in srgb, var(--med) 16%, var(--surface)); }
+.sev.low { color: var(--low); background: color-mix(in srgb, var(--low) 14%, var(--surface)); }
+.sev.none { color: var(--muted); border: 1px dashed var(--line); }
+
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 20px; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.step .n { font-family: var(--display); font-weight: 650; font-size: 1.6rem; color: var(--accent); line-height: 1; }
+.step h4 { margin: 8px 0 0; font-size: 1rem; }
+.step ul { font-size: 0.92rem; }
+.step .closes { margin-top: 10px; font-size: 0.82rem; color: var(--muted); }
+
+.callout { margin-top: 20px; border-left: 3px solid var(--accent); padding: 10px 16px; background: var(--surface); border-radius: 0 6px 6px 0; max-width: 72ch; }
+.q { margin-top: 20px; border-left: 3px solid var(--lead); padding: 12px 16px; background: var(--surface); border-radius: 0 6px 6px 0; max-width: 72ch; }
+.q .k { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--lead); font-weight: 700; }
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 560px) { h1 { font-size: 1.7rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Architecture decision record 0002 &middot; rewire-benchmark-data</div>
+  <h1 style="margin-top:8px">Claim and value extraction</h1>
+  <div class="meta">
+    <span><span class="status">Proposed</span></span>
+    <span><b>Date</b> 2026-11-17</span>
+    <span><b>Decider</b> Tim Richardson</span>
+    <span><b>Proposed</b> 2026-11-17, two open questions below</span>
+  </div>
+  <div class="meta">
+    <span><b>Answers</b> <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/228">#228</a></span>
+    <span><b>Store measured</b> 52,278 results, 24,726 evaluations, 4,155 claims, 1,483 sources, 93,187 provenance lines, at <span class="mono">991a09e</span></span>
+  </div>
+  <div class="meta">
+    <span><b>Related records</b> <a href="0003-source-preservation.html">0003</a> decides how source bytes are captured, identified by two hashes and tiered by licence, and it captures the layers this record addresses; <a href="0004-storage-substrate.html">0004</a> decides the storage substrate, and its object store holds those layer bytes; <a href="0005-run-recipes.html">0005</a> decides how a model or benchmark carries a runnable how-to</span>
+  </div>
+  <p class="lede">A stored value is checked for shape and for provenance-hash integrity. Nothing checks that it means what the source says, and nothing binds it to a place in the source that a second reader can find. This record decides what to build: deterministic checks first, over a locator that carries byte spans into a pinned text layer, with a language model at exactly one place in the pipeline and its output admitted only on a byte-span match.</p>
+
+  <div class="summary">
+    <div><div class="k">Problem</div><p>In the 2026-11-15/16 pass, 13 of 13 batches needed a correction and the deterministic value check caught none of them. The one locator grammar parses 39.3% of stored locators and has been run on 14 of 194 batch folders.</p></div>
+    <div><div class="k">Decision</div><p>A layer registry over the hashed derived text, a key-value locator grammar authored structured and rendered to the printed string, fifteen model-free checks that ship as a report with a ratchet, one model stage group behind a span check.</p></div>
+    <div><div class="k">Status</div><p>Proposed. The first PR is report only and writes nothing to the store, and its ratchet is already shipped. Two questions below need the owner's ruling before the gates can land; a third, where layer bytes live, is answered by ADR 0004.</p></div>
+  </div>
+</header>
+
+<!-- ============ CONTEXT ============ -->
+<h2>Context</h2>
+<div class="prose">
+  <p>A source becomes records through four stages that are only partly shared: pin and hash the artifact, parse it into cells, render cells into record JSONL, verify and load. Only the TypeScript lane ever had a shared claim shape and a shared record renderer. It has been dead since 2026-10-09 17:13, when <code>scripts/omics/extract/batch.ts</code> was last touched, one hour before the declared-attribute contract landed. It produced 11,755 accepted records across 19 batches and then stopped.</p>
+  <p>Everything since is hand-written per-batch Python: 115 <code>build.py</code> and <code>extract_*.py</code> files under <code>data/omics</code>, 46,231 lines, with <code>lib.py</code> copied 42 times in 11 drifted versions and zero imports from <code>scripts/omics</code>. There are 19 files in <code>scripts/omics/extract</code>, of which <code>batch.ts</code>, <code>pdf.ts</code> and <code>tables.ts</code> are shared helpers, so 16 are per-benchmark extractors.</p>
+</div>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 470" role="img" aria-label="The five pipeline stages and the check that binds at each one. The layer sanity gate binds at the layer stage, locator resolution and span grounding at the extract stage, the check pack and receipt binding at records add.">
+      <defs>
+        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-ah"/></marker>
+        <marker id="a1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-aha"/></marker>
+      </defs>
+      <rect class="f-bg" x="0.5" y="0.5" width="719" height="469" rx="6"/>
+      <text x="16" y="24" class="f-hd">STAGE</text>
+      <text x="300" y="24" class="f-hd">CHECK THAT BINDS HERE</text>
+      <text x="586" y="24" class="f-hd">IN VERSION 1</text>
+
+      <rect x="16" y="36" width="250" height="56" rx="5" class="f-box"/>
+      <text x="30" y="58" class="f-tb">1  Pin the artifact</text><text x="30" y="78" class="f-ts">bytes in, artifact_sha256 out</text>
+      <rect x="16" y="118" width="250" height="56" rx="5" class="f-box"/>
+      <text x="30" y="140" class="f-tb">2  Build the layer</text><text x="30" y="160" class="f-ts">one declared command, layer_sha256</text>
+      <rect x="16" y="200" width="250" height="74" rx="5" class="f-boxa"/>
+      <text x="30" y="222" class="f-tb">3  Index and extract</text><text x="30" y="241" class="f-ts">deterministic index, then select,</text><text x="30" y="258" class="f-ts">disambiguate, decompose, ground, map</text>
+      <rect x="16" y="300" width="250" height="56" rx="5" class="f-box"/>
+      <text x="30" y="322" class="f-tb">4  Promote candidates</text><text x="30" y="342" class="f-ts">reviewer accepts, buildBatch renders</text>
+      <rect x="16" y="382" width="250" height="56" rx="5" class="f-box"/>
+      <text x="30" y="404" class="f-tb">5  records -- add</text><text x="30" y="424" class="f-ts">load, validate, write, repin</text>
+
+      <path d="M141,92 L141,115" class="f-ln" marker-end="url(#a1)"/>
+      <path d="M141,174 L141,197" class="f-ln" marker-end="url(#a1)"/>
+      <path d="M141,274 L141,297" class="f-ln" marker-end="url(#a1)"/>
+      <path d="M141,356 L141,379" class="f-ln" marker-end="url(#a1)"/>
+
+      <rect x="300" y="110" width="270" height="44" rx="5" class="f-boxw"/>
+      <text x="314" y="128" class="f-tb">Layer sanity</text><text x="314" y="145" class="f-ts">U+FFFD, printable ratio, page count</text>
+      <text x="586" y="137" class="f-tw">gate</text>
+      <rect x="300" y="166" width="270" height="44" rx="5" class="f-boxa"/>
+      <text x="314" y="184" class="f-tb">Locator resolution</text><text x="314" y="201" class="f-ts">span plus row label and shape</text>
+      <text x="586" y="193" class="f-ta">report</text>
+      <rect x="300" y="222" width="270" height="44" rx="5" class="f-boxa"/>
+      <text x="314" y="240" class="f-tb">Span grounding</text><text x="314" y="257" class="f-ts">candidate bytes equal layer bytes</text>
+      <text x="586" y="249" class="f-tw">gate</text>
+      <rect x="300" y="278" width="270" height="44" rx="5" class="f-boxa"/>
+      <text x="314" y="296" class="f-tb">Token coverage</text><text x="314" y="313" class="f-ts">content tokens from own spans</text>
+      <text x="586" y="305" class="f-ta">queue sorter</text>
+      <rect x="300" y="334" width="270" height="44" rx="5" class="f-box2"/>
+      <text x="314" y="352" class="f-tb">Review independence</text><text x="314" y="369" class="f-ts">extractor agent is not reviewer agent</text>
+      <text x="586" y="361" class="f-tw">gate</text>
+      <rect x="300" y="390" width="270" height="62" rx="5" class="f-boxa"/>
+      <text x="314" y="408" class="f-tb">Check pack, 15 checks</text><text x="314" y="425" class="f-ts">unit, direction, printed, qualifier,</text><text x="314" y="442" class="f-ts">columns, duplicates, coverage, receipt</text>
+      <text x="586" y="421" class="f-ta">report and ratchet</text>
+
+      <path d="M266,146 L296,132" class="f-ln" marker-end="url(#a1)"/>
+      <path d="M266,228 L296,188" class="f-lna" marker-end="url(#a1a)"/>
+      <path d="M266,237 L296,244" class="f-lna" marker-end="url(#a1a)"/>
+      <path d="M266,246 L296,300" class="f-lna" marker-end="url(#a1a)"/>
+      <path d="M266,328 L296,356" class="f-ln" marker-end="url(#a1)"/>
+      <path d="M266,410 L296,418" class="f-ln" marker-end="url(#a1)"/>
+
+      <rect x="300" y="36" width="270" height="44" rx="5" class="f-boxr"/>
+      <text x="314" y="54" class="f-tb">Nothing</text><text x="314" y="71" class="f-ts">a restamped PDF passes unnoticed</text>
+      <text x="586" y="63" class="f-tr">unchanged</text>
+      <path d="M266,64 L296,60" class="f-ln" marker-end="url(#a1)"/>
+    </svg>
+  </div>
+  <figcaption>Stage 3 is the only place a language model runs, and its output reaches a candidate file only through the span grounding check. Everything a reviewer reruns is below that line and needs no model. Version 1 ships the check pack as a report; the gate flip is step 6 of the sequence.</figcaption>
+</figure>
+
+<h3>Four measurements force the shape</h3>
+<div class="prose">
+<ol>
+  <li><b>The one deterministic value check caught nothing.</b> In the 2026-11-15/16 pass, 13 of 13 batches needed a correction. Across the 11 batches that ran <code>batch -- check-values</code>, no run reported <code>not_in_row</code>, <code>wrong_column</code> or <code>overclaimed_in_row</code>, and five reviews state the output was byte-identical to the extractor's. In two of the eleven (ladon, torchcraft) the parser resolved nothing usable. Of 19 recorded defect classes, 16 were caught only by a human or agent re-reading the source, 2 by gates already in the pipeline, 1 by a bespoke script written for that review, 0 by the value check.</li>
+  <li><b>The one locator grammar is a regex.</b> <code>scripts/omics/batch.py:30-31</code> parses 20,540 of 52,278 stored result locators (39.3%), and <code>check-values</code> has been run on 14 of 194 batch folders because <code>docs/collection.md</code> makes it an optional review step.</li>
+  <li><b>Semantic validation is absent.</b> The <code>skos:scopeNote</code> text on unit concepts is read by no code, <code>metric_direction</code> is never compared with the metric's <code>rb:defaultDirection</code>, and nothing compares <code>numeric_value</code> with <code>printed_value</code>.</li>
+  <li><b>No check had a backlog number.</b> The reviews name three automatable clusters: comparability-field normalisation (728 records), locator resolution (76) and groundedness of prose and source-reported metadata (187). None had a count of how many stored records violate the proposed check, and the facts brief says plainly that that number is what decides build order.</li>
+</ol>
+</div>
+
+<figure>
+  <div class="panel bars" role="img" aria-label="Of 19 recorded defect classes, 16 were caught only by a human or agent re-reading the source, 2 by an existing pipeline gate, 1 by a bespoke script, 0 by the deterministic value check.">
+    <div class="bar-row">
+      <div class="lab">What caught the 19 defect classes in the 2026-11-15/16 pass</div>
+      <div class="bar">
+        <span class="s-none" style="width:84.2%"></span><span class="s-ok" style="width:10.5%"></span><span class="s-res" style="width:5.3%"></span>
+      </div>
+      <div class="legend">
+        <span><i class="s-none"></i>a reader <b>16</b></span>
+        <span><i class="s-ok"></i>an existing gate <b>2</b></span>
+        <span><i class="s-res"></i>a one-off script <b>1</b></span>
+        <span><i style="background:var(--real)"></i>the value check <b>0</b></span>
+      </div>
+    </div>
+  </div>
+  <figcaption>The two caught by a gate are SHACL refusing the ladon batch at <code>records -- add</code> and the attribute tests in CI. The one-off script is bioemu2's <code>check-locators.py</code>, which found five wrong locators. The result does not say deterministic checking fails. It says the repository had one deterministic check and it tested one proposition that was almost always true.</figcaption>
+</figure>
+
+<h3>Where issue #228 is wrong</h3>
+<div class="prose">
+  <p>#228 states the gap correctly: nothing records which assertions of a source were left out, <code>source_locator</code> needs a structured span beside the printed locator, and an extraction receipt should pin tool and model IDs, prompt hashes, temperature and per-stage output hashes. Five of its specifics do not survive a check.</p>
+  <ul>
+    <li><b>The entailment figure is wrong twice.</b> #228 cites "99% entailed by their source sentence". Claimify's Table 1 measures entailment against the combined source sentence, context and question, and reports 99.0% on 12,406 claims against VeriScore's 99.2% on 7,420, with no significant difference (p = 0.145). Claimify's real edge is coverage: 91.8 against 79.0 sentence-level accuracy, 87.9 against 64.7 element-level.</li>
+    <li><b>The pinned NLI judge repeats a rejected experiment.</b> The Claimify authors ran it and dropped it: the premise, question plus context plus sentence, exceeded the 512-token limit, and the NLI model conflicted with human labels in 32 and 12 of 80 cases against 5 for an LLM prompt. Every pinnable sub-1B judge carries the same ceiling.</li>
+    <li><b>Docling cannot meet #228's own first driver.</b> Its <code>charspan</code> is item-local; open issue #4217 shows the span exceeding the item's own text length, reproducible without a PDF; #3329 shows the layout model classifying the same PDF differently on macOS ARM and Linux x86_64 at identical versions on CPU; #3401 shows TableFormer dropping row labels on continuation pages.</li>
+    <li><b>Option 2 is obsolete as written.</b> FEVERFact's fine-tuned models were never published, the repository README is still anonymised review text, and the repository carries no licence, so it cannot be redistributed.</li>
+    <li><b>The counts are stale.</b> #228 cites 107 per-batch scripts and 19 per-benchmark extractors. Measured now: 115 per-batch scripts under <code>data/omics</code>, and 19 files in <code>scripts/omics/extract</code> of which 16 are extractors.</li>
+  </ul>
+  <p>The stage shape #228 borrows from Claimify, select then disambiguate then decompose, is kept. The claim to Claimify's measured numbers is not, because a reimplementation that changes the model is no longer the measured method.</p>
+</div>
+
+<h3>What the external routes close off</h3>
+<div class="prose">
+  <p>Claimify has no code. Its evaluation set is published under CDLA-Permissive-2.0, its numbers are bound to <code>gpt-4o-2024-08-06</code> with a 2-of-3 vote at temperature 0.2, and its successor VeriTrail also ships none. VeriScore and IBM's FactReasoner are genuinely Apache-2.0, but they are built for open-domain factuality over model output and emit no offsets.</p>
+  <p>On the substrate: the repository's hashed <code>pdftotext -layout</code> text is the only deterministic anchor it has, and the 2026-11-16 gpn-msa review already ruled that the text layer, not the publisher's bytes, is what must be pinned. That review measured bioRxiv rotating between two container variants at identical byte length while the text layer stayed byte-identical across all three downloads.</p>
+</div>
+
+<!-- ============ MEASUREMENT ============ -->
+<h2>What was re-measured for this decision</h2>
+<div class="prose">
+  <p>Three independent designs were written and scored. Every number each rested on was re-run against this worktree before it was carried into the decision. Two did not reproduce, and this page prints what was measured rather than the prettier figure.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Claim</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>Locator grammar version 2 reaches 72.9% fully addressed over 52,278 locators</td><td><span class="r-good">Reproduced.</span> 38,103 of 52,278 fully addressed, 42,620 (81.5%) including partial. 8,192 carry unconsumed residue, 1,466 have no anchor.</td></tr>
+      <tr><td>C1, minority unit for the metric: 5,093</td><td><span class="r-good">Reproduced.</span> 5,093 over 43 metrics.</td></tr>
+      <tr><td>C2, direction against <code>rb:defaultDirection</code>: 1,256</td><td><span class="r-good">Reproduced.</span> 58 opposite, 206 unknown where the metric declares one, 992 asserted where the metric declares none. The three parts sum to 1,256; tm-score 28 and pearson 25 among the opposites.</td></tr>
+      <tr><td>C4, verdict or vendor token in <code>metric_qualifier</code>: 338</td><td><span class="r-good">Reproduced.</span> high 171, no 161, max 6.</td></tr>
+      <tr><td>C9, same <code>artifact_sha256</code> and url: 171 groups</td><td><span class="r-good">Reproduced.</span> The shipped check reports 187 under its own grouping, which is the number the baseline pins.</td></tr>
+      <tr><td>C3, <code>numeric_value</code> does not round to <code>printed_value</code>: 170</td><td><span class="r-poor">Not reproduced.</span> The prototype's strict bucket is 1,640; an independent half-up check at printed precision gives 603, whose printed examples are Unicode minus, E-notation with a Unicode hyphen and leading-dot forms. The parser is the variable, not the store. The real number needs <code>parseCell</code>.</td></tr>
+      <tr><td>C5, incoherent printed columns: 676 of 2,446, 19,374 results</td><td><span class="r-poor">Not reproduced.</span> The prototype groups by source and anchor and gives 362 of 530 tables and 32,141 results. The design flags its own grouping as prototyped, not reviewed.</td></tr>
+      <tr><td>No <code>derivation.script</code> points under <code>data/omics</code></td><td><span class="r-good">Confirmed.</span> One script value in the whole store, <code>scripts/omics/derive/ahlmann_eltze_2025.py</code>, on 59 results.</td></tr>
+      <tr><td>value-check status distribution over the 14 files</td><td><span class="r-good">Reproduced exactly.</span> 867 <code>in_cell</code>, 994 <code>in_row</code>, 551 <code>locator_not_parsed</code>, 20 <code>row_not_found</code>.</td></tr>
+      <tr><td>7 batches hold an archived derived text layer</td><td><span class="r-good">Confirmed</span>, under five different filename conventions, from <code>biorxiv-v1-layout.txt.gz</code> to <code>HyPLM_Technical_Report.txt.gz</code>.</td></tr>
+      <tr><td>Node classes must be <code>rb:</code>-prefixed and <code>oa</code> and <code>prov</code> are filtered out of the generated declarations</td><td><span class="r-good">Confirmed.</span> <code>declare</code> at <code>scripts/kg/attribute-terms.ts:175</code> returns early unless the property starts <code>rb:</code>; <code>node.class.slice(3)</code> at :200, :219, :253 and :255; the prefix allowlist at :166 is rb, rdf, rdfs, xsd, schema, mls, dcat, obo.</td></tr>
+      <tr><td><code>data/gold</code> and <code>scripts/eval</code> cannot move a release ID</td><td><span class="r-good">Confirmed.</span> <code>storeDigests</code> (<code>scripts/omics/records.ts:127-146</code>) digests record files plus the provenance file; the generator hashes in <code>release.ts</code> name files under <code>shared/omics</code>, <code>scripts/omics</code> and <code>scripts/kg</code> only.</td></tr>
+      <tr><td><code>hash_scope</code> is machine-readable today</td><td><span class="r-poor">No.</span> 587 sources carry it across 106 distinct free-text values, 868 have a hash and no scope at all. A layer registry is needed, not more <code>hash_scope</code>.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>Disagreements, and what settled them</h3>
+<div class="tbl">
+  <table>
+    <thead><tr><th>Question</th><th>Settled by</th></tr></thead>
+    <tbody>
+      <tr><td>Are the 115 Python scripts load-bearing for a derivation hash?</td><td><b>No.</b> <code>derivations.ts:38-40</code> does require a derivation's script to exist and match <code>script_sha256</code>, but the store holds one script value, on 59 results, and it is not under <code>data/omics</code>. The freeze survives on its other two reasons: 213 distinct <code>added_in</code> values naming batch directories, and 154 dated reviews citing those paths and never edited after merge.</td></tr>
+      <tr><td>Which locator predicate is the gate?</td><td><b>Fully addressed, not typed.</b> 8,192 locators carry unconsumed residue and 1,466 have no anchor, so 18.5% can be typed to a kind while resolving nothing. The baseline is 38,103 of 52,278.</td></tr>
+      <tr><td>Does the 2026-11-15/16 pass show that deterministic checking fails?</td><td><b>No, and it sets the build order.</b> The facts brief's own gap statement says no count exists of how many stored records violate each proposed check, "and that number is what decides which checks are worth building first". That count is one read-only command, so it comes before a curation project.</td></tr>
+      <tr><td>Substring matching or token coverage for groundedness?</td><td><b>Token coverage.</b> bioemu2's hand-written substring predecessor matched 42 of 75 claims word for word and left 33 for eye reading. Token coverage still fails RFdiffusion4's spliced sentence on the single token <code>catalytic</code>, which occurs once across all thirteen of that batch's sources and not in the claim's own sources.</td></tr>
+      <tr><td>Can a gold set measure a value checker?</td><td><b>No.</b> All 1,591 keyed reviewer re-read rows are matches, so thirteen batches produced zero real value-transcription defects. Precision and recall for that check cannot be established from corrections, only from seeded mutation.</td></tr>
+      <tr><td>How many results have a <code>numeric_value</code> inconsistent with <code>printed_value</code>?</td><td><b>Unsettled.</b> Three figures exist, 170, 1,640 and 603, and the spread is parser quality. The baseline is pinned from the implementation's first run through <code>parseCell</code>, never from a prototype.</td></tr>
+      <tr><td>How large is the comparability-column backlog?</td><td><b>Unsettled.</b> 676 of 2,446 printed columns and 19,374 results under one grouping, 362 of 530 tables and 32,141 results under another. Only the 100-row hand audit gives either figure meaning, so C5 stays a report until it passes.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ OPTIONS ============ -->
+<h2>Options</h2>
+
+<section class="opt">
+  <h3><span class="opt-tag">A</span>Deterministic first: a validator pack over a typed locator<span class="rec">Spine of the decision</span></h3>
+  <div class="prose">
+    <p>Replace the single value check with fourteen model-free checks over a typed locator that carries byte spans into a pinned derived text layer. Publish the measured backlog as a pinned baseline and ratchet it. One model stage, admitted only on a byte-span match. Freeze the 115 scripts and promote the shared pieces.</p>
+  </div>
+  <div class="pc">
+    <div class="pro"><h4>Pros</h4><ul>
+      <li>The only design that measured anything new, and five of its seven headline numbers reproduce.</li>
+      <li>Attacks the largest clusters first and needs no source reading to raise roughly 26,000 rows for triage.</li>
+      <li>The first PR is report only, writes nothing to the store and takes days, not weeks.</li>
+      <li>The ratchet makes a report-only PR still bite, on growth rather than on the backlog.</li>
+      <li>Cheapest to build and easiest to reverse: nothing in the first PR touches a record, a vocabulary or the ontology.</li>
+    </ul></div>
+    <div class="con"><h4>Cons</h4><ul>
+      <li>Its first stated reason for freezing the 115 scripts is false. No derivation in the store points under <code>data/omics</code>.</li>
+      <li>Two of its baseline numbers, C3 at 170 and C5 at 19,374, do not reproduce from its own prototype.</li>
+      <li>It names byte offsets while calling them <code>TextPositionSelector</code>, which counts code points.</li>
+      <li>It plans a <code>prov:Activity</code> extraction node without noticing that the generated declarations filter <code>prov:</code> out, so its field properties would silently never be declared.</li>
+      <li>It admits six of the 19 classes stay human, and those six produced much of the scientific content of the last pass.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h3><span class="opt-tag">B</span>Standards maximal: make the span the primitive<span class="rec">Grafted in</span></h3>
+  <div class="prose">
+    <p>One hashed text layer per artifact, every value and claim anchored to a W3C Web Annotation selector pair, a PROV-O typed extraction activity, the locator contract inverted so the structure is authored and the string rendered, a deterministic token-coverage gate in place of the NLI judge, and a four-part evaluation harness with a release gate.</p>
+  </div>
+  <div class="pc">
+    <div class="pro"><h4>Pros</h4><ul>
+      <li>Best standards quality, and verified against the generator rather than asserted: the <code>rb:</code> early return, the <code>slice(3)</code> class handling and the prefix allowlist were all confirmed in the code.</li>
+      <li>Dual code-point and byte offsets, with the rule that the layer is never Unicode-normalised, is the right answer for a decade-durable span, and it is the only design that noticed the problem.</li>
+      <li>A mandatory <code>TextQuoteSelector</code> turns a poppler upgrade into <code>relocated_by_quote</code> rather than <code>span_wrong</code>.</li>
+      <li>RFC 7111 and RFC 6901 fragment selectors fit the 15,000 non-table locators exactly.</li>
+      <li>An immutable prompt registry with <code>first_used_release</code> keeps a 2026 receipt meaningful after the model is withdrawn.</li>
+    </ul></div>
+    <div class="con"><h4>Cons</h4><ul>
+      <li>Its first gate, 97.4% typed to a resolvable kind, is a weak predicate and is unmeasured. 18.5% of locators can be typed loosely and resolve nothing.</li>
+      <li>Its stricter test, a 90% byte-identical round trip, is the real one and is also unmeasured.</li>
+      <li>Six PRs, about 4,500 new lines, six to ten weeks.</li>
+      <li>Its second PR touches <code>mapping.json</code>, <code>rb.ttl</code>, <code>context.jsonld</code>, <code>rb-attributes.ttl</code> and <code>attribute-shapes.ttl</code> at once against an in-memory rdflib build.</li>
+      <li>It is honest that the standards half catches no defects, which also means a large share of its budget does not move the defect rate.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h3><span class="opt-tag">C</span>Measurement first: the instrument before the method<span class="rec">Two controls taken</span></h3>
+  <div class="prose">
+    <p>Collect the scattered reviewer re-reading files, metadata-correction claims and value-check adjudications into one gold set under <code>data/gold</code>, build a harness and seven gates in <code>scripts/eval</code>, then admit extraction methods behind a registered interface only when they pass published gates.</p>
+  </div>
+  <div class="pc">
+    <div class="pro"><h4>Pros</h4><ul>
+      <li>The best diagnosis of the institutional failure: both previous lanes failed for want of measurement, not of method.</li>
+      <li>The only design that puts label reliability first, with a Cohen kappa floor of 0.90 on 60 re-labelled items and a stated kill.</li>
+      <li>Its honest finding is the most useful single number any design produced: zero mismatches among 1,591 keyed re-read rows.</li>
+      <li>Its isolation argument is verified: nothing under <code>data/gold</code> can move a release ID.</li>
+      <li>Method registration with a report naming its <code>gold_digest</code> turns a forgotten re-run into a red build.</li>
+    </ul></div>
+    <div class="con"><h4>Cons</h4><ul>
+      <li>Two weeks of agent curation plus one week of harness before any defect is prevented, and the gates it would then enforce are the checks option A ships as a report first.</li>
+      <li>728 of its 1,139 labelled defects are one class, so recall on everything else rests on between 0 and 187 instances.</li>
+      <li>Every label comes from one reviewer agent, including the 1,591 rows it treats as ground truth.</li>
+      <li>991 labels have to be recovered by hand-verified inversion of 22 reviewer scripts written to be applied once.</li>
+      <li>Its own first pass can kill it, and the stated fallback, a human-labelled seed of 100 items, is a different and more expensive design.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h3><span class="opt-tag">D</span>Adopt a published claim-extraction method</h3>
+  <div class="prose">
+    <p>Reimplement Claimify, or adopt FEVERFact, VeriScore or FactReasoner, and add a pinned NLI judge. Rejected on the facts all three designs agree on, set out under "Where issue #228 is wrong" above. No design was written for it.</p>
+  </div>
+</section>
+
+<!-- ============ DECISION ============ -->
+<h2>Decision</h2>
+<div class="prose">
+  <p>Adopt option A as the spine. Graft option B's span, locator and prompt-registry conformance onto it. Take two controls from option C, and no gold-set curation project.</p>
+</div>
+
+<h3>1. The span substrate is a layer registry over the hashed derived text</h3>
+<div class="prose">
+  <p>A layer is a byte-exact derived representation of one artifact, produced by one declared command from bytes whose SHA-256 is pinned. All addressing, all spans and all resolution happen against a layer. Five layer kinds with one pinned builder each: <code>pdf_text</code> (the existing <code>readPinnedPdfText</code>, <code>pdftotext -layout -enc UTF-8 - -</code> with verified bytes on stdin), <code>jats_text</code>, <code>sheet_tsv</code> (the promoted <code>rawxlsx.py</code>), <code>delimited</code> and <code>json</code>.</p>
+  <p>Each layer gets one line in <code>data/omics/&lt;batch&gt;/extract/layers.jsonl</code> with <code>layer_id</code>, <code>source_id</code>, <code>artifact_sha256</code>, <code>layer_kind</code>, <code>tool</code>, <code>tool_version</code>, <code>argv</code>, <code>builder_sha256</code>, <code>layer_sha256</code>, <code>bytes</code>, <code>lines</code>, <code>built_at</code> and <code>sanity</code>. This replaces <code>hash_scope</code> as the machine-readable record of what a hash covers, <code>hash_scope</code> being free prose on 587 sources and read by no code; the strings themselves are kept and not rewritten, which is <a href="0003-source-preservation.html">ADR 0003</a>'s call. A layer is never rebuilt in place: a fix adds a new <code>layer_id</code>.</p>
+  <p>One hash, one home. The layer bytes are a single object in <a href="0004-storage-substrate.html">ADR 0004</a>'s content-addressed store at <code>layer: text-layer</code>; <code>layer_sha256</code> is the same hash ADR 0003 records as that capture's evidence identity; and this file is a generated projection of those capture entries for the sources a batch cites, checked byte-equal in CI rather than hand-written. Nothing here stores a second copy of a layer or a second name for its hash.</p>
+  <p>Offsets are recorded twice and both are checked. <code>start</code> and <code>end</code> are Unicode code point offsets, which is what <code>oa:TextPositionSelector</code> counts; <code>byte_start</code> and <code>byte_end</code> are UTF-8 byte offsets, which is what the checker slices. The layer is never Unicode-normalised, because NFC would move every stored offset when an ICU version changes. Normalisation lives in a versioned comparison function named on every check result. Every resolvable locator also carries an <code>oa:TextQuoteSelector</code> with <code>exact</code>, <code>prefix</code> and <code>suffix</code> at 48 code points.</p>
+  <p>A layer sanity gate runs before extraction and records <code>pass</code>, <code>suspect</code> or <code>fail</code> from the U+FFFD count, the printable ratio, the digit-to-alphanumeric ratio, a punctuation-run mojibake signature, and the page-break count against <code>pdfinfo</code>. No record, claim or candidate may cite a layer at <code>fail</code>. bacformer version 2, which rendered <code>0.81 ± 0.07</code> as <code>+.)! +.+(</code> and had a conclusion drawn from it anyway, must come out <code>fail</code>.</p>
+</div>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 420" role="img" aria-label="What each hash is taken over: publisher bytes to artifact_sha256, builder command to builder_sha256, layer bytes to layer_sha256, a span into the layer carrying code point and byte offsets plus a quote selector, and the locator object rendered back to the stored source_locator string.">
+      <defs>
+        <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-ah"/></marker>
+        <marker id="a2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-aha"/></marker>
+      </defs>
+      <rect class="f-bg" x="0.5" y="0.5" width="719" height="419" rx="6"/>
+
+      <rect x="16" y="30" width="180" height="62" rx="5" class="f-boxr"/>
+      <text x="30" y="52" class="f-tb">Publisher bytes</text>
+      <text x="30" y="70" class="f-ts">bioRxiv restamps every</text><text x="30" y="86" class="f-ts">download, so this moves</text>
+      <text x="206" y="56" class="f-ts">sha256</text>
+      <path d="M196,61 L256,61" class="f-ln" marker-end="url(#a2)"/>
+      <rect x="260" y="38" width="190" height="46" rx="5" class="f-box"/>
+      <text x="274" y="58" class="f-tb">artifact_sha256</text><text x="274" y="75" class="f-ts">pinned on the source record</text>
+
+      <rect x="16" y="120" width="180" height="62" rx="5" class="f-box2"/>
+      <text x="30" y="142" class="f-tb">Builder</text>
+      <text x="30" y="160" class="f-tm">pdftotext -layout</text><text x="30" y="176" class="f-tm">-enc UTF-8 - -</text>
+      <text x="206" y="146" class="f-ts">sha256</text>
+      <path d="M196,151 L256,151" class="f-ln" marker-end="url(#a2)"/>
+      <rect x="260" y="128" width="190" height="46" rx="5" class="f-box"/>
+      <text x="274" y="148" class="f-tb">builder_sha256</text><text x="274" y="165" class="f-ts">plus tool_version and argv</text>
+
+      <path d="M355,84 L355,124" class="f-lnd"/>
+      <path d="M450,61 C500,61 500,180 490,196" class="f-lna" marker-end="url(#a2a)"/>
+      <path d="M450,151 C500,151 500,180 490,196" class="f-lna" marker-end="url(#a2a)"/>
+
+      <rect x="300" y="200" width="404" height="86" rx="5" class="f-boxa"/>
+      <text x="314" y="222" class="f-tb">Layer bytes, never normalised</text>
+      <text x="314" y="244" class="f-tm">... Table S8  GPN-Promoter   0.412   0.388 ...</text>
+      <rect x="400" y="232" width="54" height="17" rx="2" class="f-hl"/>
+      <text x="403" y="245" class="f-tm">GPN-Pro</text>
+      <text x="314" y="266" class="f-ts">one line in layers.jsonl: layer_id, kind, bytes, lines, sanity</text>
+      <text x="314" y="281" class="f-ta">layer_sha256 is what every offset below is taken against</text>
+
+      <rect x="16" y="200" width="250" height="86" rx="5" class="f-boxw"/>
+      <text x="30" y="222" class="f-tb">Layer sanity</text>
+      <text x="30" y="241" class="f-ts">pass, suspect or fail</text>
+      <text x="30" y="258" class="f-ts">bacformer v2 printed 0.81 ± 0.07</text>
+      <text x="30" y="275" class="f-tm">as +.)! +.+(</text>
+      <path d="M266,243 L296,243" class="f-ln" marker-end="url(#a2)"/>
+
+      <path d="M430,286 L430,312" class="f-lna" marker-end="url(#a2a)"/>
+      <rect x="300" y="316" width="404" height="88" rx="5" class="f-box"/>
+      <text x="314" y="338" class="f-tb">One span</text>
+      <text x="314" y="358" class="f-tm">start, end</text><text x="420" y="358" class="f-ts">code points, what oa:TextPositionSelector counts</text>
+      <text x="314" y="376" class="f-tm">byte_start, byte_end</text><text x="474" y="376" class="f-ts">what the checker slices</text>
+      <text x="314" y="394" class="f-tm">exact, prefix, suffix</text><text x="474" y="394" class="f-ts">48 code points, survives a rebuild</text>
+
+      <rect x="16" y="316" width="250" height="88" rx="5" class="f-box"/>
+      <text x="30" y="338" class="f-tb">Locator object</text>
+      <text x="30" y="357" class="f-ts">anchor, address, selectors,</text><text x="30" y="373" class="f-ts">qualifiers, expected_row_labels</text>
+      <text x="30" y="395" class="f-ta">renderLocator equals source_locator</text>
+      <path d="M270,360 L296,360" class="f-lna" marker-end="url(#a2a)"/>
+    </svg>
+  </div>
+  <figcaption>Three hashes, each over a named thing. The container hash moves when a publisher restamps; the layer hash does not, which is why resolution is defined against the layer. The quote selector is the redundancy that survives a poppler upgrade: the checker reports <code>relocated_by_quote</code> instead of <code>span_wrong</code>.</figcaption>
+</figure>
+
+<h3>2. The locator becomes a key-value selector language</h3>
+<div class="prose">
+  <p>The grammar is <code>anchor+ address? selector* qualifier*</code>, with an open <code>dim</code> on selectors. The open dimension is the measured reason the current grammar fails: half the failing locators select a row by a composite source-specific key (<code>depth</code>, <code>Sequence_Identity</code>, <code>Algorithm</code>, <code>caller</code>, <code>platform</code>, <code>Variant_Type</code>), which is how machine-readable result files are keyed. A closed dimension list recreates the present failure.</p>
+  <p>The published metric is fully addressed: an anchor, a row-identifying selector or direct address, a column-identifying selector or direct address, and no residue after qualifier stripping. Addresses use the standards that already define them: A1 notation for sheet cells, RFC 7111 for CSV and TSV row and column references, RFC 6901 JSON Pointer for JSON. Those three cover the 15,000 non-table locators.</p>
+  <p>For new batches the structure is authored and <code>source_locator</code> is rendered from it, and the loader requires <code>renderLocator(locator) === source_locator</code> byte for byte. <code>source_locator</code> stays declared as text and is never rewritten. There is no backfill: parsing a legacy locator produces a report row, not a record edit. A new locator must assert <code>expected_row_labels</code> and <code>expected_shape</code>, and the resolver refuses a caption match whose window contains another caption. That is the fix for the class where <code>batch -- table</code> returned Table G2's body for a Table G1 request with no warning.</p>
+  <p>Parse coverage and resolution coverage are always reported separately. Resolution is bounded by archived bytes, not by the grammar: 7 batches hold a derived text layer today. The resolver carries <code>artifact_not_held</code> as a recorded status, never a failure for a legacy record and a hard failure for a new batch.</p>
+</div>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 390" role="img" aria-label="Before and after of one locator. Today a prose string is matched by a regex with a 150-line caption window and binds to nothing. Under the decision the structure is authored, rendered back to the identical string, and resolved to a span in the layer.">
+      <defs>
+        <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-ah"/></marker>
+        <marker id="a3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-aha"/></marker>
+      </defs>
+      <rect class="f-bg" x="0.5" y="0.5" width="719" height="389" rx="6"/>
+
+      <text x="16" y="24" class="f-hd">TODAY</text>
+      <rect x="16" y="34" width="296" height="52" rx="5" class="f-box"/>
+      <text x="28" y="54" class="f-ts">source_locator, declared as text</text>
+      <text x="28" y="74" class="f-tm">Table S8, row "GPN-Promoter", col "AUPRC"</text>
+      <path d="M312,60 L356,60" class="f-ln" marker-end="url(#a3)"/>
+      <rect x="360" y="34" width="150" height="52" rx="5" class="f-box2"/>
+      <text x="372" y="54" class="f-tb">One regex</text><text x="372" y="72" class="f-tm">batch.py:30-31</text>
+      <path d="M510,60 L554,60" class="f-ln" marker-end="url(#a3)"/>
+      <rect x="558" y="34" width="146" height="52" rx="5" class="f-boxr"/>
+      <text x="570" y="54" class="f-tb">39.3% parse</text><text x="570" y="72" class="f-ts">20,540 of 52,278</text>
+
+      <rect x="16" y="98" width="688" height="48" rx="5" class="f-boxr"/>
+      <text x="28" y="118" class="f-tb">What it binds to: nothing</text>
+      <text x="28" y="137" class="f-ts">No artifact hash on the locator and no offsets. Resolution is a 150-line window around a caption.</text>
+
+      <text x="16" y="186" class="f-hd">FROM THE LAYER PR ONWARD</text>
+      <rect x="16" y="196" width="296" height="124" rx="5" class="f-boxa"/>
+      <text x="28" y="216" class="f-ts">locator, authored as structure</text>
+      <text x="28" y="236" class="f-tm">anchor: table "S8"</text>
+      <text x="28" y="254" class="f-tm">selector: row dim=label "GPN-Promoter"</text>
+      <text x="28" y="272" class="f-tm">selector: col dim=header "AUPRC"</text>
+      <text x="28" y="290" class="f-tm">expected_row_labels, expected_shape</text>
+      <text x="28" y="310" class="f-ta">open dim: a composite source key is legal</text>
+
+      <path d="M312,230 L356,230" class="f-lna" marker-end="url(#a3a)"/>
+      <rect x="360" y="206" width="344" height="48" rx="5" class="f-box"/>
+      <text x="372" y="226" class="f-ta">renderLocator: the stored string, byte for byte</text>
+      <text x="372" y="245" class="f-tm">Table S8, row "GPN-Promoter", col "AUPRC"</text>
+
+      <path d="M312,286 L356,286" class="f-lna" marker-end="url(#a3a)"/>
+      <text x="316" y="278" class="f-ta">resolve</text>
+      <rect x="360" y="262" width="344" height="58" rx="5" class="f-box"/>
+      <text x="372" y="282" class="f-tb">A span in the layer</text>
+      <text x="372" y="300" class="f-ts">cell bytes plus the row label and the column header,</text>
+      <text x="372" y="315" class="f-ts">or a recorded artifact_not_held</text>
+
+      <rect x="16" y="332" width="688" height="44" rx="5" class="f-box2"/>
+      <text x="28" y="352" class="f-tb">Measured, not projected</text>
+      <text x="28" y="369" class="f-ts">38,103 of the 52,278 legacy strings are fully addressed. New batches reach 100% by construction.</text>
+    </svg>
+  </div>
+  <figcaption>The inversion is the point. Today the string is the record and the structure is guessed from it; afterwards the structure is the record and the string is a rendering of it, so a locator that does not round-trip cannot be written. The caption window is also where the silent failures live: asked for Table G1, <code>batch -- table</code> returned Table G2's body with no warning.</figcaption>
+</figure>
+
+<figure>
+  <div class="panel bars" role="img" aria-label="Locator coverage over 52,278 stored result locators. Today 20,540 parse. Under grammar version 2, 38,103 are fully addressed, 4,517 partial, 8,192 carry residue and 1,466 have no anchor.">
+    <div class="bar-row">
+      <div class="lab">Today, the regex at <code>batch.py:30-31</code></div>
+      <div class="bar">
+        <span class="s-ok" style="width:39.3%"></span><span class="s-none" style="width:60.7%"></span>
+      </div>
+      <div class="legend"><span><i class="s-ok"></i>parsed <b>20,540</b></span><span><i class="s-none"></i>not parsed <b>31,738</b></span></div>
+    </div>
+    <div class="bar-row">
+      <div class="lab">Grammar version 2, measured over the same 52,278</div>
+      <div class="bar">
+        <span class="s-ok" style="width:72.9%"></span><span class="s-part" style="width:8.6%"></span><span class="s-res" style="width:15.7%"></span><span class="s-none" style="width:2.8%"></span>
+      </div>
+      <div class="legend">
+        <span><i class="s-ok"></i>fully addressed <b>38,103</b></span>
+        <span><i class="s-part"></i>partial <b>4,517</b></span>
+        <span><i class="s-res"></i>unconsumed residue <b>8,192</b></span>
+        <span><i class="s-none"></i>no anchor <b>1,466</b></span>
+      </div>
+    </div>
+  </div>
+  <figcaption>The four categories are exclusive and sum to 52,278. Fully addressed plus partial is 42,620, or 81.5%. The 9,658 locators with residue or no anchor are the reason "typed to a resolvable kind" is not the gate: they can all be typed, and they resolve nothing.</figcaption>
+</figure>
+
+<h3>3. Deterministic checks are the defect-catching half, and they ship first</h3>
+<div class="prose">
+  <p>A new directory <code>scripts/omics/checks/</code>, one module per check, each a pure function <code>(records, layers, vocab) =&gt; Finding[]</code>, each rerunnable with no network and no model. Fifteen checks: unit for metric, direction against <code>rb:defaultDirection</code>, printed against numeric, qualifier shape, column coherence, locator resolution, table identity, groundedness, duplicate artifact, citation metadata, arithmetic re-derivation, recall sweep, normalise or refuse, receipt binding, split-study candidates.</p>
+  <p>Six things stay with a reader and get candidate surfacing rather than automation: the truth of a stated aggregation, whether a rate's increase is an improvement, which model a configuration configures, whether two sources are one study, whether a record's scope note over-reaches, and whether a sentence is worth recording at all. A design that implies otherwise is lying, and this one does not.</p>
+  <p>No pinned NLI judge, in any tier, as a gate. A grounding model may prioritise the reviewer queue. Its promotion to a gate is conditioned on three stated measurements: 95% of premises inside 512 FactCG tokens, at most 12 conflicts of 80 on the Claimify human-agreement check, and bit-identical logits across two CPU fp32 runs. None of the three is measured, and the design works with none of them.</p>
+</div>
+
+<h3>4. Groundedness is a token-coverage gate, not substring matching</h3>
+<div class="prose">
+  <p>A prose claim's content tokens must be constructible from its own spans plus a closed connective lexicon at <code>data/vocab/connectives.txt</code>. The gate is 1.0: a single uncovered content token is exactly the defect. Sentences about the record's own evidence state are marked <code>record_scope</code> and are out of scope, because they are not claims about the source.</p>
+  <p><code>connectives.txt</code> and the statistic-token pattern set are reviewed data files carrying a version recorded on every check result. Adding a word to the lexicon weakens the gate, so a change bumps the version and needs a dated review. In version 1 the gate runs as a queue sorter with its failures reported, and flips to blocking only if the pilot's <code>tier_b_share</code> is at or below 0.20. bioemu2's substring predecessor matched 42 of 75, so the risk that legitimate claims fail is real and is measured before the gate bites.</p>
+</div>
+
+<h3>5. One model stage group, five stages, and a receipt that does not overclaim</h3>
+<div class="prose">
+  <p><code>scripts/omics/extract/claims/</code>: <code>index</code> (deterministic sentence and paragraph index with byte offsets over the pinned layer, segmenter versioned by <code>builder_sha256</code>), <code>select</code>, <code>disambiguate</code> and <code>decompose</code> (the three model stages, temperature 0, one completion), <code>ground</code> (deterministic byte-span verification, where a mismatch is rejection with a diff, not a warning) and <code>map</code> (candidate to record field through a committed field map; no mapping is <code>unmapped</code> with a reason). Abstention is a first-class output with a reason from <code>data/vocab/missingness.ttl</code> plus one new concept <code>ambiguous</code>. Nothing defaults and nothing nulls.</p>
+  <p>Prompts live at <code>prompts/extract/&lt;stage&gt;.v1.md</code> and are immutable once a release references them, with <code>prompts/extract/registry.json</code> mapping sha256 to path, stage, version and <code>first_used_release</code>, and a CI test that fails if a referenced prompt's bytes changed or the file disappeared. The receipt at <code>data/omics/&lt;batch&gt;/extract/receipt.json</code> records <code>pipeline_sha256</code>, the layer with its transformation and sanity verdict, and per stage the <code>model_id</code>, prompt path and hash, temperature, call and token counts, input and output hashes, candidate and abstention counts and span rejections.</p>
+  <div class="callout">
+    The determinism boundary is stated in <code>docs/extraction.md</code> rather than left to inference. The three model stages are verifiable by hash and are not reproducible by re-running. Stage 4 and every check are deterministic, and they are what a reviewer reruns. The claim the repository makes is that a reviewer on a fresh clone can re-verify every stored span and value with no language model. That is weaker than "the pipeline is deterministic" and stronger than what <code>docs/release.md:16</code> can say today.
+  </div>
+</div>
+
+<h3>6. Candidates are files, never records</h3>
+<div class="prose">
+  <p><code>data/omics/&lt;batch&gt;/extract/</code> gains <code>candidates.jsonl</code>, <code>checks.jsonl</code>, <code>questions.jsonl</code>, <code>coverage.json</code> and <code>stages/&lt;stage&gt;.jsonl</code>. No new record status: <code>publicRecords</code> (<code>scripts/omics/schema.ts:140-165</code>) blocks only <code>excluded</code> and <code>disputed</code> plus results outside <code>source_checked</code>, <code>reproduced</code> and <code>superseded</code>, so a candidate-ish status would be exported to the published bundle. A candidate that is not a record cannot leak.</p>
+  <p>The reviewer promotes with <code>npm run candidates -- promote</code>, which renders accepted candidates through the repaired <code>buildBatch</code>, writes rejected and out-of-scope candidates into <code>coverage.json</code>, and refuses when the reviewer agent concept equals the extractor agent concept. <code>tests/review-independence.test.ts</code> makes the two-pass rule a gate rather than a skill instruction.</p>
+</div>
+
+<h3>7. Coverage is measured per layer, with an arithmetic identity</h3>
+<div class="prose">
+  <p>A statistic-token sweep over the layer, with every hit disposed exactly once as <code>mapped</code>, <code>out_of_scope</code> (reason from a new <code>data/vocab/scope-reason.ttl</code>) or <code>gap</code> (named in <code>notes.md</code> and in a gap record). <code>records -- add</code> refuses the batch when <code>statistic_tokens_found</code> does not equal <code>mapped + out_of_scope + gap</code>, when <code>cells_in_extracted_tables</code> does not equal <code>cells_recorded</code> without a per-cell reason, or when <code>unreviewed &gt; 0</code>. This is what GPN-Star needed: its notes said three places print numbers and all three are extracted in full, while Fig. 3e printed <code>r = 0.47, P = 0.0072</code>.</p>
+  <p>Source-level coverage becomes an <code>extraction_coverage</code> node on the source record, not an overload of <code>rb:Coverage</code>, whose meaning is items scored per run and which sits on 1,642 results. The docs state plainly that it counts statistic tokens, not meaning: a source can read 1.0 and carry a wrong unit on every result.</p>
+</div>
+
+<h3>8. The 115 Python scripts are frozen, not deleted and not rewritten</h3>
+<div class="prose">
+  <p><code>maintenance/extractor-freeze.json</code> lists all 115 paths with line counts and sha256, plus the 42 <code>lib.py</code> paths and their 11 digests. <code>tests/extraction-lane.test.ts</code> fails a PR that adds a <code>lib.py</code>, <code>rawxlsx.py</code>, <code>jats.py</code>, <code>ooxml.py</code>, <code>parse_tables.py</code>, <code>build.py</code>, <code>build_batch.py</code> or <code>apply_review.py</code> under <code>data/omics</code> at a path not in the freeze list.</p>
+  <p>The reason is 213 distinct <code>added_in</code> values naming batch directories and 154 dated reviews citing those files by path and never edited after merge. It is not a derivation-hash dependency: the store holds one <code>derivation.script</code> value, on 59 results, and it is not under <code>data/omics</code>.</p>
+  <p>Four shared pieces are promoted to <code>scripts/omics/extract/py/</code>: <code>sheets.py</code> from <code>rawxlsx.py</code> (byte-identical in all 11 copies, so a move), <code>jats.py</code> and <code>ooxml.py</code> (5 copies each), and <code>lib.py</code> as the diffed union of the 11 versions, with the per-version behavioural differences recorded in the PR body. A new batch may keep its own <code>extract/source.py</code> capped at 300 lines holding source specs, table expectations and concept mappings only.</p>
+  <p><code>buildBatch</code> is repaired, not replaced, because it is the only record-contract-shaped renderer in the repository: object-valued <code>missing_metadata</code> entries, <code>uncertainty</code> omitted with a reason instead of <code>null</code>, <code>review.method</code> as an array with <code>note</code> not <code>notes</code>, a declared uncertainty type instead of <code>reported_plus_minus_type_unresolved</code>, and <code>writeBatch</code>'s hardcoded <code>data/omics/reviewed/&lt;key&gt;-2026.jsonl</code> and literal <code>2026-09-18</code> receipt name replaced by the batch-folder layout. <code>.agents/skills/extract-evaluations/SKILL.md</code> step 3 and <code>docs/collection.md</code> section 4 are fixed in the same PR, because they point agents at a path that cannot produce an acceptable batch.</p>
+</div>
+
+<h3>9. The language seam is one file, and the decision has a reversal condition</h3>
+<div class="prose">
+  <p>The grammar lives once, in TypeScript at <code>shared/omics/locator.ts</code>, because <code>records -- add</code> must validate a locator object in-process inside <code>loadRecords</code> over 93,187 records and cannot shell out per record. The resolvers stay in Python at <code>scripts/omics/extract/py/resolve/</code>, one backend per layer kind, because those parsers exist and are proven over 194 batches. The seam is <code>extract/cells.jsonl</code> plus <code>candidates.jsonl</code>, whose JSON Schema is generated from the zod schema and committed with a CI test that regeneration is a no-op.</p>
+  <p>This reverses if the resolver work turns out to be more than about 70% of the total parsing code and the TypeScript side reduces to schema validation. In that case the grammar moves to Python, the loader validates the stored object against a zod schema, and the <code>renderLocator</code> round trip is the cross-check.</p>
+</div>
+
+<h3>10. Measurement is built from what exists, not curated first</h3>
+<div class="prose">
+  <ul>
+    <li>The validator pack's own correctness test is reproducing the 14 existing <code>value-check.tsv</code> files. In the first PR this is the parse split only: the 551 <code>locator_not_parsed</code> rows must be exactly the rows the ported regex rejects and the other 1,881 exactly the rows it accepts. Row-for-row agreement on <code>in_cell</code> against <code>in_row</code> becomes an acceptance test when the resolvers land, because that status needs a resolver.</li>
+    <li>Seeded mutations are the only way to measure value-transcription sensitivity, because there are zero real instances: all 1,591 keyed re-read rows are matches. Seven deterministic generators, each drawn from an experiment the repository already ran by hand, are a 300-line module and a report, not a gold set.</li>
+    <li><code>data/omics/checks-baseline.json</code> carries the pinned finding count per check plus the implementation commit and date, and <code>tests/checks-baseline.test.ts</code> fails when a store change raises any count. That test is in this commit, so option (a) of question 2 is the policy in force until the owner rules otherwise: an evidence PR that raises an inherited count fails, and the author either fixes the finding or raises the baseline in the same PR with a dated review. Baselines are pinned from the implementation's own first run, not from a prototype's numbers, because two prototype numbers did not reproduce.</li>
+  </ul>
+  <p>Option C's 1,200-item gold set, seven gates, method registry and <code>gold_digest</code> discipline are not adopted now. They become the right next decision if, after the pilot, the C1 and C5 hand audits show the checks cannot be made precise enough to gate.</p>
+</div>
+
+<h3>11. Schema and ontology changes, with the generator trap named</h3>
+<div class="prose">
+  <p>New declared attributes: <code>locator</code> and <code>spans</code> on <code>result</code>, <code>claim</code> and the other 12 kinds carrying <code>source_locator</code>; <code>layers</code>, <code>text_layer</code> and <code>extraction_coverage</code> on <code>source</code>; <code>extraction</code> on <code>result</code> and <code>claim</code>. New node types <code>rb:Locator</code>, <code>rb:Span</code>, <code>rb:TextPositionSelector</code>, <code>rb:TextQuoteSelector</code>, <code>rb:FragmentSelector</code>, <code>rb:ExtractionActivity</code> and <code>rb:ExtractionCoverage</code>, all <code>rb:</code>-prefixed because <code>nodes[e.node].class.slice(3)</code> requires it.</p>
+  <p>PROV-O joins as a seventh pinned import with a six-term subset, and the extraction node is typed <code>rb:ExtractionActivity rdfs:subClassOf prov:Activity</code>. <code>source_ids</code> stays on <code>dcterms:source</code>, honouring the rejection recorded at <code>data/ontology/mapping.json:244</code>. Using <code>oa:</code> and <code>prov:</code> properties as node fields takes about 20 lines of generator change: both prefixes added to the allowlist at <code>scripts/kg/attribute-terms.ts:166</code>, and <code>declare</code> at :175 extended with an external-prefix allowlist that emits label and comment declarations into a new generated <code>data/ontology/external-terms.ttl</code>. Without that change the new field properties are silently never declared, which is the failure <code>review.receipt</code>, <code>review.artifact_sha256</code> and <code>review.retrieval_url</code> already demonstrate: they exist on records and not in the graph.</p>
+  <p><code>reviewSchema</code> is <code>.strict()</code> with 12 keys, so adding <code>assertion_method</code> (ECO_0000203 for automatic, ECO_0000218 for manual, terms already pinned and already used this way on <code>rb:Discrepancy</code>) is a real schema change and must be added to the <code>review</code> block of <code>mapping.json</code> in the same PR.</p>
+  <p>New vocabulary: <code>rb:allowedUnit</code> and <code>rb:discouragedUnit</code> on metric concepts; model-version concepts in <code>agent.ttl</code>, which today has six concepts, one labelled "Claude (model unspecified)", and no human concept; <code>span-containment-check</code>, <code>locator-resolution</code> and <code>adversarial-second-extraction</code> in <code>review-method.ttl</code>; <code>ambiguous</code> in <code>missingness.ttl</code>; and three new schemes <code>locator-kind.ttl</code>, <code>scope-reason.ttl</code> and <code>extraction-stage.ttl</code>. Existing concepts are not retired: 2,732 claims name <code>claude</code>, and retiring it would mean 2,732 record changes.</p>
+</div>
+
+<h3>12. Receipts become enforceable</h3>
+<div class="prose">
+  <p><code>review.json</code> gets a strict zod schema modelled on <code>scripts/omics/use-cases.ts:21-41</code>, the one receipt the build already enforces, with <code>frozen_extraction_sha256</code> as a field replacing the prose in <code>scope</code>. <code>records -- add</code> refuses a batch whose receipt is absent or fails the schema, whose <code>files["batch.jsonl"]</code> does not match the bytes being added, whose <code>extract/receipt.json</code> <code>pipeline_sha256</code> does not match the tree, or whose <code>checks.jsonl</code> holds an unoverridden failure. This is enforced only for batches declaring <code>schema_version</code> 2, because the 168 existing receipts declare 1.0 with two incompatible field sets, and bacformer's already records a frozen hash that disagrees with its own <code>files["batch.jsonl"]</code>.</p>
+</div>
+
+<!-- ============ VERIFICATION ============ -->
+<h2>How the decision is verified</h2>
+<div class="prose">
+  <p>Each part of the decision has one test that would fail if it were wrong. None of them needs a language model.</p>
+</div>
+<div class="tbl">
+  <table>
+    <thead><tr><th>Part</th><th>What proves it</th></tr></thead>
+    <tbody>
+      <tr><td>Locator grammar</td><td><code>npm run locator -- coverage</code> reports fully addressed at or above 72.0% of 52,278. The 551 <code>locator_not_parsed</code> rows across the 14 <code>value-check.tsv</code> files are exactly the rows the ported regex rejects, and the other 1,881 exactly the rows it accepts, asserted row by row.</td></tr>
+      <tr><td>Round trip</td><td><code>renderLocator(parse(x)) === x</code> reported as a percentage of the addressed subset. It becomes a gate at 90% when the resolvers land, or stays a report if the measured figure is below that, decided in the resolver PR rather than guessed now.</td></tr>
+      <tr><td>Check pack</td><td><code>npm run checks -- report</code> finishes in under 120 s on a laptop and its counts equal <code>data/omics/checks-baseline.json</code> exactly. The seven checks in this commit pin 10,754 findings: C1 5,391, of which 5,093 are minority-unit and 298 the new unit-scope-note rule; C2 1,256 splitting 58, 206 and 992; C3 3,436; C4 338; C5 146; C9 187; C13 0. C3 and C5 are what this implementation measures, with the note that the prototype's 170 and 19,374 did not reproduce and are not inherited. C9 reports 187 groups where the design carried 171, and <code>duplicate_artifact.ts</code> says why: the difference is the grouping, not the store.</td></tr>
+      <tr><td>Ratchet</td><td><code>tests/checks-baseline.test.ts</code> fails when a store change raises any count above its baseline, whatever the PR touched. That is option (a) of question 2 and it is in this commit, so the policy is shipped rather than proposed.</td></tr>
+      <tr><td>Layer builder</td><td>Rebuilding the layer for each of the 7 batches that already hold one reproduces the archived bytes byte for byte. bacformer's must hash to <code>86636e89b167d7304b3a83ee7f159cad0a9bdbe97019588ce836087b8fe3b0b2</code>.</td></tr>
+      <tr><td>Layer sanity</td><td><code>layer_sanity</code> returns <code>fail</code> on the bacformer version 2 layer and <code>pass</code> on version 3. It is one function with ADR 0003's gate, whose <code>unusable</code> verdict is this <code>fail</code>.</td></tr>
+      <tr><td>One hash, one home</td><td>Regenerating <code>layers.jsonl</code> from the capture ledger is a no-op on a second run, and a test asserts that every <code>layer_sha256</code> in it equals a <code>derived[].sha256</code> on the capture ADR 0003 records for that source, so a layer cannot acquire a second hash or a second copy.</td></tr>
+      <tr><td>Freeze</td><td><code>tests/extraction-lane.test.ts</code> fails a synthetic PR adding <code>data/omics/x/lib.py</code> and passes on the 115 allow-listed paths at their recorded sha256.</td></tr>
+      <tr><td>Ontology generator</td><td>A test enumerates the attribute registry and greps the generated files, so no <code>oa:</code> or <code>prov:</code> field property can be silently dropped. <code>npm run kg -- terms</code> is a no-op on a second run.</td></tr>
+      <tr><td>Span grounding</td><td>Every candidate whose declared span does not match the layer bytes is rejected with a diff, asserted by a test that mutates one offset by one byte.</td></tr>
+      <tr><td>Groundedness</td><td>Over rfd4-proteina the check flags the stored sentence "catalytic motif constraints are present in both conditions" and names <code>catalytic</code> as the uncovered token.</td></tr>
+      <tr><td>Recall sweep</td><td>Over the gpn-star layer the sweep finds <code>r = 0.47</code>, <code>P = 0.0072</code> and the Spearman range 0.31 to 0.34, and reports all of them as not recorded against the batch as it stood.</td></tr>
+      <tr><td>Value-check sensitivity</td><td>Seven seeded-mutation generators run over the value-check rows in the 7 batches with an archived layer. Detection is at or above 0.99 on swap-within-row and shift-columns-left, false positives on the unmutated run are zero, and two runs at the same seed are byte-identical. Any false positive blocks the step, because a checker that cries wolf gets switched off, which is how the current one came to be run on 14 of 194 folders.</td></tr>
+      <tr><td>Prompt registry</td><td><code>tests/prompt-registry.test.ts</code> fails when a referenced prompt's bytes change or the file disappears.</td></tr>
+      <tr><td>Receipts</td><td><code>records -- add</code> refuses a fixture <code>schema_version</code> 2 batch with an absent, invalid or unbound receipt, and accepts the 168 existing 1.0 receipts untouched.</td></tr>
+      <tr><td>Two-pass rule</td><td><code>tests/review-independence.test.ts</code> fails a fixture PR whose receipt names the same agent concept for extraction and review.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ SEQUENCE ============ -->
+<h2>Implementation sequence</h2>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 362" role="img" aria-label="Dependency graph of the ten steps. Steps 1, 2 and 3 are unblocked and form the first PR. Step 4 needs 3. Step 5 needs 1 and 4. Step 6 needs 2. Step 7 needs 3. Step 8 needs 4, 5 and 7. Step 9 needs 4 and 5. Step 10 needs 5.">
+      <defs>
+        <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-ah"/></marker>
+      </defs>
+      <rect class="f-bg" x="0.5" y="0.5" width="719" height="361" rx="6"/>
+
+      <rect x="14" y="30" width="186" height="268" rx="6" fill="#f3f7fc" stroke="#1d5ea8" stroke-width="1.2" stroke-dasharray="5 4"/>
+      <text x="24" y="50" class="f-ta">FIRST PR, REPORT ONLY</text>
+
+      <rect x="26" y="62" width="162" height="60" rx="5" class="f-boxa"/>
+      <text x="38" y="82" class="f-tb">1  Locator grammar</text><text x="38" y="100" class="f-ts">parse, render, coverage</text><text x="38" y="116" class="f-ts">2 days</text>
+      <rect x="26" y="136" width="162" height="60" rx="5" class="f-boxa"/>
+      <text x="38" y="156" class="f-tb">2  Validator pack</text><text x="38" y="174" class="f-ts">7 checks, pinned baseline</text><text x="38" y="190" class="f-ts">3 days</text>
+      <rect x="26" y="210" width="162" height="60" rx="5" class="f-boxa"/>
+      <text x="38" y="230" class="f-tb">3  Repair buildBatch</text><text x="38" y="248" class="f-ts">plus the two documents</text><text x="38" y="264" class="f-ts">1 day</text>
+
+      <rect x="250" y="136" width="166" height="60" rx="5" class="f-box"/>
+      <text x="262" y="156" class="f-tb">4  Layer registry</text><text x="262" y="174" class="f-ts">sanity gate, freeze list</text><text x="262" y="190" class="f-ts">5 days</text>
+      <rect x="250" y="222" width="166" height="60" rx="5" class="f-box"/>
+      <text x="262" y="242" class="f-tb">7  Receipt enforcement</text><text x="262" y="260" class="f-ts">strict schema, binding</text><text x="262" y="276" class="f-ts">2 days</text>
+      <rect x="250" y="50" width="166" height="60" rx="5" class="f-box"/>
+      <text x="262" y="70" class="f-tb">6  Flip to gates</text><text x="262" y="88" class="f-ts">unit vocabulary, audits</text><text x="262" y="104" class="f-ts">4 days</text>
+
+      <rect x="462" y="136" width="166" height="60" rx="5" class="f-box"/>
+      <text x="474" y="156" class="f-tb">5  Resolvers and spans</text><text x="474" y="174" class="f-ts">ontology, dual offsets</text><text x="474" y="190" class="f-ts">8 days</text>
+
+      <rect x="462" y="222" width="166" height="56" rx="5" class="f-box"/>
+      <text x="474" y="242" class="f-tb">9  Recall sweep</text><text x="474" y="260" class="f-ts">coverage identity, 4 days</text>
+      <rect x="462" y="292" width="166" height="56" rx="5" class="f-box"/>
+      <text x="474" y="312" class="f-tb">10  Seeded mutations</text><text x="474" y="330" class="f-ts">7 generators, 3 days</text>
+      <rect x="462" y="50" width="166" height="60" rx="5" class="f-box"/>
+      <text x="474" y="70" class="f-tb">8  Claims pipeline</text><text x="474" y="88" class="f-ts">prompts, candidates, receipt</text><text x="474" y="104" class="f-ts">7 days</text>
+
+      <path d="M188,232 C220,232 224,180 246,172" class="f-ln" marker-end="url(#a4)"/>
+      <path d="M188,246 C220,246 224,250 246,252" class="f-ln" marker-end="url(#a4)"/>
+      <path d="M188,160 C210,160 212,96 246,84" class="f-ln" marker-end="url(#a4)"/>
+      <path d="M188,92 C236,122 380,124 456,150" class="f-ln" marker-end="url(#a4)"/>
+      <path d="M416,166 L458,166" class="f-ln" marker-end="url(#a4)"/>
+      <path d="M416,240 C436,240 440,120 458,96" class="f-ln" marker-end="url(#a4)"/>
+      <path d="M416,150 C436,150 440,110 458,92" class="f-ln" marker-end="url(#a4)"/>
+      <path d="M416,186 C432,186 436,232 458,240" class="f-ln" marker-end="url(#a4)"/>
+      <path d="M545,196 L545,218" class="f-ln" marker-end="url(#a4)"/>
+      <path d="M628,166 C664,166 666,300 634,314" class="f-ln" marker-end="url(#a4)"/>
+      <path d="M570,136 L570,114" class="f-ln" marker-end="url(#a4)"/>
+
+    </svg>
+  </div>
+  <figcaption>Arrows point from a step to the step it unblocks. Steps 1 to 3 are unblocked today and ship together, 6 days by these estimates; step 5 is the long pole at 8 days and gates three later steps. The ten steps sum to 39 working days, of which 2 to 3 are a human vocabulary pass and not engineering. Effort per step is the plan's own estimate. Step 6 is independent of step 5 and can run in parallel with it. Nothing before step 6 changes what <code>records -- add</code> accepts, so the first five steps can land without any evidence PR having to change.</figcaption>
+</figure>
+
+<div class="steps">
+  <div class="step"><div class="n">1</div><h4>First PR, report only</h4>
+    <ul><li>Steps 1 to 3: the grammar with <code>parseLocator</code> and <code>renderLocator</code>, seven checks with a pinned baseline, the <code>buildBatch</code> repair.</li><li>About 1,800 new lines plus about 120 changed.</li></ul>
+    <div class="closes">Writes nothing to the store, changes no vocabulary, touches no ontology file, calls no model. <code>git status --porcelain data/</code> stays empty except <code>checks-baseline.json</code>.</div></div>
+  <div class="step"><div class="n">2</div><h4>Substrate</h4>
+    <ul><li>Steps 4 and 5: layer builders and the sanity gate, <code>layers.jsonl</code> generated from the capture ledger with its no-op test, the promoted Python, the freeze test, then the resolvers, the typed locator and the ontology change including the external-prefix allowlist.</li><li>About 2,100 new lines.</li></ul>
+    <div class="closes">The first part of the work that writes new attributes. Additive only: no stored value changes.</div></div>
+  <div class="step"><div class="n">3</div><h4>Gates and the model stage</h4>
+    <ul><li>Steps 6 to 10: the unit vocabulary and the two hand audits, receipt enforcement, the claims pipeline with its prompt registry, the recall sweep, the seeded mutations.</li><li>About 1,700 new lines.</li></ul>
+    <div class="closes">Gates apply to batches declaring <code>schema_version</code> 2 only. The 168 existing receipts are untouched.</div></div>
+</div>
+
+<!-- ============ CONSEQUENCES ============ -->
+<h2>Consequences</h2>
+
+<h3>What gets better, with numbers</h3>
+<div class="prose">
+<ul>
+  <li>The 19 defect classes stop being anecdotes and become pinned numbers in one command. Confirmed today: 5,093 minority-unit results, 1,256 direction findings of which 58 are opposite to the metric's declared default, 338 verdict or vendor tokens in <code>metric_qualifier</code>, 187 duplicate source groups. C3 and C5 are set by the implementation's first run, at 3,436 and 146.</li>
+  <li>Machine-readable locator coverage goes from 39.3% to a measured 72.9% fully addressed, and new batches reach 100% by construction.</li>
+  <li>Four defect classes become impossible to author rather than merely discouraged: a wrong-place locator, a silent wrong-table match, a conclusion drawn from an unreadable rendering, and metadata asserted as source-reported with no span.</li>
+  <li><code>check-values</code>, run on 14 of 194 batch folders because it was an optional review step, is replaced by a check pack that gates <code>records -- add</code>.</li>
+</ul>
+</div>
+
+<h3>What this costs</h3>
+<div class="prose">
+<ul>
+  <li>39 working days over ten steps, of which 2 to 3 are a human vocabulary pass. About 5,600 new lines plus about 120 changed.</li>
+  <li>Triage of the measured backlog is 20 to 40 agent-days spread over months. The ratchet means it can be paid at whatever rate two people can afford, and it blocks nothing.</li>
+  <li>Model spend is bounded by the prose of one paper per batch, on the order of 40,000 to 150,000 input tokens per source. Every check in the pack is CPU only; the measured backlog ran over 52,278 results in seconds.</li>
+  <li>Layer bytes add roughly 0.5 to 3 MB gzipped per batch, so 100 to 600 MB over the next 200 batches. None of it lands in git: they are objects in ADR 0004's store, whose eviction gate keeps new binaries out of the tree, so the cost is archive storage rather than clone weight.</li>
+  <li>Standing cost: one more command and two more files per evidence PR, about 60 seconds of CI, and a baseline update on perhaps one PR in five.</li>
+</ul>
+</div>
+
+<h3>What gets worse or stays broken</h3>
+<div class="prose">
+<ul>
+  <li>Resolution coverage is hostage to the archival decision, which is ADR 0003's rescue waves, not to this one. 7 batches hold a derived text layer, and 45.2% of evidence citations (47,081 of 104,243) rest on a source whose bytes are not stored. For most legacy records the honest status is <code>artifact_not_held</code> forever, and the locator object is a well-typed pointer at nothing.</li>
+  <li>Six of the 19 classes stay human: aggregation truth, rate semantics, configuration identity, <code>companion_of</code>, scope over-reach, and whether a sentence is worth recording. Those six produced a large share of the scientific corrections in the last pass. A design judged on class coverage scores this well; a design judged on whether the next pass needs fewer human corrections may not see much change.</li>
+  <li>A grammar that parses more strings also parses more into the wrong structure, and resolving silently to a plausible neighbouring cell is worse than failing to parse. The defences are the cell-plus-label cross-check, <code>expected_row_labels</code> and <code>expected_shape</code>; a locator with no internal redundancy has none. Measure before gating resolution: resolve all 38,103 parseable locators against the sources whose bytes are held and compare <code>wrong_column</code> and <code>not_in_row</code> rates against the 14 existing <code>value-check.tsv</code> files as the control.</li>
+  <li>C1's 5,093 rows may be mostly store convention that was never written down. <code>f1-score</code> alone splits 2,603 percent against 928 fraction and 434 unitless over 3,965 results. If a 100-row hand audit shows above 20% false positives, C1 can never be a gate, and the real deliverable is writing the convention into <code>metric.ttl</code>.</li>
+  <li>One shared library means one place to break. A bug in the promoted <code>lib.py</code> reaches every new batch where today it reaches one. The trade is worth making at 11 drifted versions, and the promoted union must have its per-version behavioural differences recorded in the PR body, which is a day of unglamorous work that is easy to skip.</li>
+  <li>The repository takes on a serialisation format, <code>jats_text</code>, that it must keep stable forever. <code>builder_sha256</code> on every layer record and the never-rebuild rule are the mitigation.</li>
+  <li>Figure-only values stay gaps, and published values that rest on OCR of a raster image stay unverifiable at any layer. The coverage metric will show those sources as incomplete, which is correct and will look like a regression against today's silence.</li>
+</ul>
+</div>
+
+<h3>Reversibility</h3>
+<div class="prose">
+  <p>The first PR writes nothing to the store, changes no vocabulary and touches no ontology file, so it reverts by deleting files. The layer registry and the typed locator are additive attributes absent on existing records, which is legal today, so no stored value changes, no provenance line is re-hashed and no past release ID becomes unverifiable. The only one-way doors are the vocabulary additions, which are additive and retire nothing, and the <code>jats_text</code> serialisation.</p>
+</div>
+
+<!-- ============ OPEN QUESTIONS ============ -->
+<h2>Open questions for the owner</h2>
+<div class="prose">
+  <p>Two are open and are why the status is Proposed. Each is a closed choice, and each blocks a specific step. A third, where the layer bytes live, was asked here and is answered elsewhere; it is kept below as closed so a reader of all four records does not find it open in one and decided in another.</p>
+</div>
+
+<div class="q">
+  <div class="k">Question 1 &middot; closed, answered by ADR 0004</div>
+  <p>Archive the gzipped derived text layer in git under <code>data/omics/&lt;batch&gt;/artifacts/</code>, or publish layers as release assets and keep only the hash manifest in git?</p>
+  <p>Release assets. <a href="0004-storage-substrate.html">ADR 0004</a> decides the substrate: a layer is an object in its content-addressed store at <code>layer: text-layer</code>, published on a shard tag, with the manifest committed at <code>data/archive/objects/&lt;0-f&gt;.jsonl</code>. Its eviction gate refuses a new tracked binary over 1 MiB in git, so the in-git branch is not available anyway. <a href="0003-source-preservation.html">ADR 0003</a> is where a layer's identity is recorded, as the evidence identity on a capture. The layer registry below holds the same hash, not a second copy of the bytes, and <code>artifact_not_held</code> resolves against that one store.</p>
+</div>
+
+<div class="q">
+  <div class="k">Question 2 &middot; option (a) is in force as shipped, pending the ruling</div>
+  <p>Does the ratchet in <code>data/omics/checks-baseline.json</code> (a) block any PR that raises a finding count, including an evidence PR that only adds records to a benchmark whose unit convention is already inconsistent, so the author either fixes the inherited finding or raises the baseline with a dated review, or (b) block only PRs that change <code>scripts/omics/checks/</code> or the vocabulary, and stay advisory on record-adding PRs?</p>
+  <p><code>tests/checks-baseline.test.ts</code> is in this commit and implements (a): it runs the seven checks over the whole store and fails when any count rises above its pinned baseline, whatever the PR touched. So (a) is the policy in force, not a proposal, and the ruling either confirms it or narrows the test.</p>
+  <p>What (a) costs, stated plainly: an evidence PR that adds results to a benchmark with an existing minority-unit convention fails, and the author either fixes the inherited finding or raises the baseline in the same PR with a dated review saying why. That is expected on roughly one PR in five. Option (b) risks the backlog growing faster than triage, and moving to it is a change to this test's scope, which rules it to the files a PR changed. It is not a change to any check: the checks are report severity either way and nothing here gates <code>records -- add</code>.</p>
+</div>
+
+<div class="q">
+  <div class="k">Question 3 &middot; blocks step 6</div>
+  <p>Commit to a human pass over all 275 metric concepts filling <code>rb:allowedUnit</code> and <code>rb:discouragedUnit</code>, after which C1 can become a gate, or leave C1 at report severity permanently and treat the 5,093 minority-unit findings as a triage queue only?</p>
+  <p class="mono" style="font-size:0.82rem;color:var(--muted)">The pass is 2 to 3 days, one off. C1 cannot be a gate without the vocabulary, and the measured ambiguity is real: <code>f1-score</code> splits 2,603 percent against 928 fraction and 434 unitless, which is partly a convention nobody wrote down rather than 3,965 errors.</p>
+</div>
+
+<!-- ============ REJECTED ============ -->
+<h2>Considered and rejected</h2>
+<div class="tbl">
+  <table>
+    <thead><tr><th>Considered</th><th>Rejected because</th></tr></thead>
+    <tbody>
+      <tr><td>A pinned NLI judge as a deterministic second judge, as #228 proposes</td><td>It repeats an experiment the Claimify authors ran and rejected: the premise exceeded the 512-token limit, and the NLI model conflicted with human labels in 32 and 12 of 80 cases against 5 for an LLM prompt. A grounding model may sort the reviewer queue, and its promotion to a gate is conditioned on three measurements, none of which exists.</td></tr>
+      <tr><td>Docling as the parse substrate</td><td>Three open defects break the guarantee it would be adopted for: <code>charspan</code> is item-local and can exceed the item's own text length (#4217), the layout model classifies the same PDF differently across platforms at identical versions (#3329), and TableFormer drops row labels on continuation pages (#3401). Marker or Docling may later serve as a non-canonical second reader whose disagreements raise a flag, and nothing more.</td></tr>
+      <tr><td>Reimplementing Claimify, or adopting FEVERFact, VeriScore or FactReasoner</td><td>Claimify has no code and its numbers are bound to a specific model and vote scheme. FEVERFact's models were never published and its repository has no licence. VeriScore and FactReasoner are Apache-2.0 but are built for open-domain factuality over model output and emit no offsets. The stage shape is kept; the claim to the metrics is not.</td></tr>
+      <tr><td>Building the gold set and the harness first</td><td>Two weeks of agent curation plus one week of harness before any defect is prevented, and the gates it would enforce are the checks shipped here as a report in the first PR. The ordering is the defect: the backlog count decides build order, and it is one read-only command.</td></tr>
+      <tr><td>"Typed to a resolvable kind" as the locator gate</td><td>8,192 locators carry unconsumed residue and 1,466 have no anchor, so 18.5% can be typed and resolve nothing. Fully addressed is the gate.</td></tr>
+      <tr><td>Backfilling a <code>locator</code> object onto the 38,103 parseable records</td><td>Writing a locator onto a stored result is a <code>records -- change</code> with a dated review and a repin. At that scale it is not a thing to do in one pass. The coverage report is the deliverable.</td></tr>
+      <tr><td>Extending <code>hash_scope</code> into the layer registry</td><td>It is free text on 587 sources across 106 distinct values, 868 sources carry a hash and no scope, and 101 of the values carry a machine-unreadable caveat about instability. A typed registry replaces it.</td></tr>
+      <tr><td>A new record status for candidates</td><td><code>publicRecords</code> blocks only <code>excluded</code> and <code>disputed</code> plus results outside three statuses, so a candidate-ish status would be exported to the published bundle. A candidate that is not a record cannot leak.</td></tr>
+      <tr><td>Deleting or rewriting the 115 per-batch Python scripts</td><td>213 distinct <code>added_in</code> values name batch directories and 154 dated reviews cite those paths and are never edited after merge. They are frozen and four shared pieces are promoted.</td></tr>
+      <tr><td>Typing the extraction node <code>prov:Activity</code> directly</td><td><code>declare</code> returns early on every non-<code>rb:</code> property, so the field properties would silently never be declared. The node is <code>rb:ExtractionActivity</code>, a subclass of <code>prov:Activity</code>, and the generator gains an external-prefix allowlist.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>
+  Measured in this worktree at <span class="mono">991a09e</span>: 52,278 results, 24,726 evaluations, 4,155 claims, 1,483 sources, 93,187 provenance lines; 115 <span class="mono">build.py</span> and <span class="mono">extract_*.py</span> files under <span class="mono">data/omics</span> with 42 <span class="mono">lib.py</span> copies; 14 <span class="mono">value-check.tsv</span> files splitting 867 <span class="mono">in_cell</span>, 994 <span class="mono">in_row</span>, 551 <span class="mono">locator_not_parsed</span>, 20 <span class="mono">row_not_found</span>; one <span class="mono">derivation.script</span> value on 59 results; 275 metric concepts; 168 batch receipts; <span class="mono">f1-score</span> units 2,603 percent, 928 fraction, 434 unitless over 3,965 results.
+  <br>Code read: <span class="mono">scripts/omics/batch.py:30-31</span>, <span class="mono">scripts/kg/attribute-terms.ts:166</span> and <span class="mono">:175</span>, <span class="mono">scripts/omics/derivations.ts:38-40</span>, <span class="mono">scripts/omics/records.ts:127-146</span>, <span class="mono">scripts/omics/schema.ts:140-165</span>, <span class="mono">scripts/omics/use-cases.ts:21-41</span>.
+  <br>Defect classes, review counts and the external findings on Claimify, Docling and the Web Annotation model come from the measured-facts brief for this rework, which cites its source per line. Two prototype figures, C3 at 170 and C5 at 19,374, did not reproduce and are not carried into any baseline.
+</footer>
+
+</div>
+</body>
+</html>

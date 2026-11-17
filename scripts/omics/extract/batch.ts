@@ -22,8 +22,21 @@
  */
 import { createHash } from "node:crypto";
 import fs from "node:fs";
+import path from "node:path";
+import type { MissingReason, uncertaintyTypes } from "../../../shared/omics/attributes";
 import type { RecordEntry } from "../schema";
 import type { PdfTransformation } from "./pdf";
+
+/**
+ * A missing value is an absent key plus a reason, not a null and not a token.
+ *
+ * The reasons come from data/vocab/missingness.ttl, and the fields named here
+ * are declared for their kind in shared/omics/attribute-registry.ts.
+ */
+const missingFields = (reasons: Record<string, MissingReason>) =>
+  Object.fromEntries(
+    Object.entries(reasons).map(([field, reason]) => [field, { reason }]),
+  );
 
 /**
  * An id fragment.
@@ -95,18 +108,25 @@ export type CellSpec = {
 
 export type BatchSpec = {
   key: string;
+  /** Folder under data/omics that holds the batch. Defaults to the key. */
+  batch?: string;
   benchmarkId: string;
   benchmarkName: string;
   area: string;
   source: SourceSpec;
+  /** Who read the numbers, in free text. Recorded as review.reviewer_note. */
   reviewer: string;
+  /** Agent concept keys for the reader (data/vocab/agent.ttl). */
+  reviewerAgents?: string[];
   date: string;
-  /** How the numbers were read, recorded on every result. */
+  /** How the numbers were read, in free text. Recorded as review.method_note. */
   method: string;
+  /** Review-method concept keys (data/vocab/review-method.ttl). */
+  reviewMethods?: string[];
   /** Recorded when text is derived from a verified PDF during this run. */
   transformation?: PdfTransformation;
   /** Meaning of a printed ± spread, only when stated by the inspected source. */
-  uncertaintyType?: "standard_deviation" | "standard_error";
+  uncertaintyType?: (typeof uncertaintyTypes)[number];
   /** What the batch does not claim, recorded on every figure. */
   caveats: string[];
   tasks: TaskSpec[];
@@ -123,6 +143,8 @@ export function buildBatch(spec: BatchSpec): RecordEntry[] {
   const taskByLabel = new Map(spec.tasks.map((t) => [t.label, t]));
   const methodByName = new Map(spec.methods.map((m) => [m.name, m]));
   const out: RecordEntry[] = [];
+  const reviewMethods = spec.reviewMethods ?? ["automated-source-review"];
+  const reviewerAgents = spec.reviewerAgents ?? ["unidentified-automated-reviewer"];
 
   if (spec.source.emit !== false)
     out.push({
@@ -157,7 +179,10 @@ export function buildBatch(spec: BatchSpec): RecordEntry[] {
       source_ids: [sourceId],
       links: [],
       attributes: {
-        missing_metadata: { version: "unreported", url: "unextracted" },
+        missing_metadata: missingFields({
+          version: "unreported",
+          url: "unextracted",
+        }),
       },
     });
 
@@ -190,10 +215,10 @@ export function buildBatch(spec: BatchSpec): RecordEntry[] {
       links: [],
       attributes: {
         source_locator: method.locator,
-        missing_metadata: {
+        missing_metadata: missingFields({
           checkpoint_revision: "unreported",
           parameters: "unextracted",
-        },
+        }),
       },
     });
 
@@ -214,7 +239,7 @@ export function buildBatch(spec: BatchSpec): RecordEntry[] {
       source_ids: [sourceId],
       links: [{ relation: "part_of", target_id: spec.benchmarkId }],
       attributes: {
-        metric: task.metric,
+        metric: task.metricKey,
         metric_direction: task.direction,
         dataset: task.dataset,
         protocol: task.protocol,
@@ -256,7 +281,7 @@ export function buildBatch(spec: BatchSpec): RecordEntry[] {
         target_id: spec.benchmarkId,
         source_locator: task.locator,
         review: {
-          method: "automated_source_review",
+          method: reviewMethods,
           date: spec.date,
           note: "Primary-source transcription with no human sign-off and no independent reproduction.",
         },
@@ -290,12 +315,12 @@ export function buildBatch(spec: BatchSpec): RecordEntry[] {
           protocol_id: id(spec, "task", task.label),
           metric_implementation: task.metric,
         },
-        missing_metadata: {
+        missing_metadata: missingFields({
           checkpoint_revision: "unreported",
           seeds: "unreported",
           budget: "unreported",
           split_manifest: "unextracted",
-        },
+        }),
         source_locator: cell.locator,
       },
     });
@@ -315,22 +340,32 @@ export function buildBatch(spec: BatchSpec): RecordEntry[] {
         unit: task.unit,
         printed_value: cell.printed,
         numeric_value: cell.value,
-        uncertainty: cell.sd
-          ? { type: spec.uncertaintyType ?? "reported_plus_minus_type_unresolved", value: cell.sd }
-          : null,
+        // A printed ± spread whose meaning the source does not state is an
+        // unresolved spread, not a standard deviation. A cell with no spread
+        // carries no uncertainty key at all, and says why in missing_metadata.
+        ...(cell.sd
+          ? {
+              uncertainty: {
+                type: spec.uncertaintyType ?? "unresolved_spread",
+                value: cell.sd,
+              },
+            }
+          : {}),
         source_locator: cell.locator,
-        missing_metadata: {
+        missing_metadata: missingFields({
           denominator: "unextracted",
           seeds: "unreported",
-        },
+          ...(cell.sd ? {} : { uncertainty: "unextracted" as const }),
+        }),
         review: {
-          method: spec.method,
-          reviewer: spec.reviewer,
+          method: reviewMethods,
+          method_note: spec.method,
+          reviewer: reviewerAgents,
+          reviewer_note: spec.reviewer,
           date: spec.date,
           artifact_sha256: spec.source.sha256,
           retrieval_url: spec.source.artifactUrl,
-          notes:
-            "Source checked, not reproduced. Metrics differ by task, so no composite score across tasks is computed or implied.",
+          note: "Source checked, not reproduced. Metrics differ by task, so no composite score across tasks is computed or implied.",
         },
       },
     });
@@ -338,31 +373,56 @@ export function buildBatch(spec: BatchSpec): RecordEntry[] {
   return out;
 }
 
-/** Write the batch beside the receipt that lets the release loader accept it. */
-export function writeBatch(spec: BatchSpec): RecordEntry[] {
+/**
+ * Write the batch folder: the records and the receipt beside them.
+ *
+ * The receipt records what the extraction did and leaves the review fields
+ * empty, because review is a separate pass by another worker. `npm run batch --
+ * hash` fills in files and source_artifacts, and the reviewer fills the rest.
+ * `root` exists so a test can write to a temporary directory.
+ */
+export function writeBatch(spec: BatchSpec, root = "data/omics"): RecordEntry[] {
   const records = buildBatch(spec);
-  const file = `data/omics/reviewed/${spec.key}-2026.jsonl`;
-  const receipt = `data/omics/reviews/2026-09-18-${spec.key}-extraction.json`;
+  const batch = spec.batch ?? spec.key;
+  const folder = path.join(root, batch);
+  fs.mkdirSync(folder, { recursive: true });
+  const file = path.join(folder, "batch.jsonl");
+  const receipt = path.join(folder, "review.json");
   fs.writeFileSync(
     file,
     records.map((record) => JSON.stringify(record)).join("\n") + "\n",
   );
+  const held = fs.existsSync(receipt)
+    ? (JSON.parse(fs.readFileSync(receipt, "utf8")) as Record<string, unknown>)
+    : {};
   fs.writeFileSync(
     receipt,
     JSON.stringify(
       {
-        batch: `${spec.key}-2026`,
-        benchmark: spec.benchmarkId,
-        source: spec.source.artifactUrl,
-        artifact_sha256: spec.source.sha256,
-        records_sha256: createHash("sha256")
-          .update(fs.readFileSync(file))
-          .digest("hex"),
-        ...(spec.transformation ? { transformation: spec.transformation } : {}),
-        method: spec.method,
-        reviewer: spec.reviewer,
-        reviewed_at: spec.date,
+        schema_version: "1.0",
+        method: null,
+        review_methods: [],
+        reviewer: null,
+        reviewed_at: null,
+        scope: null,
+        limitations: [],
         errors: [],
+        ...held,
+        extraction: {
+          batch,
+          benchmark: spec.benchmarkId,
+          source: spec.source.artifactUrl,
+          artifact_sha256: spec.source.sha256,
+          records_sha256: createHash("sha256")
+            .update(fs.readFileSync(file))
+            .digest("hex"),
+          ...(spec.transformation
+            ? { transformation: spec.transformation }
+            : {}),
+          method: spec.method,
+          extracted_by: spec.reviewer,
+          extracted_at: spec.date,
+        },
       },
       null,
       2,
