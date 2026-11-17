@@ -1,0 +1,57 @@
+name: Pipeline alert
+# Opens one issue labelled pipeline-broken, assigned to timini, when a check or release run
+# on main fails, and closes it when every failing source has succeeded again (#252). Once a
+# day it also checks that benchmarks.rewirebio.io serves the newest serving/ release, and
+# files the same issue if it has lagged for more than 24 hours. rewire-database runs the
+# same script for its adoption and deploy workflows and files its own issue there.
+# workflow_run matches workflows by name; tests/pipeline-alert.test.ts checks the names.
+on:
+  workflow_run:
+    workflows:
+      - "Cut and publish a release"
+      - "Benchmark data checks"
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Judge this workflow run instead of checking the live release
+        required: false
+      dry_run:
+        description: Print the issue changes instead of making them
+        type: boolean
+        default: true
+permissions:
+  contents: read
+  actions: read
+  issues: write
+# One alert at a time, so two finishing runs cannot each open an issue.
+concurrency:
+  group: pipeline-alert
+  cancel-in-progress: false
+jobs:
+  alert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ops
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Judge the finished run
+        if: github.event_name == 'workflow_run' || inputs.run_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id || inputs.run_id }}
+          DRY_RUN: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: node scripts/ops/pipeline-alert.mjs run --run-id "$RUN_ID" $DRY_RUN
+      - name: Check the live release
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.run_id == '')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: node scripts/ops/pipeline-alert.mjs stale --site https://benchmarks.rewirebio.io --max-age-hours 24 $DRY_RUN
