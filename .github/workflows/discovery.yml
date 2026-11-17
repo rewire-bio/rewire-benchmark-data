@@ -1,0 +1,93 @@
+name: Discovery scan
+# Finds new AI-for-biology models, methods, benchmarks and datasets and files a data issue here
+# (labelled entity-request and tier-N) and an article issue in rewire.it for each (#254). The
+# prompt is agents/discovery.md; setup and cost are in docs/agents.md.
+#
+# Safe without secrets: with no ANTHROPIC_API_KEY the scheduled run writes a notice and passes.
+# Without the REWIRE_BOT app the article request goes into the data issue instead.
+on:
+  schedule:
+    # 08:00 UTC: 08:00 in London in winter, 09:00 in summer.
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry-run: fixtures, no model or GitHub calls. report-only: real scan, prints the issues. live: files them."
+        type: choice
+        options: [dry-run, report-only, live]
+        default: dry-run
+      max_pairs:
+        description: Most issue pairs to file in this run
+        default: "4"
+  pull_request:
+    paths:
+      - agents/**
+      - scripts/agents/**
+      - tests/agents-*/**
+      - tests/agents-*
+      - .github/workflows/discovery.yml
+permissions:
+  contents: read
+  issues: write
+# Scheduled and manual runs queue one at a time; pull request dry runs have their own group so
+# they never replace a waiting live run.
+concurrency:
+  group: discovery-${{ github.event_name == 'pull_request' && github.ref || 'scan' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Scheduled runs are live; pull requests are dry runs.
+      MODE: ${{ github.event_name == 'schedule' && 'live' || github.event_name == 'pull_request' && 'dry-run' || inputs.mode }}
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            agents
+            scripts/agents
+            tests/agents-discovery-fixtures
+            data/entities
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # A token for rewire.it article issues, only when the REWIRE_BOT app is configured. Secrets
+      # cannot appear in `if:`, so the org variable gates it; a missing key fails this step only.
+      - name: Token for rewire.it
+        id: app
+        if: env.MODE != 'dry-run' && vars.REWIRE_BOT_APP_ID != ''
+        continue-on-error: true
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REWIRE_BOT_APP_ID }}
+          private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
+          owner: rewire-bio
+          repositories: rewire.it
+      - name: Install the Anthropic SDK
+        if: env.MODE != 'dry-run' && env.HAS_KEY == 'true'
+        run: npm ci --prefix scripts/agents --no-audit --no-fund
+      - name: Run the scan
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          ARTICLE_TOKEN: ${{ steps.app.outputs.token }}
+          DISCOVERY_SCAN_MODEL: ${{ vars.DISCOVERY_SCAN_MODEL }}
+          MAX_PAIRS: ${{ inputs.max_pairs || '4' }}
+        run: |
+          case "$MODE" in
+            dry-run) args="--dry-run --out discovery-out" ;;
+            report-only) args="--report-only --out discovery-out" ;;
+            live) args="--out discovery-out" ;;
+            *) echo "::error::Unknown mode $MODE"; exit 1 ;;
+          esac
+          node scripts/agents/discovery.mjs $args --max-pairs "$MAX_PAIRS"
+      - name: Keep the planned issues and token usage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: discovery-${{ github.run_id }}
+          path: discovery-out
+          if-no-files-found: ignore
+          retention-days: 30
