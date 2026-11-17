@@ -15,6 +15,24 @@ const map = readLicenceMap();
 const licences = readSourceLicences();
 const schemes = loadSchemes();
 
+/** The row a spelling row names in its note, or null when the row is not a
+ * spelling of another. The note form is fixed so that the claim is checkable:
+ *   Read as a spelling of "<row>" on <date>.
+ */
+const spellingOf = (licence: string): string | null => {
+  const note = map.get(licence)?.note ?? "";
+  const read = /^Read as a spelling of "(.+)" on \d{4}-\d{2}-\d{2}\./.exec(note);
+  return read ? read[1] : null;
+};
+
+/** Whether a row is an owner ruling on a string no record carries: a licence a
+ * metadata service serves that no earlier row states a reading for, so it can
+ * be neither a record row nor a spelling of one. The note form is fixed so the
+ * claim is checkable:
+ *   Owner ruling of <date> (issue <n>): ...
+ */
+const isRuling = (licence: string): boolean => /^Owner ruling of \d{4}-\d{2}-\d{2} \(issue \d+\): \S/.test(map.get(licence)?.note ?? "");
+
 describe("licence map", () => {
   it("maps every licence string the store carries", () => {
     const unmapped = [...new Set([...licences.values()].filter((licence): licence is string => licence !== null))]
@@ -50,11 +68,47 @@ describe("licence map", () => {
     expect(determination.observed_licence).toBe("A licence nobody has mapped");
   });
 
-  it("holds no row the store no longer uses", () => {
+  it("holds no row the store no longer uses, except a declared spelling or ruling", () => {
     // An orphan row is not harmful, but it is a sign a licence string was
     // edited on a record rather than superseded, so it is worth seeing.
+    //
+    // Two kinds of row are the exception, and both exist for the resolver
+    // rather than for a record. A spelling row reads a served string as a
+    // licence an earlier row already states. A ruling row carries a reading
+    // the owner made for a served string no earlier row covers, which is why
+    // it cannot be a spelling of anything.
+    // data/archive/licence-candidates.jsonl is not committed, so the check is
+    // on the note rather than on the candidates.
     const carried = new Set([...licences.values()].filter((licence) => licence !== null));
-    expect([...map.keys()].filter((licence) => !carried.has(licence))).toEqual([]);
+    expect([...map.keys()].filter((licence) => !carried.has(licence) && !spellingOf(licence) && !isRuling(licence))).toEqual([]);
+  });
+
+  it("gives every ruling row a licence string no record carries and no spelling note", () => {
+    // A ruling row is for a string only a metadata service serves. One a
+    // record carries belongs in the ordinary review path, and one an earlier
+    // row already reads belongs in a spelling row, so a ruling row that is
+    // either is a row filed under the wrong kind.
+    const carried = new Set([...licences.values()].filter((licence) => licence !== null));
+    for (const licence of [...map.keys()].filter(isRuling)) {
+      expect(carried.has(licence), `${licence}: a record carries this string, so it is not a ruling row`).toBe(false);
+      expect(spellingOf(licence), `${licence}: a row cannot be both a ruling and a spelling`).toBeNull();
+    }
+  });
+
+  it("gives every spelling row the family and tier of the row it is read as", () => {
+    // The whole guarantee of a spelling row: it adds a key, never a reading.
+    // The row it points at has to be one a record carries, so no spelling
+    // stands on another spelling and every tier traces to a reviewed row.
+    const carried = new Set([...licences.values()].filter((licence) => licence !== null));
+    for (const row of map.values()) {
+      const target = spellingOf(row.licence);
+      if (!target) continue;
+      const read = map.get(target);
+      expect(read, `${row.licence}: no row "${target}"`).toBeDefined();
+      expect(carried.has(target), `${row.licence}: "${target}" is not a licence any record carries`).toBe(true);
+      expect(read!.family, `${row.licence}: family`).toBe(row.family);
+      expect(read!.archive_tier, `${row.licence}: tier`).toBe(row.archive_tier);
+    }
   });
 
   it("gives a source with no licence the private default, never a public tier", () => {

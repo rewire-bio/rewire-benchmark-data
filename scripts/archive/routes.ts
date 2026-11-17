@@ -37,9 +37,33 @@ const asRecord = (value: unknown): Record<string, unknown> | null =>
   value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
 const asString = (value: unknown): string | null => (typeof value === "string" && value.trim() ? value.trim() : null);
 
-/** The URL the record already carries. */
+/** A GitHub blob URL is a web page that renders a file, wrapped in navigation
+ * chrome, and it is served under a secondary rate limit that stops a client
+ * after a handful of requests however it authenticates. The same bytes are on
+ * raw.githubusercontent.com, which serves the file itself. Rewriting is both
+ * kinder to GitHub and better evidence, because the stored object becomes the
+ * file a reader would cite rather than a rendering of it. The ref is kept
+ * exactly as written, so a pinned commit stays pinned. The receipt still
+ * records the URL the record carries, as requested_url. */
+export function canonicalGithubUrl(url: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return url;
+  }
+  if (parsed.hostname !== "github.com") return url;
+  const parts = parsed.pathname.split("/").filter(Boolean);
+  if (parts.length < 5 || parts[2] !== "blob") return url;
+  const [owner, repo, , ref, ...path] = parts;
+  if (!owner || !repo || !ref || path.length === 0) return url;
+  return `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${path.join("/")}${parsed.search}`;
+}
+
+/** The URL the record already carries, canonicalised where a host serves the
+ * same bytes somewhere better. */
 async function direct(input: RouteInput): Promise<RouteResult> {
-  return { url: input.url, reason: null };
+  return { url: canonicalGithubUrl(input.url), reason: null };
 }
 
 /** Unpaywall's API requires a contact address as a query parameter. It is read

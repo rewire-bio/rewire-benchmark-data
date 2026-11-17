@@ -161,6 +161,22 @@ export const manifestRowSchema = z
     previous_path: z.string().nullable(),
     /** The source records these bytes answer for. */
     source_ids: z.array(text),
+    /** The three takedown columns, determination 4 of 2026-11-17. They are
+     * optional because a row that holds bytes carries none of them, and
+     * because the rows written before this field existed carry none either.
+     *
+     * When the bytes were removed on a rights holder's request. The row stays,
+     * so the removal is a recorded fact and no later reader finds a silent
+     * hole: the key, the byte count, first_seen_at and source_ids are
+     * unchanged, and only the bytes are gone. */
+    removed_at: utc.optional(),
+    /** Why, in one line. Required beside removed_at. */
+    removed_reason: text.optional(),
+    /** Who asked. The rights holder, or the dated review under docs/reviews/
+     * that recorded the request. This file is committed to a public
+     * repository, so it names an organisation or a review, never a private
+     * person's contact details. Required beside removed_at. */
+    removed_requester: text.optional(),
   })
   .strict()
   .superRefine((row, ctx) => {
@@ -170,8 +186,25 @@ export const manifestRowSchema = z
       ctx.addIssue({ code: "custom", message: "layer exact-bytes carries no derived_from or derivation" });
     if (row.visibility !== visibilityOf(row.archive_tier))
       ctx.addIssue({ code: "custom", message: `tier ${row.archive_tier} is ${visibilityOf(row.archive_tier)}, not ${row.visibility}` });
+    // A removal is a fact with three parts. A date with no reason and no
+    // requester records that something happened and loses why and to whom,
+    // which is the gap determination 4 names.
+    if (row.removed_at && (!row.removed_reason || !row.removed_requester))
+      ctx.addIssue({ code: "custom", message: "a removed row carries removed_at, removed_reason and removed_requester" });
+    if (!row.removed_at && (row.removed_reason || row.removed_requester))
+      ctx.addIssue({ code: "custom", message: "removed_reason and removed_requester belong to a removed row, which carries removed_at" });
+    // This is what keeps a removed row out of every publish path. t5-no-store
+    // is restricted, visibility follows the tier a line above, and both
+    // uploaders select on visibility, so a removed row is never a candidate.
+    if (row.removed_at && row.archive_tier !== "t5-no-store")
+      ctx.addIssue({ code: "custom", message: `a removed row sits at t5-no-store, not ${row.archive_tier}` });
   });
 export type ManifestRow = z.infer<typeof manifestRowSchema>;
+
+/** Whether a row's bytes were removed on request. The tier says the same
+ * thing for publication, because removed_at forces t5-no-store; this reads
+ * the removal itself, for a message that has to name the date. */
+export const isRemoved = (row: Pick<ManifestRow, "removed_at">): boolean => Boolean(row.removed_at);
 
 /** One attempt at one route, kept whether it worked or not, so that "tried in
  * this order" is a checkable claim rather than a description. */

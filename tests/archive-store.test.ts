@@ -5,9 +5,11 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { afterEach, expect, it } from "vitest";
 import { archiveAssetName, archiveAssetUrl, cacheContents, hasObject, objectPath, putObject, readObject } from "../scripts/archive/objects";
-import { checkManifest, readManifest, readShard, shardPath, updateRow, upsertRow } from "../scripts/archive/manifest";
+import { checkManifest, markRemoved, readManifest, readShard, shardPath, updateRow, upsertRow, verifyObjects } from "../scripts/archive/manifest";
 import { appendReceipt, latestBySource, readReceipts } from "../scripts/archive/receipts";
-import { canonicalLine, manifestRowSchema, objectShard, type FetchReceipt, type ManifestRow } from "../shared/archive/schema";
+import { assertPublishable, planPublish, publishObjects, type ReleaseClient } from "../scripts/archive/publish";
+import { assertRestricted } from "../scripts/archive/upload";
+import { canonicalLine, isRemoved, manifestRowSchema, objectShard, type FetchReceipt, type ManifestRow } from "../shared/archive/schema";
 
 const roots: string[] = [];
 afterEach(() => roots.splice(0).forEach((root) => fs.rmSync(root, { recursive: true, force: true })));
@@ -176,6 +178,123 @@ it("writes a receipt for a failure as well as a success and reads the latest per
   expect(latestBySource(readReceipts(root)).get("source-one")?.outcome).toBe("not_artifact");
   expect(() => appendReceipt({ ...kept, reason: null }, root)).toThrow(/not_artifact receipt carries a reason/);
   expect(() => appendReceipt({ ...kept, sha256: null }, root)).toThrow(/not_artifact receipt carries sha256/);
+});
+
+/** A takedown's three columns, as the policy writes them. The requester is a
+ * dated review, not a person: the manifest is committed to a public
+ * repository. */
+const removal = {
+  removed_at: "2026-11-18T10:00:00Z",
+  removed_reason: "rights holder asked for the object to be removed",
+  removed_requester: "docs/reviews/2026-11-18-takedown.md",
+};
+
+it("takes removed_at only with a reason and a requester, and only at t5-no-store", () => {
+  expect(() => row({ removed_at: removal.removed_at })).toThrow(/removed_at, removed_reason and removed_requester/);
+  expect(() => row({ removed_at: removal.removed_at, removed_reason: removal.removed_reason })).toThrow(
+    /removed_at, removed_reason and removed_requester/,
+  );
+  expect(() => row({ removed_reason: removal.removed_reason, removed_requester: removal.removed_requester })).toThrow(
+    /belong to a removed row/,
+  );
+  // A removed row that claims a public tier is refused here, which is what
+  // keeps it out of every publish path: t5-no-store is restricted, and both
+  // uploaders select on visibility.
+  expect(() => row({ ...removal, archive_tier: "t0-public", visibility: "public" })).toThrow(/sits at t5-no-store, not t0-public/);
+  expect(() => row({ ...removal, archive_tier: "t5-no-store", visibility: "public" })).toThrow(/t5-no-store is restricted/);
+
+  const removed = row({ ...removal, archive_tier: "t5-no-store", visibility: "restricted" });
+  expect(isRemoved(removed)).toBe(true);
+  expect(removed.removed_requester).toBe(removal.removed_requester);
+  // A row that holds bytes carries none of the three, which is how every row
+  // written before these fields existed still parses.
+  expect(isRemoved(row())).toBe(false);
+  expect(row().removed_at).toBeUndefined();
+});
+
+it("never publishes a removed row, and the row and its hash still verify with the bytes gone", async () => {
+  const root = temporaryRoot();
+  const bytes = Buffer.from("bytes a rights holder asked us to remove");
+  const { key } = putObject(bytes, root);
+  const before = row({ sha256: key, bytes: bytes.length, archive_tier: "t0-public", visibility: "public" });
+  await upsertRow(before, root);
+  expect(planPublish({ root }).candidates.map((candidate) => candidate.key)).toEqual([key]);
+
+  expect(await markRemoved(key, removal, root)).toBe(true);
+  expect(await markRemoved(digest("absent"), removal, root)).toBe(false);
+  const after = readShard(objectShard(key), root)[0];
+  expect(after).toMatchObject({ ...removal, archive_tier: "t5-no-store", visibility: "restricted" });
+  // Everything that makes the removal a recorded fact rather than a hole.
+  expect(after.sha256).toBe(before.sha256);
+  expect(after.bytes).toBe(before.bytes);
+  expect(after.media_type).toBe(before.media_type);
+  expect(after.origin).toBe(before.origin);
+  expect(after.first_seen_at).toBe(before.first_seen_at);
+  expect(after.source_ids).toEqual(before.source_ids);
+
+  // Selection drops it, the gate refuses it if it ever reaches one, and a
+  // whole run with a client that throws on every call uploads nothing.
+  const plan = planPublish({ root });
+  expect(plan.candidates).toEqual([]);
+  expect(plan.public_rows).toBe(0);
+  expect(plan.refused_by_tier).toEqual({ "t5-no-store": 1 });
+  expect(() => assertPublishable(after)).toThrow(new RegExp(`${key}.*t5-no-store`));
+  const forbidden: ReleaseClient = {
+    assets: () => {
+      throw new Error("a removed row must not even list a tag");
+    },
+    create: () => {
+      throw new Error("a removed row must not create a tag");
+    },
+    upload: () => {
+      throw new Error("a removed row must not be uploaded");
+    },
+  };
+  const summary = await publishObjects({ root, client: forbidden });
+  expect(summary).toMatchObject({ considered: 0, uploaded: 0, marked: 0, refused: 1, urls: [] });
+
+  // Now the bytes go, which is what the rights holder asked for. The row
+  // stays, its key still names the bytes it named, and verify calls that the
+  // expected state instead of a missing object.
+  fs.rmSync(objectPath(key, root));
+  expect(hasObject(key, root)).toBe(false);
+  const verification = verifyObjects(root);
+  expect(verification.removed).toEqual([key]);
+  expect(verification).toMatchObject({ objects: 1, verified: 0, missing: [], corrupt: [], unlisted: [], problems: [] });
+  expect(checkManifest(root)).toEqual({ rows: 1, problems: [] });
+  expect(readShard(objectShard(key), root)[0].sha256).toBe(key);
+  expect(readManifest(root).get(key)!.removed_at).toBe(removal.removed_at);
+});
+
+it("sends only the restricted rows to the restricted backend, and never a removed one", () => {
+  // R2 holds the bytes that cannot be published. A public row belongs on a
+  // release tag, and a removed row belongs nowhere, so the gate names both.
+  expect(() => assertRestricted(row())).not.toThrow();
+  expect(() => assertRestricted(row({ archive_tier: "t0-public", visibility: "public" }))).toThrow(/t0-public is public/);
+  expect(() => assertRestricted(row({ archive_tier: "t3-verbatim-nd-nc", visibility: "public" }))).toThrow(/release asset/);
+  const removed = row({ ...removal, archive_tier: "t5-no-store", visibility: "restricted" });
+  expect(() => assertRestricted(removed)).toThrow(new RegExp(`${removed.sha256}.*t5-no-store.*${removal.removed_at}`));
+  expect(() => assertRestricted(removed)).toThrow(/never go back/);
+});
+
+it("reports a removed row whose bytes are still cached as a problem, and a row with no marker as missing", async () => {
+  const root = temporaryRoot();
+  const bytes = Buffer.from("bytes a rights holder asked us to remove");
+  const { key } = putObject(bytes, root);
+  await upsertRow(row({ sha256: key, bytes: bytes.length }), root);
+  await markRemoved(key, removal, root);
+  // The row is marked and the bytes are still here: the takedown stopped
+  // halfway, and verify says so rather than passing.
+  const halfway = verifyObjects(root);
+  expect(halfway.removed).toEqual([]);
+  expect(halfway.problems.join(" ")).toMatch(new RegExp(`${key} is at t5-no-store, removed at ${removal.removed_at} and its bytes`));
+
+  // A row nobody marked, whose bytes are gone, is still missing and still a
+  // failure. Only a recorded removal changes that.
+  const other = temporaryRoot();
+  const absent = row({ sha256: digest("bytes nobody holds") });
+  await upsertRow(absent, other);
+  expect(verifyObjects(other)).toMatchObject({ removed: [], missing: [absent.sha256], problems: [] });
 });
 
 it("moves a row to another tier without refetching, and visibility follows the tier", async () => {

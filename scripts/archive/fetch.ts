@@ -25,7 +25,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { adoptFile, cacheRoot, hasObject } from "./objects";
-import { upsertRow } from "./manifest";
+import { readManifest, upsertRow } from "./manifest";
 import { appendReceipt, latestBySource, readReceipts } from "./receipts";
 import { routeChain, type RouteInput } from "./routes";
 import { groupByUrl, readWorkList, type WorkItem } from "../../shared/archive/worklist";
@@ -33,6 +33,7 @@ import { checkArtifact, type ArtifactCheck } from "../../shared/archive/artifact
 import { hasPdftotext } from "../../shared/archive/layers/pdf";
 import {
   defaultArchiveTier,
+  isRemoved,
   mediaTypeOf,
   utcNow,
   visibilityOf,
@@ -45,6 +46,49 @@ import {
 } from "../../shared/archive/schema";
 
 export const userAgent = "rewire-benchmark-data archive fetcher (+https://rewire.it)";
+
+/** GitHub allows an anonymous client about 60 requests an hour and an
+ * authenticated one about 5,000. Three fetch passes were stopped by that
+ * quota, so a token is sent to GitHub's own hosts and nowhere else. The Fetch
+ * standard drops Authorization on a cross-origin redirect, which is what keeps
+ * it from reaching a third party when GitHub redirects a download. The token
+ * is read once, never logged and never written to a receipt. */
+const githubHosts = new Set([
+  "github.com",
+  "api.github.com",
+  "raw.githubusercontent.com",
+  "gist.githubusercontent.com",
+  "objects.githubusercontent.com",
+]);
+
+let cachedGithubToken: string | null | undefined;
+function githubToken(): string | null {
+  if (cachedGithubToken !== undefined) return cachedGithubToken;
+  const fromEnv = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN;
+  if (fromEnv) return (cachedGithubToken = fromEnv);
+  try {
+    const { execFileSync } = require("node:child_process") as typeof import("node:child_process");
+    const out = execFileSync("gh", ["auth", "token"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    return (cachedGithubToken = out || null);
+  } catch {
+    return (cachedGithubToken = null);
+  }
+}
+
+/** The headers for one request. Authorization is added only for a GitHub host. */
+export function requestHeaders(url: string, accept: string): Record<string, string> {
+  const headers: Record<string, string> = { "User-Agent": userAgent, Accept: accept };
+  let host: string;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    return headers;
+  }
+  if (!githubHosts.has(host)) return headers;
+  const token = githubToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
 
 export interface FetchOptions {
   root?: string;
@@ -89,6 +133,12 @@ export interface FetchSummary {
    * them up too, because a cookie wall or a missing Unpaywall address is a
    * condition of the run and not a property of the source. */
   skipped_not_artifact: number;
+  /** Sources a manifest row at t5-no-store answers for: an object removed on
+   * a rights holder's request, or a recorded decision to keep no copy.
+   * Counted on their own line and never as held: the archive holds nothing
+   * for them and is not going to fetch it again. --retry-failed does not
+   * reach them. */
+  skipped_removed: number;
   attempted: number;
   stored: number;
   /** Sources where every route returned something other than the artifact. */
@@ -197,7 +247,7 @@ export class Fetcher {
         try {
           response = await fetch(url, {
             redirect: "follow",
-            headers: { "User-Agent": userAgent, Accept: accept },
+            headers: requestHeaders(url, accept),
             signal: AbortSignal.timeout(this.options.requestTimeoutMs),
           });
         } catch (error) {
@@ -299,19 +349,49 @@ export class Fetcher {
   }
 }
 
+/** The sources every removed manifest row answers for.
+ *
+ * A takedown marks the row and deletes the bytes. The receipt stays, because
+ * it is an observation of a transfer that happened, so a source whose object
+ * was removed looks exactly like a source whose cache copy went missing.
+ * Without this set the next fetch would transfer those bytes again and cache
+ * them again, which is the hole determination 4's path left open.
+ *
+ * Every row at t5-no-store counts, not only one carrying removed_at. A
+ * takedown always writes both, but t5-no-store is also the tier for a
+ * recorded decision not to keep a copy, and fetching those bytes again would
+ * undo that decision just as surely. */
+export function removedSources(root: string): Set<string> {
+  const removed = new Set<string>();
+  for (const row of readManifest(root).values()) {
+    if (row.archive_tier !== "t5-no-store" && !isRemoved(row)) continue;
+    for (const sourceId of row.source_ids) removed.add(sourceId);
+  }
+  return removed;
+}
+
 /** Which sources still need a transfer, and why the others do not. */
 export function planRun(
   root: string,
   retryFailed: boolean,
-): { todo: WorkItem[]; heldSources: number; failedSources: number; notArtifactSources: number; items: WorkItem[] } {
+): { todo: WorkItem[]; heldSources: number; failedSources: number; notArtifactSources: number; removedSources: number; items: WorkItem[] } {
   const { items } = readWorkList(root);
   const latest = latestBySource(readReceipts(root));
+  const removed = removedSources(root);
   const todo: WorkItem[] = [];
   let held = 0;
   let failed = 0;
   let notArtifact = 0;
+  let wasRemoved = 0;
   for (const item of items) {
     const receipt = latest.get(item.source_id);
+    // Asked first, and before --retry-failed is consulted. A removed source is
+    // not held, not failed and never to be attempted: somebody asked us to
+    // delete those bytes, so re-fetching them would undo a takedown.
+    if (removed.has(item.source_id)) {
+      wasRemoved += 1;
+      continue;
+    }
     if (receipt?.outcome === "stored" && receipt.sha256 && hasObject(receipt.sha256, root)) {
       held += 1;
       continue;
@@ -330,7 +410,7 @@ export function planRun(
     }
     todo.push(item);
   }
-  return { todo, heldSources: held, failedSources: failed, notArtifactSources: notArtifact, items };
+  return { todo, heldSources: held, failedSources: failed, notArtifactSources: notArtifact, removedSources: wasRemoved, items };
 }
 
 /** Why a source produced no bytes.
@@ -530,7 +610,8 @@ export async function runFetch(options: FetchOptions = {}): Promise<FetchSummary
   // cache depends on it, because an object lands by rename.
   fs.rmSync(path.join(cacheRoot(root), "incoming"), { recursive: true, force: true });
 
-  const { todo, heldSources, failedSources, notArtifactSources } = planRun(root, options.retryFailed ?? false);
+  const plan = planRun(root, options.retryFailed ?? false);
+  const { todo, heldSources, failedSources, notArtifactSources } = plan;
   const groups = [...groupByUrl(todo).values()];
   const planned = options.limit ? groups.slice(0, options.limit) : groups;
   // Probed once for the run. The artifact check needs the answer per object
@@ -542,6 +623,7 @@ export async function runFetch(options: FetchOptions = {}): Promise<FetchSummary
     skipped_held: heldSources,
     skipped_failed: failedSources,
     skipped_not_artifact: notArtifactSources,
+    skipped_removed: plan.removedSources,
     attempted: 0,
     stored: 0,
     not_artifact: 0,
