@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "ai-assisted-source-review",
+    "source-hash-verification",
+    "pdf-text-parse",
+    "scope-review"
+  ],
+  "reviewer": "Claude coordinator-fix agent, which extracted none of the thirteen batches of 2026-11-15 and 2026-11-16; no human review claimed",
+  "reviewed_at": "2026-11-16T03:00:00Z",
+  "scope": "The six cross-batch record fixes that five dated reviews deliberately left to the coordinator because each touches a record outside the batch that found it. Eleven stored records changed, in data/entities/tasks.jsonl, configurations.jsonl, sources.jsonl and models.jsonl, each with a metadata-correction claim in this batch keeping the previous value: catalog-task-cell-perturbation (scope note), six BEELINE acquired-configuration entries for GRNBOOST2 and PPCOR (configuration_of link, description, provenance note), esmfold2-2026-runs-n-poses-method-openfold3-msa (family link), gfm-guides-20261014-gpnmsa-source-biorxiv-v2 (hash_scope), reported-task-ed3dd3b83c4505 (source_ids and benchmark_research.primary_sources) and vep-uc-20261014-model-gpn-star (source_ids). No new entity, evaluation, result or source. No stored value, ID or source hash changed; nothing was superseded, disputed or given an evidence concern. Two artifacts were retrieved to check an identity and a hash: the BEELINE paper's Europe PMC full text XML and the GPN-MSA bioRxiv v2 PDF. Reasoning for each item in docs/reviews/2026-11-16-coordinator-fixes.md.",
+  "errors": [
+    {
+      "status": "corrected",
+      "record_ids": [
+        "catalog-task-cell-perturbation"
+      ],
+      "message": "The scope note \"Predict expression changes after unseen perturbations\" read as a claim that every protocol under this task holds out an agent the model has never seen. The first and only protocol linking to it holds out the highest dose of a drug whose lower doses are available, which Appendix D.2 of arXiv:2607.23447v1 states. The note now covers dose, time and context holdouts and says a result here is not evidence about an unseen agent unless its protocol says so."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "acquired-configuration-0c21015ca18f77aa85cf",
+        "acquired-configuration-20bd9426a3b1748c4ac0",
+        "acquired-configuration-9ef0d0bed99b8227586a",
+        "acquired-configuration-4bcb697cf9c276193491",
+        "acquired-configuration-7b1b949b9fc16f608074",
+        "acquired-configuration-89290921419c9429cb59"
+      ],
+      "message": "Six BEELINE entries, three GRNBOOST2 and three PPCOR, one of each per source-data CSV, had an empty links array and said the method behind the label was unidentified. Each now carries configuration_of to perturbpfn-20261115-method-grnboost2 or perturbpfn-20261115-method-ppcor. The identity was read from the BEELINE paper's own Methods and its references 8 (Moerman, GRNBoost2 and Arboreto) and 7 (Kim, ppcor), not from the name match. Status stays discovered: the parent is known, the run settings are not."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "esmfold2-2026-runs-n-poses-method-openfold3-msa"
+      ],
+      "message": "The configuration named \"OpenFold3 (MSA)\" had no parent. It now carries family to poisk-20261115-model-openfold3, the relation every other configuration of that batch uses to reach its model record. No duplicate model record was created."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "gfm-guides-20261014-gpnmsa-source-biorxiv-v2"
+      ],
+      "message": "hash_scope asserted that a fresh download has an identical pdftotext -layout text layer without naming that layer's hash, so the check it promises could not be run. It now names c6e95eb807550bb97aa2b8991c013f28fe11742006582c25818fcf90cad30c79, the command and poppler 26.08.0. Verified here by downloading the PDF (2,247,726 bytes, 37 pages, SHA-256 688e3788e0555b0b1089f474c5cc7dfd22113fdaa168339c1b9f21490fa22646, not the pinned hash, as expected) and re-deriving the text layer, 137,403 bytes, which reproduced that hash exactly. artifact_sha256 was not touched."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "reported-task-ed3dd3b83c4505"
+      ],
+      "message": "The only record still citing the retired duplicate source evidence-expansion-p2-phylogpn-2025-807f3a26cbfa named it twice. source_ids is now [\"phylogpn-2025\"], which drops a redundant pointer to a superseded record whose survivor was already listed, and benchmark_research.primary_sources is now [\"phylogpn-2025\"]. The two source records pin the same bytes, so no evidence is withdrawn and no locator moves. The record stays needs_review and the rest of the legacy silo was left alone."
+    },
+    {
+      "status": "corrected",
+      "record_ids": [
+        "vep-uc-20261014-model-gpn-star"
+      ],
+      "message": "source_ids cited only the mutable Nature URL whose stored hash pins a preview PDF. It now also names gpn-star-20261116-source-nature-2026, the version of record. One of the six enrichments ruling 9 of the gpn-star review listed; the other five, and the GPN and GPN-MSA family edges, were not applied, for the reason that review gives."
+    }
+  ],
+  "limitations": [
+    "Automated review by a Claude agent. Not human scientific review, not reproduction and not clinical validation.",
+    "Each change rests on a dated review already in the repository plus a check against the store. Only two source artifacts were retrieved, for the BEELINE method identity and the GPN-MSA text layer; no stored value was re-read from any source.",
+    "The BEELINE Europe PMC full text XML does not reproduce its pinned artifact_sha256, because Europe PMC regenerates it. The quoted Methods sentences were read from this pass's own retrieval, whose hash is recorded in the claims and in notes.md. That source record was not changed.",
+    "The six BEELINE entries are now parented but remain discovered, and nothing about the entries themselves was source-checked.",
+    "No discrepancy check: this batch adds no result, so no discrepancy can name one of its records.",
+    "Tests, typecheck and the data build were not run; the coordinator runs those. No commit was made."
+  ],
+  "files": {
+    "batch.jsonl": "88ad82ce9fae871aede69f61dd34c269c9b94d92e9355882958cab6e28d8751b",
+    "notes.md": "038208dd791a0e3e0e251bbce780a6992f5503934b909708228824c50aa1216b",
+    "ledger.jsonl": "47d0d118fe01c294331ea4b7be784174bac62a513e1e4314b2e4b2a6f40a3081",
+    "fixes/build-coordfix.py": "2b1be7dbee4db93c6fd846ac760f0abc6845c60eb4f84f92cf8e4bdf75d6aa92",
+    "docs/reviews/2026-11-16-coordinator-fixes.md": "7f877e3b7bbc5b4c2fbbd66e3d06aacce5f937ea84709cdf1b0d27c36a8ed5e3"
+  }
+}

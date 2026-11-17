@@ -1,0 +1,38 @@
+# Vocabulary concepts this batch needs and the store does not have.
+#
+# Checked against data/vocab/metric.ttl and data/vocab/unit.ttl on 2026-11-15. The nearest
+# existing metric concepts do not fit: :inference-throughput is samples processed per second,
+# which counts work done rather than designs that passed a criterion; :energy-efficiency is
+# throughput per watt; :accelerator-time is the accelerator time itself, with direction lower;
+# :success-rate, :hit-rate and :designability are proportions with no compute denominator.
+# For the unit, the store has :sample-per-second and :sample-per-joule but nothing per hour, and
+# :count is a dimensionless count with no rate.
+#
+# Add to data/vocab/metric.ttl and data/vocab/unit.ttl in alphabetical position. Two points for
+# the coordinator to check before adding:
+#   - the external match below is a closeMatch to QUDT PER-HR (reciprocal hour), because a count
+#     per hour is dimensionally a reciprocal time; confirm that IRI resolves before committing.
+#   - no STATO, QUDT or EDAM term was found for the metric, so it carries no external match.
+
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rb: <https://benchmarks.rewire.it/vocab#> .
+@prefix mls: <http://www.w3.org/ns/mls#> .
+@prefix metric: <https://benchmarks.rewire.it/vocab/metric/> .
+@prefix unit: <https://benchmarks.rewire.it/vocab/unit/> .
+
+metric:passing-design-clusters-per-accelerator-hour a skos:Concept, mls:EvaluationMeasure ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/metric/> ;
+    skos:prefLabel "Passing design clusters per accelerator hour"@en ;
+    skos:altLabel "distinct passers per GPU-hour"@en ;
+    skos:altLabel "passing structural clusters per GPU-hour"@en ;
+    skos:definition "Number of structurally distinct generated designs that meet a stated computational criterion, divided by the accelerator time the source says it counted. Designs that pass are grouped into structural clusters first, so the numerator counts distinct passing structures rather than passing designs. The clustering rule, the pass criterion, the accelerator time the denominator includes and the aggregation over targets go in metric_qualifier."@en ;
+    skos:scopeNote "A computational yield per unit of compute, not an experimental hit rate: the numerator is designs that passed a structural or confidence criterion, not designs that were synthesised and assayed. Not comparable with a pass rate, which has a per-attempt denominator, nor with inference throughput, which counts samples processed rather than samples that passed."@en ;
+    rb:defaultDirection <https://benchmarks.rewire.it/vocab/direction/higher> .
+
+unit:count-per-hour a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/unit/> ;
+    skos:prefLabel "Count per hour"@en ;
+    skos:altLabel "per hour"@en ;
+    skos:altLabel "items per hour"@en ;
+    skos:definition "Count rate: number of discrete items per hour. The counted entity and the kind of hour, for example designs per GPU-hour, go in unit_detail."@en ;
+    skos:closeMatch <http://qudt.org/vocab/unit/PER-HR> .

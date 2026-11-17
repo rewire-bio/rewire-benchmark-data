@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "method": "independent_source_review",
+  "reviewer": "Claude review agent (independent of the extractor); no human review claimed",
+  "reviewed_at": "2026-11-16T01:30:00Z",
+  "errors": [],
+  "review_methods": [
+    "independent-cell-check",
+    "deterministic-table-parse",
+    "pdf-text-parse",
+    "rendered-source-visual-check",
+    "transcription",
+    "source-hash-verification"
+  ],
+  "scope": "Independent review of the GPN-Star batch (first part of rewire-bio/rewire-benchmark-data #226) by a different agent from the extractor, against the extraction frozen at batch.jsonl SHA-256 0c92c46582ae5d2f4df77b4fe90669c205998a7b981dba113924943558843836 (219 records: 4 sources, 1 benchmark, 6 datasets, 10 protocols, 39 configurations, 3 methods, 72 evaluations, 72 results, 12 claims). All four pinned artifacts were re-retrieved and hashed. All 72 results were checked three ways: the repository's own npm run batch -- check-values, a checker written for this pass that reads Supplementary Table 3 from the PDF's word bounding boxes rather than a text dump so that column assignment is measured rather than assumed, and a hand transcription of all 56 table cells and all 12 Fig. 4b bar labels from the pages rendered at 190 dpi. Two negative controls confirmed the checker fails on swapped and column-shifted values. The 12 descriptive claims, the protocol and dataset definitions, the reused identities and the Supplementary Information's Evaluation Benchmarks section were read against the pinned PDFs. Five corrections were made to batch.jsonl before it was added to the store; the reviewed batch holds the same 219 records. The dated review is docs/reviews/2026-11-16-gpn-star.md.",
+  "limitations": [
+    "Automated review by a Claude agent, independent of the extractor but not human scientific review. Transcription was checked against the pinned sources; nothing was reproduced and no value was recomputed from data.",
+    "The bioRxiv v1 PDF's artifact_sha256 does not reproduce and cannot: bioRxiv restamps the container on every request. Two downloads on 2026-11-16 differed from the pin and from each other in 34 bytes, all download-time metadata, with identical page count, CreationDate and pdftotext -layout text layer. The pinned hash is unchanged and the source record's hash_scope now says what it describes. No value in this batch comes from the preprint.",
+    "The Hugging Face collection is a mutable web resource with no revision. It re-retrieved byte-identically on 2026-11-16, but that is a statement about one retrieval.",
+    "The store's vep-uc-20261014-source-gpn-star pins an artifact that is no longer served and is not archived anywhere, so its bytes could not be re-checked. That it was the accelerated article preview rather than the version of record is established from the article page as the Internet Archive captured it on 2026-10-21, which carries citation_firstpage 1 and citation_lastpage 10 with no volume, and from the pagination of the current PDF (volume 659, pages 141-150).",
+    "Fig. 3e prints 'r = 0.47, P = 0.0072' inside the panel. The extractor's notes and the Nature source record's limitations said Figs. 2 and 3 print no numerical values; the record is corrected and the statistic is recorded as a gap, not extracted, because it characterises the models rather than scoring them against a ground truth.",
+    "Fig. 5a's 15 printed bar labels remain unextracted, as at extraction. Assigning them to a species and a score needs the within-panel bar order from the legend, which docs/collection.md does not allow.",
+    "Supplementary Tables 5-8 remain unextracted. The numbers the text quotes from them are in gpn-star-20261116-claim-prioritized-consequences and were checked against the Supplementary Notes.",
+    "The recommended enrichments to the stored vep-uc-20261014-model-gpn-star record (status, version, access, licence, training_data, source_ids) were not applied. They are additions from newly accepted claims rather than corrections of wrong values, and the claims in this batch already carry the information with the model as their subject.",
+    "No discrepancy check was possible: the batch's results were not in the store when the review ran, so no discrepancy lists them in outlier_results or consensus_results."
+  ],
+  "files": {
+    "batch.jsonl": "4b23468ceb7cac846f2791b8123caae105d9e2fbd4e2c191bdc0b85b9b05aee1",
+    "extract/build.py": "9a3e3eae3fa4cb5d502bd61b9b93d5837b6efb503871e710e05192b057dd3fc0",
+    "ledger.jsonl": "3f23e2542d60bfbd697ab1aef8934961d069c33a8940b4dc45173466bea8d230",
+    "notes.md": "f0df17ff7e9bd61554e04e070c77a9c3f20c92a4b50850f181958b8d17c77211",
+    "review/apply_review.py": "7ca05d5db404b6fae1c427aa492b21024ed50a78f6f009a31d3fce09df0f1a3d",
+    "review/check_values_independent.py": "698dba2ce12ae8d253e3eb7f0f2d8dcf914abee80d50d170eb0dc2ce4f5120c1",
+    "review/cmp_manual.py": "0ad59d454cdcf55b7ab7d7c3cf8279e9bb8a96ef5537b1fcd257344f1bb8fa21",
+    "review/control-shift.tsv": "532922ddb2187f6742cd8bc590c7766ca4451fdd27ee2dd1f479fa2c43cab444",
+    "review/control-swap.tsv": "7797fac20aea6e84a3db7de01719b6b78eccbffafaf5a9b08eccacfe271529a8",
+    "review/manual-transcription.tsv": "c1165274c03bf420748007cb08012ea21abedfd70ead89d3d17aad21d948964b",
+    "review/value-check-independent.tsv": "b0272419e587532670f8f596d0f4e8e5f61cc74bcaf707def330ea92ddd42bff",
+    "scope-audit.jsonl": "483d14cf8c0e7365b632e56ca5755fb9e7e1bf4c7c2576819306830b7a35e41d",
+    "value-check.tsv": "92dc42941f2ae8aba3aef36a6257bdf95348d2938a1e70cdccd2ce2358b39aed"
+  },
+  "source_artifacts": {
+    "gpn-star-20261116-source-biorxiv-v1": "ec829bce7b9192a6a396f29d4ab90ac5de6c4903232bdf9328eb1c53e626af7a",
+    "gpn-star-20261116-source-hf-collection": "4e8141d673c18e6ab131eba8e1cbef7f29aa4403d5a4864218b06b90d07b275d",
+    "gpn-star-20261116-source-nature-2026": "d7dfe801bad2a0a23478753147af2320bc31c8b37ee50d66f1a1af8385e9005d",
+    "gpn-star-20261116-source-nature-si": "3f7e8f71710bb63ec5ff032e697b6ef85f0d6d74411a31865fed73a757c7fc9e"
+  }
+}

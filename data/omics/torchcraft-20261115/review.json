@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "method": "independent_source_review",
+  "reviewer": "Claude (Opus 5) review agent, independent of the extractor; no human review claimed",
+  "reviewed_at": "2026-11-16T01:05:00Z",
+  "errors": [],
+  "review_methods": [
+    "independent-cell-check",
+    "deterministic-table-parse",
+    "transcription",
+    "pdf-text-parse",
+    "source-hash-verification",
+    "automated-source-review",
+    "ai-assisted-source-review"
+  ],
+  "scope": "Independent review of the 165 records of the TorchCraft batch (7 sources, 3 models, 2 methods, 1 pipeline, 1 evaluator, 17 configurations, 5 benchmarks, 6 tasks, 16 protocols, 8 datasets, 8 dataset subsets, 31 evaluations, 31 results, 29 claims) by a different agent from the extractor, against the extraction frozen at batch.jsonl sha256 2cb2377abde1bb43b44a4ff84c55023d18cc91ab691ce95f135bb37e53647f22. All seven pinned artifacts were re-retrieved on 2026-11-16T00:08Z; six hashed byte-identical to their source records and the seventh, the Hugging Face dataset page, is not stably hashable (see limitations). The pdftotext -layout text layer of the refetched PDF hashes to 90f1da5f8a936766087beba0ade3f038f5b69504b9f581b42f2391f5640c5e6b, the value the extractor recorded. All 31 results were re-read with review/recheck_values.py, written for this review and using neither extract/parse_runtime_table.py nor extract/check_transcriptions.py: it re-parses Table S9 by column character offset with a one-to-one column assignment asserted, and checks each caption value at the ordinal position its target holds in the caption's own target list and on the figure's own panel labels. Four negative controls were rejected: a swapped pair of campaign targets, a column-shifted Table S9 cell, a row-swapped Table S9 cell and a swapped pair of Figure S4b statistics. All 8 measured binding values and all 3 Figure S4b statistics were also read by hand, including the figure panel labels and the body-text repetitions, and all 20 Table S9 cells were read a second time out of the HTML table the official project site reprints. No value, numeric value, source locator, metric, unit, direction, coverage or uncertainty was changed. Twenty-two ruling edits were made before the receipt was written: the TorchScore shared-weights and no-refold limitation on all four pass-rate protocols, two model dependency links retargeted from a versioned and an alias record to the canonical family records, the dissociation-constant qualifier made to name the assay and the construct format as that concept's own definition requires, the batch-size-1 Table S9 cell's qualifier made internally consistent, and the Hugging Face page's instability described in full. This review's review object replaces the extractor's on the 158 records whose kind declares one; the 6 tasks and 1 evaluator carry none, because shared/omics/attribute-registry.ts declares no review field for those kinds, so their review is recorded here and in the dated review. No vocabulary concept was added: data/vocab is untouched by this batch. No discrepancy involves these results, because none of them is in the store yet and this worktree holds no discrepancies.json to check.",
+  "limitations": [
+    "Automated review by a Claude (Opus 5) agent, independent of the extractor but not human scientific review. Transcription was checked against the re-retrieved sources; nothing was reproduced, no design run, score, docking calculation or binding measurement was repeated, and no value was recomputed from source data.",
+    "No source bytes are archived in this batch. The arXiv licence is the arXiv.org perpetual non-exclusive distribution licence 1.0, which grants no redistribution right, so neither the PDF nor its text layer is committed. The PDF and its text layer are reproducible from artifact_url with the two commands in notes.md, and both hashes were confirmed by this review.",
+    "The Hugging Face dataset page cannot be hashed stably. Three consecutive reviewer fetches gave three different hashes; normalising its per-request hf-sanitized CSS class hashes and its per-request window.requestId leaves identical markup, and it also prints a download counter. Its licence tag, gate text and dataset card matched the recorded quotations word for word, so its recorded hash is a per-retrieval stamp and not a check on the page's content. The extractor's own description of the difference named only the CSS class hashes; the source record now names every per-request element.",
+    "The gated Hugging Face release was not accessed by this review either, so the file list behind the gate is still unseen and claim-released-artifact-mismatch remains an open gap.",
+    "Reference 21, the separate TorchFold report, could not be retrieved: it carries no URL or DOI and the project site's TorchFold paper link points at the site itself. The README's 70.1% FoldBench-AB figure therefore stays a developer-reported claim with no benchmark and no result record, and its attribution to the antibody-specialised checkpoint rests on the README's own framing of TorchFold as the antibody-distilled model rather than on a sentence naming that checkpoint.",
+    "Every figure-only benchmark remains at status discovered with no result. Nothing was read off a bar, a colour or a pixel, and the preprint publishes no source data behind its figures, so no value was computed either.",
+    "DeepMind's terms for the AlphaFold 3 parameters were not retrieved, so whether the evaluated configuration can be used commercially is still unestablished.",
+    "build.py as committed reproduces the extraction frozen at 2cb2377a, not the reviewed batch. The receipt's file hashes and the provenance hashes written by records -- add are the record of the reviewed bytes.",
+    "No use-case relevance judgement was written. This was a lane pass (structure-design, interactions); the BLI protocols and the four computational benchmarks may bear on the uc-binder-20261022 material and a separate use-case pass is left open."
+  ],
+  "files": {
+    "batch.jsonl": "db918f70fe71f27466780303c30472fa05bef3188d3e34f3b04987ca2613b58c",
+    "build.py": "a36b5644f01cd6fddaa6882b456f9c1795b68cf1adabc227300cc37fb5052dc9",
+    "extract/check_transcriptions.py": "19dc1ac2799a9bd18826b1c9dc6c0b0cb32a4559344ad123220477d2fd7c8607",
+    "extract/parse_runtime_table.py": "73d2d4d26450b53796b6219e6446ae52ca00e71a65d57d3795759ee22fe55a5b",
+    "extract/runtime-table.tsv": "849c72cb985afe39b142f7ab7fd99bea39f03c18cb8c7a25ccbde506e4a0ed7f",
+    "ledger.jsonl": "43bc555e1c580a1d27e3413c12497292377c573e4c9706d4909c7fc81f407d08",
+    "notes.md": "fc437b53d7394dc67c4148e14260ddf75f948d437b08751328d836cb2df4816c",
+    "review/apply_review.py": "6a4cbcf8d7a1b587a041af4f6ea67e42c9e212a3576cdfcc261a7bfd48b8a215",
+    "review/recheck_values.py": "427ebdb2d98800c6a5d6b934a7ebc643eae64cc38f178000ab0aa2fb4c1657b4",
+    "scope-audit.jsonl": "af351608ac830196e8421dd7b2d67965e05b3cd9d45092020af6fbfb34357310",
+    "value-check.tsv": "63f50cff9b647b681041fb9d1ffcd040ecd12ebe056f0524e3a7e93cabf35e41"
+  },
+  "source_artifacts": {
+    "torchcraft-20261115-source-arxiv-abs": "cac39821a99125fe2f245a30d72d8f1465a3a99b784298ada10f68748b2236a0",
+    "torchcraft-20261115-source-arxiv-v1": "f8145b5b95552dd30996eda2940507c0f32d09adfc60f44f28458e7872788f21",
+    "torchcraft-20261115-source-huggingface-torchfold": "39268aab20e07bb615c1b96c8eb5684686dc953036a7d062dec7684581fbdfcf",
+    "torchcraft-20261115-source-project-site": "fa95060dad51bd3e04278b48c7e3bc62c66f8f909db3871e654f79d5a98dcd3c",
+    "torchcraft-20261115-source-torchcraft-gpu-readme": "77a6b7b67f29a7931e58e5ee2bcbaa5efa08a5ff33debd6d658f85ae305ec313",
+    "torchcraft-20261115-source-torchx-licence": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "torchcraft-20261115-source-torchx-readme": "88da821dfed6d76a6d1d2efd1e3e124a18f35c07d6fdf45a8e374fc2c35fccf0"
+  }
+}
