@@ -21,7 +21,7 @@ flowchart TD
   shacl --> bundle["Knowledge-graph bundle<br/>kg/&lt;id&gt;: asserted, inferred,<br/>derived, ontology"]
   shacl --> json["public/kg/discrepancies.json<br/>(build product)"]
   release --> serving
-  json --> serving["Prepared SQLite file<br/>serving/&lt;id&gt; (contract 3.4)"]
+  json --> serving["Prepared SQLite file<br/>serving/&lt;id&gt; (contract 3.5)"]
   serving --> site["benchmarks.rewirebio.io<br/>/contested/, badges, API"]
   bundle --> mcp["rdf-kg-mcp<br/>SPARQL and named queries"]
 ```

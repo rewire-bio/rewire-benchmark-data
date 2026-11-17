@@ -15,9 +15,10 @@ Follow [docs/collection.md](../../../docs/collection.md), sections 1 and 2. This
 ## Steps
 
 1. Read what already exists for the scope: matching entries in `data/omics/search-ledger.jsonl`, `data/omics/scope-audit.jsonl`, the canonical store (`data/entities/`, `data/evidence/`), the use-case definition and its `coverage.json` gaps, and the latest dossier in `docs/reviews/use-cases/` if there is one. Do not repeat a search already logged for the same window.
-2. Search Europe PMC, PubMed, bioRxiv and arXiv, the benchmark's official repository and leaderboard, and model cards. Follow citations from benchmark papers to later evaluations. Treat search snippets, mirrors and press coverage as leads only.
-3. For each candidate, find the primary artifact (paper version, supplement, repository commit) and check that it reports numbers for a model on a benchmark in scope. Note the table or figure.
-4. Count every query against the budget, including failed ones.
+2. Read the depth tier of the scope's records (`attributes.depth_tier`, docs/tiers.md). Search tier 1 fully, follow tier 2 for leads, and only record tier 3 metadata.
+3. Search Europe PMC, PubMed, bioRxiv and arXiv, the benchmark's official repository and leaderboard, and model cards. Follow citations from benchmark papers to later evaluations. Treat search snippets, mirrors and press coverage as leads only.
+4. For each candidate, find the primary artifact (paper version, supplement, repository commit) and check that it reports numbers for a model on a benchmark in scope. Note the table or figure.
+5. Count every query against the budget, including failed ones.
 
 ## Outputs
 

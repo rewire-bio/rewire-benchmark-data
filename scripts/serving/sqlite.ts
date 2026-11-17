@@ -112,8 +112,9 @@ export function buildPreparedCatalogue(input: {
     PRAGMA page_size = 8192; PRAGMA journal_mode = OFF; PRAGMA synchronous = OFF;
     CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL) WITHOUT ROWID;
     CREATE TABLE blobs (key TEXT PRIMARY KEY, value BLOB NOT NULL);
-    CREATE TABLE records (id TEXT PRIMARY KEY, kind TEXT NOT NULL, status TEXT NOT NULL, gz BLOB NOT NULL);
+    CREATE TABLE records (id TEXT PRIMARY KEY, kind TEXT NOT NULL, status TEXT NOT NULL, gz BLOB NOT NULL, depth_tier INTEGER);
     CREATE INDEX records_kind ON records (kind, id);
+    CREATE INDEX records_depth_tier ON records (depth_tier, kind, id) WHERE depth_tier IS NOT NULL;
     CREATE TABLE details (id TEXT PRIMARY KEY, gz BLOB NOT NULL);
     CREATE TABLE result_rows (result_id TEXT PRIMARY KEY, gz BLOB NOT NULL);
     CREATE TABLE result_index (record_id TEXT NOT NULL, pos INTEGER NOT NULL, result_id TEXT NOT NULL, PRIMARY KEY (record_id, pos)) WITHOUT ROWID;
@@ -129,7 +130,7 @@ export function buildPreparedCatalogue(input: {
   `);
   const meta = db.prepare("INSERT INTO meta VALUES (?, ?)");
   const blob = db.prepare("INSERT INTO blobs VALUES (?, ?)");
-  const insertRecord = db.prepare("INSERT INTO records VALUES (?, ?, ?, ?)");
+  const insertRecord = db.prepare("INSERT INTO records VALUES (?, ?, ?, ?, ?)");
   const insertDetail = db.prepare("INSERT INTO details VALUES (?, ?)");
   const insertRow = db.prepare("INSERT INTO result_rows VALUES (?, ?)");
   const insertIndex = db.prepare("INSERT INTO result_index VALUES (?, ?, ?)");
@@ -155,7 +156,9 @@ export function buildPreparedCatalogue(input: {
   const rowsWritten = new Set<string>();
   db.exec("BEGIN");
   for (const record of records) {
-    insertRecord.run(record.id, record.kind, record.status, gz(record));
+    // The depth tier (3.5) of models, methods, benchmarks and use cases, so readers can filter on it in SQL.
+    const depthTier = (record.attributes as { depth_tier?: unknown }).depth_tier;
+    insertRecord.run(record.id, record.kind, record.status, gz(record), typeof depthTier === "number" ? depthTier : null);
     counts.records++;
     const detail = query.get({ id: record.id, include_comparisons: true });
     if (detail) {

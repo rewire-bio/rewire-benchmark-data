@@ -17,8 +17,8 @@ The data is read-only and changes about once a month. One file gives indexed loo
 
 | Table | Content |
 | --- | --- |
-| `meta` | `serving_contract_version` (`3.4`), `record_schema_version`, `release_id`, `released_at`, `catalogue_sha256`, `generator_sha256`, `release_json` (the `release()` answer), `counts_json` |
-| `records` | every non-excluded record, by ID, with kind and status, its JSON gzipped |
+| `meta` | `serving_contract_version` (`3.5`), `record_schema_version`, `release_id`, `released_at`, `catalogue_sha256`, `generator_sha256`, `release_json` (the `release()` answer), `counts_json` |
+| `records` | every non-excluded record, by ID, with kind and status, its JSON gzipped, and from 3.5 its `depth_tier` (1, 2 or 3; null for kinds without one or a record not yet tiered), indexed by depth tier and kind ([tiers.md](tiers.md)) |
 | `details` | gzipped `get({ id, include_comparisons: true })` per record |
 | `result_rows` | gzipped full result row per result |
 | `result_index` | each record's result IDs in the engine's order |

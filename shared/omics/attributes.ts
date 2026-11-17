@@ -183,6 +183,8 @@ export const attributeTypes = {
   review: reviewSchema,
   "reported-population": reportedPopulationSchema,
   derivation: derivationSchema,
+  // Collection depth tier (docs/tiers.md): 1, 2 or 3.
+  "depth-tier": z.union([z.literal(1), z.literal(2), z.literal(3)]),
 } as const;
 export type AttributeType = keyof typeof attributeTypes | `concept:${string}` | `concepts:${string}`;
 

@@ -46,6 +46,20 @@ describe("prepared release file", () => {
     expect(JSON.parse(unzip(detail.gz)).record).toEqual({ $r: expect.any(String) });
   });
 
+  it("exposes the depth tier as a column (3.5)", () => {
+    const db = new DatabaseSync(file, { readOnly: true });
+    const rows = db.prepare("SELECT id, kind, depth_tier AS tier FROM records WHERE kind IN ('model', 'method', 'benchmark', 'use_case')").all() as { id: string; kind: string; tier: number | null }[];
+    const others = db.prepare("SELECT COUNT(*) AS n FROM records WHERE depth_tier IS NOT NULL AND kind NOT IN ('model', 'method', 'benchmark', 'use_case')").get() as { n: number };
+    db.close();
+    const stored = new Map(snapshot.records.map((r) => [r.id, (r.attributes as { depth_tier?: number }).depth_tier ?? null]));
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) expect([row.id, row.tier]).toEqual([row.id, stored.get(row.id)]);
+    // depth_tier is optional until #266, so a record without one has a null column.
+    expect(rows.some((row) => row.tier !== null)).toBe(true);
+    expect(rows.every((row) => row.tier === null || [1, 2, 3].includes(row.tier))).toBe(true);
+    expect(others.n).toBe(0);
+  });
+
   it("still reads a contract 2 file, the form earlier releases were published in", () => {
     const copy = path.join(directory, "contract-2.sqlite");
     fs.copyFileSync(file, copy);
