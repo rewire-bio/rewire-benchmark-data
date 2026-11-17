@@ -45,6 +45,34 @@ A `claim` links to a `subject` and has `field`, `value`, `source_locator`, `revi
 
 Snapshot JSON: `{ "schema_version": "1.0", "release_id": "...", "released_at": "UTC ISO date", "records": [...], "coverage": {...} }`. Manifest: schema/release/time, record counts, input digests, file hashes and changelog. All records sorted by ID; release building is deterministic given the records and explicit timestamp. Excluded records remain in the archive but are absent from public catalogue pages.
 
+## Locators
+
+`source_locator` is a free-text string on every result and claim. `shared/omics/locator.ts` reads one as structure, so a locator can be checked rather than only read. The grammar, applied to each segment after splitting on `;` and on commas outside quotes and brackets:
+
+    locator   := anchor+ address? selector* qualifier*
+    anchor    := table | figure | sheet | file | container
+    address   := sheet_cell | cell_range | line | row_number | xml_cell | json_path
+               | quote | sentence | paragraph
+    selector  := key ('=' | ':' | ' ') value, the value quoted, bracketed or bare
+    qualifier := page | layer | commit | parenthetical note
+
+An anchor names the object the value is printed in. An address points straight at a place in it. A selector is a key and a value, so `row 'Bacformer'`, `column 'Binary AUPRC'`, `tool cn.MOPS` and `model='scGPT'` all read the same way. A qualifier narrows the reading without locating anything: a page, a text layer, a commit. Text no token consumes is reported as residue, never dropped, and residue is why a locator is not counted as addressed.
+
+How far a locator pins a value down:
+
+| bucket | meaning |
+| --- | --- |
+| full | an anchor or address, something naming the row, something naming the column, and no residue; or a cell address with labels that check it; or a text span |
+| partial | addressed in one direction only, or a bare cell address with nothing to check it |
+| residue | part of the string was not read into a field |
+| unanchored | no anchor and no address |
+
+`npm run locator -- coverage` parses every stored result locator and writes `maintenance/reports/locator-coverage-<date>.tsv`, broken down by class. Measured on 2026-11-17 over 52,278 locators: 39,416 full (75.4%), 3,212 partial, 8,192 carrying residue, 1,458 unanchored. The v1 regex at `scripts/omics/batch.py:30-31`, which is still what `check-values` uses, parses 20,540 of the same locators (39.3%). It is ported into `shared/omics/locator.ts` for comparison only, and `tests/locator-grammar.test.ts` checks the port against the 14 `data/omics/*/value-check.tsv` files row by row: the rows it rejects are exactly the rows `check-values` recorded as `locator_not_parsed`.
+
+`renderLocator` writes a parsed locator back out in the canonical form `anchors, address, selectors (qualifiers)`. It renders from the typed fields, not from the text they were read from, so it reproduces the original string only where the original was already canonical: 36.6% of the addressed locators today, with 95.8% parsing back to the same structure. That gap is the measure of what inverting the contract would cost, where the structure is authored and the string is rendered from it.
+
+A locator carries no span yet. The span type is declared now because the offset basis is expensive to change later: `start` and `end` count Unicode code points from 0, as `oa:TextPositionSelector` does; `byte_start` and `byte_end` count UTF-8 bytes into the same text layer, as `oa:DataPositionSelector` does; `exact`, with optional `prefix` and `suffix`, is `oa:TextQuoteSelector` and relocates the span when a layer is rebuilt. `layer_sha256` names the layer the offsets index, and that layer is never Unicode-normalised. JavaScript string indices are UTF-16 code units and are neither basis.
+
 ## Biological extensions
 
 `attributes.extensions` supports validated `genomics`, `protein`, `cellular`, `molecular_measurement`, `microbial` and `mechanistic` blocks. The contract is in `scripts/omics/extensions.ts`. Coordinates carry their assembly, convention, strand and window orientation; variant offsets are zero-based within the window. Protein identity thresholds are fractions, with MSA/template provenance separate. Cellular doses and times require units. Molecular measurements carry identifier namespace, platform, preprocessing and units; microbial references carry taxonomy/database versions. Mechanistic evaluations carry solver, constraints and conditions. Missing blocks are unextracted, not evidence that these factors are inapplicable; null records an explicitly unknown field. Extend the schema through a reviewed change when a new modality requires more fields.

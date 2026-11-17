@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR 0003: Source preservation</title>
+<style>
+html, body { margin: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+/* One reading column for prose; figures are allowed a little wider. Self-contained: no scripts, no external assets. */
+:root {
+  --bg: #f4f6f9; --surface: #ffffff; --fg: #1a2230; --muted: #5a6574; --line: #d3d9e2;
+  --accent: #1d5ea8; --accent-soft: #e2ebf7;
+  --real: #b0281f; --lead: #a76300; --explained: #4b6889; --fp: #7f8a99;
+  --high: #b0281f; --med: #a76300; --low: #66717f;
+  --display: Literata, Georgia, "Times New Roman", serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10151c; --surface: #17202a; --fg: #e4e9ef; --muted: #9ba6b4; --line: #2d3846;
+  --accent: #74abee; --accent-soft: #1b2a3d;
+  --real: #f08b80; --lead: #eeb25a; --explained: #8fb0d6; --fp: #8d97a5;
+  --high: #f08b80; --med: #eeb25a; --low: #a3adba; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #10151c; --surface: #17202a; --fg: #e4e9ef; --muted: #9ba6b4; --line: #2d3846;
+  --accent: #74abee; --accent-soft: #1b2a3d;
+  --real: #f08b80; --lead: #eeb25a; --explained: #8fb0d6; --fp: #8d97a5;
+  --high: #f08b80; --med: #eeb25a; --low: #a3adba; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body); }
+.wrap { max-width: 960px; margin: 0 auto; padding-block: 40px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 2.1rem; font-weight: 650; }
+h2 { font-size: 1.5rem; font-weight: 650; margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line); }
+h3 { font-size: 1.15rem; font-weight: 650; margin-top: 28px; }
+h4 { margin: 20px 0 0; font-size: 1rem; }
+p, ul, ol { margin: 12px 0 0; }
+ul, ol { padding-left: 1.2em; }
+li + li { margin-top: 4px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.eyebrow { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 16px; font-size: 0.92rem; color: var(--muted); }
+.meta b { color: var(--fg); font-weight: 600; }
+.status { display: inline-block; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--lead); color: var(--lead); font-weight: 600; font-size: 0.85rem; }
+.lede { font-size: 1.12rem; margin-top: 20px; max-width: 64ch; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 24px; }
+.summary > div { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.summary .k { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.summary p { margin-top: 6px; font-size: 0.95rem; }
+
+figure { margin: 24px 0 0; }
+figcaption { font-size: 0.88rem; color: var(--muted); margin-top: 8px; max-width: 72ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
+.scroll { overflow-x: auto; }
+.scroll svg { min-width: 680px; }
+svg { display: block; width: 100%; height: auto; }
+svg text { font-family: var(--body); }
+.bx { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+.bx2 { fill: var(--bg); stroke: var(--line); stroke-width: 1.2; }
+.bxa { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.4; }
+.bxr { fill: color-mix(in srgb, var(--real) 12%, var(--surface)); stroke: var(--real); stroke-width: 1.4; }
+.bxl { fill: color-mix(in srgb, var(--lead) 14%, var(--surface)); stroke: var(--lead); stroke-width: 1.4; }
+.t { fill: var(--fg); font-size: 13px; }
+.tm { fill: var(--fg); font-size: 12px; }
+.tb { fill: var(--fg); font-size: 13px; font-weight: 700; }
+.ts { fill: var(--muted); font-size: 11.5px; }
+.tr { fill: var(--real); font-size: 12px; font-weight: 600; }
+.ta { fill: var(--accent); font-size: 12px; font-weight: 600; }
+.tl { fill: var(--lead); font-size: 12px; font-weight: 600; }
+.hd { fill: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; }
+.mn { fill: var(--fg); font-size: 11.5px; font-family: var(--mono); }
+.ln { stroke: var(--muted); stroke-width: 1.4; fill: none; }
+.lna { stroke: var(--accent); stroke-width: 1.8; fill: none; }
+.lnr { stroke: var(--real); stroke-width: 1.8; fill: none; stroke-dasharray: 5 4; }
+.grid { stroke: var(--line); stroke-width: 1; }
+.ah { fill: var(--muted); } .aha { fill: var(--accent); } .ahr { fill: var(--real); }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; margin-top: 16px; }
+.tbl table { min-width: 600px; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.r-good { color: var(--accent); font-weight: 700; } .r-part { color: var(--lead); font-weight: 700; } .r-poor { color: var(--real); font-weight: 700; }
+
+.opt { margin-top: 40px; }
+.opt-tag { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-family: var(--display); font-weight: 650; margin-right: 10px; }
+.opt h3 { display: flex; align-items: center; margin-top: 0; font-size: 1.3rem; }
+.rec { margin-left: 12px; font-family: var(--body); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 1px 9px; }
+.pc { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+.pc > div { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; }
+.pc h4 { margin: 0; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.pc .pro h4 { color: var(--accent); } .pc .con h4 { color: var(--real); }
+.pc ul { margin-top: 6px; font-size: 0.94rem; }
+
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 20px; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.step .n { font-family: var(--display); font-weight: 650; font-size: 1.6rem; color: var(--accent); line-height: 1; }
+.step h4 { margin: 8px 0 0; font-size: 1rem; }
+.step ul { font-size: 0.92rem; }
+.step .closes { margin-top: 10px; font-size: 0.82rem; color: var(--muted); }
+
+.q { margin-top: 20px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--lead); border-radius: 0 6px 6px 0; padding: 12px 16px; max-width: 72ch; }
+.q h4 { margin: 0; font-size: 1rem; }
+.q ol { margin-top: 8px; font-size: 0.95rem; }
+.callout { margin-top: 20px; border-left: 3px solid var(--accent); padding: 10px 16px; background: var(--surface); border-radius: 0 6px 6px 0; max-width: 72ch; }
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 560px) { h1 { font-size: 1.7rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Architecture decision record 0003 · rewire-benchmark-data</div>
+  <h1 style="margin-top:8px">Source preservation</h1>
+  <div class="meta">
+    <span><span class="status">Proposed 2026-11-17</span></span>
+    <span><b>Decider</b> Tim Richardson</span>
+    <span><b>Supersedes</b> nothing</span>
+    <span><b>Store measured</b> <span class="mono">data/entities/sources.jsonl</span>, 1,483 records</span>
+  </div>
+  <div class="meta">
+    <span><b>Corrects</b> <span class="mono">docs/collection.md:79,145</span> and the storage driver in
+      <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/228">#228</a></span>
+    <span><b>Not accepted</b> three questions below are the owner's to rule on</span>
+  </div>
+  <p class="lede">47,081 of 104,243 evidence citations rest on a source whose bytes are not stored anywhere in this repository, and no build step has ever read an artifact byte. This record decides how source bytes are captured, identified, published and checked. It is proposed, not accepted: the licence tier that about 97 sources land in depends on a determination only the owner can make.</p>
+
+  <div class="summary">
+    <div><div class="k">Problem</div><p>Of 1,453 pinned hashes, 300 match bytes in the worktree. A re-retrieval of 859 pins on 2026-09-19 found 175 no longer returning the pinned bytes. Licence is recorded on 408 of 1,483 sources, and the written rule about the rest is backwards.</p></div>
+    <div><div class="k">Decision</div><p>One capture tool. Two identities per source: the bytes as received, and the normalised artifact the values were read from. An append-only capture ledger as the join. Six licence tiers that govern publication, never possession. Rescue in waves by citation weight.</p></div>
+    <div><div class="k">Expected effect</div><p>95.8 percent of the at-risk citation mass covered for about 23 hours of hand work and 765 MB. 45.2 percent becomes a ratcheted number in CI. Zero records and zero provenance hashes change in the first pull request.</p></div>
+  </div>
+</header>
+
+<!-- ============ CONTEXT ============ -->
+<h2>Context</h2>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 772 300" role="img" aria-label="The five stages of getting a source into the store. Today no stage records retrieval metadata, no stage binds a stored copy to a record, and no check reads a byte. After the decision each stage writes one receipt field and one CI tier binds to it.">
+      <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <text x="10" y="50" class="hd">STAGE</text>
+      <text x="10" y="132" class="hd">TODAY</text>
+      <text x="10" y="226" class="hd">AFTER</text>
+
+      <rect x="100" y="24" width="118" height="52" rx="5" class="bx"/><text x="112" y="46" class="tb">1 Fetch</text><text x="112" y="64" class="ts">one tool, six modes</text>
+      <rect x="236" y="24" width="118" height="52" rx="5" class="bx"/><text x="248" y="46" class="tb">2 Payload</text><text x="248" y="64" class="ts">bytes as received</text>
+      <rect x="372" y="24" width="118" height="52" rx="5" class="bx"/><text x="384" y="46" class="tb">3 Normalise</text><text x="384" y="64" class="ts">pinned tool version</text>
+      <rect x="508" y="24" width="118" height="52" rx="5" class="bx"/><text x="520" y="46" class="tb">4 Store</text><text x="520" y="64" class="ts">blob and manifest</text>
+      <rect x="644" y="24" width="118" height="52" rx="5" class="bx"/><text x="656" y="46" class="tb">5 Bind</text><text x="656" y="64" class="ts">record pointer</text>
+
+      <path d="M218,50 L231,50" class="ln" marker-end="url(#a1)"/>
+      <path d="M354,50 L367,50" class="ln" marker-end="url(#a1)"/>
+      <path d="M490,50 L503,50" class="ln" marker-end="url(#a1)"/>
+      <path d="M626,50 L639,50" class="ln" marker-end="url(#a1)"/>
+
+      <rect x="100" y="98" width="118" height="68" rx="5" class="bx2"/>
+      <text x="110" y="118" class="ts">ad hoc curl in 5</text><text x="110" y="134" class="ts">of 22 notes.md</text><text x="110" y="150" class="ts">no status kept</text>
+      <rect x="236" y="98" width="118" height="68" rx="5" class="bx2"/>
+      <text x="246" y="118" class="ts">artifact_sha256 on</text><text x="246" y="134" class="ts">1,453 of 1,483;</text><text x="246" y="150" class="ts">300 match bytes</text>
+      <rect x="372" y="98" width="118" height="68" rx="5" class="bx2"/>
+      <text x="382" y="118" class="ts">one measured text</text><text x="382" y="134" class="ts">layer exists, in a</text><text x="382" y="150" class="ts">review, not a record</text>
+      <rect x="508" y="98" width="118" height="68" rx="5" class="bx2"/>
+      <text x="518" y="118" class="ts">109.8 MB over 84</text><text x="518" y="134" class="ts">artifacts/ folders</text><text x="518" y="150" class="ts">in five layouts</text>
+      <rect x="644" y="98" width="118" height="68" rx="5" class="bx2"/>
+      <text x="654" y="118" class="ts">artifact_path: 0</text><text x="654" y="134" class="ts">records. The join is</text><text x="654" y="150" class="ts">a shell argument</text>
+
+      <rect x="100" y="186" width="118" height="100" rx="5" class="bxa"/>
+      <text x="110" y="206" class="tm">one receipt line:</text><text x="110" y="222" class="tm">status, final URL,</text><text x="110" y="238" class="tm">headers, redirects</text><text x="110" y="272" class="ta">tier 1: schema</text>
+      <rect x="236" y="186" width="118" height="100" rx="5" class="bxa"/>
+      <text x="246" y="206" class="tm">payload identity:</text><text x="246" y="222" class="tm">sha256 of the</text><text x="246" y="238" class="tm">bytes received</text><text x="246" y="272" class="ta">tier 1: key = hash</text>
+      <rect x="372" y="186" width="118" height="100" rx="5" class="bxa"/>
+      <text x="382" y="206" class="tm">evidence identity:</text><text x="382" y="222" class="tm">normaliser id, tool</text><text x="382" y="238" class="tm">version, command</text><text x="382" y="272" class="ta">tier 1: sanity gate</text>
+      <rect x="508" y="186" width="118" height="100" rx="5" class="bxa"/>
+      <text x="518" y="206" class="tm">blob, derived blob,</text><text x="518" y="222" class="tm">manifest row with</text><text x="518" y="238" class="tm">tier, append only</text><text x="518" y="272" class="ta">tiers 2 to 4: fixity</text>
+      <rect x="644" y="186" width="118" height="100" rx="5" class="bxa"/>
+      <text x="654" y="206" class="tm">primary_capture_id</text><text x="654" y="222" class="tm">set when a reviewer</text><text x="654" y="238" class="tm">next touches it</text><text x="654" y="272" class="ta">tier 1: ratchet</text>
+    </svg>
+  </div>
+  <figcaption>Where each check binds. Today nothing in the build or CI reads an artifact byte: <span class="mono">shared/omics/validation.ts:81</span> checks that a source has a URL and a retrieval date, <span class="mono">scripts/omics/derivations.ts:54</span> compares hash strings without opening a file, and <span class="mono">.github/workflows/data.yml:53-62</span> only enforces the 50 MB per-file cap. The four gaps below are the four stages with nothing under them.</figcaption>
+</figure>
+
+<div class="prose">
+  <p>Of 1,483 source records, 1,453 pin an <span class="mono">artifact_sha256</span>. A SHA-256 index of every file in the worktree (3,126 files, 3,331 digests, each file hashed raw and, where gzipped, also expanded) matches 300 of those hashes to stored bytes. 297 of the 300 are original bytes; 3 are curator factual receipts whose <span class="mono">artifact_sha256</span> hashes the receipt JSON rather than a source. 1,153 pinned hashes have no copy anywhere, and a further 30 sources carry no hash at all. 47,081 of 104,243 evidence citations, 45.2 percent, rest on a source whose bytes are not stored, across 574 cited sources.</p>
+  <p>The 300 is a lower bound by at most 26, the number of unmatched sources whose hash pins a member inside a committed zip or tar that the index did not expand. Wave 0 below settles it by expanding them.</p>
+
+  <h3>The loss is already happening</h3>
+  <p>A re-retrieval of 859 pinned artifacts on 2026-09-19 (<span class="mono">data/omics/audits/2026-09-19-source-access.receipts.jsonl</span>) recorded 650 <span class="mono">supported</span>, 203 <span class="mono">insufficient_evidence</span> and 6 <span class="mono">inaccessible</span>, with <span class="mono">retrieved_sha256</span> differing from <span class="mono">expected_sha256</span> on 175 lines, 20.4 percent. Twenty-seven findings across twenty-two dated reviews record a pin that does not reproduce. The causes are understood and none of them is a withdrawn paper: bioRxiv restamps the PDF on every download (bacformer version 3 gave two distinct hashes minutes apart at an identical 21,613,661 bytes, with Producer <span class="mono">iLovePDF</span> and CreationDate equal to the download moment), Europe PMC regenerates full text XML, and a Nature URL moved from the accelerated article preview to the version of record, so <span class="mono">97f61ec0</span> became <span class="mono">d7dfe801</span>.</p>
+</div>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 772 252" role="img" aria-label="Three downloads of the GPN-MSA preprint, all 2,247,726 bytes, give two container hashes and neither matches the pinned value, while the pdftotext text layer is identical in all three.">
+      <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+        <marker id="a2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="aha"/></marker></defs>
+      <text x="216" y="20" class="hd">PAYLOAD IDENTITY, WHAT THE RECORD PINS TODAY</text>
+      <text x="216" y="148" class="hd">EVIDENCE IDENTITY, WHAT THE VALUES WERE READ FROM</text>
+
+      <rect x="14" y="78" width="150" height="76" rx="5" class="bx"/>
+      <text x="26" y="102" class="tb">Three downloads</text><text x="26" y="120" class="ts">of one preprint PDF</text><text x="26" y="138" class="ts">2,247,726 bytes each</text>
+
+      <path d="M164,104 C190,104 190,58 212,58" class="ln" marker-end="url(#a2)"/>
+      <path d="M164,124 C190,124 190,186 212,186" class="lna" marker-end="url(#a2a)"/>
+
+      <rect x="216" y="32" width="166" height="52" rx="5" class="bx"/>
+      <text x="228" y="54" class="t">sha256 of the</text><text x="228" y="72" class="t">PDF container</text>
+      <rect x="216" y="160" width="166" height="52" rx="5" class="bxa"/>
+      <text x="228" y="182" class="t">pdftotext -layout</text><text x="228" y="200" class="t">at a pinned version</text>
+
+      <path d="M382,50 C404,50 404,38 420,38" class="ln" marker-end="url(#a2)"/>
+      <path d="M382,66 C404,66 404,96 420,96" class="ln" marker-end="url(#a2)"/>
+      <path d="M382,186 L420,186" class="lna" marker-end="url(#a2a)"/>
+
+      <rect x="424" y="20" width="176" height="38" rx="5" class="bx2"/>
+      <text x="434" y="38" class="mn">688e3788...</text><text x="434" y="52" class="ts">2 of 3 downloads</text>
+      <rect x="424" y="78" width="176" height="38" rx="5" class="bx2"/>
+      <text x="434" y="96" class="mn">d2d939c8...</text><text x="434" y="110" class="ts">1 of 3 downloads</text>
+      <rect x="424" y="160" width="176" height="52" rx="5" class="bxa"/>
+      <text x="434" y="180" class="mn">c6e95eb807550bb9</text><text x="434" y="196" class="ts">identical in all three,</text><text x="434" y="208" class="ts">byte for byte</text>
+
+      <text x="612" y="42" class="tr">The pinned value</text><text x="612" y="58" class="tr">matches neither.</text>
+      <text x="612" y="88" class="ts">A fourth download</text><text x="612" y="104" class="ts">would be a third</text><text x="612" y="120" class="ts">container hash.</text>
+      <text x="612" y="180" class="ta">No record holds</text><text x="612" y="196" class="ta">this hash today.</text>
+    </svg>
+  </div>
+  <figcaption>Measured in <span class="mono">docs/reviews/2026-11-16-gpn-msa-published.md:50-66</span>. Storing one copy of this PDF does not let a later reader verify their own download against it, because the host rotates between container variants. The stable layer is the thing that has to be pinned, and nothing in the store has a field for it. This is the single measurement that forces two identities rather than one.</figcaption>
+</figure>
+
+<div class="prose">
+  <h3>Four structural gaps</h3>
+  <ol>
+    <li><b>No join.</b> No record field points at a stored copy. <span class="mono">artifact_path</span> is used by 0 records. The source-to-file mapping exists only as command-line pairs to <span class="mono">npm run batch -- hash</span> (<span class="mono">scripts/omics/batch.py:426-445</span>), after which <span class="mono">review.json</span> keeps two dicts that cannot be joined: <span class="mono">files</span>, keyed by path with the gzip container hash, and <span class="mono">source_artifacts</span>, keyed by source id with the uncompressed original hash.</li>
+    <li><b>No retrieval metadata.</b> No fetcher in the repository records HTTP status, final URL after redirect, ETag, Last-Modified or response Content-Type. <span class="mono">media_type</span> is hand-entered on 461 records. <span class="mono">hash_scope</span> is free text with 106 distinct strings over 587 records, and 868 records have a pinned hash with no scope at all.</li>
+    <li><b>No check.</b> See the figure above. Nothing reads a byte.</li>
+    <li><b>No licence.</b> Licence is recorded on 408 of 1,483 sources. Of the 1,153 pinned hashes with no stored copy, 913 record no licence, and all 30 sources with no hash at all also record none, so 943 of the 1,183 unstored sources are licence-blank. <span class="mono">docs/collection.md</span> says to archive a copy "if the licence allows it" and then treats CC BY-NC-ND sources as hashed, not stored. That reading is backwards, and it is a direct cause of the gap.</li>
+  </ol>
+
+  <h3>The problem is concentrated</h3>
+  <p>This is a priority problem, not a capacity problem. 606 unstored sources are never cited at all, and the top 150 carry 95.8 percent of the exposure.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Cited unstored sources</th><th class="num">Sources</th><th class="num">Citations</th><th class="num">Share of 47,081</th><th>What that buys</th></tr></thead>
+    <tbody>
+      <tr><td>Top 25</td><td class="num">25</td><td class="num">23,854</td><td class="num">50.7%</td><td>Half the exposure for one week of work</td></tr>
+      <tr><td>Top 100</td><td class="num">100</td><td class="num">41,822</td><td class="num">88.8%</td><td></td></tr>
+      <tr><td>Top 150</td><td class="num">150</td><td class="num">45,107</td><td class="num">95.8%</td><td>The target for waves 1 and 2</td></tr>
+      <tr><td>The remaining 424</td><td class="num">424</td><td class="num">1,974</td><td class="num">4.2%</td><td>Machine effort only, forever</td></tr>
+      <tr><td>Never cited</td><td class="num">606</td><td class="num">0</td><td class="num">0%</td><td>One sweep a year</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="prose">
+  <p>The priority tranche is dominated by hosts known not to return stable bytes. Of the top 150: 59 Europe PMC, 47 of them <span class="mono">fullTextXML</span>; 25 arXiv; 19 Springer static content; 18 bioRxiv or medRxiv; 3 Nature; 3 PMC. Licence in that tranche: 51 absent, 40 CC BY-NC-ND, 34 CC BY, 13 CC BY-NC, 4 arXiv non-exclusive, 4 explicitly closed, 3 permissive, 1 CC BY-ND.</p>
+  <p>Cost is not a constraint. The mean artifact size over the 853 receipts that record one is 526,310 bytes, so 1,453 artifacts project to about 765 MB. The repository already carries 894 MB in 35 release assets, verified on download by <span class="mono">expand()</span> at <span class="mono">scripts/release/files.ts:54-62</span>.</p>
+
+  <h3>Numbers that did not reproduce, and the ones that settled them</h3>
+  <ul>
+    <li><b>280 stored sources.</b> This figure appears in an earlier audit brief. It does not reproduce. Re-running the worktree hash index gives 300 matches on <span class="mono">artifact_sha256</span>, and 307 if <span class="mono">archive_sha256</span>, <span class="mono">original_artifact_sha256</span> and <span class="mono">compressed_artifact_sha256</span> are also counted. A third design reported 302. No decision here moves on the difference; the number is 300 and it is stated once.</li>
+    <li><b>994 licence-blank unstored sources.</b> Against the current index the figure is 913 of the 1,153 pinned-but-unstored sources, or 943 of the 1,183 counting the 30 that carry no hash at all. The 994 came from an earlier count over a denominator of 1,173, taken from the index that also produced the 280. The conclusion is unchanged: licence metadata is missing on about four fifths of the gap.</li>
+    <li><b>547 versus 574 cited unstored sources.</b> Both are right about different sets. 547 counts "pinned hash, no copy", which drops the 30 sources carrying no <span class="mono">artifact_sha256</span> at all, 27 of which are cited and carry 43 citations between them. 574 is the operational number, because those 27 also have no stored bytes.</li>
+    <li><b>69 licence strings.</b> The implementation plan sizes the licence map at 69 rows. The store has 67 distinct <span class="mono">licence</span> values today. The table is generated from the measured set, and a new string fails the build until a row is added, so the row count is whatever the store says at merge.</li>
+    <li><b>The licence tally.</b> An earlier classification summed to 1,474 of 1,483 records. The tally in the tier figure below sums to 1,483; the nine-record difference is prose licence strings such as <span class="mono">http://creativecommons.org/licenses/by/4.0/ (stated on the retrieved article page)</span> falling through a regular expression. That is the argument for a hand-reviewed map rather than a pattern match.</li>
+    <li><b>12 minutes per hand rescue.</b> Unmeasured. The whole 23-hour effort figure rests on it. The wave 1 pilot logs time per source and resizes wave 2 if the estimate is wrong by more than a factor of two.</li>
+  </ul>
+</div>
+
+<!-- ============ OPTIONS ============ -->
+<h2>Options</h2>
+
+<div class="prose">
+  <p>Three designs were measured against this repository. Each owns one layer and gets another layer wrong, so the decision takes the policy from C, the mechanism from B and the verification discipline from A. The rejections inside each option are listed at the end of this record.</p>
+</div>
+
+<section class="opt">
+  <h3><span class="opt-tag">A</span>One OCFL 1.1 object per source in private object storage</h3>
+  <div class="prose"><p>An OCFL storage root with <span class="mono">sha256</span> as the digest algorithm, so every inventory manifest key is literally the <span class="mono">artifact_sha256</span> the records already pin. Each retrieval is a new OCFL version. Originals raw, a derived layer beside them, receipts and a sharded manifest public in git, plus a <span class="mono">spec/</span> snapshot and a thirty-line shell verifier.</p></div>
+  <div class="pc">
+    <div class="pro"><h4>For</h4><ul>
+      <li>The digest choice makes the record-to-archive join an equality test rather than a lookup table.</li>
+      <li>A versioned object expresses "one source, three container hashes, one stable derived identity" natively.</li>
+      <li>The self-describing archive plus a verifier using only <span class="mono">sha256sum</span>, <span class="mono">jq</span>, <span class="mono">cut</span> and <span class="mono">printf</span> turns the ten-year claim into an acceptance test.</li>
+      <li>Its measurements are the most precise of the three. The 526,310-byte mean over 853 sized receipts is exactly right.</li>
+    </ul></div>
+    <div class="con"><h4>Against</h4><ul>
+      <li>OCFL is built for institutional repositories with mutable objects and dedicated staff. Here it is 1,483 immutable observations and two people. The design itself concedes a flat store gives most of the value at about 30 percent of the code.</li>
+      <li>A hand edit to an object leaves the inventory and the content disagreeing silently until the next fixity run.</li>
+      <li>It asserts CC BY-NC-ND material can never be republished. That is wrong, and the error drives its private-by-default architecture.</li>
+      <li>It refuses a capture without a licence determination. That is the exact pressure that produced the 47,081 gap.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h3><span class="opt-tag">B</span>One WARC-writing capture tool and an append-only ledger</h3>
+  <div class="prose"><p>Every retrieval goes through one fetcher that writes a WARC and appends a capture receipt to a JSONL ledger in git. The receipt is the join. Each capture carries a payload digest and a normalised evidence identity from a named, versioned normaliser. Bytes are tiered by redistribution right. Rescue starts in the Wayback CDX index.</p></div>
+  <div class="pc">
+    <div class="pro"><h4>For</h4><ul>
+      <li>The only design that searched this repository for working code and found it. <span class="mono">readPinnedPdfText</span> at <span class="mono">scripts/omics/extract/pdf.ts:22-71</span> already verifies bytes, binds the conversion to them through stdin, captures the <span class="mono">pdftotext version</span> string and returns an <span class="mono">output_sha256</span>. <span class="mono">data/omics/vep-use-cases-20261014/extract/pmc_html.py</span> already blanks the two per-request PMC tokens with exactly-one-match assertions.</li>
+      <li>Its <span class="mono">tool_version_changed</span> classifier row prevents the first poppler bump reporting false content drift on every PDF. No other design saw it.</li>
+      <li>The coverage ratchet turns 47,081 into a committed number that cannot grow silently.</li>
+      <li>It classifies Hugging Face model cards at a revision as git-blob-identified files, and notes that a <span class="mono">doi.org</span> URL is never the artifact URL. 152 of the unstored are <span class="mono">doi.org</span> resolvers and 235 records carry no <span class="mono">artifact_url</span>.</li>
+    </ul></div>
+    <div class="con"><h4>Against</h4><ul>
+      <li>The WARC, Memento and SWHID machinery serves about 15 percent of the backlog, and the design says so.</li>
+      <li>The Wayback-first headline rests on one anecdote. Wayback's copy of a bioRxiv PDF is itself a restamped variant, so recovery will come from static files that moved, not from the 47 Europe PMC <span class="mono">fullTextXML</span> sources that dominate the tranche.</li>
+      <li>An 1,800-line first pull request bundles the contract with the pilot.</li>
+      <li>It mints a second retrieval-outcome vocabulary beside the frozen one.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h3><span class="opt-tag">C</span>Licence tiering, rescue triage, no new substrate</h3>
+  <div class="prose"><p>Six licence tiers computed from the licence identifier alone, written once in SKOS and applied by code. Bytes as release assets of a private GitHub repository, verified by the existing <span class="mono">expand()</span>. The join is a committed manifest keyed on the <span class="mono">artifact_sha256</span> that 1,453 records already carry, so no record and no provenance hash changes. Rescue in four bands by citation weight.</p></div>
+  <div class="pc">
+    <div class="pro"><h4>For</h4><ul>
+      <li>The only design that read the licence text and found the repository's written rule backwards. Licence is the measured blocker on 913 of the 1,153 unstored, so this is the highest-value finding in the set.</li>
+      <li>Separating "may the original be redistributed" from "may a derivative be redistributed" is the right abstraction, and neither other design draws it.</li>
+      <li>Its refusal to mark unstored sources with <span class="mono">evidence_concerns</span> is the best governance call in the set, and the reasoning checks out at <span class="mono">shared/omics/concerns.ts:5-11</span>.</li>
+      <li>Keeping the frozen outcome strings and adding <span class="mono">content_match</span> beside them, on the ground that a second vocabulary for the same concept in the same directory is how 106 <span class="mono">hash_scope</span> strings happened, is the sharpest argument anywhere in the three designs.</li>
+    </ul></div>
+    <div class="con"><h4>Against</h4><ul>
+      <li>The join on <span class="mono">artifact_sha256</span> alone fails for exactly the sources that matter. The 175 drifted pins match no retrievable bytes, and 3 pinned hashes hash a curator receipt rather than a source.</li>
+      <li>No SWHID, which leaves the 453 pinned-commit GitHub sources, 39 percent of the missing set, without the cheapest durability available.</li>
+      <li>No text-layer sanity gate, so it does not catch the class of defect where a claim is drawn from an unreadable rendering.</li>
+      <li>One GitHub account holds the only copy, and the design admits nothing puts a second copy anywhere.</li>
+      <li>It asserts a <span class="mono">pdftotext</span> text layer "plainly is" adapted material. CC 4.0 authorises technical modifications across media and formats and states they never produce adapted material, so that is arguable either way and goes to the owner.</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============ DECISION ============ -->
+<h2>Decision</h2>
+
+<div class="prose">
+  <p>Build one capture tool, two identities per source, two publication tiers by licence, and rescue in bands by citation weight. Take the policy layer and the triage from option C, the capture mechanism and the ledger from option B, and the identity and verification discipline from option A. Reject OCFL as the layout and keep its two best ideas.</p>
+
+  <h3>1. Substrate</h3>
+  <p>Bytes live as release assets of a private GitHub repository <span class="mono">rewire-bio/rewire-benchmark-archive</span>, verified on download by the existing <span class="mono">expand()</span>. This adds no vendor, reuses a mechanism already carrying 894 MB, and needs one fine-grained token with <span class="mono">contents:read</span> on that repository alone. Open-tier bytes go to the main repository on tag <span class="mono">archive/t0</span>. Keys are content-addressed on the hash of the uncompressed bytes:</p>
+  <pre class="mono" style="overflow-x:auto">blobs/&lt;first2 of sha256&gt;/&lt;sha256&gt;            original bytes, stored gzip -n
+derived/text/&lt;first2&gt;/&lt;sha256 of text&gt;       pdftotext -layout output
+derived/json/&lt;first2&gt;/&lt;sha256 of canonical&gt;  canonical JSON or XML text content
+warc/&lt;first2&gt;/&lt;sha256 of warc&gt;               WARC 1.1 request and response pair</pre>
+  <p>Keys never carry <span class="mono">.gz</span>, because <span class="mono">assetName()</span> appends it. <span class="mono">assetUrl()</span> cannot be reused: <span class="mono">RELEASE_ID = /^\d{4}-\d{2}-\d{2}-[a-f0-9]{12}$/</span> at <span class="mono">scripts/release/files.ts:31</span> rejects a tag named <span class="mono">archive/0</span>, so <span class="mono">scripts/archive/objects.ts</span> gets a sibling <span class="mono">archiveAssetUrl(shard, name)</span>. This is the one trap a reader of this record will walk into. The private archive uses one release tag per first hex digit, <span class="mono">archive/0</span> to <span class="mono">archive/f</span>: sixteen tags, about ninety assets each today, against GitHub's 1,000-asset cap, so about 16,000 artifacts of headroom. Publishing is append-only, following <span class="mono">scripts/serving/publish.ts:48-70</span>, which never replaces a published asset.</p>
+  <p>From option A, the archive carries its own contract: <span class="mono">maintenance/verify-archive.sh</span>, thirty lines using only <span class="mono">sha256sum</span>, <span class="mono">gunzip</span>, <span class="mono">jq</span> and <span class="mono">cut</span>, shipped to the archive repository root as <span class="mono">README.txt</span>, so any blob can be verified with no Node and no project code.</p>
+  <p>Flip to Cloudflare R2 if the archive passes 50 GB or 500 assets per prefix tag, or if release-asset download time makes a full fixity sweep impractical. At the measured 765 MB projection R2 costs 0.12 USD a month and buys a second vendor, a second credential and an account one of two people must keep alive. The single-copy risk is real: the tripwire is the weekly fixity job failing loudly, plus one annual operator-held offline copy, which at 765 MB fits on anything. For the open tiers only, one Zenodo deposit per archive generation gives an off-GitHub copy with a concept DOI and a version DOI.</p>
+
+  <h3>2. Two identities per source, always</h3>
+  <p>Every capture records a payload identity, the SHA-256 of the bytes as received that day, and, where one applies, a normalised evidence identity, the SHA-256 of the artifact the stored values were actually read from, with the normaliser id, the pinned tool version and the exact command. That is what the GPN-MSA measurement demands and what no record holds today.</p>
+  <p>Do not invent canonicalisation. Promote the two normalisers already working here, <span class="mono">pdf-text-layer@1</span> from <span class="mono">scripts/omics/extract/pdf.ts:22-71</span> and <span class="mono">pmc-article-page@1</span> from <span class="mono">data/omics/vep-use-cases-20261014/extract/pmc_html.py</span>, keeping its exactly-one-match assertion on <span class="mono">ncbi_phid</span> and <span class="mono">csrfmiddlewaretoken</span>. Add two more: <span class="mono">europepmc-fulltext-xml@1</span> (JATS text content in document order, NFKC, whitespace runs collapsed), which is load-bearing because 47 of the top 150 are Europe PMC <span class="mono">fullTextXML</span>, and <span class="mono">json-jcs@1</span> (RFC 8785) for Europe PMC search, arXiv Atom and Crossref responses. Each is a pure bytes-to-bytes function, re-runnable offline by a reviewer with no language model.</p>
+  <p><b>Text-layer sanity gate.</b> A derived layer is marked <span class="mono">unusable</span> when its printable-ASCII ratio is below 80 percent, its digit frequency below 0.5 percent of characters, its U+FFFD ratio above 0.1 percent, or it contains a run of more than 40 characters outside Unicode categories L, N, P and Zs. The layer is still stored; CI refuses any evidence identity that points at it. This is the one mechanism in any option that structurally prevents the bacformer defect, where version 2's text layer rendered "0.81 plus or minus 0.07" as <span class="mono">+.)! +.+(</span> and a claim was drawn from it anyway.</p>
+  <p><b>WARC only where the headers are the evidence</b>: HTML pages, API responses, and any source whose recorded <span class="mono">hash_scope</span> already admits the response is not byte-stable. Re-wrapping an already-hashed PDF in a WARC adds a container whose own hash is unstable, which is the confusion this decision removes. A WARC is not byte-reproducible, because it embeds a record UUID and a capture timestamp, so a reviewer re-derives the text layer from the payload inside it and never re-derives the WARC. <b>No screenshots</b>: no deterministic re-check can be built over a PNG, and <span class="mono">docs/collection.md</span> already forbids reading a value off pixels.</p>
+</div>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 772 344" role="img" aria-label="The join. The source record points at a capture by id; the capture points at blobs by hash equality; the manifest row is keyed by the pinned hash, and that edge is the one that breaks for the 175 drifted pins.">
+      <defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+        <marker id="a3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="aha"/></marker>
+        <marker id="a3r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ahr"/></marker></defs>
+
+      <rect x="12" y="60" width="206" height="118" rx="5" class="bx"/>
+      <text x="24" y="84" class="tb">Source record</text>
+      <text x="24" y="104" class="ts">data/entities/sources.jsonl</text>
+      <text x="24" y="126" class="mn">artifact_sha256</text><text x="162" y="126" class="ts">1,453</text>
+      <text x="24" y="144" class="mn">hash_scope</text><text x="162" y="144" class="ts">587</text>
+      <text x="24" y="162" class="mn">primary_capture_id</text><text x="162" y="162" class="ta">new</text>
+
+      <rect x="282" y="20" width="214" height="140" rx="5" class="bxa"/>
+      <text x="294" y="44" class="tb">Capture ledger line</text>
+      <text x="294" y="64" class="ts">data/archive/captures/&lt;0-f&gt;.jsonl</text>
+      <text x="294" y="86" class="mn">capture_id</text>
+      <text x="294" y="104" class="mn">source_ids[]</text>
+      <text x="294" y="122" class="mn">payload sha256</text>
+      <text x="294" y="140" class="mn">derived[] {normaliser, sha256}</text>
+
+      <rect x="282" y="208" width="214" height="118" rx="5" class="bx"/>
+      <text x="294" y="232" class="tb">Manifest row</text>
+      <text x="294" y="252" class="ts">data/archive/manifest.jsonl</text>
+      <text x="294" y="274" class="mn">key = blobs/8f/8ff2184c...</text>
+      <text x="294" y="292" class="mn">tier, publishable</text>
+      <text x="294" y="310" class="mn">observed_licence, exposure</text>
+
+      <rect x="566" y="36" width="194" height="58" rx="5" class="bx2"/>
+      <text x="578" y="58" class="mn">blobs/8f/8ff2184c...</text><text x="578" y="80" class="ts">original bytes, gzip -n</text>
+      <rect x="566" y="120" width="194" height="58" rx="5" class="bx2"/>
+      <text x="578" y="142" class="mn">derived/text/c6/c6e95eb8...</text><text x="578" y="164" class="ts">text layer, sanity checked</text>
+
+      <path d="M218,104 L277,92" class="lna" marker-end="url(#a3a)"/>
+      <text x="206" y="196" class="ta">id: primary_capture_id</text>
+
+      <path d="M218,146 C244,146 250,262 277,262" class="lnr" marker-end="url(#a3r)"/>
+      <text x="14" y="240" class="tr">hash equality.</text>
+      <text x="14" y="256" class="tr">Breaks for the 175</text>
+      <text x="14" y="272" class="tr">drifted pins and the</text>
+      <text x="14" y="288" class="tr">3 receipt hashes.</text>
+
+      <path d="M496,74 L561,64" class="ln" marker-end="url(#a3)"/>
+      <path d="M496,128 L561,146" class="ln" marker-end="url(#a3)"/>
+      <text x="502" y="104" class="ts">hash equals key</text>
+
+      <path d="M496,254 C530,254 540,110 561,94" class="ln" marker-end="url(#a3)"/>
+      <text x="508" y="212" class="ts">key</text>
+    </svg>
+  </div>
+  <figcaption>Blue is an id reference, red dashed is a hash equality that can fail. The manifest answers "are these bytes stored, and may they be published". The ledger answers "what happened when we went to get them, and what identity did we get". A hash key alone cannot reach the captures of a source whose pin no longer reproduces, which is the set that matters most, so the ledger's <span class="mono">source_ids[]</span> is the join that survives drift. 254 of 1,176 distinct URLs carry more than one source record, which is why that field is a list.</figcaption>
+</figure>
+
+<div class="prose">
+  <h3>3. The fetch receipt</h3>
+  <p><span class="mono">data/omics/audits/&lt;date&gt;-archive-fetch.receipts.jsonl</span>, append-only, one JSON object per line with sorted keys, extending the twelve-field shape that <span class="mono">scripts/omics/audit/check-sources.py</span> already writes and the 859-line 2026-09-19 file already carries. The twelve existing fields and the three existing outcome strings are kept unchanged. Added fields:</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Field</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">content_match</td><td><span class="mono">exact</span>, <span class="mono">derived</span>, <span class="mono">none</span>, <span class="mono">unbaselined</span>. The distinction one <span class="mono">insufficient_evidence</span> string cannot carry</td></tr>
+      <tr><td class="mono">capture_id</td><td><span class="mono">"cap-" + sha256(payload_sha256 + NUL + source_ids + NUL + checked_at + NUL + mode).slice(0,16)</span>, defined for every mode</td></tr>
+      <tr><td class="mono">source_ids</td><td>A list, because 254 of 1,176 distinct URLs carry more than one source record</td></tr>
+      <tr><td class="mono">mode</td><td><span class="mono">http</span>, <span class="mono">api</span>, <span class="mono">code</span>, <span class="mono">local</span>, <span class="mono">memento</span>, <span class="mono">browser</span></td></tr>
+      <tr><td class="mono">source_class</td><td>The host-behaviour class the treatment is keyed on</td></tr>
+      <tr><td class="mono">request_headers</td><td>With <span class="mono">response_headers</span> and <span class="mono">redirect_chain</span>: the evidence that distinguishes a server restamp from a content change</td></tr>
+      <tr><td class="mono">etag</td><td>With <span class="mono">last_modified</span>: a later sweep asks "changed?" with a conditional GET instead of a download</td></tr>
+      <tr><td class="mono">derived[]</td><td><span class="mono">{kind, normaliser, sha256, bytes, command, tool, sanity, object}</span></td></tr>
+      <tr><td class="mono">warc</td><td><span class="mono">{sha256, bytes, warc_version, record_id, object}</span>, or null</td></tr>
+      <tr><td class="mono">witness[]</td><td><span class="mono">{archive, memento, requested_at, outcome}</span>, best effort, never fails a build</td></tr>
+      <tr><td class="mono">licence</td><td>With <span class="mono">licence_resolver</span> and <span class="mono">tier</span>: the tier decision, dated and attributable</td></tr>
+      <tr><td class="mono">stored_key</td><td>With <span class="mono">repository_path</span>: the archive key, or the committed <span class="mono">.gz</span> a <span class="mono">local</span> capture came from</td></tr>
+      <tr><td class="mono">attempt</td><td>1 or 2. Declaring a source lost needs two, and this makes the rule checkable</td></tr>
+      <tr><td class="mono">fetched_from</td><td>The artifact URL a fetch rule resolved to, where the record's URL is a landing page</td></tr>
+      <tr><td class="mono">swhid</td><td>For code and model-card sources</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="prose">
+  <p><span class="mono">content_match</span> compares a retrieval against a recorded identity. <span class="mono">exact</span> means the payload matches <span class="mono">expected_sha256</span>. <span class="mono">derived</span> means a derived identity matches one the store already records. <span class="mono">none</span> means both were available and both differ. <span class="mono">unbaselined</span> means no derived identity was recorded before the capture, which is the case for all 175 drifted pins, because the only measured text-layer hash in this repository lives in a review and not in a record. An <span class="mono">unbaselined</span> capture populates <span class="mono">derived[]</span>, becomes the baseline and raises nothing. Without that rule, wave 1 opens 175 findings on day one, most of them benign restamps.</p>
+  <p>Receipts are machine-written observation logs, like the existing <span class="mono">data/omics/audits/*.receipts.jsonl</span> and <span class="mono">data/omics/scope-audit.jsonl</span>. They assert only what a transfer returned on a date, state no value and name no entity, so they do not breach the two-pass rule. What a reviewer gates is the promotion of a capture into a record's pointers. Receipts are never edited after merge: a second attempt is a second line, and a source's drift history is its receipt sequence. The 2026-09-19 file is not rewritten; readers treat the new fields as absent on its 859 lines and derive <span class="mono">content_match</span> from <span class="mono">expected_sha256 == retrieved_sha256</span>.</p>
+
+  <h3>4. No record changes in the first pull request</h3>
+  <p>Two committed files: <span class="mono">data/archive/manifest.jsonl</span>, one object per stored blob sorted by key, and <span class="mono">data/archive/captures/&lt;0-f&gt;.jsonl</span>, the receipt ledger in sixteen shards by the first hex digit of <span class="mono">sha256(capture_id)</span>, matching <span class="mono">shardOf</span> at <span class="mono">scripts/omics/records.ts:48</span>. Projected size is about 1,500 manifest rows at about 450 bytes plus about 1,500 captures at about 1.6 KB over sixteen shards, so about 150 KB a shard against the 50 MB CI cap. Neither file enters <span class="mono">storeDigests()</span> at <span class="mono">scripts/omics/records.ts:134-146</span>, so the archive does not perturb a release id and every past release id stays valid.</p>
+  <p>Record-side pointers are declared in <span class="mono">shared/omics/attribute-registry.ts</span> on the <span class="mono">source</span> kind and populated lazily, never in bulk: <span class="mono">primary_capture_id</span>, <span class="mono">capture_ids</span>, <span class="mono">evidence_identity</span>, <span class="mono">hash_scope_class</span>, <span class="mono">pin_status</span>, <span class="mono">archive_tier</span>, <span class="mono">redistribution</span>, <span class="mono">swhid</span>. New batches set them at collection step 3 from day one; an existing record gains them the next time a reviewer touches it for any reason. A bulk pass would rewrite 1,483 records and 1,483 provenance lines under one dated review, and the 2026-11-16 pass is the warning: 2,574 records carrying a non-canonical <span class="mono">review</span> object reached the store through thirteen independent reviews unnoticed.</p>
+  <p><span class="mono">artifact_sha256</span>, <span class="mono">hash_scope</span>, <span class="mono">archive_sha256</span> and <span class="mono">original_artifact_sha256</span> are untouched on every existing record. The 106 free-text <span class="mono">hash_scope</span> strings are not rewritten: 101 of the 587 carry a reviewer's hand-written caveat about instability that an enum cannot hold, and rewriting a reviewer's prose to fit a schema is the same move as correcting a pin. <span class="mono">hash_scope_class</span> goes beside it. The overloaded <span class="mono">archive_sha256</span>, 55 records with two incompatible meanings, is not migrated either; new captures do not write it.</p>
+
+  <h3>5. Licence policy</h3>
+  <p>A licence answers two separate questions and this repository treats them as one. May the verbatim original bytes be redistributed? May a derivative, a text layer, a canonical JSON or a WARC payload, be redistributed? CC BY-NC-ND answers yes to the first, non-commercially and with attribution, and restricts the second. <span class="mono">docs/collection.md:79,145</span> records the opposite assumption and must be corrected.</p>
+</div>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 772 352" role="img" aria-label="Six licence tiers placed against two questions: whether the verbatim original may be redistributed, and whether a derivative may be. Measured source counts per tier: t0 265, t1 23, t2 2, t3 80, t4 1,113, t5 zero.">
+      <text x="186" y="22" class="hd">MAY THE VERBATIM ORIGINAL BE REDISTRIBUTED?</text>
+      <text x="196" y="50" class="tb">No</text>
+      <text x="386" y="50" class="tb">Yes, non-commercially</text>
+      <text x="586" y="50" class="tb">Yes</text>
+
+      <text x="12" y="84" class="hd">MAY A</text><text x="12" y="100" class="hd">DERIVATIVE BE?</text>
+
+      <text x="12" y="134" class="tb">Yes</text>
+      <text x="12" y="212" class="tb">Open question</text><text x="12" y="228" class="ts">(question 2 below)</text>
+      <text x="12" y="290" class="tb">No</text>
+
+      <line x1="180" y1="58" x2="762" y2="58" class="grid"/>
+      <line x1="376" y1="58" x2="376" y2="342" class="grid"/>
+      <line x1="572" y1="58" x2="572" y2="342" class="grid"/>
+      <line x1="180" y1="58" x2="180" y2="342" class="grid"/>
+
+      <rect x="388" y="100" width="172" height="58" rx="5" class="bxa"/>
+      <text x="400" y="124" class="mn">t1-public-nc</text><text x="400" y="144" class="ts">CC BY-NC, BY-NC-SA · 23</text>
+      <rect x="584" y="100" width="172" height="58" rx="5" class="bxa"/>
+      <text x="596" y="124" class="mn">t0-public</text><text x="596" y="144" class="ts">CC0, CC BY, MIT, ... · 265</text>
+
+      <rect x="388" y="180" width="172" height="58" rx="5" class="bxl"/>
+      <text x="400" y="204" class="mn">t3-verbatim-nd-nc</text><text x="400" y="224" class="ts">CC BY-NC-ND · 80</text>
+      <rect x="584" y="180" width="172" height="58" rx="5" class="bxl"/>
+      <text x="596" y="204" class="mn">t2-verbatim-nd</text><text x="596" y="224" class="ts">CC BY-ND · 2</text>
+
+      <rect x="192" y="244" width="172" height="42" rx="5" class="bx"/>
+      <text x="204" y="264" class="mn">t4-private</text><text x="204" y="280" class="ts">store privately · 1,113</text>
+      <rect x="192" y="294" width="172" height="42" rx="5" class="bx2"/>
+      <text x="204" y="314" class="mn">t5-no-store</text><text x="204" y="330" class="ts">no copy at all · 0</text>
+
+      <text x="192" y="140" class="ts">Nothing lands here: a licence that</text>
+      <text x="192" y="158" class="ts">forbids verbatim sharing does not</text>
+      <text x="192" y="176" class="ts">permit sharing a derivative either.</text>
+    </svg>
+  </div>
+  <figcaption>Counts are a classification of the <span class="mono">licence</span> field over all 1,483 sources and sum to 1,483: 1,075 absent, 202 CC BY, 80 CC BY-NC-ND, 61 code or permissive, 23 CC BY-NC, 21 closed or publisher terms, 13 arXiv non-exclusive, 4 not stated, 2 CC BY-ND, 2 CC0. 1,075 of the 1,113 in <span class="mono">t4</span> are there because no licence is recorded, not because a licence forbids anything, which is why the default for an unresolved licence is private storage and not refusal to store. <span class="mono">t5</span> is empty by measurement today; it exists so that "we chose not to store this" is a recorded decision with a reason rather than the silent absence it is now.</figcaption>
+</figure>
+
+<div class="prose">
+  <p>Tiers are computed from the licence identifier alone by a hand-reviewed lookup table <span class="mono">data/archive/licence-map.tsv</span>, one row per observed licence string, with the tier concepts in <span class="mono">data/vocab/archive-tier.ttl</span>. Four rules are enforced in code.</p>
+  <ul>
+    <li><b>Licence never blocks capture.</b> The default for an unresolved licence is <span class="mono">t4-private</span>. Unknown never means public and never means unstored. Refusing a capture without a licence determination is the same pressure that produced the 47,081 gap: it adds two to five minutes per new source, and the predictable response is to mark everything unreported and private, which satisfies the gate and defeats it.</li>
+    <li><b>The policy restricts publication, not possession.</b> A private copy of a work the team lawfully accessed, made for computational analysis, is ordinary research practice. <span class="mono">t5-no-store</span> is the only tier producing no bytes.</li>
+    <li><b>Licence resolution writes candidates, never records.</b> <span class="mono">scripts/archive/licence.ts</span> queries Crossref <span class="mono">license[]</span>, the arXiv API, Europe PMC <span class="mono">permissions</span>, the repository <span class="mono">LICENSE</span> at the pinned commit and Hugging Face card front matter, stopping at the first answer. Each resolution is itself a capture, so the licence claim is pinned to bytes. The result lands in the manifest as <span class="mono">observed_licence</span> with its resolver and date, and a reviewer promotes it into <span class="mono">attributes.licence</span> only when next touching that source record.</li>
+    <li><b>What stays public for a private-tier source</b>: the whole capture receipt, both digests, byte counts, media type, URL and final URL, status, retrieval time, the normaliser id and command so a reader with lawful access reproduces the evidence identity themselves, the Memento URL, the SWHID, and a quotation-scale span inside the claim record. Those are facts about the work, not the work.</li>
+  </ul>
+  <p><b>Existing exposure is enumerated, not inherited.</b> Six CC BY-NC-ND verbatim originals and one CC BY-NC are already committed to this public repository: <span class="mono">gpn-paper-20261116-source-biorxiv-v3</span>, <span class="mono">-source-pnas-2023</span>, <span class="mono">-source-pnas-2023-si-appendix</span>, <span class="mono">phylogpn-2025</span>, <span class="mono">phylogpn-20261116-source-supplement</span>, <span class="mono">protein-stability-20261009-source-dieckhaus2024</span> and <span class="mono">protein-stability-20261009-source-pancotti2022</span>. Two further ND entries, <span class="mono">amp-source-dragen</span> and <span class="mono">amp-source-dragen-supplementary-tables</span>, are curator factual receipts and not original bytes, so they are not exposure. Each is recorded in the manifest with <span class="mono">exposure: pre-policy</span> so the set is enumerable, and the owner rules on it. Quietly continuing and quietly cleaning up are both excluded.</p>
+
+  <h3>6. Rescue, by measured citation weight</h3>
+</div>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Wave</th><th>Set</th><th class="num">Size</th><th class="num">Citations</th><th>Treatment</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>Offline. Expand every committed <span class="mono">.zip</span>, <span class="mono">.tar</span> and <span class="mono">.tar.gz</span> under <span class="mono">data/</span>, rehash members, write <span class="mono">local</span> captures for the sources already matching stored bytes</td><td class="num">up to 326</td><td class="num">n/a</td><td>No network, no licence exposure. Closes the join defect for a fifth of the corpus on day one</td></tr>
+      <tr><td>1</td><td>Top 25 cited unstored</td><td class="num">25</td><td class="num">23,854</td><td>Automated fetch, hand rescue on every failure, time logged per source</td></tr>
+      <tr><td>2</td><td>Ranks 26 to 150</td><td class="num">125</td><td class="num">21,253</td><td>Automated fetch, hand rescue on failure</td></tr>
+      <tr><td>3</td><td>GitHub pinned-commit sources</td><td class="num">453</td><td class="num">low</td><td>SWHID, not bytes. One day of API calls covers 39 percent of the missing set</td></tr>
+      <tr><td>4</td><td>Ranks 151 to 574</td><td class="num">424</td><td class="num">1,974</td><td>One automated sweep, no hand work</td></tr>
+      <tr><td>5</td><td>Never cited</td><td class="num">606</td><td class="num">0</td><td>No attempt. One sweep a year with wave 4</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="prose">
+  <p>Bands are recomputed from the current store on every <span class="mono">archive -- triage</span> run, so a never-cited source is promoted automatically when it acquires its first citation. Licence resolution runs inside each wave, in the same pass: 943 unresolved licences will never be cleared as a standalone chore, and the resolver needs a capture anyway.</p>
+  <p><b>The Wayback CDX probe runs first, on its own, as a measurement.</b> For a source whose origin has moved, a contemporaneous third-party capture is the only copy of the pinned bytes that still exists, and refetching can only produce new bytes. The probe takes the 175 sources whose <span class="mono">retrieved_sha256</span> differed on 2026-09-19, queries the CDX index near each record's <span class="mono">retrieved_at</span>, fetches the nearest two through the <span class="mono">id_</span> endpoint, which is not optional because the default endpoint injects a toolbar and rewrites links, hashes each and compares with <span class="mono">artifact_sha256</span>. Twenty or more byte matches makes CDX the first step of waves 1 and 2 for every host. Five to nineteen makes it the first step only for static-file hosts where a byte match is plausible: Nature, Springer static content and figshare. Below five it is dropped and waves 1 and 2 are origin-first. Matches will come from static files that moved, like the Nature preview-to-version-of-record case, not from the 47 Europe PMC <span class="mono">fullTextXML</span> sources, whose bytes are regenerated per request.</p>
+  <p><b>Two failed attempts, at least seven days apart, each with a receipt, before a source is a lost candidate.</b> One attempt is not evidence of loss: the 2026-09-19 run found 6 inaccessible of 859, including one HTTP 500 and four artifacts over the 25 MB budget. Politeness is per-host serialisation with a minimum two-second gap, <span class="mono">robots.txt</span> and <span class="mono">Crawl-delay</span> respected, one retry on 429 or 503 honouring <span class="mono">Retry-After</span>, and never a spoofed user agent. A bioRxiv 1015 response is a rate limit and the fetcher backs off. The sweep reports by host, so a block on one host does not silently poison the drift statistics.</p>
+  <p><b>What cannot be rescued.</b> The four purged amp originals (<span class="mono">dragen.html.gz</span> and three siblings) were never in git history, so only a refetch can recover them. They go through the same two-attempt rule as everything else and then <span class="mono">preservation_status: lost</span>, a dated review, and their curator receipts standing in with <span class="mono">hash_scope_class: curator-receipt</span>. There is no carve-out: a vendor documentation page that 404s today can return next week. Their <span class="mono">original_artifact_sha256</span> values are never touched.</p>
+
+  <h3>7. How a lost source is marked</h3>
+  <p><b>Not with <span class="mono">evidence_concerns</span>.</b> An entry without <span class="mono">applies_to</span> on a source withholds every record citing it from comparisons and use-case judgements (<span class="mono">shared/omics/concerns.ts:5-11</span>), and <span class="mono">_excluded</span> in <span class="mono">scripts/kg/contradictions.py</span> applies the same exclusion to discrepancy inference. Marking the 574 would remove 45 percent of the evidence base from comparison. It is also wrong on the merits: a source whose bytes are not archived is not a source whose value is in doubt. Two agents read it and a reviewer approved it. The loss is in future re-verifiability, not in present support.</p>
+  <p>Instead, a derived, deterministic <span class="mono">preservation_status</span> per source, computed by the build from the manifest and the latest receipt, written to <span class="mono">data/archive/preservation.jsonl</span> and exported as <span class="mono">rb:preservationStatus</span>: <span class="mono">bytes_archived</span>, <span class="mono">derived_archived</span>, <span class="mono">hashed_only</span>, <span class="mono">withheld_by_licence</span>, <span class="mono">lost</span>. It is not a record attribute, so no provenance hash moves. It is visible on the website source panel and queryable in the graph, and it withholds nothing.</p>
+  <p>A <span class="mono">lost</span> source becomes an evidence concern only through the normal reviewed path, with a dated review, when all three hold: <span class="mono">preservation_status</span> is <span class="mono">lost</span>; no stored bytes and no stored derived layer exist anywhere; and a reviewer has recorded that the value cannot be re-derived from any other source the store holds. The third condition is the one that matters and the one a machine cannot settle. Most lost sources will fail it, because a published AUROC is usually printed in more than one place. The concern, when written, uses <span class="mono">applies_to</span> with specific result and claim ids, never the unscoped form.</p>
+
+  <h3>8. Drift is classified, never written to a record</h3>
+  <p>A scheduled sweep re-captures every source with a <span class="mono">primary_capture_id</span> and writes <span class="mono">data/archive/drift/&lt;date&gt;.jsonl</span>, one line per source with both digests and both identities before and after, and the normaliser tool version before and after.</p>
+</div>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 772 326" role="img" aria-label="The drift classifier as an ordered decision tree with six verdicts. Only inaccessible, moved and content changed raise a finding. The tool version changed branch is the one that prevents false content drift on a poppler bump.">
+      <defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <text x="12" y="20" class="hd">CONDITION, IN ORDER</text><text x="430" y="20" class="hd">VERDICT</text><text x="640" y="20" class="hd">FINDING</text>
+
+      <rect x="12" y="30" width="356" height="38" rx="5" class="bx"/><text x="24" y="54" class="t">No response, or 4xx or 5xx</text>
+      <rect x="12" y="78" width="356" height="38" rx="5" class="bx"/><text x="24" y="102" class="t">final_url differs and content differs</text>
+      <rect x="12" y="126" width="356" height="38" rx="5" class="bx"/><text x="24" y="150" class="t">Payload equal</text>
+      <rect x="12" y="174" width="356" height="38" rx="5" class="bx"/><text x="24" y="198" class="t">Payload differs, identity equal</text>
+      <rect x="12" y="222" width="356" height="38" rx="5" class="bxa"/><text x="24" y="240" class="t">Payload differs, identity differs,</text><text x="24" y="254" class="t">normaliser tool version differs</text>
+      <rect x="12" y="270" width="356" height="38" rx="5" class="bx"/><text x="24" y="294" class="t">Payload differs, identity differs, same tool</text>
+
+      <path d="M368,49 L424,49" class="ln" marker-end="url(#a4)"/>
+      <path d="M368,97 L424,97" class="ln" marker-end="url(#a4)"/>
+      <path d="M368,145 L424,145" class="ln" marker-end="url(#a4)"/>
+      <path d="M368,193 L424,193" class="ln" marker-end="url(#a4)"/>
+      <path d="M368,241 L424,241" class="ln" marker-end="url(#a4)"/>
+      <path d="M368,289 L424,289" class="ln" marker-end="url(#a4)"/>
+
+      <text x="430" y="54" class="mn">inaccessible</text><text x="648" y="54" class="tr">Yes</text>
+      <text x="430" y="102" class="mn">moved</text><text x="648" y="102" class="tr">Yes</text>
+      <text x="430" y="150" class="mn">reproduces</text><text x="648" y="150" class="ts">No</text>
+      <text x="430" y="198" class="mn">container_restamp</text><text x="648" y="198" class="ts">No</text>
+      <text x="430" y="246" class="mn">tool_version_changed</text><text x="648" y="246" class="ts">No</text>
+      <text x="430" y="294" class="mn">content_changed</text><text x="648" y="294" class="tr">Yes</text>
+
+      <text x="430" y="264" class="ta">mints a second derived identity beside the first</text>
+
+      <text x="12" y="316" class="ts">Nothing in this path writes to a record, creates a claim or alters a hash. The pin keeps its value.</text>
+    </svg>
+  </div>
+  <figcaption>The <span class="mono">tool_version_changed</span> row is load-bearing and is the single most likely implementation bug. <span class="mono">poppler 24.08</span> and <span class="mono">poppler 25.x</span> do not produce identical text for the same PDF, so without this row the first CI image bump reports false content drift across every PDF in the corpus. The converter is pinned by container digest and the receipt records the exact <span class="mono">pdftotext version</span> string that <span class="mono">scripts/omics/extract/pdf.ts:48-58</span> already extracts. A <span class="mono">content_changed</span> or <span class="mono">moved</span> verdict becomes a dated review note and, where a record's text must change, a <span class="mono">metadata-correction-</span> claim through the normal path.</figcaption>
+</figure>
+
+<!-- ============ VERIFICATION ============ -->
+<h2>How it is verified</h2>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Tier</th><th>Command</th><th>Trigger</th><th>Credentials</th><th>Network</th></tr></thead>
+    <tbody>
+      <tr><td>1 structural</td><td class="mono">npm run archive -- check</td><td>Every pull request, required, inside the existing <span class="mono">store</span> job at <span class="mono">.github/workflows/data.yml:45</span></td><td>None</td><td>None</td></tr>
+      <tr><td>2 presence</td><td class="mono">npm run archive -- presence</td><td>Push to main</td><td class="mono">ARCHIVE_TOKEN</td><td>16 release-tag listings; the listing returns each asset's size, so compressed-byte verification is free</td></tr>
+      <tr><td>3 sample</td><td class="mono">npm run archive -- verify --sample 25 --seed &lt;run_number&gt;</td><td>Release run</td><td class="mono">ARCHIVE_TOKEN</td><td>about 13 MB</td></tr>
+      <tr><td>4 full</td><td class="mono">npm run archive -- verify --all</td><td>Weekly schedule</td><td class="mono">ARCHIVE_TOKEN</td><td>The whole archive, rotating a sixteenth fully expanded each week plus every row whose size changed</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="prose">
+  <p>Tier 1 is the gate that matters, because it is the only one that runs on a fork pull request with no credentials, and because today no build step reads an artifact byte. Offline, it asserts:</p>
+  <ol>
+    <li>Every manifest row and every capture line validates against the zod schema.</li>
+    <li>Capture shards are correct (<span class="mono">shardOf(capture_id)</span>), sorted, and <span class="mono">capture_id</span> is unique.</li>
+    <li>Every manifest key matches <span class="mono">^(blobs|derived/(text|json)|warc)/[0-9a-f]{2}/[0-9a-f]{64}$</span>, the hash in the key equals the row's own hash field, and the key passes <span class="mono">safePath</span>.</li>
+    <li>Every <span class="mono">source_ids</span> entry names a record in <span class="mono">data/entities/sources.jsonl</span>.</li>
+    <li>Every <span class="mono">evidence_identity.capture_id</span> on a source record resolves to a capture, and its <span class="mono">sha256</span> equals that capture's payload digest or one of its <span class="mono">derived[].sha256</span>.</li>
+    <li>No <span class="mono">evidence_identity</span> points at a derived layer whose <span class="mono">sanity</span> is <span class="mono">unusable</span>.</li>
+    <li>No row with <span class="mono">publishable: false</span> names a key under the public <span class="mono">archive/t0</span> prefix.</li>
+    <li><span class="mono">data/archive/preservation.jsonl</span> is byte-identical to what the generator produces from the manifest and the receipts.</li>
+    <li>Every tier and every <span class="mono">hash_scope_class</span> value is a concept in the matching SKOS scheme.</li>
+    <li>No capture rewrites an existing <span class="mono">capture_id</span>'s payload or derived digest.</li>
+    <li><b>The coverage ratchet.</b> <span class="mono">data/archive/archive-coverage.json</span> holds <span class="mono">{"schema_version":1,"sources_without_capture":&lt;measured at merge&gt;,"citations_without_capture":47081}</span>, which is 1,183 and 47,081 if wave 0 lands in the first pull request and 1,483 and 47,081 otherwise. Either number may only decrease unless the file changes in the same commit. A source record written or touched after this decision must carry either <span class="mono">primary_capture_id</span> or <span class="mono">missing_metadata.primary_capture_id</span> with a reason from <span class="mono">data/vocab/missingness.ttl</span>. The pattern is copied from <span class="mono">npm run check:task-links</span>.</li>
+  </ol>
+  <p>Fork pull requests do not receive <span class="mono">ARCHIVE_TOKEN</span>. Tiers 2 to 4 skip with an explicit "archive verification skipped: no archive credentials" notice rather than passing silently, and a maintainer re-runs on a trusted branch before merging a fork contribution that touches the manifest.</p>
+  <p>The contract pull request is accepted when <span class="mono">git diff --exit-code -- data/entities data/evidence data/provenance</span> is empty, <span class="mono">npm run records -- check</span> passes unchanged, <span class="mono">npm run archive -- check</span> exits 0 in under 10 seconds over 1,483 sources and prints the ratchet, it exits non-zero on seven seeded corruptions (wrong shard, unsorted shard, duplicate <span class="mono">capture_id</span>, key hash not matching its row, an evidence identity pointing at an unusable layer, a <span class="mono">publishable: false</span> row under <span class="mono">archive/t0</span>, a rewritten payload digest), <span class="mono">ingest-local</span> and <span class="mono">triage</span> each run twice give byte-identical output, and <span class="mono">verify-archive.sh</span> verifies all 300 wave 0 blobs with the project's code uninstalled.</p>
+</div>
+
+<!-- ============ SEQUENCE ============ -->
+<h2>Implementation sequence</h2>
+
+<div class="prose"><p>Each step ships on its own and is reviewable in one sitting. The first one is a measurement, because the wave order depends on a number nobody has.</p></div>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th class="num">#</th><th>Step</th><th>Acceptance</th><th>Effort</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>Measurement. The Wayback CDX probe over the 175 drifted sources, and a Content-Length sum over the 1,248 <span class="mono">artifact_url</span> values. Ships a dated review and nothing else</td><td>Two measured numbers: byte matches out of 175, which decides wave ordering at the thresholds above, and total projected archive bytes, which confirms 765 MB or triggers the R2 flip above 50 GB</td><td>Half a day</td></tr>
+      <tr><td class="num">2</td><td>Contract. The policy document, four SKOS schemes, the licence map, the receipt and manifest schemas, the tier 1 checker wired into the <span class="mono">store</span> job, the triage queue, the two promoted normalisers as offline functions, the sanity gate, the shell verifier, and wave 0 captures for the already-stored sources</td><td>The nine acceptance conditions above. No record, no secret, no network, no uploaded asset</td><td>Three days</td></tr>
+      <tr><td class="num">3</td><td>Capture tool, licence resolver, two new normalisers. Pilot of 21 captures across the seven source classes, run twice 24 hours apart</td><td>Evidence identity byte-equal across both runs on 19 or more of 21, including all three Europe PMC and all three preprint captures; payload digest differs on 2 or more of those 6; a tier from a named resolver on 17 or more of 21; WARC overhead at most 15 percent. Kill: if an evidence identity drifts at one tool version, that class falls back to single-retrieval-mutable with no stability claim</td><td>Four days</td></tr>
+      <tr><td class="num">4</td><td>Archive repository, publish path, CI tiers 2 to 4, and <span class="mono">archiveAssetUrl</span></td><td>The wave 0 blobs upload once and a second publish refuses every one as already present; presence passes with 16 listing calls and zero payload bytes; a deliberately truncated asset fails tier 3 naming the source; a fork pull request shows the skip notice and still gates on tier 1</td><td>Two days</td></tr>
+      <tr><td class="num">5</td><td>Wave 0 completion. Expand the remaining committed archives and write <span class="mono">local</span> captures for members</td><td><span class="mono">sources_without_capture</span> decreases by the number of members found, and the decrease is stated in the pull request body; no committed file moves</td><td>Half a day</td></tr>
+      <tr><td class="num">6</td><td>Wave 1, the top 25, carrying 23,854 citations</td><td><span class="mono">citations_without_capture</span> drops by 23,000 or more; 23 or more of 25 end with the right artifact in hand (a publisher landing page that hashes cleanly is not a rescue); human time logged per source. Over 10 hours means the 12-minute estimate is wrong by more than a factor of two and wave 2 is resized</td><td>One week</td></tr>
+      <tr><td class="num">7</td><td>Wave 3 out of order: SWHID for the 453 GitHub pinned-commit sources, no bytes stored</td><td>430 or more of 453 resolve or are accepted for saving, each with a receipt; the count of sources with neither bytes nor an SWHID is stated</td><td>One day</td></tr>
+      <tr><td class="num">8</td><td>Wave 2, ranks 26 to 150, in five pull requests of 25</td><td><span class="mono">citations_without_capture</span> at or below 2,000; every source carries a capture or a preservation status with the receipts that justify it; the licence map gains a row for every new string and the build fails until it does</td><td>One week, dominated by about 51 licence determinations</td></tr>
+      <tr><td class="num">9</td><td>Drift sweep automation with the <span class="mono">tool_version_changed</span> guard</td><td>A fixture built with a deliberately different poppler version classifies as <span class="mono">tool_version_changed</span> and mints a second identity; a sweep writes one line per source, posts per-host verdict counts, writes no record, and opens a pull request rather than pushing to main</td><td>Two days</td></tr>
+      <tr><td class="num">10</td><td>Waves 4 and 5 in one sweep, plus the collection habit change</td><td><span class="mono">citations_without_capture</span> at or below 200; every one of the 1,483 sources carries a capture or a preservation status with a reason; <span class="mono">grep</span> for curl over <span class="mono">notes.md</span> files created after this step returns nothing; the <span class="mono">primary_capture_id</span> rule is enforced rather than ratcheted</td><td>Three days over a month</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ CONSEQUENCES ============ -->
+<h2>Consequences</h2>
+
+<div class="prose">
+  <h3>Good</h3>
+  <ul>
+    <li>Every cited source either has stored bytes with two identities, or a dated reason it does not, and CI enforces the difference.</li>
+    <li>The 20.4 percent drift becomes a classified, tracked series, and a bioRxiv restamp stops looking like a withdrawn paper.</li>
+    <li>45.2 percent becomes a ratcheted number that cannot grow without a deliberate commit.</li>
+    <li>The source-to-file join is persisted, so the two unjoinable <span class="mono">review.json</span> dicts stop mattering.</li>
+    <li>Licence becomes a dated, resolvable, attributable fact instead of an absence on 1,075 records, and the backwards rule in <span class="mono">docs/collection.md</span> is corrected.</li>
+    <li>The unreadable-text-layer defect becomes structurally impossible to repeat, and the pin-identity and citation-metadata defects become cheap offline checks.</li>
+    <li>Zero records and zero provenance hashes change in the first pull request, and no release id shifts ever.</li>
+  </ul>
+
+  <h3>Costs</h3>
+  <ul>
+    <li><b>Money: nothing.</b> Private release assets and the main repository's <span class="mono">archive/t0</span> tag are 0 USD at the projected 765 MB. Crossref and arXiv need no key. CI adds about 13 MB per release run at tier 3 and a weekly rotation at tier 4.</li>
+    <li><b>Human: about 23 hours</b> to reach 95.8 percent citation coverage: about 2.5 hours building the licence map, about 9 hours of hand rescue on the projected 45 failures in waves 1 and 2, about 5.5 hours of licence calls the resolvers cannot settle, 4 hours of policy page and review, and 2 hours supervising automated runs. The per-rescue basis is an estimate and wave 1 measures it.</li>
+    <li><b>Forever, for two people:</b> one triage sweep per quarter, about 300 drift lines of which most should classify as <span class="mono">container_restamp</span> with no action; one archive token to rotate; one licence map row whenever a new licence string appears, which fails the build until added; four SKOS vocabularies to keep; two pinned tools, poppler and warcio, whose versions are now part of the data contract, so a toolchain bump is a dated decision rather than a silent upgrade; and about 2.5 MB of receipt JSONL per full sweep accumulating in git.</li>
+    <li><b>The habit change that decides whether any of this holds:</b> collection step 3 goes through <span class="mono">scripts/archive/capture.py</span> instead of the ad hoc curl that five of twenty-two <span class="mono">notes.md</span> files show today. <span class="mono">docs/collection.md</span> and the collection skill files must be updated, or the ledger quietly stops growing while the store does not.</li>
+  </ul>
+
+  <h3>Accepted losses, stated plainly</h3>
+  <ul>
+    <li>1,030 sources (606 never cited, 424 lightly cited carrying 1,974 citations, 4.2 percent of the at-risk mass) get machine effort only, forever. Hand rescue for them is about 66 hours against 4.2 percent, and pretending otherwise is how the 2026-09-19 audit's findings sat for two months.</li>
+    <li>The archive has one home plus an annual offline copy. A lost GitHub account loses the private tier. The open tiers survive at Zenodo.</li>
+    <li>An outside reader cannot obtain private-tier bytes. They can check every hash against the manifest and re-derive the evidence identity from their own lawful copy with the recorded command. For the unknown-licence set this is a legal constraint, not an engineering one.</li>
+    <li>Raster-only values stay out of reach. The published GPN-MSA ablation values are an image, there is no text layer, and <span class="mono">docs/collection.md</span> forbids reading a value off pixels. This decision does not close that gap.</li>
+    <li>Nine of the nineteen recorded defect classes are touched; ten are untouched, including the 728-record comparability-field normalisation group that is the largest corrected set in this repository's own reviews. Those are normalisation decisions keyed on store convention and vocabulary scope, not readings of a source. This decision stops the evidence base dissolving. It does not fix extraction, and if only one piece of work is funded this is not the one that corrects the most records.</li>
+    <li>Two written rules are corrected rather than followed: <span class="mono">docs/collection.md</span> on no-derivatives storage, and the distribution implication of the 2026-11-16 GPN-MSA ruling. Reviews are not edited after merge, so the correction arrives as a later review naming the earlier one, and anyone reading the older review alone gets the wrong rule.</li>
+  </ul>
+</div>
+
+<!-- ============ OPEN QUESTIONS ============ -->
+<h2>Open questions for the owner</h2>
+
+<div class="prose"><p>These are why the status is proposed and not accepted. Nothing in the first two pull requests is blocked by them, because the default for an unresolved licence is private storage.</p></div>
+
+<div class="q">
+  <h4>1. Is this work NonCommercial use under CC 4.0?</h4>
+  <p>A benchmark knowledge graph published by rewire-bio on a public repository and a public website. This gates 39 of the top 150 sources and is the single answer the whole public tier hangs on.</p>
+  <ol type="a">
+    <li><b>Yes.</b> Record a dated, named determination in <span class="mono">docs/source-preservation.md</span>. About 97 sources carrying about 16,800 citations move from the private tier to publishable verbatim, with a manifest flag change and no refetch.</li>
+    <li><b>No.</b> Nothing above <span class="mono">t0</span> is ever published, the archive covers the same bytes privately, and the seven restrictively licensed originals already committed become a remediation task.</li>
+    <li><b>Seek counsel first.</b> The archive proceeds private by default meanwhile and nothing is blocked.</li>
+  </ol>
+</div>
+
+<div class="q">
+  <h4>2. May a derived layer of a no-derivatives work be published?</h4>
+  <p>A <span class="mono">pdftotext -layout</span> text layer, a canonical JATS text extraction or a canonical JSON of a CC BY-ND or CC BY-NC-ND work, published alongside the original.</p>
+  <ol type="a">
+    <li><b>Yes</b>, treating it as a technical modification across media and formats, which CC 4.0 authorises and states never produces adapted material. The derived layer then follows the original's tier.</li>
+    <li><b>No</b>, treating it as adapted material, which section 3 forbids sharing. Derived layers of both no-derivatives tiers stay private forever, even where the original is published.</li>
+    <li><b>Undecided</b>, hold private pending counsel.</li>
+  </ol>
+  <p>Answer (b) also corrects the distribution implication of the 2026-11-16 GPN-MSA ruling, which archives exactly this layer as the thing to store.</p>
+</div>
+
+<div class="q">
+  <h4>3. What happens to the seven restrictively licensed originals already committed here?</h4>
+  <p>The six CC BY-NC-ND and one CC BY-NC originals listed under the licence policy above.</p>
+  <ol type="a">
+    <li><b>Leave them</b>, recording each in the manifest with <span class="mono">exposure: pre-policy</span> and a dated rationale, on the ground that verbatim non-commercial redistribution with attribution is what those licences permit.</li>
+    <li><b>Move the bytes</b> to the private tier, drop them from the worktree, keep their hashes in the manifest, and let the already-planned history rewrite of <span class="mono">data/omics/releases/</span> take them from history at no extra cost.</li>
+    <li><b>Remove them from the worktree now</b> in a separate pull request and defer the history question.</li>
+  </ol>
+  <p>Proposed default: (a) if question 1 is yes, (b) if question 1 is no. Quietly continuing and quietly cleaning up are both excluded.</p>
+</div>
+
+<!-- ============ REJECTED ============ -->
+<h2>Considered and rejected</h2>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Rejected</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>OCFL 1.1 as the storage layout</td><td>Its one load-bearing argument is that a source with three container hashes and one stable derived identity needs a versioned object. A content-addressed blob store plus a receipt ledger keyed on <span class="mono">source_ids</span> expresses that identically, as three blobs, three receipts and one derived blob, at about a third of the code. The workload is 1,483 immutable observations, append-only, and two maintainers. Its own flip condition, drift under 5 percent, does not fire, since drift is 20.4 percent, but the ledger expresses drift as well, so the tie breaks on operator cost. Flip to OCFL only if the archive ever needs per-object version history a ledger cannot express. Its digest choice and its self-describing archive are kept.</td></tr>
+      <tr><td>Licence resolution as a gate on capture</td><td>943 of the 1,183 unstored sources record no licence, resolution costs two to five minutes per source, and the predictable response is to mark everything unreported and private, which satisfies the gate and defeats it. Licence governs publication, not possession.</td></tr>
+      <tr><td>Joining records to the archive on <span class="mono">artifact_sha256</span> alone</td><td>Settled by the drift data: the 175 pins that no longer reproduce match no retrievable bytes, so a hash key cannot reach their captures, and 3 pinned hashes hash a curator receipt rather than a source. The manifest keeps the hash key for "are these bytes stored"; the ledger owns the join.</td></tr>
+      <tr><td>Wayback first as a strategy</td><td>Demoted to a measurement with written thresholds. Wayback's copy of a bioRxiv PDF is itself a restamped variant, so recovery comes from static files that moved. It is cheap to measure over the 175 drifted sources, so it is step 1 rather than an assumption baked into the wave order.</td></tr>
+      <tr><td>Marking unstored sources with <span class="mono">evidence_concerns</span></td><td>An unscoped concern withholds every record citing the source. Marking the 574 would remove 45 percent of the evidence base from comparison, and a source whose bytes are not archived is not a source whose value is in doubt.</td></tr>
+      <tr><td>A bulk record migration to add the new pointers</td><td>It rewrites 1,483 records and 1,483 provenance lines under one dated review. Pointers are populated lazily, and the ratchet makes sure the number only falls.</td></tr>
+      <tr><td>Rewriting the 106 free-text <span class="mono">hash_scope</span> strings, or migrating <span class="mono">archive_sha256</span></td><td>101 of the 587 scope strings carry a reviewer's caveat about instability that an enum cannot hold. Rewriting a reviewer's prose to fit a schema is the same move as correcting a pin. A new class field goes beside them.</td></tr>
+      <tr><td>A second retrieval-outcome vocabulary</td><td>The frozen <span class="mono">supported</span>, <span class="mono">insufficient_evidence</span> and <span class="mono">inaccessible</span> strings stay, with <span class="mono">content_match</span> beside them. A second vocabulary for the same concept in the same directory is how 106 distinct <span class="mono">hash_scope</span> strings happened.</td></tr>
+      <tr><td>WARC for everything, and browser capture for live pages</td><td>WARC serves the sources where the headers are the evidence, about 15 percent of the backlog. Wrapping an already-hashed PDF adds a container whose own hash is unstable. Browser mode for live leaderboards is scope creep.</td></tr>
+      <tr><td>Screenshots as an archival form</td><td>No deterministic re-check can be built over a PNG, and <span class="mono">docs/collection.md</span> already forbids reading a value off pixels, so a screenshot could never be the artifact a claim is checked against.</td></tr>
+      <tr><td>A restricted Zenodo deposit as the answer to the single-copy risk</td><td>Its rights position for third-party copyrighted material is murky. The open tiers go to Zenodo; the private tier gets a loud weekly fixity job and one annual offline copy.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ #228 ============ -->
+<h2>What this record changes in issue #228 and in docs/collection.md</h2>
+
+<div class="prose">
+  <p><a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/228">Issue #228</a> is the extraction ADR, not this one. It owns the staged pipeline, the structured span beside the printed locator, the extraction receipt and the coverage figure on the batch receipt. This record does not decide any of that. It touches #228 in one place, and in that place #228 is wrong.</p>
+  <p>#228 carries as a decision driver that sources under CC BY-NC-ND are hashed, not stored. That is the same reading as <span class="mono">docs/collection.md:79</span> and <span class="mono">:145</span>, and it is backwards. CC BY-NC-ND permits reproducing and sharing the unmodified work for non-commercial purposes with attribution, and restricts sharing adapted material. So an ND original may be stored and, subject to question 1 above, published verbatim. CC BY-ND permits even commercial verbatim redistribution. The thing genuinely in doubt is the derived layer, which is question 2, and the question of whether this repository's use is non-commercial, which is question 1. Neither of those is a reason to hold a source at hash-only. 80 of the 1,483 sources are CC BY-NC-ND and 2 are CC BY-ND, against 1,075 with no licence recorded at all, so this correction moves 82 sources out of a wrongly imposed limit and leaves the real blocker, missing metadata, where it belongs.</p>
+  <p>One more point of contact, stated so the two records do not collide. #228's pipeline re-reads archived source bytes to re-derive claims, so the archive is a build input, not a side artifact, and it has to be fetchable deterministically by hash in CI. That is what tiers 2 to 4 above provide. The sanity gate is the other handover: a span is only checkable against a text layer that a machine has agreed is readable, and without it the bacformer defect, a claim drawn from <span class="mono">+.)! +.+(</span>, repeats under a pipeline that validates spans.</p>
+</div>
+
+<footer>
+  Measured from <span class="mono">data/entities/sources.jsonl</span> (1,483 records), <span class="mono">data/evidence/**/*.jsonl</span> (81,159 evidence records, 104,243 source references), a SHA-256 index of the worktree (3,126 files, 3,331 digests), and <span class="mono">data/omics/audits/2026-09-19-source-access.receipts.jsonl</span> (859 lines). Code cited: <span class="mono">scripts/release/files.ts:31,39-41,44-62</span>, <span class="mono">scripts/serving/publish.ts:48-70</span>, <span class="mono">scripts/omics/extract/pdf.ts:22-71</span>, <span class="mono">scripts/omics/batch.py:426-445</span>, <span class="mono">scripts/omics/records.ts:48,134-146</span>, <span class="mono">shared/omics/validation.ts:81</span>, <span class="mono">shared/omics/concerns.ts:5-11</span>, <span class="mono">scripts/omics/derivations.ts:54-55</span>, <span class="mono">.github/workflows/data.yml:45,53-62</span>. Reviews cited: <span class="mono">docs/reviews/2026-11-16-gpn-msa-published.md:50-66</span>, <span class="mono">2026-11-15-bacformer.md:29-30,340</span>, <span class="mono">2026-11-15-rfd4-proteina.md:46-58</span>, <span class="mono">2026-11-16-attribute-normalisation.md:61-68</span>.
+  <br>The stored-source count stated here is 300. The figure of 280 in the earlier brief does not reproduce against the worktree index and is not used.
+</footer>
+
+</div>
+</body>
+</html>

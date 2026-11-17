@@ -1,0 +1,122 @@
+{
+  "note": "Counts of every deterministic check in scripts/omics/checks/, pinned from the first run. Every check is report severity: nothing here gates records -- add. tests/checks-baseline.test.ts fails when a run raises any count above the number recorded here, so the backlog can be worked down but not grown. Raising a number needs a dated review saying why.",
+  "notes": [
+    "The commit is the HEAD the pack was written against. The checks themselves were not committed when this file was written, so the run was from the working tree at that commit. Rerun npm run checks -- baseline --commit <sha> after committing: the run is deterministic, so only this field changes.",
+    "The sentences below carry the numbers of the first run. Re-pinning this file after a count changes means rewriting them in scripts/omics/checks/cli.ts first, or they describe a run that no longer exists.",
+    "C1 minority-unit, C2 and C4 reproduce the figures the design predicted exactly: 5,093 over 43 metrics; 1,256 splitting 58, 206 and 992; 338 splitting high 171, no 161 and max 6. C1 unit-scope-note is new work and is measured here for the first time.",
+    "C3: the prototype figure of 170 did not reproduce and was not inherited, and nor did the two other figures in circulation (1,640 from a strict check, 603 from a naive half-up check). parseCell measures 3,436 findings over 51,892 results holding both values, and the split is the deliverable: 1,784 printed values parseCell cannot read, 1,473 where the printed value is the numeric value rounded, 167 where the stored number is the second number of a two-number cell, 6 off by a factor of 100 and 6 disagreeing outright. The last two rules, 12 records, are one source printing numbers with a dot thousands separator and a comma decimal.",
+    "C5: neither prototype grouping was inherited (676 of 2,446 columns and 19,374 results by one, 362 of 530 tables and 32,141 results by the other). This implementation groups by source, table or figure anchor and column, which column_coherence.ts states and argues for: 146 of 2,092 columns, holding 2,436 of the 34,688 results that could be placed in a column.",
+    "C9: this implementation reports 187 groups where the design carried 171. The difference is the grouping, not the store, and duplicate_artifact.ts says why.",
+    "C13: zero is the expected count. The 2,574 records of docs/reviews/2026-11-16-attribute-normalisation.md were migrated before this check existed; the ratchet is what keeps the count at zero."
+  ],
+  "commit": "991a09ef6b6b417ff51d265bd87d862f49d4dbe3",
+  "run_date": "2026-11-17",
+  "store": {
+    "records": 93187,
+    "results": 52278,
+    "sources": 1483,
+    "metric_concepts": 275,
+    "unit_concepts": 27
+  },
+  "total_findings": 10754,
+  "checks": {
+    "C1": {
+      "title": "unit for metric",
+      "findings": 5391,
+      "rules": {
+        "minority-unit": 5093,
+        "unit-scope-note": 298
+      },
+      "context": {
+        "metrics_with_a_minority_unit": 43,
+        "metrics_with_a_majority_unit": 43
+      }
+    },
+    "C2": {
+      "title": "direction against the metric default",
+      "findings": 1256,
+      "rules": {
+        "opposite": 58,
+        "unknown-where-declared": 206,
+        "asserted-where-none": 992,
+        "metric-not-a-concept": 0
+      },
+      "context": {
+        "metric_concepts": 275,
+        "metric_concepts_declaring_a_direction": 250
+      }
+    },
+    "C3": {
+      "title": "printed value against numeric value",
+      "findings": 3436,
+      "rules": {
+        "differs": 6,
+        "numeric-is-the-second-number": 167,
+        "printed-is-rounded": 1473,
+        "rescaled-by-100": 6,
+        "unparseable-printed": 1784,
+        "numeric-not-a-number": 0
+      },
+      "context": {
+        "results_with_both_values": 51892,
+        "results_skipped": 386
+      }
+    },
+    "C4": {
+      "title": "qualifier shape",
+      "findings": 338,
+      "rules": {
+        "verdict-or-vendor-token": 338
+      },
+      "context": {
+        "results_with_a_qualifier": 39303,
+        "results_flagged": 335,
+        "token_yes": 0,
+        "token_no": 161,
+        "token_max": 6,
+        "token_high": 171,
+        "token_xhigh": 0,
+        "token_low_effort": 0,
+        "token_medium_effort": 0
+      }
+    },
+    "C5": {
+      "title": "column coherence",
+      "findings": 146,
+      "rules": {
+        "column-splits-comparability-key": 146
+      },
+      "context": {
+        "columns": 2092,
+        "columns_with_more_than_one_key": 146,
+        "results_in_columns": 34688,
+        "results_in_split_columns": 2436,
+        "results_with_no_anchor": 16225,
+        "results_with_no_column": 1365
+      }
+    },
+    "C9": {
+      "title": "duplicate artifact",
+      "findings": 187,
+      "rules": {
+        "same-artifact-and-url": 187
+      },
+      "context": {
+        "sources": 1483,
+        "sources_with_an_artifact_hash": 1453,
+        "artifact_hashes_held_by_more_than_one_source": 224
+      }
+    },
+    "C13": {
+      "title": "normalise or refuse",
+      "findings": 0,
+      "rules": {
+        "would-be-rewritten": 0
+      },
+      "context": {
+        "records": 93187,
+        "kinds": 17
+      }
+    }
+  }
+}

@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR 0005: Runnable recipes and independent runs</title>
+<style>
+html, body { margin: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+/* Layout: one reading column for prose, figures allowed a little wider; every section leads with its figure. */
+:root {
+  --bg: #f4f6f9; --surface: #ffffff; --fg: #1a2230; --muted: #5a6574; --line: #d3d9e2;
+  --accent: #1d5ea8; --accent-soft: #e2ebf7;
+  --real: #b0281f; --lead: #a76300; --explained: #4b6889; --fp: #7f8a99;
+  --high: #b0281f; --med: #a76300; --low: #66717f;
+  --display: Georgia, "Times New Roman", serif;
+  --body: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10151c; --surface: #17202a; --fg: #e4e9ef; --muted: #9ba6b4; --line: #2d3846;
+  --accent: #74abee; --accent-soft: #1b2a3d;
+  --real: #f08b80; --lead: #eeb25a; --explained: #8fb0d6; --fp: #8d97a5;
+  --high: #f08b80; --med: #eeb25a; --low: #a3adba; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #10151c; --surface: #17202a; --fg: #e4e9ef; --muted: #9ba6b4; --line: #2d3846;
+  --accent: #74abee; --accent-soft: #1b2a3d;
+  --real: #f08b80; --lead: #eeb25a; --explained: #8fb0d6; --fp: #8d97a5;
+  --high: #f08b80; --med: #eeb25a; --low: #a3adba; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body); }
+.wrap { max-width: 960px; margin: 0 auto; padding-block: 40px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 2.1rem; font-weight: 650; }
+h2 { font-size: 1.5rem; font-weight: 650; margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line); }
+h3 { font-size: 1.15rem; font-weight: 650; margin-top: 28px; }
+p, ul, ol { margin: 12px 0 0; }
+ul, ol { padding-left: 1.2em; }
+li + li { margin-top: 4px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px;
+  overflow-x: auto; font-family: var(--mono); font-size: 0.82rem; line-height: 1.55; margin: 16px 0 0; max-width: 72ch; }
+.eyebrow { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 16px; font-size: 0.92rem; color: var(--muted); }
+.meta b { color: var(--fg); font-weight: 600; }
+.status { display: inline-block; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--lead); color: var(--lead); font-weight: 600; font-size: 0.85rem; }
+.lede { font-size: 1.12rem; margin-top: 20px; max-width: 64ch; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 24px; }
+.summary > div { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.summary .k { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.summary p { margin-top: 6px; font-size: 0.95rem; }
+
+figure { margin: 24px 0 0; }
+figcaption { font-size: 0.88rem; color: var(--muted); margin-top: 8px; max-width: 72ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
+.scroll { overflow-x: auto; }
+.scroll svg { min-width: 620px; }
+svg { display: block; width: 100%; height: auto; }
+svg text { font-family: var(--body); }
+.bx { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+.bx2 { fill: var(--bg); stroke: var(--line); stroke-width: 1.2; }
+.bxa { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.4; }
+.bxr { fill: color-mix(in srgb, var(--real) 12%, var(--surface)); stroke: var(--real); stroke-width: 1.4; }
+.bxl { fill: color-mix(in srgb, var(--lead) 14%, var(--surface)); stroke: var(--lead); stroke-width: 1.4; }
+.t { fill: var(--fg); font-size: 13px; }
+.tb { fill: var(--fg); font-size: 13px; font-weight: 700; }
+.ts { fill: var(--muted); font-size: 11.5px; }
+.tn { fill: var(--fg); font-size: 11.5px; }
+.tr { fill: var(--real); font-size: 12px; font-weight: 600; }
+.ta { fill: var(--accent); font-size: 12px; font-weight: 600; }
+.tl { fill: var(--lead); font-size: 12px; font-weight: 600; }
+.big { fill: var(--fg); font-size: 22px; font-weight: 700; font-family: var(--display); }
+.hd { fill: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; }
+.ln { stroke: var(--muted); stroke-width: 1.4; fill: none; }
+.lna { stroke: var(--accent); stroke-width: 1.8; fill: none; }
+.lnr { stroke: var(--real); stroke-width: 1.8; fill: none; }
+.lnd { stroke: var(--accent); stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; }
+.grid { stroke: var(--line); stroke-width: 1; }
+.ah { fill: var(--muted); } .aha { fill: var(--accent); } .ahr { fill: var(--real); }
+.mn { font-family: var(--mono); font-size: 11px; fill: var(--fg); }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; margin-top: 16px; }
+.tbl table { min-width: 600px; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.opt { margin-top: 40px; }
+.opt-tag { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-family: var(--display); font-weight: 650; margin-right: 10px; }
+.opt h3 { display: flex; align-items: center; margin-top: 0; font-size: 1.3rem; }
+.rec { margin-left: 12px; font-family: var(--body); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 1px 9px; }
+.pc { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+.pc > div { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; }
+.pc h4 { margin: 0; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.pc .pro h4 { color: var(--accent); } .pc .con h4 { color: var(--real); }
+.pc ul { margin-top: 6px; font-size: 0.94rem; }
+
+.qa { display: grid; gap: 12px; margin-top: 20px; }
+.qa > div { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--lead); border-radius: 0 6px 6px 0; padding: 12px 16px; }
+.qa h4 { margin: 0; font-size: 1rem; font-family: var(--display); }
+.qa p { font-size: 0.94rem; }
+.qa .r { margin-top: 8px; font-size: 0.88rem; color: var(--muted); }
+.qa .r b { color: var(--fg); }
+
+.callout { margin-top: 20px; border-left: 3px solid var(--accent); padding: 10px 16px; background: var(--surface); border-radius: 0 6px 6px 0; max-width: 72ch; }
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 560px) { h1 { font-size: 1.7rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Architecture decision record 0005 · rewire-benchmark-data</div>
+  <h1 style="margin-top:8px">Runnable recipes and independent runs</h1>
+  <div class="meta">
+    <span><span class="status">Proposed</span></span>
+    <span><b>Date</b> 2026-11-17</span>
+    <span><b>Status line</b> Proposed 2026-11-17, four questions open</span>
+    <span><b>Decider</b> Tim Richardson</span>
+    <span><b>Issue</b> none named; this record is the first statement of the decision</span>
+  </div>
+  <div class="meta">
+    <span><b>Measured in</b> worktree <span class="mono">claims-arch-20261117</span> at <span class="mono">991a09e</span>, and in the siblings <span class="mono">rewire-database</span> and <span class="mono">rewire-benchmarks</span></span>
+  </div>
+  <p class="lede">Every model and benchmark should carry a how-to that a scientist can run, evidenced the way a result is evidenced, and promotable later into an independent Rewire run. The store already holds the mechanism and almost none of the coverage. This record weighs three ways to close that, picks one, and states the coverage ceiling honestly rather than promising a how-to on every record.</p>
+
+  <div class="summary">
+    <div><div class="k">Problem</div><p><code>run_recipes</code> covers 20 of 8,128 records and is barred from models by a validator gate. Of 85 instructions, 84 say they have never been executed, including three that passed a smoke check two months ago.</p></div>
+    <div><div class="k">Decision</div><p>Keep one how-to attribute, widen the gate to <code>model</code> and <code>pipeline</code>, make <code>purpose</code> the discriminator, structure four requirement blocks, require a dated receipt bound to the instruction by hash, and record an absence as a reason.</p></div>
+    <div><div class="k">Ceiling, stated up front</div><p>First pass 9 model checkpoints and 23 benchmarks, 32 new recipes. Ceiling with today's upstreams about 78 model records of 386 and 38 benchmarks of 128. Everything else carries a measured reason.</p></div>
+  </div>
+</header>
+
+<!-- ============ CONTEXT ============ -->
+<h2>Context</h2>
+
+<div class="prose">
+<p>Measured in this worktree, over <code>data/entities</code> and the validator source:</p>
+<ul>
+  <li><code>run_recipes</code> is on 20 of 8,128 entity records: 15 of 128 benchmarks and 5 of 1,562 protocols. That is 30 recipes and 85 instructions. 84 instructions are <code>source_reviewed_not_executed</code> and 1 is <code>executed</code>.</li>
+  <li><code>validateRunRecipes</code> (<code>shared/omics/run-recipe.ts:118</code>) throws <span class="mono">Recipes require an evaluation-design record</span> unless <code>isBenchmarkSubject(record.kind)</code>, which admits benchmark, task, protocol and evaluator. The attribute registry then declares the three <code>run_*</code> keys on benchmark (<code>attribute-registry.ts:34-36</code>) and protocol (<code>:498-500</code>) only. So 0 of 386 models, 0 of 618 methods, 0 of 133 pipelines and 0 of 5,564 configurations can carry a how-to at all.</li>
+  <li><code>protocol_id</code> and a two-value <code>purpose</code> enum are mandatory on a recipe. Neither has a meaning on a model.</li>
+  <li><code>requirements</code> is five free-text strings. 12 of the 30 recipes carry the same hardcoded sentence, <span class="mono">Not stated in the cited section. Several of these steps expect a GPU.</span>, emitted from a single <code>unknownHardware</code> constant at <code>scripts/omics/recipes/projects.ts:67</code>.</li>
+  <li>There is no cost, runtime or <code>verified_on</code> field anywhere, and <code>resource_estimate</code> is hardcoded <code>null</code> at four sites in <code>lib/baseline-coverage.ts</code>.</li>
+  <li>Three smoke checks dated 2026-09-20 sit unattached in <code>data/omics/reviewed/run-recipes/review.json</code>. All three recorded <code>snippet_sha256</code> values (<span class="mono">4992e2d1</span>, <span class="mono">ad1234dd</span>, <span class="mono">c9566b8c</span>) equal <code>sha256</code> of the python instruction now in the store, byte for byte with no trailing newline. The <code>command_line</code> siblings do not match. The file's own bytes hash to <span class="mono">09e0a292…924a</span> and are unchanged since commit <span class="mono">a1bfdcf3</span>.</li>
+  <li>8 of 128 benchmarks have a <code>rewirebench</code> protocol. 38 of 128 have a GitHub repository reachable from the record or a linked source; 15 of those already carry recipes, so 23 more are available from evidence already in the store.</li>
+</ul>
+<p>Two further measurements reframe the problem, and neither is in the brief that started this work.</p>
+</div>
+
+<h3>The model denominator is not 386</h3>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 450" role="img" aria-label="Of 386 model records, 308 are entity_level family and carry no recipe, 29 are checkpoints, 35 are services and 14 are methods. Of the 29 checkpoints, 9 carry a Hugging Face id plus a 40-hex revision and all 9 are bacformer, 1 reaches an id through a linked source, 11 have GitHub only and 8 have nothing. Of the 35 services, 13 have a GitHub link and 22 have nothing. Separately, of 128 benchmarks 38 have a reachable repository, 15 are covered and 23 are new.">
+      <defs><marker id="f1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <text x="200" y="14" class="hd">ENTITY_LEVEL, ON KIND MODEL</text>
+      <text x="440" y="14" class="hd">PINNABLE FROM TODAY'S EVIDENCE</text>
+
+      <rect x="10" y="120" width="150" height="70" rx="5" class="bx"/>
+      <text x="85" y="152" class="big" text-anchor="middle">386</text>
+      <text x="85" y="174" class="ts" text-anchor="middle">model records</text>
+
+      <rect x="200" y="26" width="200" height="46" rx="5" class="bx2"/>
+      <text x="214" y="46" class="tb">family</text><text x="388" y="46" class="tb" text-anchor="end">308</text>
+      <text x="214" y="64" class="ts">not a runnable artifact</text>
+      <rect x="200" y="96" width="200" height="46" rx="5" class="bxa"/>
+      <text x="214" y="116" class="tb">checkpoint</text><text x="388" y="116" class="tb" text-anchor="end">29</text>
+      <text x="214" y="134" class="ts">weights you can obtain</text>
+      <rect x="200" y="166" width="200" height="46" rx="5" class="bxa"/>
+      <text x="214" y="186" class="tb">service</text><text x="388" y="186" class="tb" text-anchor="end">35</text>
+      <text x="214" y="204" class="ts">hosted, called over an API</text>
+      <rect x="200" y="236" width="200" height="46" rx="5" class="bxa"/>
+      <text x="214" y="256" class="tb">method</text><text x="388" y="256" class="tb" text-anchor="end">14</text>
+      <text x="214" y="274" class="ts">entity_level, not kind</text>
+
+      <path d="M160,155 C180,155 180,49 196,49" class="ln" marker-end="url(#f1a)"/>
+      <path d="M160,155 C180,155 180,119 196,119" class="ln" marker-end="url(#f1a)"/>
+      <path d="M160,155 C180,155 180,189 196,189" class="ln" marker-end="url(#f1a)"/>
+      <path d="M160,155 C180,155 180,259 196,259" class="ln" marker-end="url(#f1a)"/>
+
+      <rect x="440" y="26" width="270" height="26" rx="4" class="bx2"/>
+      <text x="452" y="44" class="tn">0 runnable, reason <tspan font-family="ui-monospace, monospace">inapplicable</tspan></text>
+      <rect x="440" y="62" width="270" height="26" rx="4" class="bxa"/>
+      <text x="452" y="80" class="tn"><tspan font-weight="700">9</tspan>  HF id and 40-hex revision (bacformer)</text>
+      <rect x="440" y="94" width="270" height="26" rx="4" class="bx"/>
+      <text x="452" y="112" class="tn"><tspan font-weight="700">1</tspan>  HF id through a linked source</text>
+      <rect x="440" y="126" width="270" height="26" rx="4" class="bx"/>
+      <text x="452" y="144" class="tn"><tspan font-weight="700">11</tspan>  GitHub location only</text>
+      <rect x="440" y="158" width="270" height="26" rx="4" class="bx2"/>
+      <text x="452" y="176" class="tn"><tspan font-weight="700">8</tspan>  nothing to pin</text>
+      <rect x="440" y="194" width="270" height="26" rx="4" class="bx"/>
+      <text x="452" y="212" class="tn"><tspan font-weight="700">13</tspan>  GitHub link</text>
+      <rect x="440" y="226" width="270" height="26" rx="4" class="bx2"/>
+      <text x="452" y="244" class="tn"><tspan font-weight="700">22</tspan>  nothing to pin</text>
+      <rect x="440" y="258" width="270" height="26" rx="4" class="bx"/>
+      <text x="452" y="276" class="tn"><tspan font-weight="700">8</tspan>  GitHub link</text>
+
+      <path d="M400,49 L436,39" class="ln" marker-end="url(#f1a)"/>
+      <path d="M400,119 C420,119 418,75 436,75" class="ln" marker-end="url(#f1a)"/>
+      <path d="M400,119 C420,119 418,107 436,107" class="ln" marker-end="url(#f1a)"/>
+      <path d="M400,119 C420,119 418,139 436,139" class="ln" marker-end="url(#f1a)"/>
+      <path d="M400,119 C420,119 418,171 436,171" class="ln" marker-end="url(#f1a)"/>
+      <path d="M400,189 C420,189 418,207 436,207" class="ln" marker-end="url(#f1a)"/>
+      <path d="M400,189 C420,189 418,239 436,239" class="ln" marker-end="url(#f1a)"/>
+      <path d="M400,259 C420,259 418,271 436,271" class="ln" marker-end="url(#f1a)"/>
+
+      <text x="10" y="316" class="ts">Where the larger figures come from:</text>
+      <text x="10" y="334" class="ts">187 counts every model with a linked source on a GitHub or Hugging Face host.</text>
+      <text x="10" y="352" class="ts">38 counts a 40-hex code commit as a Hugging Face revision. 9 is what resolves today.</text>
+
+      <line x1="10" y1="372" x2="710" y2="372" class="grid"/>
+      <text x="10" y="394" class="hd">BENCHMARKS, THE OTHER HALF OF THE FIRST PASS</text>
+      <rect x="10" y="404" width="150" height="36" rx="5" class="bx"/>
+      <text x="85" y="427" class="tb" text-anchor="middle">128 benchmarks</text>
+      <rect x="200" y="404" width="200" height="36" rx="5" class="bxa"/>
+      <text x="300" y="427" class="tb" text-anchor="middle">38 reachable repository</text>
+      <rect x="440" y="404" width="130" height="36" rx="5" class="bx"/>
+      <text x="505" y="427" class="tn" text-anchor="middle">15 covered</text>
+      <rect x="580" y="404" width="130" height="36" rx="5" class="bxa"/>
+      <text x="645" y="427" class="tn" text-anchor="middle">23 new</text>
+      <path d="M160,422 L196,422" class="ln" marker-end="url(#f1a)"/>
+      <path d="M400,422 L436,422" class="ln" marker-end="url(#f1a)"/>
+    </svg>
+  </div>
+  <figcaption>Of 386 records of kind <code>model</code>, 308 are <code>entity_level: family</code>. A family is not a runnable artifact, so its how-to belongs on a checkpoint and its absence is a reason, not a gap. The obtain-and-run ceiling is 29 checkpoints plus 35 services, all of kind <code>model</code>; the 14 at <code>entity_level: method</code> are a separate thing from the 618 records of <code>kind: method</code>, which this decision excludes.</figcaption>
+</figure>
+
+<div class="prose">
+<p>The first pass for model how-tos is therefore 9 records from one project, bacformer. One example of what makes them pinnable: <code>bacformer-20261115-model-bacformer-causal-complete-genomes</code> carries <span class="mono">Public Hugging Face repository macwiatrak/bacformer-causal-complete-genomes, served at revision 6d2af6ac98f5aaf420ab33b475b891c8398e3bb9 on 2026-11-15.</span> The repository id, the pinned revision and the check date are all in one prose string today.</p>
+</div>
+
+<h3>Comparability by equality can never pass</h3>
+
+<div class="prose">
+<p>All 24,726 evaluations carry a <code>comparison</code> block. 18 of them are <code>rewire_run</code>, sitting on 7 protocols, and every one of those 7 protocols holds only <code>rewire_run</code> evaluations. Zero protocols carry both a Rewire run and a published number, so <code>protocol_id</code> differs on every real claim and always will, because the harness departs from the published protocol by construction.</p>
+<p>The fields are also filled at different rates and hold different kinds of thing. Among <code>author_reported</code> evaluations the comparison block fills <code>protocol_id</code> 13,610 times, <code>budget</code> 2,254 and <code>subset</code> 81. On the 18 <code>rewire_run</code> evaluations the fill is counted here: <code>protocol_id</code>, <code>dataset_version</code>, <code>split</code> and <code>population</code> on all 18, and <code>adaptation</code>, <code>aggregation</code>, <code>budget</code>, <code>inputs</code>, <code>metric_implementation</code> and <code>subset</code> on 14 each. <code>metric_implementation</code> is a 64-hex SDK code hash on our side (<span class="mono">08cbbaac…</span>, <span class="mono">fcc5ab65…</span>) against a metric name on the authors'. <code>dataset_version</code> is a record ID on our side and a provenance sentence on theirs: <span class="mono">Official FLIP2 manuscript; retrieved 2026-09-19; exact bytes pinned</span>. A gate requiring the nine contract fields to match would bind nothing, forever.</p>
+</div>
+
+<h3>Where a new key dies today</h3>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 300" role="img" aria-label="Three lanes. In this repository the validator gate at run-recipe.ts line 118 rejects a model-owned recipe, fixed by isRunnableSubject in PR 3. In rewire-database the website safeParses a strict schema inside a flatMap and returns an empty array, so a recipe with an unknown key vanishes, fixed by replacing five strict calls with passthrough in PR 0. In the knowledge-graph export the node branch calls addNode with an array, emitting one rdf:type triple, fixed by top-level node-list support in PR 2.">
+      <defs><marker id="f2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ahr"/></marker>
+      <marker id="f2b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="aha"/></marker></defs>
+      <text x="150" y="14" class="hd">WHERE IT DIES TODAY</text>
+      <text x="480" y="14" class="hd">WHAT FIXES IT</text>
+
+      <rect x="10" y="26" width="130" height="76" rx="5" class="bx"/>
+      <text x="22" y="48" class="tb">This repository</text>
+      <text x="22" y="68" class="ts">a recipe on a model</text>
+      <text x="22" y="86" class="ts">record</text>
+      <rect x="150" y="26" width="300" height="76" rx="5" class="bxr"/>
+      <text x="164" y="48" class="tb">validateRunRecipes throws</text>
+      <text x="164" y="68" class="mn">run-recipe.ts:118  isBenchmarkSubject</text>
+      <text x="164" y="88" class="ts">benchmark, task, protocol, evaluator only</text>
+      <rect x="480" y="34" width="230" height="60" rx="5" class="bxa"/>
+      <text x="494" y="56" class="tb">isRunnableSubject</text>
+      <text x="494" y="76" class="ts">adds model and pipeline · PR 3</text>
+      <path d="M450,64 L476,64" class="lna" marker-end="url(#f2b)"/>
+
+      <rect x="10" y="114" width="130" height="76" rx="5" class="bx"/>
+      <text x="22" y="136" class="tb">rewire-database</text>
+      <text x="22" y="156" class="ts">a recipe with any</text>
+      <text x="22" y="174" class="ts">new key</text>
+      <rect x="150" y="114" width="300" height="76" rx="5" class="bxr"/>
+      <text x="164" y="136" class="tb">the recipe vanishes from the site</text>
+      <text x="164" y="156" class="mn">RunRecipes.tsx:30-33  safeParse in flatMap</text>
+      <text x="164" y="176" class="ts">returns [] · the schema copy is .strict()</text>
+      <rect x="480" y="122" width="230" height="60" rx="5" class="bxa"/>
+      <text x="494" y="144" class="tb">.strict() to .passthrough()</text>
+      <text x="494" y="164" class="ts">five lines, lands first · PR 0</text>
+      <path d="M450,152 L476,152" class="lna" marker-end="url(#f2b)"/>
+
+      <rect x="10" y="202" width="130" height="76" rx="5" class="bx"/>
+      <text x="22" y="224" class="tb">Knowledge graph</text>
+      <text x="22" y="244" class="ts">run_recipes as a</text>
+      <text x="22" y="262" class="ts">node type</text>
+      <rect x="150" y="202" width="300" height="76" rx="5" class="bxr"/>
+      <text x="164" y="224" class="tb">one rdf:type triple, every field dropped</text>
+      <text x="164" y="244" class="mn">export.ts  addNode(..., value, key)</text>
+      <text x="164" y="264" class="ts">the value is an array; no declared field matches</text>
+      <rect x="480" y="210" width="230" height="60" rx="5" class="bxa"/>
+      <text x="494" y="232" class="tb">top-level node lists</text>
+      <text x="494" y="252" class="ts">one node per recipe · PR 2</text>
+      <path d="M450,240 L476,240" class="lna" marker-end="url(#f2b)"/>
+
+      <path d="M140,64 L146,64" class="lnr" marker-end="url(#f2a)"/>
+      <path d="M140,152 L146,152" class="lnr" marker-end="url(#f2a)"/>
+      <path d="M140,240 L146,240" class="lnr" marker-end="url(#f2a)"/>
+    </svg>
+  </div>
+  <figcaption>The first two drops are silent. The website drop is per recipe, not per section, so today's 30 recipes keep rendering and only a recipe with a new field disappears. That is why the five-line change in the sibling has to land before any new key is written to a record.</figcaption>
+</figure>
+
+<h3>Numbers that did not reproduce</h3>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Claim</th><th>Earlier figure</th><th>Measured here</th><th>Where the difference comes from</th></tr></thead>
+    <tbody>
+      <tr><td>Recipes carrying the hardcoded hardware sentence</td><td>13 of 30</td><td><b>12 of 30</b></td><td>Printing all 30 recipes and comparing against the one <code>unknownHardware</code> constant. The earlier figure was carried forward without a recount.</td></tr>
+      <tr><td>Model records available in a first pass</td><td>38, with a ceiling of about 173 or 187</td><td><b>9</b></td><td>187 counts any model with a linked source on a GitHub or Hugging Face host. 38 counts a 40-hex code commit as a Hugging Face revision. 9 carry a Hugging Face repository id plus a 40-hex revision in their own attributes, and all 9 are bacformer.</td></tr>
+      <tr><td>Engineering total for the whole sequence</td><td>about 1,400 lines</td><td><b>about 2,500 lines</b></td><td>The ten per-pull-request estimates below add to roughly 2,500. The smaller summary figure does not survive the addition, so the larger one is used.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>Disagreements settled by a measurement</h3>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Question</th><th>What settled it</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>Does a node type for <code>run_recipes</code> need a code change in <code>export.ts</code>, or do three entries in the node table suffice?</td><td>Reading the branch: <code>const subject = node(key)</code> then <code>addNode(subject, spec, value, key)</code> with the attribute value as the object. <code>run_recipes</code> is an array, so <code>Object.entries(spec.fields)</code> matches nothing.</td><td>A code change. Three node entries alone would ship an empty node.</td></tr>
+      <tr><td>Is <code>verified_on</code> required, or optional behind a waiver?</td><td><code>RunRecipes.tsx:30-33</code> plus the five <code>.strict()</code> sites in the sibling schema. The drop is per recipe, not per section, and the fix is five lines.</td><td>Required, behind a five-line change that lands first.</td></tr>
+      <tr><td>Comparability by string equality, or by per-field disposition?</td><td>The 18 <code>rewire_run</code> evaluations sit on 7 protocols and each of those 7 holds only <code>rewire_run</code> evaluations; <code>metric_implementation</code> is a code hash against a metric name.</td><td>Dispositions, with <code>unstated</code> and <code>form_mismatch</code> as first-class answers.</td></tr>
+      <tr><td>Does attaching the three 2026-09-20 smoke receipts need a test relaxed?</td><td><code>tests/omics-recipe-sources.test.ts:27-32</code> filters to recipe ids ending <code>-official</code> or <code>-rewirebench</code>, so the three <code>*-runner-control-v1</code> recipes fall outside every assertion, including the one that fixes the status.</td><td>No test is relaxed. The attachment is a clerical fix.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ OPTIONS ============ -->
+<h2>Options</h2>
+
+<section class="opt">
+  <h3><span class="opt-tag">A</span>Minimal extension</h3>
+  <div class="prose"><p>Admit <code>model</code> to the existing gate and add optional blocks beside the five requirement strings. Every new field optional, a grandfather clause so the 30 existing recipes validate unchanged, and the 791-line hardcoded <code>projects.ts</code> replaced by a declarative manifest.</p></div>
+  <div class="pc">
+    <div class="pro"><h4>Pros</h4><ul>
+      <li>Cheapest credible path and the strictest reversibility discipline. No record is rewritten.</li>
+      <li>Finds that the three smoke receipts attach with no test relaxed, and that the <code>review.json</code> pin is byte-correct.</li>
+      <li>A declarative manifest is the right shape for curation at scale.</li>
+    </ul></div>
+    <div class="con"><h4>Cons</h4><ul>
+      <li>Its coverage arithmetic does not survive measurement: 38 and 187 both count things that are not Hugging Face revisions, and its pilot criterion of four distinct projects cannot be constructed from 9 records that are all bacformer.</li>
+      <li>Silent on the <code>export.ts</code> gap that its own queryability step depends on.</li>
+      <li>Its literature-first check, that a new <code>rewire_run</code> must have no author-reported sibling on the same protocol, binds nothing: none of the 7 protocols has one and none will.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h3><span class="opt-tag">B</span>Execution first</h3>
+  <div class="prose"><p>A separate <code>run_spec</code> on the protocol mirroring the harness job manifest field for field, plus <code>model_runtime</code> on the model, a <code>spec_sha256</code> over a canonically emitted manifest, and a five-disposition comparability block with <code>departs_from</code>.</p></div>
+  <div class="pc">
+    <div class="pro"><h4>Pros</h4><ul>
+      <li>The highest factual precision of the three. Every measurement checked against the repository reproduced, including <code>validate_job</code> line for line.</li>
+      <li>Its two mechanisms are the only ones that make "promotable into an independent run" literally true: <code>spec_sha256</code> binds a receipt to exactly what ran and is recomputable with one command and no model, and the disposition block is the only comparability proposal the data supports.</li>
+      <li>Its GPU escalation gate is the first workable encoding of literature-first in either repository.</li>
+    </ul></div>
+    <div class="con"><h4>Cons</h4><ul>
+      <li><code>run_spec</code> applies to 8 harness protocols and to no model, so for 120 benchmarks and every model it falls back on the quoted-README path it declines to invest in.</li>
+      <li>It adds two attributes to a store that already carries <code>run_recipes</code>, <code>run_guide</code> and <code>run_documentation</code>, giving five how-to shapes.</li>
+      <li>It leaves <code>verified_on</code> optional behind a dated cutover, which is the wrong call: a receipt date is not a scientific value and the one existing date is evidenced twice over.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h3><span class="opt-tag">C</span>Reader and standards<span class="rec">Spine of the decision</span></h3>
+  <div class="prose"><p>The how-to is a generated reader view: every sentence on the card is a stored value, a <code>skos:definition</code> or a reviewed threshold, with a published coverage counter, staleness measured against <code>release_date</code>, and a nightly pin-drift check.</p></div>
+  <div class="pc">
+    <div class="pro"><h4>Pros</h4><ul>
+      <li>The only option that measured the surface a scientist reads, and the measurement is a real defect: the website component hand-writes how-to prose, including a hardcoded <code>protocol_id === "mfass-v2-frozen-encoder"</code> branch and a Python adapter snippet that are in no cited source.</li>
+      <li>The only one right about <code>export.ts</code>, and right to keep a leaf-path coverage test given that 5 of the review block's 12 keys already vanish before RDF.</li>
+      <li>Staleness against <code>release_date</code> rather than the wall clock is the only answer compatible with byte-reproducible releases. Its nightly tier is the one mechanism that would have caught the recorded gpn-star case, where the same URL served different bytes seven weeks apart.</li>
+      <li>Its coverage framing, every record carries a recipe or a reason and the ratio is published, is the right published artifact.</li>
+    </ul></div>
+    <div class="con"><h4>Cons</h4><ul>
+      <li>The costliest: roughly 2,000 lines over 8 to 10 weeks, two waiver files, three JSON-LD export families and a notebook emitter.</li>
+      <li>Two export targets have no consumer: <code>schema:HowTo</code> since Google retired HowTo rich results, and Croissant, which carries no runnable code.</li>
+      <li>It over-engineers around the website coupling, policing an optional <code>verified_on</code> with a declining waiver file when the fix is five lines in the sibling.</li>
+      <li>It widens the gate to <code>kind: method</code>, 618 records that are algorithms with no artifact to obtain, for no measured yield.</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============ DECISION ============ -->
+<h2>Decision</h2>
+
+<div class="prose">
+<p>Take option C as the spine, graft option B's two promotion mechanisms whole, hold to option A's schema discipline and first-pull-request scope, and replace both coverage stories with the measured denominator.</p>
+</div>
+
+<h3>1. One attribute, not three more</h3>
+<div class="prose">
+<p><code>run_recipes</code> stays the only how-to shape and <code>purpose</code> becomes the discriminator. <code>run_guide</code> (7 records) and <code>run_documentation</code> (39 records) are frozen: no new ones, none migrated, with a note in the docs saying so. Migrating 46 records produces no new evidence.</p>
+</div>
+
+<pre>purpose: z.enum([
+  "rescore_predictions",     // existing: recompute metrics from supplied predictions
+  "generate_and_evaluate",   // existing: generate predictions and evaluate them
+  "obtain_and_run",          // new: get the weights, load, run one example, read the output
+  "harness_run",             // new: a rewirebench job this repo emits and the sibling runs
+])</pre>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>purpose</th><th>owner kinds</th><th>protocol_id</th><th>harness_job</th></tr></thead>
+    <tbody>
+      <tr><td><code>rescore_predictions</code>, <code>generate_and_evaluate</code></td><td>benchmark, protocol</td><td>required</td><td>forbidden</td></tr>
+      <tr><td><code>obtain_and_run</code></td><td>model, pipeline</td><td>forbidden</td><td>forbidden</td></tr>
+      <tr><td><code>harness_run</code></td><td>protocol</td><td>required, must equal <code>record.id</code></td><td>required</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="prose"><p>The refinement runs inside <code>validateRunRecipes</code>, which already has <code>record.kind</code>.</p></div>
+
+<h3>2. The gate</h3>
+<pre>export const runnableSubjectKinds = [...benchmarkSubjectKinds, "model", "pipeline"] as const;
+export const isRunnableSubject = (kind: string): boolean =&gt;
+  (runnableSubjectKinds as readonly string[]).includes(kind);</pre>
+<div class="prose">
+<p><code>run-recipe.ts:118</code> switches to <code>isRunnableSubject</code>. The registry declares <code>run_recipes: "run-recipes"</code> on model and pipeline, and changes <code>benchmark:36</code> and <code>protocol:500</code> from <code>"json"</code> to <code>"run-recipes"</code>.</p>
+<p>Excluded, with counts. <code>kind: method</code>, 618 records: an algorithm with no artifact to obtain. <code>kind: configuration</code>, 5,564 records: a parameter set that inherits its how-to through <code>configuration_of</code>. <code>kind: service</code>, 6 records: the 35 real hosted services are <code>kind: model</code> at <code>entity_level: service</code> and are already admitted, so no <code>api</code> runtime value is added either; a provider how-to is a curl or python snippet the existing runtime enum covers. <code>kind: pipeline</code>, 133 records, is admitted because a pipeline is a runnable composition, and its yield is measured before curation is spent on it.</p>
+</div>
+
+<h3>3. The family rule, which is the real coverage answer</h3>
+<div class="prose">
+<p>A model at <code>entity_level: family</code> carries no recipe. Its absence is recorded as <code>missing_metadata.run_recipes = {reason: "inapplicable", note: "&lt;checkpoint record ids&gt;"}</code>. That is 308 of 386 model records. <code>unextracted</code> stays for a record whose code location was never read, and <code>unavailable</code> for a record whose source states there is no public code. Three different claims, kept different, all from <code>data/vocab/missingness.ttl</code>.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Subject</th><th class="num">Runnable records</th><th>Pinnable from today's evidence</th></tr></thead>
+    <tbody>
+      <tr><td>kind <code>model</code>, <code>entity_level: checkpoint</code></td><td class="num">29</td><td>9 (bacformer, one project), plus 1 through a linked source</td></tr>
+      <tr><td>kind <code>model</code>, <code>entity_level: service</code></td><td class="num">35</td><td>13 have a GitHub link, 22 have nothing</td></tr>
+      <tr><td>kind <code>model</code>, <code>entity_level: method</code></td><td class="num">14</td><td>8 have a GitHub link</td></tr>
+      <tr><td>kind <code>model</code>, <code>entity_level: family</code></td><td class="num">0</td><td>Not applicable; reason <code>inapplicable</code> on 308 records</td></tr>
+      <tr><td>kind <code>benchmark</code></td><td class="num">128</td><td>38 reachable, 15 covered, 23 new</td></tr>
+      <tr><td>kind <code>protocol</code>, <code>harness_run</code></td><td class="num">8</td><td>8</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="callout">
+  <p>First pass, stated plainly: <b>9 model checkpoints and 23 benchmarks, 32 new recipes.</b> Not 38 models, not 61 recipes. The ceiling with today's upstreams is about 78 model records of 386 and 38 benchmarks of 128. Everything else carries a measured reason.</p>
+</div>
+
+<h3>4. Four structured blocks, and nothing else</h3>
+<div class="prose">
+<p>Additive. Every new field optional, and the five requirement strings keep their bytes. Only four things gain structure, because only these four are checkable without a reader.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Block</th><th>What it carries</th><th>The rule that fires</th></tr></thead>
+    <tbody>
+      <tr><td><code>weights_pin</code></td><td>host, repository id, 40-hex revision, per-file SHA-256, licence, gated flag, <code>resolved_on</code></td><td>A revision is required when the host is Hugging Face or GitHub, and must be 40 hex.</td></tr>
+      <tr><td><code>environment</code></td><td>container image, <code>sha256:</code> digest, runtime, python version, lockfile path and hash</td><td>A container is referenced by digest. A tag-only reference fails the lint.</td></tr>
+      <tr><td><code>hardware_floor</code></td><td>accelerator kind, model, count, memory, host memory, disk, wall clock, and a <code>basis</code> of <code>source_stated</code> or <code>measured_by_rewire</code></td><td>Every figure carries its basis, so a measured number cannot be read as a source-stated one.</td></tr>
+      <tr><td><code>expected_output</code></td><td>description, labelled values with optional metric id, unit and tolerance, artifact path and hash, row count, a stdout substring</td><td>So a reader can tell whether their run worked. No field is invented when the source does not state one.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="prose">
+<p>One rule carries the no-invention discipline: each of the four blocks is either present or named exactly once in <code>requirements.missing</code>, with a reason from the missingness vocabulary. It fires unconditionally for <code>obtain_and_run</code> and <code>harness_run</code> recipes and for every manifest-built recipe, and conditionally for the 30 pre-existing ones, which carry none of the four blocks and so validate untouched. The 12 recipes whose <code>requirements.hardware</code> reads <span class="mono">Not stated in the cited section…</span> keep that string and gain <code>missing.hardware_floor = {reason: "unreported"}</code> beside it. Nothing is rewritten.</p>
+<p><code>licence</code>, <code>data</code> and <code>software</code> stay prose, because what matters in them is sentences a schema would force into paraphrase. The price, stated: two places then hold the same hardware fact, and nothing deterministic can check they agree.</p>
+</div>
+
+<h3>5. The receipt, and what binds it to what ran</h3>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 392" role="img" aria-label="Five binding relationships, each with the command that rechecks it. An instruction's code binds to code_sha256 and is rechecked with shasum. A cited line range binds to the source's artifact_sha256 and is rechecked by re-cutting the range from the archived bytes. Model weights bind to a 40-hex revision in weights_pin, rechecked with a dry-run download. A container binds to a sha256 digest. An emitted job manifest binds to spec_sha256, rechecked by canonicalising and hashing.">
+      <defs><marker id="f3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="aha"/></marker></defs>
+      <text x="10" y="14" class="hd">WHAT IS BOUND</text>
+      <text x="300" y="14" class="hd">THE FIELD THAT HOLDS THE BINDING</text>
+
+      <rect x="10" y="24" width="250" height="44" rx="5" class="bx"/>
+      <text x="22" y="44" class="tb">the instruction's code</text><text x="22" y="61" class="ts">as stored in the record</text>
+      <rect x="300" y="24" width="250" height="44" rx="5" class="bxa"/>
+      <text x="312" y="44" class="tb">code_sha256</text><text x="312" y="61" class="ts">in verified_against</text>
+      <path d="M260,46 L296,46" class="lna" marker-end="url(#f3a)"/>
+      <text x="10" y="84" class="mn">recheck: shasum -a 256, no trailing newline. The three 2026-09-20 snippets match; command_line ones do not</text>
+
+      <rect x="10" y="96" width="250" height="44" rx="5" class="bx"/>
+      <text x="22" y="116" class="tb">the quoted line range</text><text x="22" y="133" class="ts">README.md at 6d2af6ac, lines 41-58</text>
+      <rect x="300" y="96" width="250" height="44" rx="5" class="bxa"/>
+      <text x="312" y="116" class="tb">artifact_sha256</text><text x="312" y="133" class="ts">64 hex, on the cited source</text>
+      <path d="M260,118 L296,118" class="lna" marker-end="url(#f3a)"/>
+      <text x="10" y="156" class="mn">recheck: re-cut the range from the archived bytes and compare. Every cited source sits on the owner.</text>
+
+      <rect x="10" y="168" width="250" height="44" rx="5" class="bx"/>
+      <text x="22" y="188" class="tb">the weights</text><text x="22" y="205" class="ts">at one Hugging Face revision</text>
+      <rect x="300" y="168" width="250" height="44" rx="5" class="bxa"/>
+      <text x="312" y="188" class="tb">weights_pin.revision</text><text x="312" y="205" class="ts">40 hex, required for that host</text>
+      <path d="M260,190 L296,190" class="lna" marker-end="url(#f3a)"/>
+      <text x="10" y="228" class="mn">recheck: hf download &lt;repo_id&gt; --revision &lt;rev&gt; --dry-run. Resolves the pin without downloading weights.</text>
+
+      <rect x="10" y="240" width="250" height="44" rx="5" class="bx"/>
+      <text x="22" y="260" class="tb">the environment</text><text x="22" y="277" class="ts">one container image</text>
+      <rect x="300" y="240" width="250" height="44" rx="5" class="bxa"/>
+      <text x="312" y="260" class="tb">container_digest</text><text x="312" y="277" class="ts">pin and receipt must agree</text>
+      <path d="M260,262 L296,262" class="lna" marker-end="url(#f3a)"/>
+      <text x="10" y="300" class="mn">recheck: the reference is sha256:&lt;64 hex&gt;, never a tag. A tag-only reference fails the lint.</text>
+
+      <rect x="10" y="312" width="250" height="44" rx="5" class="bx"/>
+      <text x="22" y="332" class="tb">the harness job</text><text x="22" y="349" class="ts">the manifest this repo emits</text>
+      <rect x="300" y="312" width="250" height="44" rx="5" class="bxa"/>
+      <text x="312" y="332" class="tb">spec_sha256</text><text x="312" y="349" class="ts">required on a harness_run</text>
+      <path d="M260,334 L296,334" class="lna" marker-end="url(#f3a)"/>
+      <text x="10" y="372" class="mn">recheck: recipes -- manifest &lt;id&gt;, canonicalise, then shasum. One command, no model.</text>
+    </svg>
+  </div>
+  <figcaption>A receipt is a claim that something ran. Each row is the claim's attachment point, and each recheck is a command a reviewer runs, never a judgement a model makes. <code>validateRunRecipes</code> throws when a <code>synthetic_smoke</code> receipt's <code>code_sha256</code> does not equal <code>sha256(instruction.code)</code>, so <code>records -- check</code> refuses the change and the store never holds a receipt that has drifted from its instruction.</figcaption>
+</figure>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Rule</th><th>What it says</th></tr></thead>
+    <tbody>
+      <tr><td><code>verified_on</code> required</td><td>An ISO date on every receipt. The one existing <code>executed</code> receipt is backfilled with 2026-10-12, carried by both the receipt source's <code>retrieved_at</code> and <code>docs/reviews/2026-10-12-mfass-recipe-receipt.md</code>. A receipt date is not a scientific value, so the no-rewrite constraint does not bar it. Safe only after the sibling change lands.</td></tr>
+      <tr><td><code>receipt_kind</code></td><td>Names who produced the execution and only that: <code>runner_ci_smoke</code> and <code>runner_reproduction</code> come from rewire-benchmarks at a commit, <code>local_execution</code> is a run an agent performed on a named platform outside both CI systems, which is what the three 2026-09-20 checks are. <code>local_execution</code> may not claim <code>full_protocol</code> and may not carry <code>measured.realtime_seconds</code> or <code>peak_rss_gb</code>, because nothing instrumented it.</td></tr>
+      <tr><td>Reviewer check is a separate axis</td><td>How the data-repo reviewer verified a receipt belongs in the record's <code>review</code> block, where under two-pass review it is always a byte check. A <code>reviewer_byte_check</code> value on the receipt would have labelled three real executions as a byte check.</td></tr>
+      <tr><td>Cost</td><td><code>computed_usd</code> requires <code>paid_compute: true</code> plus an hourly rate, a rate source id and a rate date. <code>paid_compute: false</code> forbids every money field. No dated price source, no dollar figure. This is also what lets <code>resource_estimate</code> in <code>lib/baseline-coverage.ts</code> stop being hardcoded null.</td></tr>
+      <tr><td>Receipt location</td><td><code>synthetic_smoke</code> may cite an in-repo artifact at a 40-hex commit of this repo. <code>selected_assay</code> and <code>full_protocol</code> must cite <code>raw.githubusercontent.com/rewire-bio/rewire-benchmarks/&lt;40-hex&gt;/…</code>, the only form <code>scripts/omics/review-submitted-runs.py:17</code> admits.</td></tr>
+      <tr><td>Who may write one</td><td>The reviewer, in the review pass, from an artifact a runner produced. The extractor may propose <code>source_reviewed_not_executed</code> instructions and nothing else. Stated honestly: this cannot be enforced in code today, because every reviewer in the store records the agent concept <code>claude</code>, <code>codex</code>, <code>claude-sonnet</code> or a script, and <code>data/vocab/agent.ttl</code> has no per-role concept. Adding <code>extraction-agent</code> and <code>review-agent</code> is a one-file change.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>6. Evidencing an instruction</h3>
+<div class="prose">
+<p>Unchanged, because it already works: per-instruction <code>source_ids</code> plus <code>source_locator</code>, every cited source a <code>source</code> record on the owner with a 64-hex <code>artifact_sha256</code>. A Hugging Face model card is <code>README.md</code>, so the locator form the existing test enforces fits with no regex change: <span class="mono">README.md at 6d2af6ac, How to use, lines 41-58</span>. The deep link for a GitHub source is a blob URL with a <code>#L&lt;a&gt;-L&lt;b&gt;</code> anchor; whether Hugging Face blob pages honour the same anchor is unmeasured, so the Hugging Face link is emitted without one until someone checks.</p>
+<p>The grammar moves into one module, <code>shared/omics/run-locator.ts</code>, with one parser and one <code>deepLink()</code>, and the regex now duplicated in <code>tests/omics-recipe-sources.test.ts</code> is imported from it. A link is built, never stored, so a stored record cannot carry a wrong one. The archived bytes are named by <code>source.attributes.artifact</code>, a declared key used by 0 of 1,483 sources today; recipes are its first use.</p>
+</div>
+
+<h3>7. Comparability, and the departure that is real</h3>
+<div class="prose">
+<p>A recipe may carry a <code>comparison</code> block over the nine contract fields plus <code>subset</code>, each evidenced. An evaluation's <code>reproduction</code> gains a <code>comparison_basis</code> naming the author-reported evaluation compared against, a disposition for every one of the ten fields, and at least one stated limitation. Enforcement is offline and model-free.</p>
+</div>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Disposition</th><th>What the validator requires</th></tr></thead>
+    <tbody>
+      <tr><td><code>equal</code></td><td>The two strings match, both ways.</td></tr>
+      <tr><td><code>equivalent</code></td><td>A note, and the two values must differ.</td></tr>
+      <tr><td><code>differs</code></td><td>A note, and the two values must differ.</td></tr>
+      <tr><td><code>form_mismatch</code></td><td>A note, and the two values must differ. This is the honest answer for a code hash against a metric name.</td></tr>
+      <tr><td><code>unstated</code></td><td>The published value is null, empty, or one of <code>unreported</code>, <code>not stated</code>, <code>not reported</code>.</td></tr>
+      <tr><td>Omitted</td><td>An error. All ten fields carry a disposition or the claim fails.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="prose">
+<p>The verdict is derived, never stored: comparable only if the four identity fields (<code>protocol_id</code>, <code>dataset_version</code>, <code>split</code>, <code>subset</code>) are all <code>equal</code> and no field is <code>differs</code> or <code>form_mismatch</code>, except that <code>budget</code> at <code>differs</code> is permitted, because compute budget does not change what is measured.</p>
+<p><code>departs_from</code> is required on a <code>harness_run</code> recipe whose owner is a <code>rewire-*</code> protocol: the published protocol it departs from, which fields, why, whether the departure is closable, and what closing it would take. All 7 protocols carrying a <code>rewire_run</code> are in that position today, and the departure currently lives in a prose description.</p>
+<p>Literature-first is encoded as a gate on compute, not as a sibling check. <code>gpu_count &gt; 0</code> requires an <code>escalation</code> block naming at least one pinned source, a gap statement, and which comparison fields no published evaluation of that protocol satisfies. No named gap, no GPU run, refused by a validator.</p>
+</div>
+
+<h3>8. Export and the reader surface</h3>
+<div class="prose">
+<p><code>run_recipes</code> changes registry type from <code>json</code> to <code>run-recipes</code>, a node type, which needs the top-level node-list change in <code>scripts/kg/export.ts</code> described above: one node minted per recipe at <code>&lt;record IRI&gt;/run_recipes/&lt;i&gt;</code>, reusing the nested path that already handles derivation inputs. A leaf-path coverage test asserts that for every recipe in the store the set of JSON leaf paths equals the set the node spec exports, because the review block already proved the silent-drop mode: 5 of its 12 keys never reach RDF.</p>
+<p>Four new SKOS schemes in <code>data/vocab</code> (<code>runtime</code>, <code>execution-status</code>, <code>receipt-scope</code>, <code>recipe-purpose</code>) are required anyway, because 17 <code>rbs:*Concept</code> shapes test <code>skos:inScheme</code>. Their <code>skos:definition</code> strings become the sentences the reader sees. That fixes a verified defect: the website component today hand-writes <span class="mono">Source reviewed; these instructions have not been executed by rewire.</span>, a hardcoded <code>protocol_id === "mfass-v2-frozen-encoder"</code> branch and a Python adapter snippet, none of which is in a cited source.</p>
+<p>The card is computed here, in <code>shared/omics/run-card.ts</code>, as a pure projection added to <code>generatorFiles</code> in <code>scripts/serving/sqlite.ts</code> and stored as a gzipped blob in a new <code>run_cards</code> table. No sentence on it is written by a renderer: each is a stored value, a <code>skos:definition</code>, or a fixed sentence from <code>data/ontology/recipe-freshness.json</code>. Staleness is computed against <code>release_date</code>, never the wall clock. The default badge, on 81 of 85 steps after the first batch, says plainly that nobody has checked the commands still work, and the catalogue publishes the ratio as a number.</p>
+<p>Exports are cut to what has a consumer. Kept: FAIR4ML as an export view only (<code>fair4ml:usageInstructions</code>, <code>fair4ml:codeSampleSnippet</code>, <code>schema:*Requirements</code>), because it is the only vocabulary with first-class runnable-code properties on a model, and rejected as the stored shape because 0.1.0 has no evidence pinning, no verification date and no release since 2024-10-28. Kept: the Containerfile emitter, which exits 2 naming the missing field rather than guessing a tag.</p>
+</div>
+
+<!-- ============ VERIFICATION ============ -->
+<h2 id="verification">How it is verified</h2>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 364" role="img" aria-label="Four checking tiers. Tier 0 is an offline lint in this repository on every pull request and writes nothing. Tier 1 is a nightly network resolve in this repository that writes a dated check file. Tier 2 is CPU execution in rewire-benchmarks that writes one receipt per recipe. Tier 3 is GPU work, not in CI, gated by an escalation block. Tiers 0 and 1 execute no snippet.">
+      <defs><marker id="f4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <rect x="10" y="26" width="166" height="222" rx="5" class="bxa"/>
+      <text x="22" y="48" class="tb">Tier 0  lint</text>
+      <text x="22" y="68" class="ts">this repo, offline</text>
+      <line x1="22" y1="78" x2="164" y2="78" class="grid"/>
+      <text x="22" y="96" class="tn">every pull request</text>
+      <text x="22" y="118" class="ts">bash -n on shell</text>
+      <text x="22" y="134" class="ts">ast.parse on python</text>
+      <text x="22" y="150" class="ts">digests and revisions</text>
+      <text x="22" y="166" class="ts">locators parse</text>
+      <text x="22" y="182" class="ts">placeholders refused</text>
+      <text x="22" y="198" class="ts">code_sha256 equality</text>
+      <text x="22" y="214" class="ts">missing-block rule</text>
+      <text x="22" y="238" class="ta">writes: nothing</text>
+
+      <rect x="188" y="26" width="166" height="222" rx="5" class="bxa"/>
+      <text x="200" y="48" class="tb">Tier 1  resolve</text>
+      <text x="200" y="68" class="ts">this repo, network</text>
+      <line x1="200" y1="78" x2="342" y2="78" class="grid"/>
+      <text x="200" y="96" class="tn">nightly</text>
+      <text x="200" y="118" class="ts">re-fetch every pinned</text>
+      <text x="200" y="134" class="ts">artifact, compare it</text>
+      <text x="200" y="150" class="ts">resolve each pin with</text>
+      <text x="200" y="166" class="ts">a dry-run download</text>
+      <text x="200" y="190" class="ts">no model code runs</text>
+      <text x="200" y="214" class="ta">writes: one dated</text>
+      <text x="200" y="230" class="ta">check file</text>
+      <text x="200" y="246" class="ts">a drift is a finding</text>
+
+      <rect x="366" y="26" width="166" height="222" rx="5" class="bx"/>
+      <text x="378" y="48" class="tb">Tier 2  CPU smoke</text>
+      <text x="378" y="68" class="ts">rewire-benchmarks</text>
+      <line x1="378" y1="78" x2="520" y2="78" class="grid"/>
+      <text x="378" y="96" class="tn">the sibling's CI</text>
+      <text x="378" y="118" class="ts">instructions a manifest</text>
+      <text x="378" y="134" class="ts">marks cpu_smoke</text>
+      <text x="378" y="150" class="ts">digest-pinned image</text>
+      <text x="378" y="166" class="ts">--require-hashes locks</text>
+      <text x="378" y="182" class="ts">HF_HUB_OFFLINE=1</text>
+      <text x="378" y="214" class="ta">writes: one receipt</text>
+      <text x="378" y="230" class="ta">per recipe, and</text>
+      <text x="378" y="246" class="ta">a SHA256SUMS file</text>
+
+      <rect x="544" y="26" width="166" height="222" rx="5" class="bx2"/>
+      <text x="556" y="48" class="tb">Tier 3  GPU</text>
+      <text x="556" y="68" class="ts">not in CI</text>
+      <line x1="556" y1="78" x2="698" y2="78" class="grid"/>
+      <text x="556" y="96" class="tn">by escalation only</text>
+      <text x="556" y="118" class="ts">needs a named gap in</text>
+      <text x="556" y="134" class="ts">the literature, a pinned</text>
+      <text x="556" y="150" class="ts">source, and the fields</text>
+      <text x="556" y="166" class="ts">no published run of</text>
+      <text x="556" y="182" class="ts">that protocol satisfies</text>
+      <text x="556" y="214" class="tl">no gap, no run</text>
+      <text x="556" y="238" class="ts">refused by a validator</text>
+
+      <path d="M176,137 L184,137" class="ln" marker-end="url(#f4a)"/>
+      <path d="M354,137 L362,137" class="ln" marker-end="url(#f4a)"/>
+      <path d="M532,137 L540,137" class="ln" marker-end="url(#f4a)"/>
+
+      <line x1="10" y1="268" x2="710" y2="268" class="grid"/>
+      <text x="10" y="290" class="tn">Tiers 0 and 1 execute no snippet. Execution lives in the sibling because review-submitted-runs.py</text>
+      <text x="10" y="308" class="tn">admits a receipt only from rewire-benchmarks at a 40-hex commit, so a receipt produced here would</text>
+      <text x="10" y="326" class="tn">have nowhere admissible to live.</text>
+      <text x="10" y="348" class="ts">Of six comparable projects examined, none runs a scheduled GPU job. lm-evaluation-harness smoke-tests</text>
+      <text x="10" y="362" class="ts">pythia-14m-deduped on CPU, HELM runs simple/model1 on 10 instances, OpenProblems runs viash test on 2 CPUs.</text>
+    </svg>
+  </div>
+  <figcaption>Three of the four tiers are free. Known lint failures live in <code>data/omics/recipes/lint-waivers.json</code> with a reason each and a test that the file never grows. A release pins its check ledger by path and hash in <code>data/omics/release-config.json</code>, and the card takes the ledger as an argument rather than reading the newest file, so a nightly run can never change an old release's bytes.</figcaption>
+</figure>
+
+<!-- ============ IMPLEMENTATION ============ -->
+<h2>Implementation sequence</h2>
+
+<figure>
+  <div class="panel scroll">
+    <svg viewBox="0 0 720 350" role="img" aria-label="Ten pull requests with their dependencies. PR 0 in rewire-database unblocks PR 1, which leads to PR 2. PR 2 unblocks both PR 3 and PR 5. PR 3 leads to PR 4, PR 4 to PR 6. PR 7 needs PR 5 and PR 6. PR 8 needs PR 5. PR 9 needs PR 7 and PR 8.">
+      <defs><marker id="f5a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="aha"/></marker></defs>
+      <text x="124" y="20" class="hd">PULL REQUEST</text>
+      <text x="502" y="20" class="hd">EFFORT, AND REPOSITORY</text>
+
+      <rect x="124" y="30" width="360" height="24" rx="4" class="bxl"/>
+      <text x="136" y="47" class="tn"><tspan font-weight="700">PR 0</tspan>  five .strict() calls become .passthrough()</text>
+      <text x="500" y="47" class="ts">under an hour · rewire-database</text>
+
+      <rect x="124" y="62" width="360" height="24" rx="4" class="bxa"/>
+      <text x="136" y="79" class="tn"><tspan font-weight="700">PR 1</tspan>  schema, lint, vocab, and attach what already ran</text>
+      <text x="500" y="79" class="ts">about 350 lines, 2 to 3 days</text>
+
+      <rect x="124" y="94" width="360" height="24" rx="4" class="bx"/>
+      <text x="136" y="111" class="tn"><tspan font-weight="700">PR 2</tspan>  make a recipe queryable: node lists, node types</text>
+      <text x="500" y="111" class="ts">about 200 lines, 2 days</text>
+
+      <rect x="124" y="126" width="360" height="24" rx="4" class="bx"/>
+      <text x="136" y="143" class="tn"><tspan font-weight="700">PR 3</tspan>  the gate, and the measured coverage artifact</text>
+      <text x="500" y="143" class="ts">about 320 lines, 3 days</text>
+
+      <rect x="124" y="158" width="360" height="24" rx="4" class="bx"/>
+      <text x="136" y="175" class="tn"><tspan font-weight="700">PR 4</tspan>  the first model batch: 9 bacformer checkpoints</text>
+      <text x="500" y="175" class="ts">curation, roughly 12 hours</text>
+
+      <rect x="152" y="190" width="332" height="24" rx="4" class="bx"/>
+      <text x="164" y="207" class="tn"><tspan font-weight="700">PR 5</tspan>  comparability on the evaluation side, two claims</text>
+      <text x="500" y="207" class="ts">about 240 lines, 2 to 3 days</text>
+
+      <rect x="124" y="222" width="360" height="24" rx="4" class="bx"/>
+      <text x="136" y="239" class="tn"><tspan font-weight="700">PR 6</tspan>  the nightly resolve and the release ledger pin</text>
+      <text x="500" y="239" class="ts">about 200 lines, 2 days</text>
+
+      <rect x="124" y="254" width="360" height="24" rx="4" class="bx"/>
+      <text x="136" y="271" class="tn"><tspan font-weight="700">PR 7</tspan>  the reader card and the honesty counter</text>
+      <text x="500" y="271" class="ts">about 400 lines · both repos</text>
+
+      <rect x="152" y="286" width="332" height="24" rx="4" class="bx"/>
+      <text x="164" y="303" class="tn"><tspan font-weight="700">PR 8</tspan>  the harness path: job manifest and departures</text>
+      <text x="500" y="303" class="ts">about 450 lines, 4 to 5 days</text>
+
+      <rect x="124" y="318" width="360" height="24" rx="4" class="bx"/>
+      <text x="136" y="335" class="tn"><tspan font-weight="700">PR 9</tspan>  CPU smoke, the first runner receipt, FAIR4ML export</text>
+      <text x="500" y="335" class="ts">about 350 lines · both repos</text>
+
+      <path d="M112,54 L112,58" class="lna" marker-end="url(#f5a)"/>
+      <path d="M112,86 L112,90" class="lna" marker-end="url(#f5a)"/>
+      <path d="M112,118 L112,122" class="lna" marker-end="url(#f5a)"/>
+      <path d="M112,150 L112,154" class="lna" marker-end="url(#f5a)"/>
+      <path d="M112,182 L112,218" class="lna" marker-end="url(#f5a)"/>
+      <path d="M112,118 C130,126 140,150 140,186" class="lna" marker-end="url(#f5a)"/>
+      <path d="M140,214 C138,230 128,240 118,250" class="lna" marker-end="url(#f5a)"/>
+      <path d="M112,246 L112,250" class="lna" marker-end="url(#f5a)"/>
+      <path d="M140,214 L140,282" class="lna" marker-end="url(#f5a)"/>
+      <path d="M112,278 C96,290 96,308 110,314" class="lna" marker-end="url(#f5a)"/>
+      <path d="M140,310 C140,316 122,306 120,314" class="lna" marker-end="url(#f5a)"/>
+      <text x="10" y="200" class="ts">Arrows read</text>
+      <text x="10" y="216" class="ts">bottom of the</text>
+      <text x="10" y="232" class="ts">blocker to top</text>
+      <text x="10" y="248" class="ts">of the blocked.</text>
+    </svg>
+  </div>
+  <figcaption>PR 0 is in rewire-database and must land first, because any recipe carrying a new key is silently dropped from the website until it does. PR 4 is curation, not code. The nine code pull requests add to roughly 2,500 lines, against roughly 3,000 if all three options were grafted whole.</figcaption>
+</figure>
+
+<h3>What the first pull request in this repository contains</h3>
+<div class="prose">
+<p>PR 1 is schema, lint and attaching what already exists. No gate change, no network, no new science.</p>
+<ul>
+  <li><code>shared/omics/entity-kinds.ts</code>: <code>runnableSubjectKinds</code> and <code>isRunnableSubject</code>, exported but not yet used by the gate.</li>
+  <li><code>shared/omics/run-recipe.ts</code>: the two new <code>purpose</code> values with their kind refinements, the four optional requirement blocks plus <code>requirements.missing</code> and the exhaustiveness rule, and the receipt with required <code>verified_on</code>, <code>receipt_kind</code> and <code>verified_against.code_sha256</code>, the <code>code_sha256</code> equality check and the receipt-location rule.</li>
+  <li><code>shared/omics/run-locator.ts</code>: one grammar, one parser, one <code>deepLink()</code>. The regex is deleted from the test and imported from here.</li>
+  <li>The four vocabulary files, the <code>recipes -- lint</code> task in <code>.github/workflows/data.yml</code>, and the waiver file with its non-growth test.</li>
+  <li>One new <code>source</code> record for <code>data/omics/reviewed/run-recipes/review.json</code>, pinned at commit <span class="mono">a1bfdcf3e18b5f43546974b3f0a5f72690a2e014</span> with <code>artifact_sha256</code> <span class="mono">09e0a2920bb5037dac85d2319a11cc90d32604130020de89287aa3313067924a</span>, verified against both the committed object and the working tree, with its id appended to <code>source_ids</code> on the three benchmark records because the citation rule requires a receipt source to be on the owner.</li>
+  <li>Four reviewed <code>records -- change</code> invocations against one dated review document. The python instruction of <code>mrnabench-sample-runner-control-v1</code>, <code>dart-task1-runner-control-v1</code> and <code>flip2-runner-control-v1</code> moves to <code>smoke_tested</code> with scope <code>synthetic_smoke</code>, <code>receipt_kind: local_execution</code>, <code>verified_on: 2026-09-20</code> and platform <span class="mono">macOS arm64; Python 3.11.13</span>. The one <code>executed</code> instruction on <code>mfass-v2-baseline</code> gains <code>verified_on: 2026-10-12</code>, <code>receipt_kind: runner_reproduction</code> and its <code>code_sha256</code>. Each change keeps the previous value in a metadata-correction claim, because the previous value was not wrong but under-claimed.</li>
+  <li>The recipe paragraph, the receipt rules and literature-first written into <code>docs/record-contract.md</code> and <code>docs/collection.md</code> for the first time.</li>
+  <li>A finding recorded, not fixed: <code>scripts/omics/recipes/build.ts</code> can no longer be re-run from this worktree. The <code>records.jsonl</code> and <code>overlays.json</code> it reads and rewrites were deleted in commit <span class="mono">11d2fce</span>, and the pinned-artifact directory it takes as its second argument is not in the tree.</li>
+</ul>
+<p>PR 1 must not contain:</p>
+<ul>
+  <li>Any change to the gate at <code>run-recipe.ts:118</code>. The new predicate is exported and unused until PR 3, so no model record can carry a recipe yet and no new surface opens before the lint exists.</li>
+  <li>Any <code>run_recipes</code> declaration on model or pipeline, and no <code>missing_metadata.run_recipes</code> on any of the 308 family records. A 308-record change command for no new evidence is the wrong first move; the coverage artifact in PR 3 carries the same information and is regenerated rather than reviewed.</li>
+  <li>Any <code>requirements.missing.hardware_floor</code> entry on the 12 recipes with the hardcoded hardware string. Those are 10 further change commands on records PR 1 does not otherwise touch; they ride with PR 3.</li>
+  <li>The registry type change, the <code>export.ts</code> node-list change and the five node types. Those change the RDF output and need their own release id.</li>
+  <li>Any new model recipe, candidate sweep, network fetch, archived model card or manifest.</li>
+  <li>The <code>harness_job</code> block, <code>specSha256</code>, <code>renderInstructions</code>, <code>comparison_basis</code>, <code>departs_from</code> and the escalation gate.</li>
+  <li>Any workflow that touches the network or executes a snippet, in either repository.</li>
+  <li>Any rewrite of the five requirement strings, any migration of the 7 <code>run_guide</code> or 39 <code>run_documentation</code> records, and any change to <code>scripts/omics/recipes/build.ts</code>.</li>
+</ul>
+</div>
+
+<!-- ============ CONSEQUENCES ============ -->
+<h2>Consequences</h2>
+
+<h3>Good</h3>
+<div class="prose">
+<ul>
+  <li>Models can carry a how-to, and the absence of one becomes countable for the first time, against an honest denominator: 29 checkpoints, 35 services, 14 methods, and 308 families that are <code>inapplicable</code> by construction.</li>
+  <li>The store stops under-claiming. Three smoke checks that passed on 2026-09-20 attach in the first pull request, taking executed-or-smoke-tested from 1 of 85 to 4 of 85 on evidence that has been in the repository for two months, with every hash re-verified.</li>
+  <li>"Our runs are not comparable to the published numbers" becomes ten typed, queryable facts per claim instead of a sentence in a description. The first measurement of it is itself worth publishing: zero of the 7 protocols carrying a Rewire run has an author-reported sibling.</li>
+  <li><code>resource_estimate</code> can stop being hardcoded null, so the <code>local_run</code> readiness capability passes on measured evidence rather than a narrative sentence.</li>
+  <li>Recipes become queryable triples and exportable to FAIR4ML, and a recipe locator becomes a deep link built rather than stored, so a stored record cannot carry a wrong link.</li>
+  <li>A recipe's evidence is re-fetched nightly and compared, the one tier that would have caught the recorded gpn-star case where the same URL served different bytes seven weeks apart.</li>
+</ul>
+</div>
+
+<h3>Bad, without softening</h3>
+<div class="prose">
+<ul>
+  <li>Coverage tops out near 20 percent of model records, 78 of 386, and only because 308 are families that correctly get a reason. Benchmarks top out near 30 percent. Read literally, "a how-to section for each model and benchmark" is not delivered, and no design delivers it without inventing values.</li>
+  <li>The first model batch is 9 records from one project. Until a second project's pins resolve, the model programme is a bacformer programme.</li>
+  <li>Two places hold the same hardware fact, the prose string and <code>hardware_floor</code>, and nothing deterministic can check they agree.</li>
+  <li>Every real run above a synthetic smoke needs a pull request in rewire-benchmarks first. If those are slow, the receipt machinery stays decorative, which is the state it has been in since 2026-09-20.</li>
+  <li>Model-owned recipes do not render until rewire-database ships a model how-to surface; its docs state that <code>attributes.run_recipes</code> belongs to evaluation-design records.</li>
+  <li>The nightly resolve will generate a drift backlog nobody has time to close, and the backlog number gets published. A drifted pin never invalidates a recipe, because the bytes are archived, but the number will look bad.</li>
+  <li>CPU-only verification can never say a GPU recipe runs. Every receipt it produces is <code>synthetic_smoke</code>, and a reader who wants "last verified on the hardware the paper used" still does not get it.</li>
+  <li>Changing <code>run_recipes</code> from <code>json</code> to a node type changes the RDF output, so it needs a new release id, and a published bundle asset can never be replaced.</li>
+</ul>
+</div>
+
+<h3>Ongoing cost, for two people</h3>
+<div class="prose">
+<ul>
+  <li>Triage the nightly drift list: roughly 1 to 2 hours a week at about 60 pinned recipe artifacts.</li>
+  <li>One review per <code>rewirebench</code> release, because a release changes <code>sdk_code_sha256</code>, which is <code>comparison.metric_implementation</code>, which appends a new version to each <code>harness_run</code> recipe.</li>
+  <li>Keep the CPU smoke green: 2 to 4 hours a month, accepting that a red smoke job never blocks a release.</li>
+  <li>Write a missingness reason for each record a batch touches, forever, rather than one sweep.</li>
+</ul>
+</div>
+
+<!-- ============ OPEN QUESTIONS ============ -->
+<h2 id="questions">Open questions for the owner</h2>
+<div class="prose"><p>This record is proposed, not accepted. Four questions are open, and each is a choice between two stated alternatives.</p></div>
+
+<div class="qa">
+  <div>
+    <h4>1. Attribute topology</h4>
+    <p>One <code>run_recipes</code> with <code>purpose</code> as the discriminator, or a separate <code>run_spec</code> attribute on the protocol? One attribute keeps the store at three how-to shapes and folds the harness job into a recipe. A separate attribute gets a strict block of its own and a cleaner validator, at the cost of a fourth shape, and a fifth once <code>model_runtime</code> follows.</p>
+    <p class="r"><b>Recommendation</b> one attribute.</p>
+  </div>
+  <div>
+    <h4>2. Gate width</h4>
+    <p><code>model</code> only, or <code>model</code> plus <code>pipeline</code> (133 records, recipe yield unmeasured)? <code>kind: method</code> (618) and <code>kind: configuration</code> (5,564) are excluded either way, and the <code>service</code> kind (6 records) needs no change because the 35 real hosted services are already kind <code>model</code> at <code>entity_level: service</code>.</p>
+    <p class="r"><b>Recommendation</b> model plus pipeline, with PR 3 measuring pipeline yield before any curation is spent on it.</p>
+  </div>
+  <div>
+    <h4>3. GPU budget</h4>
+    <p>None, or some, even 200 USD a month? With none, <code>synthetic_smoke</code> is the permanent default receipt scope and no recipe can ever carry a "last verified on the hardware the paper used" claim. With a budget, <code>selected_assay</code> on real weights becomes the default, the escalation gate stays but its approval becomes routine rather than exceptional, and the cost block starts carrying real figures against dated price sources.</p>
+    <p class="r"><b>Recommendation</b> none stated; this is a spending decision, not a technical one.</p>
+  </div>
+  <div>
+    <h4>4. Sequencing</h4>
+    <p>Given that the first model batch is 9 bacformer checkpoints from one project: start the curation programme with those 9 models, or start with the 23 benchmarks that have a reachable GitHub repository and defer models until a second project's pins resolve? Models prove the new gate end to end on one project. Benchmarks give more breadth per hour but prove nothing new about the schema.</p>
+    <p class="r"><b>Recommendation</b> none stated; both are defensible and the choice is about what the catalogue should show first.</p>
+  </div>
+</div>
+
+<!-- ============ REJECTED ============ -->
+<h2>Considered and rejected</h2>
+
+<div class="tbl">
+  <table>
+    <thead><tr><th>Rejected</th><th>From</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Separate <code>run_spec</code> and <code>model_runtime</code> attributes</td><td>B</td><td>They leave five how-to shapes in a store already called bloated, and every field they need fits on a recipe. <code>run_spec</code> would apply to 8 harness protocols and to no model.</td></tr>
+      <tr><td>Migrating the 7 <code>run_guide</code> and 39 <code>run_documentation</code> records</td><td>none of the three</td><td>46 records rewritten for no new evidence. They are frozen instead, with a doc note.</td></tr>
+      <tr><td>Literature-first as a sibling check: a new <code>rewire_run</code> must have no author-reported evaluation on the same protocol</td><td>A</td><td>Binds nothing. All 7 protocols with a Rewire run hold only Rewire runs, and that will not change, because the harness departs by construction. Replaced by the GPU escalation gate.</td></tr>
+      <tr><td>Comparability by string equality on the contract fields</td><td>A</td><td>Can never pass. <code>protocol_id</code> differs on every real claim, and <code>metric_implementation</code> is a 64-hex code hash against a metric name.</td></tr>
+      <tr><td><code>reviewer_byte_check</code> as a <code>receipt_kind</code> value</td><td>C</td><td>Conflates who executed with how the reviewer checked. It would label the three 2026-09-20 executions as a byte check. The reviewer's method belongs in the record's <code>review</code> block.</td></tr>
+      <tr><td>A declining waiver file holding recipes with no <code>verified_on</code></td><td>C</td><td>The coupling it works around is five lines of <code>.passthrough()</code> in the sibling. One waiver file is kept, for lint failures; two is one too many.</td></tr>
+      <tr><td>Gate widened to <code>kind: method</code> (618)</td><td>C</td><td>A method is an algorithm with no artifact to obtain, and no yield was measured for it.</td></tr>
+      <tr><td>Gate widened to <code>kind: configuration</code> (5,564)</td><td>none of the three</td><td>A configuration inherits its how-to through <code>configuration_of</code>. Excluded here so the exclusion is written down rather than assumed.</td></tr>
+      <tr><td><code>schema:HowTo</code> and Croissant exports</td><td>C</td><td>No consumer. Google retired HowTo rich results, and Croissant carries no runnable code, so only the dataset pin would export.</td></tr>
+      <tr><td>A deterministic notebook emitter</td><td>C</td><td>It invites a reader to believe a never-executed recipe works. 81 of 85 instructions will still be unexecuted after the first batch.</td></tr>
+      <tr><td>FAIR4ML 0.1.0 as the stored shape</td><td>C</td><td>No evidence pinning, no verification date, no release since 2024-10-28. Kept as an export view only.</td></tr>
+      <tr><td>Executing snippets in this repository's CI</td><td>A</td><td><code>scripts/omics/review-submitted-runs.py:17</code> admits a receipt only from rewire-benchmarks at a 40-hex commit, so a receipt produced here would have nowhere admissible to live.</td></tr>
+      <tr><td>Four structured pins for <code>licence</code>, <code>data</code> and <code>software</code></td><td>C</td><td>What matters in those three is sentences a schema would force into paraphrase. They stay prose.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>
+  Measured in the worktree <span class="mono">claims-arch-20261117</span> at <span class="mono">991a09e</span>, over <span class="mono">data/entities/*.jsonl</span> (8,128 entity records), <span class="mono">data/evidence/evaluations/*.jsonl</span> (24,726 records) and <span class="mono">data/omics/reviewed/run-recipes/review.json</span>.
+  Code read: <span class="mono">shared/omics/run-recipe.ts</span> (gate at 118, receipt rules at 66 to 88, citation rules at 102 to 137), <span class="mono">shared/omics/entity-kinds.ts</span>, <span class="mono">shared/omics/attribute-registry.ts</span>, <span class="mono">scripts/kg/export.ts</span>, <span class="mono">scripts/omics/recipes/{build.ts,projects.ts}</span>, <span class="mono">scripts/omics/review-submitted-runs.py</span>, <span class="mono">tests/omics-recipe-sources.test.ts</span>, and in the siblings <span class="mono">rewire-database/components/catalogue/RunRecipes.tsx</span>, <span class="mono">rewire-database/services/omics/src/run-recipe.ts</span> and <span class="mono">rewire-benchmarks/workflows/benchmark/bin/workflow_stage.py</span>.
+  No record was changed to write this page.
+</footer>
+
+</div>
+</body>
+</html>

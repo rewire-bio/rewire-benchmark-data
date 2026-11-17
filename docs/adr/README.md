@@ -9,3 +9,7 @@ Designs that implement a decision are in [`docs/design/`](../design/).
 | ADR | Decision | Status | Design |
 | --- | --- | --- | --- |
 | [0001](0001-comparable-evidence.html) | Make contested results compare like with like: define system, study, evidence and task scope in the data and the discrepancy rules (#201, #204 to #208) | Accepted 2026-10-23, option B | [Discrepancy rules version 4](../design/discrepancy-rules-v4.html) |
+| [0002](0002-claim-extraction.html) | Extract and check claims and values deterministically first, address every claim to a span in a hashed text layer, and run one model stage behind a byte-span check (#228) | Proposed 2026-11-17 | |
+| [0003](0003-source-preservation.html) | Preserve every source as two identities, publish by licence tier, rescue by citation weight; corrects the no-derivatives storage rule in `docs/collection.md` | Proposed 2026-11-17 | |
+| [0004](0004-storage-substrate.html) | Keep the canonical store as JSONL in git, evict binaries to a content-addressed archive, and add a warehouse only when a named consumer exists | Proposed 2026-11-17 | |
+| [0005](0005-run-recipes.html) | Give models and benchmarks an evidenced, executable how-to that promotes into an independent run | Proposed 2026-11-17 | |
