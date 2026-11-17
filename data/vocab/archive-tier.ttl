@@ -1,0 +1,49 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix : <https://benchmarks.rewire.it/vocab/archive-tier/> .
+
+<https://benchmarks.rewire.it/vocab/archive-tier/> a skos:ConceptScheme ;
+    skos:prefLabel "Archive tiers"@en ;
+    skos:definition "What may be published from a stored source object. A tier governs publication only. It never governs possession, and it never decides whether a source is fetched."@en ;
+    skos:scopeNote "Keys match the tiers union in shared/archive/schema.ts, which the manifest row validates against. A tier is read from the licence string through data/archive/licence-map.tsv; an unresolved licence takes t4-private."@en ;
+    dcterms:source <https://github.com/rewire-bio/rewire-benchmark-data/issues/276> .
+
+:t0-public a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/archive-tier/> ;
+    skos:prefLabel "Public"@en ;
+    skos:altLabel "t0-public"@en ;
+    skos:definition "The verbatim original and anything derived from it may be redistributed, commercially or not, with attribution where the licence asks for it. CC0, CC BY, CC BY-SA, MIT, Apache-2.0, BSD and ODbL land here."@en .
+
+:t1-public-nc a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/archive-tier/> ;
+    skos:prefLabel "Public, non-commercial"@en ;
+    skos:altLabel "t1-public-nc"@en ;
+    skos:definition "The verbatim original and derivatives may be redistributed for non-commercial use. CC BY-NC and CC BY-NC-SA land here."@en ;
+    skos:scopeNote "Publishable only while the premise of determination 1 of 2026-11-17 holds: the data and the graph are never sold, licensed to a partner or paywalled."@en .
+
+:t2-verbatim-nd a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/archive-tier/> ;
+    skos:prefLabel "Verbatim only"@en ;
+    skos:altLabel "t2-verbatim-nd"@en ;
+    skos:definition "The verbatim original may be redistributed, commercially or not. Adapted material may not. CC BY-ND lands here."@en ;
+    skos:scopeNote "A text layer produced by a format conversion such as pdftotext -layout is not adapted material under CC 4.0, so it follows this tier (determination 2 of 2026-11-17)."@en .
+
+:t3-verbatim-nd-nc a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/archive-tier/> ;
+    skos:prefLabel "Verbatim only, non-commercial"@en ;
+    skos:altLabel "t3-verbatim-nd-nc"@en ;
+    skos:definition "The verbatim original may be redistributed for non-commercial use. Adapted material may not. CC BY-NC-ND lands here."@en ;
+    skos:scopeNote "Both determinations of 2026-11-17 bear on this tier: the non-commercial premise from determination 1 and the format-conversion reading from determination 2."@en .
+
+:t4-private a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/archive-tier/> ;
+    skos:prefLabel "Private"@en ;
+    skos:altLabel "t4-private"@en ;
+    skos:definition "Bytes are stored but nothing is published from them. The default for a licence that forbids redistribution and for a licence nobody has determined yet."@en ;
+    skos:scopeNote "An unresolved licence is t4-private, never unstored and never public. Refusing to store a source until its licence is known is the pressure that produced the current gap."@en .
+
+:t5-no-store a skos:Concept ;
+    skos:inScheme <https://benchmarks.rewire.it/vocab/archive-tier/> ;
+    skos:prefLabel "Not stored"@en ;
+    skos:altLabel "t5-no-store"@en ;
+    skos:definition "No copy is kept. The only tier that produces no bytes, used when a decision not to store has been taken and recorded, and for an object removed after a takedown."@en .

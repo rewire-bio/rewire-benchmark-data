@@ -125,12 +125,13 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
     <span><span class="status">Proposed 2026-11-17</span></span>
     <span><b>Decider</b> Tim Richardson</span>
     <span><b>Supersedes</b> nothing</span>
+    <span><b>Superseded in part</b> 2026-11-17, see the notice below</span>
     <span><b>Store measured</b> <span class="mono">data/entities/sources.jsonl</span>, 1,483 records</span>
   </div>
   <div class="meta">
     <span><b>Corrects</b> <span class="mono">docs/collection.md:79,145</span> and the storage driver in
       <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/228">#228</a></span>
-    <span><b>Not accepted</b> three questions below are the owner's to rule on</span>
+    <span><b>Not accepted</b> three questions below are the owner's to rule on, answered 2026-11-17 by determinations 1 to 3</span>
   </div>
   <div class="meta">
     <span><b>Related records</b> <a href="0002-claim-extraction.html">0002</a> decides how claims and values are extracted and checked against a hashed text layer, which is a derived identity captured here; <a href="0004-storage-substrate.html">0004</a> decides the storage substrate, and owns the object store, the manifest and the eviction gate this record writes bytes into; <a href="0005-run-recipes.html">0005</a> decides how a model or benchmark carries a runnable how-to, and rechecks its instructions against bytes captured here</span>
@@ -143,6 +144,40 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
     <div><div class="k">Expected effect</div><p>95.8 percent of the at-risk citation mass covered for about 23 hours of hand work and 765 MB. 45.2 percent becomes a ratcheted number in CI. Zero records and zero provenance hashes change in the first pull request.</p></div>
   </div>
 </header>
+
+<!-- ============ SUPERSEDED IN PART ============ -->
+<div class="q">
+  <h4>Superseded in part, 2026-11-17</h4>
+  <p>The owner has decided to recollect the store from the primary sources instead of auditing it against the hashes it already pins, and has dropped the drift and re-pinning apparatus this record designs. The policy in force is <a href="../source-preservation.md">docs/source-preservation.md</a>, which carries the seven determinations of 2026-11-17 from <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/276">issue 276</a>. Nothing below is deleted, so what was designed and what replaced it can both be read.</p>
+
+  <p><b>No longer applies.</b> By this page's own numbering:</p>
+  <ul>
+    <li><b>Decision 2, two identities per source.</b> There is one digest per set of bytes. A stored object carries the SHA-256 of its own bytes; a text layer is a separate object with its own manifest row and its own digest, not a second identity of the original. No record field holds an evidence identity.</li>
+    <li><b>Decision 3's added receipt fields.</b> The receipt that exists is <span class="mono">fetchReceiptSchema</span> in <span class="mono">shared/archive/schema.ts</span>. It has no <span class="mono">content_match</span>, <span class="mono">capture_id</span>, <span class="mono">derived[]</span>, <span class="mono">witness[]</span>, <span class="mono">attempt</span>, <span class="mono">etag</span> or <span class="mono">swhid</span>. <span class="mono">content_match</span>, <span class="mono">attempt</span>, <span class="mono">etag</span> and <span class="mono">witness[]</span> exist to compare a retrieval with an earlier pin; the other three are the ledger and the second identity, dropped with them.</li>
+    <li><b>Decision 4's capture ledger and record-side pointers.</b> <span class="mono">data/archive/captures/&lt;0-f&gt;.jsonl</span> is not written. <span class="mono">primary_capture_id</span>, <span class="mono">capture_ids</span>, <span class="mono">evidence_identity</span>, <span class="mono">pin_status</span> and <span class="mono">hash_scope_class</span> are not declared on the <span class="mono">source</span> kind.</li>
+    <li><b>Decision 6's rescue waves and the Wayback CDX probe.</b> Fetch order comes from the worklist, not from citation-weight bands, and no web archive is queried: the fetcher's four routes all go to the publisher, Unpaywall, Europe PMC or the preprint server.</li>
+    <li><b>Decision 7's derived <span class="mono">preservation_status</span></b> and <span class="mono">data/archive/preservation.jsonl</span>. Neither is generated. The rule underneath it survives, below.</li>
+    <li><b>Decision 8 in full.</b> No scheduled re-capture, no drift file, no drift classifier, and no <span class="mono">tool_version_changed</span> guard. A poppler bump mints nothing, because nothing re-derives an old layer to compare.</li>
+    <li><b>In "How it is verified", the capture-ledger assertions</b> (items 2, 3, 5, 6, 8 and 10, and the <span class="mono">hash_scope_class</span> half of item 9) and the <span class="mono">citations_without_capture</span> ratchet in item 11. The commands that exist are <span class="mono">worklist</span>, <span class="mono">fetch</span>, <span class="mono">verify</span>, <span class="mono">status</span> and <span class="mono">upload</span>. The ratchet's shape is still open in <a href="https://github.com/rewire-bio/rewire-benchmark-data/issues/272">issue 272</a>.</li>
+    <li><b>Implementation sequence steps 1, 6, 8 and 9</b>, and the wave part of step 10: the CDX measurement, the citation-weight waves and the drift sweep. Step 7, the SWHID pass over the 453 pinned-commit GitHub sources, is not built either, and no determination names it. Step 10's habit change stands, and <span class="mono">docs/collection.md</span> carries it.</li>
+  </ul>
+
+  <p><b>Still governs.</b></p>
+  <ul>
+    <li><b>Context, as measurement.</b> 47,081 of 104,243 evidence citations rest on unstored bytes, licence is recorded on 408 of 1,483 sources, and the storage rule in <span class="mono">docs/collection.md</span> was backwards. Those numbers are why the recollection is funded, and the collection document has since been corrected.</li>
+    <li><b>Decision 1.</b> The object store, the manifest at <span class="mono">data/archive/objects/&lt;0-f&gt;.jsonl</span>, the <span class="mono">layer</span> field and the <span class="mono">archiveAssetUrl</span> trap, all owned by <a href="0004-storage-substrate.html">ADR 0004</a>. Each stored object keeps a plain SHA-256, which is what lets a claim cite a span in one file and what deduplicates the store.</li>
+    <li><b>Decision 3's principle.</b> One append-only receipt per source per attempt, written for a failure as well as a success, stating only what one transfer returned on one date, and never edited after merge.</li>
+    <li><b>Decision 4's rule</b> that no existing record and no provenance hash changes, and that no release id moves.</li>
+    <li><b>Decision 5, the licence policy, in full.</b> Six tiers computed from the licence string by a hand-reviewed map, a licence that never blocks a fetch, publication restricted rather than possession, and a new licence string failing the build until it has a row. This is the part the determinations settle rather than drop: question 1 is determination 1, question 2 is determination 2, question 3 is determination 3.</li>
+    <li><b>Decision 7's refusal</b> to mark an unstored source with <span class="mono">evidence_concerns</span>. A source whose bytes are not held is not a source whose values are in doubt.</li>
+    <li><b>The text layer and its sanity gate</b>, which belong to <a href="0002-claim-extraction.html">ADR 0002</a> and are built in <span class="mono">shared/archive/layers/</span>. Determination 2 settles that a text layer follows its original's tier.</li>
+    <li><b>Considered and rejected</b>, and the two closing sections on issue #228 and <span class="mono">docs/collection.md</span>.</li>
+  </ul>
+
+  <p><b>Why.</b> The store is being recollected, not audited. Every claim is extracted again from the primary sources with new tooling, so a comparison against a hash pinned under the previous tooling answers a question nobody is asking: whether a value extracted the old way still matches its source. The new extraction answers that directly, by reading the source again. One consequence is stated plainly in the policy document. We do not know, and will not learn from this work, which of the 1,453 pinned hashes still reproduce; the 175 that returned different bytes on 2026-09-19 are left exactly as they are, and nothing treats a pin that no longer reproduces as an error.</p>
+
+  <p><b>Status and figures.</b> The status line stays at Proposed. Accepting this record as written would accept the apparatus that has been dropped, and the record is still Proposed, so this notice is an edit to it rather than a new record. For current practice and current counts, read the policy document: the tier tallies in the figure below are a classification of the <span class="mono">licence</span> field made for this record, and the hand-reviewed map measures 263, 22, 2, 80, 1,116 and 0 across the six tiers.</p>
+</div>
 
 <!-- ============ CONTEXT ============ -->
 <h2>Context</h2>
