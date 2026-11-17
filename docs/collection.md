@@ -19,7 +19,7 @@ Agents should use the matching skills: `literature-search` (step 2), `extract-ev
 - Record what was done, not what should have been done. A failed search, a paywalled supplement or an unreadable figure is a recorded gap. It is never evidence that nothing exists.
 - Never change a stored value, ID or source hash. Corrections are new records that supersede old ones (see [Corrections and concerns](#corrections-and-concerns)).
 - Never guess. A value that is not known is absent: the key is left out and `missing_metadata.<field>` gives `{reason, note?}`, with `reason` from [data/vocab/missingness.ttl](../data/vocab/missingness.ttl). A null is rejected, except in `numeric_value`. An unidentified model version stays at family level and is not assigned to a specific checkpoint.
-- Name the actual actor. Automated or AI review is recorded as such (for example `"reviewer": ["codex"]` with `"reviewer_note": "Codex research agent; no human review claimed"`). It is never described as human scientific review, and source transcription is never described as reproduction.
+- Name the tool that did the work. There is no human review step anywhere in this procedure; every pass is automated. `reviewer` holds a tool identity from [data/vocab/agent.ttl](../data/vocab/agent.ttl) and `reviewer_note` says which tool it was, for example `"reviewer": ["codex"]` with `"reviewer_note": "Codex research agent, automated; no human review"`. Nothing is described as human scientific review, and source transcription is never described as reproduction.
 - Search results, mirrors, press releases and summaries are leads. Only primary sources (the paper, its supplement, the official repository or project page, the official leaderboard) support a record.
 - Keep work bounded. State the time window, budget and scope at the start, and report coverage against what was actually screened, not against a target count.
 
@@ -72,14 +72,16 @@ Use-case passes also write one search report, `notes.md` in the batch folder: th
 
 Before extracting anything, pin the source.
 
-- Retrieve the primary artifact (PDF, XML, supplement, README at a commit, leaderboard file) and compute its SHA-256. Hash the artifact the values come from, not intermediates such as a text layer or an unzipped copy; those can be regenerated from it.
+- Retrieve the primary artifact (PDF, XML, supplement, README at a commit, leaderboard file) and compute its SHA-256. The `source` record pins the artifact the values come from, never an intermediate. A text layer or an unzipped member is stored and hashed as its own object in the archive, because a claim cites a span in one of those, but it is not what the record pins.
 - Create one `source` record per artifact with `url`, `version` (commit, DOI version, preprint version), `retrieved_at` (UTC), `artifact_sha256`, and where known `doi`, `publication_status` (`peer_reviewed`, `preprint` or `official_project_source`) and `licence`.
 - Pin GitHub links to a commit, not a branch.
 - For a mutable website, record that it is mutable and that the hash describes one retrieval.
-- If the bytes are needed for later review and the licence allows it, archive a gzip copy under the batch folder (for example `artifacts/`) and record both the raw and archived hashes in the review receipt.
-- If the source cannot be retrieved, stop and record the gap. Do not extract from a summary. Failed retrieval routes go in the ledger entry's `gaps` and in `notes.md`; a step-by-step retrieval narrative is not needed, because the source record already holds the URL, version, time and hash.
+- Store the bytes, whatever the licence says. Every retrieved artifact goes into the archive object store through `npm run archive -- fetch`, which writes the bytes to a content-addressed cache git ignores and a text-only row to `data/archive/objects/<0-f>.jsonl`. That command is a whole-store pass; it skips anything already held, and `--limit` bounds a run. Source bytes never enter git. A licence decides what may be published from an object; it never decides whether the object is fetched or kept. The tiers and the rules are in [source-preservation.md](source-preservation.md).
+  - Correction, 2026-11-17: the rule here used to be "archive a gzip copy if the licence allows it", and it treated a CC BY-NC-ND source as something to hash but not store. That was backwards. CC BY-NC-ND permits verbatim non-commercial redistribution and restricts adapted material, so it is a licence under which the original may be republished, not one that forbids keeping a copy. The error is a direct cause of 913 unstored sources recording no licence at all (measured in ADR 0003).
+  - A licence string new to the store needs a reviewed row in [data/archive/licence-map.tsv](../data/archive/licence-map.tsv) in the same pull request. The build fails without one.
+- If the source cannot be retrieved, record the gap and move on. Do not extract from a summary. The fetch writes a receipt with `outcome: failed` and a reason whichever way it goes; the ledger entry's `gaps` and `notes.md` carry what it means for the pass. A step-by-step retrieval narrative is not needed, because the source record already holds the URL, version, time and hash, and the receipt holds the routes tried.
 
-Source records live in `data/entities/sources.jsonl` like any other record. Search it before adding one: 197 source URLs already have more than one record, and new duplicates make the graph harder to use.
+Source records live in `data/entities/sources.jsonl` like any other record. Search it before adding one by the URL you are about to store: 254 of the 1,176 distinct `attributes.url` values already carry more than one source record, 561 records between them (measured 2026-11-17), and new duplicates make the graph harder to use. The count is over `attributes.url`, the field every source record has; counting `artifact_url`, which 1,248 of the 1,483 records carry, gives 182.
 
 ## 4. Extract models and evaluations
 
@@ -104,7 +106,7 @@ Controlled fields hold concept keys from the SKOS vocabularies in `data/vocab/` 
 
 Every record carries `source_ids`. Missing results stay missing: never record a blank cell as zero.
 
-Where a deterministic extractor exists for the source (`scripts/omics/extract/<benchmark>.ts`), use it and assert the expected row labels. Those extractors describe the table as a `BatchSpec` and call `writeBatch` (`scripts/omics/extract/batch.ts`), which renders the records in the shapes above and writes `data/omics/<batch>/batch.jsonl` with a `review.json` whose review fields are left empty for step 5. Otherwise transcribe by hand and say so in the review notes. Figures without printed numbers are not read by eye, by colour or from pixels; record them as a gap, unless the source publishes the figure's underlying rows (below).
+Where a deterministic extractor exists for the source (`scripts/omics/extract/<benchmark>.ts`), use it and assert the expected row labels. Those extractors describe the table as a `BatchSpec` and call `writeBatch` (`scripts/omics/extract/batch.ts`), which renders the records in the shapes above and writes `data/omics/<batch>/batch.jsonl` with a `review.json` whose review fields are left empty for step 5. Otherwise an agent transcribes the values, which is recorded as `transcription` in the review method and said plainly in the review notes. Figures without printed numbers are not read by eye, by colour or from pixels; record them as a gap, unless the source publishes the figure's underlying rows (below).
 
 ### Values computed from source data
 
@@ -144,7 +146,7 @@ Each extraction keeps its working evidence in a batch folder, `data/omics/<batch
 | `notes.md` | the search report and the decisions taken, with reasons (step 2) |
 | `coverage.json` | for use-case work: existing IDs reused, new IDs, and remaining gaps |
 | `review.json` | the review receipt (step 5) |
-| `artifacts/` | archived source bytes, where the licence allows |
+| `artifacts/` | source bytes committed by older batches. New batches do not write it: bytes go to the archive object store and nothing but the manifest row enters git |
 
 Older batches also hold `claims.csv`, `sources.md`, `retrieval-log.md` and `research.md`. New batches do not write them: each repeats what `batch.jsonl`, the source records or `notes.md` already hold. If a script needs one, generate it from `batch.jsonl`.
 
@@ -152,11 +154,11 @@ Unreviewed or disputed extractions that are not ready go in `data/omics/pending-
 
 ## 5. Review
 
-Review is a separate pass by a different worker from the one that extracted the data.
+Review here is a second automated pass, not a person reading a paper. There is no human review step anywhere in this procedure (determination 6 of 2026-11-17, [source-preservation.md](source-preservation.md)). The pass runs under a tool identity different from the one that extracted the batch, and what it produces is a machine receipt: which tool ran, against which pinned bytes, by which method, and what it compared. Where the text below says a value was checked, it means a tool checked it.
 
 Start review only on a frozen extraction: a commit the extractor has finished and will not change. Make every ruling and edit in `batch.jsonl` first, then write the receipt, then add the batch (step 6) and run the checks once. Adding the batch before the rulings are done turns each later fix into a `records -- change` and repin cycle.
 
-1. Re-open the pinned source (check the hash matches) and check every result against it. For a large batch, an automated comparison of every value against the source (for example a deterministic parse with asserted row labels) plus a sampled manual check of values is enough; record the sample and the comparison in the receipt. Run `npm run -s batch -- check-values data/omics/<batch> <source-id>=<artifact> ...` over the whole batch. It finds the row each `source_locator` names in the pinned artifact (JATS XML tables, or a `pdftotext -layout` text layer), checks the printed value is there, and for XML checks the named column too. It writes `value-check.tsv` to the batch folder; every result should be `in_cell` or `in_row`. For text layers the column is not checked directly; `overclaimed_in_row` marks a value claimed by more results in a row than the row prints, which is how a value copied from a neighbouring column usually shows. The sampled manual check must still cover column assignment. Locators it cannot parse (figures, prose) are listed for manual checking. Check printed value, numeric value, locator, metric, direction, denominator and the model/benchmark identity. For a result with a `derivation`, re-download each input, check its SHA-256 and row count, rerun the script and compare its output with `printed_value`; check the quoted aggregation against the source and that the script applies it.
+1. Re-open the pinned source (check the hash matches) and check every result against it. For a large batch, an automated comparison of every value against the source (for example a deterministic parse with asserted row labels) plus a sampled independent check of values by a second tool is enough; record the sample and the comparison in the receipt. Run `npm run -s batch -- check-values data/omics/<batch> <source-id>=<artifact> ...` over the whole batch. It finds the row each `source_locator` names in the pinned artifact (JATS XML tables, or a `pdftotext -layout` text layer), checks the printed value is there, and for XML checks the named column too. It writes `value-check.tsv` to the batch folder; every result should be `in_cell` or `in_row`. For text layers the column is not checked directly; `overclaimed_in_row` marks a value claimed by more results in a row than the row prints, which is how a value copied from a neighbouring column usually shows. The sampled independent check must still cover column assignment. Locators it cannot parse (figures, prose) are listed in the receipt as unchecked. No value is read off a rendered page by eye. Check printed value, numeric value, locator, metric, direction, denominator and the model/benchmark identity. For a result with a `derivation`, re-download each input, check its SHA-256 and row count, rerun the script and compare its output with `printed_value`; check the quoted aggregation against the source and that the script applies it.
 2. Check that every absent field named in `missing_metadata`, and any null `numeric_value`, is genuinely unstated in the source, and that nothing was inferred.
 3. Fill each result's `review` object. The shape is strict: `method` and `reviewer` are lists of concept keys, the free text describing either goes in `method_note` and `reviewer_note`, and the free-text key is `note`. The usual shape is:
 
@@ -168,12 +170,12 @@ Start review only on a frozen extraction: a commit the extractor has finished an
      "artifact_sha256": "<hash of the source artifact checked>",
      "retrieval_url": "<URL the artifact was retrieved from>",
      "method_note": "How the value was checked, e.g. deterministic parse of the pinned PDF text layer with row labels asserted",
-     "reviewer_note": "Who did it, e.g. Codex research agent; no human review claimed",
+     "reviewer_note": "Which tool did it, e.g. Codex research agent, automated; no human review",
      "note": "Anything a later reader needs: conflicts, rounding, what was not checked"
    }
    ```
 
-   Human review is recorded only when a named person did it.
+   No review object records a person. `reviewer` holds a tool identity and `reviewer_note` names the tool and what it ran.
 4. Write the batch receipt `review.json`: schema version, method, reviewer, `reviewed_at`, scope, limitations, an empty `errors` list, the SHA-256 of `batch.jsonl` and every other file in the batch folder, and the SHA-256 of each source artifact checked. Fill in the descriptive fields, then run `npm run -s batch -- hash data/omics/<batch> <source-id>=<artifact> ...` as the last step: it checks each artifact against its source record and writes `files` and `source_artifacts` into the receipt, keeping the other fields. After step 6, each record's hash in `data/provenance/records/` locks the reviewed bytes. A script that rebuilds the batch (`build.py`) is optional: keep one when it is how the batch was made, but the receipt and the provenance hashes are the record of review.
 5. Summarise the pass in a dated review in `docs/reviews/` (or `docs/reviews/use-cases/` for a use-case pass): sources and hashes, how values were compared and the sample drawn, a link to the mismatch report, each ruling on a question the extractor raised with the source text that decides it, conflicts found, and remaining gaps. Do not copy every value into a table; the mismatch report and the records already hold them.
 

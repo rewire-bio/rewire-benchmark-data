@@ -8,7 +8,7 @@ Each record is an object. Fields marked as concept keys hold the last segment of
 - `kind`: one of `model`, `method`, `configuration`, `pipeline`, `service`, `benchmark`, `task`, `protocol`, `evaluator`, `dataset`, `dataset_subset`, `baseline`, `evaluation`, `result`, `source`, `claim`, `use_case`. The list and the allowed link relations are defined in `shared/omics/entity-kinds.ts`.
 - `name`: display name.
 - `description`: plain text. For a `model`, `method`, `pipeline`, `service` or `configuration`, one sentence saying what it does (a configuration may say what it is: what it configures and with which settings). Where the record was reported, run or quoted, and what was not inferred about its identity, go in `attributes.provenance_note`, not in the description. `npm run records -- check` and `records -- add` reject placeholders ("Identity as reported in this paper"), provenance ("as run in the cited comparison", "quoted in Table S11", "(Author et al. 2025 Table 3)") and a description shared with a differently named model, method, pipeline or service; the rules are in `shared/omics/descriptions.ts`, and `npm run records -- descriptions` lists any record that fails them.
-- `status`: `discovered`, `needs_review`, `source_checked`, `reproduced`, `disputed`, `superseded`, or `excluded`. Source-checked is not reproduced.
+- `status`: `discovered`, `needs_review`, `source_checked`, `reproduced`, `disputed`, `superseded`, or `excluded`. Source-checked is not reproduced. `needs_review` means extracted with an automated check still pending; the next automated pass clears it. It is not a request for a person to read the source, because there is no human review step (see [Review is automated](#review-is-automated)).
 - `facets`: object mapping facet names to arrays. `areas`, `method_types` and `contexts` hold concept keys from `data/vocab/area.ttl`, `method-type.ttl` and `context.ttl`; `tasks` is free text.
 - `source_ids`: IDs of source records supporting this entity.
 - `links`: array of `{ "relation": "...", "target_id": "..." }`. Each relation has one meaning and a fixed set of record kinds it may link from and to, listed in `shared/omics/relations.ts`:
@@ -45,6 +45,17 @@ A `claim` links to a `subject` and has `field`, `value`, `source_locator`, `revi
 
 Snapshot JSON: `{ "schema_version": "1.0", "release_id": "...", "released_at": "UTC ISO date", "records": [...], "coverage": {...} }`. Manifest: schema/release/time, record counts, input digests, file hashes and changelog. All records sorted by ID; release building is deterministic given the records and explicit timestamp. Excluded records remain in the archive but are absent from public catalogue pages.
 
+## Review is automated
+
+There is no human review step anywhere in this pipeline. That is determination 6 of 2026-11-17, recorded in [source-preservation.md](source-preservation.md). Every pass is a tool, so a `review` object records what a tool did and may claim nothing more.
+
+- `reviewer` holds concept keys from `data/vocab/agent.ttl`, which has no concept for a person, and `reviewer_note` names the tool that ran. A person is never recorded as a reviewer, and no review object is evidence that anyone read the source.
+- `method` holds concept keys from `data/vocab/review-method.ttl` and says what the tool did, not who did it. No value is read off a rendered page, so a review written after 2026-11-17 does not carry `rendered-source-visual-check`. The 5,894 stored results carrying it, measured 2026-11-17, keep it, and its definition in `data/vocab/review-method.ttl` still describes a comparison by eye.
+- A review states two things about a value: that a tool extracted it from the pinned bytes, and that a tool checked it by the methods listed. That nobody read it afterwards is the default for every record in this store, stated here once instead of on each record.
+- Whether a printed value was matched to a byte span in a hashed text layer is recorded nowhere yet. The span fields under [Locators](#locators) are declared and unpopulated, and no review-method concept names a span check. What a batch holds today is the value check: `value-check.tsv` in the batch folder, hashed into `review.json` under `files`. Carrying the span fact belongs to the extraction receipt in ADR 0002.
+
+Profile coverage `reviewed` means the same thing and nothing more: see [Explanatory profiles and supported associations](#explanatory-profiles-and-supported-associations).
+
 ## Locators
 
 `source_locator` is a free-text string on every result and claim. `shared/omics/locator.ts` reads one as structure, so a locator can be checked rather than only read. The grammar, applied to each segment after splitting on `;` and on commas outside quotes and brackets:
@@ -79,7 +90,7 @@ A locator carries no span yet. The span type is declared now because the offset 
 
 ## Explanatory profiles and supported associations
 
-Model and benchmark explanations are validated enrichment inputs merged into `attributes.profile`. They contain a summary, evidence-cited sections and facts, strengths, limitations, optional diagram steps, coverage, gaps and an explicit automated review note. Current summaries include `summary_source_ids` and `summary_source_locator`; both are optional for historical releases but must occur together. Current facts include an explicit `status`: `source_checked`, `unreported`, `unextracted`, `unavailable` or `inapplicable`. Coverage `reviewed` describes the explanatory claims only; `limited` records a specific evidence limitation. Neither changes scientific result review status or establishes independent reproduction.
+Model and benchmark explanations are validated enrichment inputs merged into `attributes.profile`. They contain a summary, evidence-cited sections and facts, strengths, limitations, optional diagram steps, coverage, gaps and an explicit automated review note. Current summaries include `summary_source_ids` and `summary_source_locator`; both are optional for historical releases but must occur together. Current facts include an explicit `status`: `source_checked`, `unreported`, `unextracted`, `unavailable` or `inapplicable`. Coverage `reviewed` means every explanatory claim passed an automated check against its cited source; it describes the explanatory claims only and records no act by a person. `limited` records a specific evidence limitation. Neither changes scientific result review status or establishes independent reproduction.
 
 `variant_of`, `configuration_of`, `family` and `alias_of` describe supported model relationships. `part_of` links benchmark components to suites; `evaluates_task` connects a concrete resource to a task. These edges participate in result navigation only when backed by source-checked association claims. `uses_model` identifies a service or separately evaluated pipeline's dependency and does not assign its result to the base model. Retain exact configuration identity and legacy detail URLs.
 

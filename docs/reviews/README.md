@@ -7,6 +7,8 @@ Dated records of how stored values and claims were sourced and checked: search l
 
 New reviews follow [the collection procedure](../collection.md#5-review).
 
+A takedown is recorded here too, as a dated review. The [takedown path](../source-preservation.md#takedown) in [Preserving source bytes](../source-preservation.md) starts with that review and ends with the archive check the removal leaves standing, recorded in the same review.
+
 ## Former paths
 
 Some records and older reviews cite paths from before October 2026. They map as follows.

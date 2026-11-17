@@ -36,7 +36,8 @@ export type WebsiteManifest = { schema_version: number; release_id: string; file
 type Fetch = (url: string, init?: RequestInit) => Promise<Response>;
 
 const sha256 = (bytes: Buffer) => crypto.createHash("sha256").update(bytes).digest("hex");
-const safePath = (value: unknown): value is string =>
+/** A relative path safe to join onto a root: no absolute form, no traversal. */
+export const safePath = (value: unknown): value is string =>
   typeof value === "string" && /^[A-Za-z0-9_-][A-Za-z0-9._/-]*$/.test(value) &&
   value.split("/").every((part) => part && part !== "." && part !== "..");
 
