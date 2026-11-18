@@ -7,7 +7,7 @@ Dated records of how stored values and claims were sourced and checked: search l
 
 New reviews follow [the collection procedure](../collection.md#5-review).
 
-A takedown is recorded here too, as a dated review. The [takedown path](../source-preservation.md#takedown) in [Preserving source bytes](../source-preservation.md) starts with that review and ends with the archive check the removal leaves standing, recorded in the same review.
+A takedown is recorded here too, as a dated review. The [takedown path](../source-preservation.md#takedown) in [Preserving source bytes](../source-preservation.md) starts with that review: the review's own path is what the manifest row records as the requester, beside the date and the reason. It ends with `npm run archive -- verify`, which reports the removed key and exits 0, and the review records that key.
 
 ## Former paths
 

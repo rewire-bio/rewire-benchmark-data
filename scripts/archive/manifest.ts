@@ -14,14 +14,18 @@ import path from "node:path";
 import crypto from "node:crypto";
 import {
   canonicalLine,
+  isRemoved,
   manifestRowSchema,
   objectShard,
   objectShards,
+  utcNow,
   visibilityOf,
   type Exposure,
   type ManifestRow,
   type ArchiveTier,
+  type Store,
 } from "../../shared/archive/schema";
+import { cacheContents, hasObject, readObject } from "./objects";
 
 export const manifestDir = (root = "."): string => path.join(root, "data/archive/objects");
 export const shardPath = (shard: string, root = "."): string => {
@@ -97,7 +101,13 @@ export function upsertRow(row: ManifestRow, root = "."): Promise<{ added: boolea
 /** Change an object's licence columns in place. This is the one write the
  * licence work makes: a determination moves a tier, visibility follows the
  * tier, and no bytes are fetched again. Returns false when the key is not in
- * the manifest. */
+ * the manifest.
+ *
+ * observed_licence left out keeps the string the row carries. Passing null
+ * clears it, which is what a reading that rests on no licence string has to
+ * be able to say: leaving a superseded string beside a new tier would make
+ * the row name a determination it no longer carries. The two cases are told
+ * apart by the key being present, not by the value. */
 export function updateRow(
   sha256: string,
   patch: { archive_tier: ArchiveTier; observed_licence?: string | null; exposure?: Exposure },
@@ -112,12 +122,112 @@ export function updateRow(
       ...rows[index],
       archive_tier: patch.archive_tier,
       visibility: visibilityOf(patch.archive_tier),
-      observed_licence: patch.observed_licence ?? rows[index].observed_licence,
+      observed_licence: "observed_licence" in patch ? (patch.observed_licence ?? null) : rows[index].observed_licence,
       exposure: patch.exposure ?? rows[index].exposure,
     });
     writeShard(shard, rows, root);
     return true;
   });
+}
+
+/** Record which backend holds an object's bytes. This is the one write the
+ * publish work makes: the bytes are already there, and store plus
+ * archiveAssetUrl() is the whole record of where. Nothing else on the row
+ * moves, and the licence columns in particular are not touched. Returns false
+ * when the key is not in the manifest. */
+export function markStore(sha256: string, store: Store, root = "."): Promise<boolean> {
+  const shard = objectShard(sha256);
+  return serialise(() => {
+    const rows = readShard(shard, root);
+    const index = rows.findIndex((row) => row.sha256 === sha256);
+    if (index < 0) return false;
+    if (rows[index].store === store) return true;
+    rows[index] = manifestRowSchema.parse({ ...rows[index], store });
+    writeShard(shard, rows, root);
+    return true;
+  });
+}
+
+/** Record a takedown on a row whose bytes have gone, or are going.
+ *
+ * This is the one write the takedown path makes. It moves the row to
+ * t5-no-store, so visibility follows to restricted and no publish path selects
+ * it again, and it records when, why and at whose request. Everything that
+ * makes the removal checkable stays: the key, the byte count, the media type,
+ * the origin, first_seen_at and source_ids. Returns false when the key is not
+ * in the manifest.
+ *
+ * It rewrites one shard, so it waits for a running fetch like every other
+ * manifest write. */
+export function markRemoved(
+  sha256: string,
+  removal: { removed_at?: string; removed_reason: string; removed_requester: string },
+  root = ".",
+): Promise<boolean> {
+  const shard = objectShard(sha256);
+  return serialise(() => {
+    const rows = readShard(shard, root);
+    const index = rows.findIndex((row) => row.sha256 === sha256);
+    if (index < 0) return false;
+    rows[index] = manifestRowSchema.parse({
+      ...rows[index],
+      archive_tier: "t5-no-store",
+      visibility: visibilityOf("t5-no-store"),
+      removed_at: removal.removed_at ?? utcNow(),
+      removed_reason: removal.removed_reason,
+      removed_requester: removal.removed_requester,
+    });
+    writeShard(shard, rows, root);
+    return true;
+  });
+}
+
+export interface Verification {
+  objects: number;
+  verified: number;
+  removed: string[];
+  missing: string[];
+  corrupt: string[];
+  unlisted: string[];
+  problems: string[];
+}
+
+/** Recompute every cached object against the manifest. Offline, credential
+ * free and read only, and what `npm run archive -- verify` reports.
+ *
+ * A row at t5-no-store is expected to hold no bytes, so it is counted as
+ * removed rather than missing and the command stays green after a takedown.
+ * The check runs the other way instead: bytes still in the cache under a
+ * removed row mean the takedown stopped halfway, and that is a problem. */
+export function verifyObjects(root = "."): Verification {
+  const { problems } = checkManifest(root);
+  const manifest = readManifest(root);
+  const removed: string[] = [];
+  const missing: string[] = [];
+  const corrupt: string[] = [];
+  let verified = 0;
+  for (const [key, row] of manifest) {
+    const held = hasObject(key, root);
+    if (row.archive_tier === "t5-no-store") {
+      const when = isRemoved(row) ? `, removed at ${row.removed_at}` : "";
+      if (held) problems.push(`${key} is at t5-no-store${when} and its bytes are still in the cache`);
+      else removed.push(key);
+      continue;
+    }
+    if (!held) {
+      missing.push(key);
+      continue;
+    }
+    try {
+      const bytes = readObject(key, root);
+      if (bytes.length !== row.bytes) corrupt.push(key);
+      else verified += 1;
+    } catch {
+      corrupt.push(key);
+    }
+  }
+  const unlisted = cacheContents(root).keys.filter((key) => !manifest.has(key));
+  return { objects: manifest.size, verified, removed, missing, corrupt, unlisted, problems };
 }
 
 /** Structural checks, offline and credential free: every row parses, sits in

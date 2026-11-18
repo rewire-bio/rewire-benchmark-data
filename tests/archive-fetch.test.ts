@@ -4,12 +4,12 @@ import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { afterEach, expect, it } from "vitest";
+import { afterEach, expect, it, describe } from "vitest";
 import { failureReason, planRun, runFetch } from "../scripts/archive/fetch";
-import { hasObject } from "../scripts/archive/objects";
-import { readManifest } from "../scripts/archive/manifest";
+import { hasObject, objectPath } from "../scripts/archive/objects";
+import { markRemoved, readManifest } from "../scripts/archive/manifest";
 import { readReceipts } from "../scripts/archive/receipts";
-import { routeChain } from "../scripts/archive/routes";
+import { canonicalGithubUrl, routeChain } from "../scripts/archive/routes";
 
 const roots: string[] = [];
 const servers: http.Server[] = [];
@@ -291,4 +291,72 @@ it("calls a source paywalled only when every fallback actually answered", () => 
     answered[2],
   ];
   expect(failureReason("10.1101/x", [direct, ...refused])).toBe("paywalled_not_held");
+});
+
+it("never fetches a source whose manifest row was removed, and reports the skip under its own name", async () => {
+  // The takedown path marks the row and deletes the bytes, and it leaves the
+  // receipt alone, because a receipt is an observation of a transfer that
+  // happened. So after a takedown a removed source looks exactly like a
+  // source whose cache copy went missing, and the fetch used to transfer it
+  // again and cache the bytes somebody asked us to delete.
+  const body = Buffer.from("bytes a rights holder asked us to remove");
+  let requests = 0;
+  const base = await serve((_request, response) => {
+    requests += 1;
+    response.writeHead(200, { "Content-Type": "application/pdf" });
+    response.end(body);
+  });
+  const root = fixtureRoot([{ id: "source-one", url: `${base}/one.pdf` }]);
+
+  expect((await run(root)).stored).toBe(1);
+  expect(requests).toBe(1);
+  const key = digest(body);
+
+  // The takedown: mark the row, then delete the local copy.
+  expect(
+    await markRemoved(key, { removed_reason: "rights holder request", removed_requester: "docs/reviews/2026-11-17-takedown.md" }, root),
+  ).toBe(true);
+  fs.rmSync(objectPath(key, root), { force: true });
+  expect(hasObject(key, root)).toBe(false);
+
+  const second = await run(root);
+  expect(second).toMatchObject({ planned: 0, attempted: 0, stored: 0, skipped_held: 0, skipped_removed: 1 });
+  // Nothing was asked of the host and nothing came back into the cache.
+  expect(requests).toBe(1);
+  expect(hasObject(key, root)).toBe(false);
+  expect(readReceipts(root)).toHaveLength(1);
+
+  // Not in the work list either way, and --retry-failed does not reach it.
+  expect(planRun(root, false)).toMatchObject({ todo: [], heldSources: 0, removedSources: 1 });
+  expect(planRun(root, true)).toMatchObject({ todo: [], heldSources: 0, removedSources: 1 });
+
+  // The row is still there, still at t5-no-store, still naming the removal.
+  const row = readManifest(root).get(key);
+  expect(row?.archive_tier).toBe("t5-no-store");
+  expect(row?.removed_requester).toBe("docs/reviews/2026-11-17-takedown.md");
+});
+
+describe("canonicalGithubUrl", () => {
+  it("rewrites a blob page to the raw file and keeps the pinned ref", () => {
+    expect(canonicalGithubUrl("https://github.com/o/r/blob/abc123/docs/a.md")).toBe(
+      "https://raw.githubusercontent.com/o/r/abc123/docs/a.md",
+    );
+    // A space stays percent encoded, because the path is read back from URL.
+    expect(canonicalGithubUrl("https://github.com/o/r/blob/abc123/docs/a b.md")).toBe(
+      "https://raw.githubusercontent.com/o/r/abc123/docs/a%20b.md",
+    );
+  });
+
+  it("leaves every other GitHub URL alone", () => {
+    for (const url of [
+      "https://github.com/o/r",
+      "https://github.com/o/r/tree/main/docs",
+      "https://github.com/o/r/releases/download/v1/asset.tar.gz",
+      "https://raw.githubusercontent.com/o/r/abc123/a.md",
+      "https://www.ebi.ac.uk/x",
+      "not a url",
+    ]) {
+      expect(canonicalGithubUrl(url)).toBe(url);
+    }
+  });
 });

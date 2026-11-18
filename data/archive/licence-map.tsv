@@ -1,5 +1,13 @@
-# Observed licence string to archive tier. One row per distinct value of attributes.licence
-# on a source record. A tier governs publication only, never whether a source is fetched.
+# Observed licence string to archive tier. A tier governs publication only, never whether a
+# source is fetched. Three kinds of row, and the licence column is the lookup key for all
+# three: one row per distinct value of attributes.licence on a source record; one row per
+# distinct string a metadata service serves that is the same licence spelled differently;
+# and one row per string a metadata service serves that no record carries and that the
+# owner has ruled on directly.
+# A spelling row carries the family and tier of the row it is read as a spelling of, and
+# its note names that row and the date it was read. A ruling row names the ruling and its
+# date in its note, because no earlier row states its reading. Nothing is normalised at
+# lookup time.
 # Hand reviewed, not generated: tests/licence-map.test.ts fails the build when the store
 # carries a licence string with no row here. A source with no licence string at all takes
 # t4-private by default and appears in the licence triage queue.
@@ -8,6 +16,8 @@
 # Last reviewed 2026-11-17.
 licence	family	tier	basis	note
 ACS AuthorChoice open-access terms (permissions statement in the retrieved XML)	publisher-terms	t4-private	unresolved	ACS AuthorChoice covers several different grants. The retrieved statement does not say which, so no family is determined.
+AFL-3.0	permissive-code	t0-public	identifier	Owner ruling of 2026-11-17 (issue 276): No source record carries this string; GitHub serves it for 2 sources. AFL-3.0 is permissive rather than copyleft, so it is read with MIT, Apache-2.0 and BSD and not with the copyleft code licences.
+AGPL-3.0	copyleft-code	t0-public	identifier	Owner ruling of 2026-11-17 (issue 276): No source record carries this string; GitHub serves it for 3 sources. The licence permits verbatim redistribution provided its text travels with the work, which is what this archive does, and its copyleft conditions govern distributing modified work rather than storing an unmodified copy. The network clause concerns running modified software as a service and does not reach an archived file.
 All rights reserved (bioRxiv licence 'cc_no')	all-rights-reserved	t4-private	prose	
 All rights reserved (medRxiv licence 'cc_no')	all-rights-reserved	t4-private	prose	
 All rights reserved (© The Author 2012, published by Oxford University Press); free to read (Unpaywall oa_status bronze, no licence); Crossref lists no licence	all-rights-reserved	t4-private	prose	Free to read is not a licence. Bronze open access grants no redistribution right.
@@ -45,6 +55,8 @@ Code Apache-2.0; data ODbL	other-open	t0-public	prose	Both permit redistribution
 Copyright (C) 2026 Blank Bio. All rights reserved. (Zenodo record, Rights field)	all-rights-reserved	t4-private	prose	
 Creative Commons Attribution License (permissions statement in the retrieved XML)	cc-by	t0-public	prose	No version stated. Every CC BY version permits verbatim redistribution and adaptation with attribution, so the tier does not turn on it.
 Creative Commons Attribution-Non Commercial 3.0 Unported Licence (permissions statement in the retrieved XML)	cc-by-nc	t1-public-nc	prose	CC 3.0, not 4.0. The non-commercial premise of determination 1 is a statement about our use, so it holds across versions.
+GPL-2.0	copyleft-code	t0-public	identifier	Owner ruling of 2026-11-17 (issue 276): No source record carries this string; GitHub serves it for 7 sources. The licence permits verbatim redistribution provided its text travels with the work, which is what this archive does, and its copyleft conditions govern distributing modified work rather than storing an unmodified copy.
+GPL-3.0	copyleft-code	t0-public	identifier	Owner ruling of 2026-11-17 (issue 276): No source record carries this string; GitHub serves it for 27 sources. The licence permits verbatim redistribution provided its text travels with the work, which is what this archive does, and its copyleft conditions govern distributing modified work rather than storing an unmodified copy.
 MIT	permissive-code	t0-public	identifier	
 MIT (AI4Science/hyinv/LICENSE)	permissive-code	t0-public	prose	
 MIT (AI4Science/hyplm_flash/LICENSE)	permissive-code	t0-public	prose	
@@ -66,11 +78,37 @@ Science journal article reuse terms (licence statement: 'No claim to original US
 SpliceAI2 Model Terms of Use (LICENSE file in the same repository)	bespoke-restricted	t4-private	prose	Same terms as the row above, cited from the repository LICENSE.
 SpliceAI2 Model Terms of Use (proprietary, non-commercial organisations only)	bespoke-restricted	t4-private	prose	Terms limited to one class of organisation are not a public licence, so nothing is published.
 Springer Nature holds exclusive rights under a publishing agreement; not open access. No copy is archived in this repository.	publisher-terms	t4-private	prose	The trailing sentence describes the old practice, not the licence. Under this policy the bytes are fetched and stored privately.
+apache-2.0	permissive-code	t0-public	identifier	Read as a spelling of "Apache-2.0" on 2026-11-17. The same SPDX identifier in lower case.
 arXiv non-exclusive distribution licence 1.0	arxiv-nonexclusive	t4-private	prose	The licence is granted to arXiv, not to the public.
 arXiv non-exclusive licence to distribute 1.0 (http://arxiv.org/licenses/nonexclusive-distrib/1.0/)	arxiv-nonexclusive	t4-private	prose	The licence is granted to arXiv, not to the public. It gives us no redistribution right.
 arXiv.org perpetual non-exclusive licence 1.0 (no reuse licence); not archived	arxiv-nonexclusive	t4-private	prose	The trailing 'not archived' describes the old practice, not the licence. Under this policy the bytes are fetched and stored privately.
 arXiv.org perpetual non-exclusive license 1.0	arxiv-nonexclusive	t4-private	prose	The licence is granted to arXiv, not to the public.
 arXiv.org perpetual non-exclusive license 1.0 (no redistribution of the bytes)	arxiv-nonexclusive	t4-private	prose	
 arXiv.org perpetual, non-exclusive license 1.0 (http://arxiv.org/licenses/nonexclusive-distrib/1.0/), the only licence the abstract page links. No open reuse or redistribution licence is offered.	arxiv-nonexclusive	t4-private	prose	
+bsd-3-clause	permissive-code	t0-public	identifier	Read as a spelling of "BSD-3-Clause" on 2026-11-17. The same SPDX identifier in lower case.
+cc by	cc-by	t0-public	identifier	Read as a spelling of "Creative Commons Attribution License (permissions statement in the retrieved XML)" on 2026-11-17. Europe PMC states the family and no version, which is what that row reads.
+cc by-nc	cc-by-nc	t1-public-nc	identifier	Read as a spelling of "CC BY-NC 4.0" on 2026-11-17. No version stated. Every CC BY-NC row in this map is t1-public-nc, so the tier does not turn on it.
+cc by-nc-nd	cc-by-nc-nd	t3-verbatim-nd-nc	identifier	Read as a spelling of "CC BY-NC-ND 4.0" on 2026-11-17. No version stated. Every CC BY-NC-ND row in this map is t3-verbatim-nd-nc, so the tier does not turn on it.
+cc-by-nc-4.0	cc-by-nc	t1-public-nc	identifier	Read as a spelling of "CC-BY-NC-4.0" on 2026-11-17. The same SPDX identifier in lower case.
+cc-by-nc-sa-4.0	cc-by-nc-sa	t1-public-nc	identifier	Read as a spelling of "CC-BY-NC-SA-4.0" on 2026-11-17. The same SPDX identifier in lower case.
+cc0	cc0	t0-public	identifier	Read as a spelling of "CC0-1.0" on 2026-11-17. CC0 has one version.
+cc_by	cc-by	t0-public	identifier	Read as a spelling of "CC-BY-4.0 (article, per bioRxiv API license field cc_by)" on 2026-11-17. That row names this field value.
+cc_by_nc	cc-by-nc	t1-public-nc	identifier	Read as a spelling of "CC BY-NC 4.0" on 2026-11-17. The bioRxiv API licence field, read as the 4.0 licence exactly as the row for its cc_by value reads it.
+cc_by_nc_nd	cc-by-nc-nd	t3-verbatim-nd-nc	identifier	Read as a spelling of "CC-BY-NC-ND-4.0" on 2026-11-17. The bioRxiv API licence field, read as the 4.0 licence exactly as the row for its cc_by value reads it.
+cc_by_nd	cc-by-nd	t2-verbatim-nd	identifier	Read as a spelling of "CC-BY-ND-4.0" on 2026-11-17. The bioRxiv API licence field, read as the 4.0 licence exactly as the row for its cc_by value reads it.
+cc_no	all-rights-reserved	t4-private	identifier	Read as a spelling of "All rights reserved (bioRxiv licence 'cc_no')" on 2026-11-17. That row names this field value.
+http://creativecommons.org/licenses/by-nc-nd/4.0/	cc-by-nc-nd	t3-verbatim-nd-nc	prose	Read as a spelling of "CC-BY-NC-ND-4.0" on 2026-11-17. The licence URL of that identifier, at http.
+http://creativecommons.org/licenses/by-nc/3.0/	cc-by-nc	t1-public-nc	prose	Read as a spelling of "Creative Commons Attribution-Non Commercial 3.0 Unported Licence (permissions statement in the retrieved XML)" on 2026-11-17. The licence URL of the version that row reads.
+http://creativecommons.org/licenses/by-nc/4.0/	cc-by-nc	t1-public-nc	prose	Read as a spelling of "CC BY-NC 4.0" on 2026-11-17. The licence URL of that identifier, at http.
+http://creativecommons.org/licenses/by-nd/4.0/	cc-by-nd	t2-verbatim-nd	prose	Read as a spelling of "CC-BY-ND-4.0" on 2026-11-17. The licence URL of that identifier, at http.
+http://creativecommons.org/licenses/by/2.0/	cc-by	t0-public	prose	Read as a spelling of "CC-BY-2.0" on 2026-11-17. The licence URL of that identifier.
+http://creativecommons.org/licenses/by/3.0/	cc-by	t0-public	prose	Read as a spelling of "Creative Commons Attribution License (permissions statement in the retrieved XML)" on 2026-11-17. A CC BY version that row's reading covers: it states that the tier does not turn on the version.
+http://creativecommons.org/licenses/by/4.0/	cc-by	t0-public	prose	Read as a spelling of "https://creativecommons.org/licenses/by/4.0/" on 2026-11-17. The same URL at http.
 http://creativecommons.org/licenses/by/4.0/ (stated on the retrieved abstract page)	cc-by	t0-public	prose	
+https://creativecommons.org/licenses/by-nc-nd/4.0	cc-by-nc-nd	t3-verbatim-nd-nc	prose	Read as a spelling of "CC-BY-NC-ND-4.0" on 2026-11-17. The licence URL of that identifier, without the trailing slash.
+https://creativecommons.org/licenses/by-nc-nd/4.0/	cc-by-nc-nd	t3-verbatim-nd-nc	prose	Read as a spelling of "CC-BY-NC-ND-4.0" on 2026-11-17. The licence URL of that identifier.
+https://creativecommons.org/licenses/by-nc/4.0/	cc-by-nc	t1-public-nc	prose	Read as a spelling of "CC BY-NC 4.0" on 2026-11-17. The licence URL of that identifier.
+https://creativecommons.org/licenses/by/4.0	cc-by	t0-public	prose	Read as a spelling of "https://creativecommons.org/licenses/by/4.0/" on 2026-11-17. The same URL without the trailing slash.
 https://creativecommons.org/licenses/by/4.0/	cc-by	t0-public	prose	The licence URL is the whole string.
+https://creativecommons.org/publicdomain/zero/1.0/	cc0	t0-public	prose	Read as a spelling of "CC0-1.0" on 2026-11-17. The licence URL of that identifier.
+mit	permissive-code	t0-public	identifier	Read as a spelling of "MIT" on 2026-11-17. The same SPDX identifier in lower case.
