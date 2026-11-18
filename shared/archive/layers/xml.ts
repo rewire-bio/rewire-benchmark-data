@@ -15,7 +15,7 @@
  * here, because an ICU version change would move every stored offset.
  */
 import { decode, encodingOf, type Encoding } from "./classify";
-import { scanMarkup, type Strength } from "./markup";
+import { scanMarkup, type ScanRules, type Strength } from "./markup";
 import { layerFromText } from "./text";
 import type { Layer } from "./types";
 
@@ -89,10 +89,14 @@ const boundary = (name: string): Strength => {
   return 2;
 };
 
+/** The rules the normaliser scans by, in one object, so that the table grid
+ * built from the same bytes sees exactly the text this layer holds. */
+export const xmlRules: ScanRules = { skip, boundary };
+
 /** The text layer of a JATS or other publisher XML document. */
 export function xmlLayer(input: Buffer, encoding?: Encoding): Layer {
   const found = encoding ?? encodingOf(input);
   if (!found) throw new Error("xmlLayer was given bytes that do not decode as text");
-  const text = scanMarkup(decode(input, found), { skip, boundary });
+  const text = scanMarkup(decode(input, found), xmlRules);
   return layerFromText(input, text, "europepmc-fulltext-xml@1", "europepmc-fulltext-xml@1 text content in document order");
 }

@@ -108,7 +108,11 @@ export function coverageOf(
   unsupported: UnsupportedFact[] = [],
 ): CoverageResult {
   const byObject = new Map<string, LayerRecord[]>();
-  for (const record of registry) {
+  // Text layers only. A table grid is a second layer over the same bytes
+  // and is not an extraction substrate, so counting one here would let a
+  // grid stand as a source's best layer and would put its characters into
+  // the extraction surface twice.
+  for (const record of registry.filter((row) => !row.normaliser.endsWith("-table-grid@1"))) {
     const held = byObject.get(record.object_sha256);
     if (held) held.push(record);
     else byObject.set(record.object_sha256, [record]);

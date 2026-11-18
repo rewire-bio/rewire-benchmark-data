@@ -6,7 +6,7 @@
  *
  * Two different numbers come out of this and the difference is the point. Parse coverage is what
  * `npm run locator -- coverage` reports: the share of stored locator strings the grammar fully
- * addresses, 39,416 of 52,278, 75.4%. Resolution coverage is the share that reach a span in a
+ * addresses, 40,464 of 52,278, 77.4%. Resolution coverage is the share that reach a span in a
  * layer the archive holds. A locator can parse perfectly and resolve nothing, because the bytes
  * are not held, because the layer prints no columns, or because the caption it names is not in
  * the text. Only the second number says whether a stored value can be re-checked without a
@@ -21,6 +21,7 @@ import { hasObject } from "../../archive/objects";
 import { latestBySource, readReceipts } from "../../archive/receipts";
 import {
   coverageOf as layerCoverage,
+  isGrid,
   layerText,
   readRegistry,
   readUnsupported,
@@ -194,12 +195,18 @@ export function measure(options: MeasureOptions): MeasureReport {
 
   const bySource = new Map<string, LayerRecord[]>();
   const rank = { pass: 0, suspect: 1, fail: 2 } as const;
-  for (const record of registry)
+  for (const record of registry) {
+    // A table grid is a registry row over the same bytes holding the geometry the text layer
+    // flattens. Its bytes are JSON, not the source text, so a resolver run against them can only
+    // refuse on the wrong substrate or, worse, place a span inside the geometry. It is also
+    // competing for one of the MAX_LAYERS slots a real text layer needs.
+    if (isGrid(record)) continue;
     for (const source of record.source_ids) {
       const held = bySource.get(source);
       if (held) held.push(record);
       else bySource.set(source, [record]);
     }
+  }
   for (const held of bySource.values())
     held.sort((a, b) => rank[a.sanity] - rank[b.sanity] || b.metrics.characters - a.metrics.characters);
 

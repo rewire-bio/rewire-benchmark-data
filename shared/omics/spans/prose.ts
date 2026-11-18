@@ -33,13 +33,45 @@ function occurrences(index: LayerIndex, quote: string, limit = 8): { from: numbe
   return found;
 }
 
-/** The span of a quoted sentence or phrase. */
-export function resolveQuote(index: LayerIndex, quote: string): Resolution {
+/** How far past the quote a sentence may run before the resolver gives up looking for its end. */
+const SENTENCE_UNITS = 900;
+
+/** The end of the sentence the quote starts, as a UTF-16 offset, or null where none is found
+ * within `SENTENCE_UNITS`.
+ *
+ * A full stop ends a sentence when a space and a capital letter follow it, or when the text
+ * does. A full stop between two digits is a decimal point, and the values this lane exists to
+ * find are mostly decimals, so that case is excluded explicitly. An abbreviation followed by a
+ * capital ("et al. The") ends a sentence here and should not, which over-reads by one sentence
+ * and never under-reads: the span stays a superset of the quote. */
+function sentenceEnd(text: string, from: number): number | null {
+  const limit = Math.min(text.length, from + SENTENCE_UNITS);
+  for (let at = from; at < limit; at += 1) {
+    const here = text[at];
+    if (here !== "." && here !== "!" && here !== "?") continue;
+    if (here === "." && /[0-9]/.test(text[at - 1] ?? "") && /[0-9]/.test(text[at + 1] ?? "")) continue;
+    const after = text.slice(at + 1, at + 4);
+    if (after === "" || /^\s*$/.test(after) || /^\s+["'(‘“]?[A-Z0-9]/.test(after)) return at + 1;
+  }
+  return null;
+}
+
+/**
+ * The span of a quoted sentence or phrase.
+ *
+ * `whole` is for `sentence beginning "X"`, where the locator names the sentence and prints only
+ * its opening. The value the record stores is further along it, so a span over the opening alone
+ * states a place the value is not: 9 of the 2026-11-18 quote spans were that. With `whole` the
+ * span runs from the quote to the end of its sentence, and where no end is found within
+ * `SENTENCE_UNITS` the span stays the quote rather than guessing one.
+ */
+export function resolveQuote(index: LayerIndex, quote: string, whole = false): Resolution {
   if (quote.trim().length < 4) return refuse("no_anchor", "a quote under four characters addresses nothing", index.layer_sha256);
   const hits = occurrences(index, quote);
   if (hits.length === 0) return refuse("quote_not_found", `the quoted text is not in this layer`, index.layer_sha256);
   if (hits.length > 1) return refuse("quote_ambiguous", `the quoted text occurs ${hits.length} times or more in this layer`, index.layer_sha256);
-  return { ok: true, kind: "quote", span: spanAt(index, hits[0].from, hits[0].to), layer_sha256: index.layer_sha256 };
+  const to = whole ? (sentenceEnd(index.text, hits[0].to) ?? hits[0].to) : hits[0].to;
+  return { ok: true, kind: "quote", span: spanAt(index, hits[0].from, to), layer_sha256: index.layer_sha256 };
 }
 
 /** Lines that are a heading for this section name: the line's whole printed text is the name,

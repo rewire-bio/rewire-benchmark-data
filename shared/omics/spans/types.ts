@@ -26,6 +26,8 @@ export const spanKinds = [
   "line_range",
   /** A quoted sentence or phrase, found in the layer. */
   "quote",
+  /** The value an RFC 6901 JSON Pointer addresses, in the JSON text itself. */
+  "json_value",
 ] as const;
 export type SpanKind = (typeof spanKinds)[number];
 
@@ -54,6 +56,7 @@ export const refusalReasons = [
   "empty_table_window",
   "column_not_found",
   "column_ambiguous",
+  "column_unaligned",
   "row_not_found",
   "row_ambiguous",
   "row_key_unmatched",
@@ -65,6 +68,8 @@ export const refusalReasons = [
   "paragraph_out_of_range",
   "quote_not_found",
   "quote_ambiguous",
+  "empty_span",
+  "json_not_parsed",
 ] as const;
 export type RefusalReason = (typeof refusalReasons)[number];
 

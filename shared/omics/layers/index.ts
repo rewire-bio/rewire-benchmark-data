@@ -27,7 +27,7 @@
  */
 import { readManifest } from "../../../scripts/archive/manifest";
 import { readObject } from "../../../scripts/archive/objects";
-import { layerOf, walk } from "../../archive/layers/index";
+import { gridNormaliserFor, layerOf, readGrid, walk } from "../../archive/layers/index";
 import type { ManifestRow } from "../../archive/schema";
 import { readRegistry } from "./registry";
 import type { LayerRecord } from "./types";
@@ -67,17 +67,52 @@ function manifest(root: string): Map<string, ManifestRow> {
   return manifestCache.rows;
 }
 
-/** Every layer the registry holds for a source record, best verdict first,
- * then longest. A source with no held bytes has none. */
+/** Whether a registry row is a table grid rather than a text layer.
+ *
+ * A grid is a second layer over the same bytes, holding the table geometry
+ * the text layer flattens. It is not an extraction substrate and it is not
+ * text, so every reader that means "the text of this source" leaves it out
+ * and asks for it by name instead. */
+export const isGrid = (record: LayerRecord): boolean => record.normaliser.endsWith("-table-grid@1");
+
+/** Every text layer the registry holds for a source record, best verdict
+ * first, then longest. A source with no held bytes has none. Grids are not
+ * included: `gridsForSource` returns those. */
 export function layersForSource(sourceId: string, root = "."): LayerRecord[] {
   const rank = { pass: 0, suspect: 1, fail: 2 } as const;
   return registry(root)
-    .filter((record) => record.source_ids.includes(sourceId))
+    .filter((record) => record.source_ids.includes(sourceId) && !isGrid(record))
     .sort((a, b) => rank[a.sanity] - rank[b.sanity] || b.metrics.characters - a.metrics.characters);
 }
 
-/** Every layer under one stored object, including the layers of a
- * container's members. */
+/** The table grids held for a source, in the same order. */
+export function gridsForSource(sourceId: string, root = "."): LayerRecord[] {
+  const rank = { pass: 0, suspect: 1, fail: 2 } as const;
+  return registry(root)
+    .filter((record) => record.source_ids.includes(sourceId) && isGrid(record))
+    .sort((a, b) => rank[a.sanity] - rank[b.sanity] || b.metrics.characters - a.metrics.characters);
+}
+
+/** The grid that addresses a text layer, by that layer's hash, or null.
+ *
+ * This is the one call a resolver needs: it has a text layer in hand and
+ * wants the geometry the layer lost. The grid's header names the text layer
+ * it was built against, and the two are always derived from one object, so
+ * the lookup is by object and then by header. */
+export function gridForLayer(layerSha256: string, root = "."): LayerRecord | null {
+  const text = registry(root).find((record) => record.layer_sha256 === layerSha256);
+  if (!text) return null;
+  const grid = gridNormaliserFor(text.normaliser);
+  if (!grid) return null;
+  return (
+    registry(root).find(
+      (record) => record.object_sha256 === text.object_sha256 && record.derived_from === text.derived_from && record.normaliser === grid,
+    ) ?? null
+  );
+}
+
+/** Every layer under one stored object, text layers and grids both,
+ * including the layers of a container's members. */
 export function layersForObject(objectSha256: string, root = "."): LayerRecord[] {
   return registry(root).filter((record) => record.object_sha256 === objectSha256);
 }
@@ -101,8 +136,10 @@ export function layerText(record: LayerRecord, root = "."): string {
   const row = manifest(root).get(record.object_sha256);
   if (!row) throw new Error(`${record.object_sha256} is not in the object manifest`);
   const tree = layerOf(readObject(record.object_sha256, root), { mediaType: row.media_type });
-  for (const { node } of walk(tree))
+  for (const { node } of walk(tree)) {
     if (node.layer && node.layer.output_sha256 === record.layer_sha256) return node.layer.bytes.toString("utf8");
+    if (node.grid && node.grid.output_sha256 === record.layer_sha256) return node.grid.bytes.toString("utf8");
+  }
   const where = record.container_path === null ? "" : ` member ${record.container_path}`;
   throw new Error(`re-deriving ${record.object_sha256}${where} did not reproduce layer ${record.layer_sha256}`);
 }
@@ -135,6 +172,17 @@ export function sliceSpan(text: string, start: number, end: number): SpanSlice {
   const exact = points.slice(start, end).join("");
   const byteStart = Buffer.byteLength(before, "utf8");
   return { exact, start, end, byte_start: byteStart, byte_end: byteStart + Buffer.byteLength(exact, "utf8") };
+}
+
+/** The grid a registry row holds, read from its bytes.
+ *
+ * `record` is a row whose normaliser is a grid normaliser. The bytes are
+ * re-derived and hash checked the same way `layerText` does it, so a grid
+ * whose builder moved under a stored span is an error and not a silent
+ * relocation. */
+export function gridOfRecord(record: LayerRecord, root = ".") {
+  if (!isGrid(record)) throw new Error(`${record.layer_sha256} is a ${record.normaliser} layer, not a grid`);
+  return readGrid(layerText(record, root));
 }
 
 /** Characters in a layer, counted the way a span counts them. */

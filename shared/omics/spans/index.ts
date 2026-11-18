@@ -14,12 +14,15 @@
  *   const outcome = resolveLocator(parseLocator(record.attributes.source_locator), index);
  *
  * Two numbers are measured separately and must not be confused. Parse coverage is the share of
- * stored locators the grammar fully addresses, 75.4% on 2026-11-17. Resolution coverage is the
- * share that reach a span in a layer the archive holds, which is bounded by the archive and by
- * what a text layer can carry. The second is the honest one for re-checking.
+ * stored locators the grammar fully addresses, 40,464 of 52,278, 77.4% on 2026-11-18.
+ * Resolution coverage is the share that reach a span in a layer the archive holds, 7,383, 14.1%,
+ * and it is bounded by the archive and by what a text layer can carry. The second is the honest
+ * one for re-checking. A third is the one that decides whether either can gate anything: 7,343
+ * of the 7,383 spans print the value the record stores, 99.5%.
  */
-import { selectorRole, type LocatorSelector, type ParsedLocator } from "../locator";
+import { carriesNoAddress, selectorRole, type LocatorSelector, type ParsedLocator } from "../locator";
 import { resolveFigureCaption } from "./figure";
+import { resolveJsonPointer } from "./json";
 import { indexLayer, type LayerIndex } from "./offsets";
 import { resolveQuote, resolveSectionParagraph } from "./prose";
 import { FILE_NORMALISERS, resolveDelimitedCell, resolveKeyedRow, resolveLineRange, resolvePage } from "./regions";
@@ -28,8 +31,9 @@ import { refuse, type Resolution } from "./types";
 
 export * from "./types";
 export { CONTEXT_POINTS, countPoints, indexLayer, layerPoints, spanAt, spanOfLines, type LayerIndex } from "./offsets";
-export { ALIGNED_NORMALISERS, cellsOf, captionLines, normaliseLabel, resolveTableCell, tableWindow } from "./table";
+export { ALIGNED_NORMALISERS, cellsOf, captionLines, columnForms, normaliseLabel, resolveTableCell, tableWindow } from "./table";
 export { resolveFigureCaption } from "./figure";
+export { jsonOf, pointerTokens, readJson, renderPointer, resolveJsonPointer, scalarsOf, step, walk, type JsonNode, type JsonSelector } from "./json";
 export { resolveQuote, resolveSectionParagraph } from "./prose";
 export { FILE_NORMALISERS, columnIndex, delimiterOf, fieldsOf, resolveDelimitedCell, resolveKeyedRow, resolveLineRange, resolvePage } from "./regions";
 export { reanchor, type Anchoring, type AnchorEvidence } from "./reanchor";
@@ -55,15 +59,22 @@ function labelFromRaw(selector: LocatorSelector): string | null {
  * identifies one row by three facts, and a resolver that reads the first and drops the other two
  * will find a row and find the wrong one. They are carried through as keys the accepted row has
  * to print. */
-function roles(selectors: LocatorSelector[]): { row: string | null; column: string | null; keys: string[] } {
+function roles(selectors: LocatorSelector[]): {
+  row: string | null;
+  column: string | null;
+  keys: string[];
+  subColumns: string[];
+} {
   let row: string | null = null;
   let column: string | null = null;
   const keys: string[] = [];
+  const subColumns: string[] = [];
   for (const selector of selectors) {
     if (selector.value === null) continue;
     const role = selectorRole(selector.key);
     if (role === "row" && row === null) row = selector.value;
     else if (role === "column" && column === null) column = selector.value;
+    else if (role === "column") subColumns.push(selector.value);
     else if (role === "other") {
       const first = selector.key.split(/\s+/)[0];
       if (ROW_WORDS.has(first) && row === null) row = labelFromRaw(selector) ?? row;
@@ -71,7 +82,92 @@ function roles(selectors: LocatorSelector[]): { row: string | null; column: stri
       else keys.push(selector.value);
     }
   }
-  return { row, column, keys };
+  return { row, column, keys, subColumns };
+}
+
+/** Numbers in the text the grammar did not read, which still say which row was meant.
+ *
+ * `Table 3, row 'Medium' / 'Chroma' / length 300, column 'Ci'` leaves `length 300` as residue,
+ * because `length` is not a selector keyword. The table prints one block per type and one line
+ * per length, so a resolver that takes the first line labelled `Medium` returns a different
+ * length's number: measured wrong on 30 locators from one source. The number is carried through
+ * as a key the accepted row has to print, which resolves the right line where the layer prints
+ * it on that line and refuses `row_key_unmatched` where it does not.
+ *
+ * Two digits at least. A one-digit residue number is a table or a panel number far more often
+ * than a row key, and it is printed on nearly every line of a table that holds any count.
+ *
+ * One kind of word comes through with them: the name of a block. `Table 1, lower block, row
+ * "random mutations", column "edits/seq"` leaves `lower block` as residue because the grammar
+ * reads a block only when its name is quoted. The table prints the same row label in an upper
+ * and a lower block and the resolver read the upper one, on 12 locators. Nothing else in the
+ * residue is taken: it is prose as often as not, and `(printed 'SCimilarity' with superscript l,
+ * trained with cell-type labels)` holds no key, which taking every word from it was measured
+ * withdrawing 83 correct spans to remove those 12 wrong ones. */
+function residueKeys(residue: string[]): string[] {
+  const text = residue.join(" ");
+  const numbers = text.match(/(?<![\p{L}\p{N}.])\d{2,}(?:\.\d+)?(?![\p{L}\p{N}.])/gu) ?? [];
+  const blocks = [...text.matchAll(/([\p{L}\p{N}][\p{L}\p{N}-]*)\s+(?:block|group|panel|section|part)\b/giu)]
+    .map((match) => match[1])
+    // One character is not a block name worth matching a whole line against: `Gene Frequency 4
+    // block` against a table of counts matches almost any line, and it committed 2 wrong cells.
+    .filter((word) => word.length >= 2 && !carriesNoAddress(word));
+  return [...new Set([...numbers, ...blocks])];
+}
+
+/** Which closing mark each opening mark takes. A straight quote closes on a straight quote and
+ * a curly one on its partner, which is what tells an apostrophe from a delimiter: the stored
+ * `'3’ UTR categories (0.50 vs. GPN-Star-M’s 0.18)'` holds two curly apostrophes inside a
+ * straight-quoted run, and a scanner that closed on any mark read it as the two characters
+ * `3’`. */
+const CLOSERS: Record<string, string> = { "'": "'", '"': '"', "‘": "’", "“": "”" };
+/** How long a quoted run has to be before it is taken as the evidence rather than a label. */
+const EVIDENCE_POINTS = 8;
+
+/** The quoted runs of a printed locator, in the order they are printed. */
+function quotedRuns(printed: string): { text: string; at: number }[] {
+  const runs: { text: string; at: number }[] = [];
+  for (let i = 0; i < printed.length; i += 1) {
+    const closer = CLOSERS[printed[i]];
+    if (closer === undefined) continue;
+    const end = printed.indexOf(closer, i + 1);
+    if (end < 0) break;
+    runs.push({ text: printed.slice(i + 1, end).trim(), at: i + 1 });
+    i = end;
+  }
+  return runs;
+}
+
+/**
+ * The text a quoting locator says to go and find, and whether it names a whole sentence.
+ *
+ * A locator that quotes anything usually quotes two things: the section it was read from and the
+ * evidence itself, in that order. `Results, 'State-of-the-art interpretable genome-wide variant
+ * prioritization with AVI' paragraph 1 (page 5), citing Fig. 2A: 'synonymous (0.57 vs. CADD
+ * v1.7's 0.35)'` is the common shape. Taking the first quote resolves the heading, which is a
+ * span in the right paper at the wrong place, and 60 of the 93 wrong quote spans of 2026-11-18
+ * were exactly that. The last quoted run is the evidence, and because the evidence is often
+ * under the grammar's 40-point threshold it is read off the printed string rather than off the
+ * addresses. The span is still only ever returned when that text occurs in the layer once.
+ */
+function evidenceQuote(parsed: ParsedLocator): { text: string; whole: boolean } | null {
+  const quoted = parsed.addresses.filter((address) => address.kind === "quote" || address.kind === "sentence");
+  if (quoted.length === 0) return null;
+  const address = quoted[quoted.length - 1];
+  const chosen = { text: address.value, whole: address.kind === "sentence" };
+  const runs = quotedRuns(parsed.printed).filter((run) => [...run.text].length >= EVIDENCE_POINTS);
+  // Of the quoted runs, the evidence is the last one that prints a number. A locator quotes a
+  // section, then the sentence the value is in, and sometimes a panel or a label after it:
+  // `Main 'Modeling tissue-specific splicing' paragraph 2 '(13,770 splice junctions, Pearson
+  // r = 0.58)'; Fig. 2b panel 'Cerebellum vs blood'` ends on the panel. This asks nothing about
+  // the value the record stores, only whether the quoted text prints any number at all, and the
+  // span is still returned only where that text occurs in the layer exactly once.
+  const numbered = runs.filter((run) => /\d/.test(run.text));
+  const last = (numbered.length > 0 ? numbered : runs)[(numbered.length > 0 ? numbered : runs).length - 1];
+  if (!last || last.text === chosen.text) return chosen;
+  // The later run wins only where it is printed after the address it displaces. A quote address
+  // that already stands last in the string is the evidence.
+  return last.at > parsed.printed.lastIndexOf(address.value) ? { text: last.text, whole: false } : chosen;
 }
 
 /** A page number from a page qualifier, where the qualifier carries one. */
@@ -94,14 +190,28 @@ function pageOf(parsed: ParsedLocator): number | null {
  * span over a row does not check the value that was read out of it.
  */
 export function resolveLocator(parsed: ParsedLocator, index: LayerIndex): Resolution {
-  const { row, column, keys } = roles(parsed.selectors);
+  const outcome = resolveParsed(parsed, index);
+  // A span has to cover characters. `spanSchema` requires `exact` to hold at least one, so a
+  // span over a blank line is not a span a record could carry, and one states a place where
+  // nothing is printed. Measured once, on a locator addressing a blank line of a PDF layer.
+  if (outcome.ok && outcome.span.exact.length === 0)
+    return refuse("empty_span", "the address names a place in the layer that prints nothing", index.layer_sha256);
+  return outcome;
+}
+
+function resolveParsed(parsed: ParsedLocator, index: LayerIndex): Resolution {
+  const { row, column, keys, subColumns } = roles(parsed.selectors);
   const addresses = parsed.addresses;
   const anchors = parsed.anchors;
 
-  const quoted = addresses.find((address) => address.kind === "quote" || address.kind === "sentence");
-  if (quoted) return resolveQuote(index, quoted.value);
-
   const table = anchors.find((anchor) => anchor.kind === "table" || anchor.kind === "figure" || anchor.kind === "sheet");
+
+  // A quote is the strongest evidence a locator carries and is resolved first, with one
+  // exception: a locator that names a table, a row and a column is addressing a cell, and the
+  // long quoted run in it is a row or column label rather than a sentence to go and find.
+  const quoted = table && row && column ? null : evidenceQuote(parsed);
+  if (quoted) return resolveQuote(index, quoted.text, quoted.whole);
+
   const sheetCell = addresses.find((address) => address.kind === "sheet_cell");
   const lineLike = addresses.find((address) => address.kind === "line" || address.kind === "row_number");
 
@@ -113,7 +223,12 @@ export function resolveLocator(parsed: ParsedLocator, index: LayerIndex): Resolu
   if (lineLike && column && isFile) return resolveDelimitedCell(index, { line: Number(lineLike.value), column });
   const jsonPath = addresses.find((address) => address.kind === "json_path");
   if (jsonPath)
-    return refuse("no_resolver_for_kind", "a JSON Pointer resolver over the file layer is not built", index.layer_sha256);
+    return resolveJsonPointer(index, {
+      path: jsonPath.value,
+      selectors: parsed.selectors
+        .filter((selector) => selector.value !== null)
+        .map((selector) => ({ key: selector.key, value: selector.value as string, role: selectorRole(selector.key) })),
+    });
   if (isFile && column && (row !== null || keys.length > 0)) {
     const constraints = [
       ...(row === null ? [] : [{ key: null, value: row }]),
@@ -130,7 +245,8 @@ export function resolveLocator(parsed: ParsedLocator, index: LayerIndex): Resolu
   if (lineLike && column && !isFile && !(table && row && column))
     return refuse("no_column_geometry", `${index.normaliser} is not the file the line address names`, index.layer_sha256);
 
-  if (table && row && column) return resolveTableCell(index, { anchor: table, row, column, keys });
+  if (table && row && column)
+    return resolveTableCell(index, { anchor: table, row, column, keys: [...keys, ...residueKeys(parsed.residue)], subColumns });
   if (table && row) return refuse("no_column_in_locator", `the locator names a row and no column`, index.layer_sha256);
   if (table && column && table.kind !== "figure")
     return refuse("no_row_in_locator", `the locator names a column and no row`, index.layer_sha256);
@@ -140,6 +256,21 @@ export function resolveLocator(parsed: ParsedLocator, index: LayerIndex): Resolu
 
   const paragraph = addresses.find((address) => address.kind === "paragraph");
   const section = anchors.find((anchor) => anchor.kind === "container");
+  // "Results P13, sentence 1" names the publisher's paragraph 13 of the Results and the first
+  // sentence of it. Two things go wrong with it. The grammar reads P13 as the container's object
+  // number and "sentence 1" as a paragraph, because the two are written the same way, so the
+  // resolver counted to 1 and returned the opening paragraph: that was 23 of the 24 section
+  // paragraph spans of 2026-11-18. Reading P13 as the paragraph instead does not rescue them,
+  // because the publisher's numbering is not the count of blank-line-separated blocks in the
+  // layer: measured on the one source that uses this form, P13 is the 11th block of the Results
+  // and P14 the 12th, and the offset is the figure blocks the layer prints and the publisher
+  // does not number. A count that cannot be reproduced is refused.
+  if (section && section.container && /^P\.?\s*\d{1,3}$/i.test(section.value))
+    return refuse(
+      "no_resolver_for_kind",
+      `"${section.container} ${section.value}" is the publisher's paragraph number, which this layer does not carry`,
+      index.layer_sha256,
+    );
   if (paragraph && section) return resolveSectionParagraph(index, section.container ?? section.value, Number(paragraph.value));
   if (paragraph) return refuse("no_anchor", "a paragraph number with no section names no place", index.layer_sha256);
 

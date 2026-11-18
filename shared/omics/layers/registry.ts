@@ -82,8 +82,28 @@ function compare(a: LayerRecord, b: LayerRecord): number {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
-function recordFor(row: ManifestRow, node: LayerNode, containerPath: string | null): LayerRecord | null {
-  const layer = node.layer;
+/** The rows one node produces: its text layer, and the table grid beside it
+ * where the node has one.
+ *
+ * A grid is registered exactly as a text layer is, with its own hash and its
+ * own row, because it is a second derived representation of the same stored
+ * bytes. Its sanity verdict is never better than the verdict on the text
+ * layer it addresses: a grid over a layer nobody may cite is a grid nobody
+ * may cite. */
+function recordsFor(row: ManifestRow, node: LayerNode, containerPath: string | null): LayerRecord[] {
+  const text = recordOf(row, node, containerPath, node.layer);
+  if (!text) return [];
+  const grid = recordOf(row, node, containerPath, node.grid);
+  if (!grid) return [text];
+  const rank = { pass: 0, suspect: 1, fail: 2 } as const;
+  if (rank[text.sanity] > rank[grid.sanity]) {
+    grid.sanity = text.sanity;
+    grid.sanity_reasons = [`the text layer this grid addresses is ${text.sanity}: ${text.sanity_reasons.join("; ")}`];
+  }
+  return [text, grid];
+}
+
+function recordOf(row: ManifestRow, node: LayerNode, containerPath: string | null, layer: LayerNode["layer"]): LayerRecord | null {
   if (!layer) return null;
   const pages = node.classification.class === "pdf" ? pdfPageCount(node.content) : null;
   const metrics = metricsOf(layer.bytes.toString("utf8"), pages);
@@ -125,8 +145,8 @@ export function layersOfObject(row: ManifestRow, bytes: Buffer): BuildResult {
     return result;
   }
   for (const { node, path: memberPath } of walk(tree)) {
-    const record = recordFor(row, node, memberPath);
-    if (record) result.records.push(record);
+    const records = recordsFor(row, node, memberPath);
+    if (records.length) result.records.push(...records);
     else if (node.unsupported)
       result.unsupported.push({ object_sha256: row.sha256, container_path: memberPath, reason: node.unsupported });
   }

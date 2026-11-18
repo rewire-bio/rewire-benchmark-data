@@ -29,6 +29,9 @@ export const ALIGNED_NORMALISERS = new Set(["pdf-text-layer@1"]);
 /** How far past a caption a table may run before the resolver stops looking. */
 const WINDOW_LINES = 200;
 
+/** How many lines under a header line a second header level may occupy. */
+const SUB_HEADER_LINES = 2;
+
 /** One field of a column-aligned line, with where it sits on that line. */
 export interface Cell {
   text: string;
@@ -76,15 +79,40 @@ export const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]
  *
  * A caption starts a line. A mention in a sentence ("as Table A2 shows") does not, and reading a
  * table body from a sentence is how the present code returned Table G2's rows for a Table G1
- * request. */
+ * request.
+ *
+ * Starting the line is not enough on its own, because a renderer wraps a sentence and the
+ * continuation starts a line too: "Figure 2a using pretrained AF3 weights through TorchFold."
+ * was read as the caption of Figure 2a on 4 locators while the real caption stood elsewhere. A
+ * figure label therefore has to be followed by what follows a label and not by what follows a
+ * mention: the end of the line, the punctuation a caption is introduced with, or a capitalised
+ * word.
+ *
+ * A table label is not held to it. The same test over table captions was measured withdrawing
+ * 96 correct cell spans and removing no wrong one, because a table caption is wrapped and
+ * continued far more often than a figure caption is mentioned mid-sentence, and because a table
+ * cell has the row and the column to cross-check the caption with while a caption span has
+ * nothing. */
 export function captionLines(index: LayerIndex, word: "Table" | "Figure", value: string): number[] {
   const label = escape(value);
   const head = word === "Table" ? "Tables?" : "(?:Figures?|Fig\\.?)";
   const pattern = new RegExp(`^\\s*(?:Supplementary\\s+|Supplemental\\s+|Extended\\s+Data\\s+|Appendix\\s+)?${head}\\s*${label}(?![0-9A-Za-z])`, "i");
   const found: number[] = [];
-  for (let line = 0; line < index.lines.length; line += 1) if (pattern.test(index.lines[line])) found.push(line);
+  for (let line = 0; line < index.lines.length; line += 1) {
+    const match = pattern.exec(index.lines[line]);
+    // CAPTION_TAIL is matched case sensitively, which is the whole of its work: the label of a
+    // caption is followed by punctuation or by a capital, and the label of a mention the
+    // renderer wrapped onto a new line is followed by the rest of the sentence in lower case.
+    if (!match) continue;
+    if (word === "Figure" && !CAPTION_TAIL.test(index.lines[line].slice(match[0].length))) continue;
+    found.push(line);
+  }
   return found;
 }
+
+/** What follows a caption's label: the end of the line, the punctuation a caption is introduced
+ * with, or a capitalised word. Case sensitive, and the one place in this file that is. */
+const CAPTION_TAIL = /^(?:\s*$|\s*[.:|)\u2013\u2014,;]|\s+["'(\u2018\u201c]?[A-Z0-9])/;
 
 /** Any caption, of any table or figure. The end of one table's window is the start of the next
  * caption, so a resolver never reads across the boundary ADR 0002 decision 2 names. */
@@ -97,12 +125,32 @@ export function tableWindow(index: LayerIndex, caption: number): { from: number;
   return { from: caption + 1, to: limit };
 }
 
-/** Does this field name the column the locator asks for? */
-function namesColumn(cell: Cell, wanted: string): boolean {
-  const text = normaliseLabel(cell.text);
-  if (text === wanted) return true;
-  if (!text.includes(wanted)) return false;
-  return new RegExp(`(?:^|[^a-z0-9])${escape(wanted)}(?:[^a-z0-9]|$)`).test(text);
+/** Marks a printed header carries that do not say which column it is: a direction arrow, and a
+ * unit or note in brackets after the name. */
+const DECORATION = /[↑↓↕⇑⇓]/g;
+const TRAILING_BRACKET = /\s*[([][^()[\]]*[)\]]\s*$/;
+
+/** The forms of a printed header that name the same column: as printed, and with a trailing
+ * bracketed unit removed. Both are compared, so "AUROC" matches a header reading "AUROC (%)"
+ * and a locator naming "Designability(↑)" matches a header reading "Designability". */
+export function columnForms(text: string): string[] {
+  const plain = normaliseLabel(text.replace(DECORATION, " "));
+  const stripped = normaliseLabel(plain.replace(TRAILING_BRACKET, ""));
+  return stripped === plain || stripped === "" ? [plain] : [plain, stripped];
+}
+
+/** Does this field name the column the locator asks for?
+ *
+ * Equality between those forms, not containment. Containment was measured returning a wrong cell
+ * on 68 of the 133 wrong table spans of 2026-11-18, in three ways. A header reading "ESM3-Open
+ * ProtBert" is two columns the layout renderer joined with a single space, and accepting it for
+ * "ProtBert" returns the neighbouring block's number. A header reading "CATH4.3 Test CATH4.2
+ * Test" is the same defect across a two-level header. And "ωAUROC" is a different metric from
+ * "AUROC", which the old boundary test let through because the Greek letter is not an ASCII
+ * letter; both columns sat in the same table. Decoration is the only difference allowed. */
+function namesColumn(cell: Cell, wanted: string[]): boolean {
+  const here = columnForms(cell.text);
+  return here.some((form) => wanted.includes(form));
 }
 
 interface CellRequest {
@@ -117,13 +165,20 @@ interface CellRequest {
    * has to be printed on the line that is accepted as the row. Where they are not, the refusal is
    * `row_key_unmatched`: the layer holds the table and the resolver cannot tell which row. */
   keys?: string[];
+  /** Further column levels the locator names: `column "Perc. within 2", sub-column "cent."`.
+   *
+   * A two-level header prints the parent on one line and its children on the next. Reading the
+   * parent alone and returning whichever child the geometry lands on was measured wrong on 41
+   * locators across two sources, so the child is placed by its name and by sitting inside the
+   * parent's band, and a child that cannot be placed that way is refused. */
+  subColumns?: string[];
 }
 
 /** One caption's worth of work: the window, the header line, the row line and the cell. */
 function resolveAt(index: LayerIndex, caption: number, request: CellRequest): Resolution {
   const window = tableWindow(index, caption);
   if (window.to <= window.from) return refuse("empty_table_window", `the caption at line ${caption + 1} is followed by another caption`, index.layer_sha256);
-  const wantedColumn = normaliseLabel(request.column);
+  const wantedColumn = columnForms(request.column);
   const wantedRow = normaliseLabel(request.row);
 
   let header: { line: number; cells: Cell[]; at: number } | null = null;
@@ -140,14 +195,45 @@ function resolveAt(index: LayerIndex, caption: number, request: CellRequest): Re
   }
   if (header === null) return refuse("column_not_found", `no line between ${window.from + 1} and ${window.to} carries the column "${request.column}"`, index.layer_sha256);
 
+  // The level under the named column, where the locator names one. A two-level header prints the
+  // parent on one line and its children on the next, and the child's own band is narrower than
+  // the parent's. Reading the parent's band and taking whichever field the geometry lands on
+  // returns one of the children at random, which was measured wrong on 41 locators. The child is
+  // placed here, by its name and by sitting inside the parent's band, or the locator is refused.
+  let level = header;
+  const subColumns = request.subColumns ?? [];
+  if (subColumns.length > 0) {
+    if (subColumns.length > 1)
+      return refuse("column_ambiguous", `the locator names ${subColumns.length} levels under "${request.column}" and this resolver reads one`, index.layer_sha256);
+    const parentBase = index.u16[header.line];
+    const parent = header.cells[header.at];
+    const wantedSub = columnForms(subColumns[0]);
+    const under: { line: number; cells: Cell[]; at: number }[] = [];
+    for (let line = header.line + 1; line < Math.min(header.line + 1 + SUB_HEADER_LINES, window.to); line += 1) {
+      const cells = cellsOf(index, line);
+      const base = index.u16[line];
+      cells.forEach((cell, at) => {
+        if (!namesColumn(cell, wantedSub)) return;
+        if (!(cell.from - base < parent.to - parentBase && parent.from - parentBase < cell.to - base)) return;
+        under.push({ line, cells, at });
+      });
+      if (under.length > 0) break;
+    }
+    if (under.length === 0)
+      return refuse("column_not_found", `no line under the header prints "${subColumns[0]}" inside the band of "${request.column}"`, index.layer_sha256);
+    if (under.length > 1)
+      return refuse("column_ambiguous", `${under.length} fields under "${request.column}" print "${subColumns[0]}"`, index.layer_sha256);
+    level = under[0];
+  }
+
   const labelled: { line: number; cells: Cell[] }[] = [];
-  for (let line = header.line + 1; line < window.to; line += 1) {
+  for (let line = level.line + 1; line < window.to; line += 1) {
     const cells = cellsOf(index, line);
     if (cells.length > 0 && normaliseLabel(cells[0].text) === wantedRow) labelled.push({ line, cells });
   }
-  if (labelled.length === 0) return refuse("row_not_found", `no line between ${header.line + 2} and ${window.to} starts with the row "${request.row}"`, index.layer_sha256);
+  if (labelled.length === 0) return refuse("row_not_found", `no line between ${level.line + 2} and ${window.to} starts with the row "${request.row}"`, index.layer_sha256);
 
-  const keys = (request.keys ?? []).map(normaliseLabel).filter((key) => key !== "" && key !== wantedRow && key !== wantedColumn);
+  const keys = (request.keys ?? []).map(normaliseLabel).filter((key) => key !== "" && key !== wantedRow && !wantedColumn.includes(key));
   const rows = keys.length === 0
     ? labelled
     : labelled.filter((candidate) => {
@@ -158,21 +244,38 @@ function resolveAt(index: LayerIndex, caption: number, request: CellRequest): Re
     return refuse("row_key_unmatched", `the row "${request.row}" is printed, and not on a line that also prints ${keys.map((key) => `"${key}"`).join(" and ")}`, index.layer_sha256);
   if (rows.length > 1) return refuse("row_ambiguous", `${rows.length} lines in the window start with the row "${request.row}"`, index.layer_sha256);
 
+  // Which field of the row sits in the header's column is a question about horizontal position,
+  // and only about horizontal position. Counting fields and taking the nth was measured
+  // returning the neighbouring column's number whenever the two lines hold different numbers of
+  // fields for the same columns, which a row label or a wrapped sentence in the header line is
+  // enough to cause. So the geometry decides, always.
   const row = rows[0];
-  let picked: Cell[];
-  if (row.cells.length === header.cells.length) {
-    picked = [row.cells[header.at]];
-  } else {
-    const headerBase = index.u16[header.line];
-    const rowBase = index.u16[row.line];
-    const centres = header.cells.map((cell) => centre(cell, headerBase));
-    picked = row.cells.filter((cell) => {
-      const here = centre(cell, rowBase);
-      let best = 0;
-      for (let i = 1; i < centres.length; i += 1) if (Math.abs(centres[i] - here) < Math.abs(centres[best] - here)) best = i;
-      return best === header.at;
-    });
-  }
+  const headerBase = index.u16[level.line];
+  const rowBase = index.u16[row.line];
+  const centres = level.cells.map((cell) => centre(cell, headerBase));
+  const band = level.cells[level.at];
+  const nearest = row.cells.filter((cell, at) => {
+    // The row's first field is its label. A label is never the value of a later column, and
+    // returning it was measured on 10 locators whose table prints the label on a line of its
+    // own: the only field on that line is the label, so nearest-column assignment returns it.
+    if (at === 0 && level.at !== 0) return false;
+    const here = centre(cell, rowBase);
+    let best = 0;
+    for (let i = 1; i < centres.length; i += 1) if (Math.abs(centres[i] - here) < Math.abs(centres[best] - here)) best = i;
+    return best === level.at;
+  });
+  // Nearest is not under. Two fields that share no horizontal extent are not in the same column
+  // however close their centres fall, and a row whose fields do not overlap the header is a row
+  // whose layout the renderer did not preserve. Refusing is the answer there.
+  const picked = nearest.filter(
+    (cell) => cell.from - rowBase < band.to - headerBase && band.from - headerBase < cell.to - rowBase,
+  );
+  if (picked.length === 0 && nearest.length > 0)
+    return refuse(
+      "column_unaligned",
+      `row "${request.row}" prints ${nearest.length} field(s) nearest column "${request.column}" and none of them overlaps it`,
+      index.layer_sha256,
+    );
   if (picked.length === 0) return refuse("cell_empty", `row "${request.row}" prints nothing under column "${request.column}"`, index.layer_sha256);
   if (picked.length > 1) return refuse("column_ambiguous", `${picked.length} fields on row "${request.row}" sit under column "${request.column}"`, index.layer_sha256);
 
@@ -182,7 +285,7 @@ function resolveAt(index: LayerIndex, caption: number, request: CellRequest): Re
     span: spanAt(index, picked[0].from, picked[0].to),
     layer_sha256: index.layer_sha256,
     row_label: row.cells[0].text,
-    column_header: header.cells[header.at].text,
+    column_header: level.cells[level.at].text,
   };
 }
 

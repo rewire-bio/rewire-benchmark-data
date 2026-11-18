@@ -30,18 +30,24 @@ import { measure } from "../scripts/omics/spans/cli";
 import { layerText, readRegistry, sliceSpan, type LayerRecord } from "../shared/omics/layers/index";
 import { parseLocator } from "../shared/omics/locator";
 import {
+  columnForms,
   countPoints,
   indexLayer,
   reanchor,
   refusalReasons,
   resolveDelimitedCell,
   resolveFigureCaption,
+  resolveJsonPointer,
   resolveLineRange,
   resolveLocator,
   resolvePage,
   resolveQuote,
   resolveSectionParagraph,
   resolveTableCell,
+  pointerTokens,
+  readJson,
+  renderPointer,
+  walk,
   spanAt,
   type RefusalReason,
   type Resolution,
@@ -379,5 +385,276 @@ describe("over the store itself", () => {
     }
     expect(report.resolved + refused).toBe(report.locators);
     expect(report.locators).toBe(300);
+  });
+});
+
+// -----------------------------------------------------------------------------------------
+// What a resolver may commit to. Every case below was a span the 2026-11-18 measurement
+// returned whose text does not print the value the record stores, reduced to a fixture.
+
+/** A two-level header, a header line a sentence was wrapped into, a row label on a line of its
+ * own, and two metrics whose names differ by one letter outside ASCII. Each shape returned a
+ * wrong cell before the rules this file asserts. */
+const AWKWARD = [
+  "            Table 8. Ablations",
+  "      Method                              ωAUROC            pAUROC",
+  "      Evo-2                                -0.0596           0.0625",
+  "",
+  "            Table 9. Benchmarks",
+  "      Model                 Human                   Mouse       and the rest of a sentence",
+  "      HyenaDNA              0.298                   0.396",
+  "",
+  "            Table 10. Correlations",
+  "      Dataset",
+  "      READ                  0.051             0.205",
+  "",
+  "            Table 11. Free energy",
+  "      Method        Perc. within 2                 Perc. within 1",
+  "                    cent.        raw               cent.       raw",
+  "      ABFE          0.98         0.40              0.71        0.33",
+  "",
+  "            Table 12. Blocks",
+  "      upper block",
+  "      random mutations      3.89       4.81",
+  "      lower block",
+  "      random mutations      13.94      35.09",
+  "",
+  "We refer to Table 9 when a wrapped sentence",
+  "Figure 4 shows this clearly, and the caption is elsewhere.",
+  "",
+  "      Figure 4. Binding curves for four targets",
+  "      Apparent dissociation constants were 60.2 and 8.55 nM.",
+].join("\n");
+const awkward = indexLayer(AWKWARD, "e".repeat(64), "pdf-text-layer@1");
+
+const at = (table: string, row: string, column: string, extra: { keys?: string[]; subColumns?: string[] } = {}): Resolution =>
+  resolveTableCell(awkward, { anchor: { kind: "table", value: table, raw: `Table ${table}` }, row, column, ...extra });
+
+describe("the column a header names", () => {
+  it("reads a decoration off a header and nothing else", () => {
+    expect(columnForms("MMD ↓")).toContain("mmd");
+    expect(columnForms("AUROC (%)")).toContain("auroc");
+    expect(columnForms("ωAUROC")).toEqual(["ωauroc"]);
+  });
+
+  it("refuses a column whose name is part of a wider header", () => {
+    expect(reasonOf(at("8", "Evo-2", "AUROC"))).toBe("column_not_found");
+  });
+
+  it("returns the cell when the header names that column and no other", () => {
+    const outcome = at("8", "Evo-2", "ωAUROC");
+    expect(outcome.ok && outcome.span.exact).toBe("-0.0596");
+  });
+});
+
+describe("which field of a row sits in the column", () => {
+  it("is decided by position, not by counting fields", () => {
+    // The header line carries a wrapped sentence, so it holds as many fields as the row does
+    // and the nth field of the row is the wrong one.
+    const outcome = at("9", "HyenaDNA", "Mouse");
+    expect(outcome.ok && outcome.span.exact).toBe("0.396");
+  });
+
+  it("never returns the row label as the value of a later column", () => {
+    const outcome = at("10", "READ", "Dataset");
+    expect(outcome.ok).toBe(false);
+  });
+
+  it("places a sub-column inside its parent's band", () => {
+    const outcome = at("11", "ABFE", "Perc. within 2", { subColumns: ["cent."] });
+    expect(outcome.ok && outcome.span.exact).toBe("0.98");
+    expect(outcome.ok && outcome.column_header).toBe("cent.");
+  });
+
+  it("refuses a sub-column that is not printed under the column named", () => {
+    expect(reasonOf(at("11", "ABFE", "Perc. within 2", { subColumns: ["median"] }))).toBe("column_not_found");
+  });
+
+  it("refuses a row whose block the locator names and the layer does not print on the row", () => {
+    expect(reasonOf(at("12", "random mutations", "upper block", { keys: ["lower"] }))).toBe("column_not_found");
+  });
+});
+
+describe("a figure caption is a caption and not a mention", () => {
+  it("refuses a wrapped sentence that begins with the figure's label", () => {
+    const outcome = resolveFigureCaption(awkward, "4");
+    expect(outcome.ok && outcome.span.exact.startsWith("Figure 4. Binding curves")).toBe(true);
+  });
+});
+
+describe("the quote a locator says to find", () => {
+  const PAPER = [
+    "Unsupervised Clustering of Genomic Regions",
+    "",
+    "To quantify GPN we measured accuracy, and the model reached 96% on coding regions and 51%",
+    "elsewhere. A second sentence follows it here.",
+  ].join("\n");
+  const paper = indexLayer(PAPER, "f".repeat(64), "pdf-text-layer@1");
+
+  it("takes the last quoted run, not the section heading before it", () => {
+    const printed =
+      "Results, 'Unsupervised Clustering of Genomic Regions', sentence beginning \"To quantify GPN we measured accuracy\"";
+    const outcome = resolveLocator(parseLocator(printed), paper);
+    expect(outcome.ok && outcome.span.exact.startsWith("To quantify GPN")).toBe(true);
+  });
+
+  it("runs a sentence span to the end of its sentence", () => {
+    const outcome = resolveQuote(paper, "To quantify GPN we measured accuracy", true);
+    expect(outcome.ok && outcome.span.exact.includes("96%")).toBe(true);
+    expect(outcome.ok && outcome.span.exact.includes("A second sentence")).toBe(false);
+  });
+
+  it("does not end a sentence on a decimal point", () => {
+    const text = indexLayer("We saw 0.891 and stopped. Then more.", "g".repeat(64), "pdf-text-layer@1");
+    const outcome = resolveQuote(text, "We saw", true);
+    expect(outcome.ok && outcome.span.exact).toBe("We saw 0.891 and stopped.");
+  });
+});
+
+describe("a span covers characters", () => {
+  it("refuses a line that prints nothing", () => {
+    const blank = indexLayer("first line\n\nthird line", "h".repeat(64), "text-utf8@1");
+    expect(reasonOf(resolveLocator(parseLocator("line 2"), blank))).toBe("empty_span");
+  });
+});
+
+describe("a publisher's paragraph number", () => {
+  it("is refused rather than counted as a block of the layer", () => {
+    const outcome = resolveLocator(parseLocator("Results P13, sentence 1"), layout);
+    expect(reasonOf(outcome)).toBe("no_resolver_for_kind");
+  });
+});
+
+// -----------------------------------------------------------------------------------------
+// The grammar defects this lane shipped, each with a stored locator that showed it.
+
+describe("a quoted sheet name", () => {
+  const stored = [
+    "Supplementary file 1, sheet 'Table S9', P7; Discovery block; row 'Gastric'; column 'DNN' under 'Stage III' (n in N7)",
+    "Sun Additional file 1, sheet 'Table S7 ', I4; row 'Liver cancer (WGBS)'; column 'CelFEER' under 'AUC values'",
+    "Supplementary Table 9 (sheet 'SupTable9_Likelihood_Ratios'), I10; tool 'alignGVGD_a'; column 'BRCA2_negative_LR'",
+    "Table S9 (sheet 'Table S9') cell I9, row 'ANEVA-H', column 'F1'",
+  ];
+  const sheetsOf = (printed: string): string[] =>
+    parseLocator(printed).anchors.filter((anchor) => anchor.kind === "sheet").map((anchor) => anchor.value);
+
+  it("ends at its closing quote, whatever its last token looks like", () => {
+    expect(sheetsOf(stored[0])).toEqual(["Table S9"]);
+    expect(sheetsOf(stored[1])).toEqual(["Table S7"]);
+  });
+
+  it("survives the parenthesis it is written inside", () => {
+    expect(sheetsOf(stored[2])).toEqual(["SupTable9_Likelihood_Ratios"]);
+    expect(sheetsOf(stored[3])).toEqual(["Table S9"]);
+  });
+
+  it("leaves no part of itself to be read as a cell address", () => {
+    // P7 is the cell. S9 is part of the sheet name and must not appear here, and the N7 inside
+    // the parenthetical is a note the grammar reads as one.
+    const cells = parseLocator(stored[0]).addresses.filter((address) => address.kind === "sheet_cell");
+    expect(cells.map((address) => address.value)).toEqual(["P7"]);
+  });
+});
+
+describe("a JSON path in a stored locator", () => {
+  it("keeps its head when a layer qualifier stands before it", () => {
+    const parsed = parseLocator("JSON entries[63].score_avg; submission u2MMaChop9DM3fjqkS7z");
+    expect(parsed.addresses.filter((address) => address.kind === "json_path").map((a) => a.value)).toEqual([
+      "entries[63].score_avg",
+    ]);
+  });
+
+  it("is not the file name it is written beside", () => {
+    const parsed = parseLocator("leaderboard.json data.10shot, model 'deepgene', key 'micro_MCC'");
+    expect(parsed.anchors.filter((anchor) => anchor.kind === "file").map((a) => a.value)).toEqual(["leaderboard.json"]);
+    expect(parsed.addresses.filter((address) => address.kind === "json_path").map((a) => a.value)).toEqual(["data.10shot"]);
+  });
+});
+
+// -----------------------------------------------------------------------------------------
+// The JSON Pointer resolver.
+
+describe("JSON Pointer", () => {
+  const DOC = JSON.stringify(
+    {
+      entries: [
+        { id: "aaa", score_avg: 0.25, note: "" },
+        { id: "bbb", score_avg: 0.5, note: "second" },
+      ],
+      data: {
+        "10shot": [
+          { model: "deepgene", micro_MCC: 0.079, cat_MCC: { Enhancers: 0.257 } },
+          { model: "caduceus", micro_MCC: 0.244, cat_MCC: { Enhancers: 0.33 } },
+        ],
+      },
+      "a/b": { "c~d": 1 },
+    },
+    null,
+    1,
+  );
+  const doc = indexLayer(DOC, "i".repeat(64), "text-utf8@1");
+  const resolve = (path: string, selectors: { key: string; value: string; role: "row" | "column" | "other" }[] = []) =>
+    resolveJsonPointer(doc, { path, selectors });
+
+  it("reads the dotted and bracketed form the store writes as reference tokens", () => {
+    expect(pointerTokens("entries[63].score_avg")).toEqual(["entries", "63", "score_avg"]);
+    expect(pointerTokens("$.data.10shot")).toEqual(["data", "10shot"]);
+    expect(pointerTokens("/a~1b/c~0d")).toEqual(["a/b", "c~d"]);
+    expect(renderPointer(["a/b", "c~d"])).toBe("/a~1b/c~0d");
+  });
+
+  it("records where every value sits in the text", () => {
+    const node = readJson(DOC);
+    expect(node?.kind).toBe("object");
+    const first = node?.members?.find((member) => member.key === "entries")?.node.items?.[0];
+    const id = first?.members?.find((member) => member.key === "id")?.node;
+    // A string's span includes its quotes, as a quoted field's span does in a delimited file.
+    expect(DOC.slice(id?.from ?? 0, id?.to ?? 0)).toBe('"aaa"');
+  });
+
+  it("returns the value a pointer addresses, with the object's own cross-check", () => {
+    const outcome = resolve("entries[0].score_avg", [{ key: "submission", value: "aaa", role: "other" }]);
+    expect(outcome.ok && outcome.span.exact).toBe("0.25");
+  });
+
+  it("refuses when the index and the cross-check name different objects", () => {
+    expect(reasonOf(resolve("entries[1].score_avg", [{ key: "submission", value: "aaa", role: "other" }]))).toBe(
+      "row_key_unmatched",
+    );
+  });
+
+  it("picks one element of an array by a selector and descends by key", () => {
+    const outcome = resolve("data.10shot", [
+      { key: "model", value: "deepgene", role: "other" },
+      { key: "key", value: "cat_MCC.Enhancers", role: "column" },
+    ]);
+    expect(outcome.ok && outcome.span.exact).toBe("0.257");
+    expect(outcome.ok && outcome.row_label).toBe("deepgene");
+  });
+
+  it("refuses an array with nothing to pick an element by, and a selector that picks none", () => {
+    expect(reasonOf(resolve("data.10shot"))).toBe("no_row_in_locator");
+    expect(reasonOf(resolve("data.10shot", [{ key: "model", value: "absent", role: "other" }]))).toBe("row_not_found");
+  });
+
+  it("refuses a pointer that leaves the document", () => {
+    expect(reasonOf(resolve("entries[0].absent", [{ key: "submission", value: "aaa", role: "other" }]))).toBe("column_not_found");
+    expect(reasonOf(resolve("entries[9].score_avg"))).toBe("column_not_found");
+  });
+
+  it("refuses an index RFC 6901 does not define", () => {
+    expect(reasonOf(resolve("entries[0].score_avg"))).toBe("resolved");
+    const document = readJson(DOC);
+    expect(document && walk(document, ["entries", "01"]).ok).toBe(false);
+    expect(document && walk(document, ["entries", "-"]).ok).toBe(false);
+  });
+
+  it("refuses a pointer that stops on an object, and an empty value", () => {
+    expect(reasonOf(resolve("entries[0]", [{ key: "submission", value: "aaa", role: "other" }]))).toBe("column_not_found");
+    expect(reasonOf(resolve("entries[0].note", [{ key: "submission", value: "aaa", role: "other" }]))).toBe("cell_empty");
+  });
+
+  it("refuses a layer that is not one JSON document", () => {
+    expect(reasonOf(resolveJsonPointer(csv, { path: "entries[0].id", selectors: [] }))).toBe("json_not_parsed");
   });
 });
