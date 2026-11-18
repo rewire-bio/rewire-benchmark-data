@@ -15,13 +15,21 @@
  *
  * Two numbers are measured separately and must not be confused. Parse coverage is the share of
  * stored locators the grammar fully addresses, 40,464 of 52,278, 77.4% on 2026-11-18.
- * Resolution coverage is the share that reach a span in a layer the archive holds, 7,383, 14.1%,
- * and it is bounded by the archive and by what a text layer can carry. The second is the honest
- * one for re-checking. A third is the one that decides whether either can gate anything: 7,343
- * of the 7,383 spans print the value the record stores, 99.5%.
+ * Resolution coverage is the share that reach a span in a layer the archive holds, 11,360,
+ * 21.7%, and it is bounded by the archive and by what a layer can carry. The second is the
+ * honest one for re-checking. A third is the one that decides whether either can gate anything:
+ * 11,347 of the 11,360 spans print the value the record stores, 99.9%, and 10,943 are the stored
+ * value and nothing else.
+ *
+ * 3,767 of those spans are cells crossed against a table grid, which is the geometry a markup
+ * text layer flattens away. Resolving them read no new bytes: the grids were already built and
+ * nothing had read one.
  */
+import { gridNormaliserFor } from "../../archive/layers/grid/index";
+import type { Grid } from "../../archive/layers/grid/types";
 import { carriesNoAddress, selectorRole, type LocatorSelector, type ParsedLocator } from "../locator";
 import { resolveFigureCaption } from "./figure";
+import { gridRequest, resolveGridCell } from "./grid";
 import { resolveJsonPointer } from "./json";
 import { indexLayer, type LayerIndex } from "./offsets";
 import { resolveQuote, resolveSectionParagraph } from "./prose";
@@ -31,8 +39,10 @@ import { refuse, type Resolution } from "./types";
 
 export * from "./types";
 export { CONTEXT_POINTS, countPoints, indexLayer, layerPoints, spanAt, spanOfLines, type LayerIndex } from "./offsets";
-export { ALIGNED_NORMALISERS, cellsOf, captionLines, columnForms, normaliseLabel, resolveTableCell, tableWindow } from "./table";
+export { ALIGNED_NORMALISERS, blockAbove, cellsOf, captionLines, columnForms, normaliseLabel, resolveTableCell, tableWindow, widerWindow } from "./table";
+export { cellWidth, overlap, tokensOf, type Extent, type Width } from "./width";
 export { resolveFigureCaption } from "./figure";
+export { gridRequest, gridRouteFor, namesTable, resolveGridCell, unitOfPoint, type GridCellRequest } from "./grid";
 export { jsonOf, pointerTokens, readJson, renderPointer, resolveJsonPointer, scalarsOf, step, walk, type JsonNode, type JsonSelector } from "./json";
 export { resolveQuote, resolveSectionParagraph } from "./prose";
 export { FILE_NORMALISERS, columnIndex, delimiterOf, fieldsOf, resolveDelimitedCell, resolveKeyedRow, resolveLineRange, resolvePage } from "./regions";
@@ -189,8 +199,8 @@ function pageOf(parsed: ParsedLocator): number | null {
  * locator that names a row and no column is refused, not resolved to the whole row, because a
  * span over a row does not check the value that was read out of it.
  */
-export function resolveLocator(parsed: ParsedLocator, index: LayerIndex): Resolution {
-  const outcome = resolveParsed(parsed, index);
+export function resolveLocator(parsed: ParsedLocator, index: LayerIndex, grid?: Grid | null): Resolution {
+  const outcome = resolveParsed(parsed, index, usableGrid(index, grid));
   // A span has to cover characters. `spanSchema` requires `exact` to hold at least one, so a
   // span over a blank line is not a span a record could carry, and one states a place where
   // nothing is printed. Measured once, on a locator addressing a blank line of a PDF layer.
@@ -199,7 +209,23 @@ export function resolveLocator(parsed: ParsedLocator, index: LayerIndex): Resolu
   return outcome;
 }
 
-function resolveParsed(parsed: ParsedLocator, index: LayerIndex): Resolution {
+/**
+ * The grid to cross a row and a column against, or null.
+ *
+ * Three things have to hold before a grid is read. It has to be the grid normaliser that shadows
+ * this text normaliser, because a grid is built beside one text layer and not beside any other.
+ * It has to name this layer as the one its offsets are into. And it has to hold a table. Any of
+ * them failing leaves the locator on the aligned resolver, which refuses it, which is where it
+ * already was.
+ */
+function usableGrid(index: LayerIndex, grid?: Grid | null): Grid | null {
+  if (!grid) return null;
+  if (gridNormaliserFor(index.normaliser) !== grid.normaliser) return null;
+  if (grid.text_layer_sha256 !== index.layer_sha256) return null;
+  return grid.tables.length > 0 ? grid : null;
+}
+
+function resolveParsed(parsed: ParsedLocator, index: LayerIndex, grid: Grid | null): Resolution {
   const { row, column, keys, subColumns } = roles(parsed.selectors);
   const addresses = parsed.addresses;
   const anchors = parsed.anchors;
@@ -245,8 +271,15 @@ function resolveParsed(parsed: ParsedLocator, index: LayerIndex): Resolution {
   if (lineLike && column && !isFile && !(table && row && column))
     return refuse("no_column_geometry", `${index.normaliser} is not the file the line address names`, index.layer_sha256);
 
-  if (table && row && column)
-    return resolveTableCell(index, { anchor: table, row, column, keys: [...keys, ...residueKeys(parsed.residue)], subColumns });
+  if (table && row && column) {
+    const request = { anchor: table, row, column, keys: [...keys, ...residueKeys(parsed.residue)], subColumns };
+    // A grid in hand is the geometry the text layer lost, so it is read instead of the aligned
+    // resolver and not after it. There is no fall through: the aligned resolver on a markup layer
+    // can only answer `no_column_geometry`, and the grid's own refusal says more than that. The
+    // request the grid gets carries two things more, which only a grid can read: see
+    // `gridRequest`.
+    return grid ? resolveGridCell(index, grid, gridRequest(parsed, request, selectorRole)) : resolveTableCell(index, request);
+  }
   if (table && row) return refuse("no_column_in_locator", `the locator names a row and no column`, index.layer_sha256);
   if (table && column && table.kind !== "figure")
     return refuse("no_row_in_locator", `the locator names a column and no row`, index.layer_sha256);

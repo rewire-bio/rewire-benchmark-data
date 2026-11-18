@@ -1,6 +1,7 @@
 /** Span resolution over the whole store, ADR 0002 step 5.
  *
- * Usage: npm run spans -- measure [--out <dir>]   resolve every stored locator and report
+ * Usage: npm run spans -- measure [--out <dir>] [--no-grid]
+ *                                                 resolve every stored locator and report
  *        npm run spans -- control                 agree or disagree with the 14 value-check files
  *        npm run spans -- show <result id>        one locator, its layers and its outcome
  *
@@ -19,8 +20,11 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { hasObject } from "../../archive/objects";
 import { latestBySource, readReceipts } from "../../archive/receipts";
+import type { Grid } from "../../../shared/archive/layers/index";
 import {
   coverageOf as layerCoverage,
+  gridForLayer,
+  gridOfRecord,
   isGrid,
   layerText,
   readRegistry,
@@ -37,9 +41,11 @@ import {
   type ParsedLocator,
 } from "../../../shared/omics/locator";
 import {
+  gridRoutes,
   indexLayer,
   refusalReasons,
   resolveLocator,
+  type GridRoute,
   type RefusalReason,
   type Resolution,
   type SpanKind,
@@ -75,7 +81,13 @@ interface Work {
   refusal: Extract<Resolution, { ok: false }> | null;
   /** Whether the span's text prints the value the record stores. Null when unresolved. */
   value_present: boolean | null;
+  /** Whether the span's text is the stored value and nothing else. Containment is the looser
+   * test and a cell that holds a whole sentence containing the number passes it; equality is
+   * what a check that gated anything would have to use, so both are reported. */
+  value_exact: boolean | null;
   value_partial: boolean | null;
+  /** Set where a table grid was read for this locator. */
+  grid_route: GridRoute | null;
 }
 
 function readResults(root: string): StoredResult[] {
@@ -141,9 +153,22 @@ function keep(work: Work, refusal: Extract<Resolution, { ok: false }>): void {
 
 /** Does the span print the value the record stores? Never consulted by a resolver: this is the
  * measurement's own check on the resolvers, and using it to choose a cell would make the number
- * meaningless. */
-function valuePresence(exact: string, printed: string): { present: boolean; partial: boolean } {
-  if (!printed) return { present: false, partial: false };
+ * meaningless.
+ *
+ * Three answers, and the order matters. `exact` is the span printing the stored value and
+ * nothing else, and it is the headline: it is the only one of the three that a cell span can be
+ * held to, because a cell span states that these characters are the value. `present` is the
+ * looser figure, the value printed somewhere inside the span, which is the right check for a
+ * quote or a page and the wrong one for a cell: a span covering three columns with the stored
+ * value in the middle passes it, and 66 such spans did on 2026-11-18. `partial` is the span
+ * being part of the value rather than the other way round.
+ *
+ * A cell span wider than the value is not automatically a defect. A cell printing
+ * "0.271 (0.282)" against a record storing "0.271" is the right cell and the paper prints more
+ * in it than the record keeps. So the gap between `exact` and `present` is reported, not
+ * gated, and the geometry rather than this check is what refuses a span over several columns. */
+function valuePresence(exact: string, printed: string): { present: boolean; exact: boolean; partial: boolean } {
+  if (!printed) return { present: false, exact: false, partial: false };
   const flatten = (text: string): string =>
     text
       // Unicode minus, en dash and em dash, which a printed value uses and a layer may not.
@@ -153,28 +178,38 @@ function valuePresence(exact: string, printed: string): { present: boolean; part
       .toLowerCase();
   const span = flatten(exact);
   const value = flatten(printed);
-  if (span.includes(value)) return { present: true, partial: false };
+  if (span.includes(value)) return { present: true, exact: span === value, partial: false };
   // The span is part of the value: a layer that prints "0.662" and "(+/- 0.044)" as two fields
   // against a record that stores both. The cell is the right cell and the record keeps more of
   // the line than the cell holds, which is a different finding from a wrong cell.
-  if (span.length > 0 && /[0-9]/.test(span) && value.includes(span)) return { present: false, partial: true };
-  return { present: false, partial: false };
+  if (span.length > 0 && /[0-9]/.test(span) && value.includes(span)) return { present: false, exact: false, partial: true };
+  return { present: false, exact: false, partial: false };
 }
 
 interface MeasureOptions {
   root: string;
   limit?: number;
   log?: (line: string) => void;
+  /** Read the table grid beside each markup text layer and cross a row and a column against it.
+   * On by default. `measure --no-grid` turns it off, which is how the gain the grids buy is
+   * measured as a rate over the same locators rather than as an anecdote. */
+  grid?: boolean;
 }
 
 export interface MeasureReport {
   locators: number;
   resolved: number;
   value_present: number;
+  value_exact: number;
   value_partial: number;
+  /** Locators a table grid was read for, by the route that found the table. */
+  by_grid_route: Map<GridRoute, { locators: number; resolved: number; value_present: number; value_exact: number }>;
+  /** Grids read, and grids whose bytes would not come back. */
+  grids_read: number;
+  grids_unreadable: number;
   by_reason: Map<RefusalReason, number>;
   by_kind: Map<SpanKind, number>;
-  by_class: Map<LocatorClass, { locators: number; resolved: number; value_present: number }>;
+  by_class: Map<LocatorClass, { locators: number; resolved: number; value_present: number; value_exact: number }>;
   by_parse_bucket: Map<LocatorCoverage, { locators: number; resolved: number }>;
   /** Layers read, and how many of them hold a code point outside the basic multilingual plane. */
   layers_read: number;
@@ -235,7 +270,9 @@ export function measure(options: MeasureOptions): MeasureReport {
       resolved: null,
       refusal: null,
       value_present: null,
+      value_exact: null,
       value_partial: null,
+      grid_route: null,
     };
     const seen = new Set<string>();
     let unusable = 0;
@@ -280,6 +317,30 @@ export function measure(options: MeasureOptions): MeasureReport {
   let layersRead = 0;
   let layersAstral = 0;
   let astralPoints = 0;
+  let gridsRead = 0;
+  let gridsUnreadable = 0;
+  const useGrids = options.grid !== false;
+  /** The grid beside one text layer, read once. A text layer with no grid normaliser, or whose
+   * grid is not in the registry, gets null and the aligned resolver, which is where it was. */
+  const gridCache = new Map<string, Grid | null>();
+  const gridFor = (layerSha: string): Grid | null => {
+    if (!useGrids) return null;
+    const known = gridCache.get(layerSha);
+    if (known !== undefined) return known;
+    let grid: Grid | null = null;
+    const record = gridForLayer(layerSha, root);
+    if (record) {
+      try {
+        grid = gridOfRecord(record, root);
+        gridsRead += 1;
+      } catch {
+        gridsUnreadable += 1;
+        grid = null;
+      }
+    }
+    gridCache.set(layerSha, grid);
+    return grid;
+  };
   for (let attempt = 0; attempt < MAX_LAYERS; attempt += 1) {
     const byLayer = new Map<string, Work[]>();
     for (const item of work) {
@@ -309,13 +370,16 @@ export function measure(options: MeasureOptions): MeasureReport {
         astralPoints += astral;
       }
       const index = indexLayer(text, layerSha, record.normaliser);
+      const grid = gridFor(layerSha);
       for (const item of items) {
         item.tried += 1;
-        const outcome = resolveLocator(item.parsed, index);
+        const outcome = resolveLocator(item.parsed, index, grid);
+        if (outcome.grid_route) item.grid_route = outcome.grid_route;
         if (outcome.ok) {
           item.resolved = outcome;
           const presence = valuePresence(outcome.span.exact, item.result.printed_value);
           item.value_present = presence.present;
+          item.value_exact = presence.exact;
           item.value_partial = presence.partial;
         } else keep(item, outcome);
       }
@@ -328,7 +392,11 @@ export function measure(options: MeasureOptions): MeasureReport {
     locators: work.length,
     resolved: 0,
     value_present: 0,
+    value_exact: 0,
     value_partial: 0,
+    by_grid_route: new Map(),
+    grids_read: gridsRead,
+    grids_unreadable: gridsUnreadable,
     by_reason: new Map(),
     by_kind: new Map(),
     by_class: new Map(),
@@ -340,10 +408,22 @@ export function measure(options: MeasureOptions): MeasureReport {
     work,
   };
   for (const item of work) {
-    const byClass = report.by_class.get(item.class) ?? { locators: 0, resolved: 0, value_present: 0 };
+    const byClass = report.by_class.get(item.class) ?? { locators: 0, resolved: 0, value_present: 0, value_exact: 0 };
     byClass.locators += 1;
     const byBucket = report.by_parse_bucket.get(item.parse_bucket) ?? { locators: 0, resolved: 0 };
     byBucket.locators += 1;
+    if (item.grid_route) {
+      const byRoute = report.by_grid_route.get(item.grid_route) ?? { locators: 0, resolved: 0, value_present: 0, value_exact: 0 };
+      byRoute.locators += 1;
+      // Only a span the grid produced counts as resolved here. A locator whose grid attempt
+      // refused and which then resolved on a PDF layer is a grid attempt and not a grid span.
+      if (item.resolved?.kind === "grid_cell") {
+        byRoute.resolved += 1;
+        if (item.value_present) byRoute.value_present += 1;
+        if (item.value_exact) byRoute.value_exact += 1;
+      }
+      report.by_grid_route.set(item.grid_route, byRoute);
+    }
     if (item.resolved) {
       report.resolved += 1;
       byClass.resolved += 1;
@@ -352,6 +432,10 @@ export function measure(options: MeasureOptions): MeasureReport {
       if (item.value_present) {
         report.value_present += 1;
         byClass.value_present += 1;
+      }
+      if (item.value_exact) {
+        report.value_exact += 1;
+        byClass.value_exact += 1;
       }
       if (item.value_partial) report.value_partial += 1;
       report.by_kind.set(item.resolved.kind, (report.by_kind.get(item.resolved.kind) ?? 0) + 1);
@@ -381,7 +465,7 @@ function reasonTable(report: MeasureReport): string {
 }
 
 function classTable(report: MeasureReport): string {
-  const lines = ["class\tlocators\tresolved\tresolved_pct\tvalue_present\tvalue_present_pct\ttop_refusal\ttop_refusal_count"];
+  const lines = ["class\tlocators\tresolved\tresolved_pct\tvalue_exact\tvalue_exact_pct\tvalue_present\tvalue_present_pct\ttop_refusal\ttop_refusal_count"];
   for (const [cls, row] of [...report.by_class.entries()].sort((a, b) => b[1].locators - a[1].locators)) {
     const reasons = new Map<RefusalReason, number>();
     for (const item of report.work)
@@ -389,21 +473,27 @@ function classTable(report: MeasureReport): string {
         reasons.set(item.refusal.reason, (reasons.get(item.refusal.reason) ?? 0) + 1);
     const top = [...reasons.entries()].sort((a, b) => b[1] - a[1])[0];
     lines.push(
-      [cls, row.locators, row.resolved, pct(row.resolved, row.locators), row.value_present, pct(row.value_present, row.resolved), top ? top[0] : "", top ? top[1] : 0].join("\t"),
+      [cls, row.locators, row.resolved, pct(row.resolved, row.locators), row.value_exact, pct(row.value_exact, row.resolved), row.value_present, pct(row.value_present, row.resolved), top ? top[0] : "", top ? top[1] : 0].join("\t"),
     );
   }
   lines.push(
-    ["TOTAL", report.locators, report.resolved, pct(report.resolved, report.locators), report.value_present, pct(report.value_present, report.resolved), "", ""].join("\t"),
+    ["TOTAL", report.locators, report.resolved, pct(report.resolved, report.locators), report.value_exact, pct(report.value_exact, report.resolved), report.value_present, pct(report.value_present, report.resolved), "", ""].join("\t"),
   );
   return lines.join("\n");
 }
 
 function kindTable(report: MeasureReport): string {
-  const lines = ["span_kind\tspans\tvalue_present\tvalue_present_pct\tvalue_partly_present"];
+  // Exact first, then containment. A cell span is held to printing the stored value and nothing
+  // else; a quote or a page span is not, and reading the two columns together is what tells one
+  // from the other.
+  const lines = ["span_kind\tspans\tvalue_exact\tvalue_exact_pct\tvalue_present\tvalue_present_pct\twider_than_value\tvalue_partly_present\tno_value"];
   for (const [kind, count] of [...report.by_kind.entries()].sort((a, b) => b[1] - a[1])) {
+    const exact = report.work.filter((item) => item.resolved?.kind === kind && item.value_exact).length;
     const present = report.work.filter((item) => item.resolved?.kind === kind && item.value_present).length;
     const partial = report.work.filter((item) => item.resolved?.kind === kind && item.value_partial).length;
-    lines.push(`${kind}\t${count}\t${present}\t${pct(present, count)}\t${partial}`);
+    lines.push(
+      `${kind}\t${count}\t${exact}\t${pct(exact, count)}\t${present}\t${pct(present, count)}\t${present - exact}\t${partial}\t${count - present}`,
+    );
   }
   return lines.join("\n");
 }
@@ -418,8 +508,31 @@ function bucketTable(report: MeasureReport): string {
   return lines.join("\n");
 }
 
+/** Locators a grid was read for, and what came of it. The route split matters: a label is what
+ * the markup wrote on the table and a caption window is a line of prose above it. */
+function gridTable(report: MeasureReport): string {
+  const lines = ["grid_route\tlocators\tresolved\tresolved_pct\tvalue_present\tvalue_present_pct\tvalue_exact\tvalue_exact_pct"];
+  let locators = 0;
+  let resolved = 0;
+  let present = 0;
+  let exact = 0;
+  for (const route of gridRoutes) {
+    const row = report.by_grid_route.get(route);
+    if (!row) continue;
+    locators += row.locators;
+    resolved += row.resolved;
+    present += row.value_present;
+    exact += row.value_exact;
+    lines.push(
+      [route, row.locators, row.resolved, pct(row.resolved, row.locators), row.value_present, pct(row.value_present, row.resolved), row.value_exact, pct(row.value_exact, row.resolved)].join("\t"),
+    );
+  }
+  lines.push(["TOTAL", locators, resolved, pct(resolved, locators), present, pct(present, resolved), exact, pct(exact, resolved)].join("\t"));
+  return lines.join("\n");
+}
+
 function detailRows(report: MeasureReport): string {
-  const lines = ["id\tclass\tparse_bucket\toutcome\treason_or_kind\tlayer_sha256\tvalue_present\tlayers_tried"];
+  const lines = ["id\tclass\tparse_bucket\toutcome\treason_or_kind\tlayer_sha256\tvalue_present\tvalue_exact\tgrid_route\tlayers_tried"];
   for (const item of report.work)
     lines.push(
       [
@@ -430,15 +543,17 @@ function detailRows(report: MeasureReport): string {
         item.resolved ? item.resolved.kind : (item.refusal?.reason ?? "none"),
         item.resolved ? item.resolved.layer_sha256 : (item.refusal?.layer_sha256 ?? ""),
         item.resolved ? String(item.value_present) : "",
+        item.resolved ? String(item.value_exact) : "",
+        item.grid_route ?? "",
         String(item.tried),
       ].join("\t"),
     );
   return lines.join("\n");
 }
 
-function runMeasure(root: string, out: string): void {
+function runMeasure(root: string, out: string, grid: boolean): void {
   const started = Date.now();
-  const report = measure({ root, log: (line) => process.stderr.write(`${line}\n`) });
+  const report = measure({ root, grid, log: (line) => process.stderr.write(`${line}\n`) });
   fs.mkdirSync(out, { recursive: true });
   const date = new Date().toISOString().slice(0, 10);
   const prefix = path.join(out, `span-resolution-${date}`);
@@ -446,12 +561,20 @@ function runMeasure(root: string, out: string): void {
   fs.writeFileSync(`${prefix}-by-reason.tsv`, `${reasonTable(report)}\n`);
   fs.writeFileSync(`${prefix}-by-kind.tsv`, `${kindTable(report)}\n`);
   fs.writeFileSync(`${prefix}-by-parse-bucket.tsv`, `${bucketTable(report)}\n`);
+  fs.writeFileSync(`${prefix}-by-grid-route.tsv`, `${gridTable(report)}\n`);
   if (process.env.SPAN_DETAIL) fs.writeFileSync(process.env.SPAN_DETAIL, `${detailRows(report)}\n`);
-  process.stdout.write(`${classTable(report)}\n\n${reasonTable(report)}\n\n${kindTable(report)}\n\n${bucketTable(report)}\n\n`);
+  process.stdout.write(`${classTable(report)}\n\n${reasonTable(report)}\n\n${kindTable(report)}\n\n${bucketTable(report)}\n\n${gridTable(report)}\n\n`);
   process.stdout.write(
     `locators ${report.locators}, resolved ${report.resolved} (${pct(report.resolved, report.locators)}%), ` +
-      `value present ${report.value_present} (${pct(report.value_present, report.resolved)}% of resolved), ` +
-      `value partly present ${report.value_partial} (${pct(report.value_partial, report.resolved)}%)\n`,
+      `span prints the stored value and nothing else ${report.value_exact} ` +
+      `(${pct(report.value_exact, report.resolved)}% of resolved), ` +
+      `span prints it somewhere ${report.value_present} (${pct(report.value_present, report.resolved)}%, the looser check), ` +
+      `span is part of the value ${report.value_partial} (${pct(report.value_partial, report.resolved)}%)\n`,
+  );
+  process.stdout.write(
+    `committed to text that does not print the stored value: ${report.resolved - report.value_present}; ` +
+      `committed to more text than the stored value: ${report.value_present - report.value_exact}\n` +
+      `grids read ${report.grids_read}${report.grids_unreadable > 0 ? `, ${report.grids_unreadable} unreadable` : ""}\n`,
   );
   process.stdout.write(
     `layers read ${report.layers_read}, of which ${report.layers_astral} hold a code point above the basic ` +
@@ -520,10 +643,10 @@ function main(argv: string[]): void {
   const command = argv[0] ?? "measure";
   const outAt = argv.indexOf("--out");
   const out = outAt >= 0 ? argv[outAt + 1] : path.join(root, REPORTS);
-  if (command === "measure") return runMeasure(root, out);
+  if (command === "measure") return runMeasure(root, out, !argv.includes("--no-grid"));
   if (command === "control") return runControl(root);
   if (command === "show") return runShow(root, argv[1] ?? "");
-  process.stdout.write("usage: npm run spans -- measure | control | show <result id>\n");
+  process.stdout.write("usage: npm run spans -- measure [--out <dir>] [--no-grid] | control | show <result id>\n");
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main(process.argv.slice(2));

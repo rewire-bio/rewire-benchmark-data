@@ -7,21 +7,31 @@
  * produce, carries no column positions at all, so a row-and-column locator against one of those
  * is refused with `no_column_geometry` rather than counted into place.
  *
- * Five things have to hold before a cell span is returned, and each has its own refusal.
+ * Six things have to hold before a cell span is returned, and each has its own refusal.
  *
  *   1. One caption in the layer names the table the locator names.
- *   2. The window from that caption to the next caption holds the table.
- *   3. One line in the window carries the column header.
- *   4. One line in the window starts with the row label.
- *   5. Exactly one cell on that line sits under that column.
+ *   2. Exactly one of the blocks around that caption holds the table. A caption is printed above
+ *      its table in most papers and below it in some, so both sides are read and two sides that
+ *      both answer are a refusal.
+ *   3. One line in the block carries the column header.
+ *   4. One line in the block starts with the row label.
+ *   5. Exactly one field on that line sits under that column.
+ *   6. That field is one cell and not several columns the renderer joined with a single space,
+ *      which is `shared/omics/spans/width.ts`.
  *
- * Step 5 is the one that can be wrong without saying so, which is why the resolved span carries
- * the row label and the column header as the layer prints them. A caller that recorded a span
- * without them would have no way to tell a correct cell from its neighbour.
+ * Steps 5 and 6 are the ones that can be wrong without saying so, which is why the resolved span
+ * carries the row label and the column header as the layer prints them. A caller that recorded a
+ * span without them would have no way to tell a correct cell from its neighbour.
  */
 import type { LocatorAnchor } from "../locator";
 import { indexLayer, spanAt, type LayerIndex } from "./offsets";
-import { refuse, type Resolution } from "./types";
+import { refuse, refusalReasons, type RefusalReason, type Resolution } from "./types";
+import { cellWidth } from "./width";
+
+/** How far into the layer a refusal got. `refusalReasons` is ordered from the substrate
+ * outwards, so the later reason is the one that read more before it stopped, and that is the one
+ * worth reporting when several regions were tried and all of them refused. */
+const reasonOrder = (reason: RefusalReason): number => refusalReasons.indexOf(reason);
 
 /** Normalisers whose output keeps the horizontal position of a cell. */
 export const ALIGNED_NORMALISERS = new Set(["pdf-text-layer@1"]);
@@ -118,11 +128,68 @@ const CAPTION_TAIL = /^(?:\s*$|\s*[.:|)\u2013\u2014,;]|\s+["'(\u2018\u201c]?[A-Z
  * caption, so a resolver never reads across the boundary ADR 0002 decision 2 names. */
 const ANY_CAPTION = /^\s*(?:Supplementary\s+|Supplemental\s+|Extended\s+Data\s+|Appendix\s+)?(?:Tables?|Figures?|Fig\.)\s*[0-9A-Z]/i;
 
-/** The window a table occupies: from its caption to the next caption, or 200 lines. */
+/** The character `pdftotext` writes where one page ends and the next begins. */
+const PAGE_BREAK = "\f";
+
+/** The window a table occupies: from its caption to the next caption, the next page, or 200
+ * lines, whichever comes first.
+ *
+ * The page boundary is the form feed `pdftotext` writes between pages. A table is a float and a
+ * typesetter puts a float on the page its caption is on, so a window that runs past a form feed
+ * is reading a different float. It read one on 2026-11-18: a caption at the foot of its page,
+ * with the next page opening on another table that printed the same row and column names with
+ * different numbers, and 24 spans committed to those numbers. */
 export function tableWindow(index: LayerIndex, caption: number): { from: number; to: number } {
+  const limit = Math.min(index.lines.length, caption + 1 + WINDOW_LINES);
+  for (let line = caption + 1; line < limit; line += 1)
+    if (ANY_CAPTION.test(index.lines[line]) || index.lines[line].includes(PAGE_BREAK)) return { from: caption + 1, to: line };
+  return { from: caption + 1, to: limit };
+}
+
+/** The same window with the page boundary allowed, which is where a table printed on the page
+ * after its caption is found: 96 locators on one layer name a table whose caption stands at the
+ * foot of a page and whose body opens the next one. It is read only after the caption's own page
+ * has been read and has answered nothing. */
+export function widerWindow(index: LayerIndex, caption: number): { from: number; to: number } {
   const limit = Math.min(index.lines.length, caption + 1 + WINDOW_LINES);
   for (let line = caption + 1; line < limit; line += 1) if (ANY_CAPTION.test(index.lines[line])) return { from: caption + 1, to: line };
   return { from: caption + 1, to: limit };
+}
+
+/** The part of a caption's own page that lies above it, or null where that part is another
+ * caption's table.
+ *
+ * A caption is printed above its table in most papers and below it in some. Where it is printed
+ * below, the window that runs downwards holds the caption's own wrapped text and nothing else,
+ * and the table is above.
+ *
+ * The region runs up from the caption to the first page boundary or caption above it, and is a
+ * candidate only when that boundary is a page boundary. A caption above it is taken to own the
+ * region: that caption's table, sitting below its own caption in the ordinary way. That test is
+ * what keeps the appendix case out. One paper prints one table per dataset with the same row and
+ * column names in every one, so the region above Table A2's caption is Table A1's body; reading
+ * it as a second candidate for Table A2 withdrew 408 spans as ambiguous, 384 of them printing
+ * the stored value exactly, and reading it as a fallback committed 13 spans to the previous
+ * table's numbers.
+ *
+ * The test is an assumption and not a proof. A paper printing its captions under its tables with
+ * two tables on one page would have the caption above the region owning it as well, this would
+ * return null, and the search would fall through to `widerWindow` and read past the page
+ * boundary. What is measured is the outcome and not the path: over all 52,278 locators every
+ * span this ordering adds prints the stored value, and no span came to print it nowhere that did
+ * not before. Making the fall-through refuse instead costs the 96 locators whose table opens the
+ * page after its caption, which is why it does not.
+ */
+export function blockAbove(index: LayerIndex, caption: number): { from: number; to: number } | null {
+  const boundary = (line: number): boolean => ANY_CAPTION.test(index.lines[line]) || index.lines[line].includes(PAGE_BREAK);
+  const floor = Math.max(0, caption - WINDOW_LINES);
+  let from = caption;
+  while (from > floor && !boundary(from - 1)) from -= 1;
+  if (from > 0 && ANY_CAPTION.test(index.lines[from - 1])) return null;
+  let to = caption;
+  while (to > from && index.lines[to - 1].trim() === "") to -= 1;
+  while (from < to && index.lines[from].trim() === "") from += 1;
+  return from < to ? { from, to } : null;
 }
 
 /** Marks a printed header carries that do not say which column it is: a direction arrow, and a
@@ -174,10 +241,8 @@ interface CellRequest {
   subColumns?: string[];
 }
 
-/** One caption's worth of work: the window, the header line, the row line and the cell. */
-function resolveAt(index: LayerIndex, caption: number, request: CellRequest): Resolution {
-  const window = tableWindow(index, caption);
-  if (window.to <= window.from) return refuse("empty_table_window", `the caption at line ${caption + 1} is followed by another caption`, index.layer_sha256);
+/** One block's worth of work: the header line, the row line and the cell. */
+function resolveAt(index: LayerIndex, window: { from: number; to: number }, request: CellRequest): Resolution {
   const wantedColumn = columnForms(request.column);
   const wantedRow = normaliseLabel(request.row);
 
@@ -279,6 +344,18 @@ function resolveAt(index: LayerIndex, caption: number, request: CellRequest): Re
   if (picked.length === 0) return refuse("cell_empty", `row "${request.row}" prints nothing under column "${request.column}"`, index.layer_sha256);
   if (picked.length > 1) return refuse("column_ambiguous", `${picked.length} fields on row "${request.row}" sit under column "${request.column}"`, index.layer_sha256);
 
+  // A field is one cell only where it does not run across its neighbours. Two columns the
+  // renderer separated with a single space arrive as one field, and returning it puts a span over
+  // several columns while naming one: 66 spans on 2026-11-18, the worst of them covering three
+  // models' results with the stored value in the middle.
+  const width = cellWidth({
+    bands: level.cells.map((cell) => ({ from: cell.from - headerBase, to: cell.to - headerBase })),
+    at: level.at,
+    field: { text: picked[0].text, from: picked[0].from - rowBase, to: picked[0].to - rowBase },
+  });
+  if (!width.ok)
+    return refuse("column_merged", `row "${request.row}" under column "${request.column}": ${width.detail}`, index.layer_sha256);
+
   return {
     ok: true,
     kind: "table_cell",
@@ -292,9 +369,12 @@ function resolveAt(index: LayerIndex, caption: number, request: CellRequest): Re
 /**
  * The cell a table locator names, or a refusal.
  *
- * Where more than one caption names the table, each is tried and the cell is returned only if
- * exactly one of them yields it. That is a cross-check, not a preference: two captions that both
- * hold a row with this label under this column are a genuine ambiguity and are refused.
+ * Every caption naming the table is tried, and on each one both the window below it and the
+ * block above it, because a caption is printed above its table in most papers and below it in
+ * some. The cell is returned only if exactly one of those blocks yields it. That is a
+ * cross-check, not a preference: two blocks that both hold a row with this label under this
+ * column are a genuine ambiguity, and choosing the one on the side a caption is usually printed
+ * would be a guess dressed as a convention.
  */
 export function resolveTableCell(index: LayerIndex, request: CellRequest): Resolution {
   if (!ALIGNED_NORMALISERS.has(index.normaliser))
@@ -303,20 +383,39 @@ export function resolveTableCell(index: LayerIndex, request: CellRequest): Resol
   const captions = captionLines(index, word, request.anchor.value);
   if (captions.length === 0) return refuse("anchor_not_found", `no caption line names ${word} ${request.anchor.value}`, index.layer_sha256);
 
-  const hits: Resolution[] = [];
-  let lastRefusal: Resolution | null = null;
-  for (const caption of captions) {
-    const outcome = resolveAt(index, caption, request);
-    if (outcome.ok) hits.push(outcome);
-    else lastRefusal = outcome;
+  // Three regions, in the order of how well the layout places them, and the first that answers
+  // decides. A table sits under its caption on the caption's own page; failing that, above it on
+  // the caption's own page, which is the paper that prints captions under tables; failing both,
+  // past the page boundary, which is the caption standing at the foot of its page.
+  //
+  // Reading them on equal terms instead was built and measured: it withdrew 408 spans, 384 of
+  // them printing the stored value exactly, for the reason `blockAbove` gives. Within one stage
+  // the regions are read on equal terms and two that both answer are refused, because there the
+  // layout says nothing to tell them apart.
+  const stages = [tableWindow, blockAbove, widerWindow];
+  let blocks = 0;
+  let refusal: Extract<Resolution, { ok: false }> | null = null;
+  for (const stage of stages) {
+    const hits: Extract<Resolution, { ok: true }>[] = [];
+    for (const caption of captions) {
+      const window = stage(index, caption);
+      if (!window || window.to <= window.from) continue;
+      blocks += 1;
+      const outcome = resolveAt(index, window, request);
+      if (outcome.ok) hits.push(outcome);
+      else if (refusal === null || reasonOrder(outcome.reason) > reasonOrder(refusal.reason)) refusal = outcome;
+    }
+    if (hits.length === 1) return blocks > 1 ? { ...hits[0], anchor_candidates: blocks } : hits[0];
+    if (hits.length > 1)
+      return refuse(
+        "anchor_ambiguous",
+        `${hits.length} regions around a caption for ${word} ${request.anchor.value} hold this row and column`,
+        index.layer_sha256,
+      );
   }
-  if (hits.length === 1) {
-    const only = hits[0] as Extract<Resolution, { ok: true }>;
-    return captions.length > 1 ? { ...only, anchor_candidates: captions.length } : only;
-  }
-  if (hits.length > 1)
-    return refuse("anchor_ambiguous", `${hits.length} of ${captions.length} captions for ${word} ${request.anchor.value} hold this row and column`, index.layer_sha256);
-  return lastRefusal ?? refuse("anchor_not_found", `no caption line names ${word} ${request.anchor.value}`, index.layer_sha256);
+  if (blocks === 0)
+    return refuse("empty_table_window", `every caption for ${word} ${request.anchor.value} stands between two captions`, index.layer_sha256);
+  return refusal ?? refuse("anchor_not_found", `no caption line names ${word} ${request.anchor.value}`, index.layer_sha256);
 }
 
 /** Index a layer for the resolvers. Re-exported here so a caller that only wants a table does
