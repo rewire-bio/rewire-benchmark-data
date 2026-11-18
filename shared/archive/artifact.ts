@@ -75,8 +75,9 @@ import type { Reason, SourceClass } from "./schema";
  * from a short stub by length.
  *
  * A class absent from this table is not measured by length: a container is
- * the artifact, and an office package or any other unknown class produces no
- * layer to measure.
+ * the artifact, an office package is measured by the extractor lane rather
+ * than at capture, and any other unknown class produces no layer to
+ * measure.
  */
 export const minimumCharacters: Partial<Record<LayerClass, number>> = {
   pdf: 1024,
@@ -205,8 +206,11 @@ export function checkArtifact(input: ArtifactInput): ArtifactCheck {
 
   // A container is the artifact. Its members are expanded by the layer work
   // after it is stored, so there is nothing to measure here and expanding it
-  // twice would only cost the run.
-  if (layerClass === "container" || layerClass === "unknown") return measured(true, null, layerClass, null);
+  // twice would only cost the run. An office package is a zip and goes the
+  // same way: shared/archive/layers/office reads it once the bytes are
+  // stored, and no length threshold was ever measured for one.
+  if (layerClass === "container" || layerClass === "office" || layerClass === "unknown")
+    return measured(true, null, layerClass, null);
 
   const tree = layerOf(input.bytes, { mediaType: input.mediaType, pdftotext: input.pdftotext, maxDepth: 0 });
   const characters = tree.layer?.characters ?? null;

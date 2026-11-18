@@ -197,10 +197,11 @@ it("keeps what it cannot measure: a container, an office package and the HTML at
   expect(floor.characters!).toBeGreaterThanOrEqual(minimumCharacters.html!);
   expect(floor.terminal).toBe(true);
 
-  // An XLSX is a zip of XML parts with no text normaliser. It is still the
-  // supplementary table a record points at.
+  // An XLSX is a zip of XML parts. Its layer is built once the bytes are
+  // stored, not here, and no length threshold was ever measured for one, so
+  // the capture check keeps it without measuring it.
   const packaged = checkArtifact({ bytes: fixture(committedSpreadsheet), mediaType: "application/octet-stream", finalUrl: "https://example.org/table-s1.xlsx", hasDoi: true });
-  expect(packaged.layerClass).toBe("unknown");
+  expect(packaged.layerClass).toBe("office");
   expect(packaged.characters).toBe(null);
   expect(packaged.terminal).toBe(true);
 

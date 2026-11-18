@@ -18,6 +18,8 @@ export const normalisers = [
   "html-text@1",
   "text-utf8@1",
   "archive-member@1",
+  "ooxml-sheet-tsv@1",
+  "ooxml-document-text@1",
 ] as const;
 export type Normaliser = (typeof normalisers)[number];
 

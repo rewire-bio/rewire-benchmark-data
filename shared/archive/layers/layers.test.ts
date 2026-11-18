@@ -88,14 +88,20 @@ it("reads the class from the bytes, not from the suffix or the served type", () 
 });
 
 it("reports a class it cannot determine instead of inventing a layer", () => {
-  const packaged = classify(fixture(spreadsheet));
-  expect(packaged.class).toBe("unknown");
-  expect(packaged.unsupported).toBe("office package, no normaliser");
   expect(classify(Buffer.alloc(0)).unsupported).toBe("empty object");
   expect(classify(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a])).unsupported).toBe("raster image, no text layer");
+  const ole2 = Buffer.alloc(16);
+  Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]).copy(ole2);
+  expect(classify(ole2).unsupported).toBe("legacy office binary, no normaliser");
+});
+
+it("reads an office package as a spreadsheet, which ./office normalises", () => {
+  const packaged = classify(fixture(spreadsheet));
+  expect(packaged.class).toBe("office");
+  expect(packaged.unsupported).toBeNull();
   const node = layerOf(fixture(spreadsheet), { pdftotext: false });
-  expect(node.layer).toBeNull();
-  expect(node.unsupported).toBe("office package, no normaliser");
+  expect(node.layer?.normaliser).toBe("ooxml-sheet-tsv@1");
+  expect(node.unsupported).toBeNull();
 });
 
 it("passes text through with the encoding normalised and nothing else changed", () => {

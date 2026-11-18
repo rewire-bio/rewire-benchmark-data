@@ -11,9 +11,9 @@
  * "unknown" with the reason, because an unclassifiable source is a finding.
  */
 import { isUtf8 as nodeIsUtf8 } from "node:buffer";
-import { zipEntryNames } from "./container";
+import { detectOffice, normalisedKinds, officeMediaTypes, unsupportedReason, type OfficeDetection } from "./office/package";
 
-export const layerClasses = ["pdf", "xml", "html", "text", "container", "unknown"] as const;
+export const layerClasses = ["pdf", "xml", "html", "text", "office", "container", "unknown"] as const;
 export type LayerClass = (typeof layerClasses)[number];
 
 export interface Classification {
@@ -128,16 +128,16 @@ function firstElement(text: string): { name: string; doctype: string | null; pro
 }
 
 /** Whether a zip is an Office Open XML or OpenDocument package rather than a
- * plain archive. The member that says so is not always the first one: three
- * of the committed packages begin with xl/drawings or docProps, so the whole
- * central directory is read. */
-function officePackage(bytes: Buffer): string | null {
-  for (const name of zipEntryNames(bytes)) {
-    if (name === "[Content_Types].xml") return name;
-    if (name === "mimetype") return name;
-    if (name.startsWith("xl/") || name.startsWith("word/") || name.startsWith("ppt/") || name.startsWith("docProps/")) return name;
-  }
-  return null;
+ * plain archive, and which kind. The member that says so is not always the
+ * first one: of the 29 packages committed under data/omics, 25 open with
+ * [Content_Types].xml, two with xl/drawings/drawing1.xml, one with docProps/
+ * and one with _rels/.rels, which names no application at all. So the whole
+ * central directory is read. `kindFromNames` in ./office/package does the
+ * reading; the full detector in that module also consults
+ * [Content_Types].xml, which costs an expansion and is left to the
+ * normaliser. */
+function officePackage(bytes: Buffer): OfficeDetection | null {
+  return detectOffice(bytes);
 }
 
 /**
@@ -165,7 +165,13 @@ export function classify(bytes: Buffer, mediaTypeHint?: string | null): Classifi
   if (starts(bytes, "PK\x03\x04") || starts(bytes, "PK\x05\x06") || starts(bytes, "PK\x07\x08")) {
     const office = officePackage(bytes);
     if (office)
-      return no("unknown", "application/zip", `office or opendocument package, member ${office}`, "office package, no normaliser");
+      return {
+        class: "office",
+        media_type: officeMediaTypes[office.kind],
+        evidence: `${office.kind} package, ${office.evidence}`,
+        unsupported: normalisedKinds.has(office.kind) ? null : unsupportedReason(office.kind),
+        encoding: null,
+      };
     return { class: "container", media_type: "application/zip", evidence: "zip signature", unsupported: null, encoding: null };
   }
   if (starts(bytes, "ustar", 257) && bytes.length >= 512)
