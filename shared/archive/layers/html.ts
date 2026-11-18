@@ -17,7 +17,7 @@
  * clock, a locale or an environment variable.
  */
 import { decode, encodingOf, type Encoding } from "./classify";
-import { scanMarkup, type Strength } from "./markup";
+import { scanMarkup, type ScanRules, type Strength } from "./markup";
 import { layerFromText } from "./text";
 import type { Layer } from "./types";
 
@@ -69,10 +69,17 @@ const cells = new Set(["td", "th"]);
 const boundary = (name: string): Strength =>
   sections.has(name) ? 3 : lines.has(name) ? 2 : cells.has(name) ? 1 : 0;
 
+/** The rules the normaliser scans by, in one object, so that the table grid
+ * built from the same bytes sees exactly the text this layer holds. */
+export const htmlRules: ScanRules = { skip, boundary };
+
+/** The derivation string the layer records, which names the skipped set. */
+export const htmlDerivation = `html-text@1 strip ${[...skip].sort().join(",")} then tags`;
+
 /** The text layer of an HTML page. */
 export function htmlLayer(input: Buffer, encoding?: Encoding): Layer {
   const found = encoding ?? encodingOf(input);
   if (!found) throw new Error("htmlLayer was given bytes that do not decode as text");
-  const text = scanMarkup(decode(input, found), { skip, boundary });
-  return layerFromText(input, text, "html-text@1", `html-text@1 strip ${[...skip].sort().join(",")} then tags`);
+  const text = scanMarkup(decode(input, found), htmlRules);
+  return layerFromText(input, text, "html-text@1", htmlDerivation);
 }

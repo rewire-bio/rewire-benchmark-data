@@ -23,6 +23,23 @@ export interface ScanRules {
   boundary: (name: string) => Strength;
 }
 
+/** What a reader of the scan is told, as the scan happens.
+ *
+ * The offsets are UTF-16 indices into the untidied text the scan builds, not
+ * into the layer. `tidyTraced` maps them onto the layer afterwards. A reader
+ * that wants the table grid listens here rather than parsing the markup a
+ * second time, so there is one scanner and the two results cannot drift.
+ *
+ * `text` reports a run of content that was appended. It excludes the space
+ * or newline a boundary inserts before it, so a cell's range starts at its
+ * own first character.
+ */
+export interface ScanEvents {
+  open?: (name: string, attributes: string, selfClosing: boolean, at: number) => void;
+  close?: (name: string, at: number) => void;
+  text?: (from: number, to: number) => void;
+}
+
 const named: Record<string, string> = {
   amp: "&",
   lt: "<",
@@ -171,20 +188,39 @@ function tagEnd(text: string, from: number): number {
 }
 
 /** The text content of a markup document, in order, with boundaries kept. */
-export function scanMarkup(text: string, rules: ScanRules): string {
+export function scanMarkup(text: string, rules: ScanRules, events?: ScanEvents): string {
+  return tidy(scanRaw(text, rules, events));
+}
+
+/**
+ * The scan before `tidy` runs: the same characters, with the whitespace the
+ * source wrote still in them.
+ *
+ * `scanMarkup` is this plus `tidy`, so a caller that needs offsets into the
+ * untidied text gets them from the one scan the layer is built by.
+ */
+export function scanRaw(text: string, rules: ScanRules, events?: ScanEvents): string {
   const parts: string[] = [];
   /** 0 is no pending boundary. */
   let pending: Strength = 0;
   let skipping: string | null = null;
   let skipDepth = 0;
+  /** UTF-16 units appended so far, which is where the next one lands. */
+  let length = 0;
 
+  const push = (value: string): void => {
+    parts.push(value);
+    length += value.length;
+  };
   const emit = (value: string): void => {
     if (!value) return;
     if (pending) {
-      parts.push(pending === 3 ? "\n\n" : pending === 2 ? "\n" : " ");
+      push(pending === 3 ? "\n\n" : pending === 2 ? "\n" : " ");
       pending = 0;
     }
-    parts.push(value);
+    const from = length;
+    push(value);
+    events?.text?.(from, length);
   };
   const boundary = (strength: Strength): void => {
     if (strength > pending) pending = strength;
@@ -264,24 +300,95 @@ export function scanMarkup(text: string, rules: ScanRules): string {
       boundary(2);
       continue;
     }
+    if (events) {
+      const attributes = body.slice(match[0].length).replace(/\/$/, "");
+      if (closing) events.close?.(name, length);
+      else {
+        events.open?.(name, attributes, selfClosing, length);
+        if (selfClosing) events.close?.(name, length);
+      }
+    }
     boundary(rules.boundary(name));
   }
 
-  return tidy(parts.join(""));
+  return parts.join("");
 }
 
 /** Collapse whitespace runs inside a line, drop blank lines beyond one, and
  * end with a single newline. A layer with no characters is the empty string,
  * never a lone newline. */
 export function tidy(text: string): string {
-  const lines = text
-    .split("\n")
-    .map((line) => line.replace(/[^\S\n]+/g, " ").trim());
-  const kept: string[] = [];
-  for (const line of lines) {
-    if (line === "" && (kept.length === 0 || kept[kept.length - 1] === "")) continue;
-    kept.push(line);
+  return tidyTraced(text).text;
+}
+
+/** Whitespace that is not a line break. JavaScript's \s, less "\n", so a
+ * no-break space and a tab collapse the same way the regular expression in
+ * the first version of `tidy` collapsed them. */
+const blank = (unit: string): boolean => unit !== "\n" && /\s/.test(unit);
+
+/** `tidy`, with where every character went. */
+export interface TidyTrace {
+  text: string;
+  /** For each UTF-16 unit of the input, its index in `text`, or -1 when
+   * `tidy` dropped it. A whitespace run that collapsed to one space maps its
+   * first unit to that space and the rest to -1. */
+  out: Int32Array;
+}
+
+/**
+ * The tidied text and the map from the untidied text onto it.
+ *
+ * `tidy` is this function's `text`, so there is one implementation and a
+ * span taken through the map lands in the layer the normaliser stored.
+ */
+export function tidyTraced(raw: string): TidyTrace {
+  const out = new Int32Array(raw.length).fill(-1);
+  const pieces: string[] = [];
+  let length = 0;
+  /** A blank line waiting to be written, which a trailing one never is. */
+  let held = 0;
+  let wrote = false;
+
+  let at = 0;
+  while (at <= raw.length) {
+    let stop = raw.indexOf("\n", at);
+    if (stop < 0) stop = raw.length;
+    // The line, with runs of whitespace collapsed and both ends trimmed.
+    const units: string[] = [];
+    const from: number[] = [];
+    let run = -1;
+    for (let index = at; index < stop; index += 1) {
+      const unit = raw[index];
+      if (blank(unit)) {
+        if (run < 0) run = index;
+        continue;
+      }
+      if (run >= 0) {
+        if (units.length > 0) {
+          units.push(" ");
+          from.push(run);
+        }
+        run = -1;
+      }
+      units.push(unit);
+      from.push(index);
+    }
+    if (units.length === 0) {
+      if (wrote) held = 1;
+    } else {
+      if (wrote) {
+        pieces.push("\n".repeat(1 + held));
+        length += 1 + held;
+      }
+      held = 0;
+      for (let index = 0; index < units.length; index += 1) out[from[index]] = length + index;
+      pieces.push(units.join(""));
+      length += units.length;
+      wrote = true;
+    }
+    if (stop === raw.length) break;
+    at = stop + 1;
   }
-  while (kept.length && kept[kept.length - 1] === "") kept.pop();
-  return kept.length ? `${kept.join("\n")}\n` : "";
+  if (wrote) pieces.push("\n");
+  return { text: pieces.join(""), out };
 }

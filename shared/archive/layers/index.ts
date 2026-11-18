@@ -23,9 +23,11 @@
  */
 import { createHash } from "node:crypto";
 import { classify, type Classification } from "./classify";
+import { gridLayer } from "./grid/index";
 import { defaultLimits, expandContainer, type Limits } from "./container";
 import { hasPdftotext, pdfLayer } from "./pdf";
 import { htmlLayer } from "./html";
+import { officeLayer } from "./office/index";
 import { textLayer } from "./text";
 import { xmlLayer } from "./xml";
 import type { Layer } from "./types";
@@ -34,7 +36,36 @@ export * from "./types";
 export { classify, type Classification, type LayerClass } from "./classify";
 export { expandContainer, type Member, type Expansion } from "./container";
 export { hasPdftotext } from "./pdf";
+export {
+  canonicalJson,
+  cellAt,
+  cellRange as gridCellRange,
+  gridLayer,
+  gridNormaliserFor,
+  gridNormalisers,
+  gridOf,
+  readGrid,
+  serialiseGrid,
+  tableAt,
+  type Grid,
+  type GridCell,
+  type GridHeader,
+  type GridNormaliser,
+  type GridTable,
+} from "./grid/index";
 export { characterCount } from "./text";
+export {
+  cellRange,
+  cellRangeByReference,
+  detectOffice,
+  officeLayer,
+  rfc7111Fragment,
+  sheetBlocks,
+  type CellRange,
+  type OfficeKind,
+  type OfficeResult,
+  type SheetBlock,
+} from "./office/index";
 
 const digest = (bytes: Buffer): string => createHash("sha256").update(bytes).digest("hex");
 
@@ -59,6 +90,10 @@ export interface LayerNode {
   classification: Classification;
   /** The text layer, or null when the class carries none. */
   layer: Layer | null;
+  /** The table grid over the same bytes, where the class carries one and
+   * the document holds at least one table. A second layer beside the text
+   * layer, never instead of it. */
+  grid: Layer | null;
   /** Why there is no layer. Null when there is one. */
   unsupported: string | null;
   /** Container members, each the root of its own node. */
@@ -74,6 +109,7 @@ function node(bytes: Buffer, classification: Classification, unsupported: string
     content: bytes,
     classification,
     layer: null,
+    grid: null,
     unsupported,
     members: [],
     problems: [],
@@ -124,6 +160,17 @@ export function layerOf(input: Buffer, options: LayerOptions = {}): LayerNode {
       result.layer = htmlLayer(input, classification.encoding ?? undefined);
     } else if (classification.class === "text") {
       result.layer = textLayer(input, classification.encoding ?? undefined);
+    } else if (classification.class === "office") {
+      // An Office package is a zip whose members nobody cites, so it gets one
+      // layer of its own and no member objects.
+      const office = officeLayer(input, limits);
+      if (!office) {
+        result.unsupported = "office package that the detector no longer recognises";
+        return result;
+      }
+      result.problems.push(...office.problems);
+      result.layer = office.layer;
+      result.unsupported = office.unsupported;
     }
   } catch (error) {
     result.unsupported = `${classification.class} normaliser failed: ${(error as Error).message}`;
@@ -132,6 +179,16 @@ export function layerOf(input: Buffer, options: LayerOptions = {}): LayerNode {
   }
   if (result.layer && result.layer.characters === 0) {
     result.problems.push(`${result.layer.normaliser} produced an empty layer`);
+  }
+  if (result.layer) {
+    // A grid is additional. A document whose tables cannot be read keeps
+    // its text layer and records why, because losing the text as well
+    // would make a second normaliser a liability.
+    try {
+      result.grid = gridLayer(input, result.layer, classification.encoding ?? undefined);
+    } catch (error) {
+      result.problems.push(`table grid over ${result.layer.normaliser} failed: ${(error as Error).message}`);
+    }
   }
   return result;
 }

@@ -11,13 +11,22 @@
  */
 
 /** The normalisers this module carries. ADR 0003 section 2 names the first
- * two; the rest are minted here and numbered the same way. */
+ * two; the rest are minted here and numbered the same way.
+ *
+ * The last two are grid normalisers. A grid is a second layer over the same
+ * bytes as a text layer, keeping the table geometry the text layer flattens,
+ * and it is registered beside the text layer rather than instead of it. See
+ * ./grid/types for what one holds. */
 export const normalisers = [
   "pdf-text-layer@1",
   "europepmc-fulltext-xml@1",
   "html-text@1",
   "text-utf8@1",
   "archive-member@1",
+  "ooxml-sheet-tsv@1",
+  "ooxml-document-text@1",
+  "jats-table-grid@1",
+  "html-table-grid@1",
 ] as const;
 export type Normaliser = (typeof normalisers)[number];
 
