@@ -27,12 +27,19 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { hasObject } from "../scripts/archive/objects";
 import { measure } from "../scripts/omics/spans/cli";
+import { layerOf, readGrid, walk as walkLayers, type Grid } from "../shared/archive/layers/index";
 import { layerText, readRegistry, sliceSpan, type LayerRecord } from "../shared/omics/layers/index";
-import { parseLocator } from "../shared/omics/locator";
+import { parseLocator, selectorRole } from "../shared/omics/locator";
 import {
   columnForms,
   countPoints,
+  gridRequest,
+  gridRouteFor,
+  namesTable,
   indexLayer,
+  resolveGridCell,
+  unitOfPoint,
+  type LayerIndex,
   reanchor,
   refusalReasons,
   resolveDelimitedCell,
@@ -656,5 +663,325 @@ describe("JSON Pointer", () => {
 
   it("refuses a layer that is not one JSON document", () => {
     expect(reasonOf(resolveJsonPointer(csv, { path: "entries[0].id", selectors: [] }))).toBe("json_not_parsed");
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+// The table grid resolver. A markup text layer prints a row as one line with the cells joined by
+// a space, so the column is gone before any resolver sees the characters. The grid keeps it.
+//
+// Every fixture here is built by running the real normaliser over markup, through `layerOf`, so
+// the text and the grid come from the one scan and the offsets are the offsets the archive would
+// store. A fixture written by hand could put a grid and a text layer out of step and the tests
+// would still pass.
+
+/** The text layer and the grid the archive would build from this markup. */
+function markupLayers(markup: string, mediaType: string): { index: LayerIndex; grid: Grid } {
+  const tree = layerOf(Buffer.from(markup, "utf8"), { mediaType });
+  let text: { bytes: Buffer; output_sha256: string; normaliser: string } | null = null;
+  let grid: { bytes: Buffer } | null = null;
+  for (const { node } of walkLayers(tree)) {
+    if (node.layer) text = node.layer;
+    if (node.grid) grid = node.grid;
+  }
+  if (!text || !grid) throw new Error("the fixture produced no text layer or no grid");
+  return {
+    index: indexLayer(text.bytes.toString("utf8"), text.output_sha256, text.normaliser),
+    grid: readGrid(grid.bytes.toString("utf8")),
+  };
+}
+
+/** A two level column header, a blank cell with a printed neighbour, a row label spanning two
+ * rows, and a repeated row label. */
+const JATS = `<?xml version="1.0"?>
+<article><body><sec><p>Prose before the table, with a \u{1D70B} in it.</p>
+<table-wrap><label>Table 1</label><caption><p>Accuracy by model.</p></caption>
+<table><thead>
+<tr><th>Model</th><th colspan="2">CATH 4.3</th><th>Blank</th></tr>
+<tr><th></th><th>Recovery</th><th>Perplexity</th><th></th></tr>
+</thead><tbody>
+<tr><td>ProteinMPNN</td><td>0.48</td><td>6.21</td><td></td></tr>
+<tr><td>ESM-IF</td><td>0.51</td><td>6.44</td></tr>
+</tbody></table></table-wrap>
+<p>Prose between the tables.</p>
+<table-wrap><label>Table 10</label><caption><p>Accuracy by length.</p></caption>
+<table><thead><tr><th>Size</th><th>Length</th><th>AUROC</th></tr></thead><tbody>
+<tr><td rowspan="2">Medium</td><td>300</td><td>0.398</td></tr>
+<tr><td>400</td><td>0.741</td></tr>
+<tr><td>Large</td><td>300</td><td>0.512</td></tr>
+<tr><td>Large</td><td>400</td><td>0.655</td></tr>
+</tbody></table></table-wrap></sec></body></article>`;
+
+const jats = markupLayers(JATS, "application/xml");
+
+/** An HTML table the markup gives no label and no caption, with the caption printed above it as
+ * prose, which is the only thing that can name it. */
+const HTML = `<html><body><p>Some prose first.</p>
+<p>Table 2: Accuracy by model.</p>
+<table><thead><tr><th>Model</th><th>AUROC</th></tr></thead>
+<tbody><tr><td>Caduceus</td><td>0.912</td></tr></tbody></table>
+<p>Table 3: Accuracy by length.</p>
+<table><thead><tr><th>Size</th><th>AUROC</th></tr></thead>
+<tbody><tr><td>Medium</td><td>0.333</td></tr></tbody></table>
+<p>Table 4: Accuracy on the held-out split.</p>
+</body></html>`;
+
+const html = markupLayers(HTML, "text/html");
+
+const inGrid = (
+  table: string,
+  row: string,
+  column: string,
+  extra: { keys?: string[]; subColumns?: string[]; levelHints?: string[] } = {},
+  fixture = jats,
+): Resolution =>
+  resolveGridCell(fixture.index, fixture.grid, {
+    anchor: { kind: "table", value: table, raw: `Table ${table}` },
+    row,
+    column,
+    ...extra,
+  });
+
+describe("the table grid resolver", () => {
+  it("returns the cell the markup wrote, and the span is the grid's own offsets", () => {
+    const outcome = inGrid("1", "ProteinMPNN", "Recovery");
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    expect(outcome.span.exact).toBe("0.48");
+    expect(outcome.kind).toBe("grid_cell");
+    expect(outcome.grid_route).toBe("label");
+    const cells = jats.grid.tables[0].cells.filter((entry) => entry.text === "0.48");
+    expect(cells).toHaveLength(1);
+    expect([outcome.span.start, outcome.span.end]).toEqual([cells[0].start, cells[0].end]);
+    // The layer registry's published slice has to agree with the span, on a layer that holds a
+    // code point outside the basic multilingual plane before the table.
+    const slice = sliceSpan(jats.index.text, outcome.span.start, outcome.span.end);
+    expect(slice.exact).toBe("0.48");
+    expect(jats.index.text.codePointAt(0) !== undefined && [...jats.index.text].length).toBeLessThan(jats.index.text.length);
+  });
+
+  it("resolves a two level column heading, which the text layer could never place", () => {
+    expect(inGrid("1", "ESM-IF", "CATH 4.3", { subColumns: ["Perplexity"] }).ok && "6.44").toBe("6.44");
+    const outcome = inGrid("1", "ESM-IF", "CATH 4.3", { subColumns: ["Perplexity"] });
+    expect(outcome.ok && outcome.span.exact).toBe("6.44");
+    expect(outcome.ok && outcome.column_header).toBe("CATH 4.3 / Perplexity");
+  });
+
+  it("refuses a parent heading named with no sub-column, because it spans two columns", () => {
+    expect(reasonOf(inGrid("1", "ProteinMPNN", "CATH 4.3"))).toBe("column_ambiguous");
+  });
+
+  it("refuses a sub-column that is not under the parent the locator names", () => {
+    expect(reasonOf(inGrid("1", "ProteinMPNN", "CATH 4.3", { subColumns: ["AUROC"] }))).toBe("column_not_found");
+  });
+
+  it("takes the deeper heading on its own where only one column carries it", () => {
+    expect(inGrid("1", "ProteinMPNN", "Perplexity").ok && (inGrid("1", "ProteinMPNN", "Perplexity") as { span: { exact: string } }).span.exact).toBe("6.21");
+  });
+
+  it("refuses a cell that prints nothing, and never the neighbouring cell", () => {
+    const outcome = inGrid("1", "ProteinMPNN", "Blank");
+    expect(reasonOf(outcome)).toBe("cell_empty");
+    // The neighbour is printed and is the cell a resolver that counted fields would return.
+    expect(inGrid("1", "ProteinMPNN", "Perplexity").ok).toBe(true);
+  });
+
+  it("refuses a cell the markup did not write at all", () => {
+    // The second body row stops after three cells, so the fourth column has no cell on it.
+    expect(reasonOf(inGrid("1", "ESM-IF", "Blank"))).toBe("cell_empty");
+  });
+
+  it("does not read Table 10 for Table 1, or Table 1 for Table 10", () => {
+    expect(inGrid("10", "Large", "AUROC", { keys: ["300"] }).ok && (inGrid("10", "Large", "AUROC", { keys: ["300"] }) as { span: { exact: string } }).span.exact).toBe("0.512");
+    // The same request against Table 1 reads Table 1, which has no AUROC column at all.
+    expect(reasonOf(inGrid("1", "Large", "AUROC", { keys: ["300"] }))).toBe("column_not_found");
+    expect(namesTable("Table 10", "1")).toBe(false);
+    expect(namesTable("Table 1", "10")).toBe(false);
+    expect(namesTable("TABLE 1", "1")).toBe(true);
+  });
+
+  it("follows a rowspan back to the label that owns it, and the keys decide the row", () => {
+    const outcome = inGrid("10", "Medium", "AUROC", { keys: ["400"] });
+    expect(outcome.ok && outcome.span.exact).toBe("0.741");
+    expect(reasonOf(inGrid("10", "Medium", "AUROC"))).toBe("row_ambiguous");
+    expect(reasonOf(inGrid("10", "Medium", "AUROC", { keys: ["500"] }))).toBe("row_key_unmatched");
+  });
+
+  it("refuses a repeated row label the locator does not tell apart", () => {
+    expect(reasonOf(inGrid("10", "Large", "AUROC"))).toBe("row_ambiguous");
+  });
+
+  it("refuses a table the grid does not hold", () => {
+    expect(reasonOf(inGrid("7", "ProteinMPNN", "Recovery"))).toBe("anchor_not_found");
+  });
+
+  it("refuses a figure anchor, which names no table of the grid", () => {
+    const outcome = resolveGridCell(jats.index, jats.grid, {
+      anchor: { kind: "figure", value: "2", raw: "Figure 2" },
+      row: "ProteinMPNN",
+      column: "Recovery",
+    });
+    expect(reasonOf(outcome)).toBe("no_resolver_for_kind");
+  });
+
+  it("refuses a grid built over another layer, whose offsets are into another document", () => {
+    const outcome = resolveGridCell(html.index, jats.grid, {
+      anchor: { kind: "table", value: "1", raw: "Table 1" },
+      row: "ProteinMPNN",
+      column: "Recovery",
+    });
+    expect(reasonOf(outcome)).toBe("no_column_geometry");
+  });
+});
+
+describe("naming a table the markup does not label", () => {
+  it("takes the one table that begins under a caption line of the layer", () => {
+    const outcome = inGrid("2", "Caduceus", "AUROC", {}, html);
+    expect(outcome.ok && outcome.span.exact).toBe("0.912");
+    expect(outcome.ok && outcome.grid_route).toBe("caption_window");
+    expect(gridRouteFor(html.index, html.grid, "2")).toBe("caption_window");
+  });
+
+  it("does not read the table above a caption as the table below it", () => {
+    // The caption for Table 3 stands between the two tables. Both are candidates, and only the
+    // one below it holds a row labelled Medium, so the cross-check settles it.
+    const outcome = inGrid("3", "Medium", "AUROC", {}, html);
+    expect(outcome.ok && outcome.span.exact).toBe("0.333");
+    expect(inGrid("2", "Caduceus", "AUROC", {}, html).ok && (inGrid("2", "Caduceus", "AUROC", {}, html) as { span: { exact: string } }).span.exact).toBe("0.912");
+  });
+
+  it("names no table where the layer carries no caption for one", () => {
+    expect(gridRouteFor(html.index, html.grid, "9")).toBe("none");
+    expect(reasonOf(inGrid("9", "Caduceus", "AUROC", {}, html))).toBe("anchor_not_found");
+  });
+
+  it("takes the table a caption printed under it names", () => {
+    const below = markupLayers(
+      `<html><body><table><thead><tr><th>Model</th><th>AUROC</th></tr></thead>` +
+        `<tbody><tr><td>Caduceus</td><td>0.912</td></tr></tbody></table>` +
+        `<p>Table 3: Accuracy by model.</p></body></html>`,
+      "text/html",
+    );
+    expect(gridRouteFor(below.index, below.grid, "3")).toBe("caption_window");
+    expect(inGrid("3", "Caduceus", "AUROC", {}, below).ok && (inGrid("3", "Caduceus", "AUROC", {}, below) as { span: { exact: string } }).span.exact).toBe("0.912");
+  });
+
+  it("refuses where the tables on both sides of the caption hold the row and the column", () => {
+    const both = markupLayers(
+      `<html><body><table><thead><tr><th>Model</th><th>AUROC</th></tr></thead>` +
+        `<tbody><tr><td>Caduceus</td><td>0.912</td></tr></tbody></table>` +
+        `<p>Table 3: Accuracy by model.</p>` +
+        `<table><thead><tr><th>Model</th><th>AUROC</th></tr></thead>` +
+        `<tbody><tr><td>Caduceus</td><td>0.333</td></tr></tbody></table></body></html>`,
+      "text/html",
+    );
+    expect(reasonOf(inGrid("3", "Caduceus", "AUROC", {}, both))).toBe("anchor_ambiguous");
+  });
+});
+
+describe("the dispatch between the two cell resolvers", () => {
+  const locator = "Table 1, row 'ProteinMPNN', column 'CATH 4.3', sub-column 'Recovery'";
+
+  it("reads the grid where one is in hand", () => {
+    const outcome = resolveLocator(parseLocator(locator), jats.index, jats.grid);
+    expect(outcome.ok && outcome.kind).toBe("grid_cell");
+    expect(outcome.ok && outcome.span.exact).toBe("0.48");
+  });
+
+  it("refuses the same locator on the same layer with no grid", () => {
+    expect(reasonOf(resolveLocator(parseLocator(locator), jats.index))).toBe("no_column_geometry");
+  });
+
+  it("ignores a grid that is not the grid over this layer", () => {
+    expect(reasonOf(resolveLocator(parseLocator(locator), jats.index, html.grid))).toBe("no_column_geometry");
+  });
+
+  it("leaves a locator with no column on the refusal it already had", () => {
+    const outcome = resolveLocator(parseLocator("Table 1, row 'ProteinMPNN'"), jats.index, jats.grid);
+    expect(reasonOf(outcome)).toBe("no_column_in_locator");
+  });
+});
+
+describe("a code point offset into a layer that holds an astral character", () => {
+  it("converts to the UTF-16 offset the characters are at", () => {
+    const text = "a\u{1D70B}b\ncell 0.48 here";
+    const index = indexLayer(text, "f".repeat(64), "html-text@1");
+    const points = [...text];
+    const at = points.indexOf("0");
+    expect(unitOfPoint(index, at)).toBe(text.indexOf("0.48"));
+    // The UTF-16 offset runs ahead of the code point offset by one unit per astral character.
+    expect(unitOfPoint(index, at)).toBe(at + 1);
+    expect(unitOfPoint(index, 0)).toBe(0);
+    expect(unitOfPoint(index, points.length)).toBe(text.length);
+    expect(unitOfPoint(index, points.length + 1)).toBeNull();
+  });
+});
+
+/** A two level header whose second level is what tells two columns apart, and a first column
+ * that holds a block spanning its rows with the row label in the column after it. */
+const LEVELS = `<?xml version="1.0"?>
+<article><body><sec>
+<table-wrap><label>Table 2</label><table><thead>
+<tr><th>Method</th><th colspan="2">EF1%</th></tr>
+<tr><th></th><th>Mean</th><th>Med</th></tr>
+</thead><tbody>
+<tr><td>AF3</td><td>19.23</td><td>21.46</td></tr>
+</tbody></table></table-wrap>
+<table-wrap><label>Table 3</label><table><thead>
+<tr><th>Dataset</th><th>Method</th><th>Precision</th></tr>
+</thead><tbody>
+<tr><td rowspan="2">Zymo</td><td>Kraken2</td><td>0.17</td></tr>
+<tr><td>Bracken</td><td>0.15</td></tr>
+<tr><td rowspan="2">ATCC</td><td>Kraken2</td><td>0.56</td></tr>
+<tr><td>Bracken</td><td>0.68</td></tr>
+</tbody></table></table-wrap></sec></body></article>`;
+
+const levels = markupLayers(LEVELS, "application/xml");
+
+describe("a level the locator writes in a bracket", () => {
+  it("breaks a tie between two columns under one heading", () => {
+    expect(reasonOf(inGrid("2", "AF3", "EF1%", {}, levels))).toBe("column_ambiguous");
+    const outcome = inGrid("2", "AF3", "EF1%", { levelHints: ["Mean"] }, levels);
+    expect(outcome.ok && outcome.span.exact).toBe("19.23");
+    expect(inGrid("2", "AF3", "EF1%", { levelHints: ["Med"] }, levels).ok && (inGrid("2", "AF3", "EF1%", { levelHints: ["Med"] }, levels) as { span: { exact: string } }).span.exact).toBe("21.46");
+  });
+
+  it("narrows nothing where the bracket names nothing in the table", () => {
+    expect(reasonOf(inGrid("2", "AF3", "EF1%", { levelHints: ["PNAS PDF page 4"] }, levels))).toBe("column_ambiguous");
+  });
+
+  it("is read off a note qualifier, and a slash continuation is read as a deeper level", () => {
+    const hinted = parseLocator("Table 2, row 'AF3', column 'EF1%' (Mean)");
+    const request = gridRequest(hinted, { anchor: hinted.anchors[0], row: "AF3", column: "EF1%" }, selectorRole);
+    expect(request.levelHints).toEqual(["Mean"]);
+    const chained = parseLocator("Table 2, row 'AF3' / 'x', columns 'EF1%' / 'Mean'");
+    const built = gridRequest(chained, { anchor: chained.anchors[0], row: "AF3", column: "EF1%", keys: ["x", "Mean"] }, selectorRole);
+    expect(built.subColumns).toEqual(["Mean"]);
+    expect(built.keys).toEqual(["x"]);
+  });
+
+  it("resolves the whole locator through the dispatcher", () => {
+    const outcome = resolveLocator(parseLocator("Table 2, row 'AF3', column 'EF1%' (Mean)"), levels.index, levels.grid);
+    expect(outcome.ok && outcome.span.exact).toBe("19.23");
+  });
+});
+
+describe("a row label the first column does not hold", () => {
+  it("takes the leftmost cell that begins on the row and prints something", () => {
+    const outcome = inGrid("3", "Bracken", "Precision", { keys: ["ATCC"] }, levels);
+    expect(outcome.ok && outcome.span.exact).toBe("0.68");
+    expect(outcome.ok && outcome.row_label).toBe("Bracken");
+  });
+
+  it("still refuses a label repeated across the blocks with nothing to tell them apart", () => {
+    expect(reasonOf(inGrid("3", "Kraken2", "Precision", {}, levels))).toBe("row_ambiguous");
+  });
+
+  it("still matches a block label spanning its rows, so the span does not resolve one of them", () => {
+    // "Zymo" covers two rows through its rowspan. Both are candidates and the locator says
+    // nothing that tells them apart, so the answer is a refusal and not the first row.
+    expect(reasonOf(inGrid("3", "Zymo", "Precision", {}, levels))).toBe("row_ambiguous");
+    const outcome = inGrid("3", "Zymo", "Precision", { keys: ["Bracken"] }, levels);
+    expect(outcome.ok && outcome.span.exact).toBe("0.15");
   });
 });

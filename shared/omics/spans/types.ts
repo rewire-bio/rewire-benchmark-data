@@ -14,6 +14,11 @@ import type { Span } from "../locator";
 export const spanKinds = [
   /** A table anchor with a row label and a column header, in column-aligned text. */
   "table_cell",
+  /** The same, crossed against a table grid rather than against aligned text. Counted apart
+   * from `table_cell` because the two read different geometry: one reads the horizontal
+   * position a layout renderer left in the characters, the other reads the row and column the
+   * markup wrote. */
+  "grid_cell",
   /** A row and a column in a delimited file, by line number or by A1 notation. */
   "delimited_cell",
   /** A figure anchor: the span is the caption. */
@@ -57,6 +62,7 @@ export const refusalReasons = [
   "column_not_found",
   "column_ambiguous",
   "column_unaligned",
+  "column_merged",
   "row_not_found",
   "row_ambiguous",
   "row_key_unmatched",
@@ -73,6 +79,18 @@ export const refusalReasons = [
 ] as const;
 export type RefusalReason = (typeof refusalReasons)[number];
 
+/** How a grid resolver found the table it read, where a grid was read at all.
+ *
+ * `label` is the label the markup wrote on the table itself. `caption_window` is a caption line
+ * of the text layer, with the tables beginning under it and the table standing against it from
+ * above as the candidates and only one of them allowed to yield the cell. It is the only route
+ * to an HTML table and the weaker evidence of the two, so the measurement reports them apart.
+ * `none` is a grid that was read and holds no table the anchor names.
+ *
+ * The field's presence on an outcome is what the measurement counts as a grid attempt. */
+export const gridRoutes = ["label", "caption_window", "none"] as const;
+export type GridRoute = (typeof gridRoutes)[number];
+
 /** A refusal. `detail` is for a reader of the report and is never parsed. */
 export interface Refusal {
   ok: false;
@@ -80,6 +98,8 @@ export interface Refusal {
   detail: string;
   /** The layer the refusal was reached on, where one was read. */
   layer_sha256?: string;
+  /** Set where a table grid was read. */
+  grid_route?: GridRoute;
 }
 
 /** A span, with what the resolver crossed it against.
@@ -96,9 +116,14 @@ export interface Resolved {
   row_label?: string;
   /** The column header as the layer prints it. */
   column_header?: string;
-  /** How many candidate anchors the resolver had to choose between, where it chose by
-   * cross-check rather than because there was only one. */
+  /** How many candidate places the resolver had to choose between, where it chose by
+   * cross-check rather than because there was only one. Not a count of anchors: in the grid it is
+   * the number of tables the route found, and in the plain-text path it is the number of regions
+   * read around the matching captions, accumulated across the stages tried, so a span found in a
+   * later stage counts the regions the earlier stages offered as well. */
   anchor_candidates?: number;
+  /** Set where a table grid was read. */
+  grid_route?: GridRoute;
 }
 
 export type Resolution = Resolved | Refusal;
