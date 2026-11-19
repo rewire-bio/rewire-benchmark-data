@@ -64,6 +64,8 @@ In the verification pass you check each proposed field against the primary sourc
 - `corrected`, with the value the source actually states and its location;
 - `unsupported`, when no source you opened states it, or a source contradicts it.
 
+Judge a list (limitations) item by item, and a description clause by clause. A value with one unstated clause is not supported as it stands: correct it to what the sources state. Do not add your own caveats or interpretations.
+
 Also list, for each entity, the cited sources that are not about it (`wrong_sources`) and the sources in the list that are about it but not cited (`better_sources`), by the rules under Source attribution. Check `entity_level` against the definitions above.
 
 Mark an entity `keep: false` when it is out of scope, when it duplicates another proposed entity, or when no primary source could be opened to support its description. The script stores only supported and corrected values. Everything else is left out and recorded as missing.
