@@ -20,6 +20,8 @@ export function fetchableUrl(url: string): boolean;
 export function doiOf(url: string): string;
 export function urlKey(url: string): string;
 export function readSourceUrls(dir?: string): Promise<Map<string, string>>;
+export function urlsInText(text: string): string[];
+export function withSourceUrls(entities: Entity[], proposal: { sources?: { url: string }[] }, issueBody: string): Entity[];
 export function screenEntities(proposal: { entities?: Entity[] }, known: { storeNames: Map<string, string> }): { keep: Entity[]; dropped: Dropped[] };
 export function verifiedValue(verdict: any, field: string, proposed: unknown): { value: string; locator: string } | null;
 export function buildBatch(input: {
