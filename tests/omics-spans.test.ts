@@ -26,7 +26,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { hasObject } from "../scripts/archive/objects";
-import { measure } from "../scripts/omics/spans/cli";
+import { measure, valuePresence } from "../scripts/omics/spans/cli";
 import { layerOf, readGrid, walk as walkLayers, type Grid } from "../shared/archive/layers/index";
 import { layerText, readRegistry, sliceSpan, type LayerRecord } from "../shared/omics/layers/index";
 import { parseLocator, selectorRole } from "../shared/omics/locator";
@@ -983,5 +983,152 @@ describe("a row label the first column does not hold", () => {
     expect(reasonOf(inGrid("3", "Zymo", "Precision", {}, levels))).toBe("row_ambiguous");
     const outcome = inGrid("3", "Zymo", "Precision", { keys: ["Bracken"] }, levels);
     expect(outcome.ok && outcome.span.exact).toBe("0.15");
+  });
+});
+
+/** The quote path: which quoted run of a locator is the evidence, and how far the span runs.
+ *
+ * Every case here is one of the eight spans of 2026-11-18 that committed to text printing no
+ * part of the stored value. The layers are fixtures, so the cases hold without the object cache.
+ */
+describe("a quoted run that is a label", () => {
+  const fixture = (text: string, normaliser = "pdf-text-layer@1"): LayerIndex => indexLayer(text, "f".repeat(64), normaliser);
+
+  it("is not the evidence when the locator names a place after it", () => {
+    // The last quoted run printing a number was a composite row key, and the span landed on the
+    // key. The locator addresses a cell: a table, a row and a column.
+    const index = fixture("Table 2\nModel  Prompt  Accuracy\nQwen2.5  Binary class prompt + Default temperature (0.8)  0.6119\n");
+    const parsed = parseLocator("Table 2 (Tab2), row 3 ('Qwen2.5', 'Binary class prompt + Default temperature (0.8)', 'FoundationOne'), column 'Accuracy'");
+    const outcome = resolveLocator(parsed, index);
+    expect(outcome.ok).toBe(false);
+    expect(!outcome.ok && outcome.reason).toBe("no_column_geometry");
+  });
+
+  it("is not the evidence when it names the section the paragraph is in", () => {
+    // The section is named by its heading and the place is the paragraph. The span was the
+    // heading line, which prints no value, on three stored locators.
+    const heading = "Results for the species out of the database settings";
+    const index = fixture(`Results\n\n${heading}\nFirst paragraph.\nSecond paragraph.\nThird paragraph prints 0.87.\n`, "europepmc-fulltext-xml@1");
+    const outcome = resolveLocator(parseLocator(`Results '${heading}' paragraph 3, last sentences`), index);
+    expect(outcome.ok && outcome.kind).toBe("section_paragraph");
+    expect(outcome.ok && outcome.span.exact).toBe("Third paragraph prints 0.87.");
+  });
+
+  it("is still the evidence where it stands after the place the locator names", () => {
+    const index = fixture(
+      "Results\n\nState-of-the-art interpretable genome-wide variant prioritization with AVI\nWe report synonymous (0.57 vs. 0.35) across the set.\n",
+    );
+    const outcome = resolveLocator(
+      parseLocator(
+        "Results 'State-of-the-art interpretable genome-wide variant prioritization with AVI' paragraph 1 (page 5), citing Fig. 2A: 'synonymous (0.57 vs. 0.35)'",
+      ),
+      index,
+    );
+    expect(outcome.ok && outcome.kind).toBe("quote");
+    expect(outcome.ok && outcome.span.exact).toBe("synonymous (0.57 vs. 0.35)");
+  });
+
+  it("is a label and not a sentence to find where the grammar read no quote", () => {
+    // `columns 'AP' and 'AP 95% CI'` leaves the second column name as a quoted run the grammar
+    // did not read. It occurs once in the layer, and resolving it puts a span on a header.
+    const index = fixture("Model  AP  AP 95% CI\nSpliceTransformer  0.317  0.30-0.33\n");
+    const outcome = resolveLocator(parseLocator("Section 4 'Results' table (page 3), row 'SpliceTransformer', columns 'AP' and 'AP 95% CI'"), index);
+    expect(outcome.ok && outcome.kind).not.toBe("quote");
+  });
+});
+
+describe("a sentence the locator names by its opening", () => {
+  const index = indexLayer(
+    "Appendix E\n\nSample-Size Dependency\nScoring real homologs\nagainst real homologs yields covariance scores of 0.790 at N = 20, 0.921 at N = 100.\nThe next sentence.\n",
+    "e".repeat(64),
+    "pdf-text-layer@1",
+  );
+
+  it("runs to the end of the sentence and not to the end of the opening", () => {
+    const outcome = resolveLocator(parseLocator("Appendix E 'Sample-Size Dependency', the sentence beginning 'Scoring real homologs against real homologs'"), index);
+    expect(outcome.ok && outcome.kind).toBe("quote");
+    expect(outcome.ok && outcome.span.exact.includes("0.921")).toBe(true);
+  });
+
+  it("ends the sentence past an abbreviation that takes a full stop", () => {
+    const cited = indexLayer("By analyzing odds ratios (Fig. 6C), the lower 1% are 10.3-fold enriched. Then more.\n", "a".repeat(64), "pdf-text-layer@1");
+    const outcome = resolveQuote(cited, "By analyzing odds ratios", true);
+    expect(outcome.ok && outcome.span.exact).toBe("By analyzing odds ratios (Fig. 6C), the lower 1% are 10.3-fold enriched.");
+  });
+});
+
+describe("a paragraph of a section on a layer that prints one block per line", () => {
+  it("is a line, and nothing past the first blank line is numbered", () => {
+    const index = indexLayer("Speed\nFirst paragraph.\n\nTable 1\nMethod Speed\nKraken2 13.471\n\nThe speed paragraph prints 13,471.\n", "b".repeat(64), "europepmc-fulltext-xml@1");
+    const outcome = resolveSectionParagraph(index, "Speed", 3);
+    expect(outcome.ok).toBe(false);
+    expect(!outcome.ok && outcome.reason).toBe("paragraph_out_of_range");
+    const first = resolveSectionParagraph(index, "Speed", 1);
+    expect(first.ok && first.span.exact).toBe("First paragraph.");
+  });
+
+  it("is a run of lines on a layer a renderer wrapped", () => {
+    const index = indexLayer("Speed\nFirst paragraph\nwrapped over two lines.\n\nSecond paragraph.\n", "c".repeat(64), "pdf-text-layer@1");
+    const outcome = resolveSectionParagraph(index, "Speed", 1);
+    expect(outcome.ok && outcome.span.exact).toBe("First paragraph\nwrapped over two lines.");
+  });
+
+  it("matches a heading longer than eighty characters where the locator prints it in full", () => {
+    const name = "MetageNN is faster and requires less storage than alignment and k-mer-based tools, respectively";
+    const index = indexLayer(`Results\n\n${name}\nThe only paragraph.\n`, "d".repeat(64), "europepmc-fulltext-xml@1");
+    const outcome = resolveSectionParagraph(index, name, 1);
+    expect(outcome.ok && outcome.span.exact).toBe("The only paragraph.");
+  });
+});
+
+/** The value check on a number pair.
+ *
+ * The rate these properties hold at over the whole store is in
+ * `maintenance/reports/span-resolution-2026-11-18.md`; these are the shapes behind the rate. A
+ * sheet layer prints the workbook's stored double and the record keeps the displayed value, so
+ * one number arrives spelled two ways and a check on characters alone reads the right cell as a
+ * wrong answer.
+ */
+describe("the value check on one number spelled two ways", () => {
+  it("counts the stored double as printing the value the record displays", () => {
+    expect(valuePresence("0.81699999999999995", "0.82")).toEqual({ present: true, exact: true, partial: false });
+    expect(valuePresence("5.0452599342583802E-2", "0.050")).toEqual({ present: true, exact: true, partial: false });
+  });
+
+  it("still refuses a genuinely different number", () => {
+    expect(valuePresence("0.73", "0.82").present).toBe(false);
+    // One place further out than the record writes is a different number at the record's own
+    // precision, and the comparison is at that precision and no finer.
+    expect(valuePresence("0.83", "0.82").present).toBe(false);
+    expect(valuePresence("0.061452599342583802", "0.050").present).toBe(false);
+  });
+
+  it("does not pass a span holding several numbers because one of them rounds to the value", () => {
+    expect(valuePresence("0.81699999999999995\t0.73", "0.82").present).toBe(false);
+    expect(valuePresence("0.73 (0.81699999999999995)", "0.82").present).toBe(false);
+    // The string check still answers for a span that prints the value itself beside others,
+    // which is the looser test it always was and reports `present` without `exact`.
+    expect(valuePresence("0.82\t0.73", "0.82")).toEqual({ present: true, exact: false, partial: false });
+  });
+
+  it("rounds the digits and not the double, so a cell ending in a 5 is not a wrong answer", () => {
+    // The nearest double to 0.8875 sits a hair below the midpoint, so rounding the double gives
+    // 0.887 and the spreadsheet displays 0.888.
+    expect(valuePresence("0.88749999999999996", "0.888").present).toBe(true);
+    expect(valuePresence("0.8874", "0.888").present).toBe(false);
+    expect(valuePresence("0.8865", "0.888").present).toBe(false);
+    // A span that opens with the record's digits passes the character test whatever the numeric
+    // rule says, which is the looser test this check has always applied to a quote or a page.
+    expect(valuePresence("0.8885", "0.888")).toEqual({ present: true, exact: false, partial: false });
+  });
+
+  it("compares at the precision the record writes and leaves everything else to the characters", () => {
+    // A record keeping three places says three places: 0.0504 is the value, 0.0514 is not.
+    expect(valuePresence("0.0504", "0.050").present).toBe(true);
+    expect(valuePresence("0.0514", "0.050").present).toBe(false);
+    // Not a number pair: no scaling, no thousands separators, no arithmetic.
+    expect(valuePresence("0.82", "82%").present).toBe(false);
+    expect(valuePresence("1234", "1,234").present).toBe(false);
+    expect(valuePresence("108 of the 143 variants (75.5%)", "75.5% (108/143)").present).toBe(false);
   });
 });

@@ -27,14 +27,15 @@
  */
 import { gridNormaliserFor } from "../../archive/layers/grid/index";
 import type { Grid } from "../../archive/layers/grid/types";
-import { carriesNoAddress, selectorRole, type LocatorSelector, type ParsedLocator } from "../locator";
+import { carriesNoAddress, selectorRole, type LocatorAddress, type LocatorSelector, type ParsedLocator } from "../locator";
 import { resolveFigureCaption } from "./figure";
 import { gridRequest, resolveGridCell } from "./grid";
 import { resolveJsonPointer } from "./json";
 import { indexLayer, type LayerIndex } from "./offsets";
 import { resolveQuote, resolveSectionParagraph } from "./prose";
 import { FILE_NORMALISERS, resolveDelimitedCell, resolveKeyedRow, resolveLineRange, resolvePage } from "./regions";
-import { resolveTableCell } from "./table";
+import { isSheetLayer, resolveSheetCell, sheetRequest } from "./sheet";
+import { normaliseLabel, resolveTableCell } from "./table";
 import { refuse, type Resolution } from "./types";
 
 export * from "./types";
@@ -46,6 +47,16 @@ export { gridRequest, gridRouteFor, namesTable, resolveGridCell, unitOfPoint, ty
 export { jsonOf, pointerTokens, readJson, renderPointer, resolveJsonPointer, scalarsOf, step, walk, type JsonNode, type JsonSelector } from "./json";
 export { resolveQuote, resolveSectionParagraph } from "./prose";
 export { FILE_NORMALISERS, columnIndex, delimiterOf, fieldsOf, resolveDelimitedCell, resolveKeyedRow, resolveLineRange, resolvePage } from "./regions";
+export {
+  SHEET_NORMALISERS,
+  blocksOf,
+  fieldsOfLine,
+  isSheetLayer,
+  resolveSheetCell,
+  sheetRequest,
+  type SheetCellRequest,
+  type SheetField,
+} from "./sheet";
 export { reanchor, type Anchoring, type AnchorEvidence } from "./reanchor";
 
 /** Keys whose first word names the row or the column, where the rest of the key is the label.
@@ -125,6 +136,25 @@ function residueKeys(residue: string[]): string[] {
   return [...new Set([...numbers, ...blocks])];
 }
 
+/** Addresses that say where to look rather than what to find.
+ *
+ * A quoted run printed before the last of these is a label for one of them and not the evidence.
+ * `Table 2 (Tab2), row 3 ('Qwen2.5', 'Binary class prompt + Default temperature (0.8)',
+ * 'FoundationOne'), column 'Accuracy'` prints a composite row key that holds a number, and the
+ * rule below reads the last quoted run that prints a number: on that locator it read the key and
+ * put the span on a row label. The same cut takes the section heading out of
+ * `Results 'MetageNN is faster ...' paragraph 3, sentence 5`, where the place the locator names
+ * is the paragraph and the quoted run is the name of the section it sits in. */
+const PLACE_KINDS = new Set<ParsedLocator["addresses"][number]["kind"]>([
+  "row_number",
+  "line",
+  "paragraph",
+  "sheet_cell",
+  "cell_range",
+  "xml_cell",
+  "json_path",
+]);
+
 /** Which closing mark each opening mark takes. A straight quote closes on a straight quote and
  * a curly one on its partner, which is what tells an apostrophe from a delimiter: the stored
  * `'3’ UTR categories (0.50 vs. GPN-Star-M’s 0.18)'` holds two curly apostrophes inside a
@@ -133,6 +163,17 @@ function residueKeys(residue: string[]): string[] {
 const CLOSERS: Record<string, string> = { "'": "'", '"': '"', "‘": "’", "“": "”" };
 /** How long a quoted run has to be before it is taken as the evidence rather than a label. */
 const EVIDENCE_POINTS = 8;
+/** How long it has to be where the grammar read no quote at all, which is the grammar's own
+ * threshold for reading a quoted run as a quote.
+ *
+ * A run the grammar did not read as a quote is the only record of a text to go and find, and
+ * `the sentence beginning 'Scoring real homologs against real homologs'` is the shape worth
+ * resolving. Short runs in that position are labels and were measured as such: `columns 'AP' and
+ * 'AP 95% CI'`, `run 'rrf prf rprec'`, `sentence 'Within single donors', value for Tahoe-x1
+ * (70M)`. Taking every run of eight points or more committed 14 spans to a label that prints no
+ * part of the stored value, against 108 spans that print it. At 40 points the labels go and the
+ * sentences stay, and a run the locator itself calls a sentence is taken whatever its length. */
+const LONG_RUN_POINTS = 40;
 
 /** The quoted runs of a printed locator, in the order they are printed. */
 function quotedRuns(printed: string): { text: string; at: number }[] {
@@ -160,24 +201,114 @@ function quotedRuns(printed: string): { text: string; at: number }[] {
  * under the grammar's 40-point threshold it is read off the printed string rather than off the
  * addresses. The span is still only ever returned when that text occurs in the layer once.
  */
-function evidenceQuote(parsed: ParsedLocator): { text: string; whole: boolean } | null {
+function evidenceQuote(parsed: ParsedLocator, legacy = false): { text: string; whole: boolean } | null {
+  if (legacy) return legacyEvidenceQuote(parsed);
   const quoted = parsed.addresses.filter((address) => address.kind === "quote" || address.kind === "sentence");
-  if (quoted.length === 0) return null;
-  const address = quoted[quoted.length - 1];
-  const chosen = { text: address.value, whole: address.kind === "sentence" };
-  const runs = quotedRuns(parsed.printed).filter((run) => [...run.text].length >= EVIDENCE_POINTS);
-  // Of the quoted runs, the evidence is the last one that prints a number. A locator quotes a
+  const cut = placeCut(parsed);
+  const labels = labelValues(parsed);
+  const floor = quoted.length > 0 ? EVIDENCE_POINTS : LONG_RUN_POINTS;
+  const runs = quotedRuns(parsed.printed).filter(
+    (run) =>
+      ([...run.text].length >= floor || namesSentence(parsed.printed, run.at)) &&
+      run.at > cut &&
+      !labels.has(normaliseLabel(run.text)),
+  );
+  // Of the candidate runs, the evidence is the last one that prints a number. A locator quotes a
   // section, then the sentence the value is in, and sometimes a panel or a label after it:
   // `Main 'Modeling tissue-specific splicing' paragraph 2 '(13,770 splice junctions, Pearson
   // r = 0.58)'; Fig. 2b panel 'Cerebellum vs blood'` ends on the panel. This asks nothing about
   // the value the record stores, only whether the quoted text prints any number at all, and the
   // span is still returned only where that text occurs in the layer exactly once.
   const numbered = runs.filter((run) => /\d/.test(run.text));
+  const pool = numbered.length > 0 ? numbered : runs;
+  const last = pool[pool.length - 1];
+  const address = quoted.length > 0 ? quoted[quoted.length - 1] : null;
+  const addressAt = address === null ? -1 : parsed.printed.lastIndexOf(address.value);
+  // A run wins over the quote address only where it is printed after it. It can win where the
+  // grammar read no quote at all: `the sentence beginning 'Scoring real homologs against real
+  // homologs'` arrives as a selector, so the run is the only record of the text to find.
+  if (last && last.at > addressAt) return { text: last.text, whole: namesSentence(parsed.printed, last.at) };
+  // An address printed before the place the locator names is a label for that place, which is
+  // the section heading case. There is no evidence quote in the string.
+  if (address && addressAt > cut)
+    return { text: address.value, whole: address.kind === "sentence" || namesSentence(parsed.printed, addressAt) };
+  return null;
+}
+
+/** The quote selection as it stood before the label rule, kept so the rule's effect can be
+ * measured as a paired run in one process. `measure --legacy-quote` is the only caller. */
+function legacyEvidenceQuote(parsed: ParsedLocator): { text: string; whole: boolean } | null {
+  const quoted = parsed.addresses.filter((address) => address.kind === "quote" || address.kind === "sentence");
+  if (quoted.length === 0) return null;
+  const address = quoted[quoted.length - 1];
+  const chosen = { text: address.value, whole: address.kind === "sentence" };
+  const runs = quotedRuns(parsed.printed).filter((run) => [...run.text].length >= EVIDENCE_POINTS);
+  const numbered = runs.filter((run) => /\d/.test(run.text));
   const last = (numbered.length > 0 ? numbered : runs)[(numbered.length > 0 ? numbered : runs).length - 1];
   if (!last || last.text === chosen.text) return chosen;
-  // The later run wins only where it is printed after the address it displaces. A quote address
-  // that already stands last in the string is the evidence.
   return last.at > parsed.printed.lastIndexOf(address.value) ? { text: last.text, whole: false } : chosen;
+}
+
+/** Where the last place-naming part of the locator ends, as an index into the printed string, or
+ * -1 where the locator names no place. */
+function placeCut(parsed: ParsedLocator): number {
+  let cut = -1;
+  const mark = (raw: string): void => {
+    const at = parsed.printed.lastIndexOf(raw);
+    if (at >= 0) cut = Math.max(cut, at + raw.length);
+  };
+  for (const address of parsed.addresses) if (PLACE_KINDS.has(address.kind)) mark(address.raw);
+  for (const selector of parsed.selectors) if (selectorRole(selector.key) !== "other") mark(selector.raw);
+  return cut;
+}
+
+/** The text of every part the grammar read as a label: an anchor's identifier and the value of
+ * any selector naming a row or a column. A quoted run printing one of them is that label and not
+ * a sentence to go and find. */
+function labelValues(parsed: ParsedLocator): Set<string> {
+  const labels = new Set<string>();
+  for (const anchor of parsed.anchors) labels.add(normaliseLabel(anchor.value));
+  for (const selector of parsed.selectors)
+    if (selector.value !== null && selectorRole(selector.key) !== "other") labels.add(normaliseLabel(selector.value));
+  return labels;
+}
+
+/** Does the locator say this run opens a sentence rather than standing for one?
+ *
+ * `the sentence beginning 'Scoring real homologs against real homologs'` is read by the grammar
+ * as a selector, so the span ran to the end of the quoted opening and the value the record keeps
+ * is further along the sentence: three stored locators were that. The phrase printed in front of
+ * the run is what says so, and it is read off the printed string because the selector key is not
+ * reserved. "beginning" is optional because `sentence 'Within single donors', value for
+ * Tahoe-x1 (70M)` names a sentence by its opening in the same way and prints the value further
+ * along it. */
+const SENTENCE_PHRASE = /\b(?:sentence|sentences)(?:\s+(?:beginning|starting|begins|opening|that begins|which begins))?$/i;
+
+function namesSentence(printed: string, at: number): boolean {
+  return SENTENCE_PHRASE.test(printed.slice(0, Math.max(0, at - 1)).replace(/[\s:,'"‘“]+$/, ""));
+}
+
+/**
+ * The section name a locator quotes, where it quotes one before the paragraph it names.
+ *
+ * `Results 'MetageNN is faster and requires less storage than alignment and k-mer-based tools,
+ * respectively' paragraph 3` names a subsection by printing its heading, and the container
+ * anchor is the parent section. Counting paragraphs from the parent counts the wrong paragraphs:
+ * on the layer these three locators address, paragraph 3 of the quoted subsection prints the
+ * value and paragraph 3 of "Results" is in another subsection entirely. So the quoted heading is
+ * the name used, and where the layer prints no heading line reading it the resolver refuses
+ * `section_not_found` rather than counting from the parent, because that count states a place
+ * the locator did not name.
+ */
+function quotedSection(parsed: ParsedLocator, paragraph: LocatorAddress): string | null {
+  const at = parsed.printed.lastIndexOf(paragraph.raw);
+  let name: string | null = null;
+  for (const address of parsed.addresses) {
+    if (address.kind !== "quote" && address.kind !== "sentence") continue;
+    const position = parsed.printed.lastIndexOf(address.raw);
+    if (position >= 0 && (at < 0 || position < at)) name = address.value;
+  }
+  return name;
 }
 
 /** A page number from a page qualifier, where the qualifier carries one. */
@@ -199,8 +330,8 @@ function pageOf(parsed: ParsedLocator): number | null {
  * locator that names a row and no column is refused, not resolved to the whole row, because a
  * span over a row does not check the value that was read out of it.
  */
-export function resolveLocator(parsed: ParsedLocator, index: LayerIndex, grid?: Grid | null): Resolution {
-  const outcome = resolveParsed(parsed, index, usableGrid(index, grid));
+export function resolveLocator(parsed: ParsedLocator, index: LayerIndex, grid?: Grid | null, options?: ResolveOptions): Resolution {
+  const outcome = resolveParsed(parsed, index, usableGrid(index, grid), options ?? {});
   // A span has to cover characters. `spanSchema` requires `exact` to hold at least one, so a
   // span over a blank line is not a span a record could carry, and one states a place where
   // nothing is printed. Measured once, on a locator addressing a blank line of a PDF layer.
@@ -225,21 +356,56 @@ function usableGrid(index: LayerIndex, grid?: Grid | null): Grid | null {
   return grid.tables.length > 0 ? grid : null;
 }
 
-function resolveParsed(parsed: ParsedLocator, index: LayerIndex, grid: Grid | null): Resolution {
+/** What a caller may vary, so a rule's effect can be measured against the same store in one
+ * process rather than reported as an anecdote: the quote selection, and whether a sheet layer's
+ * blocks are read at all. */
+export interface ResolveOptions {
+  legacyQuote?: boolean;
+  /** True or absent reads the blocks of a sheet layer, which is the shipped path. False leaves a
+   * sheet layer where it was, refusing every cell address on it, and is the other arm of the
+   * paired run that measures what the sheet blocks are worth. */
+  sheet?: boolean;
+}
+
+function resolveParsed(parsed: ParsedLocator, index: LayerIndex, grid: Grid | null, options: ResolveOptions): Resolution {
   const { row, column, keys, subColumns } = roles(parsed.selectors);
   const addresses = parsed.addresses;
   const anchors = parsed.anchors;
 
   const table = anchors.find((anchor) => anchor.kind === "table" || anchor.kind === "figure" || anchor.kind === "sheet");
 
-  // A quote is the strongest evidence a locator carries and is resolved first, with one
-  // exception: a locator that names a table, a row and a column is addressing a cell, and the
-  // long quoted run in it is a row or column label rather than a sentence to go and find.
-  const quoted = table && row && column ? null : evidenceQuote(parsed);
-  if (quoted) return resolveQuote(index, quoted.text, quoted.whole);
-
   const sheetCell = addresses.find((address) => address.kind === "sheet_cell");
   const lineLike = addresses.find((address) => address.kind === "line" || address.kind === "row_number");
+
+  // A sheet layer keeps the geometry of the workbook, one block per sheet, so a cell reference on
+  // it is an address and not a wish. It is read before everything else on this layer for two
+  // reasons. A quoted run in such a locator is a sheet name, a row label or a column heading, and
+  // the layer holds no prose for a sentence to be found in, so a quote resolved against a sheet
+  // layer can only land on a label, which is a span in the right workbook at a place that prints
+  // no value. And `table` includes a sheet anchor, so a locator
+  // naming a sheet, a row and a column would otherwise reach the aligned resolver, which can
+  // only answer `no_column_geometry` on a layer of tab separated blocks. A locator whose shape
+  // this layer cannot carry gets null back and stays on the dispatch it had.
+  // On by default. Checking these spans against the record takes a value check that can compare
+  // numbers: `ooxml-sheet-tsv@1` prints the characters the workbook stores, which for a computed
+  // cell is the full double, 0.81699999999999995, while the record keeps what the spreadsheet
+  // displays, 0.82. The two share no substring and are the same number, so a check comparing
+  // characters alone reads the right cell as a wrong answer, and once did, on 1,706 of these
+  // spans. The resolver was not the defect and the comparison is numeric: see `valuePresence` in
+  // `scripts/omics/spans/cli.ts`.
+  if (isSheetLayer(index.normaliser) && options.sheet !== false) {
+    const request = sheetRequest(parsed);
+    if (request) return resolveSheetCell(index, request);
+  }
+
+  // A quote is the strongest evidence a locator carries and is resolved first, with one
+  // exception: a locator that names a table, a row and a column is addressing a cell, and the
+  // long quoted run in it is a row or column label rather than a sentence to go and find. The
+  // row may arrive as an address rather than as a selector, which is `Table 2, row 3 (...),
+  // column 'Accuracy'`, and that locator addresses a cell just as plainly.
+  const addressesACell = options.legacyQuote ? Boolean(table && row && column) : Boolean(table && column && (row || lineLike));
+  const quoted = addressesACell ? null : evidenceQuote(parsed, options.legacyQuote);
+  if (quoted) return resolveQuote(index, quoted.text, quoted.whole);
 
   // An address into a file reads only against a layer that is the file. On a rendering, the same
   // locator's table anchor and labels are what can be followed, so the dispatch falls through to
@@ -304,7 +470,10 @@ function resolveParsed(parsed: ParsedLocator, index: LayerIndex, grid: Grid | nu
       `"${section.container} ${section.value}" is the publisher's paragraph number, which this layer does not carry`,
       index.layer_sha256,
     );
-  if (paragraph && section) return resolveSectionParagraph(index, section.container ?? section.value, Number(paragraph.value));
+  if (paragraph && section) {
+    const named = options.legacyQuote ? null : quotedSection(parsed, paragraph);
+    return resolveSectionParagraph(index, named ?? section.container ?? section.value, Number(paragraph.value));
+  }
   if (paragraph) return refuse("no_anchor", "a paragraph number with no section names no place", index.layer_sha256);
 
   if (lineLike) {

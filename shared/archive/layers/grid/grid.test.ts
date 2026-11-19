@@ -27,7 +27,7 @@ import { htmlLayer, htmlRules } from "../html";
 import { layerOf } from "../index";
 import { scanMarkup, tidy, tidyTraced } from "../markup";
 import { xmlLayer, xmlRules } from "../xml";
-import { cellAt, cellRange, gridLayer, gridOf, readGrid, serialiseGrid, tableAt } from "./index";
+import { candidateHeader, cellAt, cellRange, gridLayer, gridOf, printsValue, readGrid, serialiseGrid, tableAt } from "./index";
 import type { Grid } from "./types";
 
 const digest = (bytes: Buffer): string => createHash("sha256").update(bytes).digest("hex");
@@ -205,12 +205,176 @@ it("reports no header rows where the markup marks none", () => {
   const { grid } = jatsGrid(`<table><tbody><tr><td>Model</td><td>AUPRC</td></tr><tr><td>GPN</td><td>0.41</td></tr></tbody></table>`);
   expect(grid.tables[0].header_rows).toBe(0);
   expect(grid.tables[0].headers).toEqual([[], []]);
+  // Two columns, so the rule declines: see the candidate header tests below.
+  expect(grid.tables[0].inferred_header).toBeUndefined();
 });
 
 it("reads a header row written as th cells without a thead", () => {
   const { grid } = jatsGrid(`<table><tr><th>Model</th><th>AUPRC</th></tr><tr><td>GPN</td><td>0.41</td></tr></table>`);
   expect(grid.tables[0].header_rows).toBe(1);
   expect(grid.tables[0].headers).toEqual([["Model"], ["AUPRC"]]);
+});
+
+/** Two body rows, used by every candidate header test below so that what
+ * changes between them is only the row the rule is being asked about. */
+const body = `<tr><td>GPN</td><td>0.41</td><td>0.72</td></tr><tr><td>Evo</td><td>0.52</td><td>0.80</td></tr>`;
+
+it("puts a header row the markup does not mark in a field of its own", () => {
+  const { grid } = jatsGrid(`<table><tbody><tr><td>Model</td><td>AUPRC</td><td>AUROC</td></tr>${body}</tbody></table>`);
+  const table = grid.tables[0];
+  // The marked header is still empty, which is the whole point: a reader
+  // and a resolver can always tell what the markup said from what was
+  // inferred, and a resolver that will not act on an inference ignores one
+  // field.
+  expect(table.header_rows).toBe(0);
+  expect(table.headers).toEqual([[], [], []]);
+  expect(table.inferred_header).toEqual({ rule: "first-row@1", rows: 1, headers: [["Model"], ["AUPRC"], ["AUROC"]] });
+});
+
+it("records no candidate header where the markup marks one", () => {
+  const { grid } = jatsGrid(
+    `<table><thead><tr><th>Model</th><th>AUPRC</th><th>AUROC</th></tr></thead><tbody>${body}</tbody></table>`,
+  );
+  expect(grid.tables[0].header_rows).toBe(1);
+  expect(grid.tables[0].inferred_header).toBeUndefined();
+});
+
+it("declines a candidate header where the first row prints values", () => {
+  const { grid } = jatsGrid(`<table><tbody>${body}<tr><td>Caduceus</td><td>0.37</td><td>0.65</td></tr></tbody></table>`);
+  const table = grid.tables[0];
+  expect(table.inferred_header).toBeUndefined();
+  expect(candidateHeader(table, { thead: false }).declined).toBe("first_row_prints_a_value");
+});
+
+it("declines a candidate header where the first row does not write a cell per column", () => {
+  // The top level of a two level header. The column is named on the second
+  // level, so taking the first would name a heading standing over three
+  // columns and a resolver would have to choose between them.
+  const { grid } = jatsGrid(
+    `<table><tbody><tr><td></td><td colspan="2">Zero shot</td></tr>` +
+      `<tr><td>Model</td><td>AUPRC</td><td>AUROC</td></tr>${body}</tbody></table>`,
+  );
+  const table = grid.tables[0];
+  expect(table.columns).toBe(3);
+  expect(table.inferred_header).toBeUndefined();
+  expect(candidateHeader(table, { thead: false }).declined).toBe("first_row_incomplete");
+});
+
+it("declines a candidate header where a cell of the first row spans rows", () => {
+  const { grid } = jatsGrid(
+    `<table><tbody><tr><td rowspan="2">Model</td><td>AUPRC</td><td>AUROC</td></tr>` +
+      `<tr><td>0.41</td><td>0.72</td></tr><tr><td>Evo</td><td>0.52</td><td>0.80</td></tr></tbody></table>`,
+  );
+  expect(grid.tables[0].inferred_header).toBeUndefined();
+  expect(candidateHeader(grid.tables[0], { thead: false }).declined).toBe("first_row_spans");
+});
+
+it("declines a candidate header where the markup marks a header cell on another row", () => {
+  const { grid } = jatsGrid(
+    `<table><tbody><tr><td>Dataset</td><td>Split</td><td>Metric</td></tr>` +
+      `<tr><th>Model</th><th>AUPRC</th><th>AUROC</th></tr>${body}</tbody></table>`,
+  );
+  const table = grid.tables[0];
+  expect(table.header_rows).toBe(0);
+  expect(table.inferred_header).toBeUndefined();
+  expect(candidateHeader(table, { thead: false }).declined).toBe("marked_elsewhere");
+});
+
+it("declines a candidate header where the markup wrote a thead the first row is not in", () => {
+  const { grid } = jatsGrid(
+    `<table><thead></thead><tbody><tr><td>Model</td><td>AUPRC</td><td>AUROC</td></tr>${body}</tbody></table>`,
+  );
+  const table = grid.tables[0];
+  expect(table.header_rows).toBe(0);
+  expect(table.inferred_header).toBeUndefined();
+  // The same rows with no thead are the candidate of the first test, so the
+  // thead is the only reason this one has none. Markup that says where the
+  // header is wins, even when it says it badly.
+  expect(candidateHeader(table, { thead: true }).declined).toBe("marked_elsewhere");
+  expect(candidateHeader(table, { thead: false }).header?.headers).toEqual([["Model"], ["AUPRC"], ["AUROC"]]);
+});
+
+it("declines a candidate header where no column below prints values", () => {
+  const { grid } = jatsGrid(
+    `<table><tbody><tr><td>Model</td><td>Code</td><td>Weights</td></tr>` +
+      `<tr><td>GPN</td><td>github.com/a</td><td>zenodo.org/b</td></tr>` +
+      `<tr><td>Evo</td><td>github.com/c</td><td>zenodo.org/d</td></tr></tbody></table>`,
+  );
+  expect(grid.tables[0].inferred_header).toBeUndefined();
+  expect(candidateHeader(grid.tables[0], { thead: false }).declined).toBe("no_column_of_values_below");
+});
+
+it("declines a candidate header where the row below it is a second level of headings", () => {
+  const { grid } = jatsGrid(
+    `<table><tbody><tr><td>Dataset</td><td>Half life</td><td>Rate</td></tr>` +
+      `<tr><td>Metric</td><td>Spearman</td><td>AUROC</td></tr>` +
+      `<tr><td>RNA-FM</td><td>0.46</td><td>0.62</td></tr><tr><td>Saluki</td><td>0.67</td><td>0.58</td></tr></tbody></table>`,
+  );
+  expect(grid.tables[0].inferred_header).toBeUndefined();
+  expect(candidateHeader(grid.tables[0], { thead: false }).declined).toBe("row_below_prints_no_value");
+});
+
+it("declines a candidate header for a two column table", () => {
+  // A two column table is as often a list of keys and their values as a
+  // table with a heading row, and the rule cannot tell the two apart.
+  const { grid } = jatsGrid(
+    `<table><tbody><tr><td>Hyperparameter</td><td>Value</td></tr>` +
+      `<tr><td>learning rate</td><td>0.0005</td></tr><tr><td>layers</td><td>7</td></tr></tbody></table>`,
+  );
+  expect(grid.tables[0].inferred_header).toBeUndefined();
+  expect(candidateHeader(grid.tables[0], { thead: false }).declined).toBe("too_few_columns");
+});
+
+it("writes nothing in the layer for a table with no candidate header", () => {
+  // The field is absent rather than null, so every grid that gains no
+  // candidate serialises to the bytes it did before the field existed and
+  // keeps its hash.
+  const { grid } = jatsGrid(
+    `<table><thead><tr><th>Model</th><th>AUPRC</th><th>AUROC</th></tr></thead><tbody>${body}</tbody></table>`,
+  );
+  expect(serialiseGrid(grid)).not.toContain("inferred_header");
+});
+
+it("names the rule in the layer and reads it back", () => {
+  const { grid } = jatsGrid(`<table><tbody><tr><td>Model</td><td>AUPRC</td><td>AUROC</td></tr>${body}</tbody></table>`);
+  const bytes = serialiseGrid(grid);
+  expect(bytes).toContain('"inferred_header":{"headers":[["Model"],["AUPRC"],["AUROC"]],"rows":1,"rule":"first-row@1"}');
+  expect(readGrid(bytes).tables[0].inferred_header).toEqual(grid.tables[0].inferred_header);
+});
+
+it("tells a printed value from a heading", () => {
+  // The test that keeps a data row out of the header field. It is whole
+  // string: a heading often starts with a digit and a value never ends in a
+  // word.
+  for (const value of [
+    "0.41",
+    "1,234",
+    "2.6M",
+    "0.722 / 0.948",
+    "76.1 {71.1\u201380.6}",
+    "0.020 \u00b1 3e-4",
+    "8.90E\u20101",
+    "<0.001",
+    "45.3%",
+    "9.2 h",
+    "-",
+    "\u2713",
+    "n/a",
+  ])
+    expect(printsValue(value)).toBe(true);
+  for (const heading of [
+    "Model",
+    "AUPRC",
+    "length 100",
+    "19,237 raQTLs",
+    "10-cl./binary",
+    "Top-1",
+    "Spearman r All",
+    "M-KB (h)",
+    "# Params",
+    "Value",
+  ])
+    expect(printsValue(heading)).toBe(false);
 });
 
 it("counts offsets in code points, not in UTF-16 units", () => {

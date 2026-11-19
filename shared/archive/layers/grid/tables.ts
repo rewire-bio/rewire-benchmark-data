@@ -21,11 +21,19 @@
  * markup leaves out is left out, and a cell that prints nothing carries no
  * offsets, so a resolver refuses it rather than returning its neighbour.
  *
+ * The one inference, and where it is kept. A table whose markup marks no
+ * header row at all has its first row tested against the rule in
+ * `header.ts`, and where the rule holds the row is recorded in
+ * `inferred_header` with the rule named on it. `header_rows` and `headers`
+ * are untouched, so nothing can read the candidate as a header the markup
+ * wrote, and a table the rule cannot decide keeps no candidate at all.
+ *
  * Tag soup. A document that omits `</td>` or `</tr>` is closed implicitly
  * at the next cell, row, section or table, which is what a browser does and
  * is deterministic. Nothing else is repaired.
  */
 import { scanRaw, tidyTraced, type ScanRules } from "../markup";
+import { candidateHeader } from "./header";
 import type { Grid, GridCell, GridNormaliser, GridRange, GridTable } from "./types";
 
 /** A cell span the markup may legally write. Past this the number is not a
@@ -425,12 +433,20 @@ export function gridOf(
       }
       headers.push(path);
     }
+    // The one inference the grid carries, and only where the markup marks no
+    // header row. It goes in a field of its own and leaves `header_rows` and
+    // `headers` as the markup left them.
+    const inferred =
+      header_rows === 0
+        ? (candidateHeader({ rows: table.rows.length, columns, cells }, { thead: table.any_head }).header ?? undefined)
+        : undefined;
     built.push({
       index: table.index,
       rows: table.rows.length,
       columns,
       header_rows,
       headers,
+      inferred_header: inferred,
       label: table.label ? range(map, table.label) : null,
       caption: table.caption ? range(map, table.caption) : null,
       cells,

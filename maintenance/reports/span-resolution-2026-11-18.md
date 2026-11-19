@@ -403,7 +403,9 @@ archive rather than by the grammar. The order of the work that would move it:
    90 `no_anchor`, 4 `quote_ambiguous`. Neither office normaliser is in
    `FILE_NORMALISERS` or `ALIGNED_NORMALISERS`, so the sheet blocks carry
    geometry no resolver reads. The addressing functions exist in
-   `shared/archive/layers/office/address.ts` and nothing calls them.
+   `shared/archive/layers/office/address.ts` and nothing calls them. Done for
+   `ooxml-sheet-tsv@1` on 2026-11-19: 7,257 spans, and the section below on the
+   sheet resolver has the figures.
 
 Multi-level column headers, 7,114 locators across `column_not_found` and
 `column_ambiguous`, have no cheap fix and should stay refused.
@@ -418,11 +420,160 @@ a report and a queue: a locator that resolves to a span whose text does not
 print the stored value is a lead worth a reader's time, and there are 13 of
 them.
 
+## The figures in this file, and the test that holds them to the code
+
+Every figure here that came out of `npm run spans -- measure` is also in
+`maintenance/reports/span-resolution-figures.json`, with the sha256 of every file the measurement
+read beside it. `tests/omics-report-drift.test.ts` fails when a figure tagged in a document
+disagrees with that file, when a committed table disagrees with it, or when any input file is no
+longer the file that was measured. It re-runs nothing. A run needs the object cache, which a
+clean clone does not carry by design, so a re-run inside a test would fail for a reason that is
+not drift.
+
+The figures above are from the 44a09ea state. Re-measured on 2026-11-19 over the tree as it
+now stands, which adds a grid header candidate, the sheet-block resolver, and a value check that
+compares numbers as numbers:
+
+| | Locators | Share of what it is a share of |
+| --- | --- | --- |
+| Stored result locators | 52,278 <!--figure:locators--> | |
+| Resolved | 18,667 <!--figure:resolved--> | 35.7% <!--figure:resolved_pct--> |
+| Prints the stored value and nothing else | 17,094 <!--figure:value_exact--> | 91.6% <!--figure:value_exact_pct--> |
+| Prints it somewhere | 18,662 <!--figure:value_present--> | 100.0% <!--figure:value_present_pct--> |
+| Commits to text that does not print it | 2 <!--figure:wrong_commits--> | |
+| Right span with the value inside an image | 3 <!--figure:value_in_image--> | |
+
+### The sheet resolver is on, and the figure that held it off was wrong
+
+The sheet resolver resolves 7,257 <!--figure:kind.sheet_cell.spans--> `sheet_cell` spans, which is
+the largest single gain this lane has had: `measure --no-sheet` over the same tree, run after the
+figures above, resolves 11,410
+of the same 52,278 locators, 21.8 percent, against 18,667 <!--figure:resolved--> and
+35.7 percent <!--figure:resolved_pct--> with the blocks read. Not one of the 7,257 prints a
+different number from the one its record keeps: 0 <!--figure:kind.sheet_cell.no_value--> of them
+print no part of the stored value, and the store-wide count of spans committed to text that does
+not print the value is 2 <!--figure:wrong_commits-->, which is what it was with the resolver off.
+
+An earlier state of this file said the opposite, as a defended measurement: that the resolver
+committed to 1,706 spans printing no part of the stored value, a hundredfold rise in wrong
+answers, and that coverage was not worth it. That figure was an artifact of the value check, and
+the error is worth recording because it cost a working resolver a release.
+
+`ooxml-sheet-tsv@1` prints the characters the workbook stores, which for a computed cell is the
+full double: `0.81699999999999995`, or `5.0452599342583802E-2`. The record keeps what the
+spreadsheet displays, `0.82` or `0.050`. Both spell one number and they share no substring, and
+the value check was a containment test over flattened characters, so it reported those cells as
+printing no part of the value. Each of the 1,706 was the right cell, on the right row of the right
+sheet. The same weakness had been found earlier the same day in figure captions, where a check
+that could not see a value inside an image counted a correct span as a failed commitment.
+
+`npm run spans -- value-check` prints the split that reconciles this. Of the 7,257 sheet cells,
+the character test alone sees the value in 5,440 and the numeric rule is what finds it in the
+other 1,817. The character test called 1,706 of those 1,817 no part of the value, which is the
+figure that held the resolver off, and the other 111 part of the value, a span that is a substring
+of the record such as `0.5` against a record of `0.50`.
+
+So the check now compares a number pair as numbers, at the precision the record writes, and leaves
+everything else to the characters. The rule is `valuePresence` in `scripts/omics/spans/cli.ts`:
+where the span and the stored value each reduce to one number and nothing else, they match when
+the span's number equals the stored value at the precision the record writes. Two properties
+matter more than coverage, and `npm run spans -- value-check` measures both as rates over every
+span the store resolves, by perturbing those spans rather than by inventing cases.
+
+A genuinely different number still fails. Each of the 15,478 accepted number pairs is perturbed
+to a number that differs from its record at the record's own precision, spelled both the way a
+reader writes it and the way a workbook stores it, 120,232 perturbations. The numeric rule accepts
+8 of them, 0.0067 percent. All 8 are records that write 17 decimal places and perturbations that
+land on the half-unit there, where the two judges disagree rather than either being wrong: the
+rule rounds the digits away from zero and reads the perturbation as the record's value, and
+`toFixed`, reading a binary value a hair below the midpoint, reads it as a different one. Under
+the rule as stated those 8 are accepted correctly. Over the records writing 15 places or fewer
+the rule accepts 0 of 103,890, and over the 95,676 perturbations that differ by more than a whole
+unit of the record's last place, where no rounding of any kind can reach the record's value, it
+accepts 0.
+
+A span holding several numbers does not pass because one of them rounds to the stored value.
+Putting each accepted pair's own number beside a different one, 2,702 spans holding two numbers of
+which one rounds to the value, the rule accepts 0. A span is only ever a number pair when the
+whole of it is one number, which is what makes this hold.
+
+Whether a perturbation counts as a different number is judged by rounding the double, not by the
+rule's own rounding of the digits, because a test that excluded what the rule accepts could never
+find anything. 3,592 perturbations are excluded as finer than the record's precision, where an
+acceptance is the rule working.
+
+The character test the rule did not replace accepts 8,936 of the same 120,232 perturbations, 7.43
+percent, because a perturbed double usually still opens with the record's digits and
+`0.17599999999999999` contains `0.175`. That is the loose containment this check has always
+applied to a quote or a page, it is unchanged here, and it is the reason the `exact` column rather
+than `present` is the one a cell span is held to.
+
+The lesson is the general one. A value check that cannot compare numbers will punish a correct
+resolver, and it will do it in the direction that reads as caution: a rise in wrong commitments
+reads as a resolver to switch off, so the measurement gets believed and the resolver gets blamed.
+A resolver can only be judged as well as the check judging it.
+
+What the 2 is a floor on, and not a count of, is worth stating. Of the
+18,662 <!--figure:value_present--> spans that print the stored value, 15,478 are a number pair the
+rule compares as numbers, and the other 3,184 rest on containment: a quote, a page, or a cell that
+prints the value beside something else. Containment accepts a number that extends the record's
+digits, `0.17599999999999999` against a record of `0.175`, so a wrong number of that shape in
+those 3,184 is invisible to this check. No sheet cell hides there: every one of the 7,257 is
+judged, and the rule rejects 0 of the 15,478 pairs.
+
+The 2 that remain wrong are quote spans, and both are the sentence the locator names: one record
+stores `75.5% (108/143)` where its sentence prints `108 of the 143 variants (75.5%)`, and one
+locator names one sentence fewer than the value needs. `no_column_geometry` refuses
+4,667 <!--figure:reason.no_column_geometry--> locators, 8.9 percent
+<!--figure:reason.no_column_geometry.pct--> of the store, against the 22,528 this file leads with
+and the 10,304, 19.7 percent, that `measure --no-sheet` refuses over the same tree. The table
+grids moved the first drop and the sheet blocks moved the second.
+
+A figure this file prints that the figures file does not hold cannot be checked. The parse
+coverage figures come from a different command and want a sidecar of their own.
+
+### The quote path, measured as a pair in one process
+
+The two arms are `measure --legacy-quote` and `measure`. A pinned run makes both, back to back in
+one process, so they read the same layer bytes and the same tree, and writes the legacy arm's
+figures into the figures file beside the shipped ones. Both arms read the sheet blocks, because
+both arms are the shipped configuration with one rule varied. A quoted run the locator prints
+before the place it names is a label for that place and is no longer a candidate for the evidence;
+a run the grammar did not read as a quote is taken only at 40 code points or more, or where the
+locator calls it a sentence; a sentence does not end on a known abbreviation; and a paragraph of a
+section is a line on a layer that prints one block per line.
+
+| | Legacy | With the rule |
+| --- | --- | --- |
+| Resolved | 18,617 <!--figure:legacy.resolved--> | 18,667 <!--figure:resolved--> |
+| Prints the value somewhere | 18,605 <!--figure:legacy.value_present--> | 18,662 <!--figure:value_present--> |
+| Prints the value and nothing else | 17,094 <!--figure:legacy.value_exact--> | 17,094 <!--figure:value_exact--> |
+| Commits to text that does not print it | 7 <!--figure:legacy.wrong_commits--> | 2 <!--figure:wrong_commits--> |
+| Quote spans | 97 <!--figure:legacy.kind.quote.spans--> | 155 <!--figure:kind.quote.spans--> |
+| Quote spans printing the value nowhere | 7 <!--figure:legacy.kind.quote.no_value--> | 2 <!--figure:kind.quote.no_value--> |
+
+97 locators changed outcome or span text. 57 of them reach a span that prints the stored value and
+did not before: 52 were a refusal, most often `no_anchor` on a locator whose only record of the
+text was a run the grammar did not read as a quote, and 5 were a quote span that stopped at the
+opening of the sentence. Not one span that printed the stored value stopped printing it, and no
+locator came to print it nowhere that did not before. Five spans that printed it nowhere are gone:
+three now run to the end of the sentence the locator names, and two are withdrawn to a refusal,
+`no_column_geometry` on a cell the grammar read as a row number and `paragraph_out_of_range` on a
+paragraph that sits past a float the layer cannot place.
+
+A figure caption is no longer counted as a commitment to print a value, and neither is a span
+whose locator says the value is drawn in a figure. That reclassifies 3 <!--figure:value_in_image--> spans on this run, all
+figure captions, out of the wrong-commit count. On the legacy arm it reclassifies 5: the same
+three captions and two prose spans whose locator ends `(values shown in Fig. 3f)`.
+
 ## Commands
 
 ```
-npm run spans -- measure              # the tables above, 33 s
-npm run spans -- control              # the value-check cross-tab
+npm run spans -- measure              # the tables above and both arms of the quote pair, 102 s
+npm run spans -- measure --no-sheet   # the arm that leaves the workbook blocks unread
+npm run spans -- measure --no-grid    # the arm that leaves the table grids unread
+npm run spans -- value-check          # the rates the numeric value check is held to
+npm run spans -- control              # the reader value-check cross-tab
 npm run spans -- show <result id>     # one locator, its layers, its span or its refusal
 npx vitest run tests/omics-spans.test.ts --pool=forks --poolOptions.forks.minForks=1 --poolOptions.forks.maxForks=1
 ```
