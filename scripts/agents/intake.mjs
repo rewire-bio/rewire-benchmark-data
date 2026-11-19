@@ -263,9 +263,21 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
       dropped.push({ name: e.name, reason: 'verification did not confirm the description' });
       continue;
     }
-    const sourceIds = unique((e.source_urls ?? []).map((u) => sources.get(u)).filter((s) => s && !s.error).map((s) => s.id));
+    // The name the primary source uses; a corrected name replaces the drafted one.
+    const nameVerdict = (verdict.fields ?? []).find((f) => f.field === 'name');
+    const name = nameVerdict?.verdict === 'corrected' && clean(nameVerdict.value) ? clean(nameVerdict.value) : e.name;
+    if (name !== e.name) fieldLog.push({ entity: e.name, field: 'name', proposed: e.name, kept: name });
+    // Attribution: drop cited sources the verifier says are about another entity, and add the
+    // fetched sources it says are about this one.
+    const byKey = new Map([...sources.keys()].map((u) => [urlKey(u), u]));
+    const wrong = new Set((verdict.wrong_sources ?? []).map(urlKey));
+    const better = (verdict.better_sources ?? []).map((u) => byKey.get(urlKey(u))).filter(Boolean);
+    const urls = unique([...(e.source_urls ?? []).filter((u) => !wrong.has(urlKey(u))), ...better]);
+    for (const u of e.source_urls ?? []) if (wrong.has(urlKey(u))) fieldLog.push({ entity: e.name, field: 'source', proposed: u, kept: '' });
+    for (const u of better) if (!(e.source_urls ?? []).includes(u)) fieldLog.push({ entity: e.name, field: 'source', proposed: '', kept: u });
+    const sourceIds = unique(urls.map((u) => sources.get(u)).filter((s) => s && !s.error).map((s) => s.id));
     if (!sourceIds.length) {
-      const failed = (e.source_urls ?? []).map((u) => `${u}${sources.get(u)?.error ? ` (${sources.get(u).error})` : ''}`);
+      const failed = urls.map((u) => `${u}${sources.get(u)?.error ? ` (${sources.get(u).error})` : ''}`);
       dropped.push({ name: e.name, reason: `no primary source could be opened: ${failed.join('; ') || 'none given'}`, sourcesNotOpenable: true });
       continue;
     }
@@ -320,9 +332,9 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
       if (types.length) facets.method_types = types;
     }
     const record = {
-      id: `${batch}-${e.kind}-${slug(e.name)}`,
+      id: `${batch}-${e.kind}-${slug(name)}`,
       kind: e.kind,
-      name: e.name,
+      name,
       description: description.value,
       status: 'discovered',
       facets,
@@ -332,7 +344,7 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
     };
     for (const id of sourceIds) usedSources.set(id, [...(usedSources.get(id) ?? []), { areas, contexts: facets.contexts }]);
     records.push(record);
-    built.push({ id: record.id, kind: e.kind, name: e.name, tier: attributes.depth_tier ?? null });
+    built.push({ id: record.id, kind: e.kind, name, tier: attributes.depth_tier ?? null });
   }
   // New source records, only for sources a kept entity cites. Their facets are the union of the
   // citing entities' facets.
@@ -686,7 +698,7 @@ export function proposalSchema(urls = []) {
   return schema;
 }
 
-export const VERIFIED_FIELDS = ['description', 'areas', 'entity_level', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations'];
+export const VERIFIED_FIELDS = ['name', 'description', 'areas', 'entity_level', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations'];
 
 export const VERIFICATION_SCHEMA = {
   type: 'object',
@@ -698,11 +710,13 @@ export const VERIFICATION_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['key', 'name', 'keep', 'reason', 'fields'],
+        required: ['key', 'name', 'keep', 'reason', 'fields', 'wrong_sources', 'better_sources'],
         properties: {
           key: { type: 'string', description: 'The key given with the proposed entity, for example e1' },
           name: STR,
           keep: { type: 'boolean' },
+          wrong_sources: { type: 'array', items: STR, description: 'Cited URLs that are not about this exact entity (a sibling size, variant or checkpoint, or a page that only links to it)' },
+          better_sources: { type: 'array', items: STR, description: 'URLs from the primary source list that are about this exact entity but not cited' },
           reason: STR,
           fields: {
             type: 'array',
@@ -831,7 +845,7 @@ async function verifyProposal(client, usage, { system, entities, sourceUrls, run
       'Proposed entities (JSON):',
       JSON.stringify(shown, null, 2),
       '',
-      'For each entity write its key exactly as given, then keep or drop and why; then each field with supported, corrected (give the value) or unsupported, and the source URL and location that decides it. For areas, a correction is a comma-separated list of valid areas. For limitations, one per line. List any source that failed to load.',
+      'For each entity write its key exactly as given, then keep or drop and why; then the cited sources that are not about this exact entity, and any source in the list above that is about it but not cited; then each field with supported, corrected (give the value) or unsupported, and the source URL and location that decides it. For areas, a correction is a comma-separated list of valid areas. For limitations, one per line. List any source that failed to load.',
     ].join('\n'),
   });
   if (!research) return { error: 'the verification call was refused or did not finish' };
@@ -985,7 +999,10 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     const fixtureFetches = args.dryRun ? readJson(join(fixtures, 'fetches.json')) : null;
     const sources = new Map();
     const usedIds = new Set();
-    for (const url of unique(screened.keep.flatMap((e) => e.source_urls ?? []))) {
+    // Every URL the draft cites or lists and every URL in the issue, so the verifier can move a
+    // record to a better source among them.
+    const candidates = unique([...screened.keep.flatMap((e) => e.source_urls ?? []), ...(proposal.sources ?? []).map((x) => x.url).filter(fetchableUrl), ...urlsInText(issue.body)]);
+    for (const url of candidates) {
       const stored = storeUrls.get(urlKey(url));
       if (stored) {
         sources.set(url, { id: stored });

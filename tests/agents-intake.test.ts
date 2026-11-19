@@ -231,6 +231,23 @@ describe("screening and verification", () => {
     expect(level("method")).toBe("method"); // the verifier rejected "family"
   });
 
+  it("drops a source about a sibling entity, adds the right one, and takes a corrected name", () => {
+    const base = "https://huggingface.co/Lab/model-base";
+    const large = "https://huggingface.co/Lab/model-large";
+    const readme = "https://github.com/lab/model/blob/abc/README.md";
+    const sources = new Map([[base, { id: "src-base" }], [large, { id: "src-large" }], [readme, { id: "src-readme" }]]);
+    const fields = [{ field: "description", verdict: "supported", value: "", locator: "card" }, { field: "areas", verdict: "supported", value: "", locator: "card" },
+      { field: "name", verdict: "corrected", value: "Model-Large", locator: "card title" }];
+    const built = buildBatch({
+      entities: [entity({ key: "e1", name: "Model large", description: "Embeds DNA.", source_urls: [readme, base] })],
+      verification: { entities: [{ key: "e1", name: "Model large", keep: true, reason: "", fields, wrong_sources: [base], better_sources: [`${large}/`] }] },
+      sources, batch: "b", issue: 1, runDate: "2026-11-19", reviewedAt: "2026-11-19T00:00:00Z", reviewModel: "claude-sonnet-5-5", runUrl: "",
+    });
+    expect(built.records[0].source_ids).toEqual(["src-readme", "src-large"]);
+    expect(built.records[0].name).toBe("Model-Large");
+    expect(built.records[0].id).toBe("b-model-model-large");
+  });
+
   it("restricts the draft's source URLs to the URLs in the issue", () => {
     const urls = ["https://github.com/a/b/blob/abc/README.md", "https://huggingface.co/A/m"];
     const schema = proposalSchema(urls);
