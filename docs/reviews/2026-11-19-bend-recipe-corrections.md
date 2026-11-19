@@ -15,9 +15,15 @@ The BEND benchmark record (`discovery-benchmark-bend`) had a run guide, run docu
 | `bend-recipe-corrections-20261119-checkpoint-links` | `attributes.run_guide.steps.2.explanation` | checkpoint links returned 403, and the configured folder names did not exist on the share | upstream | frederikkemarin/BEND#78, filed by Rewire on 2026-11-18, fixed in PR #79 the same day |
 | `bend-recipe-corrections-20261119-repin-58ad410` | `attributes.run_recipes.0.version` | recipe moved from ac6e80c to 58ad410 | follows from #78 | |
 
-Each claim's `previous_value` equals the origin/main field exactly, and each `value` equals the working-tree field exactly. The guide keeps its four steps in the same order (checkout; install and download; precompute; train), so every step index means the same step before and after. This was checked by script against origin/main, along with a second check that every step whose `shell` changed has a claim on it. Claims cover each changed command and each correction. They do not cover bookkeeping that follows from the repin (step `source_ids` and `source_locator`, the step 1 title, the summary, the prerequisites and `review.date`); the claims' rationales say where those changed.
+Each claim's `previous_value` equals the origin/main field exactly, and each `value` equals the working-tree field exactly. The guide keeps its four steps in the same order (checkout; install and download; precompute; train), so every step index means the same step before and after. This was checked by script against origin/main, along with a second check that every step whose `shell` changed has a claim on it. Claims cover each changed command and each correction. A leaf-by-leaf diff of the record against origin/main lists what changed without a claim of its own:
 
-The maintainer's replies are quoted verbatim in `upstream_response`: the whole comment on #78, and the one comment on PR #79. #53 has no maintainer reply; its two user comments are quoted.
+- Citations and locators that follow from the repin: `source_ids`, `run_guide.source_ids`, each step's `source_ids` and `source_locator`, and in `run_recipes.0` and `run_documentation` the `source_ids` and `source_locator` of the recipe and of each instruction.
+- Wording that follows from the corrections: `run_guide.summary`, `run_documentation.summary`, `steps.0.explanation` (names 58ad410), `steps.1.title` (gene-finding data), `steps.2.title` (gene-finding embeddings), `prerequisites.1` to `prerequisites.3` (curl and wget, disk, data host) and the new `limitations.3`, which says the download and the task list are Rewire's changes.
+- `run_guide.review.date`, now 2026-11-19.
+
+The diff was run on the committed claim shards, not only on `batch.jsonl`.
+
+`upstream_response` quotes the maintainer's comment on #78 from "Thank you" to its last sentence (only the greeting "Hi," is left out) and the one comment on PR #79, whose closing emoji is described rather than reproduced. #53 has no maintainer reply; its two user comments are quoted.
 
 On the benchmark record:
 
