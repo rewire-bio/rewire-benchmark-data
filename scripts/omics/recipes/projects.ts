@@ -323,8 +323,8 @@ export const PROJECTS: Project[] = [
     benchmarkId: "discovery-benchmark-bend",
     name: "BEND",
     repo: "frederikkemarin/BEND",
-    commit: "ac6e80c75e09d83cf47a7b4bcf0e44599c5706cf",
-    sha256: "a40358504726ee4e086f0623348fb2206c24ab8166d04a83d944579e9c62bdc8",
+    commit: "58ad41011125cfca339d511e9b8eb536a54b582a",
+    sha256: "d42e3a8990c0a3492dbba665024360f97c82007f9153875cfb4a8048f181ddd4",
     licence: "BSD-3-Clause",
     recipe: {
       title: "Embed, train and evaluate on a BEND task",
