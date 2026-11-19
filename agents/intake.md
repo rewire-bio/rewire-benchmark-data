@@ -48,7 +48,7 @@ Decide the level from what the sources show, not from the name. A record for one
 Write plain, specific text. No marketing language, no em or en dashes, no emoji, no @-mentions.
 
 - `name`: the name the primary source uses for this exact resource. Do not invent a descriptive name.
-- `description`: one sentence that says what the resource does or holds, written from the primary source. It must not say where it was reported, who evaluated it, or cite a table, figure or paper; that is provenance and is kept elsewhere.
+- `description`: one sentence that says what the resource does or holds, written from the primary source. When the issue asks for several related resources (sizes, variants, checkpoints), each description must say what sets it apart, such as its size or training data; the store refuses two models or methods with the same description. It must not say where it was reported, who evaluated it, or cite a table, figure or paper; that is provenance and is kept elsewhere.
 - `areas`: one or more biology areas from the list in the user message. The areas decide how deeply the record is collected, so choose what the resource is about, not what it might be applied to.
 - `version`: the version, release or preprint version exactly as the source gives it.
 - `access`: how a user can get the code, weights or data, and on what terms, as the source says.

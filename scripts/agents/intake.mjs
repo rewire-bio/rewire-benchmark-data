@@ -346,6 +346,19 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
     records.push(record);
     built.push({ id: record.id, kind: e.kind, name, tier: attributes.depth_tier ?? null });
   }
+  // The store rejects two differently named models or methods with one description
+  // (shared/omics/descriptions.ts). If the verified descriptions still collide, prefix each with
+  // its record's name, which adds nothing the sources do not say.
+  const byText = new Map();
+  for (const r of records.filter((x) => ['model', 'method'].includes(x.kind)))
+    byText.set(normalise(r.description), [...(byText.get(normalise(r.description)) ?? []), r]);
+  for (const group of byText.values()) {
+    if (new Set(group.map((r) => normalise(r.name))).size < 2) continue;
+    for (const r of group) {
+      fieldLog.push({ entity: r.name, field: 'description', proposed: r.description, kept: `${r.name}: ${r.description}` });
+      r.description = `${r.name}: ${r.description}`;
+    }
+  }
   // New source records, only for sources a kept entity cites. Their facets are the union of the
   // citing entities' facets.
   for (const s of new Set(sources.values())) {
@@ -845,6 +858,7 @@ async function verifyProposal(client, usage, { system, entities, sourceUrls, run
       'Proposed entities (JSON):',
       JSON.stringify(shown, null, 2),
       '',
+      'A description must tell the resource apart from the related ones in this list (size, variant, training data), because the store refuses two models or methods with the same description.',
       'For each entity write its key exactly as given, then keep or drop and why; then the cited sources that are not about this exact entity, and any source in the list above that is about it but not cited; then each field with supported, corrected (give the value) or unsupported, and the source URL and location that decides it. For areas, a correction is a comma-separated list of valid areas. For limitations, one per line. List any source that failed to load.',
     ].join('\n'),
   });
