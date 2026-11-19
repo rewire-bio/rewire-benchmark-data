@@ -167,7 +167,7 @@ The mode for bot pull requests is the repository variable `REVIEWER_MODE` (unset
 - GitHub does not let the author of a pull request approve it, and intake pull requests are authored by rewire-bot. Approve mode approves as a second app, rewire-reviewer (repository variable `REVIEWER_APP_ID`, secret `REVIEWER_APP_PRIVATE_KEY`; it needs pull requests and contents write on this repository). The same token enables auto-merge, so the merge, made by an app and not by `GITHUB_TOKEN`, starts the checks and the release on `main`. Without the app the review is posted as a comment and nothing merges.
 - Auto-merge is on for this repository.
 - A ruleset requiring the 14 `checks (...)` jobs on `main` is planned. Until it is on, auto-merge waits for nothing GitHub requires, so the reviewer itself waits for every other check on the head commit to pass before it approves.
-- For the same reason, a bot pull request cannot get a "request changes" review from its own app. The reviewer posts those as a comment review that says the verdict.
+- For the same reason, rewire-bot cannot request changes on its own pull request. In approve mode the rewire-reviewer app posts that verdict; in comment mode it is a comment review that states the verdict.
 
 ### Limits and cost
 

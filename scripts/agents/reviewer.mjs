@@ -505,15 +505,17 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       state.outcome = `commented: ${state.verdict}`;
       return result();
     }
-    // approve mode
+    // approve mode. The rewire-reviewer app posts the verdict when its token exists: rewire-bot cannot
+    // approve or request changes on its own pull request.
+    const verdictClient = env.APPROVER_TOKEN ? (deps.approver ?? githubClient(env.APPROVER_TOKEN)) : gh;
     if (state.verdict !== 'approve') {
-      await postReview(gh, repo, pull, state.body, 'REQUEST_CHANGES', notes);
+      await postReview(verdictClient, repo, pull, state.body, 'REQUEST_CHANGES', notes);
       state.outcome = 'requested changes';
       return result();
     }
     const checks = await waitForChecks(gh, repo, pull.head_sha, { self: ['review', 'dry-run'], sleep: deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms))), minutes: LIMITS.ciWaitMinutes });
     if (checks.state !== 'green') {
-      await postReview(gh, repo, pull, `${state.body}\n\nNot approved: CI is ${checks.state} (${checks.detail}).`, checks.state === 'red' ? 'REQUEST_CHANGES' : 'COMMENT', notes);
+      await postReview(verdictClient, repo, pull, `${state.body}\n\nNot approved: CI is ${checks.state} (${checks.detail}).`, checks.state === 'red' ? 'REQUEST_CHANGES' : 'COMMENT', notes);
       state.outcome = `not approved: CI ${checks.state}`;
       return result();
     }
