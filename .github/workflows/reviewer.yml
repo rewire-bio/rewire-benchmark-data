@@ -1,0 +1,96 @@
+name: Reviewer agent
+# Reviews the record pull requests the intake agent opens (#256), independently of it: its own
+# prompt (agents/reviewer.md), Sonnet re-fetches the primary sources and judges every field. The
+# mode for bot pull requests is the repository variable REVIEWER_MODE, default comment (posts the
+# review, never approves or merges). approve mode approves with the REVIEWER_APPROVER_TOKEN
+# secret and enables auto-merge when every field and every check passes. Setup in docs/agents.md.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number (ignored in dry-run)
+        default: ""
+      mode:
+        description: "dry-run: fixtures only. report-only: real review in the job summary. comment: posts it. approve: approves and enables auto-merge when everything passes."
+        type: choice
+        options: [dry-run, report-only, comment, approve]
+        default: report-only
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+concurrency:
+  group: reviewer-${{ github.event.pull_request.number || inputs.pr || github.ref }}
+  cancel-in-progress: true
+jobs:
+  review:
+    # Pull requests opened by the rewire-bot app, and manual runs.
+    if: (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'rewire-bot[bot]') || (github.event_name == 'workflow_dispatch' && inputs.mode != 'dry-run')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || vars.REVIEWER_MODE || 'comment' }}
+      PR: ${{ github.event.pull_request.number || inputs.pr }}
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - name: Token for the rewire-bot app
+        id: app
+        if: env.HAS_KEY == 'true'
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REWIRE_BOT_APP_ID }}
+          private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
+          owner: rewire-bio
+          repositories: rewire-benchmark-data
+      # The pull request's merge commit: the store with the batch added. Only what the review reads.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/pull/{0}/merge', inputs.pr) || '' }}
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /agents/
+            /scripts/agents/
+            /tests/agents-reviewer-fixtures/
+            /data/entities/
+            /data/omics/intake-*/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install the Anthropic SDK
+        if: env.HAS_KEY == 'true'
+        run: npm ci --prefix scripts/agents --no-audit --no-fund
+      - name: Review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          APPROVER_TOKEN: ${{ secrets.REVIEWER_APPROVER_TOKEN }}
+        run: |
+          if ! [[ "$PR" =~ ^[0-9]+$ ]]; then echo "::error::A pull request number is required"; exit 1; fi
+          node scripts/agents/reviewer.mjs --pr "$PR" --mode "$MODE" --out reviewer-out
+      - name: Keep the review and token usage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reviewer-${{ github.run_id }}
+          path: reviewer-out
+          if-no-files-found: ignore
+          retention-days: 30
+
+  dry-run:
+    # Every other pull request, and manual dry runs: fixtures only, no model or GitHub calls.
+    if: (github.event_name == 'pull_request' && github.event.pull_request.user.login != 'rewire-bot[bot]') || (github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            agents
+            scripts/agents
+            tests/agents-reviewer-fixtures
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node scripts/agents/reviewer.mjs --dry-run --out reviewer-out
