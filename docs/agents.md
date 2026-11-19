@@ -75,3 +75,61 @@ A Sonnet 5.5 request about biology can be refused (refusal category `bio`). Judg
 
 - A candidate that matches an existing rewire.it article issue or a record in the store is skipped whole. The old automation filed the missing half of the pair and linked the existing one; this version does not.
 - No real API call has been made yet. The first `report-only` run is the first real test of the request shapes and the prompt.
+
+## Intake agent
+
+`.github/workflows/intake.yml` runs `scripts/agents/intake.mjs` when someone adds the `entity-request` label to an issue (#255). The prompt is [agents/intake.md](../agents/intake.md). It turns the issue into a pull request that adds entity records, and it never merges.
+
+Until the claims recollection (#274) it adds entities only: models, methods, benchmarks and datasets, with their sources. It extracts no evaluation, result or claim, whatever the issue asks for.
+
+What it does:
+
+1. The script reads the issue. It stops if the issue is closed, or if an open or merged pull request from `intake/issue-<n>` already exists.
+2. Haiku 5.5 reads the issue, opens up to three of its primary sources (web fetch) and drafts the records. A second Haiku call turns the notes into fixed fields.
+3. The script drops each proposed entity that has no area from `data/vocab/area.ttl`, or whose name or alias is already in `data/entities/`.
+4. The script, not the model, fetches every source a remaining entity cites. It records the SHA-256, media type and retrieval time. It takes the source's name from the page title, its version from what the URL pins (arXiv or bioRxiv version, git commit, otherwise the retrieval date) and its publication status from the host. A URL already in `data/entities/sources.jsonl` is reused, not added again. An entity with no source that opens is dropped.
+5. Sonnet 5.5 opens the sources and marks each proposed field supported (with a location), corrected or unsupported. Haiku structures the verdicts. Each entity carries a key the script gave it (`e1`, `e2`, ...), so a respelt name still matches. Only supported and corrected values are stored. An unconfirmed field is left out and listed in `missing_metadata` with reason `unextracted`. An entity whose description or areas are not confirmed is dropped, because the areas set the depth tier.
+6. The script writes `data/omics/intake-<n>-<date>/` with `batch.jsonl`, `notes.md` (every proposed field and whether it was kept) and `review.json`. Then it runs:
+   - `scripts/agents/intake-check.ts`, which checks that `normalizeAttributes` leaves every record unchanged (check C13), that each depth tier matches [tiers.md](tiers.md), and that there are only entity kinds;
+   - `npm run records -- add`, including its SHACL subset check;
+   - `npm run records -- check`.
+7. If every check passes, it commits on `intake/issue-<n>`, pushes as the rewire-bot app, opens a pull request, and comments the link on the issue. The pull request closes a `tier-3` issue. For other tiers it only refers to the issue, which stays open for the evaluations that wait for #274. Otherwise it comments why it stopped: out of scope, duplicate, sources not openable, nothing verified, the cost cap, a failed model call, the output of the failing check, or an unexpected error.
+
+Every record has status `discovered`. Models, methods and benchmarks carry `depth_tier` from their areas. Datasets and sources do not, because the attribute registry does not declare it for them. Each review object carries `reviewed_at` and no `date`, `reviewer` `claude-sonnet` (or `claude` if a refusal fallback answered) and a `reviewer_note` naming the run. Sources carry no licence string, because a new one would need a reviewed row in `data/archive/licence-map.tsv`. The agent adds no links between records.
+
+To run it again on the same issue, remove and re-add the label, or run the workflow by hand. A rerun force-pushes the branch only when there is no open or merged pull request for it.
+
+### Modes
+
+| Mode | Model calls | Writes | When |
+| --- | --- | --- | --- |
+| `dry-run` | No | Batch in the runner only | Pull requests that touch the agent, and by hand. It reads `tests/agents-intake-fixtures/` and runs the real `records add` and `records check` on the fixture batch against the real store. |
+| `report-only` | Yes | Batch in the runner only | By hand with an issue number. The job summary and the `intake-<run>` artifact hold the pull request it would open, or the comment it would post, and the cost. |
+| `live` | Yes | Branch, pull request, issue comment | The `entity-request` label, and by hand. |
+
+Locally: `node scripts/agents/intake.mjs --dry-run --store-dir tests/agents-intake-fixtures/entities --root /tmp/intake --no-store-checks` writes the fixture batch under `/tmp/intake` without loading the store. `tests/agents-intake.test.ts` runs the same paths with fakes.
+
+### Setup
+
+It uses the same `ANTHROPIC_API_KEY` secret as discovery, and the rewire-bot app (`REWIRE_BOT_APP_ID` variable, `REWIRE_BOT_PRIVATE_KEY` secret), which needs contents, pull requests and issues write on this repository. Without the key a run writes a notice and passes.
+
+Issues that the discovery scan files do not start the intake by themselves. Discovery labels them with the workflow's own `GITHUB_TOKEN`, and GitHub starts no workflow from an event that token causes. Add the label by hand, or run the intake by hand.
+
+### Limits and cost
+
+Limits are in `LIMITS` in the script:
+
+- draft: up to 3 web fetches, no search;
+- verification: up to 5 web fetches and 1 web search;
+- each fetch up to 15,000 tokens; 10,000 output tokens per research response; 2 `pause_turn` resumes;
+- 6 entities per issue;
+- the verification call is not made once the run's estimated cost passes $1.50;
+- a 30-minute job timeout.
+
+Prices are the same as for discovery (above). A typical issue should cost about $0.02 for the Haiku draft and $0.15 to $0.40 for the Sonnet verification, which holds every fetched page. The worst case is about $1.50 plus one verification call, about $0.90, so about $2.40. The job summary, the pull request body and `usage.json` in the artifact give each run's real token counts, cost and wall-clock time.
+
+### Known gaps
+
+- Source bytes are hashed, not stored. `npm run archive -- fetch` is a whole-store pass and runs separately.
+- No relationship links (for example a method to the models it uses); a reviewer adds them.
+- The verification runs in the same job as the draft. It is a second model, not an independent review; the reviewer agent (#256) is meant to provide that.
