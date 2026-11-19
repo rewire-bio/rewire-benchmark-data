@@ -113,7 +113,7 @@ Locally: `node scripts/agents/intake.mjs --dry-run --store-dir tests/agents-inta
 
 It uses the same `ANTHROPIC_API_KEY` secret as discovery, and the rewire-bot app (`REWIRE_BOT_APP_ID` variable, `REWIRE_BOT_PRIVATE_KEY` secret), which needs contents, pull requests and issues write on this repository. Without the key a run writes a notice and passes.
 
-Issues that the discovery scan files do not start the intake by themselves. Discovery labels them with the workflow's own `GITHUB_TOKEN`, and GitHub starts no workflow from an event that token causes. Add the label by hand, or run the intake by hand.
+The discovery scan files its data issues as the rewire-bot app, so their `entity-request` label starts the intake. If the app token cannot be made, discovery files them with the workflow's own `GITHUB_TOKEN`, which starts no workflow; then add the label again by hand, or run the intake by hand.
 
 ### Limits and cost
 
