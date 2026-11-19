@@ -88,6 +88,25 @@ The ruling divides the two backends, and `npm run archive -- upload` keeps the d
 the rows the manifest marks restricted and refuses the rest, because a public object is published as
 a release asset instead (`npm run archive -- publish`).
 
+`npm run archive -- pull` brings objects back down into a cache that has none, which is what lets a
+job on a second machine read a source at all. The cache is gitignored, so without it every figure
+this lane publishes rests on one laptop holding bytes nobody else has. Three rules bound it:
+
+- A row at `t5-no-store` is refused before any request. A copy left in a bucket is not permission to
+  bring back bytes a rights holder asked us to remove, so the order of a takedown and a pull does
+  not matter.
+- Bytes are verified against the committed manifest key, and the row's byte count, before anything
+  is written. A reply that does not hash to its key is a named failure and nothing is kept.
+- A cached object that already verifies is never fetched and never written over, so a second run
+  makes no request.
+
+It applies no visibility gate, which is the one place the two directions are not mirror images.
+Upload refuses a public row because those bytes belong on a release tag and sending them to the
+restricted bucket would store them twice under two rules. Nothing is disclosed by bringing bytes
+down into a gitignored cache on a runner, and refusing public rows there would refuse the larger
+part of every job: the held-out set the label measurement reads needs 53 public objects and 5
+restricted ones. The split is counted and printed rather than assumed.
+
 ### 6. No human review anywhere. Dated 2026-11-17.
 
 Everything is automated. A receipt states that a claim is machine extracted, span verified and
@@ -608,9 +627,11 @@ was a sentence here that the code did not keep, so each is listed with what now 
 
 What is still ahead of the code, and is not a gap in this policy:
 
-- **The R2 path has never run.** It needs the four secrets in determination 5, which do not exist
-  in this environment, so `assertRestricted()` and the restricted selection above are written and
-  unexercised against a live endpoint.
+- **Neither R2 path has run against a live endpoint.** `uploadObjects()` and `pullObjects()` both
+  need the four secrets in determination 5. Both are tested against an injected transport and
+  neither has been exercised against the bucket, so the first live run is where a signing or
+  permission fault would show. `npm run archive -- pull --dry-run` reports the selection and needs
+  no credential, which is the cheapest way to check the filter before spending a request.
 - **The manifest does not record where the published objects are.** See
   [What is public today](#what-is-public-today): the publish run used `--no-mark` because a fetch
   owned the shard files, so the release listing is the record until a later run marks the rows.
