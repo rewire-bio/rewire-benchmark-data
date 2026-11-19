@@ -21,6 +21,11 @@ export const spanKinds = [
   "grid_cell",
   /** A row and a column in a delimited file, by line number or by A1 notation. */
   "delimited_cell",
+  /** A cell of a named sheet of a workbook, by A1 reference or by row and column, read off the
+   * sheet blocks an office layer carries. Counted apart from `delimited_cell` because the row
+   * numbering is the sheet's and not the layer's: a block opens with a header line that is not
+   * a row, so the two differ by one on the first sheet and by more on every later one. */
+  "sheet_cell",
   /** A figure anchor: the span is the caption. */
   "figure_caption",
   /** A section heading and a paragraph number within it. */

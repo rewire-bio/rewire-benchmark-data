@@ -13,6 +13,12 @@
  * the bytes are a function of the input bytes and the layer hashes the same
  * on any machine.
  *
+ * One thing in a grid is not in the markup: a table whose markup marks no
+ * header row at all may carry a candidate header row, which `header.ts`
+ * chooses and explains. It is recorded in `inferred_header` and nowhere
+ * else, so `header_rows` and `headers` still hold only what the markup
+ * wrote, and a resolver that will not act on an inference ignores one field.
+ *
  * The one check this module makes on itself: the text it scans is hashed and
  * compared with the text layer it was given. A grid whose text does not
  * reproduce the layer byte for byte is not returned at all, because its
@@ -37,6 +43,7 @@ import { gridOf } from "./tables";
 import { gridNormalisers, type Grid, type GridCell, type GridNormaliser, type GridTable } from "./types";
 
 export * from "./types";
+export * from "./header";
 export { gridOf } from "./tables";
 
 const digest = (bytes: Buffer): string => createHash("sha256").update(bytes).digest("hex");

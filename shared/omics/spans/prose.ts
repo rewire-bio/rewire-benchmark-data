@@ -36,20 +36,43 @@ function occurrences(index: LayerIndex, quote: string, limit = 8): { from: numbe
 /** How far past the quote a sentence may run before the resolver gives up looking for its end. */
 const SENTENCE_UNITS = 900;
 
+/** Words that take a full stop and do not end a sentence.
+ *
+ * "(Fig. 6C)" ends a sentence under the test below, because a space and a digit follow the stop.
+ * One quote span of 2026-11-18 was cut there: the locator named the sentence that prints a
+ * 10.3-fold odds ratio, the sentence cites the figure before it prints the number, and the span
+ * stopped at "(Fig." with the value outside it. Reading past a known abbreviation lengthens the
+ * span and never shortens it, so where one of these really does end a sentence the span covers
+ * one sentence more than it needs and still holds what the locator named. */
+const ABBREVIATIONS = new Set([
+  "al", "approx", "ca", "cf", "chr", "dr", "e.g", "eq", "eqs", "est", "etc", "ext", "fig", "figs",
+  "i.e", "no", "nos", "pp", "prof", "ref", "refs", "resp", "sec", "secs", "suppl", "supp", "tab",
+  "tabs", "vs", "viz",
+]);
+
+/** The word a full stop follows, lower cased, with its own inner stops kept so "e.g." arrives as
+ * "e.g" and "et al." as "al". */
+function wordBefore(text: string, at: number): string {
+  let from = at;
+  while (from > 0 && /[\p{L}\p{N}.]/u.test(text[from - 1])) from -= 1;
+  return text.slice(from, at).toLowerCase();
+}
+
 /** The end of the sentence the quote starts, as a UTF-16 offset, or null where none is found
  * within `SENTENCE_UNITS`.
  *
  * A full stop ends a sentence when a space and a capital letter follow it, or when the text
  * does. A full stop between two digits is a decimal point, and the values this lane exists to
- * find are mostly decimals, so that case is excluded explicitly. An abbreviation followed by a
- * capital ("et al. The") ends a sentence here and should not, which over-reads by one sentence
- * and never under-reads: the span stays a superset of the quote. */
+ * find are mostly decimals, so that case is excluded explicitly. A full stop after a known
+ * abbreviation does not end a sentence, which over-reads by one sentence where the abbreviation
+ * stands at a real end and never under-reads: the span stays a superset of the quote. */
 function sentenceEnd(text: string, from: number): number | null {
   const limit = Math.min(text.length, from + SENTENCE_UNITS);
   for (let at = from; at < limit; at += 1) {
     const here = text[at];
     if (here !== "." && here !== "!" && here !== "?") continue;
     if (here === "." && /[0-9]/.test(text[at - 1] ?? "") && /[0-9]/.test(text[at + 1] ?? "")) continue;
+    if (here === "." && ABBREVIATIONS.has(wordBefore(text, at))) continue;
     const after = text.slice(at + 1, at + 4);
     if (after === "" || /^\s*$/.test(after) || /^\s+["'(‘“]?[A-Z0-9]/.test(after)) return at + 1;
   }
@@ -75,14 +98,21 @@ export function resolveQuote(index: LayerIndex, quote: string, whole = false): R
 }
 
 /** Lines that are a heading for this section name: the line's whole printed text is the name,
- * optionally numbered. A sentence mentioning "Methods" is not a heading. */
+ * optionally numbered. A sentence mentioning "Methods" is not a heading.
+ *
+ * The length bound is on the line against the name it has to equal, not a fixed 80 characters.
+ * The test is equality after normalisation, so no line much longer than the name can pass it and
+ * the bound only keeps the scan off whole paragraphs. A fixed 80 dropped the heading "MetageNN
+ * is faster and requires less storage than alignment and k-mer-based tools, respectively", which
+ * is 95 characters and is the heading three stored locators name. */
 function headingLines(index: LayerIndex, name: string): number[] {
   const wanted = normaliseLabel(name);
   const numbered = /^\s*(?:[0-9]+(?:\.[0-9]+)*\.?|[IVXL]+\.)\s+/i;
+  const bound = Math.max(80, wanted.length + 16);
   const found: number[] = [];
   for (let line = 0; line < index.lines.length; line += 1) {
     const text = index.lines[line].trim();
-    if (text.length === 0 || text.length > 80) continue;
+    if (text.length === 0 || text.length > bound) continue;
     if (normaliseLabel(text.replace(numbered, "")) === wanted) found.push(line);
   }
   return found;
@@ -101,20 +131,28 @@ function headingShaped(lines: string[], line: number): boolean {
   return before && after;
 }
 
-/**
- * The nth paragraph of a named section, counted from 1.
+/** Normalisers that print one block element per line.
  *
- * A paragraph is a run of non-blank lines. The section ends at the next heading-shaped line.
+ * A JATS or an HTML normaliser writes one line per paragraph, heading, table label, caption and
+ * table row, so a paragraph here is a line and not a run of lines. Two locators on one Europe
+ * PMC layer show why that matters and where it stops. In one subsection the author's paragraph 3
+ * is the third line under the heading, which the run-of-lines rule merged into a single
+ * paragraph and read as paragraph 1. In another the third line under the heading is a table's
+ * label, because the layer prints a blank line and then the float.
+ *
+ * Nothing past the first blank line after a heading is numbered on these layers. The blank line
+ * before a float's label and the blank line before the next section's heading are the same blank
+ * line, and the flattened text cannot tell one from the other, so a count that runs past it can
+ * land in another section. That is a refusal here and was a wrong span before.
  */
-export function resolveSectionParagraph(index: LayerIndex, section: string, paragraph: number): Resolution {
-  const headings = headingLines(index, section);
-  if (headings.length === 0) return refuse("section_not_found", `no heading line reads "${section}"`, index.layer_sha256);
-  if (headings.length > 1) return refuse("section_ambiguous", `${headings.length} heading lines read "${section}"`, index.layer_sha256);
-  if (!Number.isInteger(paragraph) || paragraph < 1) return refuse("paragraph_out_of_range", `paragraph ${paragraph} is not a paragraph number`, index.layer_sha256);
+const BLOCK_PER_LINE = new Set(["europepmc-fulltext-xml@1", "html-text@1"]);
 
+/** Paragraphs as runs of non-blank lines, which is what a layout renderer leaves: a paragraph
+ * wraps over several lines and a blank line separates two of them. */
+function wrappedParagraphs(index: LayerIndex, heading: number, wanted: number): { from: number; to: number }[] {
   const blocks: { from: number; to: number }[] = [];
   let open: number | null = null;
-  for (let line = headings[0] + 1; line < index.lines.length; line += 1) {
+  for (let line = heading + 1; line < index.lines.length; line += 1) {
     const text = index.lines[line].trim();
     if (text !== "" && headingShaped(index.lines, line)) {
       if (open !== null) blocks.push({ from: open, to: line - 1 });
@@ -124,14 +162,48 @@ export function resolveSectionParagraph(index: LayerIndex, section: string, para
     if (text === "") {
       if (open !== null) blocks.push({ from: open, to: line - 1 });
       open = null;
-      if (blocks.length >= paragraph) break;
+      if (blocks.length >= wanted) break;
       continue;
     }
     if (open === null) open = line;
   }
-  if (open !== null && blocks.length < paragraph) blocks.push({ from: open, to: index.lines.length - 1 });
+  if (open !== null && blocks.length < wanted) blocks.push({ from: open, to: index.lines.length - 1 });
+  return blocks;
+}
+
+/** Paragraphs as lines, which is what a markup normaliser leaves, stopping at the first blank
+ * line because what follows one cannot be placed in this section. */
+function lineParagraphs(index: LayerIndex, heading: number): { from: number; to: number }[] {
+  const blocks: { from: number; to: number }[] = [];
+  for (let line = heading + 1; line < index.lines.length; line += 1) {
+    if (index.lines[line].trim() === "") break;
+    blocks.push({ from: line, to: line });
+  }
+  return blocks;
+}
+
+/**
+ * The nth paragraph of a named section, counted from 1.
+ *
+ * What a paragraph is depends on the normaliser, and the two conventions are in
+ * `wrappedParagraphs` and `lineParagraphs`.
+ */
+export function resolveSectionParagraph(index: LayerIndex, section: string, paragraph: number): Resolution {
+  const headings = headingLines(index, section);
+  if (headings.length === 0) return refuse("section_not_found", `no heading line reads "${section}"`, index.layer_sha256);
+  if (headings.length > 1) return refuse("section_ambiguous", `${headings.length} heading lines read "${section}"`, index.layer_sha256);
+  if (!Number.isInteger(paragraph) || paragraph < 1) return refuse("paragraph_out_of_range", `paragraph ${paragraph} is not a paragraph number`, index.layer_sha256);
+
+  const perLine = BLOCK_PER_LINE.has(index.normaliser);
+  const blocks = perLine ? lineParagraphs(index, headings[0]) : wrappedParagraphs(index, headings[0], paragraph);
   if (blocks.length < paragraph)
-    return refuse("paragraph_out_of_range", `the section "${section}" holds ${blocks.length} paragraphs and the locator names ${paragraph}`, index.layer_sha256);
+    return refuse(
+      "paragraph_out_of_range",
+      perLine
+        ? `the section "${section}" prints ${blocks.length} ${blocks.length === 1 ? "paragraph" : "paragraphs"} before the first blank line and the locator names ${paragraph}`
+        : `the section "${section}" holds ${blocks.length} ${blocks.length === 1 ? "paragraph" : "paragraphs"} and the locator names ${paragraph}`,
+      index.layer_sha256,
+    );
 
   const block = blocks[paragraph - 1];
   const lead = index.lines[block.from].length - index.lines[block.from].trimStart().length;
