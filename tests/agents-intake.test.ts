@@ -248,6 +248,20 @@ describe("screening and verification", () => {
     expect(built.records[0].id).toBe("b-model-model-large");
   });
 
+  it("prefixes colliding descriptions of differently named models with their names", () => {
+    const sources = new Map([["https://example.org/a", { id: "s1" }]]);
+    const fields = [{ field: "description", verdict: "supported", value: "", locator: "card" }, { field: "areas", verdict: "supported", value: "", locator: "card" }];
+    const built = buildBatch({
+      entities: [
+        entity({ key: "e1", name: "M-base", description: "A DNA language model.", source_urls: ["https://example.org/a"] }),
+        entity({ key: "e2", name: "M-large", description: "A DNA language model.", source_urls: ["https://example.org/a"] }),
+      ],
+      verification: { entities: [{ key: "e1", name: "M-base", keep: true, reason: "", fields }, { key: "e2", name: "M-large", keep: true, reason: "", fields }] },
+      sources, batch: "b", issue: 1, runDate: "2026-11-19", reviewedAt: "2026-11-19T00:00:00Z", reviewModel: "claude-sonnet-5-5", runUrl: "",
+    });
+    expect(built.records.map((r: { description: string }) => r.description).sort()).toEqual(["M-base: A DNA language model.", "M-large: A DNA language model."]);
+  });
+
   it("restricts the draft's source URLs to the URLs in the issue", () => {
     const urls = ["https://github.com/a/b/blob/abc/README.md", "https://huggingface.co/A/m"];
     const schema = proposalSchema(urls);
