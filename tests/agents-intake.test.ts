@@ -3,7 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  KIND_FIELDS, SOURCE_FIELDS, buildBatch, doiOf, fetchableUrl, main, renderSkipComment, screenEntities, verifiedValue,
+  KIND_FIELDS, SOURCE_FIELDS, buildBatch, doiOf, fetchableUrl, htmlTitle, main, publicationStatusOf, renderSkipComment,
+  screenEntities, verifiedValue, versionOf,
 } from "../scripts/agents/intake.mjs";
 import { Usage } from "../scripts/agents/discovery.mjs";
 import { intakeProblems } from "../scripts/agents/intake-check";
@@ -150,12 +151,40 @@ describe("screening and verification", () => {
     const sources = new Map([["https://example.org/a", { id: "existing-source" }]]);
     const built = buildBatch({
       entities: [entity({ description: "Does things.", source_urls: ["https://example.org/a"] })],
-      verification: { entities: [{ name: "New model", keep: true, reason: "", fields: [{ field: "description", verdict: "supported", value: "", locator: "Abstract" }] }] },
+      verification: { entities: [{ name: "New model", keep: true, reason: "", fields: [{ field: "description", verdict: "supported", value: "", locator: "Abstract" }, { field: "areas", verdict: "supported", value: "", locator: "Abstract" }] }] },
       sources, batch: "b", issue: 1, runDate: "2026-11-19", reviewedAt: "2026-11-19T00:00:00Z", reviewModel: "claude-opus-5-5", runUrl: "",
     });
     expect(built.records.map((r: { kind: string }) => r.kind)).toEqual(["model"]);
     expect(built.records[0].source_ids).toEqual(["existing-source"]);
     expect(built.records[0].attributes.review.reviewer).toEqual(["claude"]); // a fallback model is not claude-sonnet
+  });
+
+  it("drops an entity whose areas the verifier did not confirm, because they set the depth tier", () => {
+    const sources = new Map([["https://example.org/a", { id: "s1" }]]);
+    const built = buildBatch({
+      entities: [entity({ description: "Does things.", source_urls: ["https://example.org/a"] })],
+      verification: { entities: [{ name: "New model", keep: true, reason: "", fields: [{ field: "description", verdict: "supported", value: "", locator: "Abstract" }] }] },
+      sources, batch: "b", issue: 1, runDate: "2026-11-19", reviewedAt: "2026-11-19T00:00:00Z", reviewModel: "claude-sonnet-5-5", runUrl: "",
+    });
+    expect(built.records).toEqual([]);
+    expect(built.dropped[0].reason).toContain("did not confirm an area");
+  });
+
+  it("matches verdicts to entities by the script's key, even when the verifier respells the name", async () => {
+    const result = await dryRun(tempRoot());
+    // The fixture verifier calls the corpus "Helixgram Fixture Pre-training Corpus".
+    expect(result.entities.map((e: { name: string }) => e.name)).toContain("Helixgram fixture pretraining corpus");
+  });
+
+  it("takes source names, versions and publication status from the URL and the bytes, not the model", () => {
+    expect(versionOf("https://arxiv.org/abs/2611.01234v2", "2026-11-19")).toBe("arXiv 2611.01234v2");
+    expect(versionOf("https://www.biorxiv.org/content/10.1101/2026.01.15.599999v3.full", "2026-11-19")).toBe("10.1101/2026.01.15.599999 version 3");
+    expect(versionOf(`https://github.com/a/b/tree/${"a".repeat(40)}`, "2026-11-19")).toBe(`Commit ${"a".repeat(40)}`);
+    expect(versionOf("https://example.org/page", "2026-11-19")).toBe("As served on 2026-11-19; the page may change");
+    expect(publicationStatusOf("https://www.biorxiv.org/content/x")).toBe("preprint");
+    expect(publicationStatusOf("https://huggingface.co/org/model")).toBe("official_project_source");
+    expect(publicationStatusOf("https://doi.org/10.1/x")).toBe("");
+    expect(htmlTitle("<html><head><title>\n A &amp; B \u2014 page </title>")).toBe("A & B, page");
   });
 
   it("fetches only public http(s) URLs and reads bare DOIs", () => {
@@ -230,7 +259,9 @@ describe("live run with fakes", () => {
       "git push --force origin HEAD:refs/heads/intake/issue-9999",
     ].map((c) => (typeof c === "string" ? c.split(" ").slice(0, 6).join(" ") : c)));
     expect(f.created[0]).toMatchObject({ head: "intake/issue-9999", base: "main" });
-    expect(String(f.created[0].body)).toContain("Closes #9999");
+    // The fixture issue is tier 1, whose evaluations wait for #274, so the pull request does not close it.
+    expect(String(f.created[0].body)).toContain("Refs #9999");
+    expect(String(f.created[0].body)).not.toContain("Closes #9999");
     expect(String(f.created[0].body)).toContain("actions/runs/42");
     expect(f.comments).toHaveLength(1);
     expect(f.comments[0]).toContain("pull/1");
@@ -249,6 +280,15 @@ describe("live run with fakes", () => {
     expect(f.created).toEqual([]);
     expect(f.commands.some((c) => c.startsWith("git"))).toBe(false);
     expect(f.comments[0]).toContain("Batch cannot replace or duplicate record");
+  });
+
+  it("comments on the issue when the run throws", async () => {
+    const f = fakes();
+    f.deps.github.createPull = async () => {
+      throw new Error("POST /pulls: 422 Validation Failed");
+    };
+    await expect(main(["--issue", "9999", "--store-dir", `${FIXTURES}/entities`, "--root", tempRoot()], env, f.deps)).rejects.toThrow("422");
+    expect(f.comments[0]).toContain("422 Validation Failed");
   });
 
   it("skips with a comment when a pull request for the issue already exists, before any model call", async () => {

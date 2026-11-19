@@ -142,7 +142,8 @@ export function screenEntities(proposal, { storeNames }) {
   const keep = [];
   const dropped = [];
   const seen = new Set();
-  for (const e of (proposal.entities ?? []).slice(0, LIMITS.maxEntities)) {
+  for (const [index, e] of (proposal.entities ?? []).slice(0, LIMITS.maxEntities).entries()) {
+    const key = `e${index + 1}`;
     const name = clean(e.name);
     if (!name || !KINDS.includes(e.kind)) {
       dropped.push({ name: name || '(no name)', reason: `not a model, method, benchmark or dataset (${e.kind || 'no kind'})` });
@@ -159,23 +160,24 @@ export function screenEntities(proposal, { storeNames }) {
       dropped.push({ name, reason: `already in the store as ${storeNames.get(hit)} ("${hit}")`, duplicate: storeNames.get(hit) });
       continue;
     }
-    const key = `${e.kind}:${slug(name)}`;
-    if (seen.has(key)) {
+    const identity = `${e.kind}:${slug(name)}`;
+    if (seen.has(identity)) {
       dropped.push({ name, reason: 'proposed twice in this issue' });
       continue;
     }
-    seen.add(key);
-    keep.push({ ...e, name, areas });
+    seen.add(identity);
+    keep.push({ ...e, key, name, areas });
   }
   if ((proposal.entities ?? []).length > LIMITS.maxEntities)
     dropped.push({ name: `${proposal.entities.length - LIMITS.maxEntities} more`, reason: `over the per-issue cap of ${LIMITS.maxEntities}` });
   return { keep, dropped };
 }
 
-/** The verification verdict for one entity, matched by name. */
+/** The verification verdict for one entity: by the key the script gave it, else by name. */
 function verdictFor(verification, entity) {
+  const verdicts = verification?.entities ?? [];
   const n = normalise(entity.name);
-  return (verification?.entities ?? []).find((v) => normalise(v.name) === n) ?? null;
+  return verdicts.find((v) => entity.key && v.key === entity.key) ?? verdicts.find((v) => normalise(v.name) === n) ?? null;
 }
 
 /** The verified value of a field: the corrected value, the proposed value if supported, or null. */
@@ -231,13 +233,13 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
       dropped.push({ name: e.name, reason: `no primary source could be opened: ${failed.join('; ') || 'none given'}`, sourcesNotOpenable: true });
       continue;
     }
-    // Areas may be corrected by the verifier as a comma-separated list.
+    // The areas set the depth tier, so they must be confirmed. A correction is a comma-separated list.
     const areaVerdict = (verdict.fields ?? []).find((f) => f.field === 'areas');
     const areas = areaVerdict?.verdict === 'corrected'
       ? unique(String(areaVerdict.value).split(/[,\s]+/).filter((a) => AREAS.includes(a)))
-      : e.areas;
+      : areaVerdict?.verdict === 'supported' ? e.areas : [];
     if (!areas.length) {
-      dropped.push({ name: e.name, reason: 'verification left no valid area' });
+      dropped.push({ name: e.name, reason: 'verification did not confirm an area, so the depth tier cannot be set' });
       continue;
     }
     const spec = KIND_FIELDS[e.kind];
@@ -303,19 +305,56 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
   return { records, entities: built, dropped, fieldLog };
 }
 
-/** A new source record for a fetched URL. Facets are filled in by buildBatch. */
+const PREPRINT_HOSTS = ['arxiv.org', 'biorxiv.org', 'medrxiv.org', 'chemrxiv.org', 'researchsquare.com', 'preprints.org', 'ssrn.com'];
+const PROJECT_HOSTS = ['github.com', 'gitlab.com', 'huggingface.co', 'zenodo.org', 'readthedocs.io', 'pypi.org'];
+const onHost = (host, list) => list.some((h) => host === h || host.endsWith(`.${h}`));
+
+/** Publication status from the URL's host, or '' when the host does not decide it. */
+export function publicationStatusOf(url) {
+  const host = new URL(url).hostname.toLowerCase();
+  if (onHost(host, PREPRINT_HOSTS)) return 'preprint';
+  if (onHost(host, PROJECT_HOSTS)) return 'official_project_source';
+  return '';
+}
+
+/** A version the URL itself pins (arXiv or bioRxiv version, git commit), else the retrieval date. */
+export function versionOf(url, runDate) {
+  const u = String(url);
+  const arxiv = /arxiv\.org\/(?:abs|pdf|html)\/(\d{4}\.\d{4,5})(v\d+)/.exec(u);
+  if (arxiv) return `arXiv ${arxiv[1]}${arxiv[2]}`;
+  const rxiv = /(?:bio|med)rxiv\.org\/content\/(10\.\d+\/[\d.]+)(v\d+)/.exec(u);
+  if (rxiv) return `${rxiv[1]} version ${rxiv[2].slice(1)}`;
+  const commit = /\/(?:commit|tree|blob)\/([0-9a-f]{40})\b/.exec(u);
+  if (commit) return `Commit ${commit[1]}`;
+  return `As served on ${runDate}; the page may change`;
+}
+
+/** The text of an HTML page's <title>, or ''. */
+export function htmlTitle(html) {
+  const m = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(String(html ?? ''));
+  if (!m) return '';
+  const text = m[1].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, ' ');
+  return clean(text).slice(0, 200);
+}
+
+/**
+ * A new source record for a fetched URL. Every field comes from the URL or the fetched bytes,
+ * not from the model: the name is the page title (or the URL), the version is what the URL pins.
+ * Facets are filled in by buildBatch.
+ */
 export function sourceRecord({ batch, proposed, fetched, runDate }) {
-  const title = clean(proposed.title) || new URL(proposed.url).hostname;
+  const u = new URL(proposed.url);
+  const title = clean(fetched.title) || `${u.hostname}${u.pathname.replace(/\/+$/, '')}`;
   const attributes = { url: proposed.url };
-  const version = clean(proposed.version);
-  attributes.version = version || `As served on ${runDate}`;
+  attributes.version = versionOf(proposed.url, runDate);
   attributes.retrieved_at = fetched.retrieved_at;
   attributes.artifact_sha256 = fetched.sha256;
   if (fetched.media_type) attributes.media_type = fetched.media_type;
-  if (PUBLICATION_STATUSES.includes(proposed.publication_status)) attributes.publication_status = proposed.publication_status;
+  const status = publicationStatusOf(proposed.url);
+  if (status) attributes.publication_status = status;
   const doi = doiOf(proposed.url);
   if (doi && /^10\.\d{4,9}\/\S+$/.test(doi)) attributes.doi = doi;
-  const role = { paper: 'Paper', preprint: 'Preprint', repository: 'Repository page', model_card: 'Model card', dataset_card: 'Dataset card', documentation: 'Documentation page' }[proposed.role] ?? 'Primary source';
+  const role = status === 'preprint' ? 'Preprint' : status === 'official_project_source' ? 'Project page' : 'Primary source';
   return {
     id: `${batch}-source-${slug(title)}`,
     kind: 'source',
@@ -370,9 +409,11 @@ export function renderNotes({ issue, issueTitle, runDate, entities, dropped, sou
   ].join('\n');
 }
 
-export function renderPullBody({ issue, entities, dropped, sourceNotes, usage, seconds, runUrl, batchDir }) {
+export function renderPullBody({ issue, entities, dropped, sourceNotes, usage, seconds, runUrl, batchDir, closes = false }) {
   return [
-    `Adds the entity records requested in #${issue}. Closes #${issue}.`,
+    closes
+      ? `Adds the entity records requested in #${issue}. Closes #${issue}.`
+      : `Adds the entity records requested in #${issue}. Refs #${issue}: the issue stays open, because its tier asks for evaluations too, which wait for #274.`,
     '',
     'Entities only, until the claims recollection (#274): no evaluation, result or claim. Every record has status `discovered` and carries its review receipt; nothing here has had an independent review yet.',
     '',
@@ -507,10 +548,12 @@ export async function fetchSource(url, { fetchImpl = fetch, now = () => new Date
     const bytes = Buffer.from(await res.arrayBuffer());
     if (!bytes.length) return { error: 'empty response' };
     if (bytes.length > LIMITS.maxSourceBytes) return { error: `over ${LIMITS.maxSourceBytes} bytes` };
+    const mediaType = (res.headers.get('content-type') ?? '').split(';')[0].trim();
     return {
       sha256: sha256(bytes),
       bytes: bytes.length,
-      media_type: (res.headers.get('content-type') ?? '').split(';')[0].trim(),
+      media_type: mediaType,
+      title: mediaType.includes('html') ? htmlTitle(bytes.subarray(0, 200000).toString('utf8')) : '',
       retrieved_at: nowIso(now()),
     };
   } catch (e) {
@@ -587,8 +630,9 @@ export const VERIFICATION_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['name', 'keep', 'reason', 'fields'],
+        required: ['key', 'name', 'keep', 'reason', 'fields'],
         properties: {
+          key: { type: 'string', description: 'The key given with the proposed entity, for example e1' },
           name: STR,
           keep: { type: 'boolean' },
           reason: STR,
@@ -700,7 +744,7 @@ async function draftProposal(client, usage, { system, issue, runDate, log }) {
 }
 
 async function verifyProposal(client, usage, { system, entities, sourceUrls, runDate, log }) {
-  const shown = entities.map((e) => Object.fromEntries(['kind', 'name', 'aliases', ...VERIFIED_FIELDS, 'source_urls'].map((k) => [k, e[k]])));
+  const shown = entities.map((e) => Object.fromEntries(['key', 'kind', 'name', 'aliases', ...VERIFIED_FIELDS, 'source_urls'].map((k) => [k, e[k]])));
   const research = await researchTurn(client, usage, {
     model: MODELS.verify,
     system,
@@ -717,12 +761,12 @@ async function verifyProposal(client, usage, { system, entities, sourceUrls, run
       'Proposed entities (JSON):',
       JSON.stringify(shown, null, 2),
       '',
-      'For each entity write: keep or drop and why; then each field with supported, corrected (give the value) or unsupported, and the source URL and location that decides it. For areas, a correction is a comma-separated list of valid areas. For limitations, one per line. List any source that failed to load.',
+      'For each entity write its key exactly as given, then keep or drop and why; then each field with supported, corrected (give the value) or unsupported, and the source URL and location that decides it. For areas, a correction is a comma-separated list of valid areas. For limitations, one per line. List any source that failed to load.',
     ].join('\n'),
   });
   if (!research) return { error: 'the verification call was refused or did not finish' };
   const verification = await structure(client, usage, {
-    instruction: 'Turn these verification notes into the schema. Use only verdicts in the notes. A field the notes do not mention is unsupported. value is empty unless the verdict is corrected. Use the entity names exactly as the notes give them.',
+    instruction: 'Turn these verification notes into the schema. Use only verdicts in the notes. A field the notes do not mention is unsupported. value is empty unless the verdict is corrected. Copy each entity\'s key (e1, e2, ...) exactly as the notes give it.',
     notes: research.text,
     schema: VERIFICATION_SCHEMA,
   });
@@ -975,7 +1019,8 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     const names = built.entities.map((e) => e.name);
     const title = `Add ${names.length > 3 ? `${names.slice(0, 3).join(', ')} and ${names.length - 3} more` : names.join(', ').replace(/, ([^,]*)$/, ' and $1')} from #${issue.number}`.slice(0, 200);
     const seconds = Math.round((Date.now() - started) / 1000);
-    const body = renderPullBody({ issue: issue.number, entities: built.entities, dropped: state.dropped, sourceNotes: state.sourceNotes, usage, seconds, runUrl, batchDir });
+    const closes = (issue.labels ?? []).includes('tier-3');
+    const body = renderPullBody({ closes, issue: issue.number, entities: built.entities, dropped: state.dropped, sourceNotes: state.sourceNotes, usage, seconds, runUrl, batchDir });
     state.pull = { title, body, branch };
     if (!write) {
       await finish('ready: pull request not opened in this mode', null);
@@ -1001,6 +1046,13 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   } catch (e) {
     notes.push(`The run failed: ${errorText(e)}`);
     state.outcome = 'error';
+    if (write && issue?.number) {
+      try {
+        await gh.comment(repo, issue.number, renderFailureComment({ step: 'the intake run', output: errorText(e), runUrl, usage }));
+      } catch {
+        // The job fails anyway; the summary carries the error.
+      }
+    }
     throw e;
   } finally {
     const summary = renderSummary({ mode, issue: issue?.number ?? args.issue, runDate, outcome: state.outcome, entities: state.entities, dropped: state.dropped, sourceNotes: state.sourceNotes, notes, usage, prUrl: state.prUrl });

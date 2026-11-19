@@ -26,6 +26,9 @@ export function buildBatch(input: {
   entities: Entity[]; verification: any; sources: Map<string, { id?: string; record?: any; error?: string }>; batch: string; issue: number;
   runDate: string; reviewedAt: string; reviewModel: string; runUrl: string;
 }): { records: any[]; entities: { id: string; kind: string; name: string; tier: number | null }[]; dropped: Dropped[]; fieldLog: any[] };
+export function publicationStatusOf(url: string): string;
+export function versionOf(url: string, runDate: string): string;
+export function htmlTitle(html: string): string;
 export function sourceRecord(input: { batch: string; proposed: any; fetched: any; runDate: string }): any;
 export function renderNotes(input: any): string;
 export function renderPullBody(input: any): string;
