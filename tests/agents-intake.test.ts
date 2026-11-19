@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   KIND_FIELDS, SOURCE_FIELDS, buildBatch, doiOf, fetchSource, fetchableUrl, htmlTitle, isChallengePage, main, publicationStatusOf, renderSkipComment,
-  screenEntities, urlsInText, verifiedValue, versionOf, withSourceUrls,
+  proposalSchema, screenEntities, urlsInText, verifiedValue, versionOf, withSourceUrls,
 } from "../scripts/agents/intake.mjs";
 import { Usage } from "../scripts/agents/discovery.mjs";
 import { intakeProblems } from "../scripts/agents/intake-check";
@@ -202,6 +202,14 @@ describe("screening and verification", () => {
     const [a, b] = withSourceUrls([entity({ source_urls: ["MulinLab/hEVO-base-o"] }), entity({ source_urls: ["PMC13738607"] })], proposal, body);
     expect(a.source_urls).toEqual(["https://huggingface.co/MulinLab/hEVO-base-o"]);
     expect(b.source_urls).toEqual(["https://pmc.ncbi.nlm.nih.gov/articles/PMC13738607/"]);
+  });
+
+  it("restricts the draft's source URLs to the URLs in the issue", () => {
+    const urls = ["https://github.com/a/b/blob/abc/README.md", "https://huggingface.co/A/m"];
+    const schema = proposalSchema(urls);
+    expect(schema.properties.entities.items.properties.source_urls.items.enum).toEqual(urls);
+    expect(schema.properties.sources.items.properties.url.enum).toEqual(urls);
+    expect(proposalSchema([]).properties.sources.items.properties.url).toEqual({ type: "string" });
   });
 
   it("refuses a bot check page served with HTTP 200", async () => {
