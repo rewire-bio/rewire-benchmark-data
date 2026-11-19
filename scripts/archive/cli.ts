@@ -15,19 +15,28 @@
  *              tags archive/objects-<0-f>, which needs no new credential
  *   upload     put the restricted cached objects in Cloudflare R2, which is the
  *              restricted backend (needs four secrets)
+ *   pull       bring objects back down from R2 into a cache that has none,
+ *              verified against the manifest key before anything is kept
+ *              (needs the same four secrets)
  *
  * fetch, verify and status need no credential and no secret, so they run on a
  * fork pull request. publish writes to this repository, so it needs a token
  * with write access to it and nothing else: the gh CLI's own credential
- * locally, github.token in CI. upload is the only command that needs a secret
- * nobody has created, and it is the only one that fails without one.
+ * locally, github.token in CI. upload and pull are the two that need the R2
+ * secrets, and they are the two that fail without them.
+ *
+ * pull is what makes a measurement on a second machine possible. The cache is
+ * gitignored, so until there was a way to rebuild it every figure this lane
+ * published rested on one laptop holding bytes nobody else had.
  */
+import fs from "node:fs";
 import { parseArgs } from "node:util";
 import { readManifest, verifyObjects } from "./manifest";
 import { cacheContents, hasObject } from "./objects";
 import { latestBySource, readReceipts } from "./receipts";
 import { runFetch } from "./fetch";
 import { uploadObjects } from "./upload";
+import { pullObjects } from "./pull";
 import { publishObjects } from "./publish";
 import { reclassifyObjects } from "./reclassify";
 import { readWorkList, summarise } from "../../shared/archive/worklist";
@@ -43,6 +52,9 @@ const { values, positionals } = parseArgs({
     "timeout-ms": { type: "string" },
     limit: { type: "string" },
     "retry-failed": { type: "boolean" },
+    source: { type: "string", multiple: true },
+    key: { type: "string", multiple: true },
+    "sources-from": { type: "string" },
     "dry-run": { type: "boolean" },
     "no-mark": { type: "boolean" },
     json: { type: "boolean" },
@@ -244,6 +256,45 @@ async function reclassify(): Promise<number> {
   return summary.restrictive.length ? 1 : 0;
 }
 
+/** Bring objects down from R2 into the cache. Resumable and idempotent: an
+ * object already held and verifying is neither fetched nor written over, so a
+ * second run makes no request. --dry-run reports the selection and needs no
+ * credential. */
+async function pull(): Promise<number> {
+  const fromFile = values["sources-from"]
+    ? fs
+        .readFileSync(values["sources-from"], "utf8")
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line !== "" && !line.startsWith("#"))
+    : [];
+  const summary = await pullObjects({
+    root,
+    keys: values.key,
+    sources: [...new Set([...(values.source ?? []), ...fromFile])],
+    limit: number("limit"),
+    dryRun: values["dry-run"] ?? false,
+    log: values.quiet ? undefined : (line) => console.error(line),
+  });
+  if (values.json) print(summary);
+  else {
+    print(summary.dry_run ? "dry run: nothing was fetched or written" : "pull");
+    print(`manifest rows         ${summary.manifest_rows}`);
+    print(`matched the filter    ${summary.matched}`);
+    print(`refused, t5-no-store  ${summary.removed}`);
+    print(`selected              ${summary.selected} (${summary.selected_restricted} restricted, ${summary.selected_public} public)`);
+    print(`already held          ${summary.already_held}`);
+    print(`held back by --limit  ${summary.held_back_by_limit}`);
+    print(summary.dry_run ? `would fetch           ${summary.selected - summary.already_held - summary.held_back_by_limit}` : `downloaded            ${summary.downloaded}`);
+    if (!summary.dry_run) print(`bytes written         ${mib(summary.expanded_bytes)} expanded, ${mib(summary.compressed_bytes)} on disk`);
+    if (summary.failed.length) {
+      print(`failed                ${summary.failed.length}`);
+      for (const failure of summary.failed.slice(0, 10)) print(`  ${failure.key} ${failure.status ?? "no status"} ${failure.message}`);
+    }
+  }
+  return summary.failed.length ? 1 : 0;
+}
+
 async function main(): Promise<number> {
   switch (positionals[0]) {
     case "worklist":
@@ -267,8 +318,13 @@ async function main(): Promise<number> {
     case "upload":
       print(await uploadObjects({ root, dryRun: values["dry-run"] ?? false }));
       return 0;
+    case "pull":
+      return await pull();
     default:
-      print("Usage: npm run archive -- <worklist|fetch|verify|status|reclassify|publish|upload> [options]");
+      print(
+        "Usage: npm run archive -- <worklist|fetch|verify|status|reclassify|publish|upload|pull> [options]\n" +
+          "       pull takes --source <id> (repeatable), --key <sha256> (repeatable), --sources-from <file>, --limit, --dry-run",
+      );
       return positionals[0] ? 1 : 0;
   }
 }

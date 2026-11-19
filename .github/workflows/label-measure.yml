@@ -1,0 +1,186 @@
+name: Label stage measurement
+# Started by hand only. This is the one job in this repository that spends money
+# outside the runner, so nothing schedules it, no push starts it and no pull
+# request can reach it.
+on:
+  workflow_dispatch:
+    inputs:
+      max_questions:
+        description: >-
+          The ceiling on how many questions this run may ask. It binds before the first call:
+          the questions are planned and truncated to this number while the transport is still
+          untouched. The frozen set makes 152 askable in all, 109 under both pre-filter rules
+          and 43 under the lexical rule alone. A question is a prompt of 2,907 bytes plus a
+          rendered question with a median of 1,233 characters, and the reply is four short fields.
+        required: true
+        default: "20"
+      heldout:
+        description: The frozen held-out set to score against, written before any answer existed.
+        required: true
+        default: maintenance/reports/label-evaluation-2026-11-19-heldout.tsv
+      report_date:
+        description: The date the report files are named with. Leave empty for today.
+        required: false
+        default: ""
+# Read only, and widened nowhere below. The job cannot push a commit, cut a
+# release or write a record; its output leaves as an artifact and a step summary.
+permissions:
+  contents: read
+# One run at a time, so two dispatches cannot spend twice over the same set.
+concurrency:
+  group: label-measure
+  cancel-in-progress: false
+env:
+  NODE_OPTIONS: --max-old-space-size=8192
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      # Before anything else, and before any cost. A secret read through `if:`
+      # is not reliable, so each one is named in `env:` and checked in the shell.
+      # A missing secret fails the job; nothing here skips quietly.
+      - name: Require every secret this job needs
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          missing=0
+          for name in R2_ACCOUNT_ID R2_BUCKET R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY ANTHROPIC_API_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is not set on this repository, so this job cannot run."
+              missing=1
+            fi
+          done
+          [ "$missing" = 0 ] || exit 1
+
+      - name: Check the cap is a positive whole number before anything is planned
+        env:
+          MAX_QUESTIONS: ${{ inputs.max_questions }}
+        run: |
+          case "$MAX_QUESTIONS" in
+            ''|*[!0-9]*) echo "::error::max_questions must be a positive whole number, got '$MAX_QUESTIONS'"; exit 1 ;;
+          esac
+          [ "$MAX_QUESTIONS" -gt 0 ] || { echo "::error::max_questions must be greater than zero"; exit 1; }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      # The label stage imports the client at the first question and never at
+      # import time, so it is not a root dependency and the data checks do not
+      # install it. The version is the one scripts/agents/package.json pins.
+      - name: Install the client the label stage imports
+        run: npm install --no-save @anthropic-ai/sdk@1.9.0
+
+      # A PDF text layer is re-derived from the stored bytes when it is read, and
+      # that derivation shells out to pdftotext.
+      - name: Install poppler, which the PDF layer derivation needs
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
+
+      - name: The sources the frozen held-out set names
+        env:
+          HELDOUT: ${{ inputs.heldout }}
+        run: |
+          [ -f "$HELDOUT" ] || { echo "::error::$HELDOUT is not in this checkout"; exit 1; }
+          cut -f1 "$HELDOUT" | tail -n +2 | sort -u > heldout-sources.txt
+          echo "sources in the frozen set: $(wc -l < heldout-sources.txt)"
+
+      # The object cache is gitignored by design, so the runner starts with none.
+      # This rebuilds exactly the part of it the frozen set reads, verifying every
+      # object against the committed manifest key before keeping it. The run is
+      # idempotent, so re-running the job over a warm cache would fetch nothing.
+      - name: Pull the archived objects the frozen set reads
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: npm run archive -- pull --sources-from heldout-sources.txt
+
+      # What a live run would ask, before it asks it. Printed so the plan and the
+      # cap are both in the log ahead of the first call.
+      - name: Report what this run would ask, without asking
+        env:
+          HELDOUT: ${{ inputs.heldout }}
+          MAX_QUESTIONS: ${{ inputs.max_questions }}
+        run: npm run -s extract -- label-measure --heldout "$HELDOUT" --plan --max-questions "$MAX_QUESTIONS" | tee plan.json
+
+      - name: Ask the label stage and write the report
+        id: measure
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          HELDOUT: ${{ inputs.heldout }}
+          MAX_QUESTIONS: ${{ inputs.max_questions }}
+          REPORT_DATE: ${{ inputs.report_date }}
+        run: |
+          date_arg=""
+          if [ -n "$REPORT_DATE" ]; then date_arg="--date $REPORT_DATE"; fi
+          # shellcheck disable=SC2086
+          npm run -s extract -- label-measure \
+            --heldout "$HELDOUT" \
+            --max-questions "$MAX_QUESTIONS" \
+            --out maintenance/reports $date_arg
+
+      - name: State what it asked and what it cost
+        run: |
+          report=$(ls -t maintenance/reports/label-measurement-*.json | head -1)
+          echo "report: $report"
+          node -e '
+            const summary = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+            const cost = summary.cost;
+            const lines = [
+              "## Label stage measurement",
+              "",
+              "| Item | Value |",
+              "| --- | --- |",
+              `| Questions asked | ${cost.questions_asked} |`,
+              `| Cap | ${cost.cap} |`,
+              `| Askable questions the cap left unasked | ${cost.questions_not_asked_because_of_the_cap} |`,
+              `| Input tokens | ${cost.input_tokens} |`,
+              `| Output tokens | ${cost.output_tokens} |`,
+              `| Transport failures | ${cost.transport_failures} |`,
+              "",
+              "The two pre-filter rules are reported apart in the report itself. Neither number is the other.",
+            ];
+            console.log(lines.join("\n"));
+            require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join("\n")}\n`);
+            if (cost.transport_failures > 0) {
+              console.log(`::warning::${cost.transport_failures} of ${cost.questions_asked} questions failed in the transport rather than being answered, so the rates rest on fewer answers than the cap allowed`);
+            }
+          ' "$report"
+
+      # The report leaves as an artifact. Nothing commits it: this job holds a
+      # read-only token, and whoever wants it in the tree opens a pull request.
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: label-measurement
+          path: |
+            maintenance/reports/label-measurement-*
+            maintenance/reports/label-measure-cache-*
+            plan.json
+            heldout-sources.txt
+          retention-days: 30
+
+      # The cache holds source bytes and is gitignored. This is belt and braces:
+      # if anything ever made it visible to git, the job stops rather than
+      # letting a later step see a dirty tree it might try to commit.
+      - name: The run changed nothing that git can see
+        if: always()
+        run: |
+          dirty=$(git status --porcelain -- data website shared scripts)
+          if [ -n "$dirty" ]; then
+            echo "::error::the measurement changed tracked files, which it must not:"
+            echo "$dirty"
+            exit 1
+          fi

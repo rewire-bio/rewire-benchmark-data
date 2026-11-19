@@ -687,7 +687,9 @@ function gridTable(report: MeasureReport): string {
 }
 
 function detailRows(report: MeasureReport): string {
-  const lines = ["id\tclass\tparse_bucket\toutcome\treason_or_kind\tlayer_sha256\tvalue_present\tvalue_exact\tgrid_route\tlayers_tried"];
+  const lines = [
+    "id\tclass\tparse_bucket\toutcome\treason_or_kind\tlayer_sha256\tvalue_present\tvalue_exact\tgrid_route\tlayers_tried\tsource_ids\tstart\tend",
+  ];
   for (const item of report.work)
     lines.push(
       [
@@ -701,6 +703,12 @@ function detailRows(report: MeasureReport): string {
         item.resolved ? String(item.value_exact) : "",
         item.grid_route ?? "",
         String(item.tried),
+        // The source and the code-point extent, so a later report can say which table in which
+        // layer a resolved result sits in. Nothing here recomputes a span: these are the span
+        // this run already committed to.
+        item.result.source_ids.join("|"),
+        item.resolved ? String(item.resolved.span.start) : "",
+        item.resolved ? String(item.resolved.span.end) : "",
       ].join("\t"),
     );
   return lines.join("\n");
