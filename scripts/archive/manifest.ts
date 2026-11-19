@@ -130,19 +130,48 @@ export function updateRow(
   });
 }
 
-/** Record which backend holds an object's bytes. This is the one write the
- * publish work makes: the bytes are already there, and store plus
- * archiveAssetUrl() is the whole record of where. Nothing else on the row
- * moves, and the licence columns in particular are not touched. Returns false
- * when the key is not in the manifest. */
-export function markStore(sha256: string, store: Store, root = "."): Promise<boolean> {
+/** Record which backend is an object's home, keeping the old home as a mirror.
+ *
+ * The bytes are already in the new backend when this is called; this is the
+ * record of it. A home that is being replaced had a copy of the bytes a
+ * moment ago and still does, so it becomes a mirror rather than disappearing:
+ * a reader holding the old location finds it still named. The one home never
+ * demoted is local-cache, which is a gitignored directory on whichever
+ * machine ran the command and is not somewhere another reader can look.
+ *
+ * Nothing else on the row moves, and the licence columns in particular are not
+ * touched. Returns false when the key is not in the manifest. */
+export function markHome(sha256: string, store: Store, root = "."): Promise<boolean> {
   const shard = objectShard(sha256);
   return serialise(() => {
     const rows = readShard(shard, root);
     const index = rows.findIndex((row) => row.sha256 === sha256);
     if (index < 0) return false;
-    if (rows[index].store === store) return true;
-    rows[index] = manifestRowSchema.parse({ ...rows[index], store });
+    const row = rows[index];
+    if (row.store === store) return true;
+    const mirrors = [...new Set([...row.mirrors, ...(row.store === "local-cache" ? [] : [row.store])])]
+      .filter((named) => named !== store)
+      .sort();
+    rows[index] = manifestRowSchema.parse({ ...row, store, mirrors });
+    writeShard(shard, rows, root);
+    return true;
+  });
+}
+
+/** Record that a backend holds a second copy of an object whose home is
+ * elsewhere. This is the one write the publish work makes: a release asset is
+ * a copy of bytes the bucket already holds, and recording it as the home
+ * would be claiming the archive had moved onto a public tag. Returns false
+ * when the key is not in the manifest. */
+export function markMirror(sha256: string, store: Store, root = "."): Promise<boolean> {
+  const shard = objectShard(sha256);
+  return serialise(() => {
+    const rows = readShard(shard, root);
+    const index = rows.findIndex((row) => row.sha256 === sha256);
+    if (index < 0) return false;
+    const row = rows[index];
+    if (row.store === store || row.mirrors.includes(store)) return true;
+    rows[index] = manifestRowSchema.parse({ ...row, mirrors: [...row.mirrors, store].sort() });
     writeShard(shard, rows, root);
     return true;
   });

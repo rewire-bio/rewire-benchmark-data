@@ -11,7 +11,7 @@
  * What it will not do.
  *
  * A row at t5-no-store is refused before any request, for the reason
- * assertRestricted() gives on the way up: a rights holder asked for those
+ * assertStorable() gives on the way up: a rights holder asked for those
  * bytes to go, and a copy left in a bucket is not permission to bring them
  * back. The gate is here rather than left to the bucket's contents, so the
  * order of a takedown and a pull does not matter.

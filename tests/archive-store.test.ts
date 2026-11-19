@@ -5,10 +5,10 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { afterEach, expect, it } from "vitest";
 import { archiveAssetName, archiveAssetUrl, cacheContents, hasObject, objectPath, putObject, readObject } from "../scripts/archive/objects";
-import { checkManifest, markRemoved, readManifest, readShard, shardPath, updateRow, upsertRow, verifyObjects } from "../scripts/archive/manifest";
+import { checkManifest, markHome, markMirror, markRemoved, readManifest, readShard, shardPath, updateRow, upsertRow, verifyObjects } from "../scripts/archive/manifest";
 import { appendReceipt, latestBySource, readReceipts } from "../scripts/archive/receipts";
 import { assertPublishable, planPublish, publishObjects, type ReleaseClient } from "../scripts/archive/publish";
-import { assertRestricted } from "../scripts/archive/upload";
+import { assertStorable } from "../scripts/archive/upload";
 import { canonicalLine, isRemoved, manifestRowSchema, objectShard, type FetchReceipt, type ManifestRow } from "../shared/archive/schema";
 
 const roots: string[] = [];
@@ -266,15 +266,63 @@ it("never publishes a removed row, and the row and its hash still verify with th
   expect(readManifest(root).get(key)!.removed_at).toBe(removal.removed_at);
 });
 
-it("sends only the restricted rows to the restricted backend, and never a removed one", () => {
-  // R2 holds the bytes that cannot be published. A public row belongs on a
-  // release tag, and a removed row belongs nowhere, so the gate names both.
-  expect(() => assertRestricted(row())).not.toThrow();
-  expect(() => assertRestricted(row({ archive_tier: "t0-public", visibility: "public" }))).toThrow(/t0-public is public/);
-  expect(() => assertRestricted(row({ archive_tier: "t3-verbatim-nd-nc", visibility: "public" }))).toThrow(/release asset/);
+it("sends every tier to the bucket except the one whose bytes were taken down", () => {
+  // The bucket is the archive, so a public row goes up exactly as a
+  // restricted one does. A removed row belongs nowhere, and that is the only
+  // thing the gate refuses.
+  expect(() => assertStorable(row())).not.toThrow();
+  expect(() => assertStorable(row({ archive_tier: "t0-public", visibility: "public" }))).not.toThrow();
+  expect(() => assertStorable(row({ archive_tier: "t1-public-nc", visibility: "public" }))).not.toThrow();
+  expect(() => assertStorable(row({ archive_tier: "t3-verbatim-nd-nc", visibility: "public" }))).not.toThrow();
+  expect(() => assertStorable(row({ archive_tier: "t4-private", visibility: "restricted" }))).not.toThrow();
   const removed = row({ ...removal, archive_tier: "t5-no-store", visibility: "restricted" });
-  expect(() => assertRestricted(removed)).toThrow(new RegExp(`${removed.sha256}.*t5-no-store.*${removal.removed_at}`));
-  expect(() => assertRestricted(removed)).toThrow(/never go back/);
+  expect(() => assertStorable(removed)).toThrow(new RegExp(`${removed.sha256}.*t5-no-store.*${removal.removed_at}`));
+  expect(() => assertStorable(removed)).toThrow(/never go back/);
+  // The refusal is on the tier by name, not on visibility, so a t5 row whose
+  // visibility had been mislabelled public is still refused.
+  expect(() => assertStorable(row({ archive_tier: "t5-no-store", visibility: "restricted" }))).toThrow(/t5-no-store/);
+});
+
+it("makes the bucket the home and keeps the release tag it replaces as a mirror", async () => {
+  const root = temporaryRoot();
+  const bytes = Buffer.from("bytes with one home");
+  const { key } = putObject(bytes, root);
+  await upsertRow(row({ sha256: key, bytes: bytes.length, archive_tier: "t0-public", visibility: "public" }), root);
+  // Where the 871 public objects started: a release tag recorded as the only
+  // home, with the bucket holding nothing.
+  await markHome(key, "github-release", root);
+  expect(readManifest(root).get(key)).toMatchObject({ store: "github-release", mirrors: [] });
+
+  expect(await markHome(key, "r2", root)).toBe(true);
+  const moved = readManifest(root).get(key)!;
+  expect(moved.store).toBe("r2");
+  expect(moved.mirrors).toEqual(["github-release"]);
+
+  // Idempotent: a second upload of the same object says the same thing.
+  expect(await markHome(key, "r2", root)).toBe(true);
+  expect(readManifest(root).get(key)!.mirrors).toEqual(["github-release"]);
+
+  // And publishing it again records the mirror it already has, once.
+  expect(await markMirror(key, "github-release", root)).toBe(true);
+  expect(readManifest(root).get(key)!.mirrors).toEqual(["github-release"]);
+  expect(checkManifest(root)).toEqual({ rows: 1, problems: [] });
+});
+
+it("refuses to record a public release mirror on restricted bytes", () => {
+  const restricted = { ...row({ archive_tier: "t4-private", visibility: "restricted" }), store: "r2", mirrors: ["github-release"] };
+  expect(manifestRowSchema.safeParse(restricted).success).toBe(false);
+  // local-cache is a directory, not a public tag, so it is an allowed mirror
+  // of restricted bytes.
+  expect(manifestRowSchema.safeParse({ ...restricted, mirrors: ["local-cache"] }).success).toBe(true);
+});
+
+it("refuses a mirror that repeats the home, is unsorted, or survives a takedown", () => {
+  const base = row({ archive_tier: "t0-public", visibility: "public" });
+  expect(manifestRowSchema.safeParse({ ...base, store: "r2", mirrors: ["r2"] }).success).toBe(false);
+  expect(manifestRowSchema.safeParse({ ...base, store: "r2", mirrors: ["local-cache", "github-release"] }).success).toBe(false);
+  expect(manifestRowSchema.safeParse({ ...base, store: "r2", mirrors: ["github-release", "local-cache"] }).success).toBe(true);
+  const removed = { ...row({ ...removal, archive_tier: "t5-no-store", visibility: "restricted" }), mirrors: ["local-cache"] };
+  expect(manifestRowSchema.safeParse(removed).success).toBe(false);
 });
 
 it("reports a removed row whose bytes are still cached as a problem, and a row with no marker as missing", async () => {

@@ -154,7 +154,7 @@ it("puts each object on its shard tag and creates only the tags it needs", async
   expect(() => archiveTag("g")).toThrow(/Not a manifest shard/);
 });
 
-it("records the published object in the manifest as a github-release object, and nothing else", async () => {
+it("records the published object in the manifest as a release mirror, and nothing else", async () => {
   const root = temporaryRoot();
   const keys = await storeWithEveryTier(root);
   const before = readManifest(root);
@@ -162,12 +162,16 @@ it("records the published object in the manifest as a github-release object, and
   const after = readManifest(root);
 
   expect(summary.marked).toBe(4);
-  expect(after.get(keys["t0-public"])!.store).toBe("github-release");
-  expect(after.get(keys["t3-verbatim-nd-nc"])!.store).toBe("github-release");
+  // A release asset is a second copy. The home does not move onto a public
+  // tag, because the archive is the bucket and the tag is rebuildable from it.
+  expect(after.get(keys["t0-public"])!.mirrors).toEqual(["github-release"]);
+  expect(after.get(keys["t0-public"])!.store).toBe("local-cache");
+  expect(after.get(keys["t3-verbatim-nd-nc"])!.mirrors).toEqual(["github-release"]);
+  expect(after.get(keys["t4-private"])!.mirrors).toEqual([]);
   expect(after.get(keys["t4-private"])!.store).toBe("local-cache");
   for (const [key, published] of after) {
     const was = before.get(key)!;
-    expect({ ...published, store: was.store }).toEqual(was);
+    expect({ ...published, mirrors: was.mirrors }).toEqual(was);
   }
   // The URL is archiveAssetUrl's, derived from the key. No second scheme.
   const key = keys["t0-public"];
@@ -185,13 +189,13 @@ it("leaves the manifest alone under --no-mark, so a run beside a fetch does not 
   const summary = await publishObjects({ root, client: fake.client, mark: false });
   expect(summary.uploaded).toBe(4);
   expect(summary.marked).toBe(0);
-  expect(readManifest(root).get(keys["t0-public"])!.store).toBe("local-cache");
+  expect(readManifest(root).get(keys["t0-public"])!.mirrors).toEqual([]);
 
   // The later run uploads nothing and records what it finds.
   const marking = await publishObjects({ root, client: fake.client });
   expect(marking.uploaded).toBe(0);
   expect(marking.marked).toBe(4);
-  expect(readManifest(root).get(keys["t0-public"])!.store).toBe("github-release");
+  expect(readManifest(root).get(keys["t0-public"])!.mirrors).toEqual(["github-release"]);
 });
 
 it("creates and uploads nothing on a dry run, and counts what would go", async () => {

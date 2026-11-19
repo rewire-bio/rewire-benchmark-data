@@ -29,7 +29,7 @@
 import fs from "node:fs";
 import { execFileSync } from "node:child_process";
 import { archiveAssetName, archiveAssetUrl, hasObject, objectPath } from "./objects";
-import { readManifest, markStore } from "./manifest";
+import { readManifest, markMirror } from "./manifest";
 import { repository } from "../release/files";
 import { objectShard, visibilityOf, type ManifestRow } from "../../shared/archive/schema";
 
@@ -326,13 +326,14 @@ export async function publishObjects(
     return summary;
   }
 
-  // The manifest mark is the second step. store moves to github-release, which
-  // with archiveAssetUrl() is the whole record of where the bytes are; no
-  // second URL scheme and no new column.
+  // The manifest mark is the second step. A release asset is a second copy of
+  // bytes whose home is the bucket, so it is recorded as a mirror: with
+  // archiveAssetUrl() that is the whole record of where this copy is, and no
+  // reader is told the archive itself has moved onto a public tag.
   if (mark)
     for (const candidate of published) {
-      if (candidate.row.store === "github-release") continue;
-      if (await markStore(candidate.key, "github-release", root)) summary.marked += 1;
+      if (candidate.row.mirrors.includes("github-release")) continue;
+      if (await markMirror(candidate.key, "github-release", root)) summary.marked += 1;
     }
   return summary;
 }
