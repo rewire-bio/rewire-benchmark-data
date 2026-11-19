@@ -44,15 +44,20 @@ jobs:
           private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
           owner: rewire-bio
           repositories: rewire-benchmark-data
-      # The pull request's merge commit: the store with the batch added. Only what the review reads.
+      # The review code and prompt come from the default branch, never from the pull request under review.
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/pull/{0}/merge', inputs.pr) || '' }}
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: |
+            agents
+            scripts/agents
+      # The pull request's head, read as data only: the store with the batch added.
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ env.PR }}/head
+          path: pr
           sparse-checkout-cone-mode: false
           sparse-checkout: |
-            /agents/
-            /scripts/agents/
-            /tests/agents-reviewer-fixtures/
             /data/entities/
             /data/omics/intake-*/
       - uses: actions/setup-node@v4
@@ -68,7 +73,7 @@ jobs:
           APPROVER_TOKEN: ${{ secrets.REVIEWER_APPROVER_TOKEN }}
         run: |
           if ! [[ "$PR" =~ ^[0-9]+$ ]]; then echo "::error::A pull request number is required"; exit 1; fi
-          node scripts/agents/reviewer.mjs --pr "$PR" --mode "$MODE" --out reviewer-out
+          node scripts/agents/reviewer.mjs --pr "$PR" --mode "$MODE" --root pr --out reviewer-out
       - name: Keep the review and token usage
         if: always()
         uses: actions/upload-artifact@v4
