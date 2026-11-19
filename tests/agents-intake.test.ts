@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   KIND_FIELDS, SOURCE_FIELDS, buildBatch, doiOf, fetchableUrl, htmlTitle, main, publicationStatusOf, renderSkipComment,
-  screenEntities, verifiedValue, versionOf,
+  screenEntities, urlsInText, verifiedValue, versionOf, withSourceUrls,
 } from "../scripts/agents/intake.mjs";
 import { Usage } from "../scripts/agents/discovery.mjs";
 import { intakeProblems } from "../scripts/agents/intake-check";
@@ -185,6 +185,15 @@ describe("screening and verification", () => {
     expect(publicationStatusOf("https://huggingface.co/org/model")).toBe("official_project_source");
     expect(publicationStatusOf("https://doi.org/10.1/x")).toBe("");
     expect(htmlTitle("<html><head><title>\n A &amp; B \u2014 page </title>")).toBe("A & B, page");
+  });
+
+  it("falls back to the proposal's sources, then to the issue's URLs, when the draft cites none for an entity", () => {
+    const body = "README: https://github.com/a/b/blob/abc/README.md. Card: https://huggingface.co/A/m (gated). Post https://www.linkedin.com/posts/x and #1 https://github.com/a/b/issues/3";
+    expect(urlsInText(body)).toEqual(["https://github.com/a/b/blob/abc/README.md", "https://huggingface.co/A/m"]);
+    const [own, listed] = withSourceUrls([entity({ source_urls: ["https://example.org/own"] }), entity({ source_urls: [] })], { sources: [{ url: "https://example.org/listed" }] }, body);
+    expect(own.source_urls).toEqual(["https://example.org/own"]);
+    expect(listed.source_urls).toEqual(["https://example.org/listed"]);
+    expect(withSourceUrls([entity({ source_urls: [] })], { sources: [] }, body)[0].source_urls).toEqual(urlsInText(body));
   });
 
   it("fetches only public http(s) URLs and reads bare DOIs", () => {

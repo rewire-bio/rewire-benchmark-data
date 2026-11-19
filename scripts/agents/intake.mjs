@@ -134,6 +134,25 @@ export async function readSourceUrls(dir = join(ROOT, 'data/entities')) {
 
 // ---------- Planning: pure functions, tested without network ----------
 
+/** http(s) URLs in the issue body, minus social posts and links to GitHub issues or pull requests. */
+export function urlsInText(text) {
+  const urls = [...String(text ?? '').matchAll(/https?:\/\/[^\s<>()"'`]+/g)].map((m) => m[0].replace(/[.,;:]+$/, ''));
+  return unique(urls.filter((u) => fetchableUrl(u) && !/linkedin\.com|twitter\.com|x\.com\/|bsky\.app|github\.com\/[^/]+\/[^/]+\/(issues|pull)\//i.test(u)));
+}
+
+/**
+ * Give every entity the URLs to fetch for it: its own source_urls; if the draft gave none, every
+ * source the proposal lists; if it lists none, the primary-looking URLs in the issue body.
+ */
+export function withSourceUrls(entities, proposal, issueBody) {
+  const listed = unique((proposal.sources ?? []).map((s) => s.url).filter(fetchableUrl));
+  const fromIssue = urlsInText(issueBody);
+  return entities.map((e) => {
+    const own = unique((e.source_urls ?? []).filter(fetchableUrl));
+    return { ...e, source_urls: own.length ? own : listed.length ? listed : fromIssue };
+  });
+}
+
 /**
  * Drop proposed entities that are invalid or already in the store. Returns the entities to keep
  * and the reasons for the rest.
@@ -736,7 +755,7 @@ async function draftProposal(client, usage, { system, issue, runDate, log }) {
   });
   if (!research) return { error: 'the draft call was refused or did not finish' };
   const proposal = await structure(client, usage, {
-    instruction: 'Turn these draft notes into the schema. Use only facts in the notes; leave a string empty when the notes do not give it. decision is "skip" only when the notes say the request is out of scope. Keep URLs exactly as written. Each entity\'s source_urls must be URLs from the sources list.',
+    instruction: 'Turn these draft notes into the schema. Use only facts in the notes; leave a string empty when the notes do not give it. decision is "skip" only when the notes say the request is out of scope. Keep URLs exactly as written. Every entity must list in source_urls the primary source URLs that support it, copied from the sources list; never leave it empty when the notes name a source.',
     notes: research.text,
     schema: PROPOSAL_SCHEMA,
   });
@@ -891,6 +910,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       }
       proposal = drafted.proposal;
     }
+    state.proposal = proposal;
     if (proposal.decision === 'skip') {
       await finish('skipped: out of scope', renderSkipComment({ kind: 'out_of_scope', detail: proposal.skip_reason, runUrl, usage }));
       return result();
@@ -898,6 +918,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
 
     // 4. Screen against the store.
     const screened = screenEntities(proposal, { storeNames });
+    screened.keep = withSourceUrls(screened.keep, proposal, issue.body);
     state.dropped.push(...screened.dropped);
     if (!screened.keep.length) {
       const allDuplicates = screened.dropped.length && screened.dropped.every((d) => d.duplicate);
@@ -936,7 +957,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       state.sourceNotes.push(`${url}: \`${id}\`, SHA-256 ${fetched.sha256}, ${fetched.media_type || 'unknown type'}`);
     }
     if (![...sources.values()].some((s) => !s.error)) {
-      await finish('skipped: sources not openable', renderSkipComment({ kind: 'sources', detail: state.sourceNotes.join('; '), runUrl, usage }));
+      await finish('skipped: sources not openable', renderSkipComment({ kind: 'sources', detail: state.sourceNotes.join('; ') || 'Neither the draft nor the issue gave a source URL.', runUrl, usage }));
       return result();
     }
 
@@ -956,6 +977,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         return result();
       }
       verification = verified.verification;
+      state.verification = verification;
       reviewModel = verified.model;
       if (verification.unopened?.length) notes.push(`The verifier could not open: ${verification.unopened.map(clean).join('; ')}`);
     }
@@ -1062,6 +1084,8 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     if (args.out) {
       mkdirSync(args.out, { recursive: true });
       writeFileSync(join(args.out, 'result.json'), `${JSON.stringify({ outcome: state.outcome, entities: state.entities, dropped: state.dropped, sources: state.sourceNotes, pull: state.pull ?? null, comment: state.comment ?? null, prUrl: state.prUrl || null }, null, 2)}\n`);
+      if (state.proposal) writeFileSync(join(args.out, 'proposal.json'), `${JSON.stringify(state.proposal, null, 2)}\n`);
+      if (state.verification) writeFileSync(join(args.out, 'verification.json'), `${JSON.stringify(state.verification, null, 2)}\n`);
       writeFileSync(join(args.out, 'batch.jsonl'), state.records.map((r) => `${JSON.stringify(r)}\n`).join(''));
       writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total(), seconds: Math.round((Date.now() - started) / 1000) }, null, 2)}\n`);
     }
