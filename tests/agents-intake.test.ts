@@ -386,6 +386,19 @@ describe("live run with fakes", () => {
     expect(f.comments[0]).toContain("Batch cannot replace or duplicate record");
   });
 
+  it("drafts again when the draft proposes nothing for a reason other than scope, and never calls that out of scope", async () => {
+    const f = fakes();
+    const structured = [
+      { decision: "cannot_draft", skip_reason: "every fetch failed", entities: [], sources: [] },
+      { decision: "cannot_draft", skip_reason: "every fetch failed", entities: [], sources: [] },
+    ];
+    f.deps.anthropic.messages.create = async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify(structured.shift()) }], usage: { input_tokens: 1, output_tokens: 1 } });
+    const result = await main(["--issue", "9999", "--store-dir", `${FIXTURES}/entities`, "--root", tempRoot()], env, f.deps);
+    expect(result.outcome).toContain("the draft proposed no entity twice");
+    expect(f.comments[0]).toContain("a model call failed");
+    expect(f.comments[0]).not.toContain("out of scope");
+  });
+
   it("comments on the issue when the run throws", async () => {
     const f = fakes();
     f.deps.github.createPull = async () => {

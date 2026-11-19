@@ -647,7 +647,7 @@ export const PROPOSAL_SCHEMA = {
   additionalProperties: false,
   required: ['decision', 'skip_reason', 'entities', 'sources'],
   properties: {
-    decision: { type: 'string', enum: ['add', 'skip'] },
+    decision: { type: 'string', enum: ['add', 'out_of_scope', 'cannot_draft'], description: 'out_of_scope only when the notes say the request is out of scope; cannot_draft when the notes propose no entity for another reason' },
     skip_reason: STR,
     entities: {
       type: 'array',
@@ -826,12 +826,12 @@ async function draftProposal(client, usage, { system, issue, runDate, log }) {
       '</issue>',
       '',
       urls.length ? `Primary source URLs in the issue (cite sources by these exact URLs):\n${urls.map((u) => `- ${u}`).join('\n')}\n` : '',
-      'Write notes covering, for each entity: kind, name, aliases, a one-sentence description, areas, contexts, method types, version, access, licence, training data (models), task and scope (benchmarks), species and repository (datasets), limitations (benchmarks), and the primary source URLs that support it. List each primary source with its title, role, publication status and version. Say which pages failed to load. If the request is out of scope, say SKIP and why.',
+      'Write notes covering, for each entity: kind, name, aliases, a one-sentence description, areas, contexts, method types, version, access, licence, training data (models), task and scope (benchmarks), species and repository (datasets), limitations (benchmarks), and the primary source URLs that support it. List each primary source with its title, role, publication status and version. Say which pages failed to load. If a page fails to load or you run out of fetches, still propose the entities from the issue text; a separate verification pass opens the sources and checks every field. Only if the request is out of scope, say SKIP and why.',
     ].join('\n'),
   });
   if (!research) return { error: 'the draft call was refused or did not finish' };
   const proposal = await structure(client, usage, {
-    instruction: 'Turn these draft notes into the schema. Use only facts in the notes; leave a string empty when the notes do not give it. decision is "skip" only when the notes say the request is out of scope. Keep URLs exactly as written. Every entity must list in source_urls the full URLs of the primary sources that support it; never a title or label, and never empty when the notes name a source.',
+    instruction: 'Turn these draft notes into the schema. Use only facts in the notes; leave a string empty when the notes do not give it. decision is "out_of_scope" only when the notes say the request is out of scope; "cannot_draft" when they propose no entity for any other reason; otherwise "add". Keep URLs exactly as written. Every entity must list in source_urls the full URLs of the primary sources that support it; never a title or label, and never empty when the notes name a source.',
     notes: research.text,
     schema: proposalSchema(urls),
   });
@@ -981,7 +981,14 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     let proposal;
     if (args.dryRun) proposal = readJson(join(fixtures, 'proposal.json'));
     else {
-      const drafted = await draftProposal(client, usage, { system, issue, runDate, log });
+      let drafted = await draftProposal(client, usage, { system, issue, runDate, log });
+      // A draft that proposes nothing for a reason other than scope gets one more try.
+      const empty = (d) => !d.error && d.proposal.decision !== 'out_of_scope' && !(d.proposal.entities ?? []).length;
+      if (drafted.error || empty(drafted)) {
+        notes.push(`The first draft ${drafted.error ? `failed (${drafted.error})` : `proposed no entity (${clean(drafted.proposal.skip_reason) || 'no reason'})`}; drafted again.`);
+        drafted = await draftProposal(client, usage, { system, issue, runDate, log });
+      }
+      if (!drafted.error && empty(drafted)) drafted = { error: `the draft proposed no entity twice (${clean(drafted.proposal.skip_reason) || 'no reason given'})` };
       if (drafted.error) {
         await finish(`skipped: ${drafted.error}`, renderSkipComment({ kind: 'model', detail: drafted.error, runUrl, usage }));
         return result();
@@ -989,7 +996,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       proposal = drafted.proposal;
     }
     state.proposal = proposal;
-    if (proposal.decision === 'skip') {
+    if (proposal.decision === 'out_of_scope') {
       await finish('skipped: out of scope', renderSkipComment({ kind: 'out_of_scope', detail: proposal.skip_reason, runUrl, usage }));
       return result();
     }
