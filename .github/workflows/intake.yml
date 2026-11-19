@@ -1,0 +1,103 @@
+name: Intake agent
+# Turns an issue labelled entity-request into a pull request that adds its entity records (#255).
+# The prompt is agents/intake.md; setup and cost are in docs/agents.md. It never merges.
+#
+# Live runs push the branch and open the pull request as the rewire-bot GitHub App, so the pull
+# request's author is the bot and its CI runs. Without ANTHROPIC_API_KEY a run writes a notice
+# and passes.
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Issue number (ignored in dry-run, which reads tests/agents-intake-fixtures)
+        default: ""
+      mode:
+        description: "dry-run: fixtures, no model or GitHub calls. report-only: real run, prints the pull request it would open. live: opens it."
+        type: choice
+        options: [dry-run, report-only, live]
+        default: dry-run
+  pull_request:
+    paths:
+      - agents/intake.md
+      - scripts/agents/**
+      - tests/agents-intake*/**
+      - tests/agents-intake*
+      - .github/workflows/intake.yml
+permissions:
+  contents: read
+  issues: write
+# One run per issue at a time; pull request dry runs have their own group.
+concurrency:
+  group: intake-${{ github.event_name == 'pull_request' && github.ref || github.event.issue.number || inputs.issue || 'none' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+env:
+  NODE_OPTIONS: --max-old-space-size=8192
+jobs:
+  intake:
+    # Only the entity-request label starts a run from an issue.
+    if: github.event_name != 'issues' || github.event.label.name == 'entity-request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MODE: ${{ github.event_name == 'issues' && 'live' || github.event_name == 'pull_request' && 'dry-run' || inputs.mode }}
+      ISSUE: ${{ github.event.issue.number || inputs.issue }}
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      # The bot token pushes the branch and opens the pull request, so its CI runs. Live only.
+      - name: Token for the rewire-bot app
+        id: app
+        if: env.MODE == 'live' && env.HAS_KEY == 'true'
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REWIRE_BOT_APP_ID }}
+          private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
+          owner: rewire-bio
+          repositories: rewire-benchmark-data
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app.outputs.token || github.token }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      # records -- add validates the batch against the SHACL shapes with uv.
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --no-audit --no-fund
+      - name: Install the Anthropic SDK
+        if: env.MODE != 'dry-run' && env.HAS_KEY == 'true'
+        run: npm ci --prefix scripts/agents --no-audit --no-fund
+      - name: Commit as the bot
+        if: steps.app.outputs.token != ''
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          SLUG: ${{ steps.app.outputs.app-slug }}
+        run: |
+          id=$(gh api "/users/${SLUG}%5Bbot%5D" --jq .id)
+          git config user.name "${SLUG}[bot]"
+          git config user.email "${id}+${SLUG}[bot]@users.noreply.github.com"
+      - name: Run the intake
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          case "$MODE" in
+            dry-run) args="--dry-run" ;;
+            report-only) args="--report-only --issue $ISSUE" ;;
+            live) args="--issue $ISSUE" ;;
+            *) echo "::error::Unknown mode $MODE"; exit 1 ;;
+          esac
+          if [ "$MODE" != dry-run ] && ! [[ "$ISSUE" =~ ^[0-9]+$ ]]; then
+            echo "::error::An issue number is required in $MODE mode"; exit 1
+          fi
+          node scripts/agents/intake.mjs $args --out intake-out
+      - name: Keep the result and token usage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intake-${{ github.run_id }}
+          path: intake-out
+          if-no-files-found: ignore
+          retention-days: 30
