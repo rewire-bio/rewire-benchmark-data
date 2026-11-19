@@ -38,7 +38,8 @@ Decide the level from what the sources show, not from the name. For example, a r
 
 - `description`: one sentence saying what the resource does or holds. It must match the sources and must not overstate them.
 - `areas`: the biology areas the resource is about.
-- `version`, `access`, `licence`, `training_data`, `task`, `scope_note`, `species`, `repository`, `limitations`: as the sources state them. A manuscript licence (CC BY) is not a code or weights licence. A gated download is not open access.
+- `version`: the version of the resource itself. A preprint's version is the paper's version, not the model's.
+- `access`, `licence`, `training_data`, `task`, `scope_note`, `species`, `repository`, `limitations`: as the sources state them. A manuscript licence (CC BY) is not a code or weights licence. A gated download is not open access.
 - `name`: the name the primary source uses.
 
 Do not judge anything beyond the records: not whether the resource is good, not results or rankings.
