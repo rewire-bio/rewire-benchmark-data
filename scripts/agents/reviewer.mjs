@@ -12,10 +12,11 @@
 //   report-only  real review; prints it to the job summary and posts nothing.
 //   comment      posts the review as a comment review (the default). Never approves or merges.
 //   approve      when every field passes and every other check on the head commit is green,
-//                approves with APPROVER_TOKEN and enables auto-merge; otherwise requests changes.
+//                approves with APPROVER_TOKEN and enables auto-merge with the same token;
+//                otherwise requests changes.
 //
 // Environment: ANTHROPIC_API_KEY, GH_TOKEN (rewire-bot: reads the pull request, posts the review,
-// enables auto-merge), APPROVER_TOKEN (approve mode only: an identity other than the pull request
+// unless approving), APPROVER_TOKEN (approve mode only: the rewire-reviewer app, an identity other than the pull request
 // author, because GitHub refuses an approval from the author), GITHUB_REPOSITORY,
 // GITHUB_STEP_SUMMARY, GITHUB_RUN_ID.
 
@@ -517,13 +518,13 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       return result();
     }
     if (!env.APPROVER_TOKEN) {
-      await postReview(gh, repo, pull, `${state.body}\n\nEvery field and every check passes, but no APPROVER_TOKEN is set, and GitHub does not let the pull request author approve it. Not approved.`, 'COMMENT', notes);
+      await postReview(gh, repo, pull, `${state.body}\n\nEvery field and every check passes, but no approver token was made (the rewire-reviewer app: REVIEWER_APP_ID and REVIEWER_APP_PRIVATE_KEY), and GitHub does not let the pull request author approve it. Not approved.`, 'COMMENT', notes);
       state.outcome = 'not approved: no approver token';
       return result();
     }
     const approver = deps.approver ?? githubClient(env.APPROVER_TOKEN);
     await approver.review(repo, pull.number, { body: state.body, event: 'APPROVE', commit_id: pull.head_sha });
-    const run = deps.run ?? ((cmd, a) => runCommand(cmd, a, { cwd: args.root, env: { ...process.env, GH_TOKEN: env.GH_TOKEN } }));
+    const run = deps.run ?? ((cmd, a) => runCommand(cmd, a, { cwd: args.root, env: { ...process.env, GH_TOKEN: env.APPROVER_TOKEN } }));
     const merged = run('gh', ['pr', 'merge', String(pull.number), '--auto', '--merge', '--repo', repo]);
     if (!merged.ok) {
       notes.push(`Approved, but enabling auto-merge failed: ${clean(merged.output).slice(0, 300)}`);
