@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  KIND_FIELDS, SOURCE_FIELDS, buildBatch, doiOf, fetchableUrl, htmlTitle, main, publicationStatusOf, renderSkipComment,
+  KIND_FIELDS, SOURCE_FIELDS, buildBatch, doiOf, fetchSource, fetchableUrl, htmlTitle, isChallengePage, main, publicationStatusOf, renderSkipComment,
   screenEntities, urlsInText, verifiedValue, versionOf, withSourceUrls,
 } from "../scripts/agents/intake.mjs";
 import { Usage } from "../scripts/agents/discovery.mjs";
@@ -194,6 +194,22 @@ describe("screening and verification", () => {
     expect(own.source_urls).toEqual(["https://example.org/own"]);
     expect(listed.source_urls).toEqual(["https://example.org/listed"]);
     expect(withSourceUrls([entity({ source_urls: [] })], { sources: [] }, body)[0].source_urls).toEqual(urlsInText(body));
+  });
+
+  it("resolves short source references to the full URLs that contain them", () => {
+    const body = "README https://github.com/mulinlab/hEVO/blob/eac1314/README.md and https://pmc.ncbi.nlm.nih.gov/articles/PMC13738607/ and https://huggingface.co/MulinLab/hEVO-base-o";
+    const proposal = { sources: [{ url: "github.com/mulinlab/hEVO" }, { url: "PMC13738607" }] };
+    const [a, b] = withSourceUrls([entity({ source_urls: ["MulinLab/hEVO-base-o"] }), entity({ source_urls: ["PMC13738607"] })], proposal, body);
+    expect(a.source_urls).toEqual(["https://huggingface.co/MulinLab/hEVO-base-o"]);
+    expect(b.source_urls).toEqual(["https://pmc.ncbi.nlm.nih.gov/articles/PMC13738607/"]);
+  });
+
+  it("refuses a bot check page served with HTTP 200", async () => {
+    expect(isChallengePage("Checking your browser - reCAPTCHA", "")).toBe(true);
+    expect(isChallengePage("hEVO: a DNA model", "<p>Results</p>")).toBe(false);
+    expect(isChallengePage("Model card", "<p>Without approval the download returns access denied.</p><div class=g-recaptcha></div>")).toBe(false);
+    const fetchImpl = (async () => new Response("<html><title>Just a moment...</title></html>", { status: 200, headers: { "content-type": "text/html" } })) as unknown as typeof fetch;
+    expect((await fetchSource("https://pmc.ncbi.nlm.nih.gov/articles/PMC1/", { fetchImpl })).error).toContain("bot check page");
   });
 
   it("fetches only public http(s) URLs and reads bare DOIs", () => {

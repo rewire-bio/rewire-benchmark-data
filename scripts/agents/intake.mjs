@@ -145,10 +145,17 @@ export function urlsInText(text) {
  * source the proposal lists; if it lists none, the primary-looking URLs in the issue body.
  */
 export function withSourceUrls(entities, proposal, issueBody) {
-  const listed = unique((proposal.sources ?? []).map((s) => s.url).filter(fetchableUrl));
   const fromIssue = urlsInText(issueBody);
+  // A short reference such as "github.com/org/repo" or "PMC123" resolves to the full URLs that contain it.
+  const known = unique([...(proposal.sources ?? []).map((s) => s.url).filter(fetchableUrl), ...fromIssue]);
+  const resolveRef = (ref) => {
+    if (fetchableUrl(ref)) return [ref];
+    const needle = String(ref ?? '').toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    return needle.length >= 4 ? known.filter((u) => u.toLowerCase().includes(needle)) : [];
+  };
+  const listed = unique((proposal.sources ?? []).flatMap((s) => resolveRef(s.url)));
   return entities.map((e) => {
-    const own = unique((e.source_urls ?? []).filter(fetchableUrl));
+    const own = unique((e.source_urls ?? []).flatMap(resolveRef));
     return { ...e, source_urls: own.length ? own : listed.length ? listed : fromIssue };
   });
 }
@@ -559,6 +566,13 @@ export function githubClient(token, fetchImpl = fetch) {
 
 // ---------- Source fetching (the script, not the model) ----------
 
+/** A bot check or access wall served with HTTP 200 instead of the page. */
+export function isChallengePage(title, head) {
+  // The title decides most cases; the body only on markers a real page does not carry.
+  if (/checking your browser|just a moment|attention required|verify you are human|are you a robot|recaptcha|hcaptcha|access denied|security check/i.test(String(title ?? ''))) return true;
+  return /checking your browser|verify you are human|cf-chl-|enable javascript and cookies to continue/i.test(String(head ?? '').slice(0, 20000));
+}
+
 export async function fetchSource(url, { fetchImpl = fetch, now = () => new Date() } = {}) {
   if (!fetchableUrl(url)) return { error: 'not a public http(s) URL' };
   try {
@@ -568,11 +582,14 @@ export async function fetchSource(url, { fetchImpl = fetch, now = () => new Date
     if (!bytes.length) return { error: 'empty response' };
     if (bytes.length > LIMITS.maxSourceBytes) return { error: `over ${LIMITS.maxSourceBytes} bytes` };
     const mediaType = (res.headers.get('content-type') ?? '').split(';')[0].trim();
+    const head = mediaType.includes('html') ? bytes.subarray(0, 200000).toString('utf8') : '';
+    const title = head ? htmlTitle(head) : '';
+    if (head && isChallengePage(title, head)) return { error: `bot check page instead of the source${title ? ` ("${title}")` : ''}` };
     return {
       sha256: sha256(bytes),
       bytes: bytes.length,
       media_type: mediaType,
-      title: mediaType.includes('html') ? htmlTitle(bytes.subarray(0, 200000).toString('utf8')) : '',
+      title,
       retrieved_at: nowIso(now()),
     };
   } catch (e) {
