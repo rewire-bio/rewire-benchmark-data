@@ -185,11 +185,9 @@ export function screenEntities(proposal, { storeNames }) {
       dropped.push({ name: name || '(no name)', reason: `not a model, method, benchmark or dataset (${e.kind || 'no kind'})` });
       continue;
     }
+    // An entity the draft gave no area is kept: the verifier can supply its areas as a
+    // correction, and buildBatch drops it if no area is confirmed.
     const areas = (e.areas ?? []).filter((a) => AREAS.includes(a));
-    if (!areas.length) {
-      dropped.push({ name, reason: 'no biology area from the vocabulary, so the depth tier cannot be set' });
-      continue;
-    }
     const names = unique([e.name, ...(e.aliases ?? [])].map(normalise).filter((n) => n.length >= 3));
     const hit = names.find((n) => storeNames.has(n));
     if (hit) {
@@ -858,6 +856,7 @@ async function verifyProposal(client, usage, { system, entities, sourceUrls, run
       'Proposed entities (JSON):',
       JSON.stringify(shown, null, 2),
       '',
+      'If an entity has no areas, give its areas as a correction (comma-separated) from the sources.',
       'A description must tell the resource apart from the related ones in this list (size, variant, training data), because the store refuses two models or methods with the same description.',
       'For each entity write its key exactly as given, then keep or drop and why; then the cited sources that are not about this exact entity, and any source in the list above that is about it but not cited; then each field with supported, corrected (give the value) or unsupported, and the source URL and location that decides it. For areas, a correction is a comma-separated list of valid areas. For limitations, check each item on its own: if any item is not stated in a source, the verdict is corrected and the value lists only the stated items, one per line; if none is stated, unsupported. Treat description the same way: a clause no source states makes it corrected or unsupported. List any source that failed to load.',
     ].join('\n'),
