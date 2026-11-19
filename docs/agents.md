@@ -133,3 +133,42 @@ Prices are the same as for discovery (above). A typical issue should cost about 
 - Source bytes are hashed, not stored. `npm run archive -- fetch` is a whole-store pass and runs separately.
 - No relationship links (for example a method to the models it uses); a reviewer adds them.
 - The verification runs in the same job as the draft. It is a second model, not an independent review; the reviewer agent (#256) is meant to provide that.
+
+## Reviewer agent
+
+`.github/workflows/reviewer.yml` runs `scripts/agents/reviewer.mjs` on every pull request the rewire-bot app opens or updates (#256). It reviews intake pull requests independently of the intake agent: its own prompt ([agents/reviewer.md](../agents/reviewer.md)), and Sonnet 5.5 opens the primary sources again itself.
+
+What it does:
+
+1. It reads the `data/omics/*/batch.jsonl` files the pull request adds, from the pull request's merge commit.
+2. The script checks what is mechanical:
+   - each `depth_tier` against the rule in [tiers.md](tiers.md);
+   - `entity_level` against the levels the release accepts;
+   - names against the store (without the records under review) and against each other;
+   - that every cited source is in the pull request or the store;
+   - only entity kinds.
+3. It fetches every new source again and compares the SHA-256 with the recorded one. A changed hash is reported, not failed, because many pages are generated per request.
+4. Sonnet 5.5 opens the sources and gives every field of every record a verdict: `pass` with the location, `fail` with the problem, or `unverifiable`. It checks source attribution: a page about a sibling model, size or variant does not support a record. It also checks `entity_level` against the vocabulary definitions. Haiku 5.5 only turns the notes into the fixed shape.
+5. It posts one review: the problems, then a table per record (field, value, source, verdict, evidence). The verdict is `approve` only when every field passes. A field the model did not return counts as unverifiable.
+
+### Modes
+
+| Mode | Model calls | Posts | Approves or merges |
+| --- | --- | --- | --- |
+| `dry-run` | No | No | No. Runs on every other pull request, on `tests/agents-reviewer-fixtures/` (the batch of the first intake pull request for #250). |
+| `report-only` | Yes | No | No. By hand; the review is in the job summary and the artifact. |
+| `comment` | Yes | A comment review | No. The default for bot pull requests. |
+| `approve` | Yes | Approval, or changes requested | When every field passes and every other check on the head commit is green (it waits up to 25 minutes), it approves and runs `gh pr merge --auto --merge`. |
+
+The mode for bot pull requests is the repository variable `REVIEWER_MODE` (unset means `comment`).
+
+### Before switching to approve
+
+- GitHub does not let the author of a pull request approve it, and intake pull requests are authored by rewire-bot. Approve mode approves with the secret `REVIEWER_APPROVER_TOKEN`, which must belong to another identity: a second GitHub App, or a fine-grained token of a machine user with pull requests write. Without it the review is posted as a comment and nothing merges.
+- Auto-merge is off for this repository (`allow_auto_merge` is false), so `gh pr merge --auto` fails until it is turned on in the repository settings.
+- `main` has no branch protection and no required checks. With auto-merge on and nothing required, GitHub would merge as soon as the approval lands. The reviewer itself waits for every other check to pass first, but required checks on `main` (the `checks` jobs) are the safer guard.
+- For the same reason, a bot pull request cannot get a "request changes" review from its own app. The reviewer posts those as a comment review that says the verdict.
+
+### Limits and cost
+
+One Sonnet call per review with up to 1 web search and 2 web fetches plus one per distinct source URL (at most 10), 16,000 output tokens, 2 `pause_turn` resumes, effort `high`. No structuring call once the estimated cost passes $1.50. The job summary and `usage.json` in the artifact give each review's tokens and cost.
