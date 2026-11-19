@@ -140,7 +140,7 @@ Prices are the same as for discovery (above). A typical issue should cost about 
 
 What it does:
 
-1. It reads the `data/omics/*/batch.jsonl` files the pull request adds, from the pull request's merge commit.
+1. It reads the `data/omics/*/batch.jsonl` files the pull request adds, and the store, from the pull request's head. The review code and prompt always come from `main`, so a pull request cannot change how it is reviewed.
 2. The script checks what is mechanical:
    - each `depth_tier` against the rule in [tiers.md](tiers.md);
    - `entity_level` against the levels the release accepts;
