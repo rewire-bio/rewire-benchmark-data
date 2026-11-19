@@ -148,7 +148,7 @@ describe("posting, with fakes", () => {
     const f = fakes({ review: allPass, checks: [{ name: "checks (tests-1)", status: "completed", conclusion: "failure" }] });
     const r = await main(["--pr", "296", "--mode", "approve", "--root", await rootWithBatch()], { ...env, APPROVER_TOKEN: "t" }, f.deps);
     expect(r.outcome).toBe("not approved: CI red");
-    expect(f.posted.map((p) => p.event)).toEqual(["COMMENT"]); // the bot cannot request changes on its own pull request
+    expect(f.posted).toEqual([expect.objectContaining({ event: "REQUEST_CHANGES", by: "approver" })]);
     expect(f.commands).toEqual([]);
   });
 
@@ -156,7 +156,7 @@ describe("posting, with fakes", () => {
     const f = fakes();
     const r = await main(["--pr", "296", "--mode", "approve", "--root", await rootWithBatch()], { ...env, APPROVER_TOKEN: "t" }, f.deps);
     expect(r.outcome).toBe("requested changes");
-    expect(f.posted.every((p) => p.event !== "APPROVE")).toBe(true);
+    expect(f.posted).toEqual([expect.objectContaining({ event: "REQUEST_CHANGES", by: "approver" })]);
     expect(f.commands).toEqual([]);
   });
 
