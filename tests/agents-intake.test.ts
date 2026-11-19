@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  KIND_FIELDS, SOURCE_FIELDS, buildBatch, doiOf, fetchSource, fetchableUrl, htmlTitle, isChallengePage, main, publicationStatusOf, renderSkipComment,
+  KIND_FIELDS, SOURCE_FIELDS, buildBatch, doiOf, fetchSource, pageText, sourceBlocks, fetchableUrl, htmlTitle, isChallengePage, main, publicationStatusOf, renderSkipComment,
   proposalSchema, screenEntities, urlsInText, verifiedValue, versionOf, withSourceUrls,
 } from "../scripts/agents/intake.mjs";
 import { Usage } from "../scripts/agents/discovery.mjs";
@@ -281,6 +281,17 @@ describe("screening and verification", () => {
     expect(schema.properties.entities.items.properties.source_urls.items.enum).toEqual(urls);
     expect(schema.properties.sources.items.properties.url.enum).toEqual(urls);
     expect(proposalSchema([]).properties.sources.items.properties.url).toEqual({ type: "string" });
+  });
+
+  it("gives the verifier the text of the bytes the script hashed", async () => {
+    const html = '<html><head><title>T</title><style>.x{}</style></head><body><nav>menu</nav><article><h1>hEVO</h1><p>Base checkpoint &amp; 87.1M</p><script>x()</script></article></body></html>';
+    expect(pageText(html, "text/html")).toBe("hEVO\nBase checkpoint & 87.1M");
+    expect(pageText('{"gated":"manual"}', "application/json")).toBe('{"gated":"manual"}');
+    expect(pageText("%PDF-1.7", "application/pdf")).toBe("");
+    expect(pageText("x".repeat(50), "text/plain", 10)).toBe("xxxxxxxxxx\n[truncated at 10 characters]");
+    const fetchImpl = (async () => new Response(html, { status: 200, headers: { "content-type": "text/html" } })) as unknown as typeof fetch;
+    expect((await fetchSource("https://github.com/a/b", { fetchImpl })).text).toContain("Base checkpoint");
+    expect(sourceBlocks([{ url: "https://a.org", text: "t" }, { url: "https://b.org", text: "" }])).toBe('<source url="https://a.org">\nt\n</source>');
   });
 
   it("refuses a bot check page served with HTTP 200", async () => {
