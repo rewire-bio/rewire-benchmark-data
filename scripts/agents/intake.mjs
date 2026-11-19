@@ -654,6 +654,20 @@ export const PROPOSAL_SCHEMA = {
   },
 };
 
+/**
+ * The proposal schema for one issue. When the issue names URLs, every source URL the draft gives
+ * must be one of them, exactly: structured output then cannot write a label such as
+ * "hEvo GitHub README @ <commit>" where a URL belongs.
+ */
+export function proposalSchema(urls = []) {
+  const schema = JSON.parse(JSON.stringify(PROPOSAL_SCHEMA));
+  if (!urls.length) return schema;
+  const url = { type: 'string', enum: urls };
+  schema.properties.entities.items.properties.source_urls = { type: 'array', items: url };
+  schema.properties.sources.items.properties.url = url;
+  return schema;
+}
+
 export const VERIFIED_FIELDS = ['description', 'areas', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations'];
 
 export const VERIFICATION_SCHEMA = {
@@ -749,6 +763,7 @@ function errorText(e) {
 }
 
 async function draftProposal(client, usage, { system, issue, runDate, log }) {
+  const urls = urlsInText(issue.body);
   const research = await researchTurn(client, usage, {
     model: MODELS.draft,
     system,
@@ -767,14 +782,15 @@ async function draftProposal(client, usage, { system, issue, runDate, log }) {
       issue.body,
       '</issue>',
       '',
+      urls.length ? `Primary source URLs in the issue (cite sources by these exact URLs):\n${urls.map((u) => `- ${u}`).join('\n')}\n` : '',
       'Write notes covering, for each entity: kind, name, aliases, a one-sentence description, areas, contexts, method types, version, access, licence, training data (models), task and scope (benchmarks), species and repository (datasets), limitations (benchmarks), and the primary source URLs that support it. List each primary source with its title, role, publication status and version. Say which pages failed to load. If the request is out of scope, say SKIP and why.',
     ].join('\n'),
   });
   if (!research) return { error: 'the draft call was refused or did not finish' };
   const proposal = await structure(client, usage, {
-    instruction: 'Turn these draft notes into the schema. Use only facts in the notes; leave a string empty when the notes do not give it. decision is "skip" only when the notes say the request is out of scope. Keep URLs exactly as written. Every entity must list in source_urls the primary source URLs that support it, copied from the sources list; never leave it empty when the notes name a source.',
+    instruction: 'Turn these draft notes into the schema. Use only facts in the notes; leave a string empty when the notes do not give it. decision is "skip" only when the notes say the request is out of scope. Keep URLs exactly as written. Every entity must list in source_urls the full URLs of the primary sources that support it; never a title or label, and never empty when the notes name a source.',
     notes: research.text,
-    schema: PROPOSAL_SCHEMA,
+    schema: proposalSchema(urls),
   });
   return proposal ? { proposal } : { error: 'could not structure the draft notes' };
 }

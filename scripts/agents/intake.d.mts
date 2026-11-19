@@ -11,6 +11,7 @@ export const PUBLICATION_STATUSES: string[];
 export const KIND_FIELDS: Record<string, { text: string[]; tier: boolean; provenance: boolean; limitations?: boolean; repository?: boolean }>;
 export const SOURCE_FIELDS: string[];
 export const PROPOSAL_SCHEMA: Record<string, any>;
+export function proposalSchema(urls?: string[]): Record<string, any>;
 export const VERIFIED_FIELDS: string[];
 export const VERIFICATION_SCHEMA: Record<string, any>;
 export type Entity = Record<string, any>;
