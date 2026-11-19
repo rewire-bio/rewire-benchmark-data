@@ -859,7 +859,7 @@ async function verifyProposal(client, usage, { system, entities, sourceUrls, run
       JSON.stringify(shown, null, 2),
       '',
       'A description must tell the resource apart from the related ones in this list (size, variant, training data), because the store refuses two models or methods with the same description.',
-      'For each entity write its key exactly as given, then keep or drop and why; then the cited sources that are not about this exact entity, and any source in the list above that is about it but not cited; then each field with supported, corrected (give the value) or unsupported, and the source URL and location that decides it. For areas, a correction is a comma-separated list of valid areas. For limitations, one per line. List any source that failed to load.',
+      'For each entity write its key exactly as given, then keep or drop and why; then the cited sources that are not about this exact entity, and any source in the list above that is about it but not cited; then each field with supported, corrected (give the value) or unsupported, and the source URL and location that decides it. For areas, a correction is a comma-separated list of valid areas. For limitations, check each item on its own: if any item is not stated in a source, the verdict is corrected and the value lists only the stated items, one per line; if none is stated, unsupported. Treat description the same way: a clause no source states makes it corrected or unsupported. List any source that failed to load.',
     ].join('\n'),
   });
   if (!research) return { error: 'the verification call was refused or did not finish' };
