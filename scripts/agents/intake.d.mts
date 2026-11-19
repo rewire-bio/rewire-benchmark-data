@@ -38,5 +38,6 @@ export function renderSkipComment(input: { kind: string; detail?: string; droppe
 export function renderFailureComment(input: { step: string; output: string; runUrl?: string; usage: Usage }): string;
 export function renderSummary(input: any): string;
 export function githubClient(token: string, fetchImpl?: typeof fetch): any;
+export function isChallengePage(title: string, head: string): boolean;
 export function fetchSource(url: string, opts?: { fetchImpl?: typeof fetch; now?: () => Date }): Promise<Record<string, any>>;
 export function main(argv?: string[], env?: Record<string, string | undefined>, deps?: Record<string, any>): Promise<any>;
