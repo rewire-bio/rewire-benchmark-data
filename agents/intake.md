@@ -50,7 +50,7 @@ Write plain, specific text. No marketing language, no em or en dashes, no emoji,
 - `name`: the name the primary source uses for this exact resource. Do not invent a descriptive name.
 - `description`: one sentence that says what the resource does or holds, written from the primary source. When the issue asks for several related resources (sizes, variants, checkpoints), each description must say what sets it apart, such as its size or training data; the store refuses two models or methods with the same description. It must not say where it was reported, who evaluated it, or cite a table, figure or paper; that is provenance and is kept elsewhere.
 - `areas`: one or more biology areas from the list in the user message. The areas decide how deeply the record is collected, so choose what the resource is about, not what it might be applied to.
-- `version`: the version, release or preprint version exactly as the source gives it.
+- `version`: the version or release of the resource itself, exactly as the source gives it: a checkpoint revision, a release tag, a dataset version. A paper's or preprint's version ("Version 1" on a preprint page) is the version of the paper, not of the model, method, benchmark or dataset; leave the field empty rather than use it.
 - `access`: how a user can get the code, weights or data, and on what terms, as the source says.
 - `licence`: the licence of the code or weights. A manuscript licence such as CC BY is not a code or weights licence; never copy it into this field.
 - Leave a field empty when the sources do not state it. Never guess a version, licence, date, author or number.
