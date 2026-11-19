@@ -3,16 +3,36 @@
  *   - normalizeAttributes would rewrite it (check C13 in scripts/omics/checks, which CI ratchets
  *     at zero), for example a review carrying `date` beside `reviewed_at`;
  *   - its depth tier differs from the rule in docs/tiers.md;
- *   - it is an evaluation, result or claim (intake adds entities only until #274).
+ *   - it is an evaluation, result or claim (intake adds entities only until #274);
+ *   - the release would refuse it (validateSnapshot, the check tests/release-validation.test.ts
+ *     runs on the whole store), for example a model without entity_level.
  * Usage: npx tsx scripts/agents/intake-check.ts <batch.jsonl> */
 import fs from "node:fs";
 import { attributeIssues, normalizeAttributes } from "../../shared/omics/attributes";
 import { deriveTier, tierKinds } from "../../shared/omics/depth-tier";
+import { validateSnapshot } from "../../shared/omics/validation";
+import { ZodError } from "zod";
 
 type Rec = { id: string; kind: string; links: { relation: string; target_id: string }[]; facets: { areas?: string[] }; attributes: Record<string, unknown> };
 
-export function intakeProblems(records: Rec[]): string[] {
-  const problems: string[] = [];
+/** What the release's snapshot validation says about the batch. `storedSources` are the stored
+ * source records the batch cites but does not add. */
+export function releaseProblems(records: Rec[], storedSources: Rec[] = []): string[] {
+  const cited = new Set(records.flatMap((r) => (r as unknown as { source_ids: string[] }).source_ids ?? []));
+  const own = new Set(records.map((r) => r.id));
+  const visible = [...records, ...storedSources.filter((s) => cited.has(s.id) && !own.has(s.id))];
+  try {
+    validateSnapshot({ schema_version: "1.1", release_id: "2026-01-01-000000000000", released_at: "2026-01-01T00:00:00Z", records: visible, coverage: {} });
+    return [];
+  } catch (error) {
+    if (error instanceof ZodError)
+      return [...new Set(error.issues.map((i) => `${visible[Number(i.path[1])]?.id ?? i.path.join(".")}: release validation: ${i.message}`))];
+    return [`release validation: ${(error as Error).message}`];
+  }
+}
+
+export function intakeProblems(records: Rec[], storedSources: Rec[] = []): string[] {
+  const problems: string[] = [...releaseProblems(records, storedSources)];
   const after = normalizeAttributes(records);
   records.forEach((record, i) => {
     if (!["model", "method", "benchmark", "dataset", "source"].includes(record.kind))
@@ -37,7 +57,11 @@ if (process.argv[1]?.endsWith("intake-check.ts")) {
     process.exit(1);
   }
   const records = fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as Rec);
-  const problems = intakeProblems(records);
+  const sourcesFile = "data/entities/sources.jsonl";
+  const stored = fs.existsSync(sourcesFile)
+    ? fs.readFileSync(sourcesFile, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as Rec)
+    : [];
+  const problems = intakeProblems(records, stored);
   for (const p of problems) console.error(p);
   console.log(problems.length ? `${problems.length} problems in ${records.length} records.` : `${records.length} records pass the intake checks.`);
   process.exit(problems.length ? 1 : 0);

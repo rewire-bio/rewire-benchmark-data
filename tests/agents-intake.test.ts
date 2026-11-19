@@ -68,6 +68,10 @@ describe("dry run", () => {
     const written = readFileSync(join(root, result.batchDir, "batch.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
     expect(written.map((r) => r.kind).sort()).toEqual(["dataset", "model", "source", "source"]);
     expect(intakeProblems(written)).toEqual([]);
+    // The release refuses a model without entity_level; the intake check says so before records add.
+    const bare = written.map((r) => (r.kind === "model" ? { ...r, attributes: { ...r.attributes, entity_level: undefined } } : r))
+      .map((r) => JSON.parse(JSON.stringify(r)));
+    expect(intakeProblems(bare).some((p: string) => p.includes("Model needs explicit entity_level"))).toBe(true);
   });
 
   it("keeps only confirmed fields and records the rest as missing", async () => {
@@ -77,6 +81,7 @@ describe("dry run", () => {
     expect(model.attributes.licence).toBeUndefined(); // unsupported
     expect(model.attributes.missing_metadata).toEqual({ licence: { reason: "unextracted", note: expect.stringContaining("Not confirmed") } });
     expect(model.attributes.depth_tier).toBe(1);
+    expect(model.attributes.entity_level).toBe("checkpoint");
     expect(model.status).toBe("discovered");
     expect(model.links).toEqual([]);
     const dataset = result.records.find((r: { kind: string }) => r.kind === "dataset");
@@ -202,6 +207,28 @@ describe("screening and verification", () => {
     const [a, b] = withSourceUrls([entity({ source_urls: ["MulinLab/hEVO-base-o"] }), entity({ source_urls: ["PMC13738607"] })], proposal, body);
     expect(a.source_urls).toEqual(["https://huggingface.co/MulinLab/hEVO-base-o"]);
     expect(b.source_urls).toEqual(["https://pmc.ncbi.nlm.nih.gov/articles/PMC13738607/"]);
+  });
+
+  it("gives models and benchmarks the entity_level the release requires, with a default when none is valid", () => {
+    const sources = new Map([["https://example.org/a", { id: "s1" }]]);
+    const fields = [{ field: "description", verdict: "supported", value: "", locator: "Abstract" }, { field: "areas", verdict: "supported", value: "", locator: "Abstract" }];
+    const built = buildBatch({
+      entities: [
+        entity({ key: "e1", description: "Does things.", entity_level: "suite", source_urls: ["https://example.org/a"] }),
+        entity({ key: "e2", kind: "benchmark", name: "New bench", description: "Scores things.", entity_level: "", source_urls: ["https://example.org/a"] }),
+        entity({ key: "e3", kind: "method", name: "New method", description: "Ranks things.", entity_level: "family", source_urls: ["https://example.org/a"] }),
+      ],
+      verification: { entities: [
+        { key: "e1", name: "New model", keep: true, reason: "", fields },
+        { key: "e2", name: "New bench", keep: true, reason: "", fields: [...fields, { field: "entity_level", verdict: "corrected", value: "challenge", locator: "p1" }] },
+        { key: "e3", name: "New method", keep: true, reason: "", fields: [...fields, { field: "entity_level", verdict: "unsupported", value: "", locator: "" }] },
+      ] },
+      sources, batch: "b", issue: 1, runDate: "2026-11-19", reviewedAt: "2026-11-19T00:00:00Z", reviewModel: "claude-sonnet-5-5", runUrl: "",
+    });
+    const level = (kind: string) => built.records.find((r: { kind: string }) => r.kind === kind).attributes.entity_level;
+    expect(level("model")).toBe("family"); // "suite" is not a model level
+    expect(level("benchmark")).toBe("challenge");
+    expect(level("method")).toBe("method"); // the verifier rejected "family"
   });
 
   it("restricts the draft's source URLs to the URLs in the issue", () => {

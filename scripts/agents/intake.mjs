@@ -71,6 +71,16 @@ export const KIND_FIELDS = {
   benchmark: { text: ['version', 'task', 'scope_note'], tier: true, provenance: false, limitations: true },
   dataset: { text: ['version', 'access', 'species', 'scope_note'], tier: false, provenance: false, repository: true },
 };
+/**
+ * entity_level per kind. The release schema (shared/omics/validation.ts) requires one on every
+ * model (family, checkpoint or service) and makes a benchmark a suite or a challenge. The default
+ * applies when neither the draft nor the verifier gives a valid level.
+ */
+export const ENTITY_LEVELS = {
+  model: { allowed: ['family', 'checkpoint', 'service'], default: 'family' },
+  method: { allowed: ['method', 'family'], default: 'method' },
+  benchmark: { allowed: ['suite', 'challenge'], default: 'suite' },
+};
 export const SOURCE_FIELDS = ['url', 'version', 'retrieved_at', 'artifact_sha256', 'media_type', 'publication_status', 'doi'];
 
 // ---------- Small helpers ----------
@@ -273,6 +283,13 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
     const missingMeta = {};
     const locators = [`description: ${description.locator}`];
     if (spec.tier) attributes.depth_tier = tierOf(areas);
+    const levels = ENTITY_LEVELS[e.kind];
+    if (levels) {
+      const lv = (verdict.fields ?? []).find((f) => f.field === 'entity_level');
+      const corrected = lv?.verdict === 'corrected' ? clean(lv.value) : '';
+      const proposed = lv?.verdict === 'unsupported' ? '' : clean(e.entity_level);
+      attributes.entity_level = [corrected, proposed].find((l) => levels.allowed.includes(l)) ?? levels.default;
+    }
     for (const field of spec.text) {
       const v = verifiedValue(verdict, field, e[field]);
       fieldLog.push({ entity: e.name, field, proposed: clean(e[field]), kept: v?.value ?? '' });
@@ -614,11 +631,12 @@ export const PROPOSAL_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['kind', 'name', 'aliases', 'description', 'areas', 'contexts', 'method_types', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations', 'source_urls'],
+        required: ['kind', 'name', 'aliases', 'entity_level', 'description', 'areas', 'contexts', 'method_types', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations', 'source_urls'],
         properties: {
           kind: { type: 'string', enum: KINDS },
           name: STR,
           aliases: STRS,
+          entity_level: { type: 'string', enum: ['family', 'checkpoint', 'service', 'method', 'suite', 'challenge', ''], description: 'model: family, checkpoint or service; method: method or family; benchmark: suite or challenge; dataset: empty' },
           description: STR,
           areas: { type: 'array', items: { type: 'string', enum: AREAS } },
           contexts: { type: 'array', items: { type: 'string', enum: CONTEXTS } },
@@ -668,7 +686,7 @@ export function proposalSchema(urls = []) {
   return schema;
 }
 
-export const VERIFIED_FIELDS = ['description', 'areas', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations'];
+export const VERIFIED_FIELDS = ['description', 'areas', 'entity_level', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations'];
 
 export const VERIFICATION_SCHEMA = {
   type: 'object',
