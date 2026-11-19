@@ -27,10 +27,27 @@ Only primary sources support a record: the paper or preprint, its supplement, th
 - A page that fails to load (403, paywall, timeout) is an access gap. It is not evidence that something is absent. Say which page failed.
 - Prefer a URL pinned to a version: a DOI, an arXiv ID with its version, a GitHub commit.
 
+## Source attribution
+
+Each entity cites the sources that support it. A source supports an entity only if it is about that exact entity. Projects often release several related resources: sizes, variants, checkpoints, a dataset and the models trained on it. A page about one of them does not support another, even when the names are close: compare the name, size, variant and suffix on the page with the entity. A page that only links to a resource (a README that points to a dataset card) does not support it; cite the resource's own page. A page about the whole project can support each resource it describes.
+
+## Entity level
+
+`entity_level` says what kind of thing a record is. The definitions, from the vocabulary:
+
+- model `family`: a named model or tool family without a fixed checkpoint.
+- model `checkpoint`: a specific released set of weights.
+- model `service`: a hosted service or API.
+- method `method`: a reported method without an identified release. Method `family`: a family of methods.
+- benchmark `suite`: a collection of benchmark tasks. Benchmark `challenge`: a community challenge such as CASP.
+
+Decide the level from what the sources show, not from the name. A record for one released set of weights, published at its own repository with a fixed size and revision, is a checkpoint.
+
 ## Fields
 
 Write plain, specific text. No marketing language, no em or en dashes, no emoji, no @-mentions.
 
+- `name`: the name the primary source uses for this exact resource. Do not invent a descriptive name.
 - `description`: one sentence that says what the resource does or holds, written from the primary source. It must not say where it was reported, who evaluated it, or cite a table, figure or paper; that is provenance and is kept elsewhere.
 - `areas`: one or more biology areas from the list in the user message. The areas decide how deeply the record is collected, so choose what the resource is about, not what it might be applied to.
 - `version`: the version, release or preprint version exactly as the source gives it.
@@ -46,5 +63,7 @@ In the verification pass you check each proposed field against the primary sourc
 - `supported`, with the exact location (section, heading, table, README heading or page) where the source states it;
 - `corrected`, with the value the source actually states and its location;
 - `unsupported`, when no source you opened states it, or a source contradicts it.
+
+Also list, for each entity, the cited sources that are not about it (`wrong_sources`) and the sources in the list that are about it but not cited (`better_sources`), by the rules under Source attribution. Check `entity_level` against the definitions above.
 
 Mark an entity `keep: false` when it is out of scope, when it duplicates another proposed entity, or when no primary source could be opened to support its description. The script stores only supported and corrected values. Everything else is left out and recorded as missing.
