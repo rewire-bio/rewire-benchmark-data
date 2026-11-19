@@ -110,8 +110,8 @@ describe("figures committed in a document", () => {
 
 describe("the tree the figures were measured on", () => {
   it("is the tree now", () => {
-    const moved = changedInputs(figures.inputs, inputFiles(root)).map(
-      (file) => `${file.path} is not the file the figures were measured on; run ${figures.command} and update the documents`,
+    const moved = changedInputs(figures.inputs, inputFiles(root), root).map(
+      (file) => `${file.path}: ${file.now}; run ${figures.command} and update the documents`,
     );
     expect(moved).toEqual([]);
   });

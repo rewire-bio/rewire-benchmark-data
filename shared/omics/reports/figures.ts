@@ -48,6 +48,14 @@ export const SPAN_INPUTS = [
 export interface FigureInput {
   path: string;
   sha256: string;
+  /** Records in a JSONL input when the figures were measured, and the digest of exactly
+   * those records. A data file grows as evidence is collected, and appending a record does
+   * not make a measured figure wrong about the records it measured. So a data input is
+   * checked on its measured prefix: the records that were there must still be there and
+   * still say the same thing, while the file is allowed to have grown. A code input has no
+   * prefix and is checked whole, because changing the code does make the figures stale. */
+  lines?: number;
+  prefix_sha256?: string;
 }
 
 export interface FigureFile {
@@ -64,9 +72,28 @@ export interface FigureFile {
 
 const digestOf = (file: string): string => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 
+/** A JSONL input also records how many records it held and the digest of just those, so a
+ * later append can be told apart from a change to what was measured. */
+function prefixOf(file: string): { lines: number; prefix_sha256: string } | null {
+  if (!file.endsWith(".jsonl")) return null;
+  const text = fs.readFileSync(file, "utf8");
+  const lines = text.length === 0 ? [] : text.replace(/\n$/, "").split("\n");
+  return { lines: lines.length, prefix_sha256: createHash("sha256").update(lines.join("\n")).digest("hex") };
+}
+
+/** The measured prefix of a file as it stands now, or null when it is shorter than it was,
+ * which is a removal rather than an append and must fail. */
+export function prefixNow(file: string, lines: number): string | null {
+  const text = fs.readFileSync(file, "utf8");
+  const all = text.length === 0 ? [] : text.replace(/\n$/, "").split("\n");
+  if (all.length < lines) return null;
+  return createHash("sha256").update(all.slice(0, lines).join("\n")).digest("hex");
+}
+
 /** Every input file with its digest, sorted by path. */
 export function inputFiles(root: string, inputs: string[] = SPAN_INPUTS): FigureInput[] {
   const found = new Map<string, string>();
+  const prefixes = new Map<string, { lines: number; prefix_sha256: string } | null>();
   for (const entry of inputs) {
     const full = path.join(root, entry);
     if (!fs.existsSync(full)) continue;
@@ -77,12 +104,16 @@ export function inputFiles(root: string, inputs: string[] = SPAN_INPUTS): Figure
         if (!fs.statSync(file).isFile()) continue;
         if (!name.endsWith(".ts") && !name.endsWith(".jsonl")) continue;
         found.set(`${entry}/${name}`, digestOf(file));
+        prefixes.set(`${entry}/${name}`, prefixOf(file));
       }
       continue;
     }
     found.set(entry, digestOf(full));
+    prefixes.set(entry, prefixOf(full));
   }
-  return [...found.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([file, sha256]) => ({ path: file, sha256 }));
+  return [...found.entries()]
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+    .map(([file, sha256]) => ({ path: file, sha256, ...(prefixes.get(file) ?? {}) }));
 }
 
 /** One digest over the lot, for a run that only needs to know whether anything moved. */
@@ -90,12 +121,31 @@ export const inputDigest = (inputs: FigureInput[]): string =>
   createHash("sha256").update(inputs.map((input) => `${input.path} ${input.sha256}`).join("\n")).digest("hex");
 
 /** Which input files differ between what a figures file records and the tree now. */
-export function changedInputs(recorded: FigureInput[], now: FigureInput[]): { path: string; was: string; now: string }[] {
-  const before = new Map(recorded.map((input) => [input.path, input.sha256]));
-  const after = new Map(now.map((input) => [input.path, input.sha256]));
+export function changedInputs(recorded: FigureInput[], now: FigureInput[], root = "."): { path: string; was: string; now: string }[] {
+  const after = new Map(now.map((input) => [input.path, input]));
   const changed: { path: string; was: string; now: string }[] = [];
-  for (const [file, sha256] of before) if (after.get(file) !== sha256) changed.push({ path: file, was: sha256, now: after.get(file) ?? "absent" });
-  for (const [file, sha256] of after) if (!before.has(file)) changed.push({ path: file, was: "absent", now: sha256 });
+  for (const input of recorded) {
+    const current = after.get(input.path);
+    if (!current) {
+      changed.push({ path: input.path, was: input.sha256, now: "absent" });
+      continue;
+    }
+    if (current.sha256 === input.sha256) continue;
+    // A data file that only grew still holds what was measured, and a figure measured over
+    // 1,483 sources is not made wrong by a 1,484th arriving. Compare the measured prefix.
+    if (input.prefix_sha256 !== undefined && input.lines !== undefined) {
+      const still = prefixNow(path.join(root, input.path), input.lines);
+      if (still === input.prefix_sha256) continue;
+      changed.push({
+        path: input.path,
+        was: `${input.lines} records measured`,
+        now: still === null ? "fewer records than were measured" : "a measured record changed",
+      });
+      continue;
+    }
+    changed.push({ path: input.path, was: input.sha256, now: current.sha256 });
+  }
+  for (const input of now) if (!recorded.some((old) => old.path === input.path)) changed.push({ path: input.path, was: "absent", now: input.sha256 });
   return changed.sort((a, b) => (a.path < b.path ? -1 : 1));
 }
 
