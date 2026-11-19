@@ -2,8 +2,9 @@ name: Reviewer agent
 # Reviews the record pull requests the intake agent opens (#256), independently of it: its own
 # prompt (agents/reviewer.md), Sonnet re-fetches the primary sources and judges every field. The
 # mode for bot pull requests is the repository variable REVIEWER_MODE, default comment (posts the
-# review, never approves or merges). approve mode approves with the REVIEWER_APPROVER_TOKEN
-# secret and enables auto-merge when every field and every check passes. Setup in docs/agents.md.
+# review, never approves or merges). approve mode approves as the rewire-reviewer app
+# (REVIEWER_APP_ID, REVIEWER_APP_PRIVATE_KEY) and enables auto-merge with the same token when every
+# field and every check passes. Setup in docs/agents.md.
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -44,6 +45,18 @@ jobs:
           private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
           owner: rewire-bio
           repositories: rewire-benchmark-data
+      # Approve mode only: the rewire-reviewer app approves and enables auto-merge. GitHub refuses an
+      # approval from the pull request author (rewire-bot), and an app token, unlike GITHUB_TOKEN,
+      # lets the merge start the checks and the release on main.
+      - name: Token for the rewire-reviewer app
+        id: approver
+        if: env.MODE == 'approve' && env.HAS_KEY == 'true' && vars.REVIEWER_APP_ID != ''
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REVIEWER_APP_ID }}
+          private-key: ${{ secrets.REVIEWER_APP_PRIVATE_KEY }}
+          owner: rewire-bio
+          repositories: rewire-benchmark-data
       # The review code and prompt come from the default branch, never from the pull request under review.
       - uses: actions/checkout@v4
         with:
@@ -70,7 +83,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
-          APPROVER_TOKEN: ${{ secrets.REVIEWER_APPROVER_TOKEN }}
+          APPROVER_TOKEN: ${{ steps.approver.outputs.token }}
         run: |
           if ! [[ "$PR" =~ ^[0-9]+$ ]]; then echo "::error::A pull request number is required"; exit 1; fi
           node scripts/agents/reviewer.mjs --pr "$PR" --mode "$MODE" --root pr --out reviewer-out
