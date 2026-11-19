@@ -9,6 +9,7 @@ export const CONTEXTS: string[];
 export const METHOD_TYPES: string[];
 export const PUBLICATION_STATUSES: string[];
 export const KIND_FIELDS: Record<string, { text: string[]; tier: boolean; provenance: boolean; limitations?: boolean; repository?: boolean }>;
+export const ENTITY_LEVELS: Record<string, { allowed: string[]; default: string }>;
 export const SOURCE_FIELDS: string[];
 export const PROPOSAL_SCHEMA: Record<string, any>;
 export function proposalSchema(urls?: string[]): Record<string, any>;
