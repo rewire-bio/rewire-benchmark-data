@@ -115,13 +115,12 @@ describe("screening and verification", () => {
   const storeNames = new Map([["esm 2", "discovery-model-esm-2"]]);
   const entity = (extra: Record<string, unknown>) => ({ kind: "model", name: "New model", aliases: [], areas: ["dna-genomes"], source_urls: [], ...extra });
 
-  it("drops an entity with no area, an unknown kind, a store alias or a repeat", () => {
+  it("drops an unknown kind, a store alias or a repeat, and keeps an entity with no area for the verifier", () => {
     const { keep, dropped } = screenEntities({ entities: [
-      entity({ areas: [] }), entity({ kind: "evaluation", name: "E" }), entity({ name: "Other", aliases: ["ESM-2"] }), entity({}), entity({}),
+      entity({ name: "No area", areas: [] }), entity({ kind: "evaluation", name: "E" }), entity({ name: "Other", aliases: ["ESM-2"] }), entity({}), entity({}),
     ] }, { storeNames });
-    expect(keep).toHaveLength(1);
+    expect(keep.map((e) => e.name)).toEqual(["No area", "New model"]);
     expect(dropped.map((d: { reason: string }) => d.reason)).toEqual([
-      "no biology area from the vocabulary, so the depth tier cannot be set",
       "not a model, method, benchmark or dataset (evaluation)",
       'already in the store as discovery-model-esm-2 ("esm 2")',
       "proposed twice in this issue",
@@ -260,6 +259,20 @@ describe("screening and verification", () => {
       sources, batch: "b", issue: 1, runDate: "2026-11-19", reviewedAt: "2026-11-19T00:00:00Z", reviewModel: "claude-sonnet-5-5", runUrl: "",
     });
     expect(built.records.map((r: { description: string }) => r.description).sort()).toEqual(["M-base: A DNA language model.", "M-large: A DNA language model."]);
+  });
+
+  it("takes the areas of an entity the draft left without any from the verifier", () => {
+    const sources = new Map([["https://example.org/a", { id: "s1" }]]);
+    const built = buildBatch({
+      entities: [entity({ key: "e1", areas: [], description: "Does things.", source_urls: ["https://example.org/a"] })],
+      verification: { entities: [{ key: "e1", name: "New model", keep: true, reason: "", fields: [
+        { field: "description", verdict: "supported", value: "", locator: "card" },
+        { field: "areas", verdict: "corrected", value: "dna-genomes", locator: "card" },
+      ] }] },
+      sources, batch: "b", issue: 1, runDate: "2026-11-19", reviewedAt: "2026-11-19T00:00:00Z", reviewModel: "claude-sonnet-5-5", runUrl: "",
+    });
+    expect(built.records[0].facets.areas).toEqual(["dna-genomes"]);
+    expect(built.records[0].attributes.depth_tier).toBe(1);
   });
 
   it("restricts the draft's source URLs to the URLs in the issue", () => {
