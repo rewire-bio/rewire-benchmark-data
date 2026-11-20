@@ -290,7 +290,9 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
       continue;
     }
     if (!verdict.keep) {
-      dropped.push({ name: e.name, reason: `verification: ${clean(verdict.reason) || 'not kept'}` });
+      // A verifier that drops an entity because the store has it, naming the record, found a duplicate.
+      const named = (candidates.get(e.key)?.duplicates ?? []).find((d) => String(verdict.reason ?? '').includes(d.id));
+      dropped.push({ name: e.name, reason: `verification: ${clean(verdict.reason) || 'not kept'}`, ...(named ? { duplicate: named.id } : {}) });
       continue;
     }
     // Possible duplicates in the store: one ruled the same drops the entity, and so does one nobody ruled on.
@@ -590,7 +592,8 @@ export const LINK_TARGET_KINDS = {
 const SYSTEM_KINDS = new Set(['model', 'method']);
 
 /** Words that say what kind of thing a name is, not which one; two names sharing only these are not alike. */
-const GENERIC_WORDS = new Set(['a', 'an', 'and', 'benchmark', 'benchmarks', 'by', 'challenge', 'corpus', 'data', 'database', 'dataset', 'datasets', 'for', 'from', 'in', 'method', 'methods', 'model', 'models', 'of', 'on', 'suite', 'task', 'tasks', 'the', 'to', 'with']);
+// Size words name a checkpoint within a family ("Bacformer Large", "hEVO-large-o"), not the family.
+const GENERIC_WORDS = new Set(['a', 'an', 'and', 'base', 'benchmark', 'benchmarks', 'by', 'challenge', 'corpus', 'data', 'database', 'dataset', 'datasets', 'for', 'from', 'giant', 'huge', 'in', 'large', 'medium', 'method', 'methods', 'mini', 'model', 'models', 'of', 'on', 'small', 'suite', 'task', 'tasks', 'the', 'tiny', 'to', 'with', 'xl']);
 
 /**
  * The larger share of either name's distinctive words found in the other, whole or as the start
@@ -602,7 +605,7 @@ export function nameOverlap(a, b) {
   if (squash(a) && squash(a) === squash(b)) return 1;
   // A bare number ("2" in "Evo 2") tells versions apart, not resources, unless it is all there is.
   const words = (t) => {
-    const all = normalise(t).split(' ').filter((w) => w && !GENERIC_WORDS.has(w));
+    const all = normalise(t).split(' ').filter((w) => w.length > 1 && !GENERIC_WORDS.has(w));
     const named = all.filter((w) => !/^\d+$/.test(w));
     return new Set(named.length ? named : all);
   };
@@ -739,7 +742,13 @@ export function kgTools(kg) {
  * unruled one drops it too, because nobody looked. Returns { duplicateOf, unruled, rulings }.
  */
 export function dupeRulings(verdict, duplicates) {
-  const given = new Map((verdict?.duplicates ?? []).map((d) => [clean(d.id), d]));
+  // The structuring call sometimes writes the record's name where its id belongs; accept either.
+  const given = new Map();
+  for (const d of verdict?.duplicates ?? []) {
+    const ref = clean(d.id);
+    const match = duplicates.find((x) => x.id === ref) ?? duplicates.find((x) => normalise(x.label) === normalise(ref));
+    if (match && !given.has(match.id)) given.set(match.id, d);
+  }
   const rulings = [];
   let duplicateOf = null;
   const unruled = [];
@@ -1472,7 +1481,7 @@ async function verifyProposal(client, usage, { system, entities, sourceUrls, tex
   });
   if (!research) return { error: 'the verification call was refused or did not finish' };
   const verification = await structure(client, usage, {
-    instruction: 'Turn these verification notes into the schema. Use only verdicts in the notes. A field the notes do not mention is unsupported. value is empty unless the verdict is corrected. Copy each entity\'s key (e1, e2, ...) exactly as the notes give it. duplicates holds only the rulings the notes give, with the store record id exactly as written; links holds only the relations the notes give, with the target as an entity key (e1) or a store record id exactly as written.',
+    instruction: 'Turn these verification notes into the schema. Use only verdicts in the notes. A field the notes do not mention is unsupported. value is empty unless the verdict is corrected. Copy each entity\'s key (e1, e2, ...) exactly as the notes give it. duplicates holds only the rulings the notes give, each with the store record id (such as cell-type-20261009-model-uce), not its name; when the notes say an entity is already in the store as a listed record, that is a same ruling; links holds only the relations the notes give, with the target as an entity key (e1) or a store record id exactly as written.',
     notes: research.text,
     schema: VERIFICATION_SCHEMA,
   });
@@ -1977,6 +1986,11 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     state.records = built.records;
     if (!built.entities.length) {
       const allSources = built.dropped.every((d) => d.sourcesNotOpenable);
+      const allDuplicates = state.dropped.length && state.dropped.every((d) => d.duplicate);
+      if (allDuplicates) {
+        await finish('skipped: duplicate', renderSkipComment({ kind: 'duplicate', dropped: state.dropped, runUrl, usage }));
+        return result();
+      }
       await finish('skipped: nothing verified', renderSkipComment({ kind: allSources ? 'sources' : 'nothing', dropped: state.dropped, runUrl, usage }));
       return result();
     }

@@ -99,6 +99,8 @@ describe("names and duplicate rulings", () => {
     expect(nameOverlap("Helixgram splice benchmark", "DeepProtein benchmark")).toBe(0);
     expect(nameOverlap("Evo 2 fixture 1B base", "DNABERT-2")).toBe(0);
     expect(nameOverlap("hEVO-base-o", "hEvo")).toBe(1);
+    // Size words and single letters name a checkpoint, not a resource (seen on #250).
+    expect(nameOverlap("hEVO-large-o", "Bacformer Large")).toBe(0);
   });
 
   it("asks for a ruling only on the same kind, or model against method", () => {
@@ -114,6 +116,8 @@ describe("names and duplicate rulings", () => {
     expect(same.duplicateOf?.id).toBe("a");
     const unruled = dupeRulings({ duplicates: [{ id: "a", ruling: "distinct", locator: "README" }] }, dupes);
     expect(unruled.unruled.map((d) => d.id)).toEqual(["b"]);
+    // The record's name in place of its id still counts (the structuring call wrote one on #250).
+    expect(dupeRulings({ duplicates: [{ id: "B", ruling: "distinct", locator: "x" }, { id: "a", ruling: "distinct", locator: "y" }] }, dupes).unruled).toEqual([]);
     // A ruling without a locator is no ruling.
     expect(dupeRulings({ duplicates: [{ id: "a", ruling: "distinct", locator: "" }] }, dupes.slice(0, 1)).unruled).toHaveLength(1);
   });
