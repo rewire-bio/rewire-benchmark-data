@@ -278,6 +278,9 @@ describe("changed records and the store diff", () => {
     expect(input[0]).toMatchObject({ id: "discovery-model-spliceai", changed_record: true });
     expect(input[0].changed_fields.map((f: { field: string }) => f.field)).toEqual(["/source_ids", "/attributes/access", "/attributes/source_locator"]);
     expect(input[0].changed_fields[1].before).toBe("official_source_linked");
+    // A stored source the change cites is shown with its URL, so the model can open it.
+    const stored = reviewInput([], changed, new Map([["src-discovery-illumina-spliceai", "https://github.com/Illumina/SpliceAI"]]));
+    expect(stored[0].sources[0]).toEqual({ id: "src-discovery-illumina-spliceai", url: "https://github.com/Illumina/SpliceAI" });
     const fieldEnum = reviewSchema(["/attributes/access"]).properties.records.items.properties.fields.items.properties.field.enum;
     expect(fieldEnum).toContain("/attributes/access");
     expect(fieldEnum).toContain("name");

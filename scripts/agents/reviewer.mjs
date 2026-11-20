@@ -117,6 +117,7 @@ export function fieldsOf(record) {
 export async function readStore(dir, exclude = new Set()) {
   const names = new Map();
   const sourceIds = new Set();
+  const sourceUrls = new Map();
   const kinds = new Map();
   const named = new Set(['models', 'methods', 'benchmarks', 'datasets', 'pipelines', 'services', 'sources']);
   const files = existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.jsonl')).map((f) => f.slice(0, -6)) : [];
@@ -131,6 +132,7 @@ export async function readStore(dir, exclude = new Set()) {
       if (!named.has(kind)) continue;
       if (r.kind === 'source') {
         sourceIds.add(r.id);
+        if (r.attributes?.url) sourceUrls.set(r.id, r.attributes.url);
         continue;
       }
       for (const name of [r.name, r.attributes?.reported_name]) {
@@ -139,7 +141,7 @@ export async function readStore(dir, exclude = new Set()) {
       }
     }
   }
-  return { names, sourceIds, kinds };
+  return { names, sourceIds, kinds, sourceUrls };
 }
 
 /**
@@ -575,8 +577,9 @@ function textOf(message) {
 }
 
 /** The records as the reviewer sees them: what each says and which source URLs it cites. */
-export function reviewInput(records, changed = []) {
-  const sourceUrl = new Map(records.filter((r) => r.kind === 'source').map((r) => [r.id, r.attributes?.url]));
+export function reviewInput(records, changed = [], storeUrls = new Map()) {
+  // Sources in the pull request, then stored sources (an update often cites one it reused).
+  const sourceUrl = new Map([...storeUrls, ...records.filter((r) => r.kind === 'source').map((r) => [r.id, r.attributes?.url])]);
   const changes = changed.filter((r) => r.change?.fields?.length).map((r) => ({
     id: r.id,
     kind: r.kind,
@@ -639,9 +642,9 @@ export async function possibleDuplicates(records, { receipt = null, kg = null, f
   return out;
 }
 
-async function modelReview(client, usage, { system, records, changed = [], extraUrls, texts = [], runDate, log }) {
+async function modelReview(client, usage, { system, records, changed = [], storeUrls = new Map(), extraUrls, texts = [], runDate, log }) {
   const withText = new Set(texts.filter((t) => t.text).map((t) => t.url));
-  const input = reviewInput(records, changed);
+  const input = reviewInput(records, changed, storeUrls);
   const paths = unique(changed.flatMap((r) => (r.change?.fields ?? []).map((f) => f.path)));
   const urls = unique([...input.flatMap((r) => r.sources.map((s) => s.url)).filter((u) => /^https?:/.test(u)), ...extraUrls]);
   const fetches = Math.min(LIMITS.reviewFetchesMax, LIMITS.reviewFetchesBase + urls.length);
@@ -835,6 +838,17 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     const sourceNotes = [];
     const texts = [];
     const fixtureFetches = args.dryRun ? readJson(join(fixtures, 'fetches.json')) : null;
+    // A change that cites a source already in the store: fetch that page too, for its text.
+    const added = new Set(changed.flatMap((r) => (r.change?.fields ?? []).filter((f) => f.path === '/source_ids').flatMap((f) => (f.after ?? []).filter((id) => !(f.before ?? []).includes(id)))));
+    for (const id of [...added].filter((id) => store.sourceUrls.has(id) && !records.some((r) => r.id === id)).sort()) {
+      const url = store.sourceUrls.get(id);
+      const got = args.dryRun ? (fixtureFetches[url] ?? { error: 'not in the fixture' }) : await fetchSource(url, { fetchImpl: deps.fetch ?? fetch, now: clock });
+      if (got.error) sourceNotes.push(`\`${id}\` ${url} (stored source the change cites): could not fetch (${got.error})`);
+      else {
+        texts.push({ url, text: got.text ?? '' });
+        sourceNotes.push(`\`${id}\` ${url}: stored source the change cites, fetched for its text`);
+      }
+    }
     for (const s of records.filter((r) => r.kind === 'source')) {
       const url = s.attributes?.url;
       const got = args.dryRun ? (fixtureFetches[url] ?? { error: 'not in the fixture' }) : await fetchSource(url, { fetchImpl: deps.fetch ?? fetch, now: clock });
@@ -854,7 +868,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 3, timeout: 10 * 60 * 1000 });
       }
       const system = readFileSync(join(ROOT, PROMPT_PATH), 'utf8');
-      const result = await modelReview(client, usage, { system, records, changed, extraUrls: [], texts, runDate, log });
+      const result = await modelReview(client, usage, { system, records, changed, storeUrls: store.sourceUrls, extraUrls: [], texts, runDate, log });
       if (result.notes) state.notes = result.notes;
       if (result.error) {
         notes.push(`The model review failed: ${result.error}. Every field it would have judged is unverifiable.`);
