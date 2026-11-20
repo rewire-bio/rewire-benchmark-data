@@ -35,7 +35,7 @@ import { createReadStream, existsSync, mkdirSync, readFileSync, appendFileSync, 
 import { createInterface } from 'node:readline';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { AREAS, Usage, clean, keyOf, normalise, readStoreNames, tierOf } from './discovery.mjs';
+import { AREAS, DEFAULT_REPO, Usage, clean, keyOf, normalise, readStoreNames, tierOf } from './discovery.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -1103,7 +1103,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   const write = !args.dryRun && !args.reportOnly;
   const clock = deps.now ?? (() => new Date());
   const runDate = clock().toISOString().slice(0, 10);
-  const repo = env.GITHUB_REPOSITORY || 'rewire-bio/rewire-benchmark-data';
+  const repo = env.GITHUB_REPOSITORY || DEFAULT_REPO;
   const runUrl = env.GITHUB_RUN_ID ? `${env.GITHUB_SERVER_URL || 'https://github.com'}/${repo}/actions/runs/${env.GITHUB_RUN_ID}` : '';
   const usage = new Usage();
   const notes = [];

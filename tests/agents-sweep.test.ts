@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  LABEL, LIMITS, SWEEP_LABEL, checkLink, checkpointBase, fixtureFetch, hfIdsInText, licenceAgrees, main, parseUpdateMarker, planIssues, renderUpdateIssue, tiersDue,
+  LABEL, LIMITS, SWEEP_LABEL, candidatesFor, checkLink, checkedValue, checkpointBase, fixtureFetch, githubFacts, hfFacts, hfIdsInText, knownFromIssues, licenceAgrees, main, markUmbrellas, parseUpdateMarker, planIssues, refsOf, renderUpdateIssue, tiersDue,
 } from "../scripts/agents/sweep.mjs";
 
 // The monthly entity sweep (#257). Everything here runs without an API key or network: the dry
@@ -124,8 +124,14 @@ describe("dry run", () => {
     expect(r.deadIssue.body).toContain("fixture-use-case-splicing");
     // The archived and moved repository of a benchmark, which has no access field, is reported here.
     expect(r.deadIssue.body).toContain("rewire-fixtures/arena now Rewire-Fixtures/arena-benchmark");
-    // A 404 already listed in an open sweep issue is not listed again.
+    // A 404 already listed in a sweep issue is not listed again.
     expect(r.deadIssue.body).not.toContain("lab.example.org");
+  });
+
+  it("does not list a dead link or repository change again once its issue is closed", () => {
+    const known = knownFromIssues([{ state: "closed", body: "<!-- entity-sweep-dead: https://lab.example.org/x -->\n<!-- entity-sweep-dead: fixture-benchmark-arena:archived:rewire-fixtures/arena -->" }]);
+    expect(known.dead.has("https://lab.example.org/x")).toBe(true);
+    expect(known.dead.has("fixture-benchmark-arena:archived:rewire-fixtures/arena")).toBe(true);
   });
 
   it("adds tier 2 in a quarter month, and leaves a change without a confirmation unfiled", async () => {
@@ -227,6 +233,32 @@ describe("live and report-only runs with fakes", () => {
     expect(r.usage.total()).toBeGreaterThan(0);
   });
 
+  it("does not file a value Sonnet wrote that the APIs did not observe", async () => {
+    const f = fakes();
+    const helix = answers.confirm["fixture-model-helix"];
+    const create = f.deps.anthropic.beta.messages.create;
+    f.deps.anthropic.beta.messages.create = async (req: { model: string; fallbacks?: unknown; messages: { content: string }[] }) => {
+      const res = await create(req);
+      if (!req.messages[0].content.includes("Record fixture-model-helix ")) return res;
+      const changes = helix.changes.map((c: { n: number }) => (c.n === 1 ? { ...c, value: "v9.9.9 (GitHub release, 2027-01-01)" } : c));
+      return { ...res, content: [{ type: "text", text: JSON.stringify({ changes }) }] };
+    };
+    const r = await main([...args, "--report-only"], env, f.deps);
+    const marker = parseUpdateMarker(r.plan.file.find((p: { record: { id: string } }) => p.record.id === "fixture-model-helix").issue.body);
+    expect(marker?.fields).toEqual({ licence: "Apache-2.0 for the code in rewire-fixtures/helix" });
+    expect(r.unconfirmed).toContainEqual(expect.objectContaining({ record_id: "fixture-model-helix", observed: "v1.2", reason: expect.stringContaining("does not carry the observed value") }));
+  });
+
+  it("writes usage.json even when filing an issue fails", async () => {
+    const out = tempDir();
+    const f = fakes();
+    f.deps.github.createIssue = async () => {
+      throw new Error("GitHub said no");
+    };
+    await expect(main([...args, "--out", out], env, f.deps)).rejects.toThrow("GitHub said no");
+    expect(JSON.parse(readFileSync(join(out, "usage.json"), "utf8")).estimatedUsd).toBeGreaterThan(0);
+  });
+
   it("files nothing in report-only mode", async () => {
     const f = fakes();
     const r = await main([...args, "--report-only"], env, f.deps);
@@ -254,5 +286,100 @@ describe("live and report-only runs with fakes", () => {
 
   it("refuses to run outside rewire-bio", async () => {
     await expect(main(args, { ...env, GITHUB_REPOSITORY: "someone/fork" }, fakes().deps)).rejects.toThrow("only runs in rewire-bio");
+  });
+});
+
+describe("candidates are changes, not gaps the model fills", () => {
+  const facts = (releases: { tag: string; published_at: string }[]) => new Map([["github:o/tool", { state: "ok", archived: false, licence: null, html_url: "https://github.com/o/tool", releases: releases.map((r) => ({ ...r, url: `https://github.com/o/tool/releases/tag/${r.tag}` })) }]]);
+  const ref = { host: "github", owner: "o", repo: "tool", name: "tool", own: true, baseline: "2026-09-16T00:00:00Z", urls: ["https://github.com/o/tool"] };
+  const old = { tag: "v1.0.1", published_at: "2022-03-06T00:00:00Z" };
+  const fresh = { tag: "v2.0.0", published_at: "2026-10-01T00:00:00Z" };
+  const rec = (attributes: Record<string, unknown>, kind = "model") => ({ id: "r", kind, name: "Tool", attributes: { depth_tier: 1, ...attributes } });
+  const gap = { missing_metadata: { version: { reason: "unextracted" } } };
+
+  it("proposes no version for a model family that has none", () => {
+    expect(candidatesFor(rec({ entity_level: "family", ...gap }), { repos: [ref], pages: [] }, { facts: facts([fresh]) }).candidates).toEqual([]);
+  });
+
+  it("counts only releases after the stored sources, and labels a missing version as a gap", () => {
+    expect(candidatesFor(rec({ entity_level: "checkpoint", ...gap }), { repos: [ref], pages: [] }, { facts: facts([old]) }).candidates).toEqual([]);
+    const [c] = candidatesFor(rec({ entity_level: "checkpoint", ...gap }), { repos: [ref], pages: [] }, { facts: facts([fresh, old]) }).candidates;
+    expect(c).toMatchObject({ type: "version_gap", observed: "v2.0.0" });
+    expect(c.facts.releases_since_baseline.map((r: { tag: string }) => r.tag)).toEqual(["v2.0.0"]);
+    const [r] = candidatesFor(rec({ entity_level: "family", version: "v1.0.1" }), { repos: [ref], pages: [] }, { facts: facts([fresh, old]) }).candidates;
+    expect(r).toMatchObject({ type: "release", observed: "v2.0.0" });
+  });
+
+  it("sends an umbrella repository that matches several records to the ownership call", () => {
+    const sources = new Map([["s1", { id: "s1", attributes: { url: "https://github.com/facebookresearch/esm" } }]]);
+    const records = ["ESM-1v", "ESMFold2", "ESM-2"].map((name, n) => ({ id: `m${n}`, kind: "model", name, source_ids: ["s1"], attributes: { depth_tier: 1 } }));
+    // m9 names the Hugging Face repository in its own access text; m8 only matches it by name.
+    sources.set("s2", { id: "s2", attributes: { url: "https://huggingface.co/facebook/esm2_t33" } });
+    const named = { id: "m9", kind: "model", name: "ESM2 t33", source_ids: ["s2"], attributes: { depth_tier: 1, access: "Hugging Face checkpoint facebook/esm2_t33." } };
+    const alias = { id: "m8", kind: "model", name: "ESM2 t33 fine-tune", source_ids: ["s2"], attributes: { depth_tier: 1 } };
+    const refsById = new Map([...records, named, alias].map((r) => [r.id, refsOf(r, sources)]));
+    // Without the umbrella rule "esm" is inside every name, so each record would claim the repository.
+    expect(refsById.get("m1")?.repos[0].own).toBe(true);
+    markUmbrellas(refsById, [...refsById.values()]);
+    for (const id of ["m0", "m1", "m2"]) expect(refsById.get(id)?.repos[0]).toMatchObject({ own: false, ambiguous: true });
+    // A repository the record's own fields name stays its own; another record matching it by name does not.
+    expect(refsById.get("m9")?.repos[0]).toMatchObject({ own: true, named: true });
+    expect(refsById.get("m8")?.repos[0]).toMatchObject({ own: false, ambiguous: true });
+  });
+
+  it("files a value only when it carries what the APIs observed", () => {
+    const c = (type: string, observed: string) => ({ type, observed, action: "update" as const, current: "", evidence: [], key: "k", facts: {} });
+    expect(checkedValue(c("release", "v1.2"), "v9.9.9 (GitHub release, 2027-01-01)")).toBeNull();
+    expect(checkedValue(c("release", "v1.2"), "v1.2 (GitHub release, 2026-10-10)")).toBe("v1.2 (GitHub release, 2026-10-10)");
+    expect(checkedValue(c("licence", "Apache-2.0"), "Apache License 2.0 for the code")).toBe("Apache License 2.0 for the code");
+    expect(checkedValue(c("licence", "Apache-2.0"), "MIT")).toBeNull();
+    expect(checkedValue(c("archived", "o/r archived"), "Code on GitHub.")).toBeNull();
+    expect(checkedValue(c("moved", "new/place"), "The code moved to github.com/new/place.")).toBe("The code moved to github.com/new/place.");
+    expect(checkedValue({ ...c("checkpoint", "a/B_500M"), action: "add" }, "a/B_900M")).toBe("a/B_500M");
+  });
+});
+
+describe("failed reads are reported, not read as empty", () => {
+  it("records a release list it could not read, and searches checkpoints under the canonical author", async () => {
+    const gh = await githubFacts({ owner: "o", repo: "r" }, { fetchImpl: fixtureFetch({
+      "https://api.github.com/repos/o/r": { json: { full_name: "o/r", html_url: "https://github.com/o/r" } },
+      "https://api.github.com/repos/o/r/releases?per_page=10": { status: 403, json: { message: "rate limit" } },
+    }) as unknown as typeof fetch });
+    expect(gh).toMatchObject({ state: "ok", releases: [], releases_error: "HTTP 403" });
+    const hf = await hfFacts({ type: "model", id: "ArcInstitute/evo2_7b" }, { fetchImpl: fixtureFetch({
+      "https://huggingface.co/api/models/ArcInstitute/evo2_7b": { json: { id: "arcinstitute/evo2_7b" } },
+      "https://huggingface.co/api/models?author=arcinstitute&search=evo2&sort=createdAt&direction=-1&limit=50": { json: [{ id: "arcinstitute/evo2_20b", createdAt: "2026-10-01T00:00:00Z" }] },
+    }) as unknown as typeof fetch });
+    expect(hf.siblings.map((s: { id: string }) => s.id)).toEqual(["arcinstitute/evo2_20b"]);
+    expect(hf.siblings_error).toBeNull();
+  });
+
+  it("says in the summary which repositories were not read", async () => {
+    const http = JSON.parse(readFileSync(`${FIXTURES}/http.json`, "utf8"));
+    http["https://api.github.com/repos/rewire-fixtures/helix/releases?per_page=10"] = { status: 429, json: { message: "slow down" } };
+    delete http["https://api.github.com/repos/rewire-fixtures/quarry"];
+    const r = await main(["--store-dir", `${FIXTURES}/entities`, "--report-only"], { GITHUB_REPOSITORY: "rewire-bio/rewire-benchmark-data" }, { fetch: fixtureFetch(http), github: { listIssues: async () => [] }, now: at("2026-12-01T05:00:00Z"), log: quiet });
+    expect(r.summary).toContain("2 repositories or release lists not read");
+    expect(r.summary).toContain("not read github:rewire-fixtures/helix release list (HTTP 429)");
+    expect(r.summary).toContain("not read github:rewire-fixtures/quarry repository");
+  });
+});
+
+describe("one issue per new checkpoint", () => {
+  it("files a checkpoint found by two records once, naming both", () => {
+    const facts = new Map([["hf:model:a/dune_100m", { state: "ok", siblings: [{ id: "a/Dune_500M", created_at: "2026-10-20T00:00:00Z" }] }]]);
+    const ref = { host: "hf", type: "model", id: "a/Dune_100M", own: true, baseline: "2026-09-01T00:00:00Z", urls: [] };
+    const family = { id: "dune", kind: "model", name: "Dune", attributes: { depth_tier: 1, entity_level: "family" } };
+    const small = { id: "dune-100m", kind: "model", name: "Dune 100M", attributes: { depth_tier: 1, entity_level: "checkpoint" } };
+    const confirmed = [small, family].map((record) => {
+      const [c] = candidatesFor(record, { repos: [ref], pages: [] }, { facts }).candidates;
+      return { record, changes: [{ ...c, value: c.observed, reason: "new size" }] };
+    });
+    expect(confirmed[0].changes[0].key).toBe(confirmed[1].changes[0].key);
+    const plan = planIssues(confirmed, { issues: [], runDate: "2026-12-01" });
+    expect(plan.file).toHaveLength(1);
+    expect(plan.file[0].record.id).toBe("dune");
+    expect(plan.file[0].issue.body).toContain("Also related to `dune-100m`");
+    expect(parseUpdateMarker(plan.file[0].issue.body)).toMatchObject({ action: "add", names: ["a/Dune_500M"], related: ["dune-100m"] });
   });
 });

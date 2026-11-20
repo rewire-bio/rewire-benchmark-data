@@ -25,7 +25,7 @@ import { createHash } from 'node:crypto';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { PRICES, Usage, clean, githubClient, normalise } from './discovery.mjs';
+import { DEFAULT_REPO, PRICES, Usage, clean, githubClient, normalise } from './discovery.mjs';
 import { UPDATE_FIELDS, fetchableUrl, pageText, parseUpdateMarker } from './intake.mjs';
 
 export { UPDATE_FIELDS, parseUpdateMarker };
@@ -35,8 +35,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 export const PROMPT_PATH = 'agents/sweep.md';
 export const FIXTURES = 'tests/agents-sweep-fixtures';
 export const ORG = 'rewire-bio';
-/** The repository when GITHUB_REPOSITORY is unset (local runs). The workflow always sets it. */
-export const DEFAULT_REPO = `${ORG}/rewire-benchmark-data`;
+export { DEFAULT_REPO };
 export const LABEL = 'entity-update';
 export const SWEEP_LABEL = 'entity-sweep';
 export const MODELS = { classify: 'claude-haiku-5-5', confirm: 'claude-sonnet-5-5' };
@@ -170,6 +169,7 @@ export function refsOf(record, sources) {
     if (!prev) repos.set(key, ref);
     else {
       if (ref.own) prev.own = true;
+      if (ref.named) prev.named = true;
       if (ref.baseline && (!prev.baseline || ref.baseline < prev.baseline)) prev.baseline = ref.baseline;
       prev.urls = unique([...prev.urls, ...ref.urls]);
     }
@@ -188,9 +188,25 @@ export function refsOf(record, sources) {
     }
   }
   for (const id of hfIdsInText(recordText(record)))
-    add(`hf:model:${id}`.toLowerCase(), { host: 'hf', type: 'model', id, name: id.split('/')[1], own: true, baseline: recordBaseline, urls: [`https://huggingface.co/${id}`], source_id: null });
-  const list = [...repos.values()].map((r) => ({ ...r, ambiguous: !r.own }));
+    add(`hf:model:${id}`.toLowerCase(), { host: 'hf', type: 'model', id, name: id.split('/')[1], own: true, named: true, baseline: recordBaseline, urls: [`https://huggingface.co/${id}`], source_id: null });
+  // `named`: the record's own fields name the repository, so it is the record's own whatever else cites it.
+  const list = [...repos.values()].map((r) => ({ ...r, named: Boolean(r.named), ambiguous: !r.own }));
   return { repos: list, pages, links };
+}
+
+/**
+ * A repository whose name matches more than one record of the store (facebookresearch/esm for
+ * ESM-1v, ESM-2 and ESMFold), or that one record names and others match by name, is an umbrella:
+ * a name match does not make it any one record's own, so it goes to the ownership call unless the
+ * record's own fields name it. Mutates `refsById`.
+ */
+export function markUmbrellas(refsById, storeRefs) {
+  const matches = new Map();
+  for (const refs of storeRefs) for (const ref of refs.repos) if (ref.own) matches.set(refKey(ref), (matches.get(refKey(ref)) ?? 0) + 1);
+  const umbrellas = new Set([...matches].filter(([, n]) => n > 1).map(([k]) => k));
+  for (const refs of refsById.values()) for (const ref of refs.repos)
+    if (ref.own && !ref.named && umbrellas.has(refKey(ref))) Object.assign(ref, { own: false, ambiguous: true, umbrella: true });
+  return umbrellas;
 }
 
 // ---------- HTTP and the APIs (deterministic) ----------
@@ -247,7 +263,9 @@ export async function githubFacts(ref, { fetchImpl, token }) {
   if (repo.status !== 200 || !repo.json) return { state: 'blocked', detail: `HTTP ${repo.status}` };
   const j = repo.json;
   const rel = await api(`${base}/releases?per_page=${LIMITS.releasesPerRepo}`, { fetchImpl, token });
-  const releases = Array.isArray(rel.json) ? rel.json.filter((x) => !x.draft && !x.prerelease).map((x) => ({ tag: x.tag_name, name: x.name ?? '', published_at: x.published_at, url: x.html_url })) : [];
+  // A release list that could not be read is not an empty one: say so in the summary.
+  const releasesError = rel.error ?? (rel.status !== 200 || !Array.isArray(rel.json) ? `HTTP ${rel.status}` : null);
+  const releases = !releasesError ? rel.json.filter((x) => !x.draft && !x.prerelease).map((x) => ({ tag: x.tag_name, name: x.name ?? '', published_at: x.published_at, url: x.html_url })) : [];
   return {
     state: 'ok',
     full_name: j.full_name,
@@ -258,6 +276,7 @@ export async function githubFacts(ref, { fetchImpl, token }) {
     html_url: j.html_url,
     pushed_at: j.pushed_at,
     releases,
+    releases_error: releasesError,
   };
 }
 
@@ -284,12 +303,16 @@ export async function hfFacts(ref, { fetchImpl }) {
     last_modified: j.lastModified ?? null,
     sha: j.sha ?? null,
     siblings: [],
+    siblings_error: null,
   };
   if (ref.type === 'model') {
-    const [author, name] = ref.id.split('/');
+    // The canonical ID the API returned: the author filter is case-sensitive, and a stored URL may
+    // not match it (huggingface.co/ArcInstitute/evo2_7b is arcinstitute/evo2_7b).
+    const [author, name] = facts.id.split('/');
     const base = checkpointBase(name);
     const list = await api(`https://huggingface.co/api/models?author=${encodeURIComponent(author)}&search=${encodeURIComponent(base)}&sort=createdAt&direction=-1&limit=${LIMITS.checkpointsPerAuthor}`, { fetchImpl });
-    if (Array.isArray(list.json)) facts.siblings = list.json.map((m) => ({ id: m.id ?? m.modelId, created_at: m.createdAt ?? null })).filter((m) => m.id && squash(m.id.split('/')[1]).startsWith(squash(base)));
+    if (list.error || list.status !== 200 || !Array.isArray(list.json)) facts.siblings_error = list.error ?? `HTTP ${list.status}`;
+    else facts.siblings = list.json.map((m) => ({ id: m.id ?? m.modelId, created_at: m.createdAt ?? null })).filter((m) => m.id && squash(m.id.split('/')[1]).startsWith(squash(base)));
   }
   return facts;
 }
@@ -337,19 +360,22 @@ export function candidatesFor(record, refs, { facts, pages = {}, known = '' }) {
     }
     if (f.licence && fields.includes('licence') && typeof a.licence === 'string' && a.licence && !licenceAgrees(a.licence, f.licence))
       out.push({ type: 'licence', field: 'licence', action: 'update', observed: f.licence, current: a.licence, evidence: [ref.host === 'github' ? f.html_url : `https://huggingface.co/${f.id}`], key: key('licence', `${label}-${f.licence}`), facts: { repository: label, licence: f.licence } });
-    if (ref.host === 'github' && tracksVersion(record)) {
-      // A version the record leaves unextracted takes the latest release whatever its date.
-      const unextracted = !a.version && a.missing_metadata?.version?.reason === 'unextracted';
-      const newer = f.releases.filter((r) => (unextracted || !ref.baseline || r.published_at > ref.baseline) && !text.includes(String(r.tag).toLowerCase()));
+    // A family record without a version keeps none: a code release is not the version of a model
+    // family (docs/record-contract.md: do not collapse unidentified versions into a checkpoint).
+    if (ref.host === 'github' && tracksVersion(record) && (a.version || a.entity_level !== 'family')) {
+      // Only releases after the stored sources count. A record without a version gets a `version_gap`
+      // candidate, labelled as such, not a `release`: nothing changed, the field was never filled.
+      const newer = f.releases.filter((r) => (!ref.baseline || r.published_at > ref.baseline) && !text.includes(String(r.tag).toLowerCase()));
       if (newer.length) {
         const latest = newer[0];
-        out.push({ type: 'release', field: 'version', action: 'update', observed: latest.tag, current: a.version ?? '', evidence: [latest.url], key: key('release', `${label}-${latest.tag}`), facts: { repository: label, baseline: ref.baseline, releases_since_baseline: newer.slice(0, 5) } });
+        const type = a.version ? 'release' : 'version_gap';
+        out.push({ type, field: 'version', action: 'update', observed: latest.tag, current: a.version ?? '', evidence: [latest.url], key: key(type, `${label}-${latest.tag}`), facts: { repository: label, baseline: ref.baseline, recorded_version: a.version || 'none', releases_since_baseline: newer.slice(0, 5) } });
       }
     }
     if (ref.host === 'hf' && ref.type === 'model' && record.kind !== 'use_case') {
       const fresh = f.siblings.filter((s) => s.id.toLowerCase() !== ref.id.toLowerCase() && (!ref.baseline || (s.created_at && s.created_at > ref.baseline)) && !known.includes(s.id.toLowerCase()));
       for (const s of fresh.slice(0, 5))
-        out.push({ type: 'checkpoint', action: 'add', observed: s.id, current: '', evidence: [`https://huggingface.co/${s.id}`], key: key('checkpoint', s.id), facts: { related_repository: ref.id, created_at: s.created_at, baseline: ref.baseline } });
+        out.push({ type: 'checkpoint', action: 'add', observed: s.id, current: '', evidence: [`https://huggingface.co/${s.id}`], key: `checkpoint:${s.id.toLowerCase()}`, facts: { related_repository: ref.id, created_at: s.created_at, baseline: ref.baseline } });
     }
   }
   for (const p of refs.pages) {
@@ -358,6 +384,21 @@ export function candidatesFor(record, refs, { facts, pages = {}, known = '' }) {
       out.push({ type: 'leaderboard', field: 'version', action: 'update', observed: v.version, current: a.version ?? '', evidence: [p.url], key: key('leaderboard', v.version), facts: { page: p.url, page_says: v.evidence } });
   }
   return { candidates: out, health };
+}
+
+/**
+ * The field text to file for a confirmed change, or null when Sonnet's text does not carry what
+ * the APIs observed. The value lands in the marker intake reads, so it must come from the data:
+ * a checkpoint is its observed ID, a version or a new location must contain the observed tag or
+ * name, a licence must name the observed licence, and an archived note must say archived.
+ */
+export function checkedValue(candidate, value) {
+  const v = clean(value);
+  if (!v) return null;
+  if (candidate.type === 'checkpoint') return candidate.observed;
+  if (candidate.type === 'licence') return licenceAgrees(v, candidate.observed) ? v : null;
+  if (candidate.type === 'archived') return /archiv/i.test(v) ? v : null;
+  return v.toLowerCase().includes(String(candidate.observed).toLowerCase()) ? v : null;
 }
 
 /** The dedupe key of a repository change on an entity without an access field. */
@@ -416,7 +457,8 @@ export function worstCase(model, chars, maxTokens) {
 
 /** One structured call. Haiku runs with thinking off (a short JSON answer needs none); Sonnet at low effort with the refusal fallback. */
 async function ask(client, usage, { model, system, prompt, schema, maxTokens, log }) {
-  const worst = worstCase(model, system.length + prompt.length, maxTokens);
+  // Sonnet runs with the refusal fallback, which may answer on a dearer model: price its worst case as Opus 5.5.
+  const worst = worstCase(model.startsWith('claude-haiku') ? model : 'claude-opus-5-5', system.length + prompt.length, maxTokens);
   if (usage.total() + worst > LIMITS.maxRunUsd) return { error: `cost cap: $${usage.total().toFixed(4)} spent, this call could cost $${worst.toFixed(4)}, cap $${LIMITS.maxRunUsd}` };
   try {
     const haiku = model.startsWith('claude-haiku');
@@ -480,7 +522,7 @@ export function confirmPrompt(record, candidates) {
 
 const plural = (n, word, many = `${word}s`) => `${n} ${n === 1 ? word : many}`;
 const TYPE_TEXT = {
-  release: 'new release', checkpoint: 'new checkpoint', licence: 'licence', archived: 'repository archived', moved: 'repository moved', leaderboard: 'new benchmark version',
+  release: 'new release', version_gap: 'version not recorded, release since the stored sources', checkpoint: 'new checkpoint', licence: 'licence', archived: 'repository archived', moved: 'repository moved', leaderboard: 'new benchmark version',
 };
 
 /** The marker the intake agent reads. */
@@ -489,7 +531,7 @@ export function updateMarker(payload) {
 }
 
 /** The issue for one entity and one action: update fields, or add new checkpoints. */
-export function renderUpdateIssue({ record, action, changes, runDate, runUrl }) {
+export function renderUpdateIssue({ record, action, changes, runDate, runUrl, related = [] }) {
   const tier = record.attributes.depth_tier;
   const labels = [LABEL, `tier-${tier}`];
   const keys = changes.map((c) => `<!-- ${MARKERS.key}: ${c.key} -->`);
@@ -500,6 +542,7 @@ export function renderUpdateIssue({ record, action, changes, runDate, runUrl }) 
     const body = [
       `The monthly entity sweep found ${names.length > 1 ? 'new checkpoints' : 'a new checkpoint'} on Hugging Face next to \`${record.id}\` (${record.kind}, depth tier ${tier}): ${clean(record.name)}.`,
       '',
+      ...(related.length ? [`Also related to ${related.map((id) => `\`${id}\``).join(', ')}, which cite the same Hugging Face author. One issue covers them all.`, ''] : []),
       `Request a source-backed \`discovered\` model record for each, entities only. Check that each is a released checkpoint of ${clean(record.name)} and not an unrelated model with a similar name.`,
       '',
       ...changes.map((c) => `- **${clean(c.value || c.observed)}**: created ${day(c.facts.created_at) || 'on an unknown date'}, after the stored sources were retrieved (${day(c.facts.baseline) || 'no date'}). ${clean(c.reason)}`),
@@ -510,7 +553,7 @@ export function renderUpdateIssue({ record, action, changes, runDate, runUrl }) 
       '',
       footer,
       '',
-      updateMarker({ record_id: record.id, kind: record.kind, action: 'add', names, urls: unique(changes.flatMap((c) => c.evidence)) }),
+      updateMarker({ record_id: record.id, kind: record.kind, action: 'add', names, urls: unique(changes.flatMap((c) => c.evidence)), ...(related.length ? { related } : {}) }),
       ...keys,
     ];
     return { title, body: body.join('\n'), labels };
@@ -554,7 +597,7 @@ export function renderDeadIssue({ dead, health, runDate, runUrl, recordsById }) 
     health.length ? '' : null,
     ...health.map((h) => `- \`${h.record_id}\` (${clean(recordsById.get(h.record_id)?.name)}): ${h.repo} ${h.detail}`),
     health.length ? '' : null,
-    'A dead source is not evidence that the resource is gone. Find where it moved (the Wayback Machine, the authors\' new page) and record a new source in a pull request; keep the old source record, its hash still pins what was cited.',
+    'A dead source is not evidence that the resource is gone. Find where it moved (the Wayback Machine, the authors\' new page) and record a new source in a pull request; keep the old source record, its hash still pins what was cited. Later sweeps do not list these links or repository changes again, whether this issue is open or closed.',
     '',
     `Filed by the monthly entity sweep (\`.github/workflows/sweep.yml\`)${runUrl ? `, run ${runUrl}` : ''}. Labelled \`${SWEEP_LABEL}\`, not \`${LABEL}\`, so the intake agent does not pick it up.`,
     '',
@@ -580,14 +623,15 @@ export function renderOverflowIssue({ overflow, runDate, runUrl, filed }) {
   };
 }
 
-/** Change keys and dead-link URLs already filed, from issue bodies. Keys count open or closed; dead links only open. */
+/** Change keys, dead-link URLs and repository-change keys already filed, from issue bodies, open or closed. */
 export function knownFromIssues(issues) {
   const keys = new Set();
   const dead = new Set();
   const overflow = new Set();
   for (const i of issues) {
     for (const m of String(i.body ?? '').matchAll(KEY_MARKER)) keys.add(m[1]);
-    if (i.state === 'open') for (const m of String(i.body ?? '').matchAll(DEAD_MARKER)) dead.add(m[1]);
+    // Closed counts too: a permanent dead link or archived repository would otherwise come back every month.
+    for (const m of String(i.body ?? '').matchAll(DEAD_MARKER)) dead.add(m[1]);
     const o = new RegExp(`<!-- ${MARKERS.overflow}: (\\S+) -->`).exec(String(i.body ?? ''));
     if (o) overflow.add(o[1]);
   }
@@ -600,19 +644,33 @@ export function knownFromIssues(issues) {
  */
 export function planIssues(confirmed, { issues, runDate, runUrl, maxIssues = LIMITS.maxIssues }) {
   const known = knownFromIssues(issues);
-  const planned = [];
+  const groups = [];
   const skipped = [];
-  for (const { record, changes } of confirmed) {
+  // A new checkpoint is keyed by its ID alone. Records that cite the same Hugging Face author (a
+  // family and its checkpoints) all find it; the first, in tier and kind order, files it and lists the rest.
+  const addOwner = new Map();
+  const ordered = [...confirmed].sort((a, b) => (a.record.attributes.depth_tier - b.record.attributes.depth_tier) || (KIND_ORDER.indexOf(a.record.kind) - KIND_ORDER.indexOf(b.record.kind)) || (a.record.id < b.record.id ? -1 : 1));
+  for (const { record, changes } of ordered) {
     const fresh = changes.filter((c) => {
-      if (!known.keys.has(c.key)) return true;
-      skipped.push({ record_id: record.id, key: c.key, reason: 'already filed in an earlier issue' });
-      return false;
+      if (known.keys.has(c.key)) {
+        skipped.push({ record_id: record.id, key: c.key, reason: 'already filed in an earlier issue' });
+        return false;
+      }
+      if (c.action === 'add' && addOwner.has(c.key)) {
+        addOwner.get(c.key).related.add(record.id);
+        return false;
+      }
+      return true;
     });
     for (const action of ['update', 'add']) {
       const group = fresh.filter((c) => c.action === action);
-      if (group.length) planned.push({ record, action, changes: group, issue: renderUpdateIssue({ record, action, changes: group, runDate, runUrl }) });
+      if (!group.length) continue;
+      const g = { record, action, changes: group, related: new Set() };
+      if (action === 'add') for (const c of group) addOwner.set(c.key, g);
+      groups.push(g);
     }
   }
+  const planned = groups.map(({ record, action, changes, related }) => ({ record, action, changes, issue: renderUpdateIssue({ record, action, changes, runDate, runUrl, related: [...related].filter((id) => id !== record.id) }) }));
   planned.sort((a, b) => (a.record.attributes.depth_tier - b.record.attributes.depth_tier) || (KIND_ORDER.indexOf(a.record.kind) - KIND_ORDER.indexOf(b.record.kind)) || (a.record.id < b.record.id ? -1 : 1));
   const file = planned.slice(0, maxIssues);
   const overflow = planned.slice(maxIssues);
@@ -623,11 +681,11 @@ export function planIssues(confirmed, { issues, runDate, runUrl, maxIssues = LIM
   };
 }
 
-export function renderSummary({ mode, runDate, tiers, counts, plan, dead, blocked, health, unconfirmed, notes, usage, filed }) {
+export function renderSummary({ mode, runDate, tiers, counts, plan, dead, blocked, health, unconfirmed, notes, usage, filed, unread = [] }) {
   const lines = [
     `## Entity sweep, ${runDate} (${mode})`,
     '',
-    `Tiers swept: ${tiers.join(' and ')}. Entities: ${counts.entities}. Repositories: ${counts.repos} (${counts.ambiguous} needed an ownership check). Benchmark pages: ${counts.pages}. Links: ${counts.links}.`,
+    `Tiers swept: ${tiers.join(' and ')}. Entities: ${counts.entities}. Repositories: ${counts.repos} (${counts.unread} not read; ${counts.ambiguous} needed an ownership check, in ${counts.pairs} entity and repository pairs). Benchmark pages: ${counts.pages}. Links: ${counts.links}.`,
     '',
     ...notes.map((n) => `- ${n}`),
     notes.length ? '' : null,
@@ -647,6 +705,8 @@ export function renderSummary({ mode, runDate, tiers, counts, plan, dead, blocke
     ...dead.map((d) => `- dead ${d.url} (${d.detail})`),
     ...blocked.slice(0, 40).map((b) => `- blocked ${b.url} (${b.detail})`),
     blocked.length > 40 ? `- and ${blocked.length - 40} more blocked` : null,
+    unread.length ? `\nRepository API reads that failed (not checked for changes): ${unread.length}.` : null,
+    ...unread.map((u) => `- not read ${u.repo} ${u.what} (${u.detail})`),
     '',
     '### Token usage',
     '',
@@ -741,6 +801,8 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   const known = storeIndex(storeDir);
   const entities = selectEntities(records, tiers, { limit: args.limit, ids: args.ids });
   const refsById = new Map(entities.map((r) => [r.id, refsOf(r, sources)]));
+  // Umbrella repositories are counted over the whole store, so --ids or --limit do not change them.
+  markUmbrellas(refsById, records.map((r) => (refsById.has(r.id) ? refsById.get(r.id) : refsOf(r, sources))));
   const allRepos = new Map();
   for (const [id, refs] of refsById) for (const ref of refs.repos) {
     const k = refKey(ref);
@@ -754,38 +816,68 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   await pool([...allRepos.entries()], async ([k, ref]) => {
     facts.set(k, ref.host === 'github' ? await githubFacts(ref, { fetchImpl, token: readToken }) : await hfFacts(ref, { fetchImpl }));
   });
+  // Reads that failed (rate limits, bot walls, timeouts) are listed, so a quiet month is not mistaken for a checked one.
+  const unread = [];
+  for (const [k, f] of facts) {
+    if (f.state === 'blocked') unread.push({ repo: k, what: 'repository', detail: f.detail });
+    else if (f.releases_error) unread.push({ repo: k, what: 'release list', detail: f.releases_error });
+    else if (f.siblings_error) unread.push({ repo: k, what: 'checkpoint list', detail: f.siblings_error });
+  }
+  if (unread.length) notes.push(`${plural(unread.length, 'repository or release list', 'repositories or release lists')} not read, so not checked for changes: ${unread.slice(0, 20).map((u) => `${u.repo} ${u.what} (${u.detail})`).join(', ')}${unread.length > 20 ? ` and ${unread.length - 20} more` : ''}.`);
 
   // 3. Ambiguous ownership: Haiku decides, in one call, from names and repository descriptions.
   const pairs = [];
+  const pairRepos = new Set();
   for (const record of entities) for (const ref of refsById.get(record.id).repos.filter((r) => r.ambiguous)) {
     const f = facts.get(refKey(ref));
     if (f?.state !== 'ok') continue;
+    pairRepos.add(refKey(ref));
     pairs.push({ record, ref, name: record.name, kind: record.kind, description: record.description, repo: ref.host === 'github' ? `github.com/${ref.owner}/${ref.repo}` : `huggingface.co/${ref.id}`, repo_description: f.description ?? '' });
   }
   if (pairs.length) {
     // About 20 output tokens a pair; scale the cap so a long list is not cut short.
     const answer = await call('ownership', 'all', { model: MODELS.classify, prompt: ownershipPrompt(pairs), schema: OWNERSHIP_SCHEMA, maxTokens: Math.max(LIMITS.classifyMaxTokens, 200 + 20 * pairs.length) });
-    if (answer.error) notes.push(`Ownership check of ${plural(pairs.length, 'repository', 'repositories')} not made (${answer.error}); those repositories were not checked for changes.`);
+    if (answer.error) notes.push(`Ownership check of ${plural(pairs.length, 'entity and repository pair')} (${plural(pairRepos.size, 'repository', 'repositories')}) not made (${answer.error}); those pairs were not checked for changes.`);
     for (const p of answer.value?.pairs ?? []) if (p.own && pairs[p.n]) pairs[p.n].ref.own = true;
   }
 
   // 4. Benchmark pages: fetch, compare the hash, and let Haiku read a changed page.
+  // Once per URL; the answer applies to every record citing the page. A page whose address does not
+  // name the benchmark is not read: it is counted as skipped.
   const pages = {};
-  const pageList = entities.flatMap((r) => refsById.get(r.id).pages.filter((p) => p.own && tracksVersion(r)).map((p) => ({ record: r, page: p })));
-  let classified = 0;
+  const pageByUrl = new Map();
+  let notOwnPages = 0;
+  for (const r of entities) for (const p of refsById.get(r.id).pages) {
+    if (!tracksVersion(r)) continue;
+    if (!p.own) {
+      notOwnPages += 1;
+      continue;
+    }
+    if (!pageByUrl.has(p.url)) pageByUrl.set(p.url, { record: r, page: p });
+  }
+  const pageList = [...pageByUrl.values()];
+  const pageStats = { unreadable: [], unchanged: 0, changed: 0, read: 0, failed: 0, overCap: 0 };
   await pool(pageList, async ({ record, page }) => {
     const r = await request(page.url, { fetchImpl });
-    if (r.error || r.status !== 200) return;
-    if (sha256(r.body) === page.sha256) return;
-    if (classified >= LIMITS.maxPages) return;
-    classified += 1;
+    if (r.error || r.status !== 200) return void pageStats.unreadable.push(`${page.url} (${r.error ?? `HTTP ${r.status}`})`);
+    if (sha256(r.body) === page.sha256) return void (pageStats.unchanged += 1);
+    pageStats.changed += 1;
+    if (pageStats.changed > LIMITS.maxPages) return void (pageStats.overCap += 1);
     const type = (r.headers?.get?.('content-type') ?? '').split(';')[0];
     const text = pageText(r.body, type || 'text/html', LIMITS.pageChars);
-    if (!text) return;
+    if (!text) return void (pageStats.failed += 1);
     const answer = await call('pages', page.url, { model: MODELS.classify, prompt: pagePrompt({ record, url: page.url, text }), schema: PAGE_SCHEMA, maxTokens: LIMITS.classifyMaxTokens });
-    if (answer.value) pages[page.url] = answer.value;
+    if (answer.value) {
+      pages[page.url] = answer.value;
+      pageStats.read += 1;
+    } else pageStats.failed += 1;
   }, 3);
-  if (pageList.length) notes.push(`Benchmark pages: ${pageList.length} checked, ${classified} changed since stored and read by Haiku.`);
+  if (pageList.length || notOwnPages) {
+    const s = pageStats;
+    notes.push(`Benchmark pages: ${plural(pageList.length, 'page')} checked, ${s.unchanged} unchanged, ${s.changed} changed since stored, ${s.read} read by Haiku${s.failed ? `, ${s.failed} not read (no text or no model answer)` : ''}${s.unreadable.length ? `, ${s.unreadable.length} could not be fetched` : ''}. ${plural(notOwnPages, 'cited page')} whose address does not name the benchmark skipped.`);
+    if (s.overCap) notes.push(`${plural(s.overCap, 'changed page')} over the cap of ${LIMITS.maxPages} a run not read.`);
+    if (s.unreadable.length) notes.push(`Benchmark pages not fetched: ${s.unreadable.slice(0, 10).join(', ')}${s.unreadable.length > 10 ? ` and ${s.unreadable.length - 10} more` : ''}.`);
+  }
 
   // 5. Candidates per entity.
   const health = [];
@@ -809,7 +901,9 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     const ok = [];
     candidates.forEach((c, n) => {
       const v = verdicts.get(n);
-      if (v?.real && clean(v.value)) ok.push({ ...c, value: clean(v.value), reason: clean(v.reason) });
+      const value = v?.real ? checkedValue(c, v.value) : null;
+      if (value) ok.push({ ...c, value, reason: clean(v.reason) });
+      else if (v?.real && clean(v.value)) unconfirmed.push({ record_id: record.id, type: c.type, observed: c.observed, reason: `Sonnet's text ${JSON.stringify(clean(v.value).slice(0, 80))} does not carry the observed value, so it is not filed` });
       else unconfirmed.push({ record_id: record.id, type: c.type, observed: c.observed, reason: v ? `Sonnet: ${clean(v.reason) || 'not real'}` : 'Sonnet gave no verdict' });
     });
     if (ok.length) confirmed.push({ record, changes: ok });
@@ -826,54 +920,60 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   const dead = linkResults.filter((l) => l.state === 'dead').map((l) => ({ ...l, records: [...linkUsers.get(l.url)], tiers: unique([...linkUsers.get(l.url)].map((id) => byId.get(id)?.attributes?.depth_tier)) }));
   const blocked = linkResults.filter((l) => l.state === 'blocked');
 
-  // 8. Plan, and file in live mode.
-  let issues = [];
-  if (args.dryRun) issues = fx('issues.json');
-  else {
-    try {
-      issues = await (deps.github ?? githubClient(env.GH_TOKEN || readToken)).listIssues(repo);
-    } catch (e) {
-      if (write) throw e;
-      notes.push(`Could not read the existing issues, so the plan is not deduplicated (${String(e.message).slice(0, 100)}).`);
+  // 8. Plan, and file in live mode. usage.json is written even when filing fails, so the digest still counts the spend.
+  try {
+    let issues = [];
+    if (args.dryRun) issues = fx('issues.json');
+    else {
+      try {
+        issues = await (deps.github ?? githubClient(env.GH_TOKEN || readToken)).listIssues(repo);
+      } catch (e) {
+        if (write) throw e;
+        notes.push(`Could not read the existing issues, so the plan is not deduplicated (${String(e.message).slice(0, 100)}).`);
+      }
     }
-  }
-  const plan = planIssues(confirmed, { issues, runDate, runUrl });
-  const newDead = dead.filter((d) => !plan.knownDead.has(d.url));
-  const newHealth = health.filter((h) => !plan.knownDead.has(healthKey(h)));
-  const deadIssue = newDead.length || newHealth.length ? renderDeadIssue({ dead: newDead, health: newHealth, runDate, runUrl, recordsById: byId }) : null;
-  const filed = new Map();
-  if (write && modelsOn) {
-    const gh = deps.github ?? githubClient(env.GH_TOKEN || env.GITHUB_TOKEN);
-    await gh.ensureLabels(repo, unique([LABEL, SWEEP_LABEL, 'tier-1', 'tier-2']));
-    for (const p of plan.file) {
-      const i = await gh.createIssue(repo, p.issue);
-      filed.set(p.issue.title, i.html_url);
-    }
-    if (plan.overflowIssue) filed.set(plan.overflowIssue.title, (await gh.createIssue(repo, plan.overflowIssue)).html_url);
-    if (deadIssue) filed.set(deadIssue.title, (await gh.createIssue(repo, deadIssue)).html_url);
-    if (env.APP_TOKEN !== 'true') notes.push('Issues were filed with the workflow token, which starts no workflow: add the entity-update label again by hand to start the intake.');
-  } else if (write) notes.push('Live mode without a model key files nothing.');
+    const plan = planIssues(confirmed, { issues, runDate, runUrl });
+    const newDead = dead.filter((d) => !plan.knownDead.has(d.url));
+    const newHealth = health.filter((h) => !plan.knownDead.has(healthKey(h)));
+    const deadIssue = newDead.length || newHealth.length ? renderDeadIssue({ dead: newDead, health: newHealth, runDate, runUrl, recordsById: byId }) : null;
+    const filed = new Map();
+    if (write && modelsOn) {
+      const gh = deps.github ?? githubClient(env.GH_TOKEN || env.GITHUB_TOKEN);
+      await gh.ensureLabels(repo, unique([LABEL, SWEEP_LABEL, 'tier-1', 'tier-2']));
+      for (const p of plan.file) {
+        const i = await gh.createIssue(repo, p.issue);
+        filed.set(p.issue.title, i.html_url);
+      }
+      if (plan.overflowIssue) filed.set(plan.overflowIssue.title, (await gh.createIssue(repo, plan.overflowIssue)).html_url);
+      if (deadIssue) filed.set(deadIssue.title, (await gh.createIssue(repo, deadIssue)).html_url);
+      if (env.APP_TOKEN !== 'true') notes.push('Issues were filed with the workflow token, which starts no workflow: add the entity-update label again by hand to start the intake.');
+    } else if (write) notes.push('Live mode without a model key files nothing.');
 
-  const summary = renderSummary({
-    mode, runDate, tiers, notes, usage, filed, plan, dead: newDead, blocked, health: newHealth, unconfirmed,
-    counts: { entities: entities.length, repos: allRepos.size, ambiguous: pairs.length, pages: pageList.length, links: linkUsers.size },
-  });
-  if (env.GITHUB_STEP_SUMMARY) appendFileSync(env.GITHUB_STEP_SUMMARY, `${summary}\n`);
-  else log(summary);
-  if (args.out) {
-    mkdirSync(join(args.out, 'issues'), { recursive: true });
-    const all = [...plan.file.map((p) => p.issue), plan.overflowIssue, deadIssue].filter(Boolean);
-    all.forEach((i, n) => writeFileSync(join(args.out, 'issues', `${String(n + 1).padStart(2, '0')}.md`), `# ${i.title}\n\nLabels: ${i.labels.join(', ')}\n\n${i.body}\n`));
-    writeFileSync(join(args.out, 'plan.json'), `${JSON.stringify({
-      mode, runDate, tiers, entities: entities.map((e) => e.id),
-      issues: plan.file.map((p) => ({ record_id: p.record.id, action: p.action, title: p.issue.title, labels: p.issue.labels, keys: p.changes.map((c) => c.key), url: filed.get(p.issue.title) ?? null })),
-      overflow: plan.overflow.map((p) => p.issue.title), skipped: plan.skipped, unconfirmed, dead: newDead, blocked, health,
-      repositories: Object.fromEntries([...facts.entries()].map(([k, f]) => [k, { ...f, releases: f.releases?.slice(0, 3), siblings: f.siblings?.slice(0, 5) }])),
-    }, null, 2)}\n`);
-    writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total(), seconds: Math.round((Date.now() - started) / 1000) }, null, 2)}\n`);
+    const summary = renderSummary({
+      mode, runDate, tiers, notes, usage, filed, plan, dead: newDead, blocked, health: newHealth, unconfirmed, unread,
+      counts: { entities: entities.length, repos: allRepos.size, ambiguous: pairRepos.size, pairs: pairs.length, unread: unread.length, pages: pageList.length, links: linkUsers.size },
+    });
+    if (env.GITHUB_STEP_SUMMARY) appendFileSync(env.GITHUB_STEP_SUMMARY, `${summary}\n`);
+    else log(summary);
+    if (args.out) {
+      mkdirSync(join(args.out, 'issues'), { recursive: true });
+      const all = [...plan.file.map((p) => p.issue), plan.overflowIssue, deadIssue].filter(Boolean);
+      all.forEach((i, n) => writeFileSync(join(args.out, 'issues', `${String(n + 1).padStart(2, '0')}.md`), `# ${i.title}\n\nLabels: ${i.labels.join(', ')}\n\n${i.body}\n`));
+      writeFileSync(join(args.out, 'plan.json'), `${JSON.stringify({
+        mode, runDate, tiers, entities: entities.map((e) => e.id),
+        issues: plan.file.map((p) => ({ record_id: p.record.id, action: p.action, title: p.issue.title, labels: p.issue.labels, keys: p.changes.map((c) => c.key), url: filed.get(p.issue.title) ?? null })),
+        overflow: plan.overflow.map((p) => p.issue.title), skipped: plan.skipped, unconfirmed, dead: newDead, blocked, health, unread,
+        repositories: Object.fromEntries([...facts.entries()].map(([k, f]) => [k, { ...f, releases: f.releases?.slice(0, 3), siblings: f.siblings?.slice(0, 5) }])),
+      }, null, 2)}\n`);
+    }
+    log(`Estimated cost of this run: $${usage.total().toFixed(4)}`);
+    return { plan, dead: newDead, blocked, health, unconfirmed, confirmed, usage, summary, deadIssue, filed, entities };
+  } finally {
+    if (args.out) {
+      mkdirSync(args.out, { recursive: true });
+      writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total(), seconds: Math.round((Date.now() - started) / 1000) }, null, 2)}\n`);
+    }
   }
-  log(`Estimated cost of this run: $${usage.total().toFixed(4)}`);
-  return { plan, dead: newDead, blocked, health, unconfirmed, confirmed, usage, summary, deadIssue, filed, entities };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

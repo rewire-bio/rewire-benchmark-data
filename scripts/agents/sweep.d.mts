@@ -2,6 +2,7 @@ import type { Usage } from "./discovery.mjs";
 export const PROMPT_PATH: string;
 export const FIXTURES: string;
 export const ORG: string;
+export const DEFAULT_REPO: string;
 export const LABEL: string;
 export const SWEEP_LABEL: string;
 export const MODELS: { classify: string; confirm: string };
@@ -35,6 +36,8 @@ export function hfFacts(ref: Ref, opts: { fetchImpl: typeof fetch }): Promise<Re
 export function licenceAgrees(recordLicence: string, observed: string): boolean;
 export function candidatesFor(record: Rec, refs: { repos: Ref[]; pages: Ref[] }, opts: { facts: Map<string, any>; pages?: Record<string, any>; known?: string }): { candidates: Candidate[]; health: Record<string, any>[] };
 export function healthKey(h: Record<string, any>): string;
+export function checkedValue(candidate: Candidate, value: string): string | null;
+export function markUmbrellas(refsById: Map<string, { repos: Ref[] }>, storeRefs: { repos: Ref[] }[]): Set<string>;
 export function refKey(ref: Ref): string;
 export function worstCase(model: string, chars: number, maxTokens: number): number;
 export function ownershipPrompt(pairs: Record<string, any>[]): string;
@@ -42,7 +45,7 @@ export function pagePrompt(input: { record: Rec; url: string; text: string }): s
 export function confirmPrompt(record: Rec, candidates: Candidate[]): string;
 export function updateMarker(payload: Record<string, any>): string;
 export function parseUpdateMarker(body: string): Record<string, any> | null;
-export function renderUpdateIssue(input: { record: Rec; action: 'update' | 'add'; changes: Candidate[]; runDate: string; runUrl?: string }): IssueText;
+export function renderUpdateIssue(input: { record: Rec; action: 'update' | 'add'; changes: Candidate[]; runDate: string; runUrl?: string; related?: string[] }): IssueText;
 export function renderDeadIssue(input: { dead: any[]; health: any[]; runDate: string; runUrl?: string; recordsById: Map<string, Rec> }): IssueText;
 export function renderOverflowIssue(input: { overflow: any[]; runDate: string; runUrl?: string; filed: number }): IssueText;
 export function knownFromIssues(issues: { body?: string; state?: string }[]): { keys: Set<string>; dead: Set<string>; overflow: Set<string> };

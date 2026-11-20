@@ -55,8 +55,14 @@ jobs:
         with:
           app-id: ${{ vars.REWIRE_BOT_APP_ID }}
           private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
-          owner: rewire-bio
-          repositories: rewire-benchmark-data
+          # This repository only, and only what the intake needs: push the branch, open the pull
+          # request, comment on and close the issue. rewire-bot may push to main without the checks;
+          # the intake never does, it only pushes its own intake/ branch.
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
       - uses: actions/checkout@v4
         with:
           token: ${{ steps.app.outputs.token || github.token }}

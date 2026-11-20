@@ -24,7 +24,7 @@ import { tmpdir } from 'node:os';
 import { createInterface } from 'node:readline';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { PRICES, Usage, clean } from './discovery.mjs';
+import { DEFAULT_REPO, PRICES, Usage, clean } from './discovery.mjs';
 import { ASSIGNEE, LABEL as PIPELINE_LABEL, staleness } from '../ops/pipeline-alert.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -703,7 +703,7 @@ function parseArgs(argv) {
 export async function main(argv = process.argv.slice(2), env = process.env, deps = {}) {
   const args = parseArgs(argv);
   const mode = args.dryRun ? 'dry run' : args.reportOnly ? 'report only' : 'live';
-  const repo = env.GITHUB_REPOSITORY || 'rewire-bio/rewire-benchmark-data';
+  const repo = env.GITHUB_REPOSITORY || DEFAULT_REPO;
   const owner = repo.split('/')[0];
   const otherRepos = (env.DIGEST_REPOS || `${owner}/rewire.it,${owner}/rewire-database`).split(',').map((s) => s.trim()).filter((s) => s && s !== repo);
   const site = (env.DIGEST_SITE || SITE).replace(/\/$/, '');
