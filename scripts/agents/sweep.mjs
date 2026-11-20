@@ -461,12 +461,13 @@ export function candidatesFor(record, refs, { facts, pages = {}, known = '' }) {
             out.push({ type: 'version_gap', field: 'version', action: 'update', observed: tag, current: '', evidence: [`${f.html_url ?? `https://github.com/${label}`}/releases/tag/${encodeURIComponent(tag)}`], key: key('version_gap', `${label}-${tag}`), facts: { repository: label, pinned_commit: pin, pinned_by: ref.pin_sources ?? [], tag_at_pinned_commit: tag, recorded_version: 'none', ...(newer.length ? { newer_releases: releaseList(newer) } : {}) } });
           if (newer.length) lookAt(`a newer release exists: ${releaseList(newer)}. The sources pin ${pin.slice(0, 8)}${tag ? ` (tag ${tag})` : tags.length > 1 ? ` (tags ${tags.join(', ')})` : ' (no tag at that commit)'}, and the record describes that commit, so it is not changed.`);
         }
-      } else if (sinceBaseline.length) {
-        // A record without a version gets a `version_gap` candidate, labelled as such, not a
-        // `release`: nothing changed, the field was never filled.
+      } else if (sinceBaseline.length && a.version) {
         const latest = sinceBaseline[0];
-        const type = a.version ? 'release' : 'version_gap';
-        out.push({ type, field: 'version', action: 'update', observed: latest.tag, current: a.version ?? '', evidence: [latest.url], key: key(type, `${label}-${latest.tag}`), facts: { repository: label, baseline: ref.baseline, recorded_version: a.version || 'none', releases_since_baseline: sinceBaseline.slice(0, 5) } });
+        out.push({ type: 'release', field: 'version', action: 'update', observed: latest.tag, current: a.version, evidence: [latest.url], key: key('release', `${label}-${latest.tag}`), facts: { repository: label, baseline: ref.baseline, recorded_version: a.version, releases_since_baseline: sinceBaseline.slice(0, 5) } });
+      } else if (sinceBaseline.length) {
+        // No version and no pinned commit: nothing says which version the record describes, and a
+        // release after the stored sources is newer than anything they saw. A note, not a change.
+        lookAt(`no version recorded and no pinned commit in the sources; releases since the stored sources: ${releaseList(sinceBaseline)}. Which one the record describes is not known from the data.`);
       }
     }
     if (ref.host === 'hf' && ref.type === 'model' && record.kind !== 'use_case') {
@@ -622,7 +623,7 @@ export function confirmPrompt(record, candidates) {
 
 const plural = (n, word, many = `${word}s`) => `${n} ${n === 1 ? word : many}`;
 const TYPE_TEXT = {
-  release: 'new release', version_gap: 'version not recorded, tag at the pinned commit or release since the stored sources', checkpoint: 'new checkpoint', licence: 'licence', archived: 'repository archived', moved: 'repository moved', leaderboard: 'new benchmark version',
+  release: 'new release', version_gap: 'version not recorded, tag at the pinned commit', checkpoint: 'new checkpoint', licence: 'licence', archived: 'repository archived', moved: 'repository moved', leaderboard: 'new benchmark version',
 };
 
 /** Facts as plain text, whole: a release list as tags and dates, other values as they are. */
