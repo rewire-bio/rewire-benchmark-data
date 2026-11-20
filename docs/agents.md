@@ -173,6 +173,49 @@ The mode for bot pull requests is the repository variable `REVIEWER_MODE` (unset
 
 One Sonnet call per review with up to 1 web search and 2 web fetches plus one per distinct source URL (at most 10), 16,000 output tokens, 2 `pause_turn` resumes, effort `high`. No structuring call once the estimated cost passes $1.50. The job summary and `usage.json` in the artifact give each review's tokens and cost.
 
+## Disagreement watcher
+
+`.github/workflows/watcher.yml` runs `scripts/agents/watcher.mjs` after every successful run of "Cut and publish a release", and by hand (#258). It turns new discrepancies between studies ([discrepancies.md](discrepancies.md)) into "Lead:" issues in the format of #209 to #211, so new findings are noticed without someone opening `/contested/`.
+
+What it does:
+
+1. It diffs `discrepancies.json` of the newest release's knowledge-graph bundle (`kg/<id>`, releases in the order `serving/<id>` was cut) against the release the last watcher run in the same mode compared to, or, with no such run, the release before it. A finding is matched to its earlier self by ID or through `previous_ids`, or, failing both, by the stable parts of its key (rule, systems, anchor, metric and study keys) among earlier findings whose ID has gone. `previous_ids` are written only for findings with a review claim, so when a rule change alters the key itself, an unreviewed finding shows as new and its old ID as gone; the "gone" comment then says the finding may continue under a new ID. When one finding covers several earlier ones, all of them are matched. Resolved findings are not live.
+2. For each new medium or high finding, each finding whose severity rose, and each resolved finding that fires again, it files one issue labelled `lead` and `needs-tim` and assigned to timini, so GitHub emails him. The issue links the contested page and gives, from the release data only: each study's verdict and comparison counts, up to four comparisons per study with their values, and the protocols, datasets, metrics and configurations each study used. Names and links come from the release's `records.jsonl.gz`.
+3. Sonnet 5.5 writes one paragraph, "Likely explanations to check", from those facts (prompt [agents/watcher.md](../agents/watcher.md)). The paragraph may state no numbers and refers to studies by role. The script drops it if it contains a link, any digit outside a name the facts gave (such as ESM-2, or a word of a name such as ESM-1b or a year in a study name), a count or fraction in words ("nine of twelve", "three", "half"; "one" and "the two systems" are allowed), or if the call stopped before the end; the issue is then filed without it and says why. Without `ANTHROPIC_API_KEY` the issues are filed without it.
+4. Dedupe: every issue carries a hidden `discrepancy-lead` marker with the finding's ID. A finding is never filed twice: not when a lead issue has its marker, and not when a hand-written "Lead:" issue names its ID or one of its `previous_ids`. A finding that already has a lead issue gets a comment instead when its severity rises or it fires again, also on a closed issue (a comment notifies without reopening it). A finding that has follow-up actions but no lead issue is skipped and named in the job summary.
+5. At most 5 lead issues a run, most severe first. Any more go into one summary issue (same labels and assignee) listing each finding, whose markers stop later runs filing them separately.
+6. A finding that stops being live gets a comment on its open lead issue saying so. The issue is not closed.
+
+After a release run that cuts no release, the watcher stops early: the last run in its mode already compared the newest release, so it makes no model call. Every comment also carries a marker with the release ID, so a repeated comparison files and posts nothing.
+
+It records nothing in the store. A `discrepancy_review` revision counts only with status `source_checked`, and every action in `data/vocab/discrepancy-action.ttl` (`investigated` included) and every working state in `discrepancy-state.ttl` (`investigating` included) says someone has looked at the sources. When the watcher files a lead nobody has, so the finding stays `open` until the first real revision. Each lead's "To check" list ends with recording that revision.
+
+Depth tiers: #258 asks for tier 3 findings to go to a weekly digest only. The weekly digest does not route findings by tier yet, so the watcher files leads for every tier and states the finding's tier (the lowest of its two systems) in the issue.
+
+### Modes
+
+| Mode | Model calls | GitHub writes | When |
+| --- | --- | --- | --- |
+| `dry-run` | No | No | Pull requests that touch the watcher, and by hand. It reads `tests/agents-watcher-fixtures/`: real findings from release `2026-11-19-0528a0ffe3cb`, trimmed and arranged into two new findings, a rise and two findings that stopped. |
+| `report-only` | Yes | No | After every successful release run (the default), and by hand with optional `current` and `previous` release IDs. The planned issues and comments are in the job summary and the `watcher-<run>` artifact. |
+| `live` | Yes | Issues and comments | After every successful release run once the repository variable `WATCHER_MODE` is `live`, and by hand. |
+
+To go live, set the repository variable: `gh variable set WATCHER_MODE --body live`. Delete it (or set it to `report-only`) to go back. The first live run after the switch compares the newest release with the one before it, since no live run has recorded a release yet; run it by hand with `previous` set to an earlier release to cover more.
+
+Locally, against any two releases: download `discrepancies.json` from both `kg/<id>` releases and `public.omics.releases.<id>.records.jsonl.gz` from the newer `serving/<id>`, then run `node scripts/agents/watcher.mjs --dry-run --previous <old.json> --current <new.json> --records <records.jsonl.gz> --issues <issues.json> --out /tmp/watcher`. `--issues` takes the issue list as JSON (`number`, `title`, `body`, `state`); without it the fixture list is used.
+
+### Setup and cost
+
+It uses the `ANTHROPIC_API_KEY` secret and the rewire-bot app (`REWIRE_BOT_APP_ID`, `REWIRE_BOT_PRIVATE_KEY`, issues write), like discovery. Without the app it files with `GITHUB_TOKEN`. It refuses to run outside the rewire-bio organisation, and takes the repository from the run, so it moves with the code.
+
+One Sonnet call per filed lead, with no tools and up to 2,000 output tokens. The facts sent for the three medium findings live on 19 November 2026 measured about 1,800, 2,700 and 3,800 input tokens with the prompt, so a call costs about $0.01 to $0.03. The lists sent per study are cut to 10 protocols, datasets and metrics, which bounds a call at about 20,000 input tokens, about $0.06. No call is made once the run's estimated cost passes $1; with at most 5 calls a run, that bound is about $0.30. A release with no new finding costs nothing.
+
+### Known gaps
+
+- A run after a release compares the newest release with the last one a successful run in the same mode compared to, read from that run's artifact (kept 30 days). So a failed watcher run, a release run that failed after publishing its bundle, or a run replaced in the queue does not lose findings: the next run compares across the gap and lists the releases in between in its job summary. A finding that appeared and went away inside the gap is not reported. If the artifact has expired the run falls back to the release before the newest. Nothing alerts on a failed watcher run.
+- The lead issue is filed before the website has adopted the release, so its contested page link can show the previous release's findings for a short while.
+- The Sonnet call has only been tested with fakes. The first `report-only` run after merge is the first real call.
+
 ## Weekly digest
 
 `.github/workflows/digest.yml` runs `scripts/agents/digest.mjs` every Monday at 06:30 UTC (#259). In live mode (see Modes) it opens one issue, "Weekly digest: <from> to <to>", labelled `digest` and assigned to timini, and closes the previous week's with a link to the new one. A second live run in the same ISO week (UTC, Monday to Sunday) updates that week's issue instead of opening another, whatever the day.

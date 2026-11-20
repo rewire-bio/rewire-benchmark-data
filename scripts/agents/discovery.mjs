@@ -82,6 +82,9 @@ export const LABELS = {
   'tier-2': { color: 'fbca04', description: 'Depth tier 2: proteins, full records' },
   'tier-3': { color: 'c5def5', description: 'Depth tier 3: everything else, metadata only' },
   article: { color: '5319e7', description: 'Article request for the writer agent' },
+  // Filed by the disagreement watcher (watcher.mjs).
+  lead: { color: 'd93f0b', description: 'A discrepancy between studies to investigate' },
+  'needs-tim': { color: 'b60205', description: 'Needs a decision or action from Tim' },
 };
 
 const TIER_SCOPE = {
