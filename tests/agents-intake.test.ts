@@ -1,12 +1,15 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { keepOrder } from "../scripts/agents/reviewer.mjs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   KIND_FIELDS, SOURCE_FIELDS, buildBatch, doiOf, fetchSource, pageText, sourceBlocks, fetchableUrl, htmlTitle, isChallengePage, main, publicationStatusOf, renderSkipComment,
   proposalSchema, screenEntities, urlsInText, verifiedValue, versionOf, withSourceUrls, exitCodeFor,
-  UPDATE_FIELDS, buildUpdate, parseUpdateMarker, replaceRecordLine,
+  UPDATE_FIELDS, buildUpdate, parseUpdateMarker, renderChangeTable,
 } from "../scripts/agents/intake.mjs";
+import { changeOps, fieldDiff } from "../scripts/agents/kg.mjs";
+import { createHash } from "node:crypto";
 import { Usage } from "../scripts/agents/discovery.mjs";
 import { intakeProblems } from "../scripts/agents/intake-check";
 
@@ -518,16 +521,29 @@ describe("entity-update issues", () => {
     expect(built.record.attributes.missing_metadata).toBeUndefined();
   });
 
-  it("replaces one line of a store file and nothing else", () => {
-    const text = `{"id":"a","x":1}\n${JSON.stringify(record)}\n{"id":"z"}\n`;
-    const out = replaceRecordLine(text, { ...record, name: "SpliceAI changed" });
-    expect(out.split("\n")[0]).toBe('{"id":"a","x":1}');
-    expect(JSON.parse(out.split("\n")[1]).name).toBe("SpliceAI changed");
-    expect(out.endsWith('{"id":"z"}\n')).toBe(true);
-    expect(() => replaceRecordLine(text, { id: "missing" })).toThrow("not in the store file");
+  const sha = (text: string) => createHash("sha256").update(text).digest("hex");
+  const baseLine = readFileSync(`${UPDATE}/entities/models.jsonl`, "utf8").split("\n")[0];
+
+  it("turns the edit into draft_change operations that keep every other key in place", () => {
+    const changed = { ...record, source_ids: [...record.source_ids, "s-new"], attributes: { ...record.attributes, access: "archived", version: "v2" } };
+    delete (changed.attributes as Record<string, unknown>).missing_metadata;
+    const ops = changeOps(record, changed);
+    expect(ops.map((o: { path: string }) => o.path)).toContain("/attributes/access");
+    expect(ops).toContainEqual({ path: "/attributes/version", value: "v2" });
+    expect(ops).toContainEqual({ path: "/source_ids", value: changed.source_ids });
+    expect(fieldDiff(record, record)).toEqual([]);
+    // Applying the ops in order to the parsed base line gives the edit, byte for byte.
+    const applied = JSON.parse(baseLine);
+    for (const op of ops) {
+      const keys = op.path.slice(1).split("/");
+      const parent = keys.slice(0, -1).reduce((o: Record<string, unknown>, k: string) => o[k] as Record<string, unknown>, applied);
+      if ("remove" in op) delete parent[keys.at(-1)!];
+      else parent[keys.at(-1)!] = op.value;
+    }
+    expect(JSON.stringify(applied)).toBe(JSON.stringify(changed));
   });
 
-  it("dry run: writes the changed record and the receipt, and would open a pull request that closes the issue", async () => {
+  it("dry run: writes the changes file and the receipt, and would open a pull request that closes the issue", async () => {
     const root = tempRoot();
     const result = await main(["--dry-run", "--fixtures", UPDATE, "--store-dir", `${UPDATE}/entities`, "--root", root, "--no-store-checks"], {}, { now, log: quiet });
     expect(result.outcome).toBe("ready: pull request not opened in this mode");
@@ -535,9 +551,27 @@ describe("entity-update issues", () => {
     expect(result.pull.body).toContain("Closes #9998");
     expect(result.pull.body).not.toMatch(/[\u2013\u2014]/);
     const dir = join(root, "data/omics/update-9998-20261119");
-    const changed = JSON.parse(readFileSync(join(dir, "changed.jsonl"), "utf8"));
-    expect(changed.attributes.access).toContain("archived (read-only)");
-    expect(JSON.parse(readFileSync(join(dir, "review.json"), "utf8")).scope).toContain("Fields access of discovery-model-spliceai");
+    const text = readFileSync(join(dir, "changes.jsonl"), "utf8");
+    const line = JSON.parse(text);
+    expect(Object.keys(line)).toEqual(["id", "base_sha256", "sha256", "record"]);
+    expect(line.base_sha256).toBe(sha(baseLine));
+    expect(line.sha256).toBe(sha(JSON.stringify(line.record)));
+    expect(line.record.attributes.access).toContain("archived (read-only)");
+    // Untouched keys keep their committed order; only the changed ones differ.
+    expect(Object.keys(line.record)).toEqual(Object.keys(record));
+    expect(Object.keys(line.record.attributes).filter((k) => k in record.attributes)).toEqual(Object.keys(record.attributes).filter((k) => k in line.record.attributes));
+    const paths = fieldDiff(record, line.record).map((f: { path: string }) => f.path);
+    expect(paths).toEqual(expect.arrayContaining(["/attributes/access", "/attributes/source_locator", "/source_ids"]));
+    const receipt = JSON.parse(readFileSync(join(dir, "review.json"), "utf8"));
+    expect(receipt.scope).toContain("Fields access of discovery-model-spliceai");
+    expect(receipt.files["changes.jsonl"]).toBe(sha(text));
+    expect(receipt.changes[0]).toMatchObject({ id: "discovery-model-spliceai", base_sha256: sha(baseLine), made_by: "intake script (KG server not available)" });
+    expect(result.pull.body).toContain("| `/attributes/access` | ");
+    expect(result.pull.body).toContain("intake script wrote the changes file itself");
+    // The fixture issue gives no base_sha256, so the pull request says what the change was made against.
+    expect(result.pull.body).toContain(`The issue gives no base_sha256, so nothing shows discovery-model-spliceai is still the record the issue was written against; the change was made against the line the store holds now (SHA-256 ${sha(baseLine)})`);
+    // The script's own changes line passes the reviewer's key-order check.
+    expect(JSON.stringify(keepOrder(JSON.parse(baseLine), line.record))).toBe(JSON.stringify(line.record));
     // The evidence URL is new to the fixture store, so it becomes a source record.
     expect(readFileSync(join(dir, "batch.jsonl"), "utf8")).toContain(evidence);
   });
@@ -577,9 +611,9 @@ describe("entity-update issues", () => {
     const result = await main(["--issue", "9998", "--store-dir", `${UPDATE}/entities`, "--root", root], env, { anthropic, github, fetch: fetchImpl, run, now, log: quiet });
     expect(calls).toEqual(["research claude-sonnet-5-5", "structure claude-haiku-5-5"]);
     expect(commands.map((c) => (c.startsWith("git commit") ? c.split(" ").slice(0, 5).join(" ") : c))).toEqual([
-      "npx tsx scripts/agents/intake-check.ts data/omics/update-9998-20261119/changed.jsonl data/omics/update-9998-20261119/batch.jsonl",
+      "npx tsx scripts/agents/intake-check.ts data/omics/update-9998-20261119/changes.jsonl data/omics/update-9998-20261119/batch.jsonl",
       "npm run -s records -- add data/omics/update-9998-20261119/batch.jsonl data/omics/update-9998-20261119",
-      "npm run -s records -- change data/omics/update-9998-20261119/review.json data/omics/update-9998-20261119 discovery-model-spliceai",
+      "npm run -s records -- change data/omics/update-9998-20261119/review.json data/omics/update-9998-20261119 --changes data/omics/update-9998-20261119/changes.jsonl",
       "npm run -s records -- check",
       "git ls-remote --exit-code --heads origin refs/heads/intake/issue-9998",
       "git checkout -B intake/issue-9998",
@@ -587,10 +621,65 @@ describe("entity-update issues", () => {
       expect.stringMatching(/^git commit -m Update SpliceAI/),
       "git push --force origin HEAD:refs/heads/intake/issue-9998",
     ]);
-    // The store file under the root holds the changed record.
-    expect(readFileSync(join(root, "data/entities/models.jsonl"), "utf8")).toContain("archived (read-only)");
+    // The script no longer edits the store in place: records -- change --changes writes it.
+    expect(existsSync(join(root, "data/entities/models.jsonl"))).toBe(false);
     expect(String(created[0].body)).toContain("Closes #9998");
     expect(result.outcome).toBe("opened");
+  });
+
+  it("goes through the KG server's draft_change when it is available", async () => {
+    const calls: unknown[][] = [];
+    // A stand-in for rdf-kg-mcp: it applies the changes to the committed line as draft_change does.
+    const kg = {
+      stats: { calls: {}, ms: 0 },
+      upsert: async (r: { id: string }) => { calls.push(["upsert", r.id]); return { status: "added", problems: [], warnings: [] }; },
+      change: async (id: string, ops: { path: string; value?: unknown; remove?: boolean }[], base: string) => {
+        calls.push(["change", id, base]);
+        const out = JSON.parse(baseLine);
+        for (const op of ops) {
+          const keys = op.path.slice(1).split("/");
+          const parent = keys.slice(0, -1).reduce((o: Record<string, unknown>, k: string) => o[k] as Record<string, unknown>, out);
+          if (op.remove) delete parent[keys.at(-1)!];
+          else parent[keys.at(-1)!] = op.value;
+        }
+        kg.changed = out;
+        return { status: "changed", sha256: sha(JSON.stringify(out)), fields: fieldDiff(JSON.parse(baseLine), out), problems: [], warnings: [] };
+      },
+      changed: null as unknown,
+      exportBatch: async () => ({ exported: true, batch: "", changes: `${JSON.stringify({ id: record.id, base_sha256: sha(baseLine), sha256: sha(JSON.stringify(kg.changed)), record: kg.changed })}\n` }),
+      close: async () => {},
+    };
+    const root = tempRoot();
+    const result = await main(["--dry-run", "--fixtures", UPDATE, "--store-dir", `${UPDATE}/entities`, "--root", root, "--no-store-checks"], {}, { now, log: quiet, kg });
+    expect(calls.map((c) => c[0])).toEqual(["upsert", "change"]);
+    expect(calls[1]).toEqual(["change", "discovery-model-spliceai", sha(baseLine)]);
+    expect(result.change.via).toBe("rdf-kg-mcp draft_change");
+    expect(result.pull.body).not.toContain("differs from the edit");
+    const text = readFileSync(join(root, "data/omics/update-9998-20261119/changes.jsonl"), "utf8");
+    expect(JSON.parse(text).record.attributes.access).toContain("archived (read-only)");
+
+    // A base the server refuses (the record changed) stops the run with a comment, not a pull request.
+    const stale = { ...kg, change: async () => { throw new Error("draft_change: base_sha256 abc... does not match the committed line of discovery-model-spliceai"); } };
+    const refused = await main(["--dry-run", "--fixtures", UPDATE, "--store-dir", `${UPDATE}/entities`, "--root", tempRoot(), "--no-store-checks"], {}, { now, log: quiet, kg: stale });
+    expect(refused.outcome).toBe("skipped: record changed");
+    expect(refused.comment).toContain("the record changed after the change was proposed");
+  });
+
+  it("skips an update whose sweep digest is not the stored record's", async () => {
+    const issue = fixture("issue.json");
+    const marker = parseUpdateMarker(issue.body)!;
+    const body = issue.body.replace(/<!-- entity-update: \{[\s\S]*?\} -->/, `<!-- entity-update: ${JSON.stringify({ ...marker, base_sha256: sha("an older line") })} -->`);
+    const github = { getIssue: async () => ({ ...issue, body }), pullsFor: async () => [], comment: async () => {} };
+    const anthropic = { beta: { messages: { stream: () => { throw new Error("no model call expected"); } } }, messages: { create: () => { throw new Error("no model call expected"); } } };
+    const result = await main(["--issue", "9998", "--report-only", "--store-dir", `${UPDATE}/entities`, "--root", tempRoot()], { ANTHROPIC_API_KEY: "test" }, { anthropic, github, now, log: quiet, kg: null });
+    expect(result.outcome).toBe("skipped: record changed");
+    expect(result.comment).toContain(sha(baseLine));
+  });
+
+  it("renders the field-level diff as a table", () => {
+    const table = renderChangeTable({ id: "x", base_sha256: "a", sha256: "b", via: "test", fields: [{ path: "/attributes/access", change: "added", after: "a | b" }, { path: "/attributes/old", change: "removed", before: { k: 1 } }] });
+    expect(table).toContain("| `/attributes/access` | added | (none) | a / b |");
+    expect(table).toContain('| `/attributes/old` | removed | {"k":1} | (none) |');
   });
 
   it("asks to re-add the entity-update label when it skips an update issue", () => {

@@ -48,6 +48,16 @@ A record may carry links to other records, each with the locator where the intak
 
 A record may also carry `duplicate_rulings`: store records that might be the same resource, which the intake agent ruled distinct. Judge the `duplicates` field: `pass` if each store record named is a different resource from this one (a family and one of its checkpoints are different; two names for one model are not); `fail` otherwise, saying which. The script checks the link targets, their kinds and that every possible duplicate has a ruling.
 
+## Changed records
+
+An update pull request changes an existing record. It is listed with `changed_record: true` and `changed_fields`: each changed path (such as `/attributes/access` or `/source_ids`) with its value before and after. Judge every changed path, using the path as the field name:
+
+- `pass`: a source you opened states the new value for this exact entity, or, for a note such as `source_locator`, the note says truthfully what changed and where it is stated. For `source_ids`, each added source must be about this entity.
+- `fail`: the new value is not what the sources state, overstates them, or drops something the sources still support.
+- `unverifiable`: no source you could open settles it.
+
+Do not judge the fields that did not change.
+
 Do not judge anything beyond the records: not whether the resource is good, not results or rankings.
 
 ## Writing

@@ -1,8 +1,12 @@
 // A client for rdf-kg-mcp (rewire-bio/rdf-kg-mcp), the MCP server that loads a KG bundle. The
 // intake and reviewer agents start it over stdio with the draft tools on (serve --drafts), search
 // the release for possible duplicates and link targets, write new records to the server's draft
-// overlay and export them as a batch for `npm run records -- add`. The overlay is advisory; records
-// add in the pull request is the gate. Nothing here writes to the KG: the KG is never the store.
+// overlay and export them as a batch for `npm run records -- add`. For an entity-update issue the
+// server is also given the store's entity lines (--draft-records), and the change to an existing
+// record goes through draft_change and comes back as changes.jsonl for
+// `npm run records -- change <review> <batch-dir> --changes <file>` (rdf-kg-mcp #10). The overlay is
+// advisory; records add and records change in the pull request are the gate. Nothing here writes to
+// the KG: the KG is never the store.
 //
 // The server and its bundle come from the workflow (.github/workflows/intake.yml):
 //   KG_BUNDLE        the bundle (.tar.gz, directory or manifest) of the latest kg/<id> release
@@ -82,6 +86,8 @@ export function kgApi(client, { config, stats = { calls: {}, ms: 0 }, close = as
       call('search', { text, limit, ...(ks.length ? { types: ks.map((k) => kinds[k]).filter(Boolean) } : {}) }),
     describe: (iri, { limit = 40, direction = 'out' } = {}) => call('describe_resource', { iri, direction, limit }),
     upsert: (record) => call('draft_upsert', { record }),
+    /** Change fields of a store record: JSON Pointer changes against the digest of its committed line. */
+    change: (id, changes, baseSha256) => call('draft_change', { id, changes, base_sha256: baseSha256 }),
     remove: (id) => call('draft_remove', { id }),
     diff: () => call('draft_diff'),
     exportBatch: () => call('draft_export'),
@@ -91,12 +97,12 @@ export function kgApi(client, { config, stats = { calls: {}, ms: 0 }, close = as
 
 /**
  * Start rdf-kg-mcp over stdio and connect to it. With `draftConfig` (a draft block file) the draft
- * tools are on; with only `config` ({ iri_base, kinds }, for search filters) the server is
+ * tools are on, and `draftRecords` (store files or folders) lets draft_change change those records; with only `config` ({ iri_base, kinds }, for search filters) the server is
  * read-only, as the reviewer uses it. Returns { kg, error }: kg is null when there is no bundle or
  * the server fails to start within the timeout, and the caller falls back.
  * `deps.connect` replaces the server in tests: (options) => { client, close, pid }.
  */
-export async function startKg({ bundle, draftConfig = '', draftDir = '', config: readOnlyConfig = null, command = 'rdf-kg-mcp', cacheDir = '', timeoutMs = START_TIMEOUT_MS, log = () => {} }, deps = {}) {
+export async function startKg({ bundle, draftConfig = '', draftDir = '', draftRecords = [], config: readOnlyConfig = null, command = 'rdf-kg-mcp', cacheDir = '', timeoutMs = START_TIMEOUT_MS, log = () => {} }, deps = {}) {
   if (!bundle) return { kg: null, error: 'no KG bundle given (KG_BUNDLE)' };
   if (!deps.connect && !/^https:\/\//.test(bundle) && !existsSync(bundle)) return { kg: null, error: `KG bundle ${bundle} not found` };
   if (!readOnlyConfig && (!draftConfig || !existsSync(draftConfig))) return { kg: null, error: `draft config ${draftConfig || '(none)'} not found` };
@@ -105,6 +111,7 @@ export async function startKg({ bundle, draftConfig = '', draftDir = '', config:
   if (!readOnlyConfig) {
     mkdirSync(draftDir, { recursive: true });
     args.push('--drafts', '--draft-dir', draftDir, '--draft-config', draftConfig);
+    for (const path of draftRecords) args.push('--draft-records', path);
   }
   const started = Date.now();
   let timer;
@@ -169,3 +176,32 @@ export async function startKg({ bundle, draftConfig = '', draftDir = '', config:
     return { kg: null, error: String(e?.message ?? e).slice(0, 400) };
   }
 }
+
+// ---------- Changes to existing records (rdf-kg-mcp #10) ----------
+
+const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const pointer = (tokens) => `/${tokens.map((t) => String(t).replace(/~/g, '~0').replace(/\//g, '~1')).join('/')}`;
+
+/**
+ * Leaf-level differences between two records, as rdf-kg-mcp's draft_diff gives them:
+ * { path (JSON Pointer), change: added | removed | changed, before?, after? }. Objects are compared
+ * key by key (keys of `before` first, in its order, then keys only `after` has); anything else,
+ * lists included, as a whole by its JSON text. Key order alone is no change.
+ */
+export function fieldDiff(before, after, path = []) {
+  if (isObject(before) && isObject(after)) {
+    const out = [];
+    for (const key of [...Object.keys(before), ...Object.keys(after).filter((k) => !(k in before))]) {
+      if (!(key in after)) out.push({ path: pointer([...path, key]), change: 'removed', before: before[key] });
+      else if (!(key in before)) out.push({ path: pointer([...path, key]), change: 'added', after: after[key] });
+      else out.push(...fieldDiff(before[key], after[key], [...path, key]));
+    }
+    return out;
+  }
+  if (JSON.stringify(before) === JSON.stringify(after)) return [];
+  return [{ path: path.length ? pointer(path) : '/', change: 'changed', before, after }];
+}
+
+/** The draft_change changes that turn `before` into `after`: a set per added or changed leaf, a remove per removed key. */
+export const changeOps = (before, after) =>
+  fieldDiff(before, after).map((d) => (d.change === 'removed' ? { path: d.path, remove: true } : { path: d.path, value: d.after }));

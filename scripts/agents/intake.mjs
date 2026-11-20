@@ -5,8 +5,9 @@
 // It also works `entity-update` issues from the monthly entity sweep (#257). One that asks to add
 // new checkpoints goes through the same path as an entity request. One that asks to update fields
 // of an existing record (its hidden entity-update marker has action "update") goes through
-// runUpdate: Sonnet checks each proposed value against the evidence pages, the script edits the
-// record in place and records the change with `records -- change`.
+// runUpdate: Sonnet checks each proposed value against the evidence pages, the change goes through
+// the KG server's draft_change (rdf-kg-mcp #10) against the digest of the record's committed line,
+// draft_export writes changes.jsonl, and `records -- change --changes` applies it to the store.
 //
 // Haiku drafts the records from the issue and its primary sources. Sonnet opens the sources and
 // confirms or rejects each field. This script owns everything that must be exact: deduplication
@@ -37,7 +38,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { AREAS, DEFAULT_REPO, Usage, clean, keyOf, normalise, readStoreNames, tierOf } from './discovery.mjs';
-import { startKg } from './kg.mjs';
+import { changeOps, fieldDiff, startKg } from './kg.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -45,6 +46,8 @@ export const PROMPT_PATH = 'agents/intake.md';
 export const FIXTURES = 'tests/agents-intake-fixtures';
 export const LABEL = 'entity-request';
 export const UPDATE_LABEL = 'entity-update';
+/** The changes file of an update batch: what `records -- change --changes` applies (rdf-kg-mcp draft_export). */
+export const CHANGES_FILE = 'changes.jsonl';
 /** The hidden marker an entity-update issue carries (written by scripts/agents/sweep.mjs). */
 export const UPDATE_MARKER = 'entity-update';
 /** Fields an entity-update issue may change, per kind (each declared in shared/omics/attribute-registry.ts). */
@@ -471,21 +474,26 @@ export function buildUpdate({ record, fields, verification, sources, issue, runD
   return { record: updated, records, kept, fieldLog, dropped };
 }
 
-/** Replace one record's line in its store file (sorted by ID, one JSON object a line). */
-export function replaceRecordLine(text, record) {
-  const lines = String(text).split('\n');
-  const i = lines.findIndex((l) => l.trim() && JSON.parse(l).id === record.id);
-  if (i < 0) throw new Error(`${record.id} is not in the store file`);
-  lines[i] = JSON.stringify(record);
-  return lines.join('\n');
+/** The field-level diff of a change, as a Markdown table for notes.md and the pull request. */
+export function renderChangeTable(change) {
+  const show = (v) => (v === undefined ? '(none)' : clean(typeof v === 'string' ? v : JSON.stringify(v)).replace(/\|/g, '/').slice(0, 400) || '(empty)');
+  return [
+    `**Field-level diff of \`${change.id}\`** (base SHA-256 \`${change.base_sha256}\`, changed \`${change.sha256}\`; made by ${change.via}):`,
+    '',
+    '| Path | Change | Before | After |',
+    '| --- | --- | --- | --- |',
+    ...change.fields.map((f) => `| \`${f.path}\` | ${f.change} | ${show(f.before)} | ${show(f.after)} |`),
+  ].join('\n');
 }
 
-export function renderUpdatePullBody({ issue, record, kept, dropped, sourceNotes, usage, seconds, runUrl, batchDir }) {
+export function renderUpdatePullBody({ issue, record, kept, dropped, sourceNotes, usage, seconds, runUrl, batchDir, change = null, notes = [] }) {
   return [
     `Updates \`${record.id}\` (${record.kind}) as asked in #${issue}, which the monthly entity sweep filed. Closes #${issue}.`,
     '',
     `Fields changed: ${kept.join(', ')}. Each value was checked against the evidence pages by the verification pass; the record keeps its ID, status and review object, and its \`source_locator\` says what changed and where it is stated. No result, score or claim.`,
     '',
+    ...(change ? [renderChangeTable(change), '', 'Every other key of the record keeps its place and its bytes. The store applied the change with `records -- change --changes`, which refuses it unless the stored digest is the base SHA-256 above and the written line has the changed SHA-256.', ''] : []),
+    ...(notes.length ? [bullets(notes), ''] : []),
     '**Evidence sources**',
     '',
     bullets(sourceNotes),
@@ -494,9 +502,9 @@ export function renderUpdatePullBody({ issue, record, kept, dropped, sourceNotes
     '',
     bullets(dropped.map((d) => `${clean(d.name)}: ${clean(d.reason)}`)),
     '',
-    `Batch folder: \`${batchDir}\`: \`changed.jsonl\` holds the record as changed, \`batch.jsonl\` any new source records, \`notes.md\` the proposed and kept values, \`review.json\` the receipt that \`records -- change\` cites.`,
+    `Batch folder: \`${batchDir}\`: \`${CHANGES_FILE}\` holds the changed record with its base and new digests, \`batch.jsonl\` any new source records, \`notes.md\` the proposed and kept values, \`review.json\` the receipt that \`records -- change\` cites.`,
     '',
-    '**Checks.** The agent ran `scripts/agents/intake-check.ts` on the changed record and new sources, `npm run records -- add` for the new sources, `npm run records -- change` and `npm run records -- check`.',
+    `**Checks.** The agent ran \`scripts/agents/intake-check.ts\` on the changed record and new sources, \`npm run records -- add\` for the new sources, \`npm run records -- change --changes ${CHANGES_FILE}\` and \`npm run records -- check\`.`,
     '',
     `**Cost.** Estimated $${usage.total().toFixed(4)}; ${usage.calls} model calls; wall-clock ${seconds} s.${runUrl ? ` Run: ${runUrl}` : ''}`,
     '',
@@ -1130,6 +1138,7 @@ const SKIP_TEXT = {
   model: 'a model call failed or was refused',
   existing_pull: 'a pull request for this issue already exists',
   record: 'the record to update is not in the store',
+  stale: 'the record changed after the change was proposed, so the proposal is out of date',
   closed: 'the issue is closed',
 };
 
@@ -1804,16 +1813,25 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
 
   /**
    * An entity-update issue that asks to change fields of an existing record: fetch the evidence,
-   * verify each value with Sonnet, edit the record in place and record the change.
+   * verify each value with Sonnet, make the change through the draft path and apply the changes file.
    */
   async function runUpdate(marker, storeDir, storeUrls, client, system) {
     const file = { model: 'models', method: 'methods', benchmark: 'benchmarks' }[marker.kind];
     const storeFile = file ? join(storeDir, `${file}.jsonl`) : '';
-    const record = storeFile && existsSync(storeFile)
-      ? readFileSync(storeFile, 'utf8').split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l)).find((r) => r.id === marker.record_id)
+    // The committed line, as bytes: its digest is the base the change is made against.
+    const baseLine = storeFile && existsSync(storeFile)
+      ? readFileSync(storeFile, 'utf8').split('\n').find((l) => l.trim() && JSON.parse(l).id === marker.record_id) ?? null
       : null;
+    const record = baseLine ? JSON.parse(baseLine) : null;
     if (!record) {
       await finish('skipped: record not found', renderSkipComment({ kind: 'record', detail: `No ${marker.kind ?? 'record'} with ID ${marker.record_id} in the store.`, runUrl, usage, label: UPDATE_LABEL }));
+      return result();
+    }
+    const baseSha = sha256(baseLine);
+    // The sweep records the digest of the line it checked. A record changed since then is not
+    // changed again from the sweep's evidence: the next sweep looks at the current record.
+    if (marker.base_sha256 && marker.base_sha256 !== baseSha) {
+      await finish('skipped: record changed', renderSkipComment({ kind: 'stale', detail: `The sweep checked ${record.id} at SHA-256 ${marker.base_sha256}; the store now holds ${baseSha}.`, runUrl, usage, label: UPDATE_LABEL }));
       return result();
     }
     const allowed = UPDATE_FIELDS[record.kind] ?? [];
@@ -1873,13 +1891,26 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     }
     state.entities = [{ id: record.id, kind: record.kind, name: record.name, tier: record.attributes?.depth_tier ?? null, updated: built.kept }];
     state.records = [built.record, ...built.records];
+    // The change goes through the KG server's draft path (rdf-kg-mcp #10) when it is available, and
+    // comes back as a changes file: the whole record in its committed key order, the digest of the
+    // line it was based on and the digest of the changed line.
+    const made = await draftChange({ record, baseLine, built });
+    if (made.stale) {
+      await finish('skipped: record changed', renderSkipComment({ kind: 'stale', detail: made.stale, runUrl, usage, label: UPDATE_LABEL }));
+      return result();
+    }
+    if (made.problems) {
+      await finish('failed: draft checks', renderFailureComment({ step: 'draft_change', output: made.problems.join('\n'), runUrl, usage }));
+      return result();
+    }
+    state.change = { id: record.id, base_sha256: baseSha, sha256: made.sha256, fields: made.fields, via: made.via };
     const folder = join(args.root, batchDir);
     mkdirSync(folder, { recursive: true });
-    const batchText = built.records.map((r) => `${JSON.stringify(r)}\n`).join('');
-    const changedText = `${JSON.stringify(built.record)}\n`;
-    writeFileSync(join(folder, 'batch.jsonl'), batchText);
-    writeFileSync(join(folder, 'changed.jsonl'), changedText);
-    writeFileSync(join(folder, 'notes.md'), renderNotes({ issue: issue.number, issueTitle: issue.title, runDate, entities: state.entities.map((e) => ({ ...e, id: `${e.id} (updated: ${e.updated.join(', ')})` })), dropped: state.dropped, sourceNotes: state.sourceNotes, fieldLog: built.fieldLog, usage }));
+    writeFileSync(join(folder, 'batch.jsonl'), made.batchText);
+    state.batchText = made.batchText;
+    state.changesText = made.changesText;
+    writeFileSync(join(folder, CHANGES_FILE), made.changesText);
+    writeFileSync(join(folder, 'notes.md'), renderNotes({ issue: issue.number, issueTitle: issue.title, runDate, entities: state.entities.map((e) => ({ ...e, id: `${e.id} (updated: ${e.updated.join(', ')})` })), dropped: state.dropped, sourceNotes: state.sourceNotes, fieldLog: built.fieldLog, usage }) + `\n${renderChangeTable(state.change)}\n`);
     writeFileSync(join(folder, 'review.json'), `${JSON.stringify({
       schema_version: '1.0',
       method: 'intake_agent_source_review',
@@ -1892,27 +1923,82 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         'Source bytes were hashed at fetch time but not stored in the archive object store.',
       ],
       errors: [],
-      files: { 'batch.jsonl': sha256(batchText), 'changed.jsonl': sha256(changedText) },
+      files: { 'batch.jsonl': sha256(made.batchText), [CHANGES_FILE]: sha256(made.changesText) },
+      changes: [{ id: record.id, base_sha256: baseSha, sha256: made.sha256, fields: made.fields.map((f) => f.path), made_by: made.via }],
       source_artifacts: Object.fromEntries(built.records.map((r) => [r.id, r.attributes.artifact_sha256])),
       run_url: runUrl || undefined,
     }, null, 2)}\n`);
     state.batchDir = batchDir;
     if (args.storeChecks) {
-      const before = [['intake-check', 'npx', ['tsx', 'scripts/agents/intake-check.ts', `${batchDir}/changed.jsonl`, ...(built.records.length ? [`${batchDir}/batch.jsonl`] : [])]]];
-      if (built.records.length) before.push(['records add', 'npm', ['run', '-s', 'records', '--', 'add', `${batchDir}/batch.jsonl`, batchDir]]);
-      if (!(await checks(before))) return result();
-      // The edit in place: the store file under the root, read from the store the run loaded.
-      const target = join(args.root, 'data/entities', `${file}.jsonl`);
-      mkdirSync(dirname(target), { recursive: true });
-      writeFileSync(target, replaceRecordLine(readFileSync(existsSync(target) ? target : storeFile, 'utf8'), built.record));
-      if (!(await checks([
-        ['records change', 'npm', ['run', '-s', 'records', '--', 'change', `${batchDir}/review.json`, batchDir, record.id]],
+      const steps = [['intake-check', 'npx', ['tsx', 'scripts/agents/intake-check.ts', `${batchDir}/${CHANGES_FILE}`, ...(built.records.length ? [`${batchDir}/batch.jsonl`] : [])]]];
+      if (built.records.length) steps.push(['records add', 'npm', ['run', '-s', 'records', '--', 'add', `${batchDir}/batch.jsonl`, batchDir]]);
+      steps.push(
+        // The store writes the changed record itself, after checking base_sha256 against provenance
+        // and that the bytes it writes are the bytes in the changes file.
+        ['records change', 'npm', ['run', '-s', 'records', '--', 'change', `${batchDir}/review.json`, batchDir, '--changes', `${batchDir}/${CHANGES_FILE}`]],
         ['records check', 'npm', ['run', '-s', 'records', '--', 'check']],
-      ]))) return result();
-    } else notes.push('Store checks were not run and the store was not edited (--no-store-checks).');
+      );
+      if (!(await checks(steps))) return result();
+    } else notes.push('Store checks were not run and the store was not changed (--no-store-checks).');
     const title = `Update ${record.name}: ${built.kept.join(', ')} from #${issue.number}`.slice(0, 200);
-    const body = renderUpdatePullBody({ issue: issue.number, record, kept: built.kept, dropped: state.dropped, sourceNotes: state.sourceNotes, usage, seconds: Math.round((Date.now() - started) / 1000), runUrl, batchDir });
+    // A marker without base_sha256 (a hand-written issue, or one filed before the sweep wrote it)
+    // cannot show the record is still the one the evidence was gathered against.
+    const baseNote = marker.base_sha256 ? [] : [`The issue gives no base_sha256, so nothing shows ${record.id} is still the record the issue was written against; the change was made against the line the store holds now (SHA-256 ${baseSha}). The reviewer should check the issue still applies to it.`];
+    const body = renderUpdatePullBody({ issue: issue.number, record, kept: built.kept, dropped: state.dropped, sourceNotes: state.sourceNotes, usage, seconds: Math.round((Date.now() - started) / 1000), runUrl, batchDir, change: state.change, notes: [...baseNote, ...made.notes] });
     return ship({ title, body, batchDir, commitBody: `Fields asked for in #${issue.number} (monthly entity sweep), changed by the intake agent. Metadata only; no evaluation or result.`, done: `an update to ${record.id}` });
+
+    /**
+     * The batch (new source records) and the changes file for the update. Through the KG server's
+     * draft overlay when it starts: the sources are added with draft_upsert and the record changed
+     * with draft_change against the digest of its committed line. Without the server the script
+     * writes the same changes file itself and says so.
+     */
+    async function draftChange({ record: base, baseLine: line, built: b }) {
+      const ops = changeOps(base, b.record);
+      const own = {
+        batchText: b.records.map((r) => `${JSON.stringify(r)}\n`).join(''),
+        changesText: `${JSON.stringify({ id: base.id, base_sha256: baseSha, sha256: sha256(JSON.stringify(b.record)), record: b.record })}\n`,
+        sha256: sha256(JSON.stringify(b.record)),
+        fields: fieldDiff(base, b.record),
+      };
+      let start;
+      if (deps.kg !== undefined) start = Promise.resolve(deps.kg ? { kg: deps.kg, error: null } : { kg: null, error: 'not given' });
+      else if (env.KG_BUNDLE) start = startKg({ bundle: env.KG_BUNDLE, draftConfig: env.KG_DRAFT_CONFIG, draftDir: join(tmpdir(), `intake-kg-${process.pid}`), draftRecords: [storeDir], command: env.KG_MCP_COMMAND || 'rdf-kg-mcp', cacheDir: env.RDF_KG_MCP_CACHE || '', log });
+      const { kg, error } = start ? await start : { kg: null, error: 'no KG bundle given (KG_BUNDLE)' };
+      if (!kg) {
+        state.kg = { used: false, error };
+        return { ...own, via: 'intake script (KG server not available)', notes: [`The knowledge graph server was not available (${error}), so the intake script wrote the changes file itself, in the form draft_export writes.`] };
+      }
+      state.kg = { used: true, release: kg.stats?.release ?? null, statements: kg.stats?.statements ?? null, ready_seconds: kg.stats?.readySeconds ?? null, failures: [] };
+      try {
+        for (const r of b.records) {
+          const res = await kg.upsert(r);
+          if (res.problems?.length) return { problems: [`source ${r.id}: ${res.problems.join('; ')}`] };
+        }
+        let res;
+        try {
+          res = await kg.change(base.id, ops, baseSha);
+        } catch (e) {
+          if (/does not match/.test(errorText(e))) return { stale: errorText(e) };
+          throw e;
+        }
+        if (res.problems?.length) return { problems: res.problems };
+        const exported = await kg.exportBatch();
+        if (!exported.exported) return { problems: [`draft_export refused: ${JSON.stringify(exported.problems ?? exported.reason).slice(0, 600)}`] };
+        const out = { batchText: exported.batch ?? '', changesText: exported.changes ?? '', sha256: res.sha256, fields: res.fields ?? [], via: 'rdf-kg-mcp draft_change', notes: [] };
+        if (!out.changesText) return { problems: ['draft_change found nothing to change: the verified values equal the stored ones'] };
+        // The script's own edit and the server's must agree byte for byte; if not, say so in the pull request.
+        if (out.changesText !== own.changesText) out.notes.push('The changes file from the KG server differs from the edit the intake script made itself; the reviewer should compare the field-level diff with the issue.');
+        return out;
+      } catch (e) {
+        state.kg.failures.push({ step: 'draft_change', error: errorText(e) });
+        notes.push(`The KG draft path failed (${errorText(e)}); the intake script wrote the changes file itself.`);
+        return { ...own, via: 'intake script (KG draft path failed)', notes: [`The KG draft path failed (${errorText(e)}), so the intake script wrote the changes file itself, in the form draft_export writes.`] };
+      } finally {
+        if (!deps.kg) await kg.close();
+        if (kg.stats) Object.assign(state.kg, { calls: kg.stats.calls, call_seconds: Math.round((kg.stats.ms ?? 0) / 100) / 10, peak_memory_mb: kg.stats.peakMemoryMb ?? null });
+      }
+    }
   }
 
   let issue;
@@ -2187,17 +2273,18 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     if (state.pull && !state.prUrl) emit(`### Pull request it would open\n\n**${state.pull.title}**\n\n${state.pull.body}\n`);
     if (args.out) {
       mkdirSync(args.out, { recursive: true });
-      writeFileSync(join(args.out, 'result.json'), `${JSON.stringify({ outcome: state.outcome, entities: state.entities, dropped: state.dropped, sources: state.sourceNotes, kg: state.kg, links: state.kgLog?.links ?? [], duplicate_rulings: state.kgLog?.duplicates ?? [], rejected_links: state.kgLog?.rejected_links ?? [], pull: state.pull ?? null, comment: state.comment ?? null, prUrl: state.prUrl || null }, null, 2)}\n`);
+      writeFileSync(join(args.out, 'result.json'), `${JSON.stringify({ outcome: state.outcome, entities: state.entities, dropped: state.dropped, sources: state.sourceNotes, kg: state.kg, links: state.kgLog?.links ?? [], duplicate_rulings: state.kgLog?.duplicates ?? [], rejected_links: state.kgLog?.rejected_links ?? [], change: state.change ?? null, pull: state.pull ?? null, comment: state.comment ?? null, prUrl: state.prUrl || null }, null, 2)}\n`);
       if (state.proposal) writeFileSync(join(args.out, 'proposal.json'), `${JSON.stringify(state.proposal, null, 2)}\n`);
       if (state.verification) writeFileSync(join(args.out, 'verification.json'), `${JSON.stringify(state.verification, null, 2)}\n`);
       writeFileSync(join(args.out, 'batch.jsonl'), state.batchText ?? state.records.map((r) => `${JSON.stringify(r)}\n`).join(''));
+      if (state.changesText) writeFileSync(join(args.out, CHANGES_FILE), state.changesText);
       writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total(), seconds: Math.round((Date.now() - started) / 1000) }, null, 2)}\n`);
     }
     log(`Estimated cost of this run: $${usage.total().toFixed(4)}`);
   }
 
   function result() {
-    return { outcome: state.outcome, entities: state.entities, dropped: state.dropped, records: state.records, sourceNotes: state.sourceNotes, pull: state.pull, comment: state.comment, usage, batchDir: state.batchDir };
+    return { outcome: state.outcome, entities: state.entities, dropped: state.dropped, records: state.records, sourceNotes: state.sourceNotes, pull: state.pull, comment: state.comment, usage, batchDir: state.batchDir, change: state.change ?? null };
   }
 }
 

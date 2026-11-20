@@ -14,10 +14,15 @@ export type Kg = {
   search(text: string, opts?: { kinds?: string[]; limit?: number }): Promise<any>;
   describe(iri: string, opts?: { limit?: number; direction?: "out" | "in" | "both" }): Promise<any>;
   upsert(record: any): Promise<any>;
+  change(id: string, changes: ChangeOp[], baseSha256: string): Promise<any>;
   remove(id: string): Promise<any>;
   diff(): Promise<any>;
   exportBatch(): Promise<any>;
   close(): Promise<void>;
 };
 export function kgApi(client: { callTool: (...args: any[]) => Promise<any> }, opts?: { config?: any; stats?: KgStats; close?: () => Promise<void>; pid?: number | null }): Kg;
-export function startKg(options: { bundle: string; draftConfig?: string; draftDir?: string; config?: { iri_base: string; kinds: Record<string, string> } | null; command?: string; cacheDir?: string; timeoutMs?: number; log?: (m: string) => void }, deps?: { connect?: (o: any) => Promise<{ client: any; close: () => Promise<void>; pid?: number }> }): Promise<{ kg: Kg | null; error: string | null }>;
+export function startKg(options: { bundle: string; draftConfig?: string; draftDir?: string; draftRecords?: string[]; config?: { iri_base: string; kinds: Record<string, string> } | null; command?: string; cacheDir?: string; timeoutMs?: number; log?: (m: string) => void }, deps?: { connect?: (o: any) => Promise<{ client: any; close: () => Promise<void>; pid?: number }> }): Promise<{ kg: Kg | null; error: string | null }>;
+export type FieldChange = { path: string; change: "added" | "removed" | "changed"; before?: any; after?: any };
+export type ChangeOp = { path: string; value: any } | { path: string; remove: true };
+export function fieldDiff(before: any, after: any, path?: string[]): FieldChange[];
+export function changeOps(before: any, after: any): ChangeOp[];

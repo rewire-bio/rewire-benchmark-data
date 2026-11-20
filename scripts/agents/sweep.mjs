@@ -685,7 +685,9 @@ export function renderUpdateIssue({ record, action, changes, runDate, runUrl, re
     '',
     footer,
     '',
-    updateMarker({ record_id: record.id, kind: record.kind, action: 'update', fields, evidence: unique(changes.flatMap((c) => c.evidence)) }),
+    // base_sha256 is the digest of the record as the sweep checked it (its store line): the intake
+    // changes the record through the draft path against it and refuses if the record has changed since.
+    updateMarker({ record_id: record.id, kind: record.kind, action: 'update', fields, evidence: unique(changes.flatMap((c) => c.evidence)), base_sha256: sha256(JSON.stringify(record)) }),
     ...keys,
   ];
   return { title, body: body.join('\n'), labels };
