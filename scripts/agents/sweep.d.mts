@@ -11,7 +11,6 @@ export const TIER2_MONTHS: number[];
 export const KIND_FILES: Record<string, string>;
 export const UPDATE_FIELDS: Record<string, string[]>;
 export const MARKERS: Record<'update' | 'key' | 'dead' | 'overflow', string>;
-export const OWNERSHIP_SCHEMA: Record<string, any>;
 export const PAGE_SCHEMA: Record<string, any>;
 export const CONFIRM_SCHEMA: Record<string, any>;
 export type Rec = Record<string, any>;
@@ -35,7 +34,7 @@ export function githubFacts(ref: Ref, opts: { fetchImpl: typeof fetch; token?: s
 export function checkpointBase(name: string): string;
 export function hfFacts(ref: Ref, opts: { fetchImpl: typeof fetch }): Promise<Record<string, any>>;
 export function licenceAgrees(recordLicence: string, observed: string): boolean;
-export function candidatesFor(record: Rec, refs: { repos: Ref[]; pages: Ref[] }, opts: { facts: Map<string, any>; pages?: Record<string, any>; known?: string }): { candidates: Candidate[]; health: Record<string, any>[] };
+export function candidatesFor(record: Rec, refs: { repos: Ref[]; pages: Ref[] }, opts: { facts: Map<string, any>; pages?: Record<string, any>; known?: string }): { candidates: Candidate[]; health: Record<string, any>[]; look: Record<string, any>[] };
 export function healthKey(h: Record<string, any>): string;
 export const PLACEHOLDERS: string[];
 export function isPlaceholder(value: unknown): boolean;
@@ -44,7 +43,8 @@ export function checkedValue(candidate: Candidate, value: string): string | null
 export function markUmbrellas(refsById: Map<string, { repos: Ref[] }>, storeRefs: { repos: Ref[]; entity: string }[]): Set<string>;
 export function refKey(ref: Ref): string;
 export function worstCase(model: string, chars: number, maxTokens: number): number;
-export function ownershipPrompt(pairs: Record<string, any>[]): string;
+export function factsText(facts: Record<string, any>): string;
+export function pinnedCommit(url: string, version?: unknown): string | null;
 export function pagePrompt(input: { record: Rec; url: string; text: string }): string;
 export function confirmPrompt(record: Rec, candidates: Candidate[]): string;
 export function updateMarker(payload: Record<string, any>): string;
