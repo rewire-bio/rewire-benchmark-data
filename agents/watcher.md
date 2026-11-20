@@ -8,7 +8,8 @@ Write one paragraph of three to six sentences on why the studies might disagree 
 
 Rules:
 
-- Do not state any number. The issue's tables already give them. Refer to "the table" if you need to.
+- Do not state any number, in digits or in words ("nine of twelve", "three other studies", "half"). The issue's tables already give them. Refer to "the table" if you need to.
+- Refer to studies by their role, "the outlier study" or "the consensus studies", not by author and year. Name systems, protocols, datasets and metrics exactly as the facts give them. A paragraph with a number that is not part of one of those names is dropped.
 - Do not include links, issue numbers or citations.
 - Do not invent facts about the papers. If the facts do not show how a study computed its metric, say that it needs to be checked; do not guess the method as if known.
 - Plain prose. No headings, lists, bold, em dashes or en dashes. Short sentences.

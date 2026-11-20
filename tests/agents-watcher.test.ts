@@ -41,6 +41,33 @@ describe("diff", () => {
     const d = diffReleases(current, current);
     expect([d.added, d.rose, d.refired, d.gone].map((x) => x.length)).toEqual([0, 0, 0, 0]);
   });
+  it("matches a finding whose ID changed but whose key did not, without previous_ids", () => {
+    const old = { ...current.discrepancies[0], id: "discrepancy-1111111111111111" };
+    const d = diffReleases({ ...previous, discrepancies: [old] }, { ...current, discrepancies: [current.discrepancies[0]] });
+    expect(d.added).toEqual([]);
+    expect(d.gone).toEqual([]);
+    expect(d.priorIds.get(NEW1)).toEqual([old.id]);
+    // Its lead issue, filed under the old ID, still counts, so a rise comments there.
+    const rose = diffReleases({ ...previous, discrepancies: [{ ...old, severity: "low" }] }, { ...current, discrepancies: [current.discrepancies[0]] });
+    const plan = planRun(rose, { issues: [{ number: 900, title: "Lead: x", body: `<!-- ${MARKERS.lead}: ${old.id} -->`, state: "open" }], release: RELEASE });
+    expect(plan.file).toEqual([]);
+    expect(plan.comments.map((c) => c.number)).toEqual([900]);
+  });
+  it("matches every earlier finding a merged finding covers, so none is reported gone", () => {
+    const a = { ...previous.discrepancies[1], id: "discrepancy-aaaaaaaaaaaaaaaa", key: null };
+    const b = { ...previous.discrepancies[1], id: "discrepancy-bbbbbbbbbbbbbbbb", key: null };
+    const merged = { ...current.discrepancies[0], previous_ids: [a.id, b.id] };
+    const d = diffReleases({ ...previous, discrepancies: [a, b] }, { ...current, discrepancies: [merged] });
+    expect(d.gone).toEqual([]);
+    expect(d.added).toEqual([]);
+    expect(d.priorIds.get(merged.id)).toEqual([a.id, b.id]);
+  });
+  it("says a gone finding may have been re-keyed when the rules changed", () => {
+    const d = diffReleases({ ...previous, rules: { version: "4" } }, current);
+    const plan = planRun(d, { issues, release: RELEASE });
+    const gone = plan.comments.find((c) => c.marker.startsWith(MARKERS.gone));
+    expect(gone?.body).toContain("may continue under a new ID");
+  });
 });
 
 describe("dedupe", () => {
@@ -121,6 +148,20 @@ describe("explanation check", () => {
     // 12 is in the facts as a count, but the paragraph may not state counts either.
     expect(checkExplanation("Only 3 of 12 comparisons agree.", facts).ok).toBe(false);
     expect(checkExplanation("The gap is about 0.6.", facts).ok).toBe(false);
+  });
+  it("drops counts and fractions written in words", () => {
+    expect(checkExplanation("The outlier study ranks SIFT above PROVEAN in nine of twelve comparisons, while three other studies disagree.", facts).ok).toBe(false);
+    expect(checkExplanation("About half of the comparisons agree.", facts).ok).toBe(false);
+    expect(checkExplanation("ESM3 wins twice as often.", facts).ok).toBe(false);
+    expect(checkExplanation("One possibility is that the outlier study used a different subset.", facts).ok).toBe(true);
+    expect(checkExplanation("The two systems may have been run at different sizes.", facts).ok).toBe(true);
+    expect(checkExplanation("The two consensus studies agree.", facts).ok).toBe(false);
+  });
+  it("keeps a shortened name that carries digits, but not a bare number from a name", () => {
+    const f = { systems: ["ESM-1b (650M)", "SIFT"], studies: [{ study: "Brandes 2023 genome-wide prediction of disease variant effects", metrics: ["AUC"], protocols: ["BEELINE 2020 Figure 2"] }] };
+    expect(checkExplanation("ESM-1b style scoring may differ from SIFT.", f).ok).toBe(true);
+    expect(checkExplanation("The study by Brandes et al. 2023 used a different metric.", f).ok).toBe(true);
+    expect(checkExplanation("SIFT wins 2 comparisons.", f).ok).toBe(false);
   });
 });
 

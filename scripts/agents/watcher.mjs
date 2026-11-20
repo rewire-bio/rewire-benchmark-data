@@ -70,25 +70,51 @@ const live = (f) => !f.resolved;
 const rank = (s) => RANK[s] ?? 0;
 const keysOf = (f) => [f.id, ...(f.previous_ids ?? [])];
 
+/**
+ * The stable parts of a finding's key: rule, systems, anchor, metric and the study keys. The ID
+ * is a hash of these, so this matches a finding whose ID changed only because the hash did.
+ * Null when the file has no key.
+ */
+export function keySignature(f) {
+  const k = f.key;
+  if (!k || !k.rule) return null;
+  return JSON.stringify([k.rule, [...(k.systems ?? [])].sort(), k.anchor ?? null, k.metric ?? null, k.outlier_study ?? null, [...(k.studies ?? [])].sort()]);
+}
+
 // ---------- Diff ----------
 
 /**
  * What changed between two releases' discrepancies.json. A finding is matched to its earlier
- * self by ID or through its previous_ids, so a rule change that re-keys findings does not make
- * them new. Resolved findings (resolved: true) are not live: one that was live and is now
- * resolved or absent is `gone`; one that was resolved and fires again is `refired`.
+ * self by ID, through its previous_ids, or by the stable parts of its key (keySignature).
+ * previous_ids are written only for findings with a review claim, so a rule change that changes
+ * the key itself is matched only for reviewed findings; any other finding it re-keys shows as
+ * new and its earlier self as gone. Every earlier finding a current one covers is matched, so a
+ * merge of two findings reports neither as gone. Resolved findings (resolved: true) are not live:
+ * one that was live and is now resolved or absent is `gone`; one that was resolved and fires
+ * again is `refired`. `priorIds` maps each current ID to the earlier IDs it was matched to.
  */
 export function diffReleases(previous, current) {
-  const prev = new Map((previous.discrepancies ?? []).map((f) => [f.id, f]));
+  const prevList = previous.discrepancies ?? [];
+  const prev = new Map(prevList.map((f) => [f.id, f]));
+  const bySig = new Map();
+  for (const f of prevList) {
+    const sig = keySignature(f);
+    if (sig) bySig.set(sig, [...(bySig.get(sig) ?? []), f]);
+  }
   const cur = current.discrepancies ?? [];
   const curById = new Map(cur.map((f) => [f.id, f]));
   const added = [];
   const rose = [];
   const refired = [];
   const matched = new Set();
+  const priorIds = new Map();
   for (const f of cur.filter(live)) {
-    const prior = keysOf(f).map((k) => prev.get(k)).find(Boolean);
-    if (prior) matched.add(prior.id);
+    const priors = [...keysOf(f).map((k) => prev.get(k)).filter(Boolean), ...(bySig.get(keySignature(f)) ?? [])];
+    const ids = [...new Set(priors.map((p) => p.id))];
+    for (const id of ids) matched.add(id);
+    if (ids.length) priorIds.set(f.id, ids);
+    // A live prior wins over a resolved one, and the most severe live prior sets the baseline.
+    const prior = priors.filter(live).sort((a, b) => rank(b.severity) - rank(a.severity))[0] ?? priors[0];
     if (!prior) added.push(f);
     else if (!live(prior)) refired.push(f);
     else if (rank(f.severity) > rank(prior.severity)) rose.push({ finding: f, from: prior.severity });
@@ -101,7 +127,7 @@ export function diffReleases(previous, current) {
   }
   const from = previous.rules?.version ?? null;
   const to = current.rules?.version ?? null;
-  return { added, rose, refired, gone, rulesChanged: from !== to ? { from, to } : null };
+  return { added, rose, refired, gone, priorIds, rulesChanged: from !== to ? { from, to } : null };
 }
 
 /** Discrepancy IDs already covered by an issue: marked by this watcher, or named in a hand-written "Lead:" issue. */
@@ -120,9 +146,9 @@ export function knownLeads(issues) {
   return known;
 }
 
-function existingFor(finding, known) {
+function existingFor(finding, known, priorIds = new Map()) {
   const out = [];
-  for (const k of keysOf(finding)) for (const i of known.get(k) ?? []) if (!out.some((x) => x.number === i.number)) out.push(i);
+  for (const k of new Set([...keysOf(finding), ...(priorIds.get(finding.id) ?? [])])) for (const i of known.get(k) ?? []) if (!out.some((x) => x.number === i.number)) out.push(i);
   return out;
 }
 
@@ -146,7 +172,7 @@ export function planRun(diff, { issues, release, maxIssues = LIMITS.maxIssues })
   for (const c of candidates) {
     const f = c.finding;
     if (c.reason !== 'rose' && rank(f.severity) < RANK.medium) continue;
-    const existing = existingFor(f, known);
+    const existing = existingFor(f, known, diff.priorIds);
     if (existing.length) {
       if (c.reason === 'new') {
         skipped.push({ id: f.id, reason: `already has a lead issue (#${existing.map((e) => e.number).join(', #')})` });
@@ -175,7 +201,9 @@ export function planRun(diff, { issues, release, maxIssues = LIMITS.maxIssues })
     const marker = `${MARKERS.gone}: ${g.finding.id} ${release}`;
     const why = g.resolved
       ? `It is now a resolved finding (state ${g.state}): its review settled it and the rule no longer fires.`
-      : 'The rule no longer fires on the current evidence: records may have changed, been disputed or put under an evidence concern, or the rules changed.';
+      : diff.rulesChanged
+        ? `The discrepancy rules changed from version ${diff.rulesChanged.from} to ${diff.rulesChanged.to} in this release. The rule may no longer fire, or the finding may continue under a new ID: a re-keyed finding is matched to its old ID only when it has a review claim, so check this run's new leads for the same systems.`
+        : 'The rule no longer fires on the current evidence: records may have changed, been disputed or put under an evidence concern.';
     for (const e of open) {
       comments.push({ number: e.number, marker, body: `\`${g.finding.id}\` is not a live finding in release \`${release}\`. ${why} This issue stays open until someone records the outcome.\n\n<!-- ${marker} -->` });
     }
@@ -470,10 +498,38 @@ export function checkExplanation(text, facts) {
   // (ESM-2, a protocol such as "BEELINE 2020 Figure 2"), so remove those names and look again.
   let rest = t;
   for (const name of namesIn(facts).sort((a, b) => b.length - a.length)) rest = rest.split(name).join(' ');
-  const stray = rest.match(/\d+(?:[.,]\d+)?/g) ?? [];
+  // Shortened names: a word from a name that mixes letters and digits (ESM-1b from "ESM-1b
+  // (650M)") or a year in a study name (2023 in a study cited as "Brandes et al. 2023").
+  for (const token of nameTokens(facts)) rest = rest.replace(new RegExp(`(?<![\\w.-])${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`, 'g'), ' ');
+  // "the two systems" names the compared pair, which is always two; it states no count.
+  rest = rest.replace(/\b(?:the|both|these|those) two (?:systems|models|methods|tools|sides)\b|\btwo-study\b/gi, ' ');
+  const stray = [...(rest.match(/\d+(?:[.,]\d+)?/g) ?? []), ...(rest.match(NUMBER_WORDS) ?? [])];
   // The stray numbers are not repeated in the issue: they are what must not be published.
   if (stray.length) return { ok: false, why: 'it stated numbers, which must come from the release data', stray: [...new Set(stray)].slice(0, 5) };
   return { ok: true, text: t };
+}
+
+// Counts and fractions in words. "one" is left out ("one possibility", "one of the studies"):
+// alone it states no count the data could contradict.
+const NUMBER_WORDS = new RegExp(`\\b(?:${[
+  'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
+  'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen',
+  'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety',
+  'hundreds?', 'thousands?', 'millions?', 'dozens?', 'half', 'halves', 'thirds', 'quarters?', 'fifths', 'tenths',
+  'twice', 'thrice', 'percent', 'per cent',
+].join('|')})\\b`, 'gi');
+
+/** Words of the names in the facts that carry digits and could stand for the whole name. */
+function nameTokens(facts) {
+  const out = new Set();
+  for (const name of namesIn(facts)) {
+    for (const w of name.split(/[\s,;:()[\]/]+/)) {
+      const word = w.replace(/^[.'"]+|[.'"]+$/g, '');
+      if (/\d/.test(word) && /[a-z]/i.test(word)) out.add(word);
+      if (/^(?:19|20)\d\d$/.test(word)) out.add(word);
+    }
+  }
+  return [...out].sort((a, b) => b.length - a.length);
 }
 
 /** Every name in the facts: systems, studies, protocols, datasets, metrics and configurations. */
@@ -592,7 +648,7 @@ export function renderSummary({ mode, previous, current, diff, plan, filed, comm
     ...notes.map((n) => `- ${n}`),
     notes.length ? '' : null,
     `- New live findings: ${count(diff.added)} (${sev(diff.added)}). Severity rose: ${count(diff.rose)}. Fire again: ${count(diff.refired)}. No longer live: ${count(diff.gone)}.`,
-    diff.rulesChanged ? `- The discrepancy rules changed from version ${diff.rulesChanged.from} to ${diff.rulesChanged.to}; re-keyed findings are matched through previous_ids.` : null,
+    diff.rulesChanged ? `- The discrepancy rules changed from version ${diff.rulesChanged.from} to ${diff.rulesChanged.to}. Findings are matched by ID, previous_ids and the stable parts of their key; previous_ids exist only for reviewed findings, so a re-keyed unreviewed finding shows as new and its old ID as gone.` : null,
     '',
     '### Lead issues',
     '',
@@ -701,7 +757,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     if (args.out) {
       mkdirSync(args.out, { recursive: true });
       writeFileSync(join(args.out, 'summary.md'), summary);
-      writeFileSync(join(args.out, 'plan.json'), `${JSON.stringify({ previous: previousId, current: currentId, filed: filed.map(({ facts, ...f }) => f), comments, skipped: plan.skipped }, null, 2)}\n`);
+      writeFileSync(join(args.out, 'plan.json'), `${JSON.stringify({ mode, previous: previousId, current: currentId, filed: filed.map(({ facts, ...f }) => f), comments, skipped: plan.skipped }, null, 2)}\n`);
       for (const [i, f] of filed.entries()) writeFileSync(join(args.out, `${i + 1}-${f.id}.md`), `# ${f.issue.title}\n\nLabels: ${f.issue.labels.join(', ')}; assignee: ${f.issue.assignees.join(', ')}\n\n${f.issue.body}\n`);
       for (const [i, c] of comments.entries()) writeFileSync(join(args.out, `comment-${i + 1}-issue-${c.number}.md`), `${c.body}\n`);
       writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total() }, null, 2)}\n`);

@@ -5,9 +5,16 @@ name: Disagreement watcher
 # each finding whose severity rose (#258). A finding that stops firing gets a comment on its open
 # lead issue. Code: scripts/agents/watcher.mjs; prompt: agents/watcher.md; docs/agents.md.
 #
-# A release run that cuts no release still succeeds; the watcher then diffs the same two
-# releases again and files nothing, because every issue and comment carries a hidden marker.
-# The repository is always this one (github.repository), so the workflow moves with the code.
+# After a release run it reports only: the planned issues and comments go to the job summary
+# and an artifact. Set the repository variable WATCHER_MODE to "live" to have those runs file
+# the issues and post the comments. By hand, the mode input chooses.
+#
+# After a release run the watcher compares the newest release with the last one an earlier
+# run in the same mode compared to (read from that run's artifact), so a release whose run
+# failed or was replaced in the queue is not skipped. A release run that cuts no release still
+# succeeds; the watcher then compares the same releases again and files nothing, because every
+# issue and comment carries a hidden marker. The repository is always this one
+# (github.repository), so the workflow moves with the code.
 on:
   workflow_run:
     workflows:
@@ -38,6 +45,7 @@ on:
 permissions:
   contents: read
   issues: write
+  actions: read # to read the previous watcher run's artifact
 concurrency:
   group: watcher-${{ github.event_name == 'pull_request' && github.ref || 'watch' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -47,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      MODE: ${{ github.event_name == 'workflow_run' && 'live' || github.event_name == 'pull_request' && 'dry-run' || inputs.mode }}
+      MODE: ${{ github.event_name == 'workflow_run' && (vars.WATCHER_MODE || 'report-only') || github.event_name == 'pull_request' && 'dry-run' || inputs.mode }}
       HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     steps:
       - name: Refuse to run outside rewire-bio
@@ -65,6 +73,8 @@ jobs:
           private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
+          # Issues only: rewire-bot may push to main without the checks, and the watcher never needs to.
+          permission-issues: write
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
@@ -83,14 +93,39 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CURRENT: ${{ inputs.current }}
           PREVIOUS: ${{ inputs.previous }}
+          EVENT: ${{ github.event_name }}
         run: |
-          # Bundles in publication order. Tag order is wrong when two releases share a date.
-          tags=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 200 --json tagName,createdAt,isDraft \
-            --jq '[.[] | select(.isDraft | not) | select(.tagName | test("^kg/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-f0-9]{12}$"))] | sort_by(.createdAt) | .[].tagName | ltrimstr("kg/")')
+          # Releases in the order they were cut (serving/<id>, which only the release workflow
+          # creates), keeping those with a kg/<id> bundle. Tag order is wrong when two releases
+          # share a date, and a bundle backfilled later by kg-release.yml has a later date.
+          ids='^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-f0-9]{12}$'
+          tags=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName,createdAt,isDraft \
+            --jq '[.[] | select(.isDraft | not)] as $r | ($r | map(.tagName) | map(select(startswith("kg/"))) | map(ltrimstr("kg/"))) as $kg
+                  | [$r[] | select(.tagName | startswith("serving/")) | .id = (.tagName | ltrimstr("serving/")) | select(.id as $i | $kg | index($i))]
+                  | sort_by(.createdAt) | .[].id')
           current="${CURRENT:-$(echo "$tags" | tail -n 1)}"
-          previous="${PREVIOUS:-$(echo "$tags" | grep -x -B1 "$current" | head -n 1)}"
-          for id in "$current" "$previous"; do echo "$id" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-f0-9]{12}$' || { echo "::error::No release '$id'"; exit 1; }; done
+          before=$(echo "$tags" | grep -x -B1 "$current" | head -n 1)
+          previous="$PREVIOUS"
+          if [ -z "$previous" ] && [ "$EVENT" = workflow_run ]; then
+            # The release the last watcher run in this mode compared to, if it is older than current.
+            want="${MODE/-/ }"
+            for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow watcher.yml --event workflow_run --status success --limit 20 --json databaseId --jq '.[].databaseId'); do
+              dir="$RUNNER_TEMP/last/$run"
+              gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "watcher-$run" --dir "$dir" >/dev/null 2>&1 || continue
+              [ -f "$dir/plan.json" ] || continue
+              [ "$(jq -r '.mode // ""' "$dir/plan.json")" = "$want" ] || continue
+              last=$(jq -r '.current // ""' "$dir/plan.json")
+              if echo "$tags" | grep -qx "$last" && [ "$last" != "$current" ] && echo "$tags" | grep -x -B1000 "$current" | grep -qx "$last"; then previous="$last"; fi
+              break
+            done
+          fi
+          previous="${previous:-$before}"
+          for id in "$current" "$previous"; do echo "$id" | grep -Eq "$ids" || { echo "::error::No release '$id'"; exit 1; }; done
           if [ "$previous" = "$current" ]; then echo "::error::No release was published before $current"; exit 1; fi
+          skipped=$(echo "$tags" | grep -x -A1000 "$previous" | grep -x -B1000 "$current" | sed '1d;$d' | paste -sd ' ' -)
+          if [ -n "$skipped" ]; then
+            echo "Releases between $previous and $current, not compared one by one: $skipped. A finding that was new in one of them and is still live in $current counts as new; one that came and went in between is not reported." >> "$GITHUB_STEP_SUMMARY"
+          fi
           mkdir -p "$RUNNER_TEMP/rel/previous" "$RUNNER_TEMP/rel/current"
           gh release download "kg/$previous" --repo "$GITHUB_REPOSITORY" --pattern discrepancies.json --dir "$RUNNER_TEMP/rel/previous"
           gh release download "kg/$current" --repo "$GITHUB_REPOSITORY" --pattern discrepancies.json --dir "$RUNNER_TEMP/rel/current"
