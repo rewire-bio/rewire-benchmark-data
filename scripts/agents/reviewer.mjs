@@ -21,6 +21,12 @@
 //
 //   node scripts/agents/reviewer.mjs --dry-run [--fixtures <dir>] [--out <dir>]
 //   node scripts/agents/reviewer.mjs --pr <n> [--mode report-only|comment|approve] [--out <dir>]
+//   node scripts/agents/reviewer.mjs --worktree [--root <dir>] [--out <dir>]
+//
+// --worktree reviews the uncommitted batch in a checkout as if it were a pull request: the store
+// diff is `git diff HEAD` of the store files, and the batch files are the new files under
+// data/omics. It is always report-only. The intake workflow runs it after a report-only run, so a
+// change can be reviewed before any pull request exists.
 //
 // Modes:
 //   dry-run      fixtures only; no model call, no network, no GitHub write.
@@ -335,6 +341,30 @@ export function changeProblems(changed, { batchSourceIds, storeSourceIds }) {
 export function storeDiffRows(tie, { lines }) {
   if (!tie.problems.length) return [{ ...STORE_DIFF_ROW, value: `${lines} record lines`, sources: '', verdict: 'pass', note: 'every record line the pull request adds or removes belongs to a record in batch.jsonl or changes.jsonl, as the file says' }];
   return tie.problems.map((p) => ({ ...STORE_DIFF_ROW, value: p.id, sources: '', verdict: 'fail', note: p.text }));
+}
+
+/**
+ * The working tree of a checkout as a pull request: the store files' `git diff HEAD` as patches,
+ * and the batch files under data/omics that are new or changed. `run` runs git in the checkout.
+ */
+export function worktreePull(run) {
+  const git = (a) => {
+    const r = run('git', a);
+    if (!r.ok) throw new Error(`git ${a.join(' ')}: ${r.output.slice(0, 300)}`);
+    return r.output;
+  };
+  const files = [];
+  const diff = git(['diff', '--no-color', '--no-ext-diff', '-U0', 'HEAD', '--', 'data/entities', 'data/evidence', 'data/provenance']);
+  for (const part of diff.split(/^diff --git /m).slice(1)) {
+    const name = /^\+\+\+ b\/(.+)$/m.exec(part)?.[1] ?? /^--- a\/(.+)$/m.exec(part)?.[1];
+    if (!name) continue;
+    const at = part.indexOf('\n@@');
+    files.push({ filename: name, status: /^deleted file/m.test(part) ? 'removed' : /^new file/m.test(part) ? 'added' : 'modified', ...(at >= 0 ? { patch: part.slice(at + 1).replace(/\n$/, '') } : {}) });
+  }
+  const untracked = git(['ls-files', '--others', '--exclude-standard', '--', 'data/omics']).split('\n').filter(Boolean);
+  const changed = git(['diff', '--name-only', 'HEAD', '--', 'data/omics']).split('\n').filter(Boolean);
+  for (const name of [...new Set([...untracked, ...changed])].sort()) files.push({ filename: name, status: untracked.includes(name) ? 'added' : 'modified' });
+  return { number: 0, title: 'working tree', author: BOT_LOGIN, state: 'open', head_sha: '', html_url: '', files };
 }
 
 // ---------- Verdicts ----------
@@ -682,7 +712,7 @@ async function modelReview(client, usage, { system, records, changed = [], extra
 // ---------- Main ----------
 
 function parseArgs(argv) {
-  const args = { dryRun: false, mode: 'comment', fixtures: FIXTURES, out: '', pr: 0, root: ROOT, anyAuthor: false };
+  const args = { dryRun: false, worktree: false, mode: 'comment', fixtures: FIXTURES, out: '', pr: 0, root: ROOT, anyAuthor: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--dry-run') args.dryRun = true;
@@ -692,9 +722,12 @@ function parseArgs(argv) {
     else if (a === '--pr') args.pr = Number(argv[++i]);
     else if (a === '--root') args.root = resolve(argv[++i]);
     else if (a === '--any-author') args.anyAuthor = true;
+    else if (a === '--worktree') args.worktree = true;
     else throw new Error(`unknown argument ${a}`);
   }
   if (args.dryRun) args.mode = 'dry-run';
+  // The working tree has no pull request to post to.
+  else if (args.worktree) args.mode = 'report-only';
   if (!MODES.includes(args.mode)) throw new Error(`unknown mode ${args.mode}`);
   return args;
 }
@@ -737,12 +770,13 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     emit(`## Reviewer, ${runDate}\n\nSkipped: the ANTHROPIC_API_KEY secret is not set (docs/agents.md).\n`);
     return { outcome: 'no key' };
   }
-  if (!args.dryRun && !args.pr) throw new Error('--pr <n> is required outside --dry-run');
-  const gh = args.dryRun ? null : (deps.github ?? githubClient(env.GH_TOKEN || env.GITHUB_TOKEN));
+  if (!args.dryRun && !args.worktree && !args.pr) throw new Error('--pr <n> is required outside --dry-run and --worktree');
+  const gh = args.dryRun || args.worktree ? null : (deps.github ?? githubClient(env.GH_TOKEN || env.GITHUB_TOKEN));
+  const local = args.worktree ? worktreePull(deps.run ?? ((cmd, a) => runCommand(cmd, a, { cwd: args.root, env: process.env }))) : null;
 
   try {
     // 1. The pull request and its batch.
-    const pull = args.dryRun ? readJson(join(fixtures, 'pull.json')) : await gh.getPull(repo, args.pr);
+    const pull = args.dryRun ? readJson(join(fixtures, 'pull.json')) : local ?? await gh.getPull(repo, args.pr);
     if (pull.state !== 'open') {
       state.outcome = 'skipped: pull request is not open';
       return result();
@@ -752,7 +786,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       return result();
     }
     // GitHub's file list, with each file's patch: the store diff is read from it.
-    const files = (args.dryRun ? pull.files : await gh.files(repo, pull.number)).map((f) => (typeof f === 'string' ? { filename: f } : f));
+    const files = (args.dryRun || local ? pull.files : await gh.files(repo, pull.number)).map((f) => (typeof f === 'string' ? { filename: f } : f));
     const names = files.map((f) => f.filename);
     const batches = names.filter((f) => BATCH_FILE.test(f));
     if (!batches.length) {
@@ -893,7 +927,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     } else state.outcome = 'approved; auto-merge enabled';
     return result();
   } finally {
-    const summary = [`## Reviewer, PR #${args.pr || 'fixture'}, ${runDate} (${args.mode})`, '', `Outcome: ${state.outcome || 'error'}`, '', state.body || '', '', '### Token usage', '', usage.table(), ''].join('\n');
+    const summary = [`## Reviewer, ${args.worktree ? 'working tree' : `PR #${args.pr || 'fixture'}`}, ${runDate} (${args.mode})`, '', `Outcome: ${state.outcome || 'error'}`, '', state.body || '', '', '### Token usage', '', usage.table(), ''].join('\n');
     emit(summary);
     if (args.out) {
       mkdirSync(args.out, { recursive: true });

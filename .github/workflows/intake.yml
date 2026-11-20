@@ -162,6 +162,17 @@ jobs:
                 console.error("::error::The knowledge-graph dry run did not rule the UCE duplicate or link the fixture checkpoint: " + links); process.exit(1);
               }'
           fi
+      # A report-only run that changed an existing record is reviewed in place by the reviewer agent
+      # (--worktree: the store diff is git diff HEAD), so the field-level review and the store diff
+      # check can be seen before any pull request exists. Report-only; it posts nothing.
+      - name: Review the change in the working tree
+        if: env.MODE == 'report-only' && env.HAS_KEY == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          [ -f intake-out/result.json ] || exit 0
+          node -e 'process.exit(JSON.parse(require("fs").readFileSync("intake-out/result.json", "utf8")).change ? 0 : 1)' || exit 0
+          node scripts/agents/reviewer.mjs --worktree --out intake-out/review
       # Load time and peak memory of the knowledge graph server on this run, against the limits
       # in rdf-kg-mcp #8 (ready in under 60 s, under 4 GB).
       - name: Knowledge graph load

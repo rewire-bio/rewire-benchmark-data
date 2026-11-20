@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { BOT_LOGIN, buildTable, changedRecords, main, mechanicalProblems, overallVerdict, reviewInput, reviewSchema, storeDiff, tieStoreDiff } from "../scripts/agents/reviewer.mjs";
+import { BOT_LOGIN, buildTable, changedRecords, worktreePull, main, mechanicalProblems, overallVerdict, reviewInput, reviewSchema, storeDiff, tieStoreDiff } from "../scripts/agents/reviewer.mjs";
 import { createHash } from "node:crypto";
 
 // The reviewer agent (#256). Everything here runs without an API key or network. The fixture
@@ -334,5 +334,40 @@ describe("changed records and the store diff", () => {
     fs.rmSync(dir, { recursive: true, force: true });
     expect(r.verdict).toBe("request changes");
     expect(r.rows.find((x: { field: string }) => x.field === "/attributes/source_locator").verdict).toBe("unverifiable");
+  });
+});
+
+describe("the working tree as a pull request", () => {
+  it("reads the store diff from git and the new batch files under data/omics", () => {
+    const base = '{"id":"m","kind":"model","name":"M"}';
+    const outputs: Record<string, string> = {
+      diff: [
+        "diff --git a/data/entities/models.jsonl b/data/entities/models.jsonl",
+        "index 1..2 100644",
+        "--- a/data/entities/models.jsonl",
+        "+++ b/data/entities/models.jsonl",
+        "@@ -3 +3 @@",
+        `-${base}`,
+        `+${base.replace('"M"', '"M2"')}`,
+        "",
+      ].join("\n"),
+      "ls-files": "data/omics/update-1-20261120/changes.jsonl\ndata/omics/update-1-20261120/review.json\n",
+    };
+    const calls: string[] = [];
+    const run = (_cmd: string, args: string[]) => {
+      calls.push(args.join(" "));
+      if (args[0] === "diff" && args.includes("--name-only")) return { ok: true, output: "" };
+      return { ok: true, output: outputs[args[0]] ?? "" };
+    };
+    const pull = worktreePull(run);
+    expect(calls[0]).toBe("diff --no-color --no-ext-diff -U0 HEAD -- data/entities data/evidence data/provenance");
+    expect(pull.author).toBe(BOT_LOGIN);
+    expect(pull.files).toEqual([
+      { filename: "data/entities/models.jsonl", status: "modified", patch: `@@ -3 +3 @@\n-${base}\n+${base.replace('"M"', '"M2"')}` },
+      { filename: "data/omics/update-1-20261120/changes.jsonl", status: "added" },
+      { filename: "data/omics/update-1-20261120/review.json", status: "added" },
+    ]);
+    const diff = storeDiff(pull.files);
+    expect([...diff.records.keys()]).toEqual(["m"]);
   });
 });

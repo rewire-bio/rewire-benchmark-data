@@ -35,3 +35,4 @@ export function main(argv?: string[], env?: Record<string, string | undefined>, 
 export function duplicateSearchFailures(receipt: any, own?: { step: string; entity?: string; error: string }[]): { step: string; entity?: string; error: string }[];
 export function duplicateFailureNote(f: { step: string; entity?: string; error: string }): string;
 export function duplicateSearchBlocker(failures: { step: string; entity?: string; error: string }[]): string;
+export function worktreePull(run: (cmd: string, args: string[]) => { ok: boolean; output: string }): any;
