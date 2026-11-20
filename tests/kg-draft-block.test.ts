@@ -32,7 +32,7 @@ describe("KG manifest draft block", () => {
     expect(draftKinds).toContain("protocol");
   });
   it("accepts the id pattern records add accepts and nothing looser", () => {
-    const pattern = new RegExp(block.record_schema.properties.id.pattern);
+    const pattern = new RegExp((block.record_schema.properties.id as { pattern: string }).pattern);
     for (const id of ["a", "esm-2", "a1-b2"]) expect(pattern.test(id)).toBe(true);
     for (const id of ["foo--bar", "foo-", "-foo", "Foo"]) expect(pattern.test(id)).toBe(false);
   });
