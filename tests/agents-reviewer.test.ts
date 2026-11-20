@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { BOT_LOGIN, buildTable, main, mechanicalProblems, overallVerdict, reviewInput } from "../scripts/agents/reviewer.mjs";
+import { BOT_LOGIN, buildTable, changedRecords, main, mechanicalProblems, overallVerdict, reviewInput, reviewSchema, storeDiff, tieStoreDiff } from "../scripts/agents/reviewer.mjs";
+import { createHash } from "node:crypto";
 
 // The reviewer agent (#256). Everything here runs without an API key or network. The fixture
 // batch is the first intake pull request for #250 (#296), whose review must find that
@@ -242,5 +243,96 @@ describe("posting, with fakes", () => {
     const r = await main(args("comment"), env, f.deps);
     expect(r.outcome).toContain("not rewire-bot[bot]");
     expect(f.calls).toEqual([]);
+  });
+});
+
+// Changes to existing records (rdf-kg-mcp #10). The fixture is the intake's SpliceAI update: the
+// archived repository changes access, adds a source and a source_locator note.
+describe("changed records and the store diff", () => {
+  const UPDATE = `${FIXTURES}/update`;
+  const upull = JSON.parse(readFileSync(`${UPDATE}/pull.json`, "utf8"));
+  const changes = readFileSync(`${UPDATE}/changes.jsonl`, "utf8").trim().split("\n").map((l) => JSON.parse(l));
+  const sources = readFileSync(`${UPDATE}/batch.jsonl`, "utf8").trim().split("\n").map((l) => JSON.parse(l));
+  const sha = (t: string) => createHash("sha256").update(t).digest("hex");
+  const tie = (files: { filename: string; patch?: string; status?: string }[]) =>
+    tieStoreDiff(storeDiff(files), { batchIds: sources.map((r: { id: string }) => r.id), changes });
+
+  it("reviews every changed field and approves when each passes and the store diff ties", async () => {
+    const r = await main(["--dry-run", "--fixtures", UPDATE], {}, { now, log: quiet });
+    const rows = r.rows.map((x: { id: string; field: string; verdict: string }) => `${x.id} ${x.field} ${x.verdict}`);
+    expect(rows).toEqual([
+      "discovery-model-spliceai /source_ids pass",
+      "discovery-model-spliceai /attributes/access pass",
+      "discovery-model-spliceai /attributes/source_locator pass",
+      "(store diff) store diff pass",
+    ]);
+    expect(r.verdict).toBe("approve");
+    expect(r.body).toContain("SpliceAI (model, changed): 3 of 3 changed fields pass");
+    expect(r.body).toContain("| /attributes/access | changed. Before: official_source_linked. After: The code and trained models");
+  });
+
+  it("gives the model the field-level diff and lets it judge each changed path", () => {
+    const { before } = tie(upull.files);
+    const changed = changedRecords(changes, before);
+    const input = reviewInput(sources, changed);
+    expect(input[0]).toMatchObject({ id: "discovery-model-spliceai", changed_record: true });
+    expect(input[0].changed_fields.map((f: { field: string }) => f.field)).toEqual(["/source_ids", "/attributes/access", "/attributes/source_locator"]);
+    expect(input[0].changed_fields[1].before).toBe("official_source_linked");
+    const fieldEnum = reviewSchema(["/attributes/access"]).properties.records.items.properties.fields.items.properties.field.enum;
+    expect(fieldEnum).toContain("/attributes/access");
+    expect(fieldEnum).toContain("name");
+  });
+
+  it("refuses approval when the store diff touches a record that is not in the reviewed files", async () => {
+    const stray = '{"id":"catalog-model-spliceai","kind":"model","name":"SpliceAI"}';
+    const models = upull.files.find((f: { filename: string }) => f.filename === "data/entities/models.jsonl");
+    const files = upull.files.map((f: { filename: string; patch?: string }) => (f === models ? { ...f, patch: `${f.patch}\n-${stray}\n+${stray.replace("SpliceAI\"}", "SpliceAI v2\"}")}` } : f));
+    expect(tie(files).problems).toEqual([{ id: "catalog-model-spliceai", text: expect.stringContaining("the store diff changes catalog-model-spliceai (data/entities/models.jsonl), which is in neither batch.jsonl nor changes.jsonl") }]);
+
+    // The same through main, with every changed field passing: the store diff row alone refuses it.
+    const fs = await import("node:fs");
+    const os = await import("node:os");
+    const dir = fs.mkdtempSync(`${os.tmpdir()}/reviewer-update-`);
+    for (const name of ["changes.jsonl", "batch.jsonl", "review.json", "fetches.json"]) fs.copyFileSync(`${UPDATE}/${name}`, `${dir}/${name}`);
+    fs.cpSync(`${UPDATE}/entities`, `${dir}/entities`, { recursive: true });
+    fs.writeFileSync(`${dir}/pull.json`, JSON.stringify({ ...upull, files }));
+    const r = await main(["--dry-run", "--fixtures", dir], {}, { now, log: quiet });
+    fs.rmSync(dir, { recursive: true, force: true });
+    expect(r.verdict).toBe("request changes");
+    expect(r.rows.filter((x: { verdict: string }) => x.verdict !== "pass")).toEqual([
+      expect.objectContaining({ id: "(store diff)", field: "store diff", value: "catalog-model-spliceai", verdict: "fail" }),
+    ]);
+    expect(r.body).toContain("which is in neither batch.jsonl nor changes.jsonl");
+  });
+
+  it("refuses a store diff it cannot read, a stale base, extra provenance and an added record that existed", () => {
+    const models = upull.files.find((f: { filename: string }) => f.filename === "data/entities/models.jsonl");
+    const without = upull.files.map((f: { filename: string }) => (f === models ? { filename: f.filename, status: "modified" } : f));
+    expect(tie(without).problems.map((p: { text: string }) => p.text)).toEqual(expect.arrayContaining([
+      expect.stringContaining("GitHub gave no diff for it"),
+      expect.stringContaining("removes 0 and adds 0 lines"),
+    ]));
+    const staleLines = [{ ...changes[0], base_sha256: sha("an older line") }];
+    const stale = tieStoreDiff(storeDiff(upull.files), { batchIds: sources.map((r: { id: string }) => r.id), changes: staleLines });
+    expect(stale.problems.map((p: { text: string }) => p.text)).toEqual([expect.stringContaining("not the base_sha256")]);
+    const prov = [...upull.files, { filename: "data/provenance/records/0.jsonl", status: "modified", patch: '+{"id":"someone-else","sha256":"x"}' }];
+    expect(tie(prov).problems).toEqual([{ id: "someone-else", text: expect.stringContaining("provenance of someone-else") }]);
+    const re = upull.files.map((f: { filename: string; patch?: string }) => (f.filename === "data/entities/sources.jsonl" ? { ...f, patch: `${f.patch}\n-${JSON.stringify(sources[0])}` } : f));
+    expect(tie(re).problems.map((p: { text: string }) => p.text)).toEqual([expect.stringContaining("it was already in the store")]);
+    expect(tie(upull.files).problems).toEqual([]);
+  });
+
+  it("marks a changed field the model did not judge unverifiable", async () => {
+    const fs = await import("node:fs");
+    const os = await import("node:os");
+    const dir = fs.mkdtempSync(`${os.tmpdir()}/reviewer-update-`);
+    fs.cpSync(UPDATE, dir, { recursive: true });
+    const review = JSON.parse(fs.readFileSync(`${dir}/review.json`, "utf8"));
+    review.records[0].fields = review.records[0].fields.filter((f: { field: string }) => f.field !== "/attributes/source_locator");
+    fs.writeFileSync(`${dir}/review.json`, JSON.stringify(review));
+    const r = await main(["--dry-run", "--fixtures", dir], {}, { now, log: quiet });
+    fs.rmSync(dir, { recursive: true, force: true });
+    expect(r.verdict).toBe("request changes");
+    expect(r.rows.find((x: { field: string }) => x.field === "/attributes/source_locator").verdict).toBe("unverifiable");
   });
 });

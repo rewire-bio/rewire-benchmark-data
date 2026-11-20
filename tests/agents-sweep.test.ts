@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -94,6 +95,7 @@ describe("dry run", () => {
       record_id: "fixture-model-helix", kind: "model", action: "update",
       fields: { licence: "Apache-2.0 for the code in rewire-fixtures/helix", version: "v1.2 (GitHub release, 2026-10-10)" },
       evidence: ["https://github.com/rewire-fixtures/helix", "https://github.com/x/releases/tag/v1.2"],
+      base_sha256: expect.stringMatching(/^[0-9a-f]{64}$/),
     });
     // The prerelease after v1.0 is not proposed; the newest full release is.
     expect(r.plan.file[1].issue.body).not.toContain("v1.2-rc1 (");
@@ -425,6 +427,8 @@ describe("placeholder access values", () => {
     expect(checkedValue(c, sentence)).toBe(sentence);
     const issue = renderUpdateIssue({ record, action: "update", changes: [{ ...c, value: checkedValue(c, `official_source_linked. ${sentence}`) ?? "", reason: "Own repository, archived." }], runDate: "2026-12-01" });
     expect(parseUpdateMarker(issue.body)?.fields).toEqual({ access: sentence });
+    // The digest of the record as the sweep checked it, which intake changes against (rdf-kg-mcp #10).
+    expect(parseUpdateMarker(issue.body)?.base_sha256).toBe(createHash("sha256").update(JSON.stringify(record)).digest("hex"));
     expect(issue.body).toContain("| access | not recorded (placeholder official_source_linked) |");
   });
 });

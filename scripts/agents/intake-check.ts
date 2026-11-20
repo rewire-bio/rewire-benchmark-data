@@ -77,7 +77,9 @@ if (process.argv[1]?.endsWith("intake-check.ts")) {
     console.error("Usage: npx tsx scripts/agents/intake-check.ts <batch.jsonl>...");
     process.exit(1);
   }
-  const records = files.flatMap((file) => fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as Rec));
+  // A changes file (records change --changes) holds {id, base_sha256, sha256, record} lines; check the records.
+  const unwrap = (value: Rec & { record?: Rec; base_sha256?: string }) => (value.record && value.base_sha256 ? value.record : value);
+  const records = files.flatMap((file) => fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map((line) => unwrap(JSON.parse(line)) as Rec));
   const sourcesFile = "data/entities/sources.jsonl";
   const stored = fs.existsSync(sourcesFile)
     ? fs.readFileSync(sourcesFile, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as Rec)

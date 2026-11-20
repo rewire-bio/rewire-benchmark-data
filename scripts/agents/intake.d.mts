@@ -59,7 +59,8 @@ export function kgReceipt(input: { kgState: any; kgLog: KgLog | null; summary: a
 export function buildUpdate(input: {
   record: any; fields: Record<string, string>; verification: any; sources: Map<string, { id?: string; record?: any; error?: string }>; issue: number; runDate: string; repo?: string;
 }): { record: any | null; records: any[]; kept: string[]; fieldLog: any[]; dropped: Dropped[] };
-export function replaceRecordLine(text: string, record: { id: string }): string;
+export const CHANGES_FILE: string;
+export function renderChangeTable(change: { id: string; base_sha256: string; sha256: string; via: string; fields: { path: string; change: string; before?: any; after?: any }[] }): string;
 export function renderUpdatePullBody(input: any): string;
 export const UPDATE_VERIFICATION_SCHEMA: Record<string, any>;
 export function publicationStatusOf(url: string): string;

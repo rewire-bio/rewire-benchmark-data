@@ -11,6 +11,14 @@
 // (its diff, in kg.json), and those the reviewer finds itself with the knowledge graph's search
 // (rdf-kg-mcp, read-only, on the latest release; skipped when KG_BUNDLE is not set).
 //
+// Changes to existing records (entity-update issues, rdf-kg-mcp #10): an update pull request puts
+// the changed record in changes.jsonl ({id, base_sha256, sha256, record}). The script works out the
+// field-level diff from the pull request's own store diff (the removed line must have the base
+// digest, the added line the changed digest), and the model judges every changed field against
+// the sources. The pull request is approved only if its store diff touches no record other than
+// those in batch.jsonl and changes.jsonl, each in the way the file says (an added record only
+// added, a changed record changed once).
+//
 //   node scripts/agents/reviewer.mjs --dry-run [--fixtures <dir>] [--out <dir>]
 //   node scripts/agents/reviewer.mjs --pr <n> [--mode report-only|comment|approve] [--out <dir>]
 //
@@ -34,7 +42,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { AREAS, DEFAULT_REPO, Usage, clean, normalise, tierOf } from './discovery.mjs';
 import { ENTITY_LEVELS, LINK_RELATIONS, fetchSource, linkAllowed, needsRuling, sourceBlocks } from './intake.mjs';
-import { startKg } from './kg.mjs';
+import { fieldDiff, startKg } from './kg.mjs';
+import { createHash } from 'node:crypto';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -62,8 +71,14 @@ const TIER_KINDS = ['model', 'method', 'benchmark'];
 /** Fields the model judges, per record, when the record has them. source_ids and name always. */
 export const REVIEWED_FIELDS = ['name', 'description', 'areas', 'entity_level', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations', 'source_ids', 'links', 'duplicates'];
 // An intake update pull request (entity-update issues, #257) puts the changed record in
-// changed.jsonl and only new sources in batch.jsonl, so both are reviewed.
-const BATCH_FILE = /^data\/omics\/[^/]+\/(batch|changed)\.jsonl$/;
+// changes.jsonl and only new sources in batch.jsonl, so both are reviewed.
+const BATCH_FILE = /^data\/omics\/[^/]+\/(batch|changes)\.jsonl$/;
+/** Store files: records, and the provenance log that locks each record's digest. */
+const STORE_RECORD_FILE = /^data\/(entities|evidence)\/.+\.jsonl$/;
+const STORE_PROVENANCE_FILE = /^data\/provenance\/records(\/.+)?\.jsonl$/;
+/** The row that carries the tie between the store diff and the reviewed files. */
+export const STORE_DIFF_ROW = { id: '(store diff)', kind: 'pull request', field: 'store diff' };
+const sha256 = (text) => createHash('sha256').update(text).digest('hex');
 
 const unique = (list) => [...new Set(list)];
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
@@ -174,6 +189,154 @@ export function mechanicalProblems(records, { storeNames, storeSourceIds, storeK
   return problems;
 }
 
+// ---------- The store diff ----------
+
+/**
+ * The record lines a pull request adds and removes in the store, by record ID, from each store
+ * file's patch: { records: Map(id -> { added: [line], removed: [line] }), provenance: Set(id),
+ * problems: [text] }. A store file with no patch (GitHub leaves it out of very large diffs), a
+ * removed or renamed store file, or a line that is not a record cannot be tied to the batch, so
+ * each is a problem.
+ */
+export function storeDiff(files) {
+  const records = new Map();
+  const provenance = new Set();
+  const problems = [];
+  for (const f of files) {
+    const name = f.filename;
+    const isRecord = STORE_RECORD_FILE.test(name);
+    if (!isRecord && !STORE_PROVENANCE_FILE.test(name)) continue;
+    if (f.status && !['added', 'modified'].includes(f.status)) problems.push(`${name} is ${f.status}; a record pull request only adds and changes lines`);
+    if (typeof f.patch !== 'string') {
+      problems.push(`${name} changed, but GitHub gave no diff for it, so its lines cannot be tied to the reviewed files`);
+      continue;
+    }
+    for (const raw of f.patch.split('\n')) {
+      const sign = raw[0];
+      if ((sign !== '+' && sign !== '-') || raw.startsWith('+++') || raw.startsWith('---')) continue;
+      const text = raw.slice(1);
+      if (!text.trim()) continue;
+      let id;
+      try {
+        id = JSON.parse(text).id;
+      } catch {
+        id = undefined;
+      }
+      if (typeof id !== 'string') {
+        problems.push(`${name}: a ${sign === '+' ? 'added' : 'removed'} line is not a record: ${clean(text).slice(0, 80)}`);
+        continue;
+      }
+      if (!isRecord) {
+        provenance.add(id);
+        continue;
+      }
+      const entry = records.get(id) ?? { added: [], removed: [], files: new Set() };
+      entry[sign === '+' ? 'added' : 'removed'].push(text);
+      entry.files.add(name);
+      records.set(id, entry);
+    }
+  }
+  return { records, provenance, problems };
+}
+
+/**
+ * Tie the store diff to the reviewed files. Every record line the pull request adds or removes
+ * must belong to a record in batch.jsonl (added once, nothing removed) or changes.jsonl (one line
+ * removed with the base digest, one added with the changed digest); every provenance line too.
+ * Returns problems as { id, text }, and for each change the committed record it replaced.
+ */
+export function tieStoreDiff(diff, { batchIds, changes }) {
+  const problems = diff.problems.map((text) => ({ id: STORE_DIFF_ROW.id, text }));
+  const before = new Map();
+  const known = new Set([...batchIds, ...changes.map((c) => c.id)]);
+  for (const [id, e] of diff.records)
+    if (!known.has(id)) problems.push({ id, text: `the store diff ${e.removed.length && e.added.length ? 'changes' : e.removed.length ? 'removes' : 'adds'} ${id} (${[...e.files].join(', ')}), which is in neither batch.jsonl nor changes.jsonl` });
+  for (const id of diff.provenance)
+    if (!known.has(id)) problems.push({ id, text: `the store diff changes the provenance of ${id}, which is in neither batch.jsonl nor changes.jsonl` });
+  for (const id of batchIds) {
+    const e = diff.records.get(id);
+    if (!e || e.added.length !== 1) problems.push({ id, text: `batch.jsonl adds ${id}, but the store diff adds it ${e?.added.length ?? 0} times` });
+    else if (e.removed.length) problems.push({ id, text: `batch.jsonl adds ${id}, but the store diff also removes a line for it: it was already in the store` });
+  }
+  for (const c of changes) {
+    const e = diff.records.get(c.id);
+    if (!e || e.added.length !== 1 || e.removed.length !== 1) {
+      problems.push({ id: c.id, text: `changes.jsonl changes ${c.id}, but the store diff removes ${e?.removed.length ?? 0} and adds ${e?.added.length ?? 0} lines for it, not one each` });
+      continue;
+    }
+    if (sha256(e.removed[0]) !== c.base_sha256) problems.push({ id: c.id, text: `the line the store diff replaces has SHA-256 ${sha256(e.removed[0])}, not the base_sha256 ${c.base_sha256} the change was made against` });
+    if (sha256(e.added[0]) !== c.sha256) problems.push({ id: c.id, text: `the line the store diff writes has SHA-256 ${sha256(e.added[0])}, not the sha256 ${c.sha256} in changes.jsonl` });
+    if (sha256(JSON.stringify(c.record)) !== c.sha256) problems.push({ id: c.id, text: 'the record in changes.jsonl does not have the sha256 the file gives' });
+    try {
+      before.set(c.id, JSON.parse(e.removed[0]));
+    } catch {
+      // Reported above as a line that is not a record.
+    }
+  }
+  return { problems, before };
+}
+
+/** The changed records under review: each change line with its committed record and field-level diff. */
+export function changedRecords(changes, before) {
+  return changes.map((c) => {
+    const base = before.get(c.id) ?? null;
+    return { ...c.record, change: { base_sha256: c.base_sha256, sha256: c.sha256, fields: base ? fieldDiff(base, c.record) : null } };
+  });
+}
+
+/** Rows for the changed records: one per changed path, judged by the model, plus mechanical problems. */
+export function changeRows(changed, review, mechanical) {
+  const byId = new Map((review?.records ?? []).map((r) => [r.id, r]));
+  const rows = [];
+  const show = (v) => (v === undefined ? '(none)' : typeof v === 'string' ? v : JSON.stringify(v));
+  for (const r of changed) {
+    const verdicts = new Map((byId.get(r.id)?.fields ?? []).map((f) => [f.field, f]));
+    const mech = mechanical.filter((m) => m.id === r.id);
+    if (!r.change.fields) {
+      rows.push({ id: r.id, kind: r.kind, field: 'change', value: '', sources: (r.source_ids ?? []).join(', '), verdict: 'fail', note: 'the committed record could not be read from the store diff, so the change has no field-level diff to review' });
+      continue;
+    }
+    if (!r.change.fields.length) rows.push({ id: r.id, kind: r.kind, field: 'change', value: '', sources: '', verdict: 'fail', note: 'changes.jsonl holds the record unchanged' });
+    for (const f of r.change.fields) {
+      const v = verdicts.get(f.path);
+      const m = mech.filter((x) => x.field === f.path).map((x) => x.text);
+      let verdict;
+      let note;
+      if (m.length) {
+        verdict = 'fail';
+        note = m.join('; ');
+      } else if (!v) {
+        verdict = 'unverifiable';
+        note = 'the review did not return a verdict for this changed field';
+      } else {
+        verdict = ['pass', 'fail', 'unverifiable'].includes(v.verdict) ? v.verdict : 'unverifiable';
+        note = clean(verdict === 'pass' ? v.evidence : [v.problem, v.evidence].filter(Boolean).join(' Evidence: '));
+      }
+      rows.push({ id: r.id, kind: r.kind, field: f.path, value: `${f.change}. Before: ${show(f.before)}. After: ${show(f.after)}`, sources: (r.source_ids ?? []).join(', '), verdict, note });
+    }
+    for (const x of mech.filter((x) => !r.change.fields.some((f) => f.path === x.field)))
+      rows.push({ id: r.id, kind: r.kind, field: x.field, value: '', sources: (r.source_ids ?? []).join(', '), verdict: 'fail', note: x.text });
+  }
+  return rows;
+}
+
+/** Mechanical checks on a changed record: an entity kind, and every cited source in the batch or the store. */
+export function changeProblems(changed, { batchSourceIds, storeSourceIds }) {
+  const problems = [];
+  for (const r of changed) {
+    if (!ENTITY_KINDS.includes(r.kind)) problems.push({ id: r.id, field: 'change', text: `${r.kind} is not an entity kind; intake changes entities only` });
+    for (const s of r.source_ids ?? [])
+      if (!batchSourceIds.has(s) && !storeSourceIds.has(s)) problems.push({ id: r.id, field: '/source_ids', text: `cites ${s}, which is neither in this pull request nor in the store` });
+  }
+  return problems;
+}
+
+/** Rows for the store diff: one failing row per problem, or one passing row when everything ties. */
+export function storeDiffRows(tie, { lines }) {
+  if (!tie.problems.length) return [{ ...STORE_DIFF_ROW, value: `${lines} record lines`, sources: '', verdict: 'pass', note: 'every record line the pull request adds or removes belongs to a record in batch.jsonl or changes.jsonl, as the file says' }];
+  return tie.problems.map((p) => ({ ...STORE_DIFF_ROW, value: p.id, sources: '', verdict: 'fail', note: p.text }));
+}
+
 // ---------- Verdicts ----------
 
 /**
@@ -277,8 +440,9 @@ export function renderReview({ records, rows, verdict, sourceNotes, notes = [], 
     out.push('');
   }
   for (const id of entityIds) {
-    const r = records.find((x) => x.id === id);
-    out.push(`<details><summary>${clean(r.name)} (${r.kind}): ${rows.filter((x) => x.id === id && x.verdict === 'pass').length} of ${rows.filter((x) => x.id === id).length} fields pass</summary>`, '');
+    const r = records.find((x) => x.id === id) ?? { name: id, kind: rows.find((x) => x.id === id)?.kind ?? '' };
+    const what = r.change ? 'changed fields' : 'fields';
+    out.push(`<details><summary>${clean(r.name)} (${r.kind}${r.change ? ', changed' : ''}): ${rows.filter((x) => x.id === id && x.verdict === 'pass').length} of ${rows.filter((x) => x.id === id).length} ${what} pass</summary>`, '');
     out.push('| Field | Value | Source | Verdict | Evidence or problem |', '| --- | --- | --- | --- | --- |');
     for (const row of rows.filter((x) => x.id === id)) out.push(`| ${row.field} | ${cell(row.value, 120)} | ${cell(row.sources, 80)} | ${row.verdict} | ${cell(row.note, 300)} |`);
     out.push('', '</details>', '');
@@ -314,7 +478,8 @@ export function githubClient(token, fetchImpl = fetch) {
       const out = [];
       for (let page = 1; page < 30; page++) {
         const batch = await call('GET', `/repos/${repo}/pulls/${n}/files?per_page=100&page=${page}`);
-        out.push(...batch.map((f) => f.filename));
+        // The patch is the store diff the review ties to the batch; GitHub omits it for very large diffs.
+        out.push(...batch.map((f) => ({ filename: f.filename, status: f.status, patch: f.patch })));
         if (batch.length < 100) break;
       }
       return out;
@@ -334,6 +499,13 @@ export function githubClient(token, fetchImpl = fetch) {
 // ---------- Model call ----------
 
 const STR = { type: 'string' };
+/** The structured review, with the changed paths of changed records as fields the model may judge. */
+export function reviewSchema(paths = []) {
+  const schema = JSON.parse(JSON.stringify(REVIEW_SCHEMA));
+  schema.properties.records.items.properties.fields.items.properties.field.enum = unique([...REVIEWED_FIELDS, ...paths]);
+  return schema;
+}
+
 export const REVIEW_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -373,16 +545,24 @@ function textOf(message) {
 }
 
 /** The records as the reviewer sees them: what each says and which source URLs it cites. */
-export function reviewInput(records) {
+export function reviewInput(records, changed = []) {
   const sourceUrl = new Map(records.filter((r) => r.kind === 'source').map((r) => [r.id, r.attributes?.url]));
-  return records.filter((r) => ENTITY_KINDS.includes(r.kind)).map((r) => ({
+  const changes = changed.filter((r) => r.change?.fields?.length).map((r) => ({
+    id: r.id,
+    kind: r.kind,
+    name: r.name,
+    changed_record: true,
+    changed_fields: r.change.fields.map((f) => ({ field: f.path, change: f.change, before: f.before ?? null, after: f.after ?? null })),
+    sources: (r.source_ids ?? []).map((id) => ({ id, url: sourceUrl.get(id) ?? '(stored source, not in this pull request)' })),
+  }));
+  return [...changes, ...records.filter((r) => ENTITY_KINDS.includes(r.kind)).map((r) => ({
     id: r.id,
     kind: r.kind,
     ...Object.fromEntries(fieldsOf(r).filter((f) => f !== 'source_ids').map((f) => [f, fieldValue(r, f)])),
     sources: (r.source_ids ?? []).map((id) => ({ id, url: sourceUrl.get(id) ?? '(stored source, not in this pull request)' })),
     ...((r.links ?? []).length ? { links: r.links.map((l) => ({ ...l, ...(r.link_notes?.[`${l.relation} ${l.target_id}`] ?? {}) })) } : {}),
     ...((r.duplicate_rulings ?? []).length ? { duplicate_rulings: r.duplicate_rulings } : {}),
-  }));
+  }))];
 }
 
 /**
@@ -429,9 +609,10 @@ export async function possibleDuplicates(records, { receipt = null, kg = null, f
   return out;
 }
 
-async function modelReview(client, usage, { system, records, extraUrls, texts = [], runDate, log }) {
+async function modelReview(client, usage, { system, records, changed = [], extraUrls, texts = [], runDate, log }) {
   const withText = new Set(texts.filter((t) => t.text).map((t) => t.url));
-  const input = reviewInput(records);
+  const input = reviewInput(records, changed);
+  const paths = unique(changed.flatMap((r) => (r.change?.fields ?? []).map((f) => f.path)));
   const urls = unique([...input.flatMap((r) => r.sources.map((s) => s.url)).filter((u) => /^https?:/.test(u)), ...extraUrls]);
   const fetches = Math.min(LIMITS.reviewFetchesMax, LIMITS.reviewFetchesBase + urls.length);
   const messages = [{
@@ -448,6 +629,7 @@ async function modelReview(client, usage, { system, records, extraUrls, texts = 
       'Records (JSON):',
       JSON.stringify(input, null, 2),
       '',
+      'For a changed record (changed_record: true), judge every entry of changed_fields by its path: is the new value what a source states for this exact entity, and does the change keep what the source does not contradict? Give the path as the field name.',
       'For every record and every field listed for it (and source_ids), write the verdict (pass, fail or unverifiable), the problem if any, and the URL and location that decide it. Check source attribution for each cited source. For links, judge each relation: does a source state it, at the locator given or elsewhere? For duplicates, judge each ruling: is the store record named a different resource (distinct) as ruled? A record with any link or ruling you cannot confirm fails that field. List any page that failed to load.',
     ].join('\n'),
   }];
@@ -485,8 +667,8 @@ async function modelReview(client, usage, { system, records, extraUrls, texts = 
   const structured = await client.messages.create({
     model: MODELS.structure,
     max_tokens: LIMITS.maxTokens,
-    output_config: { effort: 'low', format: { type: 'json_schema', schema: REVIEW_SCHEMA } },
-    messages: [{ role: 'user', content: `Turn these review notes into the schema, one entry per record ID and field the notes judge. Copy each verdict exactly; do not soften a fail. Record IDs: ${input.map((r) => r.id).join(', ')}.\n\n<notes>\n${notes}\n</notes>` }],
+    output_config: { effort: 'low', format: { type: 'json_schema', schema: reviewSchema(paths) } },
+    messages: [{ role: 'user', content: `Turn these review notes into the schema, one entry per record ID and field the notes judge; for a changed record the field is the changed path (such as /attributes/access). Copy each verdict exactly; do not soften a fail. Record IDs: ${input.map((r) => r.id).join(', ')}.\n\n<notes>\n${notes}\n</notes>` }],
   });
   usage.add(MODELS.structure, structured.usage);
   if (structured.stop_reason !== 'end_turn') return { error: 'could not structure the review notes', notes };
@@ -569,16 +751,25 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       state.outcome = `skipped: author is ${pull.author}, not ${BOT_LOGIN}`;
       return result();
     }
-    const files = args.dryRun ? pull.files : await gh.files(repo, pull.number);
-    const batches = files.filter((f) => BATCH_FILE.test(f));
+    // GitHub's file list, with each file's patch: the store diff is read from it.
+    const files = (args.dryRun ? pull.files : await gh.files(repo, pull.number)).map((f) => (typeof f === 'string' ? { filename: f } : f));
+    const names = files.map((f) => f.filename);
+    const batches = names.filter((f) => BATCH_FILE.test(f));
     if (!batches.length) {
-      state.outcome = 'skipped: no batch.jsonl in the pull request';
+      state.outcome = 'skipped: no batch.jsonl or changes.jsonl in the pull request';
       return result();
     }
-    const stored = batches.flatMap((f) => readJsonl(args.dryRun ? join(fixtures, 'batch.jsonl') : join(args.root, f)));
-    const ids = new Set(stored.map((r) => r.id));
+    const fileOf = (f) => (args.dryRun ? join(fixtures, f.split('/').at(-1)) : join(args.root, f));
+    const stored = batches.filter((f) => f.endsWith('/batch.jsonl')).flatMap((f) => readJsonl(fileOf(f)));
+    const changeLines = batches.filter((f) => f.endsWith('/changes.jsonl')).flatMap((f) => readJsonl(fileOf(f)));
+    const ids = new Set([...stored.map((r) => r.id), ...changeLines.map((c) => c.id)]);
+    // The store diff must touch exactly the records under review.
+    const diff = storeDiff(files);
+    const tie = tieStoreDiff(diff, { batchIds: stored.map((r) => r.id), changes: changeLines });
+    const changed = changedRecords(changeLines, tie.before);
     // kg.json beside the batch: the intake's links, duplicate rulings and draft overlay diff.
     const receiptFile = args.dryRun ? join(fixtures, 'kg.json') : batches.map((f) => join(args.root, dirname(f), 'kg.json')).find((f) => existsSync(f));
+    // The records the change cites as sources may be new in this batch; the changed records are judged by field.
     const receipt = receiptFile && existsSync(receiptFile) ? readJson(receiptFile) : null;
     const records = withReceipt(stored, receipt);
 
@@ -604,6 +795,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     const dupeFailures = duplicateSearchFailures(receipt, ownFailures);
     for (const f of dupeFailures) notes.push(duplicateFailureNote(f));
     const mechanical = mechanicalProblems(records, { storeNames: store.names, storeSourceIds: store.sourceIds, storeKinds: store.kinds, receipt, kgDuplicates });
+    const changeMechanical = changeProblems(changed, { batchSourceIds: new Set(stored.filter((r) => r.kind === 'source').map((r) => r.id)), storeSourceIds: store.sourceIds });
 
     // 3. Re-fetch every new source and compare its hash with the one intake recorded.
     const sourceNotes = [];
@@ -628,7 +820,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 3, timeout: 10 * 60 * 1000 });
       }
       const system = readFileSync(join(ROOT, PROMPT_PATH), 'utf8');
-      const result = await modelReview(client, usage, { system, records, extraUrls: [], texts, runDate, log });
+      const result = await modelReview(client, usage, { system, records, changed, extraUrls: [], texts, runDate, log });
       if (result.notes) state.notes = result.notes;
       if (result.error) {
         notes.push(`The model review failed: ${result.error}. Every field it would have judged is unverifiable.`);
@@ -638,9 +830,13 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         if (review.unopened?.length) notes.push(`The reviewer could not open: ${review.unopened.map((u) => clean(u)).join('; ')}`);
       }
     }
-    state.rows = buildTable(records, review, mechanical);
+    state.rows = [
+      ...buildTable(records, review, mechanical),
+      ...changeRows(changed, review, changeMechanical),
+      ...storeDiffRows(tie, { lines: [...diff.records.values()].reduce((n, e) => n + e.added.length + e.removed.length, 0) }),
+    ];
     state.verdict = overallVerdict(state.rows);
-    const rendered = { records, rows: state.rows, verdict: state.verdict, sourceNotes, notes, usage, runUrl, mode: args.mode };
+    const rendered = { records: [...records, ...changed], rows: state.rows, verdict: state.verdict, sourceNotes, notes, usage, runUrl, mode: args.mode };
     // Every field passes, but a failed duplicate check leaves the store unchecked: the review says
     // so in its headline in every mode, and is never an approval.
     const dupeBlocked = state.verdict === 'approve' && dupeFailures.length > 0;

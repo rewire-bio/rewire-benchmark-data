@@ -250,6 +250,61 @@ export function recordChanges(ids: string[], inputs: string, review: string, roo
   writeStore([...records.values()], provenance, root);
 }
 
+/** One line of a changes file (rdf-kg-mcp draft_export, `changes.jsonl`): the whole changed
+ * record, the digest of the line it was based on and the digest of the record as written. */
+export type ChangeLine = { id: string; base_sha256: string; sha256: string; record: unknown };
+
+/** The IDs a changes file names, in file order. */
+export const changeIds = (changesFile: string) => (readJsonl(changesFile) as ChangeLine[]).map((line) => line?.id);
+
+/** Apply a reviewed changes file to existing records and record the change. Each line must be
+ * based on the record's current provenance digest (`base_sha256`), so a change made against an
+ * older line is refused, and the record as the store writes it must have the digest the file
+ * gives (`sha256`), so what is written is byte for byte what was reviewed. All lines are checked
+ * before anything is written. Returns the changed IDs. */
+export function applyChanges(changesFile: string, inputs: string, review: string, root = "."): string[] {
+  const lines = readJsonl(changesFile) as ChangeLine[];
+  if (!lines.length) throw new Error(`${changesFile} holds no changes`);
+  const provenance = readProvenance(root);
+  const records = new Map(
+    recordFiles(root).flatMap((file) => readJsonl(file)).map((value) => {
+      const record = recordSchema.parse(value);
+      return [record.id, record] as const;
+    }),
+  );
+  const seen = new Set<string>();
+  for (const [i, line] of lines.entries()) {
+    const where = `${changesFile} line ${i + 1}`;
+    if (!line || typeof line.id !== "string" || typeof line.base_sha256 !== "string" || typeof line.sha256 !== "string" || !line.record)
+      throw new Error(`${where}: expected {id, base_sha256, sha256, record}`);
+    const { id } = line;
+    if (seen.has(id)) throw new Error(`${where}: ${id} is changed twice`);
+    seen.add(id);
+    const stored = records.get(id);
+    const row = provenance.get(id);
+    if (!stored || !row) throw new Error(`${where}: unknown record ${id}; records add adds new records`);
+    if (row.sha256 !== line.base_sha256)
+      throw new Error(`${where}: ${id} has provenance digest ${row.sha256}, not base_sha256 ${line.base_sha256}. The record changed after this change was made; redo the change against the current record.`);
+    if (recordSha256(stored) !== row.sha256) throw new Error(`${where}: ${id} was edited in place without a recorded change`);
+    const next = recordSchema.parse(line.record);
+    if (next.id !== id) throw new Error(`${where}: the record's id is ${next.id}, not ${id}`);
+    if (next.kind !== stored.kind) throw new Error(`${where}: ${id} is a ${stored.kind}; a change cannot make it a ${next.kind}`);
+    const written = recordSha256(next);
+    if (written !== line.sha256)
+      throw new Error(`${where}: ${id} as the store writes it has SHA-256 ${written}, not ${line.sha256}; its bytes would differ from the reviewed line`);
+    if (written === row.sha256) throw new Error(`${where}: ${id} is unchanged`);
+    records.set(id, next);
+  }
+  const date = new Date().toISOString().slice(0, 10);
+  for (const line of lines) {
+    const row = provenance.get(line.id)!;
+    row.sha256 = line.sha256;
+    row.changed_by.push({ step: "records:change", inputs, date, review });
+  }
+  writeStore([...records.values()], provenance, root);
+  return lines.map((line) => line.id);
+}
+
 /** The SHACL shapes are the record contract (issue #42, R6). Validate the records just written,
  * the records that link to them and their link targets (`npm run kg -- subset`), not the whole
  * store: that takes minutes and runs once in CI (`npm run kg:shapes`). If any checked record
@@ -279,7 +334,7 @@ function writeCheckedAgainstShapes(ids: () => string[], write: () => void, what:
 
 if (process.argv[1]?.endsWith("records.ts")) {
   const [command, ...args] = process.argv.slice(2);
-  const usage = "Usage: npm run records -- check | descriptions [--json] | add <batch.jsonl> <batch-dir> | change <review-path> <batch-dir> <id>... | reshard";
+  const usage = "Usage: npm run records -- check | descriptions [--json] | add <batch.jsonl> <batch-dir> | change <review-path> <batch-dir> <id>... | change <review-path> <batch-dir> --changes <changes.jsonl> | reshard";
   if (command === "check") console.log(`${loadRecords().length} records match their provenance.`);
   else if (command === "descriptions") {
     // Every description the check rejects, with counts by kind and rule (issue #88).
@@ -303,7 +358,13 @@ if (process.argv[1]?.endsWith("records.ts")) {
     );
     console.log(`Added ${added} records.`);
   }
-  else if (command === "change" && args.length >= 3) {
+  else if (command === "change" && args[2] === "--changes" && args.length === 4) {
+    // A changes file (rdf-kg-mcp draft_export): the store is edited here, not in place beforehand.
+    let changed: string[] = [];
+    writeCheckedAgainstShapes(() => changeIds(args[3]), () => { changed = applyChanges(args[3], args[1], args[0]); }, "The changed records");
+    console.log(`Recorded changes to ${changed.length} records from ${args[3]}.`);
+  }
+  else if (command === "change" && args.length >= 3 && !args.includes("--changes")) {
     writeCheckedAgainstShapes(() => args.slice(2), () => recordChanges(args.slice(2), args[1], args[0]), "The changed records");
     console.log(`Recorded changes to ${args.length - 2} records.`);
   } else if (command === "reshard" && !args.length) {

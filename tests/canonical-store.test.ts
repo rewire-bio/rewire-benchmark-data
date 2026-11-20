@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { addBatch, loadRecords, provenanceFileFor, readKind, recordChanges, recordFile, recordSha256, reshardStore, shardOf, storeDigests } from "../scripts/omics/records";
+import { addBatch, applyChanges, loadRecords, provenanceFileFor, readKind, recordChanges, recordFile, recordSha256, reshardStore, shardOf, storeDigests } from "../scripts/omics/records";
 import type { RecordEntry } from "../scripts/omics/schema";
 import { recordsById } from "./helpers/records";
 
@@ -50,6 +50,59 @@ describe("canonical record store", () => {
     expect(() => loadRecords(root)).toThrow("changed without a provenance entry");
     recordChanges(["a-model"], "test-batch", "docs/reviews/test.md", root);
     expect(loadRecords(root).find((r) => r.id === "a-model")!.name).toBe("renamed");
+  });
+
+  // Changes files from rdf-kg-mcp draft_export (rdf-kg-mcp #10): {id, base_sha256, sha256, record}.
+  describe("records change --changes", () => {
+    const sha = (text: string) => crypto.createHash("sha256").update(text).digest("hex");
+    // Attribute keys in an order no sort gives, so a re-sort would show.
+    const model = record("a-model", "model", { attributes: { version: "v1", access: "open", checkpoint_revision: "abc" } as RecordEntry["attributes"] });
+    const setup = () => {
+      const root = store([record("test-source", "source"), model, record("b-model", "model")]);
+      const file = path.join(root, "data/entities/models.jsonl");
+      return { root, file, before: fs.readFileSync(file, "utf8") };
+    };
+    const changesFile = (root: string, lines: object[]) => {
+      const file = path.join(root, "changes.jsonl");
+      fs.writeFileSync(file, lines.map((l) => JSON.stringify(l) + "\n").join(""));
+      return file;
+    };
+    const changed = { ...model, attributes: { version: "v1", access: "archived", checkpoint_revision: "abc", licence: "MIT" } };
+    const line = (extra: object = {}) => ({ id: "a-model", base_sha256: recordSha256(model), sha256: sha(JSON.stringify(changed)), record: changed, ...extra });
+
+    it("writes the reviewed bytes, keeps every other line and records the change", () => {
+      const { root, file, before } = setup();
+      expect(applyChanges(changesFile(root, [line()]), "data/omics/update-1", "data/omics/update-1/review.json", root)).toEqual(["a-model"]);
+      const after = fs.readFileSync(file, "utf8").split("\n");
+      expect(after[0]).toBe(JSON.stringify(changed));
+      expect(after[0]).toContain('"attributes":{"version":"v1","access":"archived","checkpoint_revision":"abc","licence":"MIT"}');
+      expect(after.slice(1)).toEqual(before.split("\n").slice(1));
+      const row = JSON.parse(fs.readFileSync(provenanceFileFor("a-model", root), "utf8").split("\n").find((l) => l.includes('"a-model"'))!);
+      expect(row.sha256).toBe(sha(after[0]));
+      expect(row.changed_by.at(-1)).toMatchObject({ step: "records:change", inputs: "data/omics/update-1", review: "data/omics/update-1/review.json" });
+      expect(loadRecords(root).find((r) => r.id === "a-model")!.attributes.access).toBe("archived");
+    });
+
+    it("refuses a stale base and leaves the store as it was", () => {
+      const { root, file, before } = setup();
+      const stale = line({ base_sha256: sha("an older line") });
+      expect(() => applyChanges(changesFile(root, [stale]), "b", "r", root)).toThrow("The record changed after this change was made");
+      expect(fs.readFileSync(file, "utf8")).toBe(before);
+    });
+
+    it("refuses bytes that differ from the reviewed line, unknown ids, kind changes and repeats", () => {
+      const { root, file, before } = setup();
+      const cases: [object[], string][] = [
+        [[line({ sha256: sha(JSON.stringify({ ...changed, attributes: { access: "archived", checkpoint_revision: "abc", licence: "MIT", version: "v1" } })) })], "its bytes would differ"],
+        [[line({ id: "ghost" })], "unknown record ghost"],
+        [[line({ record: { ...changed, kind: "method" } })], "cannot make it a method"],
+        [[line(), line()], "is changed twice"],
+        [[line({ record: model, sha256: recordSha256(model) })], "is unchanged"],
+        [[{ id: "a-model" }], "expected {id, base_sha256, sha256, record}"],
+      ];
+      for (const [lines, message] of cases) expect(() => applyChanges(changesFile(root, lines), "b", "r", root), message).toThrow(message);
+      expect(fs.readFileSync(file, "utf8")).toBe(before);
+    });
   });
 
   it("appends a batch and rejects duplicate IDs", () => {

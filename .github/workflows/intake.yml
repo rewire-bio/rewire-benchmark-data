@@ -1,5 +1,7 @@
 name: Intake agent
-# Turns an issue labelled entity-request into a pull request that adds its entity records (#255).
+# Turns an issue labelled entity-request into a pull request that adds its entity records (#255),
+# and an entity-update issue from the monthly sweep into one that changes a record through the KG
+# server's draft_change and records -- change --changes (rdf-kg-mcp #10).
 # The prompt is agents/intake.md; setup and cost are in docs/agents.md. It never merges.
 #
 # Live runs push the branch and open the pull request as the rewire-bot GitHub App, so the pull
@@ -45,12 +47,14 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 env:
   NODE_OPTIONS: --max-old-space-size=8192
-  # The knowledge graph server, pinned to a release.
-  RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.3.1
+  # The knowledge graph server, pinned. draft_change (entity-update issues) needs rdf-kg-mcp #12;
+  # this is its commit until v0.4.0 is tagged.
+  RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@8a80c0056fc09eeaefbbc8ecd346bc49f1d29513
 jobs:
   intake:
-    # Only the entity-request label starts a run from an issue.
-    if: github.event_name != 'issues' || github.event.label.name == 'entity-request'
+    # The entity-request label starts a run from an issue, and so does entity-update, which the
+    # monthly entity sweep (sweep.yml) puts on the issues it files.
+    if: github.event_name != 'issues' || github.event.label.name == 'entity-request' || github.event.label.name == 'entity-update'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
