@@ -129,10 +129,27 @@ export function hfIdsInText(text) {
   return unique(ids.map((id) => id.replace(/\.$/, '')));
 }
 
+// Access values that are tokens, not text. 47 store records (models, methods, pipelines) hold
+// "official_source_linked" from the catalogue import. The sweep reads such a value as empty, so a
+// proposal states the access text on its own and never appends to the token.
+export const PLACEHOLDERS = ['official_source_linked'];
+
+/** Whether a stored text value is a placeholder token: a known one, or a bare snake_case word. */
+export function isPlaceholder(value) {
+  const v = String(value ?? '').trim();
+  return PLACEHOLDERS.includes(v) || /^[a-z0-9]+(?:_[a-z0-9]+)+$/.test(v);
+}
+
+/** The stored access text, or '' when there is none or it is a placeholder token. */
+export const accessText = (record) => {
+  const v = record.attributes?.access;
+  return typeof v === 'string' && !isPlaceholder(v) ? v : '';
+};
+
 /** The text of a record's version-like fields: what it already says about versions and licences. */
 function recordText(record) {
   const a = record.attributes ?? {};
-  return ['version', 'checkpoint_revision', 'licence', 'access', 'checkpoint_revisions', 'protocol_version'].map((k) => (typeof a[k] === 'string' ? a[k] : '')).join(' ');
+  return ['version', 'checkpoint_revision', 'licence', 'access', 'checkpoint_revisions', 'protocol_version'].map((k) => (k === 'access' ? accessText(record) : typeof a[k] === 'string' ? a[k] : '')).join(' ');
 }
 
 /** Whether the record tracks a version: it has one, or it is missing for a reason other than inapplicable. */
@@ -350,6 +367,8 @@ export function candidatesFor(record, refs, { facts, pages = {}, known = '' }) {
   const fields = UPDATE_FIELDS[record.kind] ?? [];
   const a = record.attributes ?? {};
   const key = (type, value) => `${record.id}:${type}:${squash(value).slice(0, 60)}`;
+  // An access change starts from the stored text; a placeholder token counts as no text.
+  const access = { current: accessText(record), ...(isPlaceholder(a.access) ? { placeholder: a.access.trim() } : {}) };
   for (const ref of refs.repos.filter((r) => r.own)) {
     const f = facts.get(refKey(ref));
     if (!f) continue;
@@ -361,12 +380,12 @@ export function candidatesFor(record, refs, { facts, pages = {}, known = '' }) {
     if (f.state !== 'ok') continue;
     if (f.moved) {
       if (fields.includes('access') && !text.includes(f.moved.toLowerCase()))
-        out.push({ type: 'moved', field: 'access', action: 'update', observed: f.moved, current: a.access ?? '', evidence: [f.html_url ?? `https://huggingface.co/${f.moved}`], key: key('moved', f.moved), facts: { repository: label, now_at: f.moved } });
+        out.push({ type: 'moved', field: 'access', action: 'update', observed: f.moved, ...access, evidence: [f.html_url ?? `https://huggingface.co/${f.moved}`], key: key('moved', f.moved), facts: { repository: label, now_at: f.moved } });
       else if (!fields.includes('access')) health.push({ record_id: record.id, type: 'moved', repo: label, detail: `now ${f.moved}`, urls: ref.urls });
     }
     if (f.archived && !/archiv/.test(text)) {
       if (fields.includes('access'))
-        out.push({ type: 'archived', field: 'access', action: 'update', observed: `${label} archived`, current: a.access ?? '', evidence: [f.html_url], key: key('archived', label), facts: { repository: label, archived: true, last_push: f.pushed_at } });
+        out.push({ type: 'archived', field: 'access', action: 'update', observed: `${label} archived`, ...access, evidence: [f.html_url], key: key('archived', label), facts: { repository: label, archived: true, last_push: f.pushed_at } });
       else health.push({ record_id: record.id, type: 'archived', repo: label, detail: 'archived (read-only)', urls: ref.urls });
     }
     if (f.licence && fields.includes('licence') && typeof a.licence === 'string' && a.licence && !licenceAgrees(a.licence, f.licence))
@@ -403,9 +422,13 @@ export function candidatesFor(record, refs, { facts, pages = {}, known = '' }) {
  * the APIs observed. The value lands in the marker intake reads, so it must come from the data:
  * a checkpoint is its observed ID, a version or a new location must contain the observed tag or
  * name, a licence must name the observed licence, and an archived note must say archived.
+ * A placeholder token the stored access held is dropped from the text, so it never lands in the record.
  */
 export function checkedValue(candidate, value) {
-  const v = clean(value);
+  let v = clean(value);
+  if (candidate.field === 'access')
+    for (const token of unique([candidate.placeholder, ...PLACEHOLDERS].filter(Boolean)))
+      if (v.includes(token)) v = v.split(token).join(' ').replace(/^[\s.,;:]+/, '').replace(/\s+([.,;:])/g, '$1').replace(/\s+/g, ' ').trim();
   if (!v) return null;
   if (candidate.type === 'checkpoint') return candidate.observed;
   if (candidate.type === 'licence') return licenceAgrees(v, candidate.observed) ? v : null;
@@ -522,7 +545,7 @@ export function confirmPrompt(record, candidates) {
     '',
     `Record ${record.id} (${record.kind}): ${record.name}`,
     `Description: ${clean(record.description)}`,
-    `Current fields: ${JSON.stringify({ version: a.version ?? null, checkpoint_revision: a.checkpoint_revision ?? null, licence: a.licence ?? null, access: a.access ?? null, entity_level: a.entity_level ?? null })}`,
+    `Current fields: ${JSON.stringify({ version: a.version ?? null, checkpoint_revision: a.checkpoint_revision ?? null, licence: a.licence ?? null, access: accessText(record) || null, entity_level: a.entity_level ?? null })}`,
     '',
     'When two changes touch the same field, give the same full value in both.',
     '',
@@ -579,7 +602,7 @@ export function renderUpdateIssue({ record, action, changes, runDate, runUrl, re
     '',
     '| Field | Stored | Proposed | Evidence |',
     '| --- | --- | --- | --- |',
-    ...changes.map((c) => `| ${c.field} | ${clean(c.current).replace(/\|/g, '/').slice(0, 150) || 'not recorded'} | ${clean(c.value).replace(/\|/g, '/').slice(0, 150)} | ${c.evidence.join(' ')} |`),
+    ...changes.map((c) => `| ${c.field} | ${clean(c.current).replace(/\|/g, '/').slice(0, 150) || (c.placeholder ? `not recorded (placeholder ${c.placeholder})` : 'not recorded')} | ${clean(c.value).replace(/\|/g, '/').slice(0, 150)} | ${c.evidence.join(' ')} |`),
     '',
     '**Why.**',
     '',

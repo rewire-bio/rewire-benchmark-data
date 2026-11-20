@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  LABEL, LIMITS, SWEEP_LABEL, candidatesFor, checkLink, checkedValue, checkpointBase, fixtureFetch, githubFacts, hfFacts, hfIdsInText, knownFromIssues, licenceAgrees, main, markUmbrellas, parseUpdateMarker, planIssues, refsOf, renderUpdateIssue, tiersDue,
+  LABEL, LIMITS, SWEEP_LABEL, candidatesFor, checkLink, checkedValue, confirmPrompt, isPlaceholder, checkpointBase, fixtureFetch, githubFacts, hfFacts, hfIdsInText, knownFromIssues, licenceAgrees, main, markUmbrellas, parseUpdateMarker, planIssues, refsOf, renderUpdateIssue, tiersDue,
 } from "../scripts/agents/sweep.mjs";
 
 // The monthly entity sweep (#257). Everything here runs without an API key or network: the dry
@@ -397,5 +397,35 @@ describe("one issue per new checkpoint", () => {
     expect(plan.file[0].record.id).toBe("dune");
     expect(plan.file[0].issue.body).toContain("Also related to `dune-100m`");
     expect(parseUpdateMarker(plan.file[0].issue.body)).toMatchObject({ action: "add", names: ["a/Dune_500M"], related: ["dune-100m"] });
+  });
+});
+
+describe("placeholder access values", () => {
+  // The real record: its access is the catalogue placeholder "official_source_linked", and its
+  // repository illumina/SpliceAI is archived. Run 44732264554 proposed the garbled value below.
+  const record = JSON.parse(readFileSync(`${FIXTURES}/placeholder/discovery-model-spliceai.json`, "utf8"));
+  const ref = { host: "github", owner: "illumina", repo: "SpliceAI", name: "SpliceAI", own: true, urls: ["https://github.com/illumina/SpliceAI"] };
+  const facts = new Map([["github:illumina/spliceai", { state: "ok", archived: true, moved: null, licence: null, html_url: "https://github.com/Illumina/SpliceAI", pushed_at: "2023-01-01T00:00:00Z", releases: [] }]]);
+  const sentence = "The GitHub repository illumina/SpliceAI was archived (read-only) by its owner.";
+
+  it("reads a token as no access text, and keeps the change key", () => {
+    expect(record.attributes.access).toBe("official_source_linked");
+    expect(isPlaceholder("official_source_linked")).toBe(true);
+    expect(isPlaceholder("Public code on GitHub.")).toBe(false);
+    expect(isPlaceholder("tattabio/gLM2_650M")).toBe(false);
+    const [c] = candidatesFor(record, { repos: [ref], pages: [] }, { facts }).candidates;
+    expect(c).toMatchObject({ type: "archived", field: "access", current: "", placeholder: "official_source_linked", key: "discovery-model-spliceai:archived:illuminaspliceai" });
+    const prompt = confirmPrompt(record, [c]);
+    expect(prompt).not.toContain("official_source_linked");
+    expect(prompt).toContain('"access":null');
+  });
+
+  it("never appends a proposal to the token", () => {
+    const [c] = candidatesFor(record, { repos: [ref], pages: [] }, { facts }).candidates;
+    expect(checkedValue(c, `official_source_linked. ${sentence}`)).toBe(sentence);
+    expect(checkedValue(c, sentence)).toBe(sentence);
+    const issue = renderUpdateIssue({ record, action: "update", changes: [{ ...c, value: checkedValue(c, `official_source_linked. ${sentence}`) ?? "", reason: "Own repository, archived." }], runDate: "2026-12-01" });
+    expect(parseUpdateMarker(issue.body)?.fields).toEqual({ access: sentence });
+    expect(issue.body).toContain("| access | not recorded (placeholder official_source_linked) |");
   });
 });
