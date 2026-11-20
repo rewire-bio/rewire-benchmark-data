@@ -204,7 +204,8 @@ export async function request(url, { method = 'GET', headers = {}, fetchImpl = f
     else await res.body?.cancel?.().catch(() => {});
     return out;
   } catch (e) {
-    const code = e?.cause?.code ?? e?.code ?? (e?.name === 'TimeoutError' ? 'timed out' : e?.name);
+    // A timeout is a DOMException whose numeric code (23) says nothing; name it.
+    const code = e?.name === 'TimeoutError' || e?.cause?.name === 'TimeoutError' ? 'timed out' : e?.cause?.code ?? (typeof e?.code === 'string' ? e.code : e?.name);
     return { error: String(code ?? e?.message ?? e).slice(0, 80) };
   }
 }
