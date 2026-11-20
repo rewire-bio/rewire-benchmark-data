@@ -10,8 +10,10 @@ export type Row = { id: string; kind: string; field: string; value: string; sour
 export type Problem = { id: string; field: string; text: string };
 export function fieldValue(record: any, field: string): string;
 export function fieldsOf(record: any): string[];
-export function readStore(dir: string, exclude?: Set<string>): Promise<{ names: Map<string, string>; sourceIds: Set<string> }>;
-export function mechanicalProblems(records: any[], known: { storeNames: Map<string, string>; storeSourceIds: Set<string> }): Problem[];
+export function readStore(dir: string, exclude?: Set<string>): Promise<{ names: Map<string, string>; sourceIds: Set<string>; kinds: Map<string, string> }>;
+export function mechanicalProblems(records: any[], known: { storeNames: Map<string, string>; storeSourceIds: Set<string>; storeKinds?: Map<string, string>; receipt?: any; kgDuplicates?: Map<string, { id: string; kind: string; label: string; match?: string }[]> }): Problem[];
+export function withReceipt(records: any[], receipt: any): any[];
+export function possibleDuplicates(records: any[], opts?: { receipt?: any; kg?: any }): Promise<Map<string, { id: string; kind: string; label: string; match?: string }[]>>;
 export function buildTable(records: any[], review: any, mechanical: Problem[]): Row[];
 export function overallVerdict(rows: Row[]): string;
 export function headline(rows: Row[], verdict: string, blocker?: string): string;

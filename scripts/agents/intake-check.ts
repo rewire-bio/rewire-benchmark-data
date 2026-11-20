@@ -10,6 +10,7 @@
 import fs from "node:fs";
 import { attributeIssues, normalizeAttributes } from "../../shared/omics/attributes";
 import { deriveTier, tierKinds } from "../../shared/omics/depth-tier";
+import { relationAllows } from "../../shared/omics/relations";
 import { validateSnapshot } from "../../shared/omics/validation";
 import { ZodError } from "zod";
 
@@ -18,13 +19,28 @@ type Rec = { id: string; kind: string; links: { relation: string; target_id: str
 /** What the release's snapshot validation says about the batch. `storedSources` are the stored
  * source records the batch cites but does not add, in source_ids or anywhere else in a record
  * (an existing record's profile cites sources of its own). */
-export function releaseProblems(records: Rec[], storedSources: Rec[] = []): string[] {
+export function releaseProblems(records: Rec[], storedSources: Rec[] = [], storedTargets: Map<string, { kind: string }> = new Map()): string[] {
+  // A link to a record already in the store is checked here, against that record's kind, and left
+  // out of the snapshot below: the stored record would bring its own links and sources with it.
+  // records -- add checks the whole store again.
+  const own = new Set(records.map((r) => r.id));
+  const problems: string[] = [];
+  records = records.map((record) => {
+    const stored = record.links.filter((l) => !own.has(l.target_id));
+    for (const link of stored) {
+      const target = storedTargets.get(link.target_id);
+      if (!target) problems.push(`${record.id}: link ${link.relation} to ${link.target_id}, which is neither in the batch nor in the store`);
+      else if (!relationAllows(link.relation, record.kind, target.kind))
+        problems.push(`${record.id}: relation ${link.relation} cannot link a ${record.kind} to a ${target.kind} (${link.target_id})`);
+    }
+    return stored.length ? { ...record, links: record.links.filter((l) => own.has(l.target_id)) } : record;
+  });
+  if (problems.length) return problems;
   const text = records.map((r) => JSON.stringify(r)).join("\n");
   const cited = new Set([
     ...records.flatMap((r) => (r as unknown as { source_ids: string[] }).source_ids ?? []),
     ...storedSources.filter((s) => text.includes(`"${s.id}"`)).map((s) => s.id),
   ]);
-  const own = new Set(records.map((r) => r.id));
   const visible = [...records, ...storedSources.filter((s) => cited.has(s.id) && !own.has(s.id))];
   try {
     validateSnapshot({ schema_version: "1.1", release_id: "2026-01-01-000000000000", released_at: "2026-01-01T00:00:00Z", records: visible, coverage: {} });
@@ -36,8 +52,8 @@ export function releaseProblems(records: Rec[], storedSources: Rec[] = []): stri
   }
 }
 
-export function intakeProblems(records: Rec[], storedSources: Rec[] = []): string[] {
-  const problems: string[] = [...releaseProblems(records, storedSources)];
+export function intakeProblems(records: Rec[], storedSources: Rec[] = [], storedTargets: Map<string, { kind: string }> = new Map()): string[] {
+  const problems: string[] = [...releaseProblems(records, storedSources, storedTargets)];
   const after = normalizeAttributes(records);
   records.forEach((record, i) => {
     if (!["model", "method", "benchmark", "dataset", "source"].includes(record.kind))
@@ -66,7 +82,15 @@ if (process.argv[1]?.endsWith("intake-check.ts")) {
   const stored = fs.existsSync(sourcesFile)
     ? fs.readFileSync(sourcesFile, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as Rec)
     : [];
-  const problems = intakeProblems(records, stored);
+  // The kind of every stored entity, for links from the batch to records already in the store.
+  const targets = new Map<string, { kind: string }>();
+  for (const file of fs.existsSync("data/entities") ? fs.readdirSync("data/entities").filter((f) => f.endsWith(".jsonl")) : [])
+    for (const line of fs.readFileSync(`data/entities/${file}`, "utf8").split("\n"))
+      if (line) {
+        const { id, kind } = JSON.parse(line) as Rec;
+        targets.set(id, { kind });
+      }
+  const problems = intakeProblems(records, stored, targets);
   for (const p of problems) console.error(p);
   console.log(problems.length ? `${problems.length} problems in ${records.length} records.` : `${records.length} records pass the intake checks.`);
   process.exit(problems.length ? 1 : 0);

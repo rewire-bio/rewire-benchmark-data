@@ -20,7 +20,7 @@ export function proposalSchema(urls?: string[]): Record<string, any>;
 export const VERIFIED_FIELDS: string[];
 export const VERIFICATION_SCHEMA: Record<string, any>;
 export type Entity = Record<string, any>;
-export type Dropped = { name: string; reason: string; duplicate?: string; sourcesNotOpenable?: boolean };
+export type Dropped = { name: string; reason: string; id?: string; duplicate?: string; sourcesNotOpenable?: boolean };
 export function slug(text: string): string;
 export function fetchableUrl(url: string): boolean;
 export function doiOf(url: string): string;
@@ -33,7 +33,25 @@ export function verifiedValue(verdict: any, field: string, proposed: unknown): {
 export function buildBatch(input: {
   entities: Entity[]; verification: any; sources: Map<string, { id?: string; record?: any; error?: string }>; batch: string; issue: number;
   runDate: string; reviewedAt: string; reviewModel: string; runUrl: string;
-}): { records: any[]; entities: { id: string; kind: string; name: string; tier: number | null }[]; dropped: Dropped[]; fieldLog: any[] };
+  candidates?: Map<string, KgCandidates>; known?: Map<string, KgRecord>;
+}): { records: any[]; entities: { id: string; key: string; kind: string; name: string; tier: number | null; links?: number }[]; dropped: Dropped[]; fieldLog: any[]; kgLog: KgLog; ruled: Map<string, Set<string>> };
+export type KgRecord = { id: string; kind: string; label?: string; name?: string; match?: string };
+export type KgCandidates = { duplicates: KgRecord[]; related: KgRecord[] };
+export type KgLog = { duplicates: any[]; links: { from: string; relation: string; to: string; to_name: string | null; in: "batch" | "store"; locator: string }[]; rejected_links: { entity: string; relation: string; target: string; reason: string }[] };
+export const LINK_RELATIONS: Record<string, string[]>;
+export const LINK_TARGET_KINDS: Record<string, string[]>;
+export function nameOverlap(a: string, b: string): number;
+export function needsRuling(kind: string, name: string, duplicate: { kind: string; label?: string; match?: string }): boolean;
+export function kgCandidates(kg: any, entities: Entity[], opts?: { log?: (m: string) => void }): Promise<Map<string, KgCandidates>>;
+export function candidateText(entities: Entity[], candidates: Map<string, KgCandidates>): string;
+export function kgTools(kg: any): { definitions: any[]; handle: (name: string, input: any) => Promise<any>; seen: Map<string, KgRecord> };
+export function dupeRulings(verdict: any, duplicates: KgRecord[]): { duplicateOf: KgRecord | null; unruled: KgRecord[]; rulings: any[] };
+export function resolveLinks(input: { built: any[]; verification: any; entities: Entity[]; known: Map<string, KgRecord> }): { links: Map<string, { relation: string; target_id: string }[]>; log: KgLog["links"]; rejected: KgLog["rejected_links"] };
+export function linkAllowed(relation: string, fromKind: string, toKind: string): boolean;
+export function pruneRecords(records: any[], dropIds: string[]): any[];
+export function draftThroughKg(kg: any, records: any[], opts?: { ruled?: Map<string, Set<string>>; log?: (m: string) => void }): Promise<{ error?: string; records?: any[]; batchText?: string; summary?: any; batchSha256?: string; dropped?: Dropped[] }>;
+export function kgLines(kgLog: KgLog | null): { links: string[]; rulings: string[]; rejected: string[] };
+export function kgReceipt(input: { kgState: any; kgLog: KgLog | null; summary: any; batchText: string }): any;
 export function buildUpdate(input: {
   record: any; fields: Record<string, string>; verification: any; sources: Map<string, { id?: string; record?: any; error?: string }>; issue: number; runDate: string; repo?: string;
 }): { record: any | null; records: any[]; kept: string[]; fieldLog: any[]; dropped: Dropped[] };

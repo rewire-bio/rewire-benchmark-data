@@ -1,0 +1,23 @@
+export const START_TIMEOUT_MS: number;
+export const CALL_TIMEOUT_MS: number;
+export function toolResult(name: string, result: any): any;
+export function peakMemoryMb(pid: number): number | null;
+export type KgStats = { calls: Record<string, number>; ms: number; readySeconds?: number; peakMemoryMb?: number | null; release?: string | null; statements?: number | null };
+export type Kg = {
+  config: any;
+  stats: KgStats;
+  pid: number | null;
+  classOf(kind: string): string | null;
+  kindOfClass(cls: string): string | null;
+  iriOf(id: string): string;
+  idOf(iri: string): string | null;
+  search(text: string, opts?: { kinds?: string[]; limit?: number }): Promise<any>;
+  describe(iri: string, opts?: { limit?: number; direction?: "out" | "in" | "both" }): Promise<any>;
+  upsert(record: any): Promise<any>;
+  remove(id: string): Promise<any>;
+  diff(): Promise<any>;
+  exportBatch(): Promise<any>;
+  close(): Promise<void>;
+};
+export function kgApi(client: { callTool: (...args: any[]) => Promise<any> }, opts?: { config?: any; stats?: KgStats; close?: () => Promise<void>; pid?: number | null }): Kg;
+export function startKg(options: { bundle: string; draftConfig?: string; draftDir?: string; config?: { iri_base: string; kinds: Record<string, string> } | null; command?: string; cacheDir?: string; timeoutMs?: number; log?: (m: string) => void }, deps?: { connect?: (o: any) => Promise<{ client: any; close: () => Promise<void>; pid?: number }> }): Promise<{ kg: Kg | null; error: string | null }>;

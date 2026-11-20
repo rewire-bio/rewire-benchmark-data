@@ -5,6 +5,10 @@ name: Intake agent
 # Live runs push the branch and open the pull request as the rewire-bot GitHub App, so the pull
 # request's author is the bot and its CI runs. Without ANTHROPIC_API_KEY a run writes a notice
 # and passes.
+#
+# The run starts rdf-kg-mcp on the latest knowledge graph release (kg/<id>) over stdio, to find
+# possible duplicates and link targets and to write the batch through its draft overlay. If the
+# bundle or the server is not available, the run goes on with name checks only (docs/agents.md).
 on:
   issues:
     types: [labeled]
@@ -18,6 +22,12 @@ on:
         type: choice
         options: [dry-run, report-only, live]
         default: dry-run
+      kg_release:
+        description: KG release tag to load, such as kg/2026-11-19-0528a0ffe3cb (default the newest)
+        default: ""
+      store_ref:
+        description: "Report-only replay: run against the store (data/) at this commit, and skip the existing pull request check"
+        default: ""
   pull_request:
     paths:
       - agents/intake.md
@@ -35,6 +45,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 env:
   NODE_OPTIONS: --max-old-space-size=8192
+  # The knowledge graph server, pinned to a release.
+  RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.3.1
 jobs:
   intake:
     # Only the entity-request label starts a run from an issue.
@@ -69,9 +81,46 @@ jobs:
       # records -- add validates the batch against the SHACL shapes with uv.
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --no-audit --no-fund
-      - name: Install the Anthropic SDK
-        if: env.MODE != 'dry-run' && env.HAS_KEY == 'true'
+      # The Anthropic SDK and the MCP client. The dry run needs the MCP client too.
+      - name: Install the agent dependencies
+        if: env.MODE == 'dry-run' || env.HAS_KEY == 'true'
         run: npm ci --prefix scripts/agents --no-audit --no-fund
+      # A report-only replay runs an issue against the store as it was at an earlier commit.
+      - name: Store at the replay commit
+        if: env.MODE == 'report-only' && inputs.store_ref != ''
+        env:
+          REF: ${{ inputs.store_ref }}
+        run: |
+          git fetch --depth 1 origin "$REF"
+          git checkout FETCH_HEAD -- data
+          echo "REPLAY=--replay" >> "$GITHUB_ENV"
+      # The knowledge graph: the server, a bundle and the draft block for this checkout. The dry
+      # run loads the small fixture bundle; the others the newest kg/<id> release. Any failure here
+      # leaves KG_BUNDLE unset and the intake runs without the graph.
+      - name: Knowledge graph server and bundle
+        if: env.MODE == 'dry-run' || env.HAS_KEY == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KG_RELEASE: ${{ inputs.kg_release }}
+        run: |
+          uv tool install --quiet "$RDF_KG_MCP"
+          npm run -s kg -- draft-block "$RUNNER_TEMP/draft-block.json"
+          if [ "$MODE" = dry-run ]; then
+            bundle=tests/agents-intake-kg-fixtures/bundle
+          else
+            tag="${KG_RELEASE:-$(gh release list --limit 100 --json tagName,createdAt --jq '[.[] | select(.tagName | startswith("kg/"))] | sort_by(.createdAt) | last | .tagName')}"
+            mkdir -p "$RUNNER_TEMP/kg"
+            gh release download "$tag" --pattern 'kg-*.tar.gz' --dir "$RUNNER_TEMP/kg"
+            bundle=$(ls "$RUNNER_TEMP"/kg/kg-*.tar.gz)
+            echo "Bundle $tag: $(du -h "$bundle" | cut -f1)"
+          fi
+          {
+            echo "KG_BUNDLE=$bundle"
+            echo "KG_DRAFT_CONFIG=$RUNNER_TEMP/draft-block.json"
+            echo "KG_MCP_COMMAND=rdf-kg-mcp"
+            echo "RDF_KG_MCP_CACHE=$RUNNER_TEMP/kg-cache"
+          } >> "$GITHUB_ENV"
       - name: Commit as the bot
         if: steps.app.outputs.token != ''
         env:
@@ -89,7 +138,7 @@ jobs:
         run: |
           case "$MODE" in
             dry-run) args="--dry-run" ;;
-            report-only) args="--report-only --issue $ISSUE" ;;
+            report-only) args="--report-only --issue $ISSUE ${REPLAY:-}" ;;
             live) args="--issue $ISSUE" ;;
             *) echo "::error::Unknown mode $MODE"; exit 1 ;;
           esac
@@ -97,6 +146,32 @@ jobs:
             echo "::error::An issue number is required in $MODE mode"; exit 1
           fi
           node scripts/agents/intake.mjs $args --out intake-out
+          # The dry run again on the knowledge-graph fixture: the real server on the fixture bundle.
+          if [ "$MODE" = dry-run ] && [ -n "${KG_BUNDLE:-}" ]; then
+            git checkout -- data && git clean -fdq data
+            node scripts/agents/intake.mjs --dry-run --fixtures tests/agents-intake-kg-fixtures --out intake-out/kg
+            node -e '
+              const r = JSON.parse(require("fs").readFileSync("intake-out/kg/result.json", "utf8"));
+              if (!r.kg?.used) { console.error("::error::The knowledge-graph dry run did not use the server: " + (r.kg?.error ?? "no kg block")); process.exit(1); }
+              const links = r.links.map((l) => l.relation + " " + l.to).sort().join(", ");
+              if (!links.includes("family catalog-model-evo-2") || !r.dropped.some((d) => d.duplicate === "cell-type-20261009-model-uce")) {
+                console.error("::error::The knowledge-graph dry run did not rule the UCE duplicate or link the fixture checkpoint: " + links); process.exit(1);
+              }'
+          fi
+      # Load time and peak memory of the knowledge graph server on this run, against the limits
+      # in rdf-kg-mcp #8 (ready in under 60 s, under 4 GB).
+      - name: Knowledge graph load
+        if: always()
+        run: |
+          [ -f intake-out/result.json ] || exit 0
+          node -e '
+            const kg = JSON.parse(require("fs").readFileSync("intake-out/result.json", "utf8")).kg;
+            if (!kg) { console.log("The run did not reach the knowledge graph."); process.exit(0); }
+            if (!kg.used) { console.log("::warning::The knowledge graph was not used: " + kg.error); process.exit(0); }
+            const line = `Knowledge graph ${kg.release}: ${kg.statements} statements, ready in ${kg.ready_seconds} s, peak memory ${kg.peak_memory_mb ?? "?"} MB, calls ${JSON.stringify(kg.calls ?? {})}`;
+            console.log(line);
+            require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\n${line}\n`);
+            if (kg.ready_seconds > 60 || (kg.peak_memory_mb ?? 0) > 4096) console.log("::warning::The knowledge graph server is over its limits (60 s, 4 GB): " + line);'
       - name: Keep the result and token usage
         if: always()
         uses: actions/upload-artifact@v4

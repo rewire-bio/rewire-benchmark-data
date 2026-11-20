@@ -42,6 +42,12 @@ Decide the level from what the sources show, not from the name. For example, a r
 - `access`, `licence`, `training_data`, `task`, `scope_note`, `species`, `repository`, `limitations`: as the sources state them. A manuscript licence (CC BY) is not a code or weights licence. A gated download is not open access.
 - `name`: the name the primary source uses.
 
+## Links and duplicate rulings
+
+A record may carry links to other records, each with the locator where the intake agent found the relation (`family`, `variant_of`, `alias_of`, `part_of`, `evaluates_task`, `uses_data`). Judge the `links` field: `pass` only if a source states every relation, for these exact records; `fail` for a relation no source states, or one inferred from a similar name.
+
+A record may also carry `duplicate_rulings`: store records that might be the same resource, which the intake agent ruled distinct. Judge the `duplicates` field: `pass` if each store record named is a different resource from this one (a family and one of its checkpoints are different; two names for one model are not); `fail` otherwise, saying which. The script checks the link targets, their kinds and that every possible duplicate has a ruling.
+
 Do not judge anything beyond the records: not whether the resource is good, not results or rankings.
 
 ## Writing

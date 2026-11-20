@@ -4,6 +4,13 @@
 // (depth tier against docs/tiers.md, entity_level, duplicates in the store, that cited sources
 // exist, that each source still hashes the same) and posts one pull request review.
 //
+// Links and duplicate rulings (#255 with the knowledge graph): every link on a new record must
+// reach a record in the batch or the store, of a kind the relation allows, and be listed with a
+// locator in the batch's kg.json; Sonnet confirms that the source states it. Every possible
+// duplicate in the store must carry a ruling in kg.json: those the intake's draft overlay listed
+// (its diff, in kg.json), and those the reviewer finds itself with the knowledge graph's search
+// (rdf-kg-mcp, read-only, on the latest release; skipped when KG_BUNDLE is not set).
+//
 //   node scripts/agents/reviewer.mjs --dry-run [--fixtures <dir>] [--out <dir>]
 //   node scripts/agents/reviewer.mjs --pr <n> [--mode report-only|comment|approve] [--out <dir>]
 //
@@ -21,12 +28,13 @@
 // GITHUB_STEP_SUMMARY, GITHUB_RUN_ID.
 
 import { execFileSync } from 'node:child_process';
-import { createReadStream, existsSync, mkdirSync, readFileSync, appendFileSync, writeFileSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readdirSync, readFileSync, appendFileSync, writeFileSync } from 'node:fs';
 import { createInterface } from 'node:readline';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { AREAS, DEFAULT_REPO, Usage, clean, normalise, tierOf } from './discovery.mjs';
-import { ENTITY_LEVELS, fetchSource, sourceBlocks } from './intake.mjs';
+import { ENTITY_LEVELS, LINK_RELATIONS, fetchSource, linkAllowed, needsRuling, sourceBlocks } from './intake.mjs';
+import { startKg } from './kg.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -52,7 +60,7 @@ export const LIMITS = {
 const ENTITY_KINDS = ['model', 'method', 'benchmark', 'dataset'];
 const TIER_KINDS = ['model', 'method', 'benchmark'];
 /** Fields the model judges, per record, when the record has them. source_ids and name always. */
-export const REVIEWED_FIELDS = ['name', 'description', 'areas', 'entity_level', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations', 'source_ids'];
+export const REVIEWED_FIELDS = ['name', 'description', 'areas', 'entity_level', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations', 'source_ids', 'links', 'duplicates'];
 // An intake update pull request (entity-update issues, #257) puts the changed record in
 // changed.jsonl and only new sources in batch.jsonl, so both are reviewed.
 const BATCH_FILE = /^data\/omics\/[^/]+\/(batch|changed)\.jsonl$/;
@@ -69,6 +77,8 @@ export function fieldValue(record, field) {
   if (field === 'description') return record.description;
   if (field === 'areas') return (record.facets?.areas ?? []).join(', ');
   if (field === 'source_ids') return (record.source_ids ?? []).join(', ');
+  if (field === 'links') return (record.links ?? []).map((l) => `${l.relation} ${l.target_id}`).join('; ');
+  if (field === 'duplicates') return (record.duplicate_rulings ?? []).map((d) => `${d.ruling} from ${d.id} ("${d.label}")`).join('; ');
   const v = record.attributes?.[field];
   if (v === undefined) return '';
   return Array.isArray(v) ? v.join('; ') : String(v);
@@ -79,18 +89,25 @@ export function fieldsOf(record) {
   return REVIEWED_FIELDS.filter((f) => ['name', 'description', 'areas', 'source_ids'].includes(f) || fieldValue(record, f) !== '');
 }
 
-/** Store names (and reported names) to record IDs, streamed, leaving out the records under review. */
+/**
+ * Store names (and reported names) to record IDs, streamed, leaving out the records under review,
+ * and the kind of every stored entity, for link targets.
+ */
 export async function readStore(dir, exclude = new Set()) {
   const names = new Map();
   const sourceIds = new Set();
-  for (const kind of ['models', 'methods', 'benchmarks', 'datasets', 'pipelines', 'services', 'sources']) {
+  const kinds = new Map();
+  const named = new Set(['models', 'methods', 'benchmarks', 'datasets', 'pipelines', 'services', 'sources']);
+  const files = existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.jsonl')).map((f) => f.slice(0, -6)) : [];
+  for (const kind of files) {
     const file = join(dir, `${kind}.jsonl`);
-    if (!existsSync(file)) continue;
     const lines = createInterface({ input: createReadStream(file), crlfDelay: Infinity });
     for await (const line of lines) {
       if (!line.trim()) continue;
       const r = JSON.parse(line);
       if (exclude.has(r.id)) continue;
+      kinds.set(r.id, r.kind);
+      if (!named.has(kind)) continue;
       if (r.kind === 'source') {
         sourceIds.add(r.id);
         continue;
@@ -101,7 +118,7 @@ export async function readStore(dir, exclude = new Set()) {
       }
     }
   }
-  return { names, sourceIds };
+  return { names, sourceIds, kinds };
 }
 
 /**
@@ -109,7 +126,7 @@ export async function readStore(dir, exclude = new Set()) {
  * not need a model: the depth tier rule, the entity_level vocabulary, duplicates, and that every
  * cited source exists.
  */
-export function mechanicalProblems(records, { storeNames, storeSourceIds }) {
+export function mechanicalProblems(records, { storeNames, storeSourceIds, storeKinds = new Map(), receipt = null, kgDuplicates = new Map() }) {
   const problems = [];
   const add = (id, field, text) => problems.push({ id, field, text });
   const batchSources = new Set(records.filter((r) => r.kind === 'source').map((r) => r.id));
@@ -133,6 +150,23 @@ export function mechanicalProblems(records, { storeNames, storeSourceIds }) {
       if (seen.has(key)) add(r.id, 'name', `repeats ${seen.get(key)} in this pull request`);
       else seen.set(key, r.id);
     }
+    // Links: a target in the batch or the store, of a kind the relation allows, listed in kg.json.
+    const batchKinds = new Map(records.map((x) => [x.id, x.kind]));
+    for (const l of r.links ?? []) {
+      const kind = batchKinds.get(l.target_id) ?? storeKinds.get(l.target_id);
+      if (!kind) add(r.id, 'links', `${l.relation} ${l.target_id}: the target is neither in this pull request nor in the store`);
+      else if (!(LINK_RELATIONS[r.kind] ?? []).includes(l.relation) || !linkAllowed(l.relation, r.kind, kind))
+        add(r.id, 'links', `${l.relation} cannot link a ${r.kind} to a ${kind} (${l.target_id}), or the intake agent does not write it`);
+      const listed = (receipt?.links ?? []).find((x) => x.from === r.id && x.relation === l.relation && x.to === l.target_id);
+      if (!listed || !clean(listed.locator)) add(r.id, 'links', `${l.relation} ${l.target_id} has no locator in kg.json`);
+    }
+    // Possible duplicates in the store: each needs a ruling in kg.json, and none may be "same".
+    const rulings = (receipt?.duplicate_rulings ?? []).filter((d) => normalise(d.entity) === normalise(r.name));
+    for (const d of kgDuplicates.get(r.id) ?? []) {
+      const ruling = rulings.find((x) => x.id === d.id);
+      if (!ruling) add(r.id, 'duplicates', `possible duplicate ${d.id} ("${d.label}") in the store has no ruling in kg.json`);
+    }
+    for (const d of rulings) if (d.ruling === 'same') add(r.id, 'duplicates', `ruled the same as ${d.id}, so it should not have been added`);
     if (!(r.source_ids ?? []).length) add(r.id, 'source_ids', 'cites no source');
     for (const s of r.source_ids ?? [])
       if (!batchSources.has(s) && !storeSourceIds.has(s)) add(r.id, 'source_ids', `cites ${s}, which is neither in this pull request nor in the store`);
@@ -316,7 +350,49 @@ export function reviewInput(records) {
     kind: r.kind,
     ...Object.fromEntries(fieldsOf(r).filter((f) => f !== 'source_ids').map((f) => [f, fieldValue(r, f)])),
     sources: (r.source_ids ?? []).map((id) => ({ id, url: sourceUrl.get(id) ?? '(stored source, not in this pull request)' })),
+    ...((r.links ?? []).length ? { links: r.links.map((l) => ({ ...l, ...(r.link_notes?.[`${l.relation} ${l.target_id}`] ?? {}) })) } : {}),
+    ...((r.duplicate_rulings ?? []).length ? { duplicate_rulings: r.duplicate_rulings } : {}),
   }));
+}
+
+/**
+ * The records as the review sees them: each new entity with the target names and locators of its
+ * links, and the duplicate rulings kg.json gives for it. Not written anywhere.
+ */
+export function withReceipt(records, receipt) {
+  if (!receipt) return records;
+  return records.map((r) => {
+    if (!ENTITY_KINDS.includes(r.kind)) return r;
+    const notes = Object.fromEntries((receipt.links ?? []).filter((l) => l.from === r.id).map((l) => [`${l.relation} ${l.to}`, { target_name: l.to_name ?? null, locator: l.locator }]));
+    const rulings = (receipt.duplicate_rulings ?? []).filter((d) => normalise(d.entity) === normalise(r.name)).map((d) => ({ id: d.id, label: d.label, ruling: d.ruling, locator: d.locator }));
+    return { ...r, link_notes: notes, duplicate_rulings: rulings };
+  });
+}
+
+/**
+ * Possible duplicates of each new entity in the store that need a ruling: those the intake's draft
+ * overlay listed (kg.json summary), and the reviewer's own search hits when the graph is loaded.
+ */
+export async function possibleDuplicates(records, { receipt = null, kg = null } = {}) {
+  const out = new Map();
+  const ids = new Set(records.map((r) => r.id));
+  for (const r of records.filter((x) => ENTITY_KINDS.includes(x.kind))) {
+    const found = new Map();
+    const added = (receipt?.summary?.added ?? []).find((a) => a.id === r.id);
+    for (const d of added?.possible_duplicates ?? []) if (d.in === 'release' && needsRuling(r.kind, r.name, d)) found.set(d.id, d);
+    if (kg) {
+      const kinds = ['model', 'method'].includes(r.kind) ? ['model', 'method'] : [r.kind];
+      const res = await kg.search(r.name, { kinds, limit: 10 }).catch(() => ({ results: [] }));
+      for (const hit of res.results ?? []) {
+        const id = kg.idOf(hit.iri);
+        const kind = (hit.types ?? []).map((t) => kg.kindOfClass(t)).find(Boolean);
+        const d = { id, kind, label: hit.label, match: (hit.matched ?? []).includes('label') ? 'search' : 'description' };
+        if (id && kind && !ids.has(id) && d.match === 'search' && needsRuling(r.kind, r.name, d) && !found.has(id)) found.set(id, d);
+      }
+    }
+    out.set(r.id, [...found.values()]);
+  }
+  return out;
 }
 
 async function modelReview(client, usage, { system, records, extraUrls, texts = [], runDate, log }) {
@@ -338,7 +414,7 @@ async function modelReview(client, usage, { system, records, extraUrls, texts = 
       'Records (JSON):',
       JSON.stringify(input, null, 2),
       '',
-      'For every record and every field listed for it (and source_ids), write the verdict (pass, fail or unverifiable), the problem if any, and the URL and location that decide it. Check source attribution for each cited source. List any page that failed to load.',
+      'For every record and every field listed for it (and source_ids), write the verdict (pass, fail or unverifiable), the problem if any, and the URL and location that decide it. Check source attribution for each cited source. For links, judge each relation: does a source state it, at the locator given or elsewhere? For duplicates, judge each ruling: is the store record named a different resource (distinct) as ruled? A record with any link or ruling you cannot confirm fails that field. List any page that failed to load.',
     ].join('\n'),
   }];
   const tools = [
@@ -465,12 +541,29 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       state.outcome = 'skipped: no batch.jsonl in the pull request';
       return result();
     }
-    const records = batches.flatMap((f) => readJsonl(args.dryRun ? join(fixtures, 'batch.jsonl') : join(args.root, f)));
-    const ids = new Set(records.map((r) => r.id));
+    const stored = batches.flatMap((f) => readJsonl(args.dryRun ? join(fixtures, 'batch.jsonl') : join(args.root, f)));
+    const ids = new Set(stored.map((r) => r.id));
+    // kg.json beside the batch: the intake's links, duplicate rulings and draft overlay diff.
+    const receiptFile = args.dryRun ? join(fixtures, 'kg.json') : batches.map((f) => join(args.root, dirname(f), 'kg.json')).find((f) => existsSync(f));
+    const receipt = receiptFile && existsSync(receiptFile) ? readJson(receiptFile) : null;
+    const records = withReceipt(stored, receipt);
 
-    // 2. Mechanical checks against the store, without the records under review.
+    // 2. Mechanical checks against the store, without the records under review, and possible
+    // duplicates from the intake's overlay diff and the reviewer's own search of the graph.
     const store = await readStore(args.dryRun ? join(fixtures, 'entities') : join(args.root, 'data/entities'), ids);
-    const mechanical = mechanicalProblems(records, { storeNames: store.names, storeSourceIds: store.sourceIds });
+    let kg = deps.kg ?? null;
+    if (!kg && env.KG_BUNDLE && receipt?.kg?.kinds) {
+      const started = await startKg({ bundle: env.KG_BUNDLE, config: { iri_base: receipt.kg.iri_base, kinds: receipt.kg.kinds }, command: env.KG_MCP_COMMAND || 'rdf-kg-mcp', cacheDir: env.RDF_KG_MCP_CACHE || '', log });
+      kg = started.kg;
+      if (!kg) notes.push(`The knowledge graph was not available (${started.error}); possible duplicates come from the intake's kg.json only.`);
+    } else if (!receipt && stored.some((r) => (r.links ?? []).length)) notes.push('The batch has links but no kg.json.');
+    let kgDuplicates;
+    try {
+      kgDuplicates = await possibleDuplicates(records, { receipt, kg });
+    } finally {
+      if (kg && !deps.kg) await kg.close();
+    }
+    const mechanical = mechanicalProblems(records, { storeNames: store.names, storeSourceIds: store.sourceIds, storeKinds: store.kinds, receipt, kgDuplicates });
 
     // 3. Re-fetch every new source and compare its hash with the one intake recorded.
     const sourceNotes = [];
