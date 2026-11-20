@@ -184,11 +184,23 @@ const cell = (text, max = 160) => {
   return t.length > max ? `${t.slice(0, max - 3)}...` : t || ' ';
 };
 
-export function renderReview({ records, rows, verdict, sourceNotes, notes = [], usage, runUrl, mode }) {
+/**
+ * The review's first line. `blocker` is why a review whose fields all pass is not an approval
+ * (CI red or pending, no approver token), so the headline always matches the review event.
+ */
+export function headline(rows, verdict, blocker = '') {
+  const fails = rows.filter((p) => p.verdict === 'fail').length;
+  const unverifiable = rows.filter((p) => p.verdict === 'unverifiable').length;
+  const fields = fails || unverifiable ? `${fails} fields fail and ${unverifiable} could not be verified, out of ${rows.length}.` : `All ${rows.length} fields pass.`;
+  if (verdict === 'approve' && blocker) return `**Reviewer agent verdict: not approved. ${blocker}** ${fields}`;
+  return `**Reviewer agent verdict: ${verdict}.** ${fields}`;
+}
+
+export function renderReview({ records, rows, verdict, sourceNotes, notes = [], usage, runUrl, mode, blocker = '' }) {
   const problems = rows.filter((r) => r.verdict !== 'pass');
   const entityIds = unique(rows.map((r) => r.id));
   const out = [
-    `**Reviewer agent verdict: ${verdict}.** ${problems.length ? `${problems.filter((p) => p.verdict === 'fail').length} fields fail and ${problems.filter((p) => p.verdict === 'unverifiable').length} could not be verified, out of ${rows.length}.` : `All ${rows.length} fields pass.`}`,
+    headline(rows, verdict, blocker),
     '',
     mode === 'approve' ? '' : 'This review is comment-only: it does not approve, request changes or merge.',
     '',
@@ -493,7 +505,8 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     }
     state.rows = buildTable(records, review, mechanical);
     state.verdict = overallVerdict(state.rows);
-    state.body = renderReview({ records, rows: state.rows, verdict: state.verdict, sourceNotes, notes, usage, runUrl, mode: args.mode });
+    const rendered = { records, rows: state.rows, verdict: state.verdict, sourceNotes, notes, usage, runUrl, mode: args.mode };
+    state.body = renderReview(rendered);
 
     // 5. Post.
     if (args.mode === 'dry-run' || args.mode === 'report-only') {
@@ -515,12 +528,15 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     }
     const checks = await waitForChecks(gh, repo, pull.head_sha, { self: ['review', 'dry-run'], sleep: deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms))), minutes: LIMITS.ciWaitMinutes });
     if (checks.state !== 'green') {
-      await postReview(verdictClient, repo, pull, `${state.body}\n\nNot approved: CI is ${checks.state} (${checks.detail}).`, checks.state === 'red' ? 'REQUEST_CHANGES' : 'COMMENT', notes);
+      const blocker = `CI is ${checks.state} (${checks.detail}).`;
+      state.body = renderReview({ ...rendered, blocker });
+      await postReview(verdictClient, repo, pull, state.body, checks.state === 'red' ? 'REQUEST_CHANGES' : 'COMMENT', notes);
       state.outcome = `not approved: CI ${checks.state}`;
       return result();
     }
     if (!env.APPROVER_TOKEN) {
-      await postReview(gh, repo, pull, `${state.body}\n\nEvery field and every check passes, but no approver token was made (the rewire-reviewer app: REVIEWER_APP_ID and REVIEWER_APP_PRIVATE_KEY), and GitHub does not let the pull request author approve it. Not approved.`, 'COMMENT', notes);
+      state.body = renderReview({ ...rendered, blocker: 'Every field and every check passes, but no approver token was made (the rewire-reviewer app: REVIEWER_APP_ID and REVIEWER_APP_PRIVATE_KEY), and GitHub does not let the pull request author approve it.' });
+      await postReview(gh, repo, pull, state.body, 'COMMENT', notes);
       state.outcome = 'not approved: no approver token';
       return result();
     }
