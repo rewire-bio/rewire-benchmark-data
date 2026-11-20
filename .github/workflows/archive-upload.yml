@@ -123,8 +123,12 @@ jobs:
         with:
           app-id: ${{ vars.REWIRE_BOT_APP_ID }}
           private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
-          owner: rewire-bio
-          repositories: rewire-benchmark-data
+          # Deliberately no owner or repositories: the token then scopes to whichever repository
+          # is running the job. Naming the repository here looks harmless and is not, because the
+          # app being installed org-wide does not widen a scope the workflow has narrowed. The
+          # name would have to change with the repository, and if it did not this step would mint
+          # nothing and the upload would finish its transfers and fail to record them.
+          permission-contents: write
 
       - name: Record the bucket as the home of what was uploaded
         if: ${{ !inputs.dry_run }}
