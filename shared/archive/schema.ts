@@ -19,7 +19,15 @@ export const layers = ["exact-bytes", "archive-member", "text-layer", "canonical
 export type Layer = (typeof layers)[number];
 
 /** Which backend holds the bytes. local-cache is the gitignored working copy
- * every object starts in; the others are added when a credential exists. */
+ * every object starts in; the others are added when a credential exists.
+ *
+ * `store` on a row names the one authoritative home, and `mirrors` names the
+ * derived copies. R2 is the home for every object the archive holds, whatever
+ * its tier: the bucket is the archive, and a release asset is a convenience
+ * copy of the public subset that can be deleted and rebuilt from the bucket
+ * without losing anything. Before 2026-11-19 the two backends were peers,
+ * `store` named whichever one a command had last written to, and the archive
+ * had no single place that held all of it. */
 export const stores = ["local-cache", "github-release", "r2"] as const;
 export type Store = (typeof stores)[number];
 
@@ -149,6 +157,12 @@ export const manifestRowSchema = z
     requested_url: z.string().nullable(),
     first_seen_at: utc,
     store: z.enum(stores),
+    /** Backends holding a copy of these bytes besides `store`, sorted. A
+     * mirror is rebuildable from the home, so losing one loses nothing; a
+     * reader that wants the bytes reads `store`. Defaulted so that every row
+     * written before this field existed parses as having no mirror, which is
+     * what those rows meant. */
+    mirrors: z.array(z.enum(stores)).default([]),
     visibility: z.enum(visibilities),
     archive_tier: z.enum(archiveTiers),
     observed_licence: z.string().nullable(),
@@ -193,11 +207,41 @@ export const manifestRowSchema = z
       ctx.addIssue({ code: "custom", message: "a removed row carries removed_at, removed_reason and removed_requester" });
     if (!row.removed_at && (row.removed_reason || row.removed_requester))
       ctx.addIssue({ code: "custom", message: "removed_reason and removed_requester belong to a removed row, which carries removed_at" });
-    // This is what keeps a removed row out of every publish path. t5-no-store
-    // is restricted, visibility follows the tier a line above, and both
-    // uploaders select on visibility, so a removed row is never a candidate.
+    // This is what keeps a removed row out of every publish path. Both
+    // uploaders refuse t5-no-store by name, as their first test and before
+    // any tier or visibility question, so a removed row is never a candidate
+    // for either. Until 2026-11-19 the upload path selected on visibility and
+    // this rule leaned on t5-no-store being restricted; the upload path now
+    // takes every tier, so that reasoning is gone and the explicit refusal is
+    // the whole of it.
     if (row.removed_at && row.archive_tier !== "t5-no-store")
       ctx.addIssue({ code: "custom", message: `a removed row sits at t5-no-store, not ${row.archive_tier}` });
+    // A mirror is a second copy, so naming the home again says nothing and
+    // naming a backend twice says it twice. Sorted so two manifests that hold
+    // the same fact hold the same bytes.
+    const sorted = [...row.mirrors].sort();
+    if (new Set(row.mirrors).size !== row.mirrors.length || row.mirrors.some((store, at) => store !== sorted[at]))
+      ctx.addIssue({ code: "custom", message: `mirrors are sorted and distinct, not ${row.mirrors.join(", ")}` });
+    if (row.mirrors.includes(row.store))
+      ctx.addIssue({ code: "custom", message: `${row.store} is this row's store, so it is not also a mirror of it` });
+    // The release assets are a public tag anyone can read. A restricted row
+    // held there would be restricted bytes served to the world, which is the
+    // one thing the tiers exist to prevent. The home is checked as well as the
+    // mirrors: a rule that covered only the mirrors would refuse the copy and
+    // allow the original.
+    // Not applied to a removed row. Its visibility is a consequence of the t5 tier rather than
+    // a statement about bytes, which no longer exist anywhere, and its store is the historical
+    // note of where they were. A rule that covered it would make a published object
+    // untakedownable, and a takedown has to work whatever else a row says.
+    if (!row.removed_at && row.visibility === "restricted" && (row.store === "github-release" || row.mirrors.includes("github-release")))
+      ctx.addIssue({
+        code: "custom",
+        message: `tier ${row.archive_tier} is restricted, so a public release is neither its home nor a mirror of it`,
+      });
+    // Removed bytes are gone from every backend, so a mirror of them is a
+    // claim that a copy survived the takedown.
+    if (row.removed_at && row.mirrors.length > 0)
+      ctx.addIssue({ code: "custom", message: `a removed row keeps no copy, so it names no mirror, not ${row.mirrors.join(", ")}` });
   });
 export type ManifestRow = z.infer<typeof manifestRowSchema>;
 

@@ -11,7 +11,7 @@
  * What it will not do.
  *
  * A row at t5-no-store is refused before any request, for the reason
- * assertRestricted() gives on the way up: a rights holder asked for those
+ * assertStorable() gives on the way up: a rights holder asked for those
  * bytes to go, and a copy left in a bucket is not permission to bring them
  * back. The gate is here rather than left to the bucket's contents, so the
  * order of a takedown and a pull does not matter.
@@ -42,10 +42,10 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { expand } from "../release/files";
-import { archiveAssetName, hasObject, objectPath } from "./objects";
+import { archiveAssetName, archiveAssetUrl, hasObject, objectPath } from "./objects";
 import { readManifest } from "./manifest";
 import { readSettings, signRequest, platformFetch, type R2Fetch, type R2Settings } from "./r2";
-import type { ManifestRow } from "../../shared/archive/schema";
+import { objectShard, type ManifestRow } from "../../shared/archive/schema";
 
 export interface PullOptions {
   root?: string;
@@ -58,6 +58,16 @@ export interface PullOptions {
   /** A ceiling on the number of objects fetched in one run. The run is
    * resumable, so a limit is a way to take a large pull in stages. */
   limit?: number;
+  /** Where the bytes come from. "r2" is the home and needs the credential.
+   *
+   * "release" reads the public release assets ./publish wrote, needs no
+   * credential at all, and exists for the one job the bucket cannot serve:
+   * filling a cache so those objects can be put *into* the bucket. The 871
+   * objects whose only recorded home is a release tag are not in R2 yet, and
+   * a runner has no cache, so without this an upload job would find nothing
+   * to upload and report success. It selects only rows a release tag holds
+   * and counts the rest rather than asking for them and collecting 404s. */
+  from?: "r2" | "release";
   /** Report the selection and fetch nothing. Needs no credential. */
   dryRun?: boolean;
   fetch?: R2Fetch;
@@ -78,6 +88,12 @@ export interface PullSummary {
   already_held: number;
   /** Rows the limit held back this run. A second run takes them. */
   held_back_by_limit: number;
+  /** Pulling from the release assets, selected rows no release tag holds, split by whether
+   * that matters. A row already homed in the bucket is simply not this path's business. A row
+   * in neither place has exactly one copy, in the cache of whichever machine fetched it, and
+   * nothing remote can rebuild it: that is the number worth reading. */
+  already_in_the_bucket: number;
+  no_remote_copy: number;
   downloaded: number;
   /** Expanded bytes of what was downloaded, and the bytes written to disk. */
   expanded_bytes: number;
@@ -85,6 +101,10 @@ export interface PullSummary {
   dry_run: boolean;
   failed: { key: string; status: number | null; message: string }[];
 }
+
+/** Whether a release tag holds this row's bytes: it is the row's home, or a
+ * recorded mirror of it once the bucket has become the home. */
+export const onARelease = (row: ManifestRow): boolean => row.store === "github-release" || row.mirrors.includes("github-release");
 
 /** The rows the filters leave, sorted by key so two runs select in one order. */
 export function selectRows(
@@ -141,6 +161,7 @@ async function failureText(reply: { text(): Promise<string> }): Promise<string> 
  */
 export async function pullObjects(options: PullOptions = {}): Promise<PullSummary> {
   const root = options.root ?? ".";
+  const from = options.from ?? "r2";
   const log = options.log ?? (() => undefined);
   const manifest = readManifest(root);
   const matched = selectRows(manifest, { keys: options.keys, sources: options.sources });
@@ -154,6 +175,8 @@ export async function pullObjects(options: PullOptions = {}): Promise<PullSummar
     selected_public: 0,
     already_held: 0,
     held_back_by_limit: 0,
+    already_in_the_bucket: 0,
+    no_remote_copy: 0,
     downloaded: 0,
     expanded_bytes: 0,
     compressed_bytes: 0,
@@ -174,6 +197,11 @@ export async function pullObjects(options: PullOptions = {}): Promise<PullSummar
       summary.already_held += 1;
       continue;
     }
+    if (from === "release" && !onARelease(row)) {
+      if (row.store === "r2" || row.mirrors.includes("r2")) summary.already_in_the_bucket += 1;
+      else summary.no_remote_copy += 1;
+      continue;
+    }
     wanted.push(row);
   }
 
@@ -182,7 +210,10 @@ export async function pullObjects(options: PullOptions = {}): Promise<PullSummar
   summary.held_back_by_limit = wanted.length - take.length;
 
   if (summary.dry_run) {
-    log(`dry run: ${take.length} objects would be fetched, ${summary.already_held} are already held`);
+    log(
+      `dry run: ${take.length} objects would be fetched from the ${from === "r2" ? "bucket" : "release assets"}, ` +
+        `${summary.already_held} are already held`,
+    );
     return summary;
   }
   if (take.length === 0) {
@@ -191,14 +222,17 @@ export async function pullObjects(options: PullOptions = {}): Promise<PullSummar
   }
 
   // Read at call time, and only once there is something to fetch, so a run
-  // that finds the cache complete needs no credential at all.
-  const settings: R2Settings = readSettings(options.env ?? process.env);
+  // that finds the cache complete needs no credential at all. A release pull
+  // needs none ever, because the assets are public.
+  const settings: R2Settings | null = from === "r2" ? readSettings(options.env ?? process.env) : null;
   const send = options.fetch ?? platformFetch;
 
   for (const row of take) {
     const key = row.sha256;
     const name = archiveAssetName(key);
-    const request = signRequest(settings, "GET", name, Buffer.alloc(0));
+    const request = settings
+      ? signRequest(settings, "GET", name, Buffer.alloc(0))
+      : { url: archiveAssetUrl(objectShard(key), name), headers: {} as Record<string, string> };
     let reply;
     try {
       reply = await send(request.url, { method: "GET", headers: request.headers });
@@ -217,7 +251,7 @@ export async function pullObjects(options: PullOptions = {}): Promise<PullSummar
     // either, and the key goes in the message.
     let expanded: Buffer;
     try {
-      expanded = expand(compressed, key, `R2 object ${key}`, row.bytes);
+      expanded = expand(compressed, key, `${from === "r2" ? "R2 object" : "release asset"} ${key}`, row.bytes);
     } catch (error) {
       summary.failed.push({ key, status: reply.status, message: (error as Error).message });
       continue;

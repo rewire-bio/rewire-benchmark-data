@@ -13,7 +13,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { afterEach, expect, it } from "vitest";
 import { archiveTag, assertPublishable, planPublish, publishObjects, shardNotes, type ReleaseClient } from "../scripts/archive/publish";
-import { readManifest, upsertRow } from "../scripts/archive/manifest";
+import { markHome, readManifest, upsertRow } from "../scripts/archive/manifest";
 import { putObject } from "../scripts/archive/objects";
 import { manifestRowSchema, visibilityOf, type ArchiveTier, type ManifestRow } from "../shared/archive/schema";
 
@@ -154,7 +154,7 @@ it("puts each object on its shard tag and creates only the tags it needs", async
   expect(() => archiveTag("g")).toThrow(/Not a manifest shard/);
 });
 
-it("records the published object in the manifest as a github-release object, and nothing else", async () => {
+it("makes a release tag the home of bytes that had none but a laptop, and a mirror of bytes that do", async () => {
   const root = temporaryRoot();
   const keys = await storeWithEveryTier(root);
   const before = readManifest(root);
@@ -162,12 +162,24 @@ it("records the published object in the manifest as a github-release object, and
   const after = readManifest(root);
 
   expect(summary.marked).toBe(4);
+  // These rows came from a fetch, so their only recorded home was local-cache: a directory on
+  // whichever machine fetched them, which no other reader can reach. A tag anyone can download
+  // is a better home than that, so it becomes the home rather than a mirror of an unreachable
+  // one. Once an upload has made the bucket the home, the tag goes back to being a mirror,
+  // which is what the store test covers.
   expect(after.get(keys["t0-public"])!.store).toBe("github-release");
+  expect(after.get(keys["t0-public"])!.mirrors).toEqual([]);
   expect(after.get(keys["t3-verbatim-nd-nc"])!.store).toBe("github-release");
+  // Restricted bytes are not published at all, so nothing about that row moves.
   expect(after.get(keys["t4-private"])!.store).toBe("local-cache");
+  expect(after.get(keys["t4-private"])!.mirrors).toEqual([]);
+  // Where the bucket is already the home, the tag is recorded as the second copy it is.
+  await markHome(keys["t1-public-nc"], "r2", root);
+  await publishObjects({ root, client: fakeClient().client });
+  expect(readManifest(root).get(keys["t1-public-nc"])).toMatchObject({ store: "r2", mirrors: ["github-release"] });
   for (const [key, published] of after) {
     const was = before.get(key)!;
-    expect({ ...published, store: was.store }).toEqual(was);
+    expect({ ...published, store: was.store, mirrors: was.mirrors }).toEqual(was);
   }
   // The URL is archiveAssetUrl's, derived from the key. No second scheme.
   const key = keys["t0-public"];
@@ -185,13 +197,13 @@ it("leaves the manifest alone under --no-mark, so a run beside a fetch does not 
   const summary = await publishObjects({ root, client: fake.client, mark: false });
   expect(summary.uploaded).toBe(4);
   expect(summary.marked).toBe(0);
-  expect(readManifest(root).get(keys["t0-public"])!.store).toBe("local-cache");
+  expect(readManifest(root).get(keys["t0-public"])).toMatchObject({ store: "local-cache", mirrors: [] });
 
   // The later run uploads nothing and records what it finds.
   const marking = await publishObjects({ root, client: fake.client });
   expect(marking.uploaded).toBe(0);
   expect(marking.marked).toBe(4);
-  expect(readManifest(root).get(keys["t0-public"])!.store).toBe("github-release");
+  expect(readManifest(root).get(keys["t0-public"])).toMatchObject({ store: "github-release", mirrors: [] });
 });
 
 it("creates and uploads nothing on a dry run, and counts what would go", async () => {

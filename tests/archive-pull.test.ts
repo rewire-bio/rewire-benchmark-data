@@ -13,7 +13,7 @@ import path from "node:path";
 import zlib from "node:zlib";
 import { createHash } from "node:crypto";
 import { afterEach, beforeEach, expect, it } from "vitest";
-import { pullObjects, selectRows } from "../scripts/archive/pull";
+import { onARelease, pullObjects, selectRows } from "../scripts/archive/pull";
 import { readSettings } from "../scripts/archive/r2";
 import { upsertRow, readManifest } from "../scripts/archive/manifest";
 import { objectPath } from "../scripts/archive/objects";
@@ -237,4 +237,75 @@ it("takes a limit, so a large pull can be taken in stages and the rest is counte
   const summary = await pullObjects({ root, env: secrets, fetch: bucket.fetch, limit: 2 });
   expect({ downloaded: summary.downloaded, back: summary.held_back_by_limit, asked: bucket.asked.length })
     .toEqual({ downloaded: 2, back: 1, asked: 2 });
+});
+
+/** Pulling from the release assets rather than from the bucket.
+ *
+ * This exists for one job and the tests say which: filling a cache so that
+ * objects can be put into the bucket. A runner has no cache and upload sends
+ * only what the cache holds, so without this an upload job would find nothing
+ * to send and report success. The assets are public, so it takes no credential,
+ * and it must not quietly ask the bucket for anything.
+ */
+it("pulls from the release assets with no credential at all", async () => {
+  const root = temporaryRoot();
+  const bytes = Buffer.from("published on a release tag");
+  const listed = row(bytes, "t0-public", { store: "github-release" });
+  await upsertRow(listed, root);
+  const compressed = zlib.gzipSync(bytes);
+  const urls: string[] = [];
+  const assets = fakeBucket({ [`${listed.sha256}.gz`]: compressed });
+  const watch = async (url: string, init: { method: string; headers: Record<string, string> }) => {
+    urls.push(url);
+    expect(init.headers).toEqual({});
+    return assets.fetch(url, init);
+  };
+
+  const summary = await pullObjects({ root, env: {}, from: "release", fetch: watch });
+  expect({ downloaded: summary.downloaded, failed: summary.failed, inR2: summary.already_in_the_bucket, nowhere: summary.no_remote_copy })
+    .toEqual({ downloaded: 1, failed: [], inR2: 0, nowhere: 0 });
+  expect(urls).toEqual([`https://github.com/rewire-bio/rewire-benchmark-data/releases/download/archive/objects-${listed.sha256[0]}/${listed.sha256}.gz`]);
+  expect(fs.readFileSync(objectPath(listed.sha256, root))).toEqual(compressed);
+});
+
+it("tells a row already safe in the bucket from one with a single copy on this machine", async () => {
+  // Both are rows no release tag holds, and lumping them together is what made the first
+  // version of this read 0 objects at risk when the real answer was 296 safe and 0 at risk.
+  // Only the second is a problem, and only it should be reported as one.
+  const root = temporaryRoot();
+  const inBucket = row(Buffer.from("only in the bucket"), "t4-private", { store: "r2" });
+  const onlyHere = row(Buffer.from("only on this laptop"), "t3-verbatim-nd-nc", { store: "local-cache" });
+  await upsertRow(inBucket, root);
+  await upsertRow(onlyHere, root);
+  const assets = fakeBucket({});
+
+  const summary = await pullObjects({ root, env: {}, from: "release", fetch: assets.fetch });
+  expect({ selected: summary.selected, inR2: summary.already_in_the_bucket, nowhere: summary.no_remote_copy, downloaded: summary.downloaded, asked: assets.asked })
+    .toEqual({ selected: 2, inR2: 1, nowhere: 1, downloaded: 0, asked: [] });
+});
+
+it("takes a release copy that has become a mirror, because the bytes are still there", async () => {
+  const bytes = Buffer.from("home in the bucket, mirrored on a tag");
+  expect(onARelease(row(bytes, "t0-public", { store: "r2", mirrors: ["github-release"] }))).toBe(true);
+  expect(onARelease(row(bytes, "t0-public", { store: "github-release" }))).toBe(true);
+  expect(onARelease(row(bytes, "t4-private", { store: "r2" }))).toBe(false);
+  expect(onARelease(row(bytes, "t4-private", { store: "local-cache" }))).toBe(false);
+});
+
+it("refuses a removed row on the release path too, whatever a tag still holds", async () => {
+  const root = temporaryRoot();
+  const bytes = Buffer.from("taken down");
+  const listed = row(bytes, "t5-no-store", {
+    store: "github-release",
+    removed_at: "2026-11-18T09:00:00Z",
+    removed_reason: "rights holder request",
+    removed_requester: "docs/reviews/2026-11-18.md",
+  });
+  await upsertRow(listed, root);
+  const assets = fakeBucket({ [`${listed.sha256}.gz`]: zlib.gzipSync(bytes) });
+
+  const summary = await pullObjects({ root, env: {}, from: "release", fetch: assets.fetch });
+  expect({ removed: summary.removed, selected: summary.selected, downloaded: summary.downloaded, asked: assets.asked })
+    .toEqual({ removed: 1, selected: 0, downloaded: 0, asked: [] });
+  expect(fs.existsSync(objectPath(listed.sha256, root))).toBe(false);
 });

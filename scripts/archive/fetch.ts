@@ -558,6 +558,7 @@ async function fetchGroup(
         requested_url: got.final_url === lead.url ? null : lead.url,
         first_seen_at: fetchedAt,
         store: "local-cache",
+        mirrors: [],
         visibility: visibilityOf(tier),
         archive_tier: tier,
         observed_licence: classified?.observed_licence ?? null,

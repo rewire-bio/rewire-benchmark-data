@@ -101,6 +101,7 @@ function fixtureRoot(input: {
       requested_url: null,
       first_seen_at: "2026-11-17T00:00:00Z",
       store: "local-cache",
+      mirrors: [],
       visibility: visibilityOf(row.tier),
       archive_tier: row.tier,
       observed_licence: row.observed ?? null,
