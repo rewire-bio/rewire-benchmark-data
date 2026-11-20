@@ -339,6 +339,11 @@ if (process.argv[1]?.endsWith("export.ts")) {
     writeQuads(path.join(dir, "asserted.nq"), subset.lines);
     fs.writeFileSync(path.join(dir, "context.txt"), subset.context.map((iri) => iri + "\n").join(""));
     console.log(`Wrote ${subset.lines.length} quads: ${subset.checked.length} records to check, ${subset.context.length} link targets.`);
+  } else if (command === "draft-block" && process.argv[3]) {
+    // npm run kg -- draft-block <file>: the manifest's draft block for this checkout, for
+    // rdf-kg-mcp serve --drafts --draft-config on a bundle built before it had one (the intake agent).
+    fs.writeFileSync(process.argv[3], JSON.stringify(draftBlock(mapping), null, 2) + "\n");
+    console.log(`Wrote ${process.argv[3]}`);
   } else if (command === "terms") {
     const rb = fs.readFileSync("data/ontology/rb.ttl", "utf8");
     const declared = new Set([...rb.matchAll(/^(rb:[A-Za-z0-9]+) a /gm)].map((m) => m[1]));
@@ -346,7 +351,7 @@ if (process.argv[1]?.endsWith("export.ts")) {
     fs.writeFileSync(attributeShapesFile, shapesTurtle(mapping));
     console.log(`Wrote ${attributeDeclarationsFile} and ${attributeShapesFile}`);
   } else {
-    console.error("Usage: npm run kg -- context | export | terms | subset <ids-file> <dir>");
+    console.error("Usage: npm run kg -- context | export | terms | subset <ids-file> <dir> | draft-block <file>");
     process.exit(1);
   }
 }

@@ -33,9 +33,11 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createReadStream, existsSync, mkdirSync, readFileSync, appendFileSync, writeFileSync } from 'node:fs';
 import { createInterface } from 'node:readline';
+import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { AREAS, DEFAULT_REPO, Usage, clean, keyOf, normalise, readStoreNames, tierOf } from './discovery.mjs';
+import { startKg } from './kg.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -67,6 +69,8 @@ export const LIMITS = {
   maxSourceBytes: 50 * 1024 * 1024,
   fetchTimeoutMs: 30000,
   sourceTextChars: 40000, // per source, in the verification prompt
+  kgRelatedHits: 6, // search hits per possible link-target search, and per kg_search call
+  verifyToolCalls: 8, // kg_search and kg_describe calls in the verification pass
 };
 
 export const KINDS = ['model', 'method', 'benchmark', 'dataset'];
@@ -258,13 +262,18 @@ const sortKeys = (obj) => Object.fromEntries(Object.entries(obj).sort(([a], [b])
 /**
  * Build the batch from the screened entities, the verification and the fetched sources.
  * `sources` maps each proposed URL to { id, record? , error? }: a stored source to reuse (no
- * record), a new source record, or the fetch error. Pure; returns { records, entities, dropped, fieldLog }.
+ * record), a new source record, or the fetch error. `candidates` maps each entity key to the
+ * possible duplicates and link targets found in the knowledge graph (kgCandidates); `known` maps
+ * every store record id the run looked up to { id, kind, name }. Pure; returns
+ * { records, entities, dropped, fieldLog, kgLog, ruled }.
  */
-export function buildBatch({ entities, verification, sources, batch, issue, runDate, reviewedAt, reviewModel, runUrl }) {
+export function buildBatch({ entities, verification, sources, batch, issue, runDate, reviewedAt, reviewModel, runUrl, candidates = new Map(), known = new Map() }) {
   const records = [];
   const dropped = [];
   const built = [];
   const fieldLog = [];
+  const rulings = [];
+  const ruled = new Map();
   const usedSources = new Map();
   const reviewer = String(reviewModel ?? '').startsWith('claude-sonnet') ? ['claude-sonnet'] : ['claude'];
   const review = {
@@ -282,6 +291,18 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
     }
     if (!verdict.keep) {
       dropped.push({ name: e.name, reason: `verification: ${clean(verdict.reason) || 'not kept'}` });
+      continue;
+    }
+    // Possible duplicates in the store: one ruled the same drops the entity, and so does one nobody ruled on.
+    const dupes = dupeRulings(verdict, candidates.get(e.key)?.duplicates ?? []);
+    rulings.push(...dupes.rulings.map((r) => ({ entity: e.name, ...r })));
+    if (dupes.duplicateOf) {
+      const d = dupes.duplicateOf;
+      dropped.push({ name: e.name, reason: `already in the store as ${d.id} ("${d.label}"); the verifier ruled it the same resource (${dupes.rulings.find((r) => r.id === d.id).locator})`, duplicate: d.id });
+      continue;
+    }
+    if (dupes.unruled.length) {
+      dropped.push({ name: e.name, reason: `possible duplicate in the store with no ruling: ${dupes.unruled.map((d) => `${d.id} ("${d.label}")`).join(', ')}`, duplicate: dupes.unruled[0].id });
       continue;
     }
     const description = verifiedValue(verdict, 'description', e.description);
@@ -370,8 +391,16 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
     };
     for (const id of sourceIds) usedSources.set(id, [...(usedSources.get(id) ?? []), { areas, contexts: facets.contexts }]);
     records.push(record);
-    built.push({ id: record.id, kind: e.kind, name, tier: attributes.depth_tier ?? null });
+    built.push({ id: record.id, key: e.key, kind: e.kind, name, tier: attributes.depth_tier ?? null });
+    ruled.set(record.id, new Set(dupes.rulings.filter((r) => r.ruling === 'distinct').map((r) => r.id)));
   }
+  // Links, now that every kept entity has its id: to a sibling by key, or to a store record.
+  const linked = resolveLinks({ built, verification, entities, known });
+  for (const r of records) {
+    const own = linked.links.get(r.id) ?? [];
+    if (own.length) r.links = [...own].sort((a, b) => (a.relation === b.relation ? (a.target_id < b.target_id ? -1 : 1) : a.relation < b.relation ? -1 : 1));
+  }
+  for (const b of built) b.links = (linked.links.get(b.id) ?? []).length;
   // The store rejects two differently named models or methods with one description
   // (shared/omics/descriptions.ts). If the verified descriptions still collide, prefix each with
   // its record's name, which adds nothing the sources do not say.
@@ -396,7 +425,7 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
     });
   }
   records.sort((a, b) => (a.id < b.id ? -1 : 1));
-  return { records, entities: built, dropped, fieldLog };
+  return { records, entities: built, dropped, fieldLog, kgLog: { duplicates: rulings, links: linked.log, rejected_links: linked.rejected }, ruled };
 }
 
 /**
@@ -538,13 +567,357 @@ export function sourceRecord({ batch, proposed, fetched, runDate }) {
   };
 }
 
+// ---------- The knowledge graph: possible duplicates, link targets and the draft overlay ----------
+
+/**
+ * Relations the intake agent may write, per kind, all on the new record. Each is in
+ * shared/omics/relations.ts. applicable_to stays off: it says a model could be applied to a
+ * benchmark, which a source rarely states. No relation links a model to a use case, so none is made.
+ */
+export const LINK_RELATIONS = {
+  model: ['family', 'variant_of', 'alias_of'],
+  method: ['family', 'variant_of', 'alias_of'],
+  benchmark: ['part_of', 'evaluates_task', 'uses_data'],
+  dataset: [],
+};
+/** The kinds a link from each intake kind may reach, for the link-target search. */
+export const LINK_TARGET_KINDS = {
+  model: ['model', 'method', 'configuration', 'pipeline', 'service'],
+  method: ['model', 'method', 'configuration', 'pipeline', 'service'],
+  benchmark: ['benchmark', 'task', 'protocol', 'evaluator', 'dataset', 'dataset_subset'],
+  dataset: [],
+};
+const SYSTEM_KINDS = new Set(['model', 'method']);
+
+/** Words that say what kind of thing a name is, not which one; two names sharing only these are not alike. */
+const GENERIC_WORDS = new Set(['a', 'an', 'and', 'benchmark', 'benchmarks', 'by', 'challenge', 'corpus', 'data', 'database', 'dataset', 'datasets', 'for', 'from', 'in', 'method', 'methods', 'model', 'models', 'of', 'on', 'suite', 'task', 'tasks', 'the', 'to', 'with']);
+
+/**
+ * The larger share of either name's distinctive words found in the other, whole or as the start
+ * of a longer word (four letters or more). 1 when the names are equal ignoring case, spaces and
+ * punctuation.
+ */
+export function nameOverlap(a, b) {
+  const squash = (t) => normalise(t).replace(/ /g, '');
+  if (squash(a) && squash(a) === squash(b)) return 1;
+  // A bare number ("2" in "Evo 2") tells versions apart, not resources, unless it is all there is.
+  const words = (t) => {
+    const all = normalise(t).split(' ').filter((w) => w && !GENERIC_WORDS.has(w));
+    const named = all.filter((w) => !/^\d+$/.test(w));
+    return new Set(named.length ? named : all);
+  };
+  const wa = words(a);
+  const wb = words(b);
+  if (!wa.size || !wb.size) return 0;
+  const found = (w, others) => others.has(w) || (w.length >= 4 && [...others].some((o) => o.startsWith(w)));
+  return Math.max([...wa].filter((w) => found(w, wb)).length / wa.size, [...wb].filter((w) => found(w, wa)).length / wb.size);
+}
+
+/**
+ * Whether a release record the server lists as a possible duplicate of `name` needs a ruling. Its
+ * kind must be the same, or model against method (the line between them is a judgement); a
+ * configuration or pipeline that shares a model's name is a different identity by definition. A
+ * search hit must share at least half its distinctive words with the name: the server counts
+ * words such as "benchmark" too, so "DeepProtein benchmark" would otherwise match every benchmark.
+ */
+export function needsRuling(kind, name, d) {
+  if (!(kind === d.kind || (SYSTEM_KINDS.has(kind) && SYSTEM_KINDS.has(d.kind)))) return false;
+  return String(d.match ?? '').includes('same name') || nameOverlap(name, d.label ?? '') >= 0.5;
+}
+
+/** A record shell with only what the server needs to list possible duplicates. */
+function probeRecord(entity, id) {
+  return { id, kind: entity.kind, name: entity.name, description: clean(entity.description), status: 'discovered', facets: {}, source_ids: [], links: [], attributes: {} };
+}
+
+/**
+ * Before verification: for each screened entity, the release records the server would list as
+ * possible duplicates (by drafting a shell under a probe id and removing it again), the same for
+ * each alias, and search hits of the kinds a link from it may reach. Returns Map(key -> { duplicates, related }).
+ */
+export async function kgCandidates(kg, entities, { log = () => {} } = {}) {
+  const out = new Map();
+  for (const e of entities) {
+    const duplicates = new Map();
+    for (const [i, name] of unique([e.name, ...(e.aliases ?? []).map(clean)].filter(Boolean)).slice(0, 4).entries()) {
+      const id = `intake-probe-${e.key}-${i}`;
+      try {
+        const r = await kg.upsert(probeRecord({ ...e, name }, id));
+        for (const d of r.possible_duplicates ?? [])
+          if (d.in === 'release' && needsRuling(e.kind, name, d) && !duplicates.has(d.id)) duplicates.set(d.id, { id: d.id, kind: d.kind, label: d.label, match: d.match, query: name });
+      } catch (err) {
+        log(`KG duplicate probe for ${e.name}: ${errorText(err)}`);
+      } finally {
+        await kg.remove(id).catch(() => {});
+      }
+    }
+    const related = new Map();
+    const kinds = LINK_TARGET_KINDS[e.kind] ?? [];
+    if (kinds.length) {
+      try {
+        const r = await kg.search(e.name, { kinds, limit: LIMITS.kgRelatedHits });
+        for (const hit of r.results ?? []) {
+          const id = kg.idOf(hit.iri);
+          const kind = (hit.types ?? []).map((t) => kg.kindOfClass(t)).find(Boolean);
+          if (id && kind && !duplicates.has(id)) related.set(id, { id, kind, label: hit.label });
+        }
+      } catch (err) {
+        log(`KG search for ${e.name}: ${errorText(err)}`);
+      }
+    }
+    out.set(e.key, { duplicates: [...duplicates.values()], related: [...related.values()] });
+  }
+  return out;
+}
+
+/** Candidates as text for the verification prompt. */
+export function candidateText(entities, candidates) {
+  return entities.map((e) => {
+    const c = candidates.get(e.key) ?? { duplicates: [], related: [] };
+    const line = (r) => `  - ${r.id} (${r.kind}): ${r.label}`;
+    return [
+      `${e.key} ${e.name} (${e.kind}). Relations it may have: ${(LINK_RELATIONS[e.kind] ?? []).join(', ') || 'none'}.`,
+      c.duplicates.length ? ` Possible duplicates in the store, rule on each:\n${c.duplicates.map(line).join('\n')}` : ' Possible duplicates in the store: none found.',
+      c.related.length ? ` Other store records with similar names, possible link targets:\n${c.related.map(line).join('\n')}` : '',
+    ].filter(Boolean).join('\n');
+  }).join('\n\n');
+}
+
+/** Read-only knowledge-graph tools for the verifier, and their handler. */
+export function kgTools(kg) {
+  const kinds = [...new Set(Object.values(LINK_TARGET_KINDS).flat())];
+  const definitions = [
+    {
+      name: 'kg_search',
+      description: 'Search the Rewire record store (the latest knowledge graph release) for records whose names, aliases or descriptions match some words. Returns record ids, kinds and names. Use it to find an existing record a proposed entity duplicates or should link to.',
+      strict: true,
+      input_schema: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['text', 'kinds'],
+        properties: { text: { type: 'string' }, kinds: { type: 'array', items: { type: 'string', enum: kinds }, description: 'Only records of these kinds; empty for any kind' } },
+      },
+    },
+    {
+      name: 'kg_describe',
+      description: 'The stored description, kind, name, sources and links of one record in the store, by record id.',
+      strict: true,
+      input_schema: { type: 'object', additionalProperties: false, required: ['id'], properties: { id: { type: 'string' } } },
+    },
+  ];
+  const seen = new Map();
+  async function handle(name, input) {
+    if (name === 'kg_search') {
+      const r = await kg.search(String(input.text ?? ''), { kinds: (input.kinds ?? []).filter((k) => kinds.includes(k)), limit: LIMITS.kgRelatedHits });
+      const hits = (r.results ?? []).map((h) => ({ id: kg.idOf(h.iri), kind: (h.types ?? []).map((t) => kg.kindOfClass(t)).find(Boolean) ?? null, name: h.label })).filter((h) => h.id);
+      for (const h of hits) seen.set(h.id, h);
+      return hits;
+    }
+    if (name === 'kg_describe') {
+      const id = String(input.id ?? '');
+      const r = await kg.describe(kg.iriOf(id), { limit: 40 });
+      const statements = r.outgoing?.statements ?? [];
+      const literal = (p) => statements.filter((s) => s.predicate === p).map((s) => String(s.object).replace(/^"|"(\^\^.*|@.*)?$/g, ''));
+      const kind = (r.types ?? []).map((t) => kg.kindOfClass(t)).find(Boolean) ?? null;
+      if (kind) seen.set(id, { id, kind, name: r.label });
+      return {
+        id,
+        kind,
+        name: r.label ?? null,
+        description: literal('dcterms:description')[0] ?? null,
+        sources: statements.filter((s) => s.predicate === 'dcterms:source').map((s) => s.object_label ?? s.object).slice(0, 8),
+        links: statements.filter((s) => s.predicate.startsWith('rb:') && String(s.object).startsWith('id:')).map((s) => ({ relation: s.predicate, target: s.object, name: s.object_label ?? null })).slice(0, 12),
+      };
+    }
+    throw new Error(`unknown tool ${name}`);
+  }
+  return { definitions, handle, seen };
+}
+
+/**
+ * The verifier's ruling on each possible duplicate of one entity. `same` drops the entity; an
+ * unruled one drops it too, because nobody looked. Returns { duplicateOf, unruled, rulings }.
+ */
+export function dupeRulings(verdict, duplicates) {
+  const given = new Map((verdict?.duplicates ?? []).map((d) => [clean(d.id), d]));
+  const rulings = [];
+  let duplicateOf = null;
+  const unruled = [];
+  for (const d of duplicates) {
+    const r = given.get(d.id);
+    if (!r || !['same', 'distinct'].includes(r.ruling) || !clean(r.locator)) {
+      unruled.push(d);
+      continue;
+    }
+    rulings.push({ id: d.id, label: d.label, kind: d.kind, ruling: r.ruling, locator: clean(r.locator) });
+    if (r.ruling === 'same' && !duplicateOf) duplicateOf = d;
+  }
+  return { duplicateOf, unruled, rulings };
+}
+
+/**
+ * The supported links of the built records. A target is another kept entity's key (resolved to its
+ * new id) or a store record id the candidates, a verifier tool call or the store's names know, of a
+ * kind the relation allows. Returns { links: Map(recordId -> [{relation, target_id}]), log, rejected }.
+ */
+export function resolveLinks({ built, verification, entities, known }) {
+  const byKey = new Map(built.map((b) => [b.key, b]));
+  const links = new Map();
+  const log = [];
+  const rejected = [];
+  const rules = LINK_RELATIONS;
+  for (const b of built) {
+    const e = entities.find((x) => x.key === b.key);
+    const verdict = verdictFor(verification, e);
+    const own = [];
+    for (const l of verdict?.links ?? []) {
+      const relation = clean(l.relation);
+      const raw = clean(l.target);
+      const why = (reason) => rejected.push({ entity: b.name, relation, target: raw, reason });
+      if (l.verdict !== 'supported' || !clean(l.locator)) {
+        why('not supported at a location in a source');
+        continue;
+      }
+      if (!(rules[b.kind] ?? []).includes(relation)) {
+        why(`the intake agent does not write ${relation} links from a ${b.kind}`);
+        continue;
+      }
+      const sibling = byKey.get(raw) ?? built.find((x) => x.id === raw);
+      const target = sibling ? { id: sibling.id, kind: sibling.kind, name: sibling.name } : known.get(raw);
+      if (!target) {
+        why(entities.some((x) => x.key === raw) ? 'the target entity was not added' : 'the target is neither a kept entity in this batch nor a store record the run looked up');
+        continue;
+      }
+      if (target.id === b.id) {
+        why('a record cannot link to itself');
+        continue;
+      }
+      if (!(LINK_TARGET_KINDS[b.kind] ?? []).includes(target.kind) || !linkAllowed(relation, b.kind, target.kind)) {
+        why(`${relation} cannot link a ${b.kind} to a ${target.kind}`);
+        continue;
+      }
+      if (own.some((x) => x.relation === relation && x.target_id === target.id)) continue;
+      own.push({ relation, target_id: target.id });
+      log.push({ from: b.id, relation, to: target.id, to_name: target.name ?? null, in: sibling ? 'batch' : 'store', locator: clean(l.locator) });
+    }
+    links.set(b.id, own);
+  }
+  return { links, log, rejected };
+}
+
+/** relationRules from shared/omics/relations.ts for the relations intake writes (that file is TypeScript). */
+const LINK_RULES = {
+  family: { from: ['model', 'method', 'configuration', 'pipeline', 'service'], to: ['model', 'method', 'configuration', 'pipeline', 'service'] },
+  variant_of: { from: ['model', 'method', 'pipeline', 'service'], to: ['model', 'method', 'configuration', 'pipeline', 'service'] },
+  alias_of: { from: ['model', 'method', 'configuration', 'pipeline', 'service'], to: ['model', 'method', 'configuration', 'pipeline', 'service'] },
+  part_of: { from: ['benchmark', 'task', 'protocol', 'evaluator'], to: ['benchmark', 'task', 'protocol', 'evaluator'] },
+  evaluates_task: { from: ['benchmark', 'task', 'protocol', 'evaluator'], to: ['benchmark', 'task', 'protocol', 'evaluator'] },
+  uses_data: { from: ['benchmark', 'task', 'protocol', 'evaluator', 'baseline'], to: ['dataset', 'dataset_subset'] },
+};
+export function linkAllowed(relation, fromKind, toKind) {
+  const rule = LINK_RULES[relation];
+  return Boolean(rule && rule.from.includes(fromKind) && rule.to.includes(toKind));
+}
+
+/**
+ * Remove dropped entities from a built batch: links to them, and new sources no kept entity cites
+ * any more. Source facets are recomputed from the entities that still cite them.
+ */
+export function pruneRecords(records, dropIds) {
+  const drop = new Set(dropIds);
+  let kept = records.filter((r) => !drop.has(r.id)).map((r) => (r.links.some((l) => drop.has(l.target_id)) ? { ...r, links: r.links.filter((l) => !drop.has(l.target_id)) } : r));
+  const entities = kept.filter((r) => r.kind !== 'source');
+  const cites = (s) => entities.filter((r) => r.source_ids.includes(s.id));
+  kept = kept.filter((r) => r.kind !== 'source' || cites(r).length).map((r) => {
+    if (r.kind !== 'source') return r;
+    const by = cites(r);
+    return { ...r, facets: { areas: unique(by.flatMap((x) => x.facets.areas ?? [])), contexts: unique(by.flatMap((x) => x.facets.contexts ?? [])) } };
+  });
+  return kept;
+}
+
+/**
+ * Write the batch through the draft overlay and export it. Every record is drafted; an entity the
+ * server finds problems in, or that has a possible duplicate in the release nobody ruled on, is
+ * dropped (with its links and unused sources) and the rest drafted again. Returns
+ * { records, batchText, summary, dropped, rounds } or { error } when the overlay cannot export
+ * (the caller falls back to writing the batch itself).
+ */
+export async function draftThroughKg(kg, records, { ruled = new Map(), log = () => {} } = {}) {
+  const dropped = [];
+  let current = records;
+  for (let round = 1; ; round++) {
+    const drop = [];
+    for (const r of current) {
+      let res;
+      try {
+        res = await kg.upsert(r);
+      } catch (e) {
+        if (r.kind === 'source') return { error: `draft_upsert refused source ${r.id}: ${errorText(e)}` };
+        drop.push(r.id);
+        dropped.push({ id: r.id, name: r.name, reason: `the KG draft overlay refused it: ${errorText(e)}` });
+        continue;
+      }
+      if (r.kind === 'source') {
+        if (res.problems?.length) return { error: `source ${r.id}: ${res.problems.join('; ')}` };
+        continue;
+      }
+      if (res.problems?.length) {
+        drop.push(r.id);
+        dropped.push({ id: r.id, name: r.name, reason: `the KG draft checks found problems: ${res.problems.join('; ').slice(0, 400)}` });
+        continue;
+      }
+      const ok = ruled.get(r.id) ?? new Set();
+      const open = (res.possible_duplicates ?? []).filter((d) => d.in === 'release' && needsRuling(r.kind, r.name, d) && !ok.has(d.id));
+      if (open.length) {
+        drop.push(r.id);
+        dropped.push({ id: r.id, name: r.name, reason: `possible duplicate${open.length > 1 ? 's' : ''} in the store with no ruling: ${open.map((d) => `${d.id} ("${d.label}")`).join(', ')}`, duplicate: open[0].id });
+      }
+    }
+    if (!drop.length) break;
+    if (round >= 4) return { error: `the overlay still dropped records after ${round} rounds` };
+    for (const r of current) await kg.remove(r.id).catch(() => {});
+    current = pruneRecords(current, drop);
+    log(`KG overlay round ${round}: dropped ${drop.join(', ')}`);
+    if (!current.some((r) => r.kind !== 'source')) return { records: [], batchText: '', summary: null, dropped };
+  }
+  const exported = await kg.exportBatch();
+  if (!exported.exported) return { error: `draft_export refused: ${JSON.stringify(exported.problems ?? exported.reason).slice(0, 400)}` };
+  return { records: current, batchText: exported.batch, summary: exported.summary, batchSha256: exported.batch_sha256, dropped };
+}
+
 // ---------- Text for the pull request, the issue and the summary ----------
 
 function bullets(items, empty = '- None.') {
   return items.length ? items.map((i) => `- ${i}`).join('\n') : empty;
 }
 
-export function renderNotes({ issue, issueTitle, runDate, entities, dropped, sourceNotes, fieldLog, usage }) {
+/** Links and duplicate rulings as bullet lines, for the notes, the pull request and the summary. */
+export function kgLines(kgLog) {
+  const links = (kgLog?.links ?? []).map((l) => `\`${l.from}\` ${l.relation} \`${l.to}\`${l.to_name ? ` (${clean(l.to_name)})` : ''}, ${l.in === 'store' ? 'a record already in the store' : 'in this batch'}: ${clean(l.locator)}`);
+  const rulings = (kgLog?.duplicates ?? []).map((d) => `${clean(d.entity)} against \`${d.id}\` ("${clean(d.label)}"): ${d.ruling}, ${clean(d.locator)}`);
+  const rejected = (kgLog?.rejected_links ?? []).map((l) => `${clean(l.entity)} ${l.relation} ${clean(l.target)}: ${clean(l.reason)}`);
+  return { links, rulings, rejected };
+}
+
+/** kg.json in the batch folder: what the overlay checked, for the reviewer. */
+export function kgReceipt({ kgState, kgLog, summary, batchText }) {
+  return {
+    schema_version: '1.0',
+    note: 'Written by the intake agent. The links and duplicate rulings come from its verification pass; summary is the rdf-kg-mcp draft overlay diff of this batch against the knowledge graph release. records -- add is the gate; this file is a receipt for the reviewer (#256).',
+    kg: kgState?.used ? { release: kgState.release ?? null, statements: kgState.statements ?? null, iri_base: kgState.iri_base ?? null, kinds: kgState.kinds ?? null } : { used: false, error: kgState?.error ?? 'not configured' },
+    batch_sha256: sha256(batchText),
+    links: kgLog?.links ?? [],
+    duplicate_rulings: kgLog?.duplicates ?? [],
+    rejected_links: kgLog?.rejected_links ?? [],
+    summary: summary
+      ? { release: summary.release ?? null, manifest_sha256: summary.manifest_sha256 ?? null, batch_sha256: summary.batch_sha256 ?? null, added: (summary.added ?? []).map((a) => ({ id: a.id, kind: a.kind, label: a.label, links: a.links ?? [], warnings: a.warnings ?? [], possible_duplicates: (a.possible_duplicates ?? []).map((d) => ({ id: d.id, in: d.in, kind: d.kind, label: d.label, match: d.match })) })) }
+      : null,
+  };
+}
+
+export function renderNotes({ issue, issueTitle, runDate, entities, dropped, sourceNotes, fieldLog, usage, kgLog = null }) {
+  const kg = kgLines(kgLog);
   return [
     `# Intake for issue #${issue}`,
     '',
@@ -564,6 +937,15 @@ export function renderNotes({ issue, issueTitle, runDate, entities, dropped, sou
     '',
     bullets(dropped.map((d) => `${clean(d.name)}: ${clean(d.reason)}`)),
     '',
+    '## Links',
+    '',
+    bullets(kg.links),
+    ...(kg.rejected.length ? ['', 'Proposed but not written:', '', bullets(kg.rejected)] : []),
+    '',
+    '## Possible duplicates in the store',
+    '',
+    bullets(kg.rulings),
+    '',
     '## Fields',
     '',
     'Each proposed field and whether the verification pass confirmed it. An empty kept value is in `missing_metadata` with reason `unextracted`.',
@@ -579,7 +961,8 @@ export function renderNotes({ issue, issueTitle, runDate, entities, dropped, sou
   ].join('\n');
 }
 
-export function renderPullBody({ issue, entities, dropped, sourceNotes, usage, seconds, runUrl, batchDir, closes = false }) {
+export function renderPullBody({ issue, entities, dropped, sourceNotes, usage, seconds, runUrl, batchDir, closes = false, kgLog = null, kgState = null }) {
+  const kg = kgLines(kgLog);
   return [
     closes
       ? `Adds the entity records requested in #${issue}. Closes #${issue}.`
@@ -599,7 +982,19 @@ export function renderPullBody({ issue, entities, dropped, sourceNotes, usage, s
     '',
     bullets(dropped.map((d) => `${clean(d.name)}: ${clean(d.reason)}`)),
     '',
-    `Batch folder: \`${batchDir}\`. Its \`notes.md\` lists every proposed field and whether the verification pass confirmed it.`,
+    '**Links**',
+    '',
+    bullets(kg.links),
+    '',
+    '**Possible duplicates in the store**',
+    '',
+    bullets(kg.rulings),
+    '',
+    kgState?.used
+      ? `The knowledge graph release ${kgState.release ?? '(unknown)'} was searched for possible duplicates and link targets, and the batch was written through its draft overlay (rdf-kg-mcp), which checked each record and link against the release.`
+      : `The knowledge graph was not available${kgState?.error ? ` (${clean(kgState.error)})` : ''}: possible duplicates were checked by name only and no link to a store record was made.`,
+    '',
+    `Batch folder: \`${batchDir}\`. Its \`notes.md\` lists every proposed field and whether the verification pass confirmed it; \`kg.json\` lists every link and duplicate ruling with its locator.`,
     '',
     '**Checks.** The agent ran `npm run records -- add` (including the SHACL subset check), `npm run records -- check`, and a check that `normalizeAttributes` leaves every record unchanged and that each depth tier matches the rule in docs/tiers.md. The source bytes are hashed but not yet in the archive object store.',
     '',
@@ -648,7 +1043,8 @@ export function renderFailureComment({ step, output, runUrl, usage }) {
   ].join('\n');
 }
 
-export function renderSummary({ mode, issue, runDate, outcome, entities = [], dropped = [], sourceNotes = [], notes = [], usage, prUrl }) {
+export function renderSummary({ mode, issue, runDate, outcome, entities = [], dropped = [], sourceNotes = [], notes = [], usage, prUrl, kgState = null, kgLog = null }) {
+  const kg = kgLines(kgLog);
   return [
     `## Intake, issue #${issue ?? '?'}, ${runDate} (${mode})`,
     '',
@@ -667,6 +1063,15 @@ export function renderSummary({ mode, issue, runDate, outcome, entities = [], dr
     '### Not added',
     '',
     bullets(dropped.map((d) => `${d.name}: ${d.reason}`), 'Nothing dropped.'),
+    '',
+    '### Knowledge graph',
+    '',
+    kgState?.used
+      ? `Release ${kgState.release ?? '?'}, ${kgState.statements ?? '?'} statements; ready in ${kgState.ready_seconds ?? '?'} s; tool calls ${JSON.stringify(kgState.calls ?? {})}; peak memory ${kgState.peak_memory_mb ?? 'not measured'} MB.`
+      : `Not used${kgState?.error ? ` (${kgState.error})` : ''}.`,
+    '',
+    bullets(kg.links, '- No links.'),
+    bullets(kg.rulings, '- No duplicate rulings.'),
     '',
     '### Token usage',
     '',
@@ -852,7 +1257,7 @@ export const VERIFICATION_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['key', 'name', 'keep', 'reason', 'fields', 'wrong_sources', 'better_sources'],
+        required: ['key', 'name', 'keep', 'reason', 'fields', 'wrong_sources', 'better_sources', 'duplicates', 'links'],
         properties: {
           key: { type: 'string', description: 'The key given with the proposed entity, for example e1' },
           name: STR,
@@ -860,6 +1265,35 @@ export const VERIFICATION_SCHEMA = {
           wrong_sources: { type: 'array', items: STR, description: 'Cited URLs that are not about this exact entity (a sibling size, variant or checkpoint, or a page that only links to it)' },
           better_sources: { type: 'array', items: STR, description: 'URLs from the primary source list that are about this exact entity but not cited' },
           reason: STR,
+          duplicates: {
+            type: 'array',
+            description: 'One ruling per possible duplicate in the store listed for this entity',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['id', 'ruling', 'locator'],
+              properties: {
+                id: { type: 'string', description: 'The store record id, exactly as listed' },
+                ruling: { type: 'string', enum: ['same', 'distinct'] },
+                locator: { type: 'string', description: 'What decides it: the source location, or the stored description that shows a different resource' },
+              },
+            },
+          },
+          links: {
+            type: 'array',
+            description: 'Relations from this entity to another proposed entity (by key) or to a store record (by id)',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['relation', 'target', 'verdict', 'locator'],
+              properties: {
+                relation: { type: 'string', enum: [...new Set(Object.values(LINK_RELATIONS).flat())] },
+                target: { type: 'string', description: 'A proposed entity key (e1) or a store record id' },
+                verdict: { type: 'string', enum: ['supported', 'unsupported'] },
+                locator: { type: 'string', description: 'Source URL and the location that states the relation' },
+              },
+            },
+          },
           fields: {
             type: 'array',
             items: {
@@ -888,13 +1322,21 @@ function textOf(message) {
 /**
  * One research call with the server web tools, resuming pause_turn up to the cap. The same
  * request shape as the discovery scan. Returns { text, model } or null on a refusal or at the cap.
+ *
+ * `clientTools` ({ definitions, handle(name, input) }) adds tools this script runs (the read-only
+ * knowledge-graph search). Each tool_use round sends the conversation again; the prompt is cached,
+ * so a round costs the cache read plus the new turns. At most LIMITS.verifyToolCalls calls run;
+ * after that, or once the run passes its cost cap, a call gets an error asking for the answer.
  */
-async function researchTurn(client, usage, { model, system, prompt, searches, fetches, log }) {
-  const messages = [{ role: 'user', content: prompt }];
+async function researchTurn(client, usage, { model, system, prompt, searches, fetches, log, clientTools = null }) {
+  const messages = [{ role: 'user', content: clientTools ? [{ type: 'text', text: prompt, cache_control: { type: 'ephemeral' } }] : prompt }];
   const tools = [{ type: 'web_fetch_20260209', name: 'web_fetch', max_uses: fetches, max_content_tokens: LIMITS.fetchContentTokens }];
   if (searches) tools.unshift({ type: 'web_search_20260318', name: 'web_search', max_uses: searches });
+  if (clientTools) tools.push(...clientTools.definitions);
   const fallback = model.startsWith('claude-haiku') ? {} : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' };
-  for (let turn = 0; turn <= LIMITS.maxContinuations; turn++) {
+  let toolCalls = 0;
+  let toolRounds = 0;
+  for (let turn = 0; turn <= LIMITS.maxContinuations + toolRounds; turn++) {
     const message = await client.beta.messages.stream({
       model,
       ...fallback,
@@ -908,6 +1350,34 @@ async function researchTurn(client, usage, { model, system, prompt, searches, fe
     if (message.stop_reason === 'refusal') {
       log(`refused (${message.stop_details?.category ?? 'no category'})`);
       return null;
+    }
+    if (message.stop_reason === 'tool_use' && clientTools) {
+      // Every client tool call in the turn gets its result in one user message.
+      const calls = message.content.filter((b) => b.type === 'tool_use');
+      const results = [];
+      for (const call of calls) {
+        toolCalls += 1;
+        let content;
+        let isError = false;
+        if (toolCalls > LIMITS.verifyToolCalls || usage.total() > LIMITS.maxRunUsd) {
+          content = 'No more store lookups in this run. Finish the verification with what you have.';
+          isError = true;
+        } else {
+          try {
+            content = JSON.stringify(await clientTools.handle(call.name, call.input ?? {}));
+          } catch (e) {
+            content = `The lookup failed: ${errorText(e)}`;
+            isError = true;
+          }
+        }
+        log(`tool ${call.name} ${JSON.stringify(call.input ?? {}).slice(0, 120)}${isError ? ' (error)' : ''}`);
+        results.push({ type: 'tool_result', tool_use_id: call.id, content, ...(isError ? { is_error: true } : {}) });
+      }
+      messages.push({ role: 'assistant', content: message.content });
+      messages.push({ role: 'user', content: results });
+      // A tool round does not use up the pause_turn allowance; the call cap bounds the rounds.
+      if (toolRounds <= LIMITS.verifyToolCalls) toolRounds += 1;
+      continue;
     }
     if (message.stop_reason !== 'pause_turn') return { text: textOf(message), model: message.model ?? model };
     messages.push({ role: 'assistant', content: message.content });
@@ -969,7 +1439,7 @@ async function draftProposal(client, usage, { system, issue, runDate, log }) {
   return proposal ? { proposal } : { error: 'could not structure the draft notes' };
 }
 
-async function verifyProposal(client, usage, { system, entities, sourceUrls, texts = [], runDate, log }) {
+async function verifyProposal(client, usage, { system, entities, sourceUrls, texts = [], runDate, log, candidates = null, tools = null }) {
   const withText = new Set(texts.filter((t) => t.text).map((t) => t.url));
   const shown = entities.map((e) => Object.fromEntries(['key', 'kind', 'name', 'aliases', ...VERIFIED_FIELDS, 'source_urls'].map((k) => [k, e[k]])));
   const research = await researchTurn(client, usage, {
@@ -978,6 +1448,7 @@ async function verifyProposal(client, usage, { system, entities, sourceUrls, tex
     searches: LIMITS.verifySearches,
     fetches: LIMITS.verifyFetches,
     log: (m) => log(`verify ${m}`),
+    clientTools: tools,
     prompt: [
       `Run date: ${runDate}. Verification pass. Check every field of every proposed entity against the primary sources below, as your instructions describe.`,
       `Valid areas: ${AREAS.join(', ')}.`,
@@ -990,6 +1461,10 @@ async function verifyProposal(client, usage, { system, entities, sourceUrls, tex
       'Proposed entities (JSON):',
       JSON.stringify(shown, null, 2),
       '',
+      candidates
+        ? `Records already in the store, found by name (the store is the latest knowledge graph release; kg_search and kg_describe look up more, ${LIMITS.verifyToolCalls} calls at most):\n${candidateText(entities, candidates)}\n`
+        : 'The record store could not be searched in this run: rule on no duplicate in the store, and link only between proposed entities.',
+      'For each possible duplicate listed for an entity, rule same (the same resource; the entity is then not added) or distinct, and say what decides it. Then list the relations the sources state from the entity to another proposed entity (by its key) or to a store record (by its id): family (a checkpoint or member to its model family), variant_of, alias_of (another name for the same resource), part_of (a task to its benchmark or suite), evaluates_task, uses_data (a benchmark to its dataset). Mark each supported with the source location that states it, or unsupported. Do not guess a relation from similar names.',
       'If an entity has no areas, give its areas as a correction (comma-separated) from the sources.',
       'A description must tell the resource apart from the related ones in this list (size, variant, training data), because the store refuses two models or methods with the same description.',
       'For each entity write its key exactly as given, then keep or drop and why; then the cited sources that are not about this exact entity, and any source in the list above that is about it but not cited; then each field with supported, corrected (give the value) or unsupported, and the source URL and location that decides it. For areas, a correction is a comma-separated list of valid areas. For limitations, check each item on its own: if any item is not stated in a source, the verdict is corrected and the value lists only the stated items, one per line; if none is stated, unsupported. Treat description the same way: a clause no source states makes it corrected or unsupported. List any source that failed to load.',
@@ -997,7 +1472,7 @@ async function verifyProposal(client, usage, { system, entities, sourceUrls, tex
   });
   if (!research) return { error: 'the verification call was refused or did not finish' };
   const verification = await structure(client, usage, {
-    instruction: 'Turn these verification notes into the schema. Use only verdicts in the notes. A field the notes do not mention is unsupported. value is empty unless the verdict is corrected. Copy each entity\'s key (e1, e2, ...) exactly as the notes give it.',
+    instruction: 'Turn these verification notes into the schema. Use only verdicts in the notes. A field the notes do not mention is unsupported. value is empty unless the verdict is corrected. Copy each entity\'s key (e1, e2, ...) exactly as the notes give it. duplicates holds only the rulings the notes give, with the store record id exactly as written; links holds only the relations the notes give, with the target as an entity key (e1) or a store record id exactly as written.',
     notes: research.text,
     schema: VERIFICATION_SCHEMA,
   });
@@ -1064,11 +1539,12 @@ async function verifyUpdate(client, usage, { system, record, fields, sourceUrls,
 // ---------- Main ----------
 
 function parseArgs(argv) {
-  const args = { dryRun: false, reportOnly: false, fixtures: FIXTURES, out: '', issue: 0, storeDir: '', root: ROOT, storeChecks: true };
+  const args = { dryRun: false, reportOnly: false, replay: false, fixtures: FIXTURES, out: '', issue: 0, storeDir: '', root: ROOT, storeChecks: true };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--dry-run') args.dryRun = true;
     else if (a === '--report-only') args.reportOnly = true;
+    else if (a === '--replay') args.replay = true;
     else if (a === '--fixtures') args.fixtures = argv[++i];
     else if (a === '--out') args.out = argv[++i];
     else if (a === '--issue') args.issue = Number(argv[++i]);
@@ -1077,6 +1553,9 @@ function parseArgs(argv) {
     else if (a === '--no-store-checks') args.storeChecks = false;
     else throw new Error(`unknown argument ${a}`);
   }
+  // A replay runs an issue again against an older store and KG release (to compare with what an
+  // earlier run produced), so it skips the check for an existing pull request. Report-only only.
+  if (args.replay && !args.reportOnly) throw new Error('--replay needs --report-only');
   return args;
 }
 
@@ -1124,8 +1603,27 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   if (!args.dryRun && !args.issue) throw new Error('--issue <n> is required outside --dry-run');
 
   const gh = args.dryRun ? null : (deps.github ?? githubClient(env.GH_TOKEN || env.GITHUB_TOKEN));
-  const state = { outcome: '', entities: [], dropped: [], sourceNotes: [], records: [], prUrl: '' };
+  const state = { outcome: '', entities: [], dropped: [], sourceNotes: [], records: [], prUrl: '', kg: null, kgLog: null };
   const branch = `intake/issue-${args.issue}`;
+  // The knowledge-graph server loads while the draft call runs. Without it the run deduplicates by
+  // name against the checkout only and adds no links to store records, as before.
+  let kgStart = null;
+  const kgAvailable = async () => {
+    if (!kgStart) return null;
+    const { kg, error } = await kgStart;
+    if (!kg && !state.kg) {
+      state.kg = { used: false, error };
+      notes.push(`The knowledge graph was not available (${error}); deduplicated by name only, and no links to store records.`);
+    }
+    if (kg && !state.kg) state.kg = { used: true, release: kg.stats.release, statements: kg.stats.statements, ready_seconds: kg.stats.readySeconds, iri_base: kg.config?.iri_base ?? null, kinds: kg.config?.kinds ?? null };
+    return kg;
+  };
+  const closeKg = async () => {
+    const kg = kgStart ? (await kgStart).kg : null;
+    if (!kg || state.kg?.closed) return;
+    await kg.close();
+    Object.assign(state.kg, { closed: true, calls: kg.stats.calls, call_seconds: Math.round(kg.stats.ms / 100) / 10, peak_memory_mb: kg.stats.peakMemoryMb });
+  };
 
   const finish = async (outcome, comment) => {
     state.outcome = outcome;
@@ -1310,7 +1808,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       await finish('skipped: closed', null);
       return result();
     }
-    if (!args.dryRun) {
+    if (!args.dryRun && !args.replay) {
       const pulls = await gh.pullsFor(repo, branch);
       const live = pulls.find((p) => p.state === 'open' || p.merged_at);
       if (live) {
@@ -1335,6 +1833,18 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     const marker = (issue.labels ?? []).includes(UPDATE_LABEL) ? parseUpdateMarker(issue.body) : null;
     if (marker?.action === 'update') return await runUpdate(marker, storeDir, storeUrls, client, system);
 
+    // The knowledge graph starts loading now and is ready by the time the draft is.
+    if (deps.kg !== undefined) kgStart = Promise.resolve(deps.kg ? { kg: deps.kg, error: null } : { kg: null, error: 'not given' });
+    else if (env.KG_BUNDLE) {
+      kgStart = startKg({
+        bundle: env.KG_BUNDLE,
+        draftConfig: env.KG_DRAFT_CONFIG,
+        draftDir: join(tmpdir(), `intake-kg-${process.pid}`),
+        command: env.KG_MCP_COMMAND || 'rdf-kg-mcp',
+        cacheDir: env.RDF_KG_MCP_CACHE || '',
+        log,
+      });
+    }
     let proposal;
     if (args.dryRun) proposal = readJson(join(fixtures, 'proposal.json'));
     else {
@@ -1406,7 +1916,16 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       return result();
     }
 
-    // 6. Verification against the primary sources.
+    // 6. Possible duplicates and link targets in the knowledge graph, then verification against
+    // the primary sources.
+    const kg = await kgAvailable();
+    let kgCands = null;
+    let tools = null;
+    if (kg) {
+      kgCands = await kgCandidates(kg, screened.keep, { log });
+      tools = kgTools(kg);
+      state.kg.candidates = Object.fromEntries([...kgCands].map(([k, c]) => [k, { duplicates: c.duplicates.map((d) => d.id), related: c.related.map((d) => d.id) }]));
+    }
     let verification;
     let reviewModel = MODELS.verify;
     if (args.dryRun) verification = readJson(join(fixtures, 'verification.json'));
@@ -1417,7 +1936,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       }
       const openable = [...sources.entries()].filter(([, s]) => !s.error).map(([u]) => u);
       const texts = openable.map((u) => ({ url: u, text: sources.get(u).text ?? '' }));
-      const verified = await verifyProposal(client, usage, { system, entities: screened.keep, sourceUrls: openable, texts, runDate, log });
+      const verified = await verifyProposal(client, usage, { system, entities: screened.keep, sourceUrls: openable, texts, runDate, log, candidates: kgCands, tools });
       if (verified.error) {
         await finish(`skipped: ${verified.error}`, renderSkipComment({ kind: 'model', detail: verified.error, runUrl, usage }));
         return result();
@@ -1428,12 +1947,32 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       if (verification.unopened?.length) notes.push(`The verifier could not open: ${verification.unopened.map(clean).join('; ')}`);
     }
 
-    // 7. Build the batch.
+    // 7. Build the batch, then write it through the knowledge graph's draft overlay, which checks
+    // it against the release and exports the lines records -- add gets.
+    const known = new Map();
+    for (const c of kgCands?.values() ?? []) for (const r of [...c.duplicates, ...c.related]) known.set(r.id, r);
+    for (const [id, r] of tools?.seen ?? []) if (r.kind) known.set(id, r);
     const built = buildBatch({
       entities: screened.keep, verification, sources, batch, issue: issue.number, runDate,
-      reviewedAt: nowIso(clock()), reviewModel, runUrl,
+      reviewedAt: nowIso(clock()), reviewModel, runUrl, candidates: kgCands ?? new Map(), known,
     });
     state.dropped.push(...built.dropped);
+    state.kgLog = built.kgLog;
+    let exported = null;
+    if (kg && built.entities.length) {
+      const drafted = await draftThroughKg(kg, built.records, { ruled: built.ruled, log });
+      if (drafted.error) notes.push(`The knowledge-graph overlay could not export the batch (${drafted.error}); the script wrote it instead.`);
+      else {
+        exported = drafted;
+        state.dropped.push(...drafted.dropped);
+        const keptIds = new Set(drafted.records.map((r) => r.id));
+        built.records = drafted.records;
+        built.entities = built.entities.filter((e) => keptIds.has(e.id));
+        built.kgLog.links = built.kgLog.links.filter((l) => keptIds.has(l.from) && (l.in === 'store' || keptIds.has(l.to)));
+        state.kg.batch_sha256 = drafted.batchSha256;
+      }
+    }
+    await closeKg();
     state.entities = built.entities;
     state.records = built.records;
     if (!built.entities.length) {
@@ -1443,9 +1982,15 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     }
     const folder = join(args.root, batchDir);
     mkdirSync(folder, { recursive: true });
-    const batchText = built.records.map((r) => `${JSON.stringify(r)}\n`).join('');
+    // The overlay's export when there is one: its lines are what JSON.stringify writes, with the
+    // keys inside attributes and facets sorted, so the same batch always gives the same bytes.
+    const batchText = exported ? exported.batchText : built.records.map((r) => `${JSON.stringify(r)}\n`).join('');
     writeFileSync(join(folder, 'batch.jsonl'), batchText);
-    writeFileSync(join(folder, 'notes.md'), renderNotes({ issue: issue.number, issueTitle: issue.title, runDate, entities: built.entities, dropped: state.dropped, sourceNotes: state.sourceNotes, fieldLog: built.fieldLog, usage }));
+    state.batchText = batchText;
+    writeFileSync(join(folder, 'notes.md'), renderNotes({ issue: issue.number, issueTitle: issue.title, runDate, entities: built.entities, dropped: state.dropped, sourceNotes: state.sourceNotes, fieldLog: built.fieldLog, usage, kgLog: built.kgLog }));
+    // What the reviewer checks again: each duplicate ruling, each link and its locator, and the
+    // overlay's diff of the batch against the release.
+    writeFileSync(join(folder, 'kg.json'), `${JSON.stringify(kgReceipt({ kgState: state.kg, kgLog: built.kgLog, summary: exported?.summary ?? null, batchText }), null, 2)}\n`);
     writeFileSync(join(folder, 'review.json'), `${JSON.stringify({
       schema_version: '1.0',
       method: 'intake_agent_source_review',
@@ -1455,10 +2000,13 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       limitations: [
         'Automated review by the same agent run that drafted the records; an independent review has not happened.',
         'Source bytes were hashed at fetch time but not stored in the archive object store.',
-        'No relationship links to other records were added.',
+        built.kgLog.links.length
+          ? 'Relationship links were added only where the verification pass found the relation stated in a source; kg.json lists each with its locator.'
+          : 'No relationship links to other records were added.',
+        ...(state.kg?.used ? [] : ['The knowledge graph was not available, so possible duplicates were checked by name against the store only.']),
       ],
       errors: [],
-      files: { 'batch.jsonl': sha256(batchText) },
+      files: { 'batch.jsonl': sha256(batchText), 'kg.json': sha256(readFileSync(join(folder, 'kg.json'))) },
       source_artifacts: Object.fromEntries([...sources.values()].filter((s) => s.record).map((s) => [s.id, s.record.attributes.artifact_sha256])),
       run_url: runUrl || undefined,
     }, null, 2)}\n`);
@@ -1489,7 +2037,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     const seconds = Math.round((Date.now() - started) / 1000);
     // A sweep's new-checkpoint issue asks for entities only, so its pull request closes it, like tier 3.
     const closes = (issue.labels ?? []).includes('tier-3') || (issue.labels ?? []).includes(UPDATE_LABEL);
-    const body = renderPullBody({ closes, issue: issue.number, entities: built.entities, dropped: state.dropped, sourceNotes: state.sourceNotes, usage, seconds, runUrl, batchDir });
+    const body = renderPullBody({ closes, issue: issue.number, entities: built.entities, dropped: state.dropped, sourceNotes: state.sourceNotes, usage, seconds, runUrl, batchDir, kgLog: built.kgLog, kgState: state.kg });
     return await ship({ title, body, batchDir, commitBody: `Entity records requested in #${issue.number}, added by the intake agent. Metadata only; no evaluation or result.`, done: `${built.entities.length} record${built.entities.length === 1 ? '' : 's'}` });
   } catch (e) {
     notes.push(`The run failed: ${errorText(e)}`);
@@ -1503,16 +2051,17 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     }
     throw e;
   } finally {
-    const summary = renderSummary({ mode, issue: issue?.number ?? args.issue, runDate, outcome: state.outcome, entities: state.entities, dropped: state.dropped, sourceNotes: state.sourceNotes, notes, usage, prUrl: state.prUrl });
+    await closeKg().catch(() => {});
+    const summary = renderSummary({ mode, issue: issue?.number ?? args.issue, runDate, outcome: state.outcome, entities: state.entities, dropped: state.dropped, sourceNotes: state.sourceNotes, notes, usage, prUrl: state.prUrl, kgState: state.kg, kgLog: state.kgLog });
     emit(summary);
     if (state.comment) emit(`### Comment it would post\n\n${state.comment}\n`);
     if (state.pull && !state.prUrl) emit(`### Pull request it would open\n\n**${state.pull.title}**\n\n${state.pull.body}\n`);
     if (args.out) {
       mkdirSync(args.out, { recursive: true });
-      writeFileSync(join(args.out, 'result.json'), `${JSON.stringify({ outcome: state.outcome, entities: state.entities, dropped: state.dropped, sources: state.sourceNotes, pull: state.pull ?? null, comment: state.comment ?? null, prUrl: state.prUrl || null }, null, 2)}\n`);
+      writeFileSync(join(args.out, 'result.json'), `${JSON.stringify({ outcome: state.outcome, entities: state.entities, dropped: state.dropped, sources: state.sourceNotes, kg: state.kg, links: state.kgLog?.links ?? [], duplicate_rulings: state.kgLog?.duplicates ?? [], rejected_links: state.kgLog?.rejected_links ?? [], pull: state.pull ?? null, comment: state.comment ?? null, prUrl: state.prUrl || null }, null, 2)}\n`);
       if (state.proposal) writeFileSync(join(args.out, 'proposal.json'), `${JSON.stringify(state.proposal, null, 2)}\n`);
       if (state.verification) writeFileSync(join(args.out, 'verification.json'), `${JSON.stringify(state.verification, null, 2)}\n`);
-      writeFileSync(join(args.out, 'batch.jsonl'), state.records.map((r) => `${JSON.stringify(r)}\n`).join(''));
+      writeFileSync(join(args.out, 'batch.jsonl'), state.batchText ?? state.records.map((r) => `${JSON.stringify(r)}\n`).join(''));
       writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total(), seconds: Math.round((Date.now() - started) / 1000) }, null, 2)}\n`);
     }
     log(`Estimated cost of this run: $${usage.total().toFixed(4)}`);

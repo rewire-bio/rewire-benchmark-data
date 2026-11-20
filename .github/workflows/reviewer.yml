@@ -22,6 +22,9 @@ permissions:
   contents: read
   pull-requests: write
   checks: read
+env:
+  # The knowledge graph server, pinned to the release intake.yml uses.
+  RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.3.1
 concurrency:
   group: reviewer-${{ github.event.pull_request.number || inputs.pr || github.ref }}
   cancel-in-progress: true
@@ -79,9 +82,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Install the Anthropic SDK
+      - name: Install the Anthropic SDK and the MCP client
         if: env.HAS_KEY == 'true'
         run: npm ci --prefix scripts/agents --no-audit --no-fund
+      # The knowledge graph, read-only: the reviewer searches the newest kg/<id> release for possible
+      # duplicates of each new record. Without it the review uses the intake's kg.json only.
+      - uses: astral-sh/setup-uv@v6
+        if: env.HAS_KEY == 'true'
+      - name: Knowledge graph server and bundle
+        if: env.HAS_KEY == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv tool install --quiet "$RDF_KG_MCP"
+          tag=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName,createdAt --jq '[.[] | select(.tagName | startswith("kg/"))] | sort_by(.createdAt) | last | .tagName')
+          mkdir -p "$RUNNER_TEMP/kg"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern 'kg-*.tar.gz' --dir "$RUNNER_TEMP/kg"
+          {
+            echo "KG_BUNDLE=$(ls "$RUNNER_TEMP"/kg/kg-*.tar.gz)"
+            echo "KG_MCP_COMMAND=rdf-kg-mcp"
+            echo "RDF_KG_MCP_CACHE=$RUNNER_TEMP/kg-cache"
+          } >> "$GITHUB_ENV"
       - name: Review
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
