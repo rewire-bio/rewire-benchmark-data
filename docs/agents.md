@@ -97,7 +97,7 @@ What it does:
 
 Every record has status `discovered`. Models, methods and benchmarks carry `depth_tier` from their areas, and an `entity_level` (model `family`, `checkpoint` or `service`; method `method` or `family`; benchmark `suite` or `challenge`) that the verifier may correct, with `family`, `method` or `suite` when none is valid. Datasets and sources do not, because the attribute registry does not declare it for them. Each review object carries `reviewed_at` and no `date`, `reviewer` `claude-sonnet` (or `claude` if a refusal fallback answered) and a `reviewer_note` naming the run. Sources carry no licence string, because a new one would need a reviewed row in `data/archive/licence-map.tsv`. The agent adds no links between records.
 
-To run it again on the same issue, remove and re-add the label, or run the workflow by hand. A rerun force-pushes the branch only when there is no open or merged pull request for it.
+To run it again on the same issue, remove and re-add the label, or run the workflow by hand. A rerun pushes the branch only when there is no open or merged pull request for it. It deletes a branch left by an earlier run before pushing, so the push never carries main's later changes to workflow files, which GitHub can refuse from a token without the workflows permission. A failed store check or a refused push is commented on the issue and fails the run, so the pipeline alert sees it.
 
 ### Modes
 
@@ -164,7 +164,7 @@ The mode for bot pull requests is the repository variable `REVIEWER_MODE` (unset
 
 ### Before switching to approve
 
-- GitHub does not let the author of a pull request approve it, and intake pull requests are authored by rewire-bot. Approve mode approves as a second app, rewire-reviewer (repository variable `REVIEWER_APP_ID`, secret `REVIEWER_APP_PRIVATE_KEY`; it needs pull requests and contents write on this repository). The same token enables auto-merge, so the merge, made by an app and not by `GITHUB_TOKEN`, starts the checks and the release on `main`. Without the app the review is posted as a comment and nothing merges.
+- GitHub does not let the author of a pull request approve it, and intake pull requests are authored by rewire-bot. Approve mode approves as a second app, rewire-reviewer (repository variable `REVIEWER_APP_ID`, secret `REVIEWER_APP_PRIVATE_KEY`; it needs pull requests and contents write on this repository, and the workflow asks for a token limited to those two on this repository only). The same token enables auto-merge, so the merge, made by an app and not by `GITHUB_TOKEN`, starts the checks and the release on `main`. Without the app the review is posted as a comment and nothing merges.
 - Auto-merge is on for this repository.
 - A ruleset requiring the 14 `checks (...)` jobs on `main` is planned. Until it is on, auto-merge waits for nothing GitHub requires, so the reviewer itself waits for every other check on the head commit to pass before it approves.
 - For the same reason, rewire-bot cannot request changes on its own pull request. In approve mode the rewire-reviewer app posts that verdict; in comment mode it is a comment review that states the verdict.

@@ -49,7 +49,8 @@ jobs:
           permission-checks: read
       # Approve mode only: the rewire-reviewer app approves and enables auto-merge. GitHub refuses an
       # approval from the pull request author (rewire-bot), and an app token, unlike GITHUB_TOKEN,
-      # lets the merge start the checks and the release on main.
+      # lets the merge start the checks and the release on main. This repository only: pull
+      # requests to approve, contents to enable auto-merge.
       - name: Token for the rewire-reviewer app
         id: approver
         if: env.MODE == 'approve' && env.HAS_KEY == 'true' && vars.REVIEWER_APP_ID != ''
@@ -57,8 +58,8 @@ jobs:
         with:
           app-id: ${{ vars.REVIEWER_APP_ID }}
           private-key: ${{ secrets.REVIEWER_APP_PRIVATE_KEY }}
-          owner: rewire-bio
-          repositories: rewire-benchmark-data
+          permission-contents: write
+          permission-pull-requests: write
       # The review code and prompt come from the default branch, never from the pull request under review.
       - uses: actions/checkout@v4
         with:

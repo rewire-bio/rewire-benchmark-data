@@ -163,4 +163,10 @@ describe("alert workflow", () => {
     expect(alert).toMatch(new RegExp(`branches: \\[main, "${PR_BRANCH_PREFIX}\\*\\*"\\]`));
     expect(readFileSync("scripts/agents/intake.mjs", "utf8")).toContain("`" + PR_BRANCH_PREFIX + "issue-${");
   });
+  it("starts no job for other workflows' runs on the intake's branches", () => {
+    const condition = /^ {4}if: >-\n((?: {6}.*\n)+)/m.exec(alert)?.[1] ?? "";
+    expect(condition).toContain("github.event.workflow_run.head_branch == 'main'");
+    const allowed = [...condition.matchAll(/endsWith\(github\.event\.workflow_run\.path, '\/([^']+)'\)/g)].map((m) => m[1]);
+    expect(allowed.sort()).toEqual([...PR_WORKFLOWS].sort());
+  });
 });
