@@ -27,7 +27,8 @@ export function hfRepo(url: string): { type: 'model' | 'dataset' | 'space'; id: 
 export function hfIdsInText(text: string): string[];
 export function tracksVersion(record: Rec): boolean;
 export function nameMatches(record: Rec, repoName: string): boolean;
-export function refsOf(record: Rec, sources: Map<string, Rec>): { repos: Ref[]; pages: Ref[]; links: { url: string; source_id: string }[] };
+export function nameEquals(record: Rec, repoName: string): boolean;
+export function refsOf(record: Rec, sources: Map<string, Rec>): { repos: Ref[]; pages: Ref[]; links: { url: string; source_id: string }[]; entity: string };
 export function request(url: string, opts?: { method?: string; headers?: Record<string, string>; fetchImpl?: typeof fetch; body?: boolean }): Promise<Record<string, any>>;
 export function checkLink(url: string, fetchImpl: typeof fetch): Promise<{ url: string; state: 'ok' | 'dead' | 'blocked'; detail: string }>;
 export function githubFacts(ref: Ref, opts: { fetchImpl: typeof fetch; token?: string }): Promise<Record<string, any>>;
@@ -37,7 +38,7 @@ export function licenceAgrees(recordLicence: string, observed: string): boolean;
 export function candidatesFor(record: Rec, refs: { repos: Ref[]; pages: Ref[] }, opts: { facts: Map<string, any>; pages?: Record<string, any>; known?: string }): { candidates: Candidate[]; health: Record<string, any>[] };
 export function healthKey(h: Record<string, any>): string;
 export function checkedValue(candidate: Candidate, value: string): string | null;
-export function markUmbrellas(refsById: Map<string, { repos: Ref[] }>, storeRefs: { repos: Ref[] }[]): Set<string>;
+export function markUmbrellas(refsById: Map<string, { repos: Ref[] }>, storeRefs: { repos: Ref[]; entity: string }[]): Set<string>;
 export function refKey(ref: Ref): string;
 export function worstCase(model: string, chars: number, maxTokens: number): number;
 export function ownershipPrompt(pairs: Record<string, any>[]): string;

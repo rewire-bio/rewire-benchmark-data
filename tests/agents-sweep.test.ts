@@ -327,6 +327,18 @@ describe("candidates are changes, not gaps the model fills", () => {
     expect(refsById.get("m8")?.repos[0]).toMatchObject({ own: false, ambiguous: true });
   });
 
+  it("keeps a repository named exactly for the record, and does not count a duplicate record as a second claimant", () => {
+    const sources = new Map([["s1", { id: "s1", attributes: { url: "https://github.com/songlab-cal/tape" } }], ["s2", { id: "s2", attributes: { url: "https://github.com/Illumina/SpliceAI" } }]]);
+    const rec = (id: string, name: string, src: string, kind = "model") => ({ id, kind, name, source_ids: [src], attributes: { depth_tier: 1 } });
+    const all = [rec("b", "TAPE", "s1", "benchmark"), rec("l", "TAPE LSTM", "s1"), rec("c", "SpliceAI", "s2"), rec("d", "SpliceAI", "s2")];
+    const refsById = new Map(all.map((r) => [r.id, refsOf(r, sources)]));
+    markUmbrellas(refsById, [...refsById.values()]);
+    expect(refsById.get("b")?.repos[0].own).toBe(true);
+    expect(refsById.get("l")?.repos[0].own).toBe(false);
+    expect(refsById.get("c")?.repos[0].own).toBe(true);
+    expect(refsById.get("d")?.repos[0].own).toBe(true);
+  });
+
   it("files a value only when it carries what the APIs observed", () => {
     const c = (type: string, observed: string) => ({ type, observed, action: "update" as const, current: "", evidence: [], key: "k", facts: {} });
     expect(checkedValue(c("release", "v1.2"), "v9.9.9 (GitHub release, 2027-01-01)")).toBeNull();

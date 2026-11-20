@@ -151,6 +151,12 @@ export function nameMatches(record, repoName) {
   return names.some((n) => repo.includes(n) || (repo.length >= 3 && n.includes(repo)));
 }
 
+/** Exact name match: the repository is named for this entity (ProteinGym, not ProteinGym HMM). */
+export function nameEquals(record, repoName) {
+  const repo = squash(repoName);
+  return [record.name, record.attributes?.reported_name].map(squash).some((n) => n.length >= 3 && n === repo);
+}
+
 /**
  * What to check for one entity: its GitHub and Hugging Face repositories (from its sources and
  * the text of its version, licence and access fields), the benchmark project pages it cites,
@@ -170,6 +176,7 @@ export function refsOf(record, sources) {
     else {
       if (ref.own) prev.own = true;
       if (ref.named) prev.named = true;
+      if (ref.exact) prev.exact = true;
       if (ref.baseline && (!prev.baseline || ref.baseline < prev.baseline)) prev.baseline = ref.baseline;
       prev.urls = unique([...prev.urls, ...ref.urls]);
     }
@@ -181,8 +188,8 @@ export function refsOf(record, sources) {
       const gh = githubRepo(url);
       const hf = hfRepo(url);
       const baseline = a.retrieved_at ?? recordBaseline;
-      if (gh) add(`github:${gh.owner}/${gh.repo}`.toLowerCase(), { host: 'github', owner: gh.owner, repo: gh.repo, name: gh.repo, own: nameMatches(record, gh.repo), baseline, urls: [url], source_id: s.id });
-      else if (hf) add(`hf:${hf.type}:${hf.id}`.toLowerCase(), { host: 'hf', type: hf.type, id: hf.id, name: hf.id.split('/')[1], own: nameMatches(record, hf.id.split('/')[1]), baseline, urls: [url], source_id: s.id });
+      if (gh) add(`github:${gh.owner}/${gh.repo}`.toLowerCase(), { host: 'github', owner: gh.owner, repo: gh.repo, name: gh.repo, own: nameMatches(record, gh.repo), exact: nameEquals(record, gh.repo), baseline, urls: [url], source_id: s.id });
+      else if (hf) add(`hf:${hf.type}:${hf.id}`.toLowerCase(), { host: 'hf', type: hf.type, id: hf.id, name: hf.id.split('/')[1], own: nameMatches(record, hf.id.split('/')[1]), exact: nameEquals(record, hf.id.split('/')[1]), baseline, urls: [url], source_id: s.id });
       else if (record.kind === 'benchmark' && url === a.url && a.artifact_sha256 && !onHost(new URL(url).hostname, PAPER_HOSTS))
         pages.push({ url, source_id: s.id, sha256: a.artifact_sha256, hash_scope: a.hash_scope ?? null, baseline, own: nameMatches(record, new URL(url).hostname + new URL(url).pathname) });
     }
@@ -190,22 +197,26 @@ export function refsOf(record, sources) {
   for (const id of hfIdsInText(recordText(record)))
     add(`hf:model:${id}`.toLowerCase(), { host: 'hf', type: 'model', id, name: id.split('/')[1], own: true, named: true, baseline: recordBaseline, urls: [`https://huggingface.co/${id}`], source_id: null });
   // `named`: the record's own fields name the repository, so it is the record's own whatever else cites it.
-  const list = [...repos.values()].map((r) => ({ ...r, named: Boolean(r.named), ambiguous: !r.own }));
-  return { repos: list, pages, links };
+  const list = [...repos.values()].map((r) => ({ ...r, named: Boolean(r.named), exact: Boolean(r.exact), ambiguous: !r.own }));
+  return { repos: list, pages, links, entity: squash(record.name) };
 }
 
 /**
- * A repository whose name matches more than one record of the store (facebookresearch/esm for
- * ESM-1v, ESM-2 and ESMFold), or that one record names and others match by name, is an umbrella:
- * a name match does not make it any one record's own, so it goes to the ownership call unless the
- * record's own fields name it. Mutates `refsById`.
+ * A repository claimed by records of more than one name (facebookresearch/esm for ESM-1v, ESM-2
+ * and ESMFold; songlab-cal/tape for TAPE and TAPE LSTM) is an umbrella: a partial name match does
+ * not make it any one record's own, so it goes to the ownership call. A record named exactly as
+ * the repository, or whose own fields name it, keeps it. Two records of the same name (a catalog
+ * and a discovery record of SpliceAI) do not make an umbrella. Mutates `refsById`.
  */
 export function markUmbrellas(refsById, storeRefs) {
-  const matches = new Map();
-  for (const refs of storeRefs) for (const ref of refs.repos) if (ref.own) matches.set(refKey(ref), (matches.get(refKey(ref)) ?? 0) + 1);
-  const umbrellas = new Set([...matches].filter(([, n]) => n > 1).map(([k]) => k));
+  const names = new Map();
+  for (const refs of storeRefs) for (const ref of refs.repos) if (ref.own) {
+    if (!names.has(refKey(ref))) names.set(refKey(ref), new Set());
+    names.get(refKey(ref)).add(refs.entity);
+  }
+  const umbrellas = new Set([...names].filter(([, n]) => n.size > 1).map(([k]) => k));
   for (const refs of refsById.values()) for (const ref of refs.repos)
-    if (ref.own && !ref.named && umbrellas.has(refKey(ref))) Object.assign(ref, { own: false, ambiguous: true, umbrella: true });
+    if (ref.own && !ref.named && !ref.exact && umbrellas.has(refKey(ref))) Object.assign(ref, { own: false, ambiguous: true, umbrella: true });
   return umbrellas;
 }
 

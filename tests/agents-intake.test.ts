@@ -568,6 +568,8 @@ describe("entity-update issues", () => {
     const fetchImpl = async () => new Response("This repository was archived by the owner.", { status: 200, headers: { "content-type": "text/html" } });
     const run = (cmd: string, args: string[]) => {
       commands.push([cmd, ...args].join(" "));
+      // No branch left by an earlier run.
+      if (args[0] === "ls-remote") return { ok: false, output: "" };
       return { ok: true, output: "ok" };
     };
     const root = tempRoot();
@@ -579,6 +581,7 @@ describe("entity-update issues", () => {
       "npm run -s records -- add data/omics/update-9998-20261119/batch.jsonl data/omics/update-9998-20261119",
       "npm run -s records -- change data/omics/update-9998-20261119/review.json data/omics/update-9998-20261119 discovery-model-spliceai",
       "npm run -s records -- check",
+      "git ls-remote --exit-code --heads origin refs/heads/intake/issue-9998",
       "git checkout -B intake/issue-9998",
       "git add -- data/omics/update-9998-20261119 data/entities data/provenance",
       expect.stringMatching(/^git commit -m Update SpliceAI/),
