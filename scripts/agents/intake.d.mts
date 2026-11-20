@@ -35,7 +35,7 @@ export function buildBatch(input: {
   runDate: string; reviewedAt: string; reviewModel: string; runUrl: string;
 }): { records: any[]; entities: { id: string; kind: string; name: string; tier: number | null }[]; dropped: Dropped[]; fieldLog: any[] };
 export function buildUpdate(input: {
-  record: any; fields: Record<string, string>; verification: any; sources: Map<string, { id?: string; record?: any; error?: string }>; issue: number; runDate: string;
+  record: any; fields: Record<string, string>; verification: any; sources: Map<string, { id?: string; record?: any; error?: string }>; issue: number; runDate: string; repo?: string;
 }): { record: any | null; records: any[]; kept: string[]; fieldLog: any[]; dropped: Dropped[] };
 export function replaceRecordLine(text: string, record: { id: string }): string;
 export function renderUpdatePullBody(input: any): string;

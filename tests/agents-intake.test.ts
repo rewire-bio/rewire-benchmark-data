@@ -475,7 +475,8 @@ describe("entity-update issues", () => {
     expect(built.record.id).toBe(record.id);
     expect(built.record.status).toBe(record.status);
     expect(built.record.source_ids).toEqual([...record.source_ids, "update-1-source-x"]);
-    expect(built.record.attributes.source_locator).toContain("Updated from rewire-benchmark-data issue #1");
+    expect(built.record.attributes.source_locator).toContain("Updated from issue #1");
+    expect(buildUpdate({ record, fields: { access: "x" }, verification, sources, issue: 7, runDate: "2026-12-01", repo: "rewire-bio/next-store" }).record.attributes.source_locator).toContain("issue rewire-bio/next-store#7");
     expect(built.records.map((r: { id: string }) => r.id)).toEqual(["update-1-source-x"]);
     expect(built.records[0].facets.areas).toEqual(record.facets.areas);
     expect(built.dropped.map((d: { reason: string }) => d.reason)).toEqual([

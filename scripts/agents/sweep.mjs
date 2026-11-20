@@ -35,6 +35,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 export const PROMPT_PATH = 'agents/sweep.md';
 export const FIXTURES = 'tests/agents-sweep-fixtures';
 export const ORG = 'rewire-bio';
+/** The repository when GITHUB_REPOSITORY is unset (local runs). The workflow always sets it. */
+export const DEFAULT_REPO = `${ORG}/rewire-benchmark-data`;
 export const LABEL = 'entity-update';
 export const SWEEP_LABEL = 'entity-sweep';
 export const MODELS = { classify: 'claude-haiku-5-5', confirm: 'claude-sonnet-5-5' };
@@ -704,7 +706,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   const write = !args.dryRun && !args.reportOnly;
   const clock = deps.now ?? (() => new Date());
   const runDate = clock().toISOString().slice(0, 10);
-  const repo = env.GITHUB_REPOSITORY || `${ORG}/rewire-benchmark-data`;
+  const repo = env.GITHUB_REPOSITORY || DEFAULT_REPO;
   if (repo.split('/')[0] !== ORG) throw new Error(`The sweep only runs in ${ORG} repositories, not ${repo}`);
   const runUrl = env.RUN_URL || (env.GITHUB_RUN_ID ? `${env.GITHUB_SERVER_URL || 'https://github.com'}/${repo}/actions/runs/${env.GITHUB_RUN_ID}` : '');
   const log = deps.log ?? ((m) => console.log(m));
@@ -760,7 +762,8 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     pairs.push({ record, ref, name: record.name, kind: record.kind, description: record.description, repo: ref.host === 'github' ? `github.com/${ref.owner}/${ref.repo}` : `huggingface.co/${ref.id}`, repo_description: f.description ?? '' });
   }
   if (pairs.length) {
-    const answer = await call('ownership', 'all', { model: MODELS.classify, prompt: ownershipPrompt(pairs), schema: OWNERSHIP_SCHEMA, maxTokens: LIMITS.classifyMaxTokens });
+    // About 20 output tokens a pair; scale the cap so a long list is not cut short.
+    const answer = await call('ownership', 'all', { model: MODELS.classify, prompt: ownershipPrompt(pairs), schema: OWNERSHIP_SCHEMA, maxTokens: Math.max(LIMITS.classifyMaxTokens, 200 + 20 * pairs.length) });
     if (answer.error) notes.push(`Ownership check of ${plural(pairs.length, 'repository', 'repositories')} not made (${answer.error}); those repositories were not checked for changes.`);
     for (const p of answer.value?.pairs ?? []) if (p.own && pairs[p.n]) pairs[p.n].ref.own = true;
   }

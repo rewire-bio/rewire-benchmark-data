@@ -53,7 +53,9 @@ const ENTITY_KINDS = ['model', 'method', 'benchmark', 'dataset'];
 const TIER_KINDS = ['model', 'method', 'benchmark'];
 /** Fields the model judges, per record, when the record has them. source_ids and name always. */
 export const REVIEWED_FIELDS = ['name', 'description', 'areas', 'entity_level', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations', 'source_ids'];
-const BATCH_FILE = /^data\/omics\/[^/]+\/batch\.jsonl$/;
+// An intake update pull request (entity-update issues, #257) puts the changed record in
+// changed.jsonl and only new sources in batch.jsonl, so both are reviewed.
+const BATCH_FILE = /^data\/omics\/[^/]+\/(batch|changed)\.jsonl$/;
 
 const unique = (list) => [...new Set(list)];
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));

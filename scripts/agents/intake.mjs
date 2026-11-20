@@ -406,7 +406,7 @@ export function buildBatch({ entities, verification, sources, batch, issue, runD
  * values are written. The record keeps its ID, status and review; the change is described in its
  * source_locator and in the batch's review.json. Pure; returns { record, records, kept, fieldLog, dropped }.
  */
-export function buildUpdate({ record, fields, verification, sources, issue, runDate }) {
+export function buildUpdate({ record, fields, verification, sources, issue, runDate, repo = '' }) {
   const allowed = UPDATE_FIELDS[record.kind] ?? [];
   const fieldLog = [];
   const dropped = [];
@@ -432,7 +432,7 @@ export function buildUpdate({ record, fields, verification, sources, issue, runD
   if (!kept.length) return { record: null, records: [], kept, fieldLog, dropped };
   if (attributes.missing_metadata && !Object.keys(attributes.missing_metadata).length) delete attributes.missing_metadata;
   const opened = [...sources.values()].filter((s) => s && !s.error);
-  const note = `Updated from rewire-benchmark-data issue #${issue} by the intake agent on ${runDate}: ${locators.join('; ')}`;
+  const note = `Updated from issue ${repo}#${issue} by the intake agent on ${runDate}: ${locators.join('; ')}`;
   attributes.source_locator = attributes.source_locator ? `${attributes.source_locator}; ${note}` : note;
   const updated = { ...record, source_ids: unique([...(record.source_ids ?? []), ...opened.map((s) => s.id)]), attributes };
   const facets = { areas: record.facets?.areas ?? [], contexts: record.facets?.contexts?.length ? record.facets.contexts : ['research'] };
@@ -1245,7 +1245,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       state.verification = verification;
       reviewModel = verified.model;
     }
-    const built = buildUpdate({ record, fields, verification, sources, issue: issue.number, runDate });
+    const built = buildUpdate({ record, fields, verification, sources, issue: issue.number, runDate, repo });
     state.dropped.push(...built.dropped);
     if (!built.record) {
       await finish('skipped: nothing verified', renderSkipComment({ kind: 'nothing', dropped: state.dropped, runUrl, usage, label: UPDATE_LABEL }));
@@ -1265,7 +1265,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       method: 'intake_agent_source_review',
       reviewer: `Intake agent: ${reviewModel} verified each changed field against the evidence pages; automated, no human review`,
       reviewed_at: nowIso(clock()),
-      scope: `Fields ${built.kept.join(', ')} of ${record.id}, as asked in rewire-benchmark-data issue #${issue.number} (monthly entity sweep). Entities only; no evaluation, result or claim.`,
+      scope: `Fields ${built.kept.join(', ')} of ${record.id}, as asked in issue ${repo}#${issue.number} (monthly entity sweep). Entities only; no evaluation, result or claim.`,
       limitations: [
         'Automated review by the agent run that made the change; an independent review has not happened.',
         'The record keeps its earlier review object; this file is the receipt for the changed fields only.',
