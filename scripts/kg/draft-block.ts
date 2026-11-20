@@ -61,7 +61,7 @@ export function draftBlock(mapping: Mapping) {
     references: [{ field: "source_ids", kinds: ["source"] }],
     // facets and attributes are z.record, so their key order is kept by records add and is part of the
     // digest. Sorting them makes two drafts of the same record give the same bytes. Links carry no order;
-    // source_ids keep the caller's order, because the first source is read as the primary one.
+    // source_ids keep the caller's order, because some extraction scripts treat the first as the primary source.
     sort_within: ["attributes", "facets"],
     sort_arrays: ["links"],
   };
