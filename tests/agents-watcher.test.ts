@@ -46,7 +46,7 @@ describe("diff", () => {
     const d = diffReleases({ ...previous, discrepancies: [old] }, { ...current, discrepancies: [current.discrepancies[0]] });
     expect(d.added).toEqual([]);
     expect(d.gone).toEqual([]);
-    expect(d.priorIds.get(NEW1)).toEqual([old.id]);
+    expect(d.priorIds?.get(NEW1)).toEqual([old.id]);
     // Its lead issue, filed under the old ID, still counts, so a rise comments there.
     const rose = diffReleases({ ...previous, discrepancies: [{ ...old, severity: "low" }] }, { ...current, discrepancies: [current.discrepancies[0]] });
     const plan = planRun(rose, { issues: [{ number: 900, title: "Lead: x", body: `<!-- ${MARKERS.lead}: ${old.id} -->`, state: "open" }], release: RELEASE });
@@ -60,7 +60,7 @@ describe("diff", () => {
     const d = diffReleases({ ...previous, discrepancies: [a, b] }, { ...current, discrepancies: [merged] });
     expect(d.gone).toEqual([]);
     expect(d.added).toEqual([]);
-    expect(d.priorIds.get(merged.id)).toEqual([a.id, b.id]);
+    expect(d.priorIds?.get(merged.id)).toEqual([a.id, b.id]);
   });
   it("says a gone finding may have been re-keyed when the rules changed", () => {
     const d = diffReleases({ ...previous, rules: { version: "4" } }, current);

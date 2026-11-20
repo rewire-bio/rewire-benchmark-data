@@ -10,9 +10,10 @@ export const MARKERS: Record<'lead' | 'listed' | 'rose' | 'refired' | 'gone', st
 export const NOT_RECORDED: string;
 export type Finding = Record<string, any>;
 export type Lead = { finding: Finding; reason: 'new' | 'rose' | 'refired'; from?: string };
-export type Diff = { added: Finding[]; rose: { finding: Finding; from: string }[]; refired: Finding[]; gone: { finding: Finding; resolved: boolean; state: string | null }[]; rulesChanged: { from: string | null; to: string | null } | null };
+export type Diff = { added: Finding[]; rose: { finding: Finding; from: string }[]; refired: Finding[]; gone: { finding: Finding; resolved: boolean; state: string | null }[]; priorIds?: Map<string, string[]>; rulesChanged: { from: string | null; to: string | null } | null };
 export type Plan = { file: Lead[]; overflow: Lead[]; comments: { number: number; marker: string; body: string }[]; skipped: { id: string; reason: string }[] };
 export type IssueText = { title: string; body: string; labels: string[]; assignees: string[] };
+export function keySignature(finding: Finding): string | null;
 export function diffReleases(previous: any, current: any): Diff;
 export function knownLeads(issues: any[]): Map<string, { number: number; state?: string; html_url?: string; how: string }[]>;
 export function planRun(diff: Diff, opts: { issues: any[]; release: string; maxIssues?: number }): Plan;
