@@ -30,10 +30,11 @@
  * and the run is 30 to 60 seconds.
  */
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { changedInputs, inputFiles, marks, printsFigure, readFigures, retag, SPAN_FIGURES } from "../shared/omics/reports/figures";
+import { changedInputs, inputFiles, marks, printsFigure, readFigures, recordsFileFor, retag, SPAN_FIGURES, writeFigures } from "../shared/omics/reports/figures";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const figures = readFigures(root);
@@ -142,5 +143,61 @@ describe("rewriting a tagged figure", () => {
     const current = retag(document, { resolved: 5399, resolved_pct: 10.3 });
     expect(current.text).toBe(document);
     expect(current.changed).toEqual([]);
+  });
+});
+
+/** The record-by-record input check, on a store laid out the way the real one is.
+ *
+ * These exist because the check they replace was positional, and a positional check is wrong on
+ * a file the store keeps sorted: `records add` puts a new record wherever its ID sorts, so an
+ * intake of 116 sources that touched no measured record failed as `a measured record changed`.
+ * The first test below is that case. The two after it are the ones that must still fail, which
+ * is what says the fix did not simply make the check quieter.
+ */
+describe("a data input checked record by record", () => {
+  const sorted = (rows: { id: string; value: number }[]): string => [...rows].sort((a, b) => (a.id < b.id ? -1 : 1)).map((row) => `${JSON.stringify(row)}\n`).join("");
+  const measured = [
+    { id: "alpha-2025", value: 1 },
+    { id: "mid-2025", value: 2 },
+    { id: "omega-2025", value: 3 },
+  ];
+
+  /** A root holding one JSONL input, written the way the store writes one. */
+  function store(rows: { id: string; value: number }[]): string {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "figures-"));
+    fs.writeFileSync(path.join(dir, "records.jsonl"), sorted(rows));
+    return dir;
+  }
+
+  const INPUT = ["records.jsonl"];
+  const was = inputFiles(store(measured), INPUT);
+
+  it("is unchanged by a record that sorts into the middle of it", () => {
+    const root = store([...measured, { id: "beta-2025", value: 4 }]);
+    expect(inputFiles(root, INPUT)[0].sha256).not.toBe(was[0].sha256);
+    expect(changedInputs(was, inputFiles(root, INPUT), root)).toEqual([]);
+  });
+
+  it("fails and names the record when a measured record changes", () => {
+    const root = store(measured.map((row) => (row.id === "mid-2025" ? { ...row, value: 99 } : row)));
+    expect(changedInputs(was, inputFiles(root, INPUT), root)).toEqual([
+      { path: "records.jsonl", was: "3 records measured", now: "1 measured record changed: mid-2025" },
+    ]);
+  });
+
+  it("fails and names the record when a measured record is removed", () => {
+    const root = store(measured.filter((row) => row.id !== "mid-2025"));
+    expect(changedInputs(was, inputFiles(root, INPUT), root)).toEqual([
+      { path: "records.jsonl", was: "3 records measured", now: "1 measured record is gone: mid-2025" },
+    ]);
+  });
+
+  it("survives a round trip through the file beside the figures", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "figures-"));
+    const content = { command: "test", produced: "2026-11-20", documents: [], inputs: was, figures: { resolved: 1 } };
+    writeFigures(root, content, "reports/figures.json");
+    expect(JSON.parse(fs.readFileSync(path.join(root, "reports/figures.json"), "utf8")).inputs[0].records).toBeUndefined();
+    expect(fs.existsSync(path.join(root, recordsFileFor("reports/figures.json")))).toBe(true);
+    expect(readFigures(root, "reports/figures.json").inputs).toEqual(was);
   });
 });
