@@ -94,6 +94,13 @@ export async function uploadObjects(options: { root?: string; dryRun?: boolean; 
     const existing = await fetch(head.url, { method: "HEAD", headers: head.headers });
     if (existing.status === 200) {
       summary.skipped += 1;
+      // Marked here as well as after a PUT, because the bucket holding the bytes is the whole
+      // of what a row's home claims, and how they got there is not part of it. Without this,
+      // a run interrupted between the PUT and the manifest commit could never be repaired: the
+      // second run would find the object already there, skip it, and leave the row saying the
+      // bytes live somewhere else for good. The CI job makes that ordinary, because a cancelled
+      // run or a rejected push ends it in exactly that state.
+      if (await markHome(key, "r2", root)) summary.marked += 1;
       continue;
     }
     const put = signRequest(settings, "PUT", name, body);
