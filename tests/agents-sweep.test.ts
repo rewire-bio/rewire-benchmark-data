@@ -364,14 +364,18 @@ describe("failed reads are reported, not read as empty", () => {
     }) as unknown as typeof fetch });
     expect(hf.siblings.map((s: { id: string }) => s.id)).toEqual(["arcinstitute/evo2_20b"]);
     expect(hf.siblings_error).toBeNull();
+    const gated = await hfFacts({ type: "model", id: "a/b" }, { fetchImpl: fixtureFetch({ "https://huggingface.co/api/models/a/b": { status: 403, json: {} } }) as unknown as typeof fetch });
+    expect(gated.state).toBe("gated");
   });
 
   it("says in the summary which repositories were not read", async () => {
     const http = JSON.parse(readFileSync(`${FIXTURES}/http.json`, "utf8"));
     http["https://api.github.com/repos/rewire-fixtures/helix/releases?per_page=10"] = { status: 429, json: { message: "slow down" } };
     delete http["https://api.github.com/repos/rewire-fixtures/quarry"];
+    http["https://huggingface.co/api/models/rewire-fixtures/Dune_100M"] = { status: 403, json: {} };
     const r = await main(["--store-dir", `${FIXTURES}/entities`, "--report-only"], { GITHUB_REPOSITORY: "rewire-bio/rewire-benchmark-data" }, { fetch: fixtureFetch(http), github: { listIssues: async () => [] }, now: at("2026-12-01T05:00:00Z"), log: quiet });
-    expect(r.summary).toContain("2 repositories or release lists not read");
+    expect(r.summary).toContain("3 repositories or release lists not read");
+    expect(r.summary).toContain("not read hf:model:rewire-fixtures/dune_100m repository (gated or rate-limited) (HTTP 403)");
     expect(r.summary).toContain("not read github:rewire-fixtures/helix release list (HTTP 429)");
     expect(r.summary).toContain("not read github:rewire-fixtures/quarry repository");
   });

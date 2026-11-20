@@ -394,7 +394,8 @@ export function candidatesFor(record, refs, { facts, pages = {}, known = '' }) {
     if (v?.new_version && v.version && fields.includes('version') && !text.includes(String(v.version).toLowerCase()))
       out.push({ type: 'leaderboard', field: 'version', action: 'update', observed: v.version, current: a.version ?? '', evidence: [p.url], key: key('leaderboard', v.version), facts: { page: p.url, page_says: v.evidence } });
   }
-  return { candidates: out, health };
+  // Two own repositories by one author find the same checkpoint: keep it once.
+  return { candidates: out.filter((c, i) => out.findIndex((o) => o.key === c.key) === i), health };
 }
 
 /**
@@ -830,7 +831,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   // Reads that failed (rate limits, bot walls, timeouts) are listed, so a quiet month is not mistaken for a checked one.
   const unread = [];
   for (const [k, f] of facts) {
-    if (f.state === 'blocked') unread.push({ repo: k, what: 'repository', detail: f.detail });
+    if (f.state === 'blocked' || f.state === 'gated') unread.push({ repo: k, what: f.state === 'gated' ? 'repository (gated or rate-limited)' : 'repository', detail: f.detail });
     else if (f.releases_error) unread.push({ repo: k, what: 'release list', detail: f.releases_error });
     else if (f.siblings_error) unread.push({ repo: k, what: 'checkpoint list', detail: f.siblings_error });
   }
