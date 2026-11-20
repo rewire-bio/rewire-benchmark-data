@@ -1,0 +1,191 @@
+# Put every archived object in the bucket, and record the bucket as its home.
+#
+# Why this runs here rather than on a laptop. R2 is the one home of every object (ADR 0004,
+# determination 5), but the credential is a repository secret and nothing else holds it, so the
+# upload cannot be run anywhere else. The manifest rows do not move until an upload has actually
+# put the bytes somewhere: nothing claims the bucket holds an object on the strength of a plan.
+#
+# Why it hydrates first. `upload` sends what the object cache holds, and the cache is gitignored
+# by design, so a runner starts with none of it. The bytes it needs are on the release tags
+# `publish` wrote, which are public and need no credential. Without that step the job would find
+# an empty cache, send nothing, and report success, which is the failure mode worth naming.
+#
+# What it cannot reach. An object in neither the bucket nor a release has one copy, in the cache
+# of whichever machine fetched it. `pull --from release` reports those as `no remote copy`,
+# separately from the rows it skips because the bucket already holds them. If that number is not
+# zero, this job cannot finish the archive and the gate below says so: the fix is a local
+# `archive publish` or `archive upload` from the machine that holds them.
+#
+# What decides success. Not the step exit codes, which only say that commands ran. The gate is
+# the manifest itself: every row that is not a takedown must end the run saying `store: r2`.
+name: Archive upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: >-
+          Objects to hydrate at most, for a small trial run. Not a way to take the archive up in
+          stages: the runner's cache does not survive between runs, so each run starts again at
+          the same first N objects rather than carrying on from the last.
+        required: false
+        type: string
+      dry_run:
+        description: Select and report, transfer nothing, write nothing.
+        required: false
+        type: boolean
+        default: false
+
+# One upload at a time. Uploads queue rather than cancel, because a cancelled run leaves the
+# bucket holding bytes whose manifest row was never marked. That is recoverable, since an upload
+# marks a row whose object it finds already there, but a second run racing the first is not.
+concurrency:
+  group: archive-upload
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      # No credential here: the release assets are public. The app token is minted later, after
+      # the transfers, because an installation token lives 60 minutes and this job may take 90.
+      - name: Fill the cache from the release assets
+        env:
+          LIMIT: ${{ inputs.limit }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          df -h / | tail -1
+          # A boolean input arrives as the string "false", which is not empty, so ${DRY_RUN:+...}
+          # would pass the flag either way.
+          dry=""
+          [ "$DRY_RUN" = "true" ] && dry="--dry-run"
+          # `-s` matters: npm writes its run banner to stdout, so without it the redirect
+          # captures two lines of banner ahead of the JSON and the parse below dies on them.
+          # A non-zero exit here is not fatal, and the `|| true` is deliberate: pull exits 1 if
+          # any single object failed, and one dead release asset should not stop the other 870
+          # from reaching the bucket. The summary is still written, the failures are reported
+          # below, and the gate at the end of the job is what decides.
+          npm run -s archive -- pull --from release --json ${LIMIT:+--limit "$LIMIT"} $dry > "$RUNNER_TEMP/pull.json" || true
+          node -e '
+            const summary = require(`${process.env.RUNNER_TEMP}/pull.json`);
+            console.log(`held ${summary.already_held}, downloaded ${summary.downloaded}, already in R2 ${summary.already_in_the_bucket}, no remote copy ${summary.no_remote_copy}, failed ${summary.failed.length}`);
+            for (const failure of summary.failed.slice(0, 10)) console.log(`  ${failure.key} ${failure.status ?? "no status"} ${failure.message}`);
+            // Not fatal. A release asset that has gone leaves its row still naming the tag, and
+            // one such row should not stop the other 870 from reaching the bucket. The gate at
+            // the end is what decides, and it reads the manifest rather than this step.
+            if (summary.failed.length) console.log(`::warning::${summary.failed.length} objects could not be hydrated from a release.`);
+            if (summary.no_remote_copy) console.log(`::warning::${summary.no_remote_copy} objects are in neither the bucket nor a release, so this job cannot reach them.`);
+          '
+
+      - name: Upload to the bucket and mark the manifest
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          for name in R2_ACCOUNT_ID R2_BUCKET R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY; do
+            if [ -z "${!name}" ]; then echo "::error::$name is not set for this repository."; exit 1; fi
+          done
+          npm run -s archive -- upload ${{ inputs.dry_run && '--dry-run' || '' }} > "$RUNNER_TEMP/upload.json"
+          node -e '
+            const summary = require(`${process.env.RUNNER_TEMP}/upload.json`);
+            console.log(summary.dry_run
+              ? `dry run: considered ${summary.considered}, would upload ${summary.would_upload}, removed ${summary.removed}; the bucket was not contacted`
+              : `considered ${summary.considered}, uploaded ${summary.uploaded}, already there ${summary.skipped}, removed ${summary.removed}, marked ${summary.marked}, failed ${summary.failed.length}`);
+            for (const failure of summary.failed.slice(0, 10)) console.log(`  ${failure.key} ${failure.status}`);
+            if (summary.failed.length) { console.log("::error::The bucket refused some objects."); process.exit(1); }
+          '
+
+      # Minted here rather than at the top, because an installation token is valid for 60
+      # minutes and the hydrate and upload above can take most of this job's 90.
+      - name: Token for the rewire-bot app
+        id: app
+        if: ${{ !inputs.dry_run }}
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REWIRE_BOT_APP_ID }}
+          private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
+          owner: rewire-bio
+          repositories: rewire-benchmark-data
+
+      - name: Record the bucket as the home of what was uploaded
+        if: ${{ !inputs.dry_run }}
+        env:
+          # main requires the data checks to pass, and only rewire-bot may push to it without
+          # them. The release commit is pushed the same way.
+          TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          # Only the manifest moves. The cache is gitignored and nothing else in the tree is
+          # touched by an upload, so a diff anywhere else means something unexpected ran.
+          if [ -z "$(git status --porcelain data/archive/objects)" ]; then
+            echo "No manifest row changed: every object the cache holds was already in the bucket."
+            exit 0
+          fi
+          unexpected=$(git status --porcelain | grep -v '^ M data/archive/objects/' || true)
+          if [ -n "$unexpected" ]; then echo "::error::An upload changed more than the manifest:"; echo "$unexpected"; exit 1; fi
+          git config user.name "rewire-release-bot"
+          git config user.email "rewire-release-bot@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:$TOKEN@github.com/$GITHUB_REPOSITORY"
+          git add data/archive/objects
+          git commit -m "Record R2 as the home of the uploaded objects [skip ci]"
+          # A pull request merged while this ran moves main on. Rebase onto it and push again;
+          # the manifest is one line per object keyed on a hash, so a rebase conflicts only with
+          # another run of this job, which the concurrency group has already excluded.
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then break; fi
+            if [ "$attempt" = 5 ]; then echo "::error::Could not push the manifest after $attempt attempts."; exit 1; fi
+            sleep $((attempt * 5))
+            git fetch origin main
+            git rebase origin/main
+          done
+
+      # The real test of the job, and the reason it is after the commit rather than before: a
+      # partial run should keep the rows it did move and still go red for the ones it did not.
+      - name: Every object that is not a takedown is homed in the bucket
+        if: ${{ !inputs.dry_run }}
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            const dir = "data/archive/objects";
+            const rows = fs.readdirSync(dir).filter((name) => name.endsWith(".jsonl"))
+              .flatMap((name) => fs.readFileSync(`${dir}/${name}`, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line)));
+            const owed = rows.filter((row) => row.archive_tier !== "t5-no-store" && row.store !== "r2");
+            console.log(`${rows.length} rows, ${rows.length - owed.length} homed in the bucket, ${owed.length} not`);
+            for (const row of owed.slice(0, 10)) console.log(`  ${row.sha256} store=${row.store} tier=${row.archive_tier}`);
+            if (owed.length) {
+              console.log(`::error::${owed.length} objects are still outside the bucket. If they are "no remote copy" above, run archive upload from the machine that holds them.`);
+              process.exit(1);
+            }
+          '
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Archive upload"
+            echo
+            if [ -f "$RUNNER_TEMP/pull.json" ]; then
+              echo "### Hydrated from the release assets"
+              echo '```json'
+              cat "$RUNNER_TEMP/pull.json"
+              echo '```'
+            fi
+            if [ -f "$RUNNER_TEMP/upload.json" ]; then
+              echo "### Uploaded"
+              echo '```json'
+              cat "$RUNNER_TEMP/upload.json"
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

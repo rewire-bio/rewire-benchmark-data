@@ -215,7 +215,7 @@ it("imports nothing from the record store that writes one", () => {
   expect(records.flatMap((entry) => entry.names)).toEqual(["readKind"]);
   // Nothing that writes a record, a manifest row or a cached object is named
   // anywhere in the file, imported or not.
-  for (const writer of ["writeKind", "writeStore", "addBatch", "recordChanges", "reshardStore", "upsertRow", "updateRow", "markStore", "markRemoved", "putObject", "adoptFile", "writeRegistry"])
+  for (const writer of ["writeKind", "writeStore", "addBatch", "recordChanges", "reshardStore", "upsertRow", "updateRow", "markHome", "markMirror", "markRemoved", "putObject", "adoptFile", "writeRegistry"])
     expect({ writer, present: source.includes(writer) }).toEqual({ writer, present: false });
 });
 
