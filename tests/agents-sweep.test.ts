@@ -300,11 +300,11 @@ describe("candidates are changes, not gaps the model fills", () => {
     expect(candidatesFor(rec({ entity_level: "family", ...gap }), { repos: [ref], pages: [] }, { facts: facts([fresh]) }).candidates).toEqual([]);
   });
 
-  it("counts only releases after the stored sources, and labels a missing version as a gap", () => {
+  it("counts only releases after the stored sources, and only notes one for a record with no version and no pin", () => {
     expect(candidatesFor(rec({ entity_level: "checkpoint", ...gap }), { repos: [ref], pages: [] }, { facts: facts([old]) }).candidates).toEqual([]);
-    const [c] = candidatesFor(rec({ entity_level: "checkpoint", ...gap }), { repos: [ref], pages: [] }, { facts: facts([fresh, old]) }).candidates;
-    expect(c).toMatchObject({ type: "version_gap", observed: "v2.0.0" });
-    expect(c.facts.releases_since_baseline.map((r: { tag: string }) => r.tag)).toEqual(["v2.0.0"]);
+    const unpinned = candidatesFor(rec({ entity_level: "checkpoint", ...gap }), { repos: [ref], pages: [] }, { facts: facts([fresh, old]) });
+    expect(unpinned.candidates).toEqual([]);
+    expect(unpinned.look).toEqual([expect.objectContaining({ type: "version", repo: "o/tool", detail: expect.stringContaining("v2.0.0 (2026-10-01)") })]);
     const [r] = candidatesFor(rec({ entity_level: "family", version: "v1.0.1" }), { repos: [ref], pages: [] }, { facts: facts([fresh, old]) }).candidates;
     expect(r).toMatchObject({ type: "release", observed: "v2.0.0" });
   });
