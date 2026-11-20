@@ -12,7 +12,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 const repository = "rewire-bio/rewire-benchmark-data";
-const rdfKgMcp = process.env.RDF_KG_MCP ?? "git+https://github.com/rewire-bio/rdf-kg-mcp@v0.3.0";
+const rdfKgMcp = process.env.RDF_KG_MCP ?? "git+https://github.com/rewire-bio/rdf-kg-mcp@v0.3.1";
 const check = process.argv.includes("--check");
 const manifestFile = "public/kg/manifest.json";
 if (!fs.existsSync(manifestFile)) throw new Error("No knowledge-graph bundle found; run npm run kg:build first");
