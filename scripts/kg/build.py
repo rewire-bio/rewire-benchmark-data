@@ -64,6 +64,7 @@ MAPPING = ONTOLOGY_DIR / "mapping.json"
 RB = rdflib.Namespace("https://benchmarks.rewire.it/vocab#")
 SH = rdflib.Namespace("http://www.w3.org/ns/shacl#")
 ID = "https://benchmarks.rewire.it/id/"
+SEARCH_TEXT_PREDICATES = ["rb:task", "rb:question", "rb:searchTerms", "rb:reportedName"]
 GRAPHS = {
     "asserted": "https://benchmarks.rewire.it/graph/asserted",
     "inferred": "https://benchmarks.rewire.it/graph/inferred",
@@ -561,6 +562,10 @@ def build(kg_dir: Path) -> dict:
             **{p.stem: f"https://benchmarks.rewire.it/vocab/{p.stem}/" for p in sorted(VOCAB_DIR.glob("*.ttl"))},
         },
         "label_predicates": ["rdfs:label", "skos:prefLabel", "skos:altLabel"],
+        # Literal predicates rdf-kg-mcp's search indexes beyond labels and descriptions (#281).
+        "search": {"text_predicates": SEARCH_TEXT_PREDICATES},
+        # How records are shaped, for rdf-kg-mcp's draft tools; written by export.ts (draft-block.ts).
+        **({"draft": exported["draft"]} if "draft" in exported else {}),
         "mapping_sha256": exported["mapping_sha256"],
         "inferred": {
             "reasoner": {"name": "owlrl", "version": importlib.metadata.version("owlrl"), "profile": "OWL 2 RL"},
