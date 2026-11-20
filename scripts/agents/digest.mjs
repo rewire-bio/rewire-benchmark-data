@@ -1,4 +1,4 @@
-// Weekly digest of agent activity (rewire-benchmark-data #259). Every Monday it opens one issue,
+// Weekly digest of agent activity (rewire-benchmark-data #259). Every Monday, in live mode, it opens one issue,
 // "Weekly digest: <from> to <to>", assigned to timini and labelled digest, and closes the
 // previous week's. Every fact comes from GitHub, the release assets and the live site; a model
 // only writes an optional three-sentence summary from those facts.
@@ -36,7 +36,7 @@ export const NEEDS_TIM = 'needs-tim';
 export const SITE = 'https://benchmarks.rewirebio.io';
 export const AGENTS = { discovery: 'discovery.yml', intake: 'intake.yml', reviewer: 'reviewer.yml' };
 export const MODELS = { summary: 'claude-haiku-5-5' };
-export const LIMITS = { costUsd: 0.25, summaryMaxTokens: 400, artifacts: 60, maxListed: 15 };
+export const LIMITS = { costUsd: 0.25, summaryMaxTokens: 400, artifacts: 100, maxListed: 15, maxDays: 31, bodyChars: 65000 };
 const FAIL = new Set(['failure', 'timed_out', 'startup_failure']);
 const PROVISIONAL = new Set(['discovered', 'needs_review']);
 const STORE_FILES = { model: 'models', method: 'methods', benchmark: 'benchmarks', dataset: 'datasets', source: 'sources' };
@@ -48,11 +48,33 @@ const DIGEST_MARKER = /<!-- weekly-digest: (\{.*?\}) -->/;
 const day = (iso) => String(iso).slice(0, 10);
 const inWindow = (iso, w) => Boolean(iso) && iso >= w.since && iso < w.until;
 
-/** The reporting window: the `days` days before `now`. */
-export function windowOf(now, days = 7) {
+/**
+ * The reporting window: from `since` (the previous digest's end, see anchorSince) to `now`, or the
+ * `days` days before `now` when there is no previous digest.
+ */
+export function windowOf(now, days = 7, since = null) {
   const until = new Date(now).toISOString();
-  const since = new Date(Date.parse(until) - days * 86_400_000).toISOString();
-  return { since, until, label: `${day(since)} to ${day(until)}` };
+  const start = since && since < until ? new Date(since).toISOString() : new Date(Date.parse(until) - days * 86_400_000).toISOString();
+  return { since: start, until, label: `${day(start)} to ${day(until)}` };
+}
+
+/** ISO 8601 week of a timestamp, in UTC: "2026-W48". */
+export function isoWeek(iso) {
+  const d = new Date(`${day(iso)}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 3 - ((d.getUTCDay() + 6) % 7));
+  const year = d.getUTCFullYear();
+  const week = Math.ceil(((d - Date.UTC(year, 0, 1)) / 86_400_000 + 1) / 7);
+  return `${year}-W${String(week).padStart(2, '0')}`;
+}
+
+/** The { since, until } stored in a digest issue's marker, or null. */
+export function digestMarker(body) {
+  try {
+    const m = JSON.parse(DIGEST_MARKER.exec(String(body ?? ''))?.[1] ?? 'null');
+    return m && typeof m.since === 'string' && typeof m.until === 'string' ? m : null;
+  } catch {
+    return null;
+  }
 }
 
 /** The reviewer agent's headline: `**Reviewer agent verdict: <verdict>.** ...`. Null if absent. */
@@ -101,7 +123,7 @@ export function stateMatches(review) {
  * runs and do not count; reviewer runs from pull requests are real reviews (its dry-run job
  * uploads nothing). usage maps run id to the artifact's usage.json, or null when unreadable.
  */
-export function agentRuns(runsByAgent, artifacts, usage, w) {
+export function agentRuns(runsByAgent, artifacts, usage, w, unread = new Set()) {
   const withArtifact = new Set(artifacts.map((a) => String(a.workflow_run?.id ?? a.name.split('-').pop())));
   const out = {};
   for (const [agent, runs] of Object.entries(runsByAgent)) {
@@ -111,31 +133,60 @@ export function agentRuns(runsByAgent, artifacts, usage, w) {
     const failed = counted.filter((r) => FAIL.has(r.conclusion));
     let spend = 0;
     let recorded = 0;
+    let skipped = 0;
     for (const r of counted) {
+      if (unread.has(String(r.id))) {
+        skipped += 1;
+        continue;
+      }
       const u = usage[r.id];
       if (u && typeof u.estimatedUsd === 'number') {
         spend += u.estimatedUsd;
         recorded += 1;
       }
     }
-    out[agent] = { runs: counted.length, failed: failed.map((r) => ({ id: r.id, url: r.html_url, conclusion: r.conclusion })), spend, recorded };
+    out[agent] = { runs: counted.length, failed: failed.map((r) => ({ id: r.id, url: r.html_url, conclusion: r.conclusion })), spend, recorded, unread: skipped };
   }
   return out;
 }
 
-/** Discrepancies new, resolved and stopped firing between two releases' discrepancies.json. */
+/** Runs that count for agentRuns: in the window, and not a discovery or intake pull request dry run. */
+export function countedRunIds(runsByAgent, w) {
+  const ids = new Set();
+  for (const [agent, runs] of Object.entries(runsByAgent)) {
+    for (const r of runs) if (inWindow(r.created_at, w) && (agent === 'reviewer' || r.event !== 'pull_request')) ids.add(String(r.id));
+  }
+  return ids;
+}
+
+/**
+ * The agent artifacts to read usage.json from: only those of counted runs, newest first, at most
+ * `cap`. `unread` holds the run ids of counted artifacts left out by the cap.
+ */
+export function artifactsToRead(artifacts, runIds, cap = LIMITS.artifacts) {
+  const counted = artifacts.filter((a) => runIds.has(String(a.workflow_run?.id))).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  return { read: counted.slice(0, cap), unread: new Set(counted.slice(cap).map((a) => String(a.workflow_run.id))), total: counted.length };
+}
+
+/**
+ * Discrepancies new, resolved and stopped firing between two releases' discrepancies.json. Open
+ * means unsettled, as on the site and over MCP (docs/discrepancies.md); `settled` lists live
+ * findings settled since the baseline that still fire.
+ */
 export function diffDiscrepancies(baseline, current) {
   const before = new Map((baseline?.discrepancies ?? []).map((d) => [d.id, d]));
   const now = current?.discrepancies ?? [];
   const seen = new Set();
-  const out = { added: [], resolved: [], stopped: [], open: 0, openPublic: 0 };
+  const out = { added: [], resolved: [], stopped: [], settled: [], open: 0, openPublic: 0 };
+  const isSettled = (d) => Boolean(d.resolved || d.settled);
   for (const d of now) {
     const prev = before.get(d.id) ?? (d.previous_ids ?? []).map((id) => before.get(id)).find(Boolean);
     if (prev) seen.add(prev.id);
-    if (!d.resolved) {
+    if (!isSettled(d)) {
       out.open += 1;
       if (d.listing === 'public') out.openPublic += 1;
     }
+    if (!d.resolved && d.settled && (!prev || !isSettled(prev))) out.settled.push(d);
     if (!prev && !d.resolved) out.added.push(d);
     if (d.resolved && (!prev || !prev.resolved)) out.resolved.push(d);
   }
@@ -160,17 +211,30 @@ export function count(n, singular, plural = `${singular}s`) {
   return `${n} ${n === 1 ? singular : plural}`;
 }
 
-/** Open or update this week's digest issue and close older ones. */
+/**
+ * Open or update this week's digest issue and close older ones. A digest whose window ends in the
+ * same ISO week (UTC) as this one is this week's, so a re-run on any day of the week updates it.
+ */
 export function planIssue(existing, w) {
-  const mine = existing.filter((i) => DIGEST_MARKER.test(i.body ?? ''));
-  const same = mine.find((i) => {
-    try {
-      return day(JSON.parse(DIGEST_MARKER.exec(i.body)[1]).until) === day(w.until);
-    } catch {
-      return false;
-    }
-  });
+  const mine = existing.filter((i) => digestMarker(i.body));
+  const week = isoWeek(w.until);
+  const same = mine.find((i) => isoWeek(digestMarker(i.body).until) === week);
   return { update: same ?? null, close: mine.filter((i) => i !== same) };
+}
+
+/**
+ * Where the next window starts, so consecutive digests neither overlap nor leave a gap: this
+ * week's digest keeps its own start; otherwise the newest earlier digest's end. Null when there is
+ * none, or it is more than LIMITS.maxDays old.
+ */
+export function anchorSince(existing, now) {
+  const until = new Date(now).toISOString();
+  const markers = existing.map((i) => digestMarker(i.body)).filter((m) => m && m.until <= until);
+  const week = isoWeek(until);
+  const start = markers.find((m) => isoWeek(m.until) === week)?.since
+    ?? markers.filter((m) => isoWeek(m.until) !== week).map((m) => m.until).sort().pop();
+  if (!start || start >= until || Date.parse(until) - Date.parse(start) > LIMITS.maxDays * 86_400_000) return null;
+  return start;
 }
 
 const link = (item) => `[${item.repo && item.repo !== item.home ? `${item.repo.split('/')[1]}#` : '#'}${item.number}](${item.url})`;
@@ -227,13 +291,18 @@ export function renderDigest(facts, { summary = '' } = {}) {
   out.push('| Agent | Runs | Failed | Spend |', '| --- | --- | --- | --- |');
   let total = 0;
   let unrecorded = 0;
+  let unread = 0;
   for (const [agent, r] of Object.entries(facts.runs)) {
     total += r.spend;
-    unrecorded += r.runs - r.recorded;
-    const spend = r.runs === 0 ? 'none' : r.recorded === 0 ? 'not recorded' : `${money(r.spend)}${r.recorded < r.runs ? ` (${count(r.runs - r.recorded, 'run')} not recorded)` : ''}`;
+    const skipped = r.unread ?? 0;
+    const missing = r.runs - r.recorded - skipped;
+    unrecorded += missing;
+    unread += skipped;
+    const gaps = [missing ? `${count(missing, 'run')} not recorded` : '', skipped ? `${skipped} not read, over the artifact cap` : ''].filter(Boolean).join(', ');
+    const spend = r.runs === 0 ? 'none' : r.recorded === 0 ? (skipped && !missing ? 'not read, over the artifact cap' : 'not recorded') : `${money(r.spend)}${gaps ? ` (${gaps})` : ''}`;
     out.push(`| ${agent} | ${r.runs} | ${r.failed.length ? r.failed.map((f, k) => `[${k + 1}](${f.url})`).join(' ') : '0'} | ${spend} |`);
   }
-  out.push('', `Anthropic spend recorded: ${money(total)}${unrecorded ? `; ${count(unrecorded, 'run')} left no usage.json, so ${unrecorded === 1 ? 'its' : 'their'} spend is not recorded` : ''}. Spend is each run's own estimate from token counts, not the Console bill.`);
+  out.push('', `Anthropic spend recorded: ${money(total)}${unrecorded ? `; ${count(unrecorded, 'run')} left no readable usage.json, so ${unrecorded === 1 ? 'its' : 'their'} spend is not recorded` : ''}${unread ? `; ${count(unread, 'run')} not read because the digest reads at most ${LIMITS.artifacts} artifacts` : ''}. Spend is each run's own estimate from token counts, not the Console bill.`);
   if (facts.runsNote) out.push('', facts.runsNote);
   out.push('');
 
@@ -258,10 +327,11 @@ export function renderDigest(facts, { summary = '' } = {}) {
   out.push('### Discrepancies', '');
   if (!x) out.push('- No knowledge-graph release to compare.');
   else {
-    out.push(`- Compared \`${x.from ?? 'nothing'}\` with \`${x.to}\`: ${x.added.length} new, ${x.resolved.length} resolved, ${x.stopped.length} stopped firing. ${x.open} open, ${x.openPublic} of them public.`);
+    out.push(`- Compared \`${x.from ?? 'nothing'}\` with \`${x.to}\`: ${x.added.length} new, ${x.resolved.length} resolved, ${x.stopped.length} stopped firing. ${x.open} open (not settled), ${x.openPublic} of them public.`);
     out.push(...list(x.added.filter((dd) => dd.listing === 'public'), (dd) => `new ${c(dd)}`));
     if (x.added.some((dd) => dd.listing !== 'public')) out.push(`  - and ${count(x.added.filter((dd) => dd.listing !== 'public').length, 'new finding')} listed for curation only`);
     out.push(...list(x.resolved, (dd) => `resolved (${dd.review_state}) ${c(dd)}`), ...list(x.stopped, (dd) => `stopped firing \`${dd.id}\` ${plain(dd.label ?? '')}`));
+    if (x.settled?.length) out.push(`- Settled since \`${x.from ?? 'nothing'}\` and still firing: ${x.settled.length}`, ...list(x.settled, (dd) => `settled (${dd.review_state}) ${c(dd)}`));
   }
   out.push(`- Open leads: ${facts.leads.length}`, ...list(facts.leads, (i) => `${L(i)} ${plain(i.title.replace(/^Lead:\s*/, ''))}`));
   out.push('');
@@ -277,8 +347,12 @@ export function renderDigest(facts, { summary = '' } = {}) {
   out.push('- Tier 1 use-case ranking changes per release and the gap scanner\'s proposals (#259) are not in the digest yet.');
   if (facts.skipped.length) out.push(...facts.skipped.map((s) => `- Not read: \`${s.repo}\` (${s.reason}).`));
   out.push(...facts.notes.map((n) => `- ${n}`));
-  out.push('', `<!-- weekly-digest: ${JSON.stringify({ since: w.since, until: w.until })} -->`);
-  return out.filter((l, i, all) => !(l === '' && all[i - 1] === '')).join('\n').slice(0, 65000);
+  // The marker goes on after any cut, so planIssue and anchorSince always find it.
+  const marker = `<!-- weekly-digest: ${JSON.stringify({ since: w.since, until: w.until })} -->`;
+  const body = out.filter((l, i, all) => !(l === '' && all[i - 1] === '')).join('\n');
+  const room = LIMITS.bodyChars - marker.length - 60;
+  const kept = body.length > room ? `${body.slice(0, room).replace(/\n[^\n]*$/, '')}\n\n(Cut at GitHub's issue size limit.)` : body;
+  return `${kept}\n\n${marker}`;
 }
 
 // ---------- Inputs ----------
@@ -310,8 +384,11 @@ export async function readStore(root) {
   return { batches, status };
 }
 
-/** GitHub REST with pagination; `stop(item)` ends paging early for lists sorted newest first. */
-export function githubClient(token, fetchImpl = fetch) {
+/**
+ * GitHub REST with pagination; `stop(item)` ends paging early for lists sorted newest first.
+ * `onLimit(path)` is called when a list stops at its page limit with more items left.
+ */
+export function githubClient(token, fetchImpl = fetch, onLimit = () => {}) {
   async function call(method, path, body, { raw = false, accept = 'application/vnd.github+json' } = {}) {
     const res = await fetchImpl(path.startsWith('http') ? path : `https://api.github.com${path}`, {
       method,
@@ -335,8 +412,9 @@ export function githubClient(token, fetchImpl = fetch) {
         if (stop(item)) return out;
         out.push(item);
       }
-      if (items.length < 100) break;
+      if (items.length < 100) return out;
     }
+    onLimit(path);
     return out;
   }
   return { call, all };
@@ -368,11 +446,17 @@ export function fixtureSource(dir) {
 
 /** Inputs from GitHub, the release assets and the site. */
 export function liveSource({ repo, token, actionsToken, site, root, fetchImpl = fetch, log }) {
-  const gh = githubClient(token, fetchImpl);
-  const actions = actionsToken && actionsToken !== token ? githubClient(actionsToken, fetchImpl) : gh;
+  const limits = [];
+  const onLimit = (path) => {
+    limits.push(path.split('?')[0]);
+    log(`Page limit reached reading ${path}`);
+  };
+  const gh = githubClient(token, fetchImpl, onLimit);
+  const actions = actionsToken && actionsToken !== token ? githubClient(actionsToken, fetchImpl, onLimit) : gh;
   const now = new Date().toISOString();
   return {
     now,
+    limits,
     async readable(r) {
       try {
         await gh.call('GET', `/repos/${r}`);
@@ -436,8 +520,8 @@ export function liveSource({ repo, token, actionsToken, site, root, fetchImpl = 
 // ---------- Collect ----------
 
 /** Every fact the digest shows. */
-export async function collect(src, { repo, otherRepos, site, server = 'https://github.com', days = 7, log = () => {} }) {
-  const w = windowOf(src.now, days);
+export async function collect(src, { repo, otherRepos, site, server = 'https://github.com', days = 7, since = null, log = () => {} }) {
+  const w = windowOf(src.now, days, since);
   const notes = [];
   const skipped = [];
   const repos = [repo];
@@ -489,7 +573,6 @@ export async function collect(src, { repo, otherRepos, site, server = 'https://g
   const reviewRequested = allPulls.filter((p) => p.state === 'open' && (p.requested_reviewers ?? []).some((u) => u.login === ASSIGNEE));
 
   // Runs, failures and spend.
-  const artifacts = (await src.artifacts(w.since)).filter((a) => /^(discovery|intake|reviewer)-\d+$/.test(a.name) && inWindow(a.created_at, w));
   const runsByAgent = {};
   for (const [agent, file] of Object.entries(AGENTS)) {
     const runs = await src.runs(file, w.since);
@@ -500,10 +583,13 @@ export async function collect(src, { repo, otherRepos, site, server = 'https://g
     }
     runsByAgent[agent] = runs;
   }
+  // Pull request dry runs leave artifacts too; drop them before the cap so they cannot use it up.
+  const artifacts = (await src.artifacts(w.since)).filter((a) => /^(discovery|intake|reviewer)-\d+$/.test(a.name) && inWindow(a.created_at, w));
+  const toRead = artifactsToRead(artifacts, countedRunIds(runsByAgent, w));
   const usage = {};
-  for (const a of artifacts.slice(0, LIMITS.artifacts)) usage[a.workflow_run.id] = await src.usage(a);
-  if (artifacts.length > LIMITS.artifacts) notes.push(`Only the newest ${LIMITS.artifacts} of ${artifacts.length} agent artifacts were read for spend.`);
-  const runs = agentRuns(runsByAgent, artifacts, usage, w);
+  for (const a of toRead.read) usage[a.workflow_run.id] = await src.usage(a);
+  if (toRead.unread.size) notes.push(`Only the newest ${LIMITS.artifacts} of ${toRead.total} agent run artifacts were read for spend.`);
+  const runs = agentRuns(runsByAgent, artifacts, usage, w, toRead.unread);
 
   // Releases and adoption.
   const releases = await src.releases();
@@ -533,6 +619,8 @@ export async function collect(src, { repo, otherRepos, site, server = 'https://g
   // Records from agent batches that no person or later pass has moved on.
   const store = await src.store();
   const provisional = provisionalBatches(store.batches, store.status);
+
+  for (const path of new Set(src.limits ?? [])) notes.push(`Stopped reading \`${path}\` at its page limit, so older items may be missing.`);
 
   log(`Collected: ${dataIssues.length} discovery issues, ${pulls.opened.length} intake pull requests opened, ${pulls.reviews.length} reviews, ${cut.length} releases.`);
   return {
@@ -566,14 +654,18 @@ export function summaryInput(facts) {
   });
 }
 
-/** The optional summary: one Haiku call, skipped when its worst-case cost would pass the cap. */
+/**
+ * The optional summary: one Haiku call, skipped when its worst-case cost would pass the cap.
+ * Returns { text, reason }: `reason` says why `text` is empty.
+ */
 export async function writeSummary(client, usage, { system, facts, log }) {
   const input = summaryInput(facts);
   const p = PRICES[MODELS.summary];
   const worst = ((system.length + input.length) / 3 * p.input + LIMITS.summaryMaxTokens * p.output) / 1e6;
   if (usage.total() + worst > LIMITS.costUsd) {
-    log(`Summary skipped: its worst-case cost $${worst.toFixed(4)} would pass the $${LIMITS.costUsd} cap.`);
-    return '';
+    const reason = `its worst-case cost $${worst.toFixed(4)} would pass the $${LIMITS.costUsd} cap`;
+    log(`Summary skipped: ${reason}.`);
+    return { text: '', reason };
   }
   const message = await client.messages.create({
     model: MODELS.summary,
@@ -582,8 +674,9 @@ export async function writeSummary(client, usage, { system, facts, log }) {
     messages: [{ role: 'user', content: `<facts>\n${input}\n</facts>` }],
   });
   usage.add(MODELS.summary, message.usage);
-  if (message.stop_reason !== 'end_turn') return '';
-  return plain(message.content.filter((b) => b.type === 'text').map((b) => b.text).join(' ').replace(/\s+/g, ' '));
+  if (message.stop_reason !== 'end_turn') return { text: '', reason: `the model stopped with ${message.stop_reason}` };
+  const text = plain(message.content.filter((b) => b.type === 'text').map((b) => b.text).join(' ').replace(/\s+/g, ' ')).trim();
+  return { text, reason: text ? null : 'the model returned no text' };
 }
 
 // ---------- Main ----------
@@ -620,13 +713,26 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   const src = deps.source ?? (args.dryRun
     ? fixtureSource(resolve(ROOT, args.fixtures))
     : liveSource({ repo, token, actionsToken: env.ACTIONS_TOKEN || token, site, root: resolve(args.root ?? ROOT), log }));
-  const facts = await collect(src, { repo, otherRepos, site, server, days: args.days, log });
+
+  // Live: start where the last digest ended, and find the issue to update or close.
+  let gh = null;
+  let existing = [];
+  let since = null;
+  if (mode === 'live') {
+    gh = deps.github ?? githubClient(token);
+    existing = (await gh.all(`/repos/${repo}/issues?state=open&labels=${LABEL}`)).filter((i) => !i.pull_request);
+    since = anchorSince(existing, src.now);
+    log(since ? `Window starts where the last digest ended: ${since}.` : `No digest to continue from; covering the last ${args.days} days.`);
+  }
+  const facts = await collect(src, { repo, otherRepos, site, server, days: args.days, since, log });
 
   let summary = '';
   if (args.summary && !args.dryRun && env.ANTHROPIC_API_KEY) {
     try {
       const client = deps.anthropic ?? new (await import('@anthropic-ai/sdk')).default();
-      summary = await writeSummary(client, usage, { system: readFileSync(join(ROOT, PROMPT_PATH), 'utf8'), facts, log });
+      const result = await writeSummary(client, usage, { system: readFileSync(join(ROOT, PROMPT_PATH), 'utf8'), facts, log });
+      summary = result.text;
+      if (!summary) facts.notes.push(`No summary: ${result.reason}.`);
     } catch (e) {
       facts.notes.push(`No summary: the model call failed (${String(e?.message ?? e).split('\n')[0].slice(0, 120)}).`);
     }
@@ -639,15 +745,13 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   let action = 'none';
   let url = null;
   if (mode === 'live') {
-    const gh = deps.github ?? githubClient(token);
     try {
       await gh.call('GET', `/repos/${repo}/labels/${LABEL}`);
     } catch (e) {
       if (e.status !== 404) throw e;
       await gh.call('POST', `/repos/${repo}/labels`, { name: LABEL, color: '0e8a16', description: 'Weekly digest of agent activity' });
     }
-    const existing = await gh.all(`/repos/${repo}/issues?state=open&labels=${LABEL}`);
-    const plan = planIssue(existing.filter((i) => !i.pull_request), facts.window);
+    const plan = planIssue(existing, facts.window);
     let number;
     if (plan.update) {
       number = plan.update.number;

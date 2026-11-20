@@ -1,6 +1,7 @@
 name: Weekly digest
-# Opens one issue a week, "Weekly digest: <from> to <to>", labelled digest and assigned to timini,
-# and closes the previous one (#259). It lists what the agents did, runs and spend, releases and
+# In live mode it opens one issue a week, "Weekly digest: <from> to <to>", labelled digest and
+# assigned to timini, and closes the previous one (#259). The schedule runs report-only until the
+# repository variable DIGEST_MODE is live. It lists what the agents did, runs and spend, releases and
 # adoption, provisional agent records, discrepancies, pipeline-broken issues and what waits on Tim.
 # The facts come from GitHub, the release assets and the live site; Haiku only writes an optional
 # three-sentence summary (cost cap $0.25 a run). Setup in docs/agents.md.
@@ -37,12 +38,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      MODE: ${{ github.event_name == 'schedule' && 'live' || github.event_name == 'pull_request' && 'dry-run' || inputs.mode }}
+      # The schedule only reports until the repository variable DIGEST_MODE is set to live.
+      MODE: ${{ github.event_name == 'schedule' && (vars.DIGEST_MODE || 'report-only') || github.event_name == 'pull_request' && 'dry-run' || inputs.mode }}
       HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     steps:
       # The rewire-bot app posts the issue and reads the other repositories it is installed on
       # (rewire.it, rewire-database). No repositories list, so a repository the app lacks is
-      # reported as not read instead of failing the token.
+      # reported as not read instead of failing the token. The permissions are cut down to what
+      # the digest needs: it can write issues and read everything else, and push nothing.
       - name: Token for the rewire-bot app
         id: app
         if: env.MODE != 'dry-run' && vars.REWIRE_BOT_APP_ID != ''
@@ -52,6 +55,10 @@ jobs:
           app-id: ${{ vars.REWIRE_BOT_APP_ID }}
           private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
+          permission-issues: write
+          permission-contents: read
+          permission-pull-requests: read
+          permission-metadata: read
       - uses: actions/checkout@v4
         with:
           sparse-checkout-cone-mode: false
