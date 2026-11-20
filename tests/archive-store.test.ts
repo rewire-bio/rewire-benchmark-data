@@ -298,12 +298,14 @@ it("makes the bucket the home and keeps the release tag it replaces as a mirror"
   expect(moved.store).toBe("r2");
   expect(moved.mirrors).toEqual(["github-release"]);
 
-  // Idempotent: a second upload of the same object says the same thing.
-  expect(await markHome(key, "r2", root)).toBe(true);
+  // Idempotent, and it says so by writing nothing: a second upload of the same object reports
+  // false because the row already names the bucket as its home. An upload summary counting
+  // these would claim to have moved rows it only looked at.
+  expect(await markHome(key, "r2", root)).toBe(false);
   expect(readManifest(root).get(key)!.mirrors).toEqual(["github-release"]);
 
-  // And publishing it again records the mirror it already has, once.
-  expect(await markMirror(key, "github-release", root)).toBe(true);
+  // And publishing it again leaves the mirror it already has, reporting no change.
+  expect(await markMirror(key, "github-release", root)).toBe(false);
   expect(readManifest(root).get(key)!.mirrors).toEqual(["github-release"]);
   expect(checkManifest(root)).toEqual({ rows: 1, problems: [] });
 });

@@ -225,10 +225,19 @@ export const manifestRowSchema = z
     if (row.mirrors.includes(row.store))
       ctx.addIssue({ code: "custom", message: `${row.store} is this row's store, so it is not also a mirror of it` });
     // The release assets are a public tag anyone can read. A restricted row
-    // mirrored there would be restricted bytes served to the world, which is
-    // the one thing the tiers exist to prevent.
-    if (row.visibility === "restricted" && row.mirrors.includes("github-release"))
-      ctx.addIssue({ code: "custom", message: `tier ${row.archive_tier} is restricted, so its bytes are not mirrored to a public release` });
+    // held there would be restricted bytes served to the world, which is the
+    // one thing the tiers exist to prevent. The home is checked as well as the
+    // mirrors: a rule that covered only the mirrors would refuse the copy and
+    // allow the original.
+    // Not applied to a removed row. Its visibility is a consequence of the t5 tier rather than
+    // a statement about bytes, which no longer exist anywhere, and its store is the historical
+    // note of where they were. A rule that covered it would make a published object
+    // untakedownable, and a takedown has to work whatever else a row says.
+    if (!row.removed_at && row.visibility === "restricted" && (row.store === "github-release" || row.mirrors.includes("github-release")))
+      ctx.addIssue({
+        code: "custom",
+        message: `tier ${row.archive_tier} is restricted, so a public release is neither its home nor a mirror of it`,
+      });
     // Removed bytes are gone from every backend, so a mirror of them is a
     // claim that a copy survived the takedown.
     if (row.removed_at && row.mirrors.length > 0)

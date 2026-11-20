@@ -262,13 +262,16 @@ it("pulls from the release assets with no credential at all", async () => {
   };
 
   const summary = await pullObjects({ root, env: {}, from: "release", fetch: watch });
-  expect({ downloaded: summary.downloaded, failed: summary.failed, missing: summary.not_on_a_release })
-    .toEqual({ downloaded: 1, failed: [], missing: 0 });
+  expect({ downloaded: summary.downloaded, failed: summary.failed, inR2: summary.already_in_the_bucket, nowhere: summary.no_remote_copy })
+    .toEqual({ downloaded: 1, failed: [], inR2: 0, nowhere: 0 });
   expect(urls).toEqual([`https://github.com/rewire-bio/rewire-benchmark-data/releases/download/archive/objects-${listed.sha256[0]}/${listed.sha256}.gz`]);
   expect(fs.readFileSync(objectPath(listed.sha256, root))).toEqual(compressed);
 });
 
-it("counts the rows no release holds instead of asking for them", async () => {
+it("tells a row already safe in the bucket from one with a single copy on this machine", async () => {
+  // Both are rows no release tag holds, and lumping them together is what made the first
+  // version of this read 0 objects at risk when the real answer was 296 safe and 0 at risk.
+  // Only the second is a problem, and only it should be reported as one.
   const root = temporaryRoot();
   const inBucket = row(Buffer.from("only in the bucket"), "t4-private", { store: "r2" });
   const onlyHere = row(Buffer.from("only on this laptop"), "t3-verbatim-nd-nc", { store: "local-cache" });
@@ -277,8 +280,8 @@ it("counts the rows no release holds instead of asking for them", async () => {
   const assets = fakeBucket({});
 
   const summary = await pullObjects({ root, env: {}, from: "release", fetch: assets.fetch });
-  expect({ selected: summary.selected, missing: summary.not_on_a_release, downloaded: summary.downloaded, asked: assets.asked })
-    .toEqual({ selected: 2, missing: 2, downloaded: 0, asked: [] });
+  expect({ selected: summary.selected, inR2: summary.already_in_the_bucket, nowhere: summary.no_remote_copy, downloaded: summary.downloaded, asked: assets.asked })
+    .toEqual({ selected: 2, inR2: 1, nowhere: 1, downloaded: 0, asked: [] });
 });
 
 it("takes a release copy that has become a mirror, because the bytes are still there", async () => {

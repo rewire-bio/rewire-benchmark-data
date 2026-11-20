@@ -288,9 +288,16 @@ async function pull(): Promise<number> {
     print(`refused, t5-no-store  ${summary.removed}`);
     print(`selected              ${summary.selected} (${summary.selected_restricted} restricted, ${summary.selected_public} public)`);
     print(`already held          ${summary.already_held}`);
-    if (from === "release") print(`no release holds them ${summary.not_on_a_release}`);
+    if (from === "release") {
+      print(`no release, already in R2 ${summary.already_in_the_bucket}`);
+      print(`no release, no remote copy ${summary.no_remote_copy}`);
+    }
     print(`held back by --limit  ${summary.held_back_by_limit}`);
-    print(summary.dry_run ? `would fetch           ${summary.selected - summary.already_held - summary.held_back_by_limit}` : `downloaded            ${summary.downloaded}`);
+    print(
+      summary.dry_run
+        ? `would fetch           ${summary.selected - summary.already_held - summary.held_back_by_limit - summary.already_in_the_bucket - summary.no_remote_copy}`
+        : `downloaded            ${summary.downloaded}`,
+    );
     if (!summary.dry_run) print(`bytes written         ${mib(summary.expanded_bytes)} expanded, ${mib(summary.compressed_bytes)} on disk`);
     if (summary.failed.length) {
       print(`failed                ${summary.failed.length}`);

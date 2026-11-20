@@ -42,7 +42,12 @@ export { readSettings, signRequest, VARIABLES, type R2Settings } from "./r2";
 export interface UploadSummary {
   considered: number;
   uploaded: number;
+  /** Objects the bucket already held, found by a HEAD. Only a real run can know this, so a dry
+   * run leaves it at 0 and counts `would_upload` instead: a dry run that reported every object
+   * as already there would read exactly like a completed one while never having asked. */
   skipped: number;
+  would_upload: number;
+  dry_run: boolean;
   /** Rows at t5-no-store. Their bytes are gone and never go back. */
   removed: number;
   failed: { key: string; status: number }[];
@@ -72,7 +77,16 @@ export async function uploadObjects(options: { root?: string; dryRun?: boolean; 
   const settings = readSettings(options.env ?? process.env);
   const manifest = readManifest(root);
   const cached = new Set(cacheContents(root).keys);
-  const summary: UploadSummary = { considered: 0, uploaded: 0, skipped: 0, removed: 0, failed: [], marked: 0 };
+  const summary: UploadSummary = {
+    considered: 0,
+    uploaded: 0,
+    skipped: 0,
+    would_upload: 0,
+    dry_run: options.dryRun ?? false,
+    removed: 0,
+    failed: [],
+    marked: 0,
+  };
   for (const key of [...manifest.keys()].sort()) {
     const row = manifest.get(key)!;
     // Counted over the manifest, not over the cache, so the refusal says what
@@ -86,7 +100,7 @@ export async function uploadObjects(options: { root?: string; dryRun?: boolean; 
     summary.considered += 1;
     const name = archiveAssetName(key);
     if (options.dryRun) {
-      summary.skipped += 1;
+      summary.would_upload += 1;
       continue;
     }
     const body = fs.readFileSync(objectPath(key, root));

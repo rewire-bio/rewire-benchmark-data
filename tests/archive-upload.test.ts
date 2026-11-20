@@ -144,8 +144,11 @@ it("needs no credential and sends nothing on a dry run", async () => {
   const sent = stubBucket(new Set());
 
   const summary = await uploadObjects({ root, env: secrets, dryRun: true });
-  expect({ considered: summary.considered, uploaded: summary.uploaded, skipped: summary.skipped, marked: summary.marked })
-    .toEqual({ considered: 1, uploaded: 0, skipped: 1, marked: 0 });
+  // skipped stays 0 and the summary says it was a dry run. Counting these as skipped read as
+  // "the bucket already holds them", which is a claim no dry run is in a position to make: it
+  // never sends the HEAD that would settle it.
+  expect({ considered: summary.considered, uploaded: summary.uploaded, skipped: summary.skipped, would: summary.would_upload, dry: summary.dry_run, marked: summary.marked })
+    .toEqual({ considered: 1, uploaded: 0, skipped: 0, would: 1, dry: true, marked: 0 });
   expect(sent).toEqual([]);
   expect(readManifest(root).get(key)).toMatchObject({ store: "github-release", mirrors: [] });
 });

@@ -88,9 +88,12 @@ export interface PullSummary {
   already_held: number;
   /** Rows the limit held back this run. A second run takes them. */
   held_back_by_limit: number;
-  /** Selected rows no release tag holds, when pulling from the release assets.
-   * Their bytes are only in the bucket or on the machine that fetched them. */
-  not_on_a_release: number;
+  /** Pulling from the release assets, selected rows no release tag holds, split by whether
+   * that matters. A row already homed in the bucket is simply not this path's business. A row
+   * in neither place has exactly one copy, in the cache of whichever machine fetched it, and
+   * nothing remote can rebuild it: that is the number worth reading. */
+  already_in_the_bucket: number;
+  no_remote_copy: number;
   downloaded: number;
   /** Expanded bytes of what was downloaded, and the bytes written to disk. */
   expanded_bytes: number;
@@ -172,7 +175,8 @@ export async function pullObjects(options: PullOptions = {}): Promise<PullSummar
     selected_public: 0,
     already_held: 0,
     held_back_by_limit: 0,
-    not_on_a_release: 0,
+    already_in_the_bucket: 0,
+    no_remote_copy: 0,
     downloaded: 0,
     expanded_bytes: 0,
     compressed_bytes: 0,
@@ -194,7 +198,8 @@ export async function pullObjects(options: PullOptions = {}): Promise<PullSummar
       continue;
     }
     if (from === "release" && !onARelease(row)) {
-      summary.not_on_a_release += 1;
+      if (row.store === "r2" || row.mirrors.includes("r2")) summary.already_in_the_bucket += 1;
+      else summary.no_remote_copy += 1;
       continue;
     }
     wanted.push(row);
@@ -205,7 +210,10 @@ export async function pullObjects(options: PullOptions = {}): Promise<PullSummar
   summary.held_back_by_limit = wanted.length - take.length;
 
   if (summary.dry_run) {
-    log(`dry run: ${take.length} objects would be fetched from the ${from === "r2" ? "bucket" : "release assets"}, ${summary.already_held} are already held`);
+    log(
+      `dry run: ${take.length} objects would be fetched from the ${from === "r2" ? "bucket" : "release assets"}, ` +
+        `${summary.already_held} are already held`,
+    );
     return summary;
   }
   if (take.length === 0) {
@@ -243,7 +251,7 @@ export async function pullObjects(options: PullOptions = {}): Promise<PullSummar
     // either, and the key goes in the message.
     let expanded: Buffer;
     try {
-      expanded = expand(compressed, key, `R2 object ${key}`, row.bytes);
+      expanded = expand(compressed, key, `${from === "r2" ? "R2 object" : "release asset"} ${key}`, row.bytes);
     } catch (error) {
       summary.failed.push({ key, status: reply.status, message: (error as Error).message });
       continue;
