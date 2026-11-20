@@ -16,7 +16,7 @@ export const PAGE_SCHEMA: Record<string, any>;
 export const CONFIRM_SCHEMA: Record<string, any>;
 export type Rec = Record<string, any>;
 export type Ref = Record<string, any>;
-export type Candidate = { type: string; field?: string; action: 'update' | 'add'; observed: string; current: string; evidence: string[]; key: string; facts: Record<string, any>; value?: string; reason?: string };
+export type Candidate = { type: string; field?: string; action: 'update' | 'add'; observed: string; current: string; placeholder?: string; evidence: string[]; key: string; facts: Record<string, any>; value?: string; reason?: string };
 export type IssueText = { title: string; body: string; labels: string[] };
 export function tiersDue(date: Date, asked?: string): number[];
 export function selectEntities(records: Rec[], tiers: number[], opts?: { limit?: number; ids?: string[] }): Rec[];
@@ -37,6 +37,9 @@ export function hfFacts(ref: Ref, opts: { fetchImpl: typeof fetch }): Promise<Re
 export function licenceAgrees(recordLicence: string, observed: string): boolean;
 export function candidatesFor(record: Rec, refs: { repos: Ref[]; pages: Ref[] }, opts: { facts: Map<string, any>; pages?: Record<string, any>; known?: string }): { candidates: Candidate[]; health: Record<string, any>[] };
 export function healthKey(h: Record<string, any>): string;
+export const PLACEHOLDERS: string[];
+export function isPlaceholder(value: unknown): boolean;
+export function accessText(record: Rec): string;
 export function checkedValue(candidate: Candidate, value: string): string | null;
 export function markUmbrellas(refsById: Map<string, { repos: Ref[] }>, storeRefs: { repos: Ref[]; entity: string }[]): Set<string>;
 export function refKey(ref: Ref): string;
