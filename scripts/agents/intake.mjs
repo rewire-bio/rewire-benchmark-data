@@ -639,7 +639,8 @@ function probeRecord(entity, id) {
  * each alias, and search hits of the kinds a link from it may reach. Returns Map(key -> { duplicates,
  * related, duplicateSearchError?, linkSearchError? }). A call that fails sets the error on the
  * entity and adds { step, entity, error } to `failures` (step duplicate_search or link_search), so
- * the verifier, the pull request and the reviewer know the search did not happen.
+ * the verifier, the pull request and the reviewer know the search did not happen. A probe that
+ * cannot be removed adds { step: 'probe_cleanup', id }.
  */
 export async function kgCandidates(kg, entities, { log = () => {}, failures = [] } = {}) {
   const out = new Map();
@@ -657,7 +658,12 @@ export async function kgCandidates(kg, entities, { log = () => {}, failures = []
         errors.duplicateSearchError ??= errorText(err);
         failures.push({ step: 'duplicate_search', entity: e.name, query: name, error: errorText(err) });
       } finally {
-        await kg.remove(id).catch(() => {});
+        // A probe left in the overlay would be exported with the batch: draftThroughKg removes it
+        // again and refuses to export while any record outside the batch remains.
+        await kg.remove(id).catch((err) => {
+          log(`KG probe cleanup for ${e.name}: ${errorText(err)}`);
+          failures.push({ step: 'probe_cleanup', entity: e.name, id, error: errorText(err) });
+        });
       }
     }
     const related = new Map();
@@ -859,16 +865,52 @@ export function pruneRecords(records, dropIds) {
   return kept;
 }
 
+/** The top-level fields of a record in the order records add writes them (recordSchema). */
+export const RECORD_FIELDS = ['id', 'kind', 'name', 'description', 'status', 'facets', 'source_ids', 'links', 'attributes'];
+
+function sortKeysDeep(value) {
+  if (Array.isArray(value)) return value.map(sortKeysDeep);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.keys(value).sort().map((k) => [k, sortKeysDeep(value[k])]));
+  return value;
+}
+
+/**
+ * New records as the draft overlay exports them (rdf-kg-mcp drafts.line with this repo's draft
+ * block): one JSON.stringify line per record, sorted by id, fields in RECORD_FIELDS order, keys
+ * sorted at every depth inside attributes and facets, links sorted by relation, target and
+ * content. The fallback when the overlay cannot export, so the same batch always gives the same
+ * bytes. Only for records new in this batch: records already in the store keep their key order.
+ */
+export function batchLines(records) {
+  const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  const linkKey = (l) => [String(l.relation), String(l.target_id), JSON.stringify(sortKeysDeep(l))];
+  return [...records].sort((a, b) => cmp(a.id, b.id)).map((r) => {
+    const out = {};
+    for (const k of [...RECORD_FIELDS.filter((f) => f in r), ...Object.keys(r).filter((f) => !RECORD_FIELDS.includes(f))]) {
+      let v = r[k];
+      if (k === 'attributes' || k === 'facets') v = sortKeysDeep(v);
+      if (k === 'links' && Array.isArray(v)) v = [...v].sort((a, b) => { const x = linkKey(a), y = linkKey(b); return cmp(x[0], y[0]) || cmp(x[1], y[1]) || cmp(x[2], y[2]); });
+      out[k] = v;
+    }
+    return `${JSON.stringify(out)}\n`;
+  }).join('');
+}
+
 /**
  * Write the batch through the draft overlay and export it. Every record is drafted; an entity the
- * server finds problems in, or that has a possible duplicate in the release nobody ruled on, is
- * dropped (with its links and unused sources) and the rest drafted again. Returns
- * { records, batchText, summary, dropped, rounds } or { error } when the overlay cannot export
- * (the caller falls back to writing the batch itself).
+ * server refuses or finds problems in, or that has a possible duplicate in the release nobody
+ * ruled on, is dropped (with its links and unused sources) and the rest drafted again. Returns
+ * { records, batchText, summary, dropped, rounds }, or { error, records, dropped } when the overlay
+ * cannot export: `records` is the batch without what the overlay already dropped, for the caller
+ * to write itself. A call that fails without an answer from the server (a timeout, a lost
+ * connection) stops the run with an error; it is not a refusal, so the record is not dropped.
+ * `strays` are ids drafted earlier (duplicate probes) that must not be in the export.
  */
-export async function draftThroughKg(kg, records, { ruled = new Map(), log = () => {} } = {}) {
+export async function draftThroughKg(kg, records, { ruled = new Map(), strays = [], log = () => {} } = {}) {
   const dropped = [];
   let current = records;
+  const fail = (error) => ({ error, records: current, dropped });
+  for (const id of strays) await kg.remove(id).catch(() => {});
   for (let round = 1; ; round++) {
     const drop = [];
     for (const r of current) {
@@ -876,13 +918,14 @@ export async function draftThroughKg(kg, records, { ruled = new Map(), log = () 
       try {
         res = await kg.upsert(r);
       } catch (e) {
-        if (r.kind === 'source') return { error: `draft_upsert refused source ${r.id}: ${errorText(e)}` };
+        if (!e?.refused) return fail(`draft_upsert failed for ${r.id}: ${errorText(e)}`);
+        if (r.kind === 'source') return fail(`draft_upsert refused source ${r.id}: ${errorText(e)}`);
         drop.push(r.id);
         dropped.push({ id: r.id, name: r.name, reason: `the KG draft overlay refused it: ${errorText(e)}` });
         continue;
       }
       if (r.kind === 'source') {
-        if (res.problems?.length) return { error: `source ${r.id}: ${res.problems.join('; ')}` };
+        if (res.problems?.length) return fail(`source ${r.id}: ${res.problems.join('; ')}`);
         continue;
       }
       if (res.problems?.length) {
@@ -898,19 +941,34 @@ export async function draftThroughKg(kg, records, { ruled = new Map(), log = () 
       }
     }
     if (!drop.length) break;
-    if (round >= 4) return { error: `the overlay still dropped records after ${round} rounds` };
+    // Clear the overlay before drafting the rest again. A removal that fails leaves a record the
+    // export check below catches.
     for (const r of current) await kg.remove(r.id).catch(() => {});
     current = pruneRecords(current, drop);
     log(`KG overlay round ${round}: dropped ${drop.join(', ')}`);
+    if (round >= 4) return fail(`the overlay still dropped records after ${round} rounds`);
     if (!current.some((r) => r.kind !== 'source')) return { records: [], batchText: '', summary: null, dropped };
   }
   let exported;
   try {
     exported = await kg.exportBatch();
   } catch (e) {
-    return { error: `draft_export failed: ${errorText(e)}` };
+    return fail(`draft_export failed: ${errorText(e)}`);
   }
-  if (!exported.exported) return { error: `draft_export refused: ${JSON.stringify(exported.problems ?? exported.reason).slice(0, 400)}` };
+  if (!exported.exported) return fail(`draft_export refused: ${JSON.stringify(exported.problems ?? exported.reason).slice(0, 400)}`);
+  // The export is every draft in the overlay. Anything not in this batch (a probe or a dropped
+  // record whose removal failed) would reach the pull request unreviewed.
+  const want = new Set(current.map((r) => r.id));
+  const got = String(exported.batch ?? '').split('\n').filter(Boolean).map((l) => {
+    try {
+      return JSON.parse(l).id;
+    } catch {
+      return null;
+    }
+  });
+  const extra = got.filter((id) => !want.has(id));
+  const missing = [...want].filter((id) => !got.includes(id));
+  if (extra.length || missing.length) return fail(`draft_export did not match the batch${extra.length ? `; records outside it: ${extra.join(', ')}` : ''}${missing.length ? `; missing: ${missing.join(', ')}` : ''}`);
   return { records: current, batchText: exported.batch, summary: exported.summary, batchSha256: exported.batch_sha256, dropped };
 }
 
@@ -940,15 +998,19 @@ export function kgStatusLines(kgState) {
     const error = clean(f.error).slice(0, 300);
     if (f.step === 'duplicate_search') return `Duplicate search for ${clean(f.entity)}${f.query && f.query !== f.entity ? ` (as "${clean(f.query)}")` : ''} failed (${error}). The verifier was told the search failed, not that none was found, so it ruled on no store record for it.`;
     if (f.step === 'link_search') return `Link-target search for ${clean(f.entity)} failed (${error}). No store records were offered to it as link targets.`;
-    if (f.step === 'draft_overlay') return `Writing the batch through the draft overlay failed (${error}). The script wrote batch.jsonl itself, so the overlay did not check the records and links against the release, and kg.json has no overlay diff.`;
+    if (f.step === 'draft_overlay') {
+      const refused = f.dropped?.length ? ` It had already dropped ${f.dropped.map((id) => `\`${id}\``).join(', ')} (listed under dropped), and those are not in the batch.` : '';
+      return `Writing the batch through the draft overlay failed (${error}).${refused} The script wrote batch.jsonl itself from the remaining records, so the overlay's checks of them against the release did not finish, and kg.json has no overlay diff.`;
+    }
+    if (f.step === 'probe_cleanup') return `Removing the duplicate probe \`${clean(f.id)}\` for ${clean(f.entity)} from the overlay failed (${error}). The export is checked to hold only this batch's records.`;
     return `${clean(f.step)} failed (${error}).`;
   };
-  const dupes = failures.some((f) => f.step === 'duplicate_search');
+  const dupes = failures.some((f) => f.step === 'duplicate_search' || f.step === 'draft_overlay');
   return [
     `The knowledge graph release ${kgState.release ?? '(unknown)'} loaded, but these steps failed during the run and fell back:`,
     '',
     ...failures.map((f) => `- ${step(f)}`),
-    ...(dupes ? ['', 'Because the duplicate search failed, a human must check the store for duplicates of the records above before merging. The reviewer agent does not approve this pull request.'] : []),
+    ...(dupes ? ['', 'Because a duplicate check against the store did not finish, a human must check the store for duplicates of the records in this batch before merging. The reviewer agent does not approve this pull request.'] : []),
   ];
 }
 
@@ -963,7 +1025,7 @@ export function kgReceipt({ kgState, kgLog, summary, batchText }) {
     duplicate_rulings: kgLog?.duplicates ?? [],
     rejected_links: kgLog?.rejected_links ?? [],
     // Knowledge-graph steps that failed after the server started; the reviewer does not approve a
-    // batch whose duplicate search failed.
+    // batch whose duplicate search or draft overlay failed.
     failures: kgState?.failures ?? [],
     summary: summary
       ? { release: summary.release ?? null, manifest_sha256: summary.manifest_sha256 ?? null, batch_sha256: summary.batch_sha256 ?? null, added: (summary.added ?? []).map((a) => ({ id: a.id, kind: a.kind, label: a.label, links: a.links ?? [], warnings: a.warnings ?? [], possible_duplicates: (a.possible_duplicates ?? []).map((d) => ({ id: d.id, in: d.in, kind: d.kind, label: d.label, match: d.match })) })) }
@@ -2014,18 +2076,19 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     state.kgLog = built.kgLog;
     let exported = null;
     if (kg && built.entities.length) {
-      const drafted = await draftThroughKg(kg, built.records, { ruled: built.ruled, log });
+      const strays = state.kg.failures.filter((f) => f.step === 'probe_cleanup').map((f) => f.id);
+      const drafted = await draftThroughKg(kg, built.records, { ruled: built.ruled, strays, log });
+      // What the overlay dropped stays dropped, also when it then fails to export.
+      state.dropped.push(...drafted.dropped);
+      const keptIds = new Set(drafted.records.map((r) => r.id));
+      built.records = drafted.records;
+      built.entities = built.entities.filter((e) => keptIds.has(e.id));
+      built.kgLog.links = built.kgLog.links.filter((l) => keptIds.has(l.from) && (l.in === 'store' || keptIds.has(l.to)));
       if (drafted.error) {
-        notes.push(`The knowledge-graph overlay could not export the batch (${drafted.error}); the script wrote it instead.`);
-        state.kg.failures.push({ step: 'draft_overlay', error: drafted.error });
-      }
-      else {
+        notes.push(`The knowledge-graph overlay could not export the batch (${drafted.error}); the script wrote the remaining records instead.`);
+        state.kg.failures.push({ step: 'draft_overlay', error: drafted.error, dropped: drafted.dropped.map((d) => d.id) });
+      } else {
         exported = drafted;
-        state.dropped.push(...drafted.dropped);
-        const keptIds = new Set(drafted.records.map((r) => r.id));
-        built.records = drafted.records;
-        built.entities = built.entities.filter((e) => keptIds.has(e.id));
-        built.kgLog.links = built.kgLog.links.filter((l) => keptIds.has(l.from) && (l.in === 'store' || keptIds.has(l.to)));
         state.kg.batch_sha256 = drafted.batchSha256;
       }
     }
@@ -2035,18 +2098,20 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     if (!built.entities.length) {
       const allSources = built.dropped.every((d) => d.sourcesNotOpenable);
       const allDuplicates = state.dropped.length && state.dropped.every((d) => d.duplicate);
+      // A graph step that failed is part of why nothing is left; say which.
+      const kgFailed = state.kg?.failures?.length ? `Knowledge-graph steps that failed: ${state.kg.failures.map((f) => `${f.step}${f.entity ? ` for ${f.entity}` : ''} (${clean(f.error).slice(0, 200)})`).join('; ')}.` : '';
       if (allDuplicates) {
-        await finish('skipped: duplicate', renderSkipComment({ kind: 'duplicate', dropped: state.dropped, runUrl, usage }));
+        await finish('skipped: duplicate', renderSkipComment({ kind: 'duplicate', detail: kgFailed, dropped: state.dropped, runUrl, usage }));
         return result();
       }
-      await finish('skipped: nothing verified', renderSkipComment({ kind: allSources ? 'sources' : 'nothing', dropped: state.dropped, runUrl, usage }));
+      await finish('skipped: nothing verified', renderSkipComment({ kind: allSources ? 'sources' : 'nothing', detail: kgFailed, dropped: state.dropped, runUrl, usage }));
       return result();
     }
     const folder = join(args.root, batchDir);
     mkdirSync(folder, { recursive: true });
-    // The overlay's export when there is one: its lines are what JSON.stringify writes, with the
-    // keys inside attributes and facets sorted, so the same batch always gives the same bytes.
-    const batchText = exported ? exported.batchText : built.records.map((r) => `${JSON.stringify(r)}\n`).join('');
+    // The overlay's export when there is one; otherwise the same lines written here (batchLines),
+    // so the same batch always gives the same bytes.
+    const batchText = exported ? exported.batchText : batchLines(built.records);
     writeFileSync(join(folder, 'batch.jsonl'), batchText);
     state.batchText = batchText;
     writeFileSync(join(folder, 'notes.md'), renderNotes({ issue: issue.number, issueTitle: issue.title, runDate, entities: built.entities, dropped: state.dropped, sourceNotes: state.sourceNotes, fieldLog: built.fieldLog, usage, kgLog: built.kgLog }));
@@ -2067,7 +2132,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
           : 'No relationship links to other records were added.',
         ...(state.kg?.used ? [] : ['The knowledge graph was not available, so possible duplicates were checked by name against the store only.']),
         ...(state.kg?.failures?.some((f) => f.step === 'duplicate_search') ? [`The knowledge-graph duplicate search failed for ${unique(state.kg.failures.filter((f) => f.step === 'duplicate_search').map((f) => f.entity)).join(', ')} before verification, so the verifier ruled on no store record for it.`] : []),
-        ...(state.kg?.failures?.some((f) => f.step === 'draft_overlay') ? ['The knowledge-graph draft overlay could not export the batch, so the script wrote it and the overlay did not check it against the release.'] : []),
+        ...(state.kg?.failures?.some((f) => f.step === 'draft_overlay') ? ['The knowledge-graph draft overlay failed before exporting the batch, so the script wrote the records the overlay had not dropped, and the overlay checks of them against the release did not finish.'] : []),
       ],
       errors: [],
       files: { 'batch.jsonl': sha256(batchText), 'kg.json': sha256(readFileSync(join(folder, 'kg.json'))) },

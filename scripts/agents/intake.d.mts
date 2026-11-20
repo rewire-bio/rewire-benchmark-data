@@ -37,7 +37,7 @@ export function buildBatch(input: {
 }): { records: any[]; entities: { id: string; key: string; kind: string; name: string; tier: number | null; links?: number }[]; dropped: Dropped[]; fieldLog: any[]; kgLog: KgLog; ruled: Map<string, Set<string>> };
 export type KgRecord = { id: string; kind: string; label?: string; name?: string; match?: string };
 export type KgCandidates = { duplicates: KgRecord[]; related: KgRecord[]; duplicateSearchError?: string; linkSearchError?: string };
-export type KgFailure = { step: string; entity?: string; query?: string; error: string };
+export type KgFailure = { step: string; entity?: string; query?: string; id?: string; dropped?: string[]; error: string };
 export type KgLog = { duplicates: any[]; links: { from: string; relation: string; to: string; to_name: string | null; in: "batch" | "store"; locator: string }[]; rejected_links: { entity: string; relation: string; target: string; reason: string }[] };
 export const LINK_RELATIONS: Record<string, string[]>;
 export const LINK_TARGET_KINDS: Record<string, string[]>;
@@ -50,7 +50,9 @@ export function dupeRulings(verdict: any, duplicates: KgRecord[]): { duplicateOf
 export function resolveLinks(input: { built: any[]; verification: any; entities: Entity[]; known: Map<string, KgRecord> }): { links: Map<string, { relation: string; target_id: string }[]>; log: KgLog["links"]; rejected: KgLog["rejected_links"] };
 export function linkAllowed(relation: string, fromKind: string, toKind: string): boolean;
 export function pruneRecords(records: any[], dropIds: string[]): any[];
-export function draftThroughKg(kg: any, records: any[], opts?: { ruled?: Map<string, Set<string>>; log?: (m: string) => void }): Promise<{ error?: string; records?: any[]; batchText?: string; summary?: any; batchSha256?: string; dropped?: Dropped[] }>;
+export const RECORD_FIELDS: string[];
+export function batchLines(records: any[]): string;
+export function draftThroughKg(kg: any, records: any[], opts?: { ruled?: Map<string, Set<string>>; strays?: string[]; log?: (m: string) => void }): Promise<{ error?: string; records: any[]; batchText?: string; summary?: any; batchSha256?: string; dropped: Dropped[] }>;
 export function kgLines(kgLog: KgLog | null): { links: string[]; rulings: string[]; rejected: string[] };
 export function kgStatusLines(kgState: any): string[];
 export function kgReceipt(input: { kgState: any; kgLog: KgLog | null; summary: any; batchText: string }): any;

@@ -210,19 +210,34 @@ export function buildTable(records, review, mechanical) {
   return rows;
 }
 
+/** Intake steps (kg.json failures) after which the batch's duplicate check did not finish. */
+const INTAKE_DUPLICATE_STEPS = ['duplicate_search', 'draft_overlay'];
+/** The reviewer's own: a search that failed, a graph that did not start, or no graph check at all. */
+const REVIEWER_DUPLICATE_STEPS = ['reviewer_duplicate_search', 'reviewer_kg_start', 'no_duplicate_check'];
+
 /**
- * The duplicate searches that failed: the intake's (kg.json failures) and the reviewer's own. A
+ * The duplicate checks that failed: the intake's (kg.json failures) and the reviewer's own. A
  * pull request with any is not approvable, because nobody knows whether the store already has the
  * records; a human checks it.
  */
 export function duplicateSearchFailures(receipt, own = []) {
-  return [...(receipt?.failures ?? []).filter((f) => f.step === 'duplicate_search'), ...own.filter((f) => f.step === 'reviewer_duplicate_search')];
+  return [...(receipt?.failures ?? []).filter((f) => INTAKE_DUPLICATE_STEPS.includes(f.step)), ...own.filter((f) => REVIEWER_DUPLICATE_STEPS.includes(f.step))];
+}
+
+/** One failure as a sentence for the review notes. */
+export function duplicateFailureNote(f) {
+  const error = clean(f.error).slice(0, 200);
+  if (f.step === 'duplicate_search') return `The intake agent's knowledge-graph duplicate search for ${clean(f.entity)} failed (${error}).`;
+  if (f.step === 'draft_overlay') return `The intake agent's draft overlay failed before exporting the batch (${error}), so its duplicate check of the batch against the release did not finish.`;
+  if (f.step === 'reviewer_duplicate_search') return `The reviewer's knowledge-graph duplicate search for ${clean(f.entity)} failed (${error}).`;
+  if (f.step === 'reviewer_kg_start') return `The reviewer's knowledge graph did not start (${error}), so it did not search for duplicates.`;
+  return `No knowledge-graph duplicate check of this batch ran: ${error}`;
 }
 
 export function duplicateSearchBlocker(failures) {
   if (!failures.length) return '';
-  const who = unique(failures.map((f) => clean(f.entity))).join(', ');
-  return `The knowledge-graph duplicate search failed for ${who}, so a human must check the store for duplicates before merging.`;
+  const who = unique(failures.map((f) => f.entity).filter(Boolean).map(clean));
+  return `A knowledge-graph duplicate check failed${who.length ? ` (for ${who.join(', ')})` : ''}, so a human must check the store for duplicates before merging.`;
 }
 
 /** approve only when every row passes. */
@@ -571,20 +586,23 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     // duplicates from the intake's overlay diff and the reviewer's own search of the graph.
     const store = await readStore(args.dryRun ? join(fixtures, 'entities') : join(args.root, 'data/entities'), ids);
     let kg = deps.kg ?? null;
+    const ownFailures = [];
     if (!kg && env.KG_BUNDLE && receipt?.kg?.kinds) {
       const started = await startKg({ bundle: env.KG_BUNDLE, config: { iri_base: receipt.kg.iri_base, kinds: receipt.kg.kinds }, command: env.KG_MCP_COMMAND || 'rdf-kg-mcp', cacheDir: env.RDF_KG_MCP_CACHE || '', log });
       kg = started.kg;
-      if (!kg) notes.push(`The knowledge graph was not available (${started.error}); possible duplicates come from the intake's kg.json only.`);
+      if (!kg) ownFailures.push({ step: 'reviewer_kg_start', error: clean(String(started.error ?? 'unknown')).slice(0, 300) });
     } else if (!receipt && stored.some((r) => (r.links ?? []).length)) notes.push('The batch has links but no kg.json.');
+    // The intake used the graph but kg.json has no overlay diff, and the reviewer has no graph of
+    // its own: nothing checked the batch against the release for duplicates.
+    if (!kg && receipt?.kg && receipt.kg.used !== false && !receipt.summary) ownFailures.push({ step: 'no_duplicate_check', error: "kg.json has no draft overlay diff and the reviewer's knowledge graph was not available." });
     let kgDuplicates;
-    const ownFailures = [];
     try {
       kgDuplicates = await possibleDuplicates(records, { receipt, kg, failures: ownFailures });
     } finally {
       if (kg && !deps.kg) await kg.close();
     }
     const dupeFailures = duplicateSearchFailures(receipt, ownFailures);
-    for (const f of dupeFailures) notes.push(`${f.step === 'duplicate_search' ? "The intake agent's" : "The reviewer's"} knowledge-graph duplicate search for ${clean(f.entity)} failed (${clean(f.error).slice(0, 200)}).`);
+    for (const f of dupeFailures) notes.push(duplicateFailureNote(f));
     const mechanical = mechanicalProblems(records, { storeNames: store.names, storeSourceIds: store.sourceIds, storeKinds: store.kinds, receipt, kgDuplicates });
 
     // 3. Re-fetch every new source and compare its hash with the one intake recorded.
@@ -623,16 +641,20 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     state.rows = buildTable(records, review, mechanical);
     state.verdict = overallVerdict(state.rows);
     const rendered = { records, rows: state.rows, verdict: state.verdict, sourceNotes, notes, usage, runUrl, mode: args.mode };
-    state.body = renderReview(rendered);
+    // Every field passes, but a failed duplicate check leaves the store unchecked: the review says
+    // so in its headline in every mode, and is never an approval.
+    const dupeBlocked = state.verdict === 'approve' && dupeFailures.length > 0;
+    state.body = renderReview(dupeBlocked ? { ...rendered, blocker: duplicateSearchBlocker(dupeFailures) } : rendered);
+    const shown = dupeBlocked ? 'not approved: duplicate search failed' : state.verdict;
 
     // 5. Post.
     if (args.mode === 'dry-run' || args.mode === 'report-only') {
-      state.outcome = `not posted (${args.mode}): ${state.verdict}`;
+      state.outcome = `not posted (${args.mode}): ${shown}`;
       return result();
     }
     if (args.mode === 'comment') {
       await postReview(gh, repo, pull, state.body, 'COMMENT', notes);
-      state.outcome = `commented: ${state.verdict}`;
+      state.outcome = `commented: ${shown}`;
       return result();
     }
     // approve mode. The rewire-reviewer app posts the verdict when its token exists: rewire-bot cannot
@@ -643,10 +665,9 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       state.outcome = 'requested changes';
       return result();
     }
-    // Every field passes, but a failed duplicate search leaves the store unchecked: comment and
-    // ask for a human, never approve.
-    if (dupeFailures.length) {
-      state.body = renderReview({ ...rendered, blocker: duplicateSearchBlocker(dupeFailures) });
+    // Every field passes, but a failed duplicate check leaves the store unchecked: comment and ask
+    // for a human, never approve.
+    if (dupeBlocked) {
       await postReview(verdictClient, repo, pull, state.body, 'COMMENT', notes);
       state.outcome = 'not approved: duplicate search failed';
       return result();

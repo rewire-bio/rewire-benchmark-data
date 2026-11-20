@@ -6,7 +6,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { recordSchema } from "../scripts/omics/schema";
 import {
+  batchLines,
   candidateText,
   dupeRulings,
   draftThroughKg,
@@ -14,6 +16,7 @@ import {
   kgStatusLines,
   kgTools,
   main,
+  RECORD_FIELDS,
   nameOverlap,
   needsRuling,
   pruneRecords,
@@ -363,6 +366,77 @@ describe("knowledge-graph failures after startup", () => {
     expect(receipt.failures.map((f: any) => f.step)).toEqual(["draft_overlay"]);
     expect(receipt.summary).toBeNull();
     expect(result.pull.body).toContain("Writing the batch through the draft overlay failed (draft_export failed");
-    expect(result.pull.body).not.toContain("does not approve");
+    expect(result.pull.body).toContain("The reviewer agent does not approve this pull request.");
+  });
+
+  const readBatch = (root: string, result: any) => fs.readFileSync(path.join(root, result.batchDir, "batch.jsonl"), "utf8");
+
+  it("records a failed probe removal and keeps probes out of the batch", async () => {
+    const root = tempRoot();
+    const { kg } = fakeKg({ fails: (name, args) => name === "draft_remove" && String(args.id).startsWith("intake-probe-") });
+    const result = await main(["--dry-run", "--fixtures", FIXTURES, "--root", root, "--no-store-checks"], {}, { now, log: quiet, kg });
+    expect(result.outcome).toBe("ready: pull request not opened in this mode");
+    const receipt = JSON.parse(fs.readFileSync(path.join(root, result.batchDir, "kg.json"), "utf8"));
+    const steps = receipt.failures.map((f: any) => f.step);
+    expect(steps).toContain("probe_cleanup");
+    // The probes could not be removed, so the export would hold them: it is refused.
+    expect(steps).toContain("draft_overlay");
+    expect(receipt.failures.find((f: any) => f.step === "draft_overlay").error).toContain("records outside it: intake-probe-");
+    expect(readBatch(root, result)).not.toContain("intake-probe-");
+    expect(result.pull.body).not.toContain("was written through its draft overlay");
+  });
+
+  it("keeps what the overlay dropped out of the batch when the export then fails", async () => {
+    const root = tempRoot();
+    const bad = "intake-9998-20261120-model-evo-2-fixture-1b-base";
+    const { kg } = fakeKg({ problems: { [bad]: ["attributes: bad"] }, fails: (name) => name === "draft_export" });
+    const result = await main(["--dry-run", "--fixtures", FIXTURES, "--root", root, "--no-store-checks"], {}, { now, log: quiet, kg });
+    expect(result.outcome).toBe("ready: pull request not opened in this mode");
+    expect(result.dropped.map((d: any) => d.id)).toContain(bad);
+    expect(readBatch(root, result)).not.toContain(`"id":"${bad}"`);
+    const receipt = JSON.parse(fs.readFileSync(path.join(root, result.batchDir, "kg.json"), "utf8"));
+    expect(receipt.failures.find((f: any) => f.step === "draft_overlay").dropped).toContain(bad);
+    expect(result.pull.body).toContain(`It had already dropped \`${bad}\``);
+  });
+
+  it("reports a draft_upsert that times out as a failure, not a refusal, and keeps the record", async () => {
+    const root = tempRoot();
+    const { kg } = fakeKg({ fails: (name, args) => name === "draft_upsert" && !String(args.record.id).startsWith("intake-probe-") && args.record.kind !== "source" });
+    const result = await main(["--dry-run", "--fixtures", FIXTURES, "--root", root, "--no-store-checks"], {}, { now, log: quiet, kg });
+    expect(result.outcome).toBe("ready: pull request not opened in this mode");
+    expect(result.dropped.some((d: any) => /refused it/.test(d.reason))).toBe(false);
+    const receipt = JSON.parse(fs.readFileSync(path.join(root, result.batchDir, "kg.json"), "utf8"));
+    expect(receipt.failures.map((f: any) => f.step)).toEqual(["draft_overlay"]);
+    expect(receipt.failures[0].error).toMatch(/^draft_upsert failed for .*timed out/);
+    expect(result.pull.body).toContain("The reviewer agent does not approve this pull request.");
+  });
+
+  it("still drops a record the server refuses", async () => {
+    const { kg } = fakeKg();
+    const rec = (id: string, kind: string) => ({ id, kind, name: id, description: "d", status: "discovered", facets: {}, source_ids: [], links: [], attributes: {} });
+    const out = await draftThroughKg(kg, [rec("catalog-model-evo-2", "model"), rec("m1", "model")]);
+    expect(out.error).toBeUndefined();
+    expect(out.dropped.map((d) => d.id)).toEqual(["catalog-model-evo-2"]);
+    expect(out.dropped[0].reason).toContain("refused it");
+  });
+
+  it("writes the same bytes as the overlay export when it falls back", async () => {
+    expect(RECORD_FIELDS).toEqual(Object.keys(recordSchema.shape));
+    const records = [
+      { id: "m2", kind: "model", name: "Helixgram", description: "d", status: "discovered", facets: { contexts: ["research"], areas: ["dna-genomes"] }, source_ids: ["s1"], links: [{ relation: "derived_from", target_id: "m1" }], attributes: { z: 1, a: { y: 2, b: 3 } } },
+      { id: "m1", kind: "model", name: "Other", description: "d", status: "discovered", facets: {}, source_ids: ["s1"], links: [], attributes: { b: [{ d: 1, c: 2 }], a: "x" } },
+      { id: "s1", kind: "source", name: "Page", description: "d", status: "discovered", facets: {}, source_ids: [], links: [], attributes: { url: "https://x", artifact_sha256: "0" } },
+    ];
+    const { kg } = fakeKg();
+    const out = await draftThroughKg(kg, records);
+    expect(out.error).toBeUndefined();
+    expect(batchLines(records)).toBe(out.batchText);
+    const m2 = batchLines(records).split("\n")[1];
+    expect(m2).toContain('"facets":{"areas":["dna-genomes"],"contexts":["research"]}');
+    // Top-level fields in schema order and links sorted, as the server's normalise does.
+    const shuffled = { attributes: records[0].attributes, links: [{ relation: "used_by", target_id: "a" }, ...records[0].links], kind: "model", id: "m2", name: "Helixgram", description: "d", status: "discovered", facets: records[0].facets, source_ids: ["s1"] };
+    const line = batchLines([shuffled]);
+    expect(line.startsWith('{"id":"m2","kind":"model","name":"Helixgram"')).toBe(true);
+    expect(line).toContain('"links":[{"relation":"derived_from","target_id":"m1"},{"relation":"used_by","target_id":"a"}]');
   });
 });

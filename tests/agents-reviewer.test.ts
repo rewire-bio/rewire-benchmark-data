@@ -166,6 +166,7 @@ describe("posting, with fakes", () => {
     const f = fakes({ review: allPass });
     const r = await main(["--pr", "296", "--mode", "approve", "--root", await rootWithBatch()], env, f.deps);
     expect(r.outcome).toBe("not approved: no approver token");
+    expect(f.posted.map((p) => p.event)).toEqual(["COMMENT"]);
   });
 
   it("in approve mode, comments and asks for a human when the intake's duplicate search failed", async () => {
@@ -189,7 +190,51 @@ describe("posting, with fakes", () => {
     expect(r.outcome).toBe("not approved: duplicate search failed");
     expect(f.posted.map((p) => p.event)).toEqual(["COMMENT"]);
     expect(f.posted[0].body).toContain("The reviewer's knowledge-graph duplicate search");
+  });
+
+  async function rootWithReceipt(receipt: any) {
+    const fs = await import("node:fs");
+    const root = await rootWithBatch();
+    fs.writeFileSync(`${root}/data/omics/intake-250-20261119/kg.json`, JSON.stringify({ links: [], duplicate_rulings: [], ...receipt }));
+    return root;
+  }
+  const kgUsed = { release: "kg/x", iri_base: "https://example.org/id/", kinds: { model: "rb:Model" } };
+  const summary = { release: "kg/x", added: [] };
+
+  it("does not approve when the intake's draft overlay failed", async () => {
+    const f = fakes({ review: allPass });
+    const root = await rootWithReceipt({ kg: kgUsed, failures: [{ step: "draft_overlay", error: "draft_export failed: timed out", dropped: [] }], summary: null });
+    const r = await main(["--pr", "296", "--mode", "approve", "--root", root], { ...env, APPROVER_TOKEN: "t" }, f.deps);
+    expect(r.outcome).toBe("not approved: duplicate search failed");
     expect(f.posted.map((p) => p.event)).toEqual(["COMMENT"]);
+    expect(f.posted[0].body).toContain("draft overlay failed before exporting the batch");
+    expect(f.commands).toEqual([]);
+  });
+
+  it("does not approve when its own knowledge graph does not start", async () => {
+    const f = fakes({ review: allPass });
+    const root = await rootWithReceipt({ kg: kgUsed, failures: [], summary });
+    const r = await main(["--pr", "296", "--mode", "approve", "--root", root], { ...env, APPROVER_TOKEN: "t", KG_BUNDLE: "/nonexistent/kg.tar.gz" }, f.deps);
+    expect(r.outcome).toBe("not approved: duplicate search failed");
+    expect(f.posted[0].body).toContain("The reviewer's knowledge graph did not start");
+    expect(f.commands).toEqual([]);
+  });
+
+  it("does not approve when nothing checked the batch against the graph", async () => {
+    const f = fakes({ review: allPass });
+    const root = await rootWithReceipt({ kg: kgUsed, failures: [], summary: null });
+    const r = await main(["--pr", "296", "--mode", "approve", "--root", root], { ...env, APPROVER_TOKEN: "t" }, f.deps);
+    expect(r.outcome).toBe("not approved: duplicate search failed");
+    expect(f.posted[0].body).toContain("No knowledge-graph duplicate check of this batch ran");
+  });
+
+  it("in comment mode, does not head the review as an approval when a duplicate search failed", async () => {
+    const f = fakes({ review: allPass });
+    const root = await rootWithReceipt({ kg: { used: false }, failures: [{ step: "duplicate_search", entity: "hEvo-base", error: "timed out" }], summary: null });
+    const r = await main(["--pr", "296", "--mode", "comment", "--root", root], env, f.deps);
+    expect(r.outcome).toBe("commented: not approved: duplicate search failed");
+    expect(f.posted[0].body.split("\n")[0]).toContain("Reviewer agent verdict: not approved.");
+    expect(f.posted[0].body.split("\n")[0]).not.toContain("verdict: approve");
   });
 
   it("skips pull requests the bot did not open", async () => {
