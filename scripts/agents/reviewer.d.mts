@@ -14,6 +14,7 @@ export function readStore(dir: string, exclude?: Set<string>): Promise<{ names: 
 export function mechanicalProblems(records: any[], known: { storeNames: Map<string, string>; storeSourceIds: Set<string> }): Problem[];
 export function buildTable(records: any[], review: any, mechanical: Problem[]): Row[];
 export function overallVerdict(rows: Row[]): string;
+export function headline(rows: Row[], verdict: string, blocker?: string): string;
 export function renderReview(input: any): string;
 export function githubClient(token: string, fetchImpl?: typeof fetch): any;
 export function reviewInput(records: any[]): any[];

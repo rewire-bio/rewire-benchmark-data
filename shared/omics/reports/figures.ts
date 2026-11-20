@@ -48,14 +48,35 @@ export const SPAN_INPUTS = [
 export interface FigureInput {
   path: string;
   sha256: string;
-  /** Records in a JSONL input when the figures were measured, and the digest of exactly
-   * those records. A data file grows as evidence is collected, and appending a record does
-   * not make a measured figure wrong about the records it measured. So a data input is
-   * checked on its measured prefix: the records that were there must still be there and
-   * still say the same thing, while the file is allowed to have grown. A code input has no
-   * prefix and is checked whole, because changing the code does make the figures stale. */
+  /** How many records a JSONL input held when the figures were measured. */
   lines?: number;
-  prefix_sha256?: string;
+  /** One entry per record the figures were measured over, so a data input can be checked
+   * record by record rather than as a whole file. A data file grows as evidence is collected,
+   * and a figure measured over 1,483 sources is not made wrong by a 1,484th arriving: the
+   * records that were measured have to still be there and still say the same thing, while the
+   * file is allowed to have gained others. A code input has no records and is checked whole,
+   * because changing the code does make the figures stale.
+   *
+   * This cannot be done by hashing the first `lines` lines of the file. `records add` keeps
+   * every store file sorted by ID (`scripts/omics/records.ts`, and `validateRecords` refuses a
+   * file that is not), so a new record lands wherever its ID sorts and shifts every line below
+   * it. A positional check read that as a changed record: one intake of 116 new sources, none
+   * of which touched a measured line, failed as `a measured record changed`.
+   *
+   * Lives in a file of its own beside the figures, because it is 56,000 lines against the
+   * figures file's 500. Held here in memory so the rest of this module sees one shape. */
+  records?: MeasuredRecord[];
+}
+
+/** One record as it stood when a figure was measured. */
+export interface MeasuredRecord {
+  /** The record's `id`, or its own line digest for a file whose rows carry no `id`, which is
+   * the layer registry. A row keyed on its own content reads as gone rather than as changed
+   * when it is edited, which still fails, and registry rows are keyed on content hashes
+   * upstream anyway: a different derivation is a different row, not an edit to this one. */
+  key: string;
+  /** The first `KEY_DIGEST` hex digits of the digest of the line as it was measured. */
+  sha256: string;
 }
 
 export interface FigureFile {
@@ -72,28 +93,42 @@ export interface FigureFile {
 
 const digestOf = (file: string): string => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 
-/** A JSONL input also records how many records it held and the digest of just those, so a
- * later append can be told apart from a change to what was measured. */
-function prefixOf(file: string): { lines: number; prefix_sha256: string } | null {
+/** Where the measured records of a figures file are kept: one line per record, under a
+ * `# <path>` header per input file. A text file sorted the way the store sorts means a commit
+ * that adds records shows exactly which, and costs a few lines of delta rather than a rewrite. */
+export const recordsFileFor = (figuresFile: string): string => figuresFile.replace(/\.json$/, "-records.tsv");
+
+/** Hex digits kept per record. 48 bits, because the only thing that has to be hard here is for
+ * an edited record to collide with its own former content, and nothing is adversarial. */
+const KEY_DIGEST = 12;
+
+/** Every record of a JSONL input as it stands, in file order, or null for a code input.
+ *
+ * Keys repeat only in a file the store would already refuse, so a repeat is numbered rather
+ * than dropped: two records that are byte for byte the same are two records, and a check that
+ * silently counted them as one could be made to pass by deleting one of them. */
+function recordsOf(file: string): MeasuredRecord[] | null {
   if (!file.endsWith(".jsonl")) return null;
   const text = fs.readFileSync(file, "utf8");
-  const lines = text.length === 0 ? [] : text.replace(/\n$/, "").split("\n");
-  return { lines: lines.length, prefix_sha256: createHash("sha256").update(lines.join("\n")).digest("hex") };
-}
-
-/** The measured prefix of a file as it stands now, or null when it is shorter than it was,
- * which is a removal rather than an append and must fail. */
-export function prefixNow(file: string, lines: number): string | null {
-  const text = fs.readFileSync(file, "utf8");
-  const all = text.length === 0 ? [] : text.replace(/\n$/, "").split("\n");
-  if (all.length < lines) return null;
-  return createHash("sha256").update(all.slice(0, lines).join("\n")).digest("hex");
+  if (text.length === 0) return [];
+  const seen = new Map<string, number>();
+  return text
+    .replace(/\n$/, "")
+    .split("\n")
+    .map((line) => {
+      const sha256 = createHash("sha256").update(line).digest("hex").slice(0, KEY_DIGEST);
+      const id = (JSON.parse(line) as { id?: unknown }).id;
+      const key = typeof id === "string" && id !== "" ? id : sha256;
+      const before = seen.get(key) ?? 0;
+      seen.set(key, before + 1);
+      return { key: before === 0 ? key : `${key}#${before + 1}`, sha256 };
+    });
 }
 
 /** Every input file with its digest, sorted by path. */
 export function inputFiles(root: string, inputs: string[] = SPAN_INPUTS): FigureInput[] {
   const found = new Map<string, string>();
-  const prefixes = new Map<string, { lines: number; prefix_sha256: string } | null>();
+  const records = new Map<string, MeasuredRecord[] | null>();
   for (const entry of inputs) {
     const full = path.join(root, entry);
     if (!fs.existsSync(full)) continue;
@@ -104,21 +139,32 @@ export function inputFiles(root: string, inputs: string[] = SPAN_INPUTS): Figure
         if (!fs.statSync(file).isFile()) continue;
         if (!name.endsWith(".ts") && !name.endsWith(".jsonl")) continue;
         found.set(`${entry}/${name}`, digestOf(file));
-        prefixes.set(`${entry}/${name}`, prefixOf(file));
+        records.set(`${entry}/${name}`, recordsOf(file));
       }
       continue;
     }
     found.set(entry, digestOf(full));
-    prefixes.set(entry, prefixOf(full));
+    records.set(entry, recordsOf(full));
   }
   return [...found.entries()]
     .sort((a, b) => (a[0] < b[0] ? -1 : 1))
-    .map(([file, sha256]) => ({ path: file, sha256, ...(prefixes.get(file) ?? {}) }));
+    .map(([file, sha256]) => {
+      const rows = records.get(file);
+      return rows ? { path: file, sha256, lines: rows.length, records: rows } : { path: file, sha256 };
+    });
 }
 
 /** One digest over the lot, for a run that only needs to know whether anything moved. */
 export const inputDigest = (inputs: FigureInput[]): string =>
   createHash("sha256").update(inputs.map((input) => `${input.path} ${input.sha256}`).join("\n")).digest("hex");
+
+/** The first few record keys, named in a failure so it points at records rather than at a file. */
+const NAMED = 3;
+const names = (rows: MeasuredRecord[]): string =>
+  rows
+    .slice(0, NAMED)
+    .map((row) => row.key)
+    .join(", ") + (rows.length > NAMED ? `, and ${rows.length - NAMED} more` : "");
 
 /** Which input files differ between what a figures file records and the tree now. */
 export function changedInputs(recorded: FigureInput[], now: FigureInput[], root = "."): { path: string; was: string; now: string }[] {
@@ -131,15 +177,24 @@ export function changedInputs(recorded: FigureInput[], now: FigureInput[], root 
       continue;
     }
     if (current.sha256 === input.sha256) continue;
-    // A data file that only grew still holds what was measured, and a figure measured over
-    // 1,483 sources is not made wrong by a 1,484th arriving. Compare the measured prefix.
-    if (input.prefix_sha256 !== undefined && input.lines !== undefined) {
-      const still = prefixNow(path.join(root, input.path), input.lines);
-      if (still === input.prefix_sha256) continue;
+    // A data file that only grew still holds what was measured, so it is checked record by
+    // record and may have gained others. Position says nothing: the store keeps these files
+    // sorted by ID, so an added record moves every line below it.
+    if (input.records !== undefined) {
+      const now = current.records ?? recordsOf(path.join(root, input.path)) ?? [];
+      const have = new Map(now.map((row) => [row.key, row.sha256]));
+      const gone = input.records.filter((row) => !have.has(row.key));
+      const edited = input.records.filter((row) => have.has(row.key) && have.get(row.key) !== row.sha256);
+      if (gone.length === 0 && edited.length === 0) continue;
       changed.push({
         path: input.path,
-        was: `${input.lines} records measured`,
-        now: still === null ? "fewer records than were measured" : "a measured record changed",
+        was: `${input.records.length} records measured`,
+        now: [
+          edited.length > 0 ? `${edited.length} measured ${edited.length === 1 ? "record" : "records"} changed: ${names(edited)}` : "",
+          gone.length > 0 ? `${gone.length} measured ${gone.length === 1 ? "record is" : "records are"} gone: ${names(gone)}` : "",
+        ]
+          .filter((part) => part !== "")
+          .join("; "),
       });
       continue;
     }
@@ -149,13 +204,44 @@ export function changedInputs(recorded: FigureInput[], now: FigureInput[], root 
   return changed.sort((a, b) => (a.path < b.path ? -1 : 1));
 }
 
-export const readFigures = (root: string, file = SPAN_FIGURES): FigureFile =>
-  JSON.parse(fs.readFileSync(path.join(root, file), "utf8")) as FigureFile;
+/** The figures file with the measured records of its data inputs folded back in from beside it. */
+export function readFigures(root: string, file = SPAN_FIGURES): FigureFile {
+  const content = JSON.parse(fs.readFileSync(path.join(root, file), "utf8")) as FigureFile;
+  const beside = path.join(root, recordsFileFor(file));
+  if (!fs.existsSync(beside)) return content;
+  const byPath = new Map<string, MeasuredRecord[]>();
+  let section: MeasuredRecord[] | undefined;
+  for (const line of fs.readFileSync(beside, "utf8").split("\n")) {
+    if (line === "") continue;
+    if (line.startsWith("# ")) {
+      section = [];
+      byPath.set(line.slice(2), section);
+      continue;
+    }
+    const [key, sha256] = line.split("\t");
+    if (section === undefined) throw new Error(`${recordsFileFor(file)} names a record before any file: ${key}`);
+    section.push({ key, sha256 });
+  }
+  return { ...content, inputs: content.inputs.map((input) => (byPath.has(input.path) ? { ...input, records: byPath.get(input.path) } : input)) };
+}
 
 export function writeFigures(root: string, content: FigureFile, file = SPAN_FIGURES): void {
   const full = path.join(root, file);
   fs.mkdirSync(path.dirname(full), { recursive: true });
-  fs.writeFileSync(full, `${JSON.stringify(content, null, 2)}\n`);
+  const beside = path.join(root, recordsFileFor(file));
+  const withRecords = content.inputs.filter((input) => input.records !== undefined);
+  for (const input of withRecords)
+    for (const row of input.records ?? [])
+      if (/[\t\n]/.test(row.key)) throw new Error(`${input.path} holds a record whose ID has a tab or newline in it: ${JSON.stringify(row.key)}`);
+  if (withRecords.length === 0) fs.rmSync(beside, { force: true });
+  else
+    fs.writeFileSync(
+      beside,
+      `${withRecords.map((input) => [`# ${input.path}`, ...(input.records ?? []).map((row) => `${row.key}\t${row.sha256}`)].join("\n")).join("\n")}\n`,
+    );
+  // The records live beside the figures, not in them: 56,000 lines against 500.
+  const stored = content.inputs.map(({ records, ...rest }) => rest);
+  fs.writeFileSync(full, `${JSON.stringify({ ...content, inputs: stored }, null, 2)}\n`);
 }
 
 /**

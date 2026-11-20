@@ -149,6 +149,8 @@ describe("posting, with fakes", () => {
     const r = await main(["--pr", "296", "--mode", "approve", "--root", await rootWithBatch()], { ...env, APPROVER_TOKEN: "t" }, f.deps);
     expect(r.outcome).toBe("not approved: CI red");
     expect(f.posted).toEqual([expect.objectContaining({ event: "REQUEST_CHANGES", by: "approver" })]);
+    // The headline says why it is not an approval, so it never contradicts the review event.
+    expect(f.posted[0].body.split("\n")[0]).toMatch(/^\*\*Reviewer agent verdict: not approved. CI is red \(checks \(tests-1\): failure\).\*\* All \d+ fields pass.$/);
     expect(f.commands).toEqual([]);
   });
 
