@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  ASSIGNEE, LEAD_LABELS, LIMITS, MARKERS, checkExplanation, diffReleases, explanationFacts, fmt, knownLeads, main, planRun, readRecords, idsNeeded, renderLead, renderOverflow,
+  ASSIGNEE, LEAD_LABELS, LIMITS, MARKERS, checkExplanation, countSentences, diffReleases, explanationFacts, fmt, knownLeads, main, planRun, readRecords, idsNeeded, renderLead, renderOverflow,
 } from "../scripts/agents/watcher.mjs";
 
 // The disagreement watcher (#258). Everything here runs without an API key or network. The
@@ -175,6 +175,32 @@ describe("explanation check", () => {
   });
 });
 
+describe("explanation length", () => {
+  const long = read("long-explanations.json").paragraphs as { id: string; facts: object; text: string }[];
+  it("rejects both over-long paragraphs from the first report-only run", () => {
+    expect(long.map((p) => countSentences(p.text, p.facts))).toEqual([12, 14]);
+    for (const p of long) {
+      const r = checkExplanation(p.text, p.facts);
+      expect(r.ok).toBe(false);
+      expect(r.ok === false && r.why).toMatch(/^it had \d+ sentences, more than 6$/);
+    }
+  });
+  it("keeps a paragraph of six sentences", () => {
+    const text = "The studies use different metrics. Check the metric first. The datasets differ too. Then check the datasets. The configurations match. A reversal on shared data would show the outlier is wrong.";
+    expect(countSentences(text)).toBe(6);
+    expect(checkExplanation(text, {}).ok).toBe(true);
+    expect(checkExplanation(`${text} One more sentence.`, {}).ok).toBe(false);
+  });
+  it("does not split on abbreviations, names with full stops, or a lower-case word after a full stop", () => {
+    const facts = { studies: [{ study: "BEELINE: 10.1038/s41592-019-0690-6 source data", metrics: ["auprc-ratio"] }] };
+    expect(countSentences("Brandes et al. used a subset, e.g. ClinVar, vs. the full set. Check it.")).toBe(2);
+    expect(countSentences("BEELINE: 10.1038/s41592-019-0690-6 source data uses auprc-ratio. Check it.", facts)).toBe(2);
+    expect(countSentences("Check the metric first. auprc-ratio is not stability. Then the data.")).toBe(2);
+    expect(countSentences("Is the metric the same? Check it! Then the data")).toBe(3);
+    expect(countSentences("")).toBe(0);
+  });
+});
+
 describe("dry run on the fixtures", () => {
   it("plans two leads and two comments, with no model or GitHub call", async () => {
     const r = await main(["--dry-run"], {}, { log: quiet });
@@ -199,7 +225,7 @@ describe("live run, with fakes", () => {
       comment: async (_repo: string, number: number, body: string) => { posted.push({ number, body }); },
     };
     const anthropic = {
-      beta: { messages: { create: async () => ({ model: "claude-sonnet-5-5", stop_reason: "end_turn", content: [{ type: "text", text: "The studies use different metrics. Check the metric definitions first." }], usage: { input_tokens: 3000, output_tokens: 300 } }) } },
+      beta: { messages: { create: async (_req?: unknown) => ({ model: "claude-sonnet-5-5", stop_reason: "end_turn", content: [{ type: "text", text: "The studies use different metrics. Check the metric definitions first." }], usage: { input_tokens: 3000, output_tokens: 300 } }) } },
     };
     return { github, anthropic, created, posted, labels: () => labels };
   }
@@ -235,6 +261,35 @@ describe("live run, with fakes", () => {
     f.anthropic.beta.messages.create = async () => ({ model: "claude-sonnet-5-5", stop_reason: "max_tokens", content: [{ type: "text", text: "The studies use" }], usage: { input_tokens: 10, output_tokens: 2000 } });
     const r = await main([...args, "--report-only"], env, { github: f.github, anthropic: f.anthropic, log: quiet });
     expect(r.filed[0].explanationNote).toMatch(/stopped early/);
+  });
+
+  it("asks once for a shorter paragraph and files the rewrite", async () => {
+    const f = fakes();
+    const long = read("long-explanations.json").paragraphs[0].text;
+    const calls: { messages: { role: string; content: string }[] }[] = [];
+    f.anthropic.beta.messages.create = async (req?: unknown) => {
+      calls.push(JSON.parse(JSON.stringify(req)));
+      const text = calls.length % 2 === 1 ? long : "The studies use different metrics. Check the metric definitions first.";
+      return { model: "claude-sonnet-5-5", stop_reason: "end_turn", content: [{ type: "text", text }], usage: { input_tokens: 3000, output_tokens: 300 } };
+    };
+    const r = await main([...args, "--report-only"], env, { github: f.github, anthropic: f.anthropic, log: quiet });
+    expect(calls).toHaveLength(4); // two leads, one rewrite each
+    expect(calls[1].messages.map((m) => m.role)).toEqual(["user", "assistant", "user"]);
+    expect(calls[1].messages[1].content).toBe(long);
+    expect(calls[1].messages[2].content).toMatch(/rejected because it had \d+ sentences, more than 6/);
+    expect(r.filed.every((x: { explanationNote: string | null; issue: { body: string } }) => x.explanationNote === null && x.issue.body.includes("Check the metric definitions first."))).toBe(true);
+  });
+
+  it("files without the paragraph when the rewrite is still too long", async () => {
+    const f = fakes();
+    const long = read("long-explanations.json").paragraphs[1].text;
+    let n = 0;
+    f.anthropic.beta.messages.create = async () => ({ model: "claude-sonnet-5-5", stop_reason: "end_turn", content: [{ type: "text", text: (n++, long) }], usage: { input_tokens: 3000, output_tokens: 300 } });
+    const r = await main([...args, "--report-only"], env, { github: f.github, anthropic: f.anthropic, log: quiet });
+    expect(n).toBe(4);
+    expect(r.filed[0].explanationNote).toMatch(/sentences, more than 6, also after one rewrite/);
+    expect(r.filed[0].issue.body).not.toContain("beeline-stability measures");
+    expect(r.filed[0].issue.body).not.toContain("PROVEAN's coverage gaps");
   });
 
   it("refuses a repository outside rewire-bio", async () => {

@@ -55,6 +55,7 @@ const { values, positionals } = parseArgs({
     source: { type: "string", multiple: true },
     key: { type: "string", multiple: true },
     "sources-from": { type: "string" },
+    from: { type: "string" },
     "dry-run": { type: "boolean" },
     "no-mark": { type: "boolean" },
     json: { type: "boolean" },
@@ -268,8 +269,11 @@ async function pull(): Promise<number> {
         .map((line) => line.trim())
         .filter((line) => line !== "" && !line.startsWith("#"))
     : [];
+  const from = values.from ?? "r2";
+  if (from !== "r2" && from !== "release") throw new Error(`--from takes r2 or release, not ${from}`);
   const summary = await pullObjects({
     root,
+    from,
     keys: values.key,
     sources: [...new Set([...(values.source ?? []), ...fromFile])],
     limit: number("limit"),
@@ -284,8 +288,16 @@ async function pull(): Promise<number> {
     print(`refused, t5-no-store  ${summary.removed}`);
     print(`selected              ${summary.selected} (${summary.selected_restricted} restricted, ${summary.selected_public} public)`);
     print(`already held          ${summary.already_held}`);
+    if (from === "release") {
+      print(`no release, already in R2 ${summary.already_in_the_bucket}`);
+      print(`no release, no remote copy ${summary.no_remote_copy}`);
+    }
     print(`held back by --limit  ${summary.held_back_by_limit}`);
-    print(summary.dry_run ? `would fetch           ${summary.selected - summary.already_held - summary.held_back_by_limit}` : `downloaded            ${summary.downloaded}`);
+    print(
+      summary.dry_run
+        ? `would fetch           ${summary.selected - summary.already_held - summary.held_back_by_limit - summary.already_in_the_bucket - summary.no_remote_copy}`
+        : `downloaded            ${summary.downloaded}`,
+    );
     if (!summary.dry_run) print(`bytes written         ${mib(summary.expanded_bytes)} expanded, ${mib(summary.compressed_bytes)} on disk`);
     if (summary.failed.length) {
       print(`failed                ${summary.failed.length}`);
@@ -323,7 +335,7 @@ async function main(): Promise<number> {
     default:
       print(
         "Usage: npm run archive -- <worklist|fetch|verify|status|reclassify|publish|upload|pull> [options]\n" +
-          "       pull takes --source <id> (repeatable), --key <sha256> (repeatable), --sources-from <file>, --limit, --dry-run",
+          "       pull takes --source <id> (repeatable), --key <sha256> (repeatable), --sources-from <file>, --from <r2|release>, --limit, --dry-run",
       );
       return positionals[0] ? 1 : 0;
   }

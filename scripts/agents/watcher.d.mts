@@ -26,7 +26,8 @@ export function protocolFacts(finding: Finding, records: Map<string, any>): any[
 export function explanationFacts(finding: Finding, records: Map<string, any>): any;
 export function renderLead(lead: Lead, opts: { records: Map<string, any>; release: string; previous: string; explanation: string | null; explanationNote: string | null; runUrl?: string }): IssueText;
 export function renderOverflow(leads: Lead[], opts: { records: Map<string, any>; release: string; previous: string; filedCount: number; runUrl?: string }): IssueText;
-export function checkExplanation(text: string, facts: any): { ok: true; text: string } | { ok: false; why: string; stray?: string[] };
+export function checkExplanation(text: string, facts: any): { ok: true; text: string } | { ok: false; why: string; stray?: string[]; sentences?: number };
+export function countSentences(text: string, facts?: any): number;
 export function explain(client: any, usage: any, opts: { system: string; facts: any; log?: (m: string) => void }): Promise<{ text: string | null; note: string | null }>;
 export function watcherGithub(token: string, fetchImpl?: typeof fetch): any;
 export function renderSummary(input: any): string;

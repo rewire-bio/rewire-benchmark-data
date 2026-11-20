@@ -1,0 +1,74 @@
+{
+  "note": "The two paragraphs Sonnet wrote in the first report-only watcher run (actions run 44717740609), with the names from the facts they were written from (trimmed). Both are longer than the prompt allows.",
+  "paragraphs": [
+    {
+      "id": "discrepancy-0311356983b743d6",
+      "facts": {
+        "systems": [
+          "GRNBoost2",
+          "PPCOR (partial Pearson correlation)"
+        ],
+        "rule": "ordering reversal",
+        "studies": [
+          {
+            "study": "BEELINE: 10.1038/s41592-019-0690-6 source data published 2020",
+            "metrics": [
+              "auprc-ratio",
+              "beeline-stability"
+            ],
+            "datasets": [
+              "LI",
+              "TF",
+              "CY",
+              "BFC",
+              "LL",
+              "BF"
+            ]
+          },
+          {
+            "metrics": [
+              "early-precision-ratio",
+              "auprc-ratio"
+            ],
+            "datasets": [
+              "mESC",
+              "hHep",
+              "hESC",
+              "GSD",
+              "VSC"
+            ]
+          }
+        ]
+      },
+      "text": "The most likely explanation is that the outlier study and the consensus studies measure different things. The outlier study uses auprc-ratio and beeline-stability on the datasets LI, TF, CY, BFC, LL and BF. Those look like the synthetic or curated networks. The consensus studies use early-precision-ratio, and one of them also uses auprc-ratio, on other datasets such as mESC, hHep, hESC, GSD and VSC. I would check the metric first. beeline-stability measures how consistent a method is across runs, not how accurate it is. If the table mixes it with auprc-ratio in the outlier study, a method that is stable but not precise could win those comparisons. Next I would check whether the outlier study's comparisons split by metric, since a stability result should not count as an accuracy ranking. After that I would check the dataset difference, because the outlier study and the consensus studies share no datasets, so each may favor a method that suits its own network type. The configurations are the same across studies, so a tuning difference is less likely, but it is worth confirming that the same settings were used. Evidence that the outlier study is wrong would be the same ordering on auprc-ratio alone, or a reversal when it is rerun on a dataset the consensus studies use. Evidence that it is right would be GRNBoost2 losing on those datasets under the consensus metric."
+    },
+    {
+      "id": "discrepancy-44e5640b79522964",
+      "facts": {
+        "systems": [
+          "PROVEAN",
+          "SIFT"
+        ],
+        "rule": "ordering reversal",
+        "studies": [
+          {
+            "study": "Brandes et al. 2023 Supplementary Table 2: full benchmark evaluations of ESM1b and all other methods",
+            "datasets": [
+              "ClinVar",
+              "HGMD/gnomAD"
+            ]
+          },
+          {
+            "datasets": [
+              "OncoKB",
+              "ProteinGym",
+              "Cancer Gene Census",
+              "dbNSFP"
+            ]
+          }
+        ]
+      },
+      "text": "The first thing to check is the metric and the variant set in the outlier study. It reports a balanced PRC-AUC averaged over random downsamples and a global ROC-AUC, both on ClinVar and HGMD/gnomAD missense variants restricted to those scored by all eligible methods. The consensus studies mostly use other measures: win rates, categorical-call accuracy, and likelihood ratios. Restricting to variants that every method can score may favour SIFT if PROVEAN's coverage gaps fall on harder variants. I would check this before anything else, because it would change which variants each tool is judged on without either study being wrong. The next difference is the data. The outlier study uses germline pathogenic versus benign or common variants, while several consensus studies use somatic cancer data such as OncoKB, cell viability calls, and Cancer Gene Census labels. A tool can rank differently on germline disease variants than on oncogenic driver variants. The consensus studies that use dbNSFP rank scores, categorical calls, or a median-score threshold also differ in how each tool's output is turned into a number. Check whether the outlier study used raw scores or calls, and whether the two tools were run on the same transcripts and database version. The consensus is not uniform either. One study is split, and the ProteinGym comparison is a tie, so the lean toward PROVEAN is weaker than the headline suggests. Identity matching for these systems is unreviewed, so confirm the named configurations are the same tools. The outlier would be shown to be wrong if rerunning it on the consensus variant sets, with the same score handling, still put SIFT ahead."
+    }
+  ]
+}

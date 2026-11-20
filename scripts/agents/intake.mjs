@@ -1148,10 +1148,16 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       await finish('ready: pull request not opened in this mode', null);
       return result();
     }
+    // A branch left by an earlier run (its pull request closed unmerged) is deleted before the push.
+    // Force-pushing over it would change every file main changed since, workflow files included,
+    // which GitHub can refuse from a token without the workflows permission. No open or merged pull
+    // request uses the branch: step 1 stops the run if one does.
+    const stale = run('git', ['ls-remote', '--exit-code', '--heads', 'origin', `refs/heads/${branch}`]).ok;
     for (const [cmd, cmdArgs] of [
       ['git', ['checkout', '-B', branch]],
       ['git', ['add', '--', batchDir, 'data/entities', 'data/provenance']],
       ['git', ['commit', '-m', title, '-m', commitBody]],
+      ...(stale ? [['git', ['push', 'origin', '--delete', `refs/heads/${branch}`]]] : []),
       ['git', ['push', '--force', 'origin', `HEAD:refs/heads/${branch}`]],
     ]) {
       const r = run(cmd, cmdArgs);
@@ -1517,8 +1523,15 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   }
 }
 
+/** A run that ends in a failed store check or git step exits 1, so the pipeline alert sees it. */
+export function exitCodeFor(outcome) {
+  return String(outcome ?? '').startsWith('failed:') ? 1 : 0;
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  main().catch((e) => {
+  main().then((r) => {
+    process.exitCode = exitCodeFor(r?.outcome);
+  }).catch((e) => {
     console.error(e);
     process.exit(1);
   });

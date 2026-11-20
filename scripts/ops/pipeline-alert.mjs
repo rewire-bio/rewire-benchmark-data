@@ -1,5 +1,5 @@
-// File, update and close the `pipeline-broken` issue for failed releases, adoptions and
-// deploys (rewire-benchmark-data #252).
+// File, update and close the `pipeline-broken` issue for failed releases, adoptions, deploys
+// and agent runs (rewire-benchmark-data #252).
 //
 // The same file lives in rewire-benchmark-data and rewire-database, at
 // scripts/ops/pipeline-alert.mjs; keep the two copies identical. It has no dependencies, so
@@ -10,9 +10,14 @@
 // One open issue per repository carries every failing source (a workflow file, or the live
 // release check). A failure adds its source and comments with the run link and the log
 // lines before the first error. A success clears its source; the issue closes once no
-// source is failing. Cancelled and skipped runs change nothing.
+// source is failing. Cancelled and skipped runs change nothing, and neither does a failed run
+// whose only unsuccessful jobs were cancelled rather than timed out.
 //
-//   node scripts/ops/pipeline-alert.mjs run --run-id <id> [--dry-run]
+// Only runs on main count, except that --pr-workflows names workflows whose pull request runs
+// also count when the pull request comes from a branch in the same repository starting with
+// --pr-branch-prefix: the record pull requests an agent opens, not anyone's own work in review.
+//
+//   node scripts/ops/pipeline-alert.mjs run --run-id <id> [--pr-workflows a.yml,b.yml --pr-branch-prefix x/] [--dry-run]
 //   node scripts/ops/pipeline-alert.mjs stale --site <url> [--max-age-hours 24] [--dry-run]
 //
 // GITHUB_REPOSITORY names the repository; GH_TOKEN or GITHUB_TOKEN authenticates. With
@@ -28,13 +33,40 @@ const FAIL = new Set(['failure', 'timed_out', 'startup_failure']);
 const LOG_LINES = 40;
 const LOG_CHARS = 6000;
 
-/** What a finished run means for its source: 'fail', 'pass' or 'ignore'. */
-export function outcomeOf(run) {
-  if (run.head_branch !== 'main') return 'ignore';
-  if (run.event === 'pull_request' || run.event === 'pull_request_target' || run.event === 'merge_group') return 'ignore';
+/**
+ * What a finished run means for its source: 'fail', 'pass' or 'ignore'.
+ * prRuns: { workflows: ['reviewer.yml'], branchPrefix: 'intake/' } also counts pull request runs
+ * of those workflow files whose head is a branch of this repository with that prefix.
+ */
+export function outcomeOf(run, prRuns = {}) {
+  if (run.event === 'merge_group') return 'ignore';
+  const pr = run.event === 'pull_request' || run.event === 'pull_request_target';
+  if (pr ? !watchedPullRequest(run, prRuns) : run.head_branch !== 'main') return 'ignore';
   if (FAIL.has(run.conclusion)) return 'fail';
   if (run.conclusion === 'success') return 'pass';
   return 'ignore';
+}
+
+function watchedPullRequest(run, { workflows = [], branchPrefix = '' }) {
+  const head = run.head_repository?.full_name;
+  return Boolean(branchPrefix) && workflows.includes(sourceOf(run))
+    && String(run.head_branch ?? '').startsWith(branchPrefix)
+    && Boolean(head) && head === run.repository?.full_name;
+}
+
+/**
+ * Whether a failed run failed or was only cancelled: 'fail' or 'ignore'. A run can conclude
+ * `failure` when a job was cancelled and none failed. A job that hit its time limit also shows
+ * as cancelled, so the ids in timedOut count as failures.
+ */
+export function judgeJobs(jobs, timedOut = new Set()) {
+  if (jobs.some((job) => FAIL.has(job.conclusion) || timedOut.has(job.id))) return 'fail';
+  return jobs.some((job) => job.conclusion === 'cancelled') ? 'ignore' : 'fail';
+}
+
+/** Whether a cancelled job's annotations say it ran past its time limit. */
+export function timedOutByAnnotations(annotations) {
+  return (annotations ?? []).some((a) => /exceeded the maximum execution time/i.test(a.message ?? ''));
 }
 
 /** The source a run belongs to: its workflow file name. */
@@ -57,7 +89,7 @@ export function readState(body) {
 export function renderBody(state) {
   const sources = Object.entries(state.failing);
   const lines = [
-    'A release, adoption or deploy step is failing on main. This issue is opened and closed by `scripts/ops/pipeline-alert.mjs` (#252 in rewire-benchmark-data); it closes itself when every source below has succeeded again.',
+    'A release, adoption, deploy, check or agent run is failing. This issue is opened and closed by `scripts/ops/pipeline-alert.mjs` (#252 in rewire-benchmark-data); it closes itself when every source below has succeeded again.',
     '',
     '**Failing**',
     '',
@@ -182,18 +214,29 @@ async function apply(gh, issue, decision) {
   console.log(`${decision.action === 'close' ? 'Closed' : 'Updated'} issue ${issue.number}.`);
 }
 
-async function failureDetails(gh, run) {
+/** The jobs of a failed run, with the ids of cancelled jobs that in fact timed out. */
+async function runJobs(gh, run) {
   const { jobs } = await gh.read(`/actions/runs/${run.id}/attempts/${run.run_attempt ?? 1}/jobs?per_page=100`);
-  const failed = jobs.filter((job) => FAIL.has(job.conclusion));
+  const timedOut = new Set();
+  for (const job of jobs.filter((j) => j.conclusion === 'cancelled').slice(0, 10)) {
+    const annotations = await gh.read(`/check-runs/${job.id}/annotations`, { allow: [403, 404] });
+    if (annotations === null) console.log(`Could not read the annotations of job ${job.id}; counting it as cancelled.`);
+    if (timedOutByAnnotations(annotations)) timedOut.add(job.id);
+  }
+  return { jobs, timedOut };
+}
+
+async function failureDetails(gh, run, { jobs, timedOut }) {
+  const failed = jobs.filter((job) => FAIL.has(job.conclusion) || timedOut.has(job.id));
   const parts = [];
   for (const job of failed.slice(0, 3)) {
-    const step = job.steps?.find((s) => FAIL.has(s.conclusion));
+    const step = job.steps?.find((s) => FAIL.has(s.conclusion) || s.conclusion === 'cancelled');
     const log = await gh.read(`/actions/jobs/${job.id}/logs`, { raw: true, allow: [404, 410] });
     parts.push(`Job \`${job.name}\`${step ? `, step "${step.name}"` : ''}:`);
     parts.push(log ? '```\n' + logExcerpt(log) + '\n```' : '(log not available)');
   }
   const names = failed.map((job) => job.name);
-  const summary = names.length ? `job ${names.map((n) => `\`${n}\``).join(', ')} ${run.conclusion}` : run.conclusion;
+  const summary = names.length ? `job ${names.map((n) => `\`${n}\``).join(', ')} ${timedOut.size ? 'failed or timed out' : run.conclusion}` : run.conclusion;
   return { summary, details: parts.join('\n') };
 }
 
@@ -218,10 +261,13 @@ export async function main(argv = process.argv.slice(2), env = process.env) {
 
   if (opts._[0] === 'run') {
     const run = await gh.read(`/actions/runs/${opts['run-id']}`);
-    const outcome = outcomeOf(run);
+    const prRuns = { workflows: String(opts['pr-workflows'] ?? '').split(',').map((s) => s.trim()).filter(Boolean), branchPrefix: opts['pr-branch-prefix'] ?? '' };
+    let outcome = outcomeOf(run, prRuns);
     const source = sourceOf(run);
+    const jobs = outcome === 'fail' ? await runJobs(gh, run) : null;
+    if (jobs && judgeJobs(jobs.jobs, jobs.timedOut) === 'ignore') outcome = 'ignore';
     console.log(`${source} run ${run.id} on ${run.head_branch} (${run.event}): ${run.conclusion}, so ${outcome}.`);
-    const { summary, details } = outcome === 'fail' ? await failureDetails(gh, run) : { summary: run.conclusion, details: '' };
+    const { summary, details } = outcome === 'fail' ? await failureDetails(gh, run, jobs) : { summary: run.conclusion, details: '' };
     await apply(gh, issue, plan({ issue, source, outcome, url: run.html_url, summary, details, now }));
     return;
   }
@@ -244,7 +290,7 @@ export async function main(argv = process.argv.slice(2), env = process.env) {
     return;
   }
 
-  throw new Error('Usage: pipeline-alert.mjs run --run-id <id> | stale --site <url> [--dry-run]');
+  throw new Error('Usage: pipeline-alert.mjs run --run-id <id> [--pr-workflows a.yml,b.yml --pr-branch-prefix x/] | stale --site <url> [--dry-run]');
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

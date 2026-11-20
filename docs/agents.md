@@ -104,7 +104,7 @@ The monthly entity sweep (below) files `entity-update` issues, and that label st
 - `"action": "add"`: new checkpoints next to an existing record. The issue reads like an entity request (names and primary source URLs), so it takes the same path as one. Its pull request closes the issue, as for tier 3, because the sweep asks for entities only.
 - `"action": "update"`: change fields of an existing record (`record_id`, `fields`, `evidence`). Only the fields the attribute registry declares for that kind may change: model `version`, `checkpoint_revision`, `licence` and `access`; method the same without `licence`; benchmark `version`. The script fetches and hashes each evidence page (reusing a stored source with the same URL), and Sonnet 5.5 marks each proposed value supported, corrected or unsupported, as in step 5. Only supported and corrected values are written. The record keeps its ID, status and review object; its `source_locator` gains a sentence naming the issue and where each value is stated, and new evidence sources are added to its `source_ids`. The batch folder `data/omics/update-<n>-<date>/` holds `changed.jsonl` (the record as changed), `batch.jsonl` (new sources), `notes.md` and `review.json`. The checks are `intake-check.ts` on both files, `records -- add` for the new sources, the edit in place, `records -- change <review.json> <batch-dir> <id>` and `records -- check`. The pull request closes the issue.
 
-To run it again on the same issue, remove and re-add the label, or run the workflow by hand. A rerun force-pushes the branch only when there is no open or merged pull request for it.
+To run it again on the same issue, remove and re-add the label, or run the workflow by hand. A rerun pushes the branch only when there is no open or merged pull request for it. It deletes a branch left by an earlier run before pushing, so the push never carries main's later changes to workflow files, which GitHub can refuse from a token without the workflows permission. A failed store check or a refused push is commented on the issue and fails the run, so the pipeline alert sees it.
 
 ### Modes
 
@@ -118,9 +118,9 @@ Locally: `node scripts/agents/intake.mjs --dry-run --store-dir tests/agents-inta
 
 ### Setup
 
-It uses the same `ANTHROPIC_API_KEY` secret as discovery, and the rewire-bot app (`REWIRE_BOT_APP_ID` variable, `REWIRE_BOT_PRIVATE_KEY` secret), which needs contents, pull requests and issues write on this repository. Without the key a run writes a notice and passes.
+It uses the same `ANTHROPIC_API_KEY` secret as discovery, and the rewire-bot app (`REWIRE_BOT_APP_ID` variable, `REWIRE_BOT_PRIVATE_KEY` secret), which needs contents, pull requests and issues write on this repository. The workflow asks for a token limited to those three permissions on this repository only. Without the key a run writes a notice and passes.
 
-The discovery scan files its data issues as the rewire-bot app, so their `entity-request` label starts the intake. If the app token cannot be made, discovery files them with the workflow's own `GITHUB_TOKEN`, which starts no workflow; then add the label again by hand, or run the intake by hand.
+The discovery scan files its data issues as the rewire-bot app, so their `entity-request` label starts the intake. If the app token cannot be made, discovery files them with the workflow's own `GITHUB_TOKEN`, which starts no workflow; then add the label again by hand, or run the intake by hand. Both of discovery's app tokens are limited to issues write: one on this repository, one on rewire.it.
 
 ### Limits and cost
 
@@ -143,7 +143,7 @@ Prices are the same as for discovery (above). A typical issue should cost about 
 
 ## Reviewer agent
 
-`.github/workflows/reviewer.yml` runs `scripts/agents/reviewer.mjs` on every pull request the rewire-bot app opens or updates (#256). It reviews intake pull requests independently of the intake agent: its own prompt ([agents/reviewer.md](../agents/reviewer.md)), and Sonnet 5.5 opens the primary sources again itself.
+`.github/workflows/reviewer.yml` runs `scripts/agents/reviewer.mjs` on every pull request the rewire-bot app opens or updates (#256). Its rewire-bot token is limited to this repository, pull requests write and checks read. It reviews intake pull requests independently of the intake agent: its own prompt ([agents/reviewer.md](../agents/reviewer.md)), and Sonnet 5.5 opens the primary sources again itself.
 
 What it does:
 
@@ -171,7 +171,7 @@ The mode for bot pull requests is the repository variable `REVIEWER_MODE` (unset
 
 ### Before switching to approve
 
-- GitHub does not let the author of a pull request approve it, and intake pull requests are authored by rewire-bot. Approve mode approves as a second app, rewire-reviewer (repository variable `REVIEWER_APP_ID`, secret `REVIEWER_APP_PRIVATE_KEY`; it needs pull requests and contents write on this repository). The same token enables auto-merge, so the merge, made by an app and not by `GITHUB_TOKEN`, starts the checks and the release on `main`. Without the app the review is posted as a comment and nothing merges.
+- GitHub does not let the author of a pull request approve it, and intake pull requests are authored by rewire-bot. Approve mode approves as a second app, rewire-reviewer (repository variable `REVIEWER_APP_ID`, secret `REVIEWER_APP_PRIVATE_KEY`; it needs pull requests and contents write on this repository, and the workflow asks for a token limited to those two on this repository only). The same token enables auto-merge, so the merge, made by an app and not by `GITHUB_TOKEN`, starts the checks and the release on `main`. Without the app the review is posted as a comment and nothing merges.
 - Auto-merge is on for this repository.
 - A ruleset requiring the 14 `checks (...)` jobs on `main` is planned. Until it is on, auto-merge waits for nothing GitHub requires, so the reviewer itself waits for every other check on the head commit to pass before it approves.
 - For the same reason, rewire-bot cannot request changes on its own pull request. In approve mode the rewire-reviewer app posts that verdict; in comment mode it is a comment review that states the verdict.
@@ -215,11 +215,11 @@ Locally, against any two releases: download `discrepancies.json` from both `kg/<
 
 It uses the `ANTHROPIC_API_KEY` secret and the rewire-bot app (`REWIRE_BOT_APP_ID`, `REWIRE_BOT_PRIVATE_KEY`, issues write), like discovery. Without the app it files with `GITHUB_TOKEN`. It refuses to run outside the rewire-bio organisation, and takes the repository from the run, so it moves with the code.
 
-One Sonnet call per filed lead, with no tools and up to 2,000 output tokens. The facts sent for the three medium findings live on 19 November 2026 measured about 1,800, 2,700 and 3,800 input tokens with the prompt, so a call costs about $0.01 to $0.03. The lists sent per study are cut to 10 protocols, datasets and metrics, which bounds a call at about 20,000 input tokens, about $0.06. No call is made once the run's estimated cost passes $1; with at most 5 calls a run, that bound is about $0.30. A release with no new finding costs nothing.
+One Sonnet call per filed lead, with no tools and up to 2,000 output tokens. The script checks the paragraph: no links, no numbers of its own, and at most six sentences (it counts them, erring low). A paragraph that fails is sent back once with the reason; if the rewrite fails too, the lead is filed without it and says why. The facts sent for the three medium findings live on 19 November 2026 measured about 1,800, 2,700 and 3,800 input tokens with the prompt, so a call costs about $0.01 to $0.03. The lists sent per study are cut to 10 protocols, datasets and metrics, which bounds a call at about 20,000 input tokens, about $0.06. No call is made once the run's estimated cost passes $1; with at most 5 leads and one rewrite each, that bound is about $0.60. A release with no new finding costs nothing.
 
 ### Known gaps
 
-- A run after a release compares the newest release with the last one a successful run in the same mode compared to, read from that run's artifact (kept 30 days). So a failed watcher run, a release run that failed after publishing its bundle, or a run replaced in the queue does not lose findings: the next run compares across the gap and lists the releases in between in its job summary. A finding that appeared and went away inside the gap is not reported. If the artifact has expired the run falls back to the release before the newest. Nothing alerts on a failed watcher run.
+- A run after a release compares the newest release with the last one a successful run in the same mode compared to, read from that run's artifact (kept 30 days). So a failed watcher run, a release run that failed after publishing its bundle, or a run replaced in the queue does not lose findings: the next run compares across the gap and lists the releases in between in its job summary. A finding that appeared and went away inside the gap is not reported. If the artifact has expired the run falls back to the release before the newest. A failed watcher run opens or updates the `pipeline-broken` issue, as a failed run of any agent does (docs/release.md).
 - The lead issue is filed before the website has adopted the release, so its contested page link can show the previous release's findings for a short while.
 - The Sonnet call has only been tested with fakes. The first `report-only` run after merge is the first real call.
 

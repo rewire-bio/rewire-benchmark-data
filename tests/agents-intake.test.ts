@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   KIND_FIELDS, SOURCE_FIELDS, buildBatch, doiOf, fetchSource, pageText, sourceBlocks, fetchableUrl, htmlTitle, isChallengePage, main, publicationStatusOf, renderSkipComment,
-  proposalSchema, screenEntities, urlsInText, verifiedValue, versionOf, withSourceUrls,
+  proposalSchema, screenEntities, urlsInText, verifiedValue, versionOf, withSourceUrls, exitCodeFor,
   UPDATE_FIELDS, buildUpdate, parseUpdateMarker, replaceRecordLine,
 } from "../scripts/agents/intake.mjs";
 import { Usage } from "../scripts/agents/discovery.mjs";
@@ -369,9 +369,12 @@ describe("live run with fakes", () => {
       "npx tsx scripts/agents/intake-check.ts data/omics/intake-9999-20261119/batch.jsonl",
       "npm run -s records -- add",
       "npm run -s records -- check",
+      "git ls-remote --exit-code --heads origin refs/heads/intake/issue-9999",
       "git checkout -B intake/issue-9999",
       "git add -- data/omics/intake-9999-20261119 data/entities data/provenance",
       expect.stringMatching(/^git commit -m Add Helixgram fixture/),
+      // The fake finds an old branch on the remote, so it is deleted before the push.
+      "git push origin --delete refs/heads/intake/issue-9999",
       "git push --force origin HEAD:refs/heads/intake/issue-9999",
     ].map((c) => (typeof c === "string" ? c.split(" ").slice(0, 6).join(" ") : c)));
     expect(f.created[0]).toMatchObject({ head: "intake/issue-9999", base: "main" });
@@ -396,6 +399,27 @@ describe("live run with fakes", () => {
     expect(f.created).toEqual([]);
     expect(f.commands.some((c) => c.startsWith("git"))).toBe(false);
     expect(f.comments[0]).toContain("Batch cannot replace or duplicate record");
+  });
+
+  it("pushes without deleting when no old branch exists, and exits 1 when the push is refused", async () => {
+    const f = fakes();
+    f.deps.run = (cmd: string, args: string[]) => {
+      f.commands.push([cmd, ...args].join(" "));
+      if (args[0] === "ls-remote") return { ok: false, output: "" };
+      if (args[0] === "push") return { ok: false, output: "refusing to allow a GitHub App to create or update workflow" };
+      return { ok: true, output: "" };
+    };
+    const result = await main(["--issue", "9999", "--store-dir", `${FIXTURES}/entities`, "--root", tempRoot()], env, f.deps);
+    expect(f.commands.filter((c) => c.startsWith("git push"))).toEqual(["git push --force origin HEAD:refs/heads/intake/issue-9999"]);
+    expect(result.outcome).toBe("failed: git push");
+    expect(f.created).toEqual([]);
+    expect(exitCodeFor(result.outcome)).toBe(1);
+  });
+
+  it("exits 0 for outcomes that are not failures", () => {
+    for (const outcome of ["opened", "skipped: duplicate", "ready: pull request not opened in this mode", "no key", undefined])
+      expect(exitCodeFor(outcome)).toBe(0);
+    expect(exitCodeFor("failed: records check")).toBe(1);
   });
 
   it("drafts again when the draft proposes nothing for a reason other than scope, and never calls that out of scope", async () => {
