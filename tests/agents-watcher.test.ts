@@ -65,6 +65,12 @@ describe("dedupe", () => {
     expect(plan.file.map((l) => l.finding.id)).toEqual([NEW2]);
     expect(plan.skipped.map((s) => s.id)).toContain(NEW1);
   });
+  it("comments on a closed lead issue when its finding's severity rises, without reopening it", () => {
+    const closed = issues.map((i: { number: number }) => (i.number === 210 ? { ...i, state: "closed" } : i));
+    const plan = planRun(diffReleases(previous, current), { issues: closed, release: RELEASE });
+    const c = plan.comments.find((x) => x.number === 210)!;
+    expect(c.body).toContain("does not reopen it");
+  });
   it("puts leads over the cap into one summary issue whose markers stop them being filed later", () => {
     const plan = planRun(diffReleases(previous, current), { issues, release: RELEASE, maxIssues: 1 });
     expect(plan.file).toHaveLength(1);
@@ -105,13 +111,16 @@ describe("issue text", () => {
 
 describe("explanation check", () => {
   const facts = { systems: ["ESM-2", "ESM3"], studies: [{ metrics: ["spearman-correlation"], comparisons_total: 12 }] };
-  it("keeps a paragraph whose numbers are in the facts and strips dashes", () => {
-    const r = checkExplanation("ESM-2 and ESM3 differ \u2014 check the 12 comparisons.", facts);
-    expect(r).toEqual({ ok: true, text: "ESM-2 and ESM3 differ, check the 12 comparisons." });
+  it("keeps digits that are part of a name from the facts, and strips dashes", () => {
+    const r = checkExplanation("ESM-2 and ESM3 differ \u2014 check the spearman-correlation definition first.", facts);
+    expect(r).toEqual({ ok: true, text: "ESM-2 and ESM3 differ, check the spearman-correlation definition first." });
   });
-  it("drops a paragraph with a link or a number that is not in the data", () => {
+  it("drops a paragraph with a link or any number of its own", () => {
     expect(checkExplanation("See https://example.org for details.", facts).ok).toBe(false);
     expect(checkExplanation("ESM3 scores 0.47 on ProteinGym.", facts).ok).toBe(false);
+    // 12 is in the facts as a count, but the paragraph may not state counts either.
+    expect(checkExplanation("Only 3 of 12 comparisons agree.", facts).ok).toBe(false);
+    expect(checkExplanation("The gap is about 0.6.", facts).ok).toBe(false);
   });
 });
 
@@ -166,8 +175,15 @@ describe("live run, with fakes", () => {
     f.anthropic.beta.messages.create = async () => ({ model: "claude-sonnet-5-5", stop_reason: "end_turn", content: [{ type: "text", text: "PROVEAN scores 0.91 here." }], usage: { input_tokens: 10, output_tokens: 10 } });
     const r = await main([...args, "--report-only"], env, { github: f.github, anthropic: f.anthropic, log: quiet });
     expect(f.created).toEqual([]);
-    expect(r.filed[0].explanationNote).toMatch(/numbers not in the release data/);
+    expect(r.filed[0].explanationNote).toMatch(/stated numbers/);
     expect(r.filed[0].issue.body).not.toContain("0.91");
+  });
+
+  it("files without the paragraph when the model stops early", async () => {
+    const f = fakes();
+    f.anthropic.beta.messages.create = async () => ({ model: "claude-sonnet-5-5", stop_reason: "max_tokens", content: [{ type: "text", text: "The studies use" }], usage: { input_tokens: 10, output_tokens: 2000 } });
+    const r = await main([...args, "--report-only"], env, { github: f.github, anthropic: f.anthropic, log: quiet });
+    expect(r.filed[0].explanationNote).toMatch(/stopped early/);
   });
 
   it("refuses a repository outside rewire-bio", async () => {

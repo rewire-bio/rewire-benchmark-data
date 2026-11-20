@@ -43,6 +43,7 @@ export const LIMITS = {
   rowsPerStudy: 4, // comparisons shown per study in the values table
   studiesShown: 8,
   namesPerList: 3,
+  factsPerList: 10, // protocols, datasets and metrics per study sent to the model
 };
 const RANK = { low: 1, medium: 2, high: 3 };
 const ID = /discrepancy-[0-9a-f]{16}/g;
@@ -155,10 +156,11 @@ export function planRun(diff, { issues, release, maxIssues = LIMITS.maxIssues })
       const text = c.reason === 'rose'
         ? `Severity rose from ${c.from} to ${f.severity} in release \`${release}\`.`
         : `This finding fires again in release \`${release}\` after it was resolved.`;
-      for (const e of existing.filter((x) => x.state !== 'closed')) {
-        comments.push({ number: e.number, marker, body: `${text} [Contested page](${SITE}/contested/${f.id}/): ${clean(f.summary)}\n\n<!-- ${marker} -->` });
+      // A comment on a closed issue still notifies its participants; the issue is not reopened.
+      for (const e of existing) {
+        const closed = e.state === 'closed' ? ' This issue is closed; the watcher does not reopen it.' : '';
+        comments.push({ number: e.number, marker, body: `${text} [Contested page](${SITE}/contested/${f.id}/): ${clean(f.summary)}${closed}\n\n<!-- ${marker} -->` });
       }
-      if (!existing.some((x) => x.state !== 'closed')) skipped.push({ id: f.id, reason: `${c.reason === 'rose' ? 'severity rose' : 'fires again'}, but its lead issue (#${existing.map((e) => e.number).join(', #')}) is closed; not reopened` });
       continue;
     }
     if (f.review_state && f.review_state !== 'open') {
@@ -306,8 +308,13 @@ export function explanationFacts(finding, records) {
     summary: clean(finding.summary),
     identity_basis: finding.identity_basis,
     variant_mismatch: Boolean(finding.variant_mismatch),
-    unlinked_protocols: (finding.unlinked_protocols ?? []).map((id) => nameOf(records, id)),
-    studies: protocolFacts(finding, records),
+    unlinked_protocols: (finding.unlinked_protocols ?? []).map((id) => nameOf(records, id)).slice(0, LIMITS.factsPerList),
+    // Lists are cut to factsPerList so one finding with hundreds of protocols cannot make a large call.
+    studies: protocolFacts(finding, records).map((s) => ({
+      ...s,
+      ...Object.fromEntries(['protocols', 'datasets', 'metrics', 'metric_keys'].map((k) => [k, s[k].slice(0, LIMITS.factsPerList)])),
+      ...Object.fromEntries(['protocols', 'datasets', 'metrics'].filter((k) => s[k].length > LIMITS.factsPerList).map((k) => [`${k}_not_shown`, s[k].length - LIMITS.factsPerList])),
+    })),
   };
 }
 
@@ -399,7 +406,7 @@ export function renderLead(lead, { records, release, previous, explanation, expl
     '',
     `[\`${f.id}\`](${SITE}/contested/${f.id}/): ${clean(f.summary)}`,
     '',
-    `Severity ${f.severity}, ${RULE_TEXT[f.rule] ?? f.rule}, scope \`${f.scope}\`${tier ? `, depth ${TIER_TEXT[tier]}` : ''}. ${why}`,
+    `Severity ${f.severity}, ${RULE_TEXT[f.rule] ?? f.rule}, scope \`${f.scope}\`${tier ? `, depth ${TIER_TEXT[tier]}` : ''}. ${why} The contested page shows the finding once the website has adopted the release.`,
     '',
     studyTable(f, records),
     values ? '' : null,
@@ -459,11 +466,29 @@ export function checkExplanation(text, facts) {
   const t = clean(text).replace(/\s+/g, ' ').trim();
   if (!t) return { ok: false, why: 'it was empty' };
   if (/https?:\/\/|www\.|#\d/.test(t)) return { ok: false, why: 'it contained a link or issue reference' };
-  const known = JSON.stringify(facts);
-  const stray = (t.match(/\d+(?:\.\d+)?/g) ?? []).filter((n) => !known.includes(n));
+  // The prompt allows no numbers. Digits are allowed only inside a name the facts gave
+  // (ESM-2, a protocol such as "BEELINE 2020 Figure 2"), so remove those names and look again.
+  let rest = t;
+  for (const name of namesIn(facts).sort((a, b) => b.length - a.length)) rest = rest.split(name).join(' ');
+  const stray = rest.match(/\d+(?:[.,]\d+)?/g) ?? [];
   // The stray numbers are not repeated in the issue: they are what must not be published.
-  if (stray.length) return { ok: false, why: 'it stated numbers not in the release data', stray: [...new Set(stray)].slice(0, 5) };
+  if (stray.length) return { ok: false, why: 'it stated numbers, which must come from the release data', stray: [...new Set(stray)].slice(0, 5) };
   return { ok: true, text: t };
+}
+
+/** Every name in the facts: systems, studies, protocols, datasets, metrics and configurations. */
+function namesIn(facts) {
+  const out = new Set();
+  const add = (x) => { if (typeof x === 'string' && x.trim()) out.add(clean(x)); };
+  (facts.systems ?? []).forEach(add);
+  add(facts.reference_system);
+  (facts.unlinked_protocols ?? []).forEach(add);
+  for (const s of facts.studies ?? []) {
+    add(s.study);
+    for (const key of ['protocols', 'datasets', 'metrics', 'metric_keys']) (s[key] ?? []).forEach(add);
+    for (const [sys, conf] of Object.entries(s.configurations ?? {})) { add(sys); add(conf); }
+  }
+  return [...out];
 }
 
 function textOf(message) {
@@ -484,6 +509,7 @@ export async function explain(client, usage, { system, facts, log = () => {} }) 
     });
     usage.add(message.model ?? MODELS.explain, message.usage);
     if (message.stop_reason === 'refusal') return { text: null, note: `No explanation: the model declined (${message.stop_details?.category ?? 'no category'}).` };
+    if (message.stop_reason !== 'end_turn') return { text: null, note: `No explanation: the model stopped early (${message.stop_reason}).` };
     const checked = checkExplanation(textOf(message), facts);
     if (!checked.ok) {
       log(`explanation dropped: ${checked.why}${checked.stray ? ` (${checked.stray.join(', ')})` : ''}`);
