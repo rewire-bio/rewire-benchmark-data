@@ -190,7 +190,7 @@ Every comment carries a marker with the release ID, so a release run that cuts n
 
 It records nothing in the store. A `discrepancy_review` revision counts only with status `source_checked`, and every action in `data/vocab/discrepancy-action.ttl` (`investigated` included) and every working state in `discrepancy-state.ttl` (`investigating` included) says someone has looked at the sources. When the watcher files a lead nobody has, so the finding stays `open` until the first real revision. Each lead's "To check" list ends with recording that revision.
 
-Depth tiers: #258 asks for tier 3 findings to go to a weekly digest only. There is no digest yet, so the watcher files leads for every tier and states the finding's tier (the lowest of its two systems) in the issue.
+Depth tiers: #258 asks for tier 3 findings to go to a weekly digest only. The weekly digest does not route findings by tier yet, so the watcher files leads for every tier and states the finding's tier (the lowest of its two systems) in the issue.
 
 ### Modes
 
@@ -215,3 +215,39 @@ One Sonnet call per filed lead, with no tools and up to 2,000 output tokens. The
 - A run after a release compares the newest release with the last one a successful run in the same mode compared to, read from that run's artifact (kept 30 days). So a failed watcher run, a release run that failed after publishing its bundle, or a run replaced in the queue does not lose findings: the next run compares across the gap and lists the releases in between in its job summary. A finding that appeared and went away inside the gap is not reported. If the artifact has expired the run falls back to the release before the newest. Nothing alerts on a failed watcher run.
 - The lead issue is filed before the website has adopted the release, so its contested page link can show the previous release's findings for a short while.
 - The Sonnet call has only been tested with fakes. The first `report-only` run after merge is the first real call.
+
+## Weekly digest
+
+`.github/workflows/digest.yml` runs `scripts/agents/digest.mjs` every Monday at 06:30 UTC (#259). In live mode (see Modes) it opens one issue, "Weekly digest: <from> to <to>", labelled `digest` and assigned to timini, and closes the previous week's with a link to the new one. A second live run in the same ISO week (UTC, Monday to Sunday) updates that week's issue instead of opening another, whatever the day.
+
+The window starts where the previous digest ended (the `until` in its issue's hidden marker), so consecutive digests neither overlap nor leave a gap when a scheduled run starts late. A re-run in the same week keeps that week's start. With no open digest to continue from, or one more than 31 days old, it covers the last `--days` days (default 7). Report-only and dry runs always use the last `--days` days.
+
+Every fact is read from GitHub, the release assets and `deployment.json` on the site. No model decides any of them. Sections, each a count with links:
+
+- **Waiting on Tim:** open issues labelled `needs-tim`, open pull requests requesting his review, and open agent pull requests with the reviewer's latest verdict. When GitHub recorded a review state that contradicts the verdict in its body (an "approve" body recorded as changes requested), it says so.
+- **What the agents did:** discovery issues filed here and article issues in other repositories (found by their `discovery-key` marker), intake pull requests (`intake/` branches) opened, merged and closed, and reviewer verdicts with failed and unverifiable field counts (parsed from the reviewer's headline).
+- **Runs and spend:** runs per agent, links to failed runs, and spend summed from each run's `usage.json` artifact. A run counts when its agent job ran: it left an artifact or failed. Pull request dry runs of discovery and intake do not count. A run without a readable `usage.json` is shown as not recorded. It reads at most 100 artifacts, newest first, after dropping those of pull request dry runs; a counted run left out by that cap is shown as not read, not as missing.
+- **Releases:** `serving/` releases cut in the window, which one the site serves, and whether the newest is live.
+- **Agent records still provisional:** records from `data/omics/intake-*` batches on main whose status in `data/entities` is still `discovered` or `needs_review`.
+- **Discrepancies:** the newest `kg/` release's `discrepancies.json` compared with the newest one published before the window: new (public ones linked to `/contested/`), resolved, and stopped firing; the number open, meaning not settled, as on the site and over MCP; findings settled since the baseline that still fire; then the open `Lead:` issues.
+- **Pipeline:** open `pipeline-broken` issues, and those closed in the window, in every repository it can read.
+
+Tier 1 ranking changes and the gap scanner's proposals, also asked for in #259, are not in it yet.
+
+### Modes
+
+| Mode | Model calls | GitHub writes | When |
+| --- | --- | --- | --- |
+| `dry-run` | No | No | Pull requests that touch the digest, and by hand. It reads `tests/agents-digest-fixtures/`. |
+| `report-only` | Summary only | No | The Monday schedule while `DIGEST_MODE` is unset, and by hand (the default for manual runs). The digest is in the job summary and the `digest-<run>` artifact. |
+| `live` | Summary only | The digest issue | The Monday schedule once the repository variable `DIGEST_MODE` is `live`, and by hand. |
+
+To post the issue every Monday, set the repository variable: `gh variable set DIGEST_MODE --body live`. Deleting it returns the schedule to report-only.
+
+Locally: `GH_TOKEN=$(gh auth token) node scripts/agents/digest.mjs --report-only --no-summary --out /tmp/digest`. A personal token can read more than the bot, so a local run may cover repositories the scheduled one skips.
+
+### Setup and cost
+
+It posts as the rewire-bot app (`REWIRE_BOT_APP_ID`, `REWIRE_BOT_PRIVATE_KEY`), which needs issues write here. The token is made for every repository the app is installed on but limited to issues write and contents, pull requests and metadata read, so it cannot push; the digest reads the other repositories in `DIGEST_REPOS` (a repository variable, comma separated; default `rewire.it` and `rewire-database` under the same owner) and lists any it cannot read under "Not covered". Without the app it posts with the workflow's own token and reads only this repository. Workflow runs and artifacts are read with the workflow's own token (`actions: read`). The repository comes from `GITHUB_REPOSITORY`, so it moves with the workflow file.
+
+With `ANTHROPIC_API_KEY` set, Haiku 5.5 writes a three-sentence summary at the top from the computed counts only (prompt [agents/digest.md](../agents/digest.md)). The call is skipped if its worst-case cost would pass $0.25; a typical one costs well under $0.01. Without the key, if the call fails, would pass the cap, or stops before it finishes, the digest has no summary and says why under "Not covered". A list cut short by its page limit is noted there too, and a body over GitHub's size limit is cut before the hidden marker so the next run still finds the issue.
