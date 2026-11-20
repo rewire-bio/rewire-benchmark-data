@@ -210,6 +210,21 @@ export function buildTable(records, review, mechanical) {
   return rows;
 }
 
+/**
+ * The duplicate searches that failed: the intake's (kg.json failures) and the reviewer's own. A
+ * pull request with any is not approvable, because nobody knows whether the store already has the
+ * records; a human checks it.
+ */
+export function duplicateSearchFailures(receipt, own = []) {
+  return [...(receipt?.failures ?? []).filter((f) => f.step === 'duplicate_search'), ...own.filter((f) => f.step === 'reviewer_duplicate_search')];
+}
+
+export function duplicateSearchBlocker(failures) {
+  if (!failures.length) return '';
+  const who = unique(failures.map((f) => clean(f.entity))).join(', ');
+  return `The knowledge-graph duplicate search failed for ${who}, so a human must check the store for duplicates before merging.`;
+}
+
 /** approve only when every row passes. */
 export function overallVerdict(rows) {
   return rows.length && rows.every((r) => r.verdict === 'pass') ? 'approve' : 'request changes';
@@ -372,8 +387,9 @@ export function withReceipt(records, receipt) {
 /**
  * Possible duplicates of each new entity in the store that need a ruling: those the intake's draft
  * overlay listed (kg.json summary), and the reviewer's own search hits when the graph is loaded.
+ * A search that fails adds { step: 'reviewer_duplicate_search', entity, error } to `failures`.
  */
-export async function possibleDuplicates(records, { receipt = null, kg = null } = {}) {
+export async function possibleDuplicates(records, { receipt = null, kg = null, failures = [] } = {}) {
   const out = new Map();
   const ids = new Set(records.map((r) => r.id));
   for (const r of records.filter((x) => ENTITY_KINDS.includes(x.kind))) {
@@ -382,7 +398,10 @@ export async function possibleDuplicates(records, { receipt = null, kg = null } 
     for (const d of added?.possible_duplicates ?? []) if (d.in === 'release' && needsRuling(r.kind, r.name, d)) found.set(d.id, d);
     if (kg) {
       const kinds = ['model', 'method'].includes(r.kind) ? ['model', 'method'] : [r.kind];
-      const res = await kg.search(r.name, { kinds, limit: 10 }).catch(() => ({ results: [] }));
+      const res = await kg.search(r.name, { kinds, limit: 10 }).catch((e) => {
+        failures.push({ step: 'reviewer_duplicate_search', entity: r.name, error: clean(String(e?.message ?? e)).slice(0, 300) });
+        return { results: [] };
+      });
       for (const hit of res.results ?? []) {
         const id = kg.idOf(hit.iri);
         const kind = (hit.types ?? []).map((t) => kg.kindOfClass(t)).find(Boolean);
@@ -558,11 +577,14 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       if (!kg) notes.push(`The knowledge graph was not available (${started.error}); possible duplicates come from the intake's kg.json only.`);
     } else if (!receipt && stored.some((r) => (r.links ?? []).length)) notes.push('The batch has links but no kg.json.');
     let kgDuplicates;
+    const ownFailures = [];
     try {
-      kgDuplicates = await possibleDuplicates(records, { receipt, kg });
+      kgDuplicates = await possibleDuplicates(records, { receipt, kg, failures: ownFailures });
     } finally {
       if (kg && !deps.kg) await kg.close();
     }
+    const dupeFailures = duplicateSearchFailures(receipt, ownFailures);
+    for (const f of dupeFailures) notes.push(`${f.step === 'duplicate_search' ? "The intake agent's" : "The reviewer's"} knowledge-graph duplicate search for ${clean(f.entity)} failed (${clean(f.error).slice(0, 200)}).`);
     const mechanical = mechanicalProblems(records, { storeNames: store.names, storeSourceIds: store.sourceIds, storeKinds: store.kinds, receipt, kgDuplicates });
 
     // 3. Re-fetch every new source and compare its hash with the one intake recorded.
@@ -619,6 +641,14 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     if (state.verdict !== 'approve') {
       await postReview(verdictClient, repo, pull, state.body, 'REQUEST_CHANGES', notes);
       state.outcome = 'requested changes';
+      return result();
+    }
+    // Every field passes, but a failed duplicate search leaves the store unchecked: comment and
+    // ask for a human, never approve.
+    if (dupeFailures.length) {
+      state.body = renderReview({ ...rendered, blocker: duplicateSearchBlocker(dupeFailures) });
+      await postReview(verdictClient, repo, pull, state.body, 'COMMENT', notes);
+      state.outcome = 'not approved: duplicate search failed';
       return result();
     }
     const checks = await waitForChecks(gh, repo, pull.head_sha, { self: ['review', 'dry-run'], sleep: deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms))), minutes: LIMITS.ciWaitMinutes });

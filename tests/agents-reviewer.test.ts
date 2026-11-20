@@ -166,6 +166,29 @@ describe("posting, with fakes", () => {
     const f = fakes({ review: allPass });
     const r = await main(["--pr", "296", "--mode", "approve", "--root", await rootWithBatch()], env, f.deps);
     expect(r.outcome).toBe("not approved: no approver token");
+  });
+
+  it("in approve mode, comments and asks for a human when the intake's duplicate search failed", async () => {
+    const fs = await import("node:fs");
+    const f = fakes({ review: allPass });
+    const root = await rootWithBatch();
+    const failures = [{ step: "duplicate_search", entity: "hEvo-base", query: "hEvo-base", error: "MCP error -32001: draft_upsert timed out" }];
+    fs.writeFileSync(`${root}/data/omics/intake-250-20261119/kg.json`, JSON.stringify({ kg: { used: false }, links: [], duplicate_rulings: [], failures, summary: null }));
+    const r = await main(["--pr", "296", "--mode", "approve", "--root", root], { ...env, APPROVER_TOKEN: "t" }, f.deps);
+    expect(r.outcome).toBe("not approved: duplicate search failed");
+    expect(f.posted).toEqual([expect.objectContaining({ event: "COMMENT", by: "approver" })]);
+    expect(f.posted[0].body.split("\n")[0]).toContain("a human must check the store for duplicates before merging");
+    expect(f.posted[0].body).toContain("duplicate search for hEvo-base failed");
+    expect(f.commands).toEqual([]);
+  });
+
+  it("does not approve when its own duplicate search fails", async () => {
+    const f = fakes({ review: allPass });
+    const kg = { search: async () => { throw new Error("search timed out"); }, idOf: () => null, kindOfClass: () => null };
+    const r = await main(["--pr", "296", "--mode", "approve", "--root", await rootWithBatch()], { ...env, APPROVER_TOKEN: "t" }, { ...f.deps, kg });
+    expect(r.outcome).toBe("not approved: duplicate search failed");
+    expect(f.posted.map((p) => p.event)).toEqual(["COMMENT"]);
+    expect(f.posted[0].body).toContain("The reviewer's knowledge-graph duplicate search");
     expect(f.posted.map((p) => p.event)).toEqual(["COMMENT"]);
   });
 

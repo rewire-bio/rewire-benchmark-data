@@ -636,12 +636,16 @@ function probeRecord(entity, id) {
 /**
  * Before verification: for each screened entity, the release records the server would list as
  * possible duplicates (by drafting a shell under a probe id and removing it again), the same for
- * each alias, and search hits of the kinds a link from it may reach. Returns Map(key -> { duplicates, related }).
+ * each alias, and search hits of the kinds a link from it may reach. Returns Map(key -> { duplicates,
+ * related, duplicateSearchError?, linkSearchError? }). A call that fails sets the error on the
+ * entity and adds { step, entity, error } to `failures` (step duplicate_search or link_search), so
+ * the verifier, the pull request and the reviewer know the search did not happen.
  */
-export async function kgCandidates(kg, entities, { log = () => {} } = {}) {
+export async function kgCandidates(kg, entities, { log = () => {}, failures = [] } = {}) {
   const out = new Map();
   for (const e of entities) {
     const duplicates = new Map();
+    const errors = {};
     for (const [i, name] of unique([e.name, ...(e.aliases ?? []).map(clean)].filter(Boolean)).slice(0, 4).entries()) {
       const id = `intake-probe-${e.key}-${i}`;
       try {
@@ -650,6 +654,8 @@ export async function kgCandidates(kg, entities, { log = () => {} } = {}) {
           if (d.in === 'release' && needsRuling(e.kind, name, d) && !duplicates.has(d.id)) duplicates.set(d.id, { id: d.id, kind: d.kind, label: d.label, match: d.match, query: name });
       } catch (err) {
         log(`KG duplicate probe for ${e.name}: ${errorText(err)}`);
+        errors.duplicateSearchError ??= errorText(err);
+        failures.push({ step: 'duplicate_search', entity: e.name, query: name, error: errorText(err) });
       } finally {
         await kg.remove(id).catch(() => {});
       }
@@ -666,9 +672,11 @@ export async function kgCandidates(kg, entities, { log = () => {} } = {}) {
         }
       } catch (err) {
         log(`KG search for ${e.name}: ${errorText(err)}`);
+        errors.linkSearchError = errorText(err);
+        failures.push({ step: 'link_search', entity: e.name, error: errorText(err) });
       }
     }
-    out.set(e.key, { duplicates: [...duplicates.values()], related: [...related.values()] });
+    out.set(e.key, { duplicates: [...duplicates.values()], related: [...related.values()], ...errors });
   }
   return out;
 }
@@ -678,9 +686,15 @@ export function candidateText(entities, candidates) {
   return entities.map((e) => {
     const c = candidates.get(e.key) ?? { duplicates: [], related: [] };
     const line = (r) => `  - ${r.id} (${r.kind}): ${r.label}`;
+    // A failed search found nothing because it did not run: say so, never "none found".
+    const failed = c.duplicateSearchError
+      ? ` The duplicate search failed for this entity (${clean(c.duplicateSearchError).slice(0, 200)}), so whether the store already has it is unknown. Look with kg_search before keeping it.`
+      : '';
     return [
       `${e.key} ${e.name} (${e.kind}). Relations it may have: ${(LINK_RELATIONS[e.kind] ?? []).join(', ') || 'none'}.`,
-      c.duplicates.length ? ` Possible duplicates in the store, rule on each:\n${c.duplicates.map(line).join('\n')}` : ' Possible duplicates in the store: none found.',
+      c.duplicates.length ? ` Possible duplicates in the store, rule on each:\n${c.duplicates.map(line).join('\n')}` : c.duplicateSearchError ? '' : ' Possible duplicates in the store: none found.',
+      failed,
+      c.linkSearchError ? ` The link-target search failed for this entity (${clean(c.linkSearchError).slice(0, 200)}).` : '',
       c.related.length ? ` Other store records with similar names, possible link targets:\n${c.related.map(line).join('\n')}` : '',
     ].filter(Boolean).join('\n');
   }).join('\n\n');
@@ -890,7 +904,12 @@ export async function draftThroughKg(kg, records, { ruled = new Map(), log = () 
     log(`KG overlay round ${round}: dropped ${drop.join(', ')}`);
     if (!current.some((r) => r.kind !== 'source')) return { records: [], batchText: '', summary: null, dropped };
   }
-  const exported = await kg.exportBatch();
+  let exported;
+  try {
+    exported = await kg.exportBatch();
+  } catch (e) {
+    return { error: `draft_export failed: ${errorText(e)}` };
+  }
   if (!exported.exported) return { error: `draft_export refused: ${JSON.stringify(exported.problems ?? exported.reason).slice(0, 400)}` };
   return { records: current, batchText: exported.batch, summary: exported.summary, batchSha256: exported.batch_sha256, dropped };
 }
@@ -909,6 +928,30 @@ export function kgLines(kgLog) {
   return { links, rulings, rejected };
 }
 
+/**
+ * What the knowledge graph did in this run, as lines for the pull request and the summary: one
+ * sentence on what ran, then each step that failed and what the run did instead.
+ */
+export function kgStatusLines(kgState) {
+  if (!kgState?.used) return [`The knowledge graph was not available${kgState?.error ? ` (${clean(kgState.error)})` : ''}: possible duplicates were checked by name only and no link to a store record was made.`];
+  const failures = kgState.failures ?? [];
+  if (!failures.length) return [`The knowledge graph release ${kgState.release ?? '(unknown)'} was searched for possible duplicates and link targets, and the batch was written through its draft overlay (rdf-kg-mcp), which checked each record and link against the release.`];
+  const step = (f) => {
+    const error = clean(f.error).slice(0, 300);
+    if (f.step === 'duplicate_search') return `Duplicate search for ${clean(f.entity)}${f.query && f.query !== f.entity ? ` (as "${clean(f.query)}")` : ''} failed (${error}). The verifier was told the search failed, not that none was found, so it ruled on no store record for it.`;
+    if (f.step === 'link_search') return `Link-target search for ${clean(f.entity)} failed (${error}). No store records were offered to it as link targets.`;
+    if (f.step === 'draft_overlay') return `Writing the batch through the draft overlay failed (${error}). The script wrote batch.jsonl itself, so the overlay did not check the records and links against the release, and kg.json has no overlay diff.`;
+    return `${clean(f.step)} failed (${error}).`;
+  };
+  const dupes = failures.some((f) => f.step === 'duplicate_search');
+  return [
+    `The knowledge graph release ${kgState.release ?? '(unknown)'} loaded, but these steps failed during the run and fell back:`,
+    '',
+    ...failures.map((f) => `- ${step(f)}`),
+    ...(dupes ? ['', 'Because the duplicate search failed, a human must check the store for duplicates of the records above before merging. The reviewer agent does not approve this pull request.'] : []),
+  ];
+}
+
 /** kg.json in the batch folder: what the overlay checked, for the reviewer. */
 export function kgReceipt({ kgState, kgLog, summary, batchText }) {
   return {
@@ -919,6 +962,9 @@ export function kgReceipt({ kgState, kgLog, summary, batchText }) {
     links: kgLog?.links ?? [],
     duplicate_rulings: kgLog?.duplicates ?? [],
     rejected_links: kgLog?.rejected_links ?? [],
+    // Knowledge-graph steps that failed after the server started; the reviewer does not approve a
+    // batch whose duplicate search failed.
+    failures: kgState?.failures ?? [],
     summary: summary
       ? { release: summary.release ?? null, manifest_sha256: summary.manifest_sha256 ?? null, batch_sha256: summary.batch_sha256 ?? null, added: (summary.added ?? []).map((a) => ({ id: a.id, kind: a.kind, label: a.label, links: a.links ?? [], warnings: a.warnings ?? [], possible_duplicates: (a.possible_duplicates ?? []).map((d) => ({ id: d.id, in: d.in, kind: d.kind, label: d.label, match: d.match })) })) }
       : null,
@@ -999,9 +1045,7 @@ export function renderPullBody({ issue, entities, dropped, sourceNotes, usage, s
     '',
     bullets(kg.rulings),
     '',
-    kgState?.used
-      ? `The knowledge graph release ${kgState.release ?? '(unknown)'} was searched for possible duplicates and link targets, and the batch was written through its draft overlay (rdf-kg-mcp), which checked each record and link against the release.`
-      : `The knowledge graph was not available${kgState?.error ? ` (${clean(kgState.error)})` : ''}: possible duplicates were checked by name only and no link to a store record was made.`,
+    ...kgStatusLines(kgState),
     '',
     `Batch folder: \`${batchDir}\`. Its \`notes.md\` lists every proposed field and whether the verification pass confirmed it; \`kg.json\` lists every link and duplicate ruling with its locator.`,
     '',
@@ -1078,6 +1122,7 @@ export function renderSummary({ mode, issue, runDate, outcome, entities = [], dr
     kgState?.used
       ? `Release ${kgState.release ?? '?'}, ${kgState.statements ?? '?'} statements; ready in ${kgState.ready_seconds ?? '?'} s; tool calls ${JSON.stringify(kgState.calls ?? {})}; peak memory ${kgState.peak_memory_mb ?? 'not measured'} MB.`
       : `Not used${kgState?.error ? ` (${kgState.error})` : ''}.`,
+    ...(kgState?.used && kgState.failures?.length ? ['', ...kgStatusLines(kgState)] : []),
     '',
     bullets(kg.links, '- No links.'),
     bullets(kg.rulings, '- No duplicate rulings.'),
@@ -1624,7 +1669,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       state.kg = { used: false, error };
       notes.push(`The knowledge graph was not available (${error}); deduplicated by name only, and no links to store records.`);
     }
-    if (kg && !state.kg) state.kg = { used: true, release: kg.stats.release, statements: kg.stats.statements, ready_seconds: kg.stats.readySeconds, iri_base: kg.config?.iri_base ?? null, kinds: kg.config?.kinds ?? null };
+    if (kg && !state.kg) state.kg = { used: true, release: kg.stats.release, statements: kg.stats.statements, ready_seconds: kg.stats.readySeconds, iri_base: kg.config?.iri_base ?? null, kinds: kg.config?.kinds ?? null, failures: [] };
     return kg;
   };
   const closeKg = async () => {
@@ -1931,7 +1976,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     let kgCands = null;
     let tools = null;
     if (kg) {
-      kgCands = await kgCandidates(kg, screened.keep, { log });
+      kgCands = await kgCandidates(kg, screened.keep, { log, failures: state.kg.failures });
       tools = kgTools(kg);
       state.kg.candidates = Object.fromEntries([...kgCands].map(([k, c]) => [k, { duplicates: c.duplicates.map((d) => d.id), related: c.related.map((d) => d.id) }]));
     }
@@ -1970,7 +2015,10 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     let exported = null;
     if (kg && built.entities.length) {
       const drafted = await draftThroughKg(kg, built.records, { ruled: built.ruled, log });
-      if (drafted.error) notes.push(`The knowledge-graph overlay could not export the batch (${drafted.error}); the script wrote it instead.`);
+      if (drafted.error) {
+        notes.push(`The knowledge-graph overlay could not export the batch (${drafted.error}); the script wrote it instead.`);
+        state.kg.failures.push({ step: 'draft_overlay', error: drafted.error });
+      }
       else {
         exported = drafted;
         state.dropped.push(...drafted.dropped);
@@ -2018,6 +2066,8 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
           ? 'Relationship links were added only where the verification pass found the relation stated in a source; kg.json lists each with its locator.'
           : 'No relationship links to other records were added.',
         ...(state.kg?.used ? [] : ['The knowledge graph was not available, so possible duplicates were checked by name against the store only.']),
+        ...(state.kg?.failures?.some((f) => f.step === 'duplicate_search') ? [`The knowledge-graph duplicate search failed for ${unique(state.kg.failures.filter((f) => f.step === 'duplicate_search').map((f) => f.entity)).join(', ')} before verification, so the verifier ruled on no store record for it.`] : []),
+        ...(state.kg?.failures?.some((f) => f.step === 'draft_overlay') ? ['The knowledge-graph draft overlay could not export the batch, so the script wrote it and the overlay did not check it against the release.'] : []),
       ],
       errors: [],
       files: { 'batch.jsonl': sha256(batchText), 'kg.json': sha256(readFileSync(join(folder, 'kg.json'))) },
