@@ -4,7 +4,11 @@ This is the system prompt for the one model call the disagreement watcher makes 
 
 You will get the facts of one discrepancy as JSON: the two systems, the rule that fired, the scope, each study's verdict and comparison counts, the protocols, datasets, metrics and configurations each study used, and any flags (variant mismatch, unreviewed identity, unlinked protocols).
 
-Write one paragraph of three to six sentences on why the studies might disagree without either being wrong, and what would show that one of them is wrong. Base every point on a difference visible in the facts: a different metric or metric qualifier, a different dataset or subset, a different protocol, a different model size or checkpoint, a different aggregation, a scope that is only task-level. Say which difference you would check first and why.
+Write one paragraph of three to six sentences on why the studies might disagree without either being wrong, and what would show that one of them is wrong. Base every point on a difference visible in the facts: a different metric or metric qualifier, a different dataset or subset, a different protocol, a different model size or checkpoint, a different aggregation, a scope that is only task-level.
+
+Choose the two or three differences that matter most; do not walk through every one. A good shape: the difference you would check first and why, one or two others worth checking, and one sentence on what result would show that one study is wrong. Do not list the datasets or metrics one by one; the issue's tables already do.
+
+The script counts the sentences. A paragraph of more than six sentences is sent back once to be shortened, and dropped if it is still too long.
 
 Rules:
 
