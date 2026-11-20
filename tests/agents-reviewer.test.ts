@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { BOT_LOGIN, buildTable, changedRecords, worktreePull, main, mechanicalProblems, overallVerdict, reviewInput, reviewSchema, storeDiff, tieStoreDiff } from "../scripts/agents/reviewer.mjs";
+import { BOT_LOGIN, buildTable, changedRecords, worktreePull, main, mechanicalProblems, overallVerdict, renderReview, reviewInput, reviewSchema, storeDiff, storeLine, tieStoreDiff } from "../scripts/agents/reviewer.mjs";
+import { recordSchema } from "../scripts/omics/schema";
+import { Usage } from "../scripts/agents/discovery.mjs";
 import { createHash } from "node:crypto";
 
 // The reviewer agent (#256). Everything here runs without an API key or network. The fixture
@@ -255,7 +257,7 @@ describe("changed records and the store diff", () => {
   const sources = readFileSync(`${UPDATE}/batch.jsonl`, "utf8").trim().split("\n").map((l) => JSON.parse(l));
   const sha = (t: string) => createHash("sha256").update(t).digest("hex");
   const tie = (files: { filename: string; patch?: string; status?: string }[]) =>
-    tieStoreDiff(storeDiff(files), { batchIds: sources.map((r: { id: string }) => r.id), changes });
+    tieStoreDiff(storeDiff(files), { batch: sources, changes });
 
   it("reviews every changed field and approves when each passes and the store diff ties", async () => {
     const r = await main(["--dry-run", "--fixtures", UPDATE], {}, { now, log: quiet });
@@ -316,13 +318,53 @@ describe("changed records and the store diff", () => {
       expect.stringContaining("removes 0 and adds 0 lines"),
     ]));
     const staleLines = [{ ...changes[0], base_sha256: sha("an older line") }];
-    const stale = tieStoreDiff(storeDiff(upull.files), { batchIds: sources.map((r: { id: string }) => r.id), changes: staleLines });
+    const stale = tieStoreDiff(storeDiff(upull.files), { batch: sources, changes: staleLines });
     expect(stale.problems.map((p: { text: string }) => p.text)).toEqual([expect.stringContaining("not the base_sha256")]);
     const prov = [...upull.files, { filename: "data/provenance/records/0.jsonl", status: "modified", patch: '+{"id":"someone-else","sha256":"x"}' }];
     expect(tie(prov).problems).toEqual([{ id: "someone-else", text: expect.stringContaining("provenance of someone-else") }]);
     const re = upull.files.map((f: { filename: string; patch?: string }) => (f.filename === "data/entities/sources.jsonl" ? { ...f, patch: `${f.patch}\n-${JSON.stringify(sources[0])}` } : f));
     expect(tie(re).problems.map((p: { text: string }) => p.text)).toEqual([expect.stringContaining("it was already in the store")]);
     expect(tie(upull.files).problems).toEqual([]);
+  });
+
+  it("writes a batch record as records add does", () => {
+    const record = sources[0];
+    const shuffled = Object.fromEntries(Object.entries({ ...record, links: [{ target_id: "discovery-model-spliceai", relation: "family", note: "dropped" }] }).reverse());
+    expect(storeLine(shuffled)).toBe(JSON.stringify(recordSchema.parse(shuffled)));
+    expect(storeLine(record)).toBe(JSON.stringify(recordSchema.parse(record)));
+  });
+
+  it("refuses an added line whose content is not the batch record", () => {
+    const sourcesFile = upull.files.find((f: { filename: string }) => f.filename === "data/entities/sources.jsonl");
+    const renamed = JSON.stringify({ ...sources[0], name: "Something else" });
+    const files = upull.files.map((f: { filename: string; patch?: string }) =>
+      f === sourcesFile ? { ...f, patch: f.patch!.split("\n").map((l) => (l === `+${storeLine(sources[0])}` ? `+${renamed}` : l)).join("\n") } : f);
+    expect(files).not.toEqual(upull.files);
+    expect(tie(files).problems).toEqual([{ id: sources[0].id, text: expect.stringContaining("is not the batch.jsonl record as records add writes it") }]);
+  });
+
+  it("refuses a changed line that moves keys the change did not touch", () => {
+    const models = upull.files.find((f: { filename: string }) => f.filename === "data/entities/models.jsonl");
+    const added = models.patch.split("\n").find((l: string) => l.startsWith("+") && !l.startsWith("+++")).slice(1);
+    const record = JSON.parse(added);
+    const reversed = JSON.stringify({ ...record, attributes: Object.fromEntries(Object.entries(record.attributes).reverse()) });
+    const files = upull.files.map((f: { filename: string; patch?: string }) => (f === models ? { ...f, patch: f.patch!.replace(`+${added}`, `+${reversed}`) } : f));
+    // Digests made consistent, so only the key order gives it away.
+    const moved = [{ ...changes[0], sha256: sha(reversed), record: JSON.parse(reversed) }];
+    const problems = tieStoreDiff(storeDiff(files), { batch: sources, changes: moved }).problems;
+    expect(problems).toEqual([{ id: changes[0].id, text: expect.stringContaining("moves keys the change does not touch") }]);
+  });
+
+  it("refuses a change to a store file it cannot tie", () => {
+    for (const filename of ["data/provenance/moved-attributes.jsonl", "data/entities/models.jsonl.gz"]) {
+      const files = [...upull.files, { filename, status: "modified", patch: '+{"id":"someone-else"}' }];
+      expect(tie(files).problems).toEqual([{ id: "(store diff)", text: expect.stringContaining(`${filename} changed, but it is neither a record file`) }]);
+    }
+  });
+
+  it("says a report-only review is not posted", () => {
+    const body = renderReview({ records: [], rows: [], verdict: "comment", sourceNotes: [], usage: new Usage(), mode: "report-only" });
+    expect(body).toContain("This review is report-only: it is not posted");
   });
 
   it("marks a changed field the model did not judge unverifiable", async () => {

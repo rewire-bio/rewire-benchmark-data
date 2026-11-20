@@ -1941,7 +1941,10 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       if (!(await checks(steps))) return result();
     } else notes.push('Store checks were not run and the store was not changed (--no-store-checks).');
     const title = `Update ${record.name}: ${built.kept.join(', ')} from #${issue.number}`.slice(0, 200);
-    const body = renderUpdatePullBody({ issue: issue.number, record, kept: built.kept, dropped: state.dropped, sourceNotes: state.sourceNotes, usage, seconds: Math.round((Date.now() - started) / 1000), runUrl, batchDir, change: state.change, notes: made.notes });
+    // A marker without base_sha256 (a hand-written issue, or one filed before the sweep wrote it)
+    // cannot show the record is still the one the evidence was gathered against.
+    const baseNote = marker.base_sha256 ? [] : [`The issue gives no base_sha256, so nothing shows ${record.id} is still the record the issue was written against; the change was made against the line the store holds now (SHA-256 ${baseSha}). The reviewer should check the issue still applies to it.`];
+    const body = renderUpdatePullBody({ issue: issue.number, record, kept: built.kept, dropped: state.dropped, sourceNotes: state.sourceNotes, usage, seconds: Math.round((Date.now() - started) / 1000), runUrl, batchDir, change: state.change, notes: [...baseNote, ...made.notes] });
     return ship({ title, body, batchDir, commitBody: `Fields asked for in #${issue.number} (monthly entity sweep), changed by the intake agent. Metadata only; no evaluation or result.`, done: `an update to ${record.id}` });
 
     /**

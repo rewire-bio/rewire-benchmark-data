@@ -82,6 +82,10 @@ const BATCH_FILE = /^data\/omics\/[^/]+\/(batch|changes)\.jsonl$/;
 /** Store files: records, and the provenance log that locks each record's digest. */
 const STORE_RECORD_FILE = /^data\/(entities|evidence)\/.+\.jsonl$/;
 const STORE_PROVENANCE_FILE = /^data\/provenance\/records(\/.+)?\.jsonl$/;
+/** Any file under the store: one the two patterns above do not match cannot be tied to the reviewed files. */
+const STORE_DIR = /^data\/(entities|evidence|provenance)\//;
+/** Top-level fields of a store record in the order `records add` writes them (recordSchema, scripts/omics/schema.ts). */
+export const RECORD_FIELDS = ['id', 'kind', 'name', 'description', 'status', 'facets', 'source_ids', 'links', 'attributes'];
 /** The row that carries the tie between the store diff and the reviewed files. */
 export const STORE_DIFF_ROW = { id: '(store diff)', kind: 'pull request', field: 'store diff' };
 const sha256 = (text) => createHash('sha256').update(text).digest('hex');
@@ -213,7 +217,10 @@ export function storeDiff(files) {
   for (const f of files) {
     const name = f.filename;
     const isRecord = STORE_RECORD_FILE.test(name);
-    if (!isRecord && !STORE_PROVENANCE_FILE.test(name)) continue;
+    if (!isRecord && !STORE_PROVENANCE_FILE.test(name)) {
+      if (STORE_DIR.test(name)) problems.push(`${name} changed, but it is neither a record file nor a provenance record file, so the reviewer cannot tie it to the reviewed files; a record pull request does not change it`);
+      continue;
+    }
     if (f.status && !['added', 'modified'].includes(f.status)) problems.push(`${name} is ${f.status}; a record pull request only adds and changes lines`);
     if (typeof f.patch !== 'string') {
       problems.push(`${name} changed, but GitHub gave no diff for it, so its lines cannot be tied to the reviewed files`);
@@ -247,14 +254,44 @@ export function storeDiff(files) {
   return { records, provenance, problems };
 }
 
+const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+/**
+ * A batch record as `records add` writes it: recordSchema.parse puts the top-level fields and each
+ * link's fields in schema order and drops link fields the schema lacks; nothing inside facets or
+ * attributes moves. tests/agents-reviewer.test.ts checks this against the schema itself.
+ */
+export function storeLine(record) {
+  const keys = [...RECORD_FIELDS.filter((k) => Object.hasOwn(record, k)), ...Object.keys(record).filter((k) => !RECORD_FIELDS.includes(k))];
+  const out = {};
+  for (const k of keys)
+    out[k] = k === 'links' && Array.isArray(record.links) ? record.links.map((l) => (isObject(l) ? { relation: l.relation, target_id: l.target_id } : l)) : record[k];
+  return JSON.stringify(out);
+}
+
+/**
+ * `changed` with the keys of every object that `base` also has in `base`'s order and the rest after
+ * them in their own order: rdf-kg-mcp's keep_order. A changed line that is not this, put back
+ * into JSON.stringify form, moves a key the change did not touch.
+ */
+export function keepOrder(base, changed) {
+  if (!isObject(base) || !isObject(changed)) return changed;
+  const keys = [...Object.keys(base).filter((k) => Object.hasOwn(changed, k)), ...Object.keys(changed).filter((k) => !Object.hasOwn(base, k))];
+  const out = {};
+  for (const k of keys) Object.defineProperty(out, k, { value: keepOrder(base[k], changed[k]), enumerable: true, writable: true, configurable: true });
+  return out;
+}
+
 /**
  * Tie the store diff to the reviewed files. Every record line the pull request adds or removes
- * must belong to a record in batch.jsonl (added once, nothing removed) or changes.jsonl (one line
- * removed with the base digest, one added with the changed digest); every provenance line too.
+ * must belong to a record in batch.jsonl (added once, nothing removed, as `records add` writes the
+ * batch line) or changes.jsonl (one line removed with the base digest, one added with the changed
+ * digest, every key the change did not touch in its committed place); every provenance line too.
  * Returns problems as { id, text }, and for each change the committed record it replaced.
  */
-export function tieStoreDiff(diff, { batchIds, changes }) {
+export function tieStoreDiff(diff, { batch, changes }) {
   const problems = diff.problems.map((text) => ({ id: STORE_DIFF_ROW.id, text }));
+  const batchIds = batch.map((r) => r.id);
   const before = new Map();
   const known = new Set([...batchIds, ...changes.map((c) => c.id)]);
   for (const [id, e] of diff.records)
@@ -266,6 +303,10 @@ export function tieStoreDiff(diff, { batchIds, changes }) {
     if (!e || e.added.length !== 1) problems.push({ id, text: `batch.jsonl adds ${id}, but the store diff adds it ${e?.added.length ?? 0} times` });
     else if (e.removed.length) problems.push({ id, text: `batch.jsonl adds ${id}, but the store diff also removes a line for it: it was already in the store` });
   }
+  for (const r of batch) {
+    const e = diff.records.get(r.id);
+    if (e?.added.length === 1 && e.added[0] !== storeLine(r)) problems.push({ id: r.id, text: `the line the store diff adds for ${r.id} is not the batch.jsonl record as records add writes it, so the store would hold something other than what was reviewed` });
+  }
   for (const c of changes) {
     const e = diff.records.get(c.id);
     if (!e || e.added.length !== 1 || e.removed.length !== 1) {
@@ -276,7 +317,9 @@ export function tieStoreDiff(diff, { batchIds, changes }) {
     if (sha256(e.added[0]) !== c.sha256) problems.push({ id: c.id, text: `the line the store diff writes has SHA-256 ${sha256(e.added[0])}, not the sha256 ${c.sha256} in changes.jsonl` });
     if (sha256(JSON.stringify(c.record)) !== c.sha256) problems.push({ id: c.id, text: 'the record in changes.jsonl does not have the sha256 the file gives' });
     try {
-      before.set(c.id, JSON.parse(e.removed[0]));
+      const base = JSON.parse(e.removed[0]);
+      before.set(c.id, base);
+      if (JSON.stringify(keepOrder(base, JSON.parse(e.added[0]))) !== e.added[0]) problems.push({ id: c.id, text: `the line the store diff writes for ${c.id} moves keys the change does not touch, or is not in JSON.stringify form; only changed values may differ from the committed line` });
     } catch {
       // Reported above as a line that is not a record.
     }
@@ -463,7 +506,7 @@ export function renderReview({ records, rows, verdict, sourceNotes, notes = [], 
   const out = [
     headline(rows, verdict, blocker),
     '',
-    mode === 'approve' ? '' : 'This review is comment-only: it does not approve, request changes or merge.',
+    mode === 'approve' ? '' : mode === 'report-only' ? 'This review is report-only: it is not posted, and it does not approve, request changes or merge.' : 'This review is comment-only: it does not approve, request changes or merge.',
     '',
   ];
   if (problems.length) {
@@ -802,7 +845,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     const ids = new Set([...stored.map((r) => r.id), ...changeLines.map((c) => c.id)]);
     // The store diff must touch exactly the records under review.
     const diff = storeDiff(files);
-    const tie = tieStoreDiff(diff, { batchIds: stored.map((r) => r.id), changes: changeLines });
+    const tie = tieStoreDiff(diff, { batch: stored, changes: changeLines });
     const changed = changedRecords(changeLines, tie.before);
     // kg.json beside the batch: the intake's links, duplicate rulings and draft overlay diff.
     const receiptFile = args.dryRun ? join(fixtures, 'kg.json') : batches.map((f) => join(args.root, dirname(f), 'kg.json')).find((f) => existsSync(f));

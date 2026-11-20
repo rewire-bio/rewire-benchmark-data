@@ -1,3 +1,4 @@
+import { keepOrder } from "../scripts/agents/reviewer.mjs";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -567,6 +568,10 @@ describe("entity-update issues", () => {
     expect(receipt.changes[0]).toMatchObject({ id: "discovery-model-spliceai", base_sha256: sha(baseLine), made_by: "intake script (KG server not available)" });
     expect(result.pull.body).toContain("| `/attributes/access` | ");
     expect(result.pull.body).toContain("intake script wrote the changes file itself");
+    // The fixture issue gives no base_sha256, so the pull request says what the change was made against.
+    expect(result.pull.body).toContain(`The issue gives no base_sha256, so nothing shows discovery-model-spliceai is still the record the issue was written against; the change was made against the line the store holds now (SHA-256 ${sha(baseLine)})`);
+    // The script's own changes line passes the reviewer's key-order check.
+    expect(JSON.stringify(keepOrder(JSON.parse(baseLine), line.record))).toBe(JSON.stringify(line.record));
     // The evidence URL is new to the fixture store, so it becomes a source record.
     expect(readFileSync(join(dir, "batch.jsonl"), "utf8")).toContain(evidence);
   });

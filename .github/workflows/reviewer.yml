@@ -23,8 +23,9 @@ permissions:
   pull-requests: write
   checks: read
 env:
-  # The knowledge graph server, pinned to the release intake.yml uses.
-  RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.3.1
+  # The knowledge graph server, pinned to the release intake.yml uses. The reviewer only searches
+  # the graph; it starts the server without drafts.
+  RDF_KG_MCP: git+https://github.com/rewire-bio/rdf-kg-mcp@v0.4.0
 concurrency:
   group: reviewer-${{ github.event.pull_request.number || inputs.pr || github.ref }}
   cancel-in-progress: true
