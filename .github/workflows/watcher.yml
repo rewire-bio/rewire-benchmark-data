@@ -88,6 +88,7 @@ jobs:
         if: env.MODE != 'dry-run' && env.HAS_KEY == 'true'
         run: npm ci --prefix scripts/agents --no-audit --no-fund
       - name: Download the two releases' discrepancies and the new release's records
+        id: download
         if: env.MODE != 'dry-run'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -115,6 +116,12 @@ jobs:
               [ -f "$dir/plan.json" ] || continue
               [ "$(jq -r '.mode // ""' "$dir/plan.json")" = "$want" ] || continue
               last=$(jq -r '.current // ""' "$dir/plan.json")
+              # A release run that cut no release: the last run already compared this release.
+              if [ "$last" = "$current" ]; then
+                echo "No release since the last watcher run in this mode (run $run compared $current). Nothing to do." >> "$GITHUB_STEP_SUMMARY"
+                echo "skip=true" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
               if echo "$tags" | grep -qx "$last" && [ "$last" != "$current" ] && echo "$tags" | grep -x -B1000 "$current" | grep -qx "$last"; then previous="$last"; fi
               break
             done
@@ -132,6 +139,7 @@ jobs:
           gh release download "serving/$current" --repo "$GITHUB_REPOSITORY" --pattern "public.omics.releases.$current.records.jsonl.gz" --dir "$RUNNER_TEMP/rel/current"
           echo "Comparing $previous with $current"
       - name: Watch
+        if: steps.download.outputs.skip != 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.app.outputs.token || github.token }}

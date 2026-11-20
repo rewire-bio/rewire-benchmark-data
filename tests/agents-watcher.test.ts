@@ -53,6 +53,13 @@ describe("diff", () => {
     expect(plan.file).toEqual([]);
     expect(plan.comments.map((c) => c.number)).toEqual([900]);
   });
+  it("does not match by key a finding whose ID still exists, so key twins stay separate", () => {
+    const twin = { ...current.discrepancies[0], id: "discrepancy-2222222222222222", severity: "low" };
+    // The earlier release has the twin only; the current one has both. The original is new.
+    const d = diffReleases({ ...previous, discrepancies: [twin] }, { ...current, discrepancies: [current.discrepancies[0], twin] });
+    expect(d.added.map((f) => f.id)).toEqual([NEW1]);
+    expect(d.gone).toEqual([]);
+  });
   it("matches every earlier finding a merged finding covers, so none is reported gone", () => {
     const a = { ...previous.discrepancies[1], id: "discrepancy-aaaaaaaaaaaaaaaa", key: null };
     const b = { ...previous.discrepancies[1], id: "discrepancy-bbbbbbbbbbbbbbbb", key: null };
@@ -156,6 +163,9 @@ describe("explanation check", () => {
     expect(checkExplanation("One possibility is that the outlier study used a different subset.", facts).ok).toBe(true);
     expect(checkExplanation("The two systems may have been run at different sizes.", facts).ok).toBe(true);
     expect(checkExplanation("The two consensus studies agree.", facts).ok).toBe(false);
+    expect(checkExplanation("The two studies use different metrics.", facts).ok).toBe(false);
+    expect(checkExplanation("The two studies use different metrics.", { ...facts, rule: "two-study conflict" }).ok).toBe(true);
+    expect(checkExplanation("About a third of comparisons agree.", facts).ok).toBe(false);
   });
   it("keeps a shortened name that carries digits, but not a bare number from a name", () => {
     const f = { systems: ["ESM-1b (650M)", "SIFT"], studies: [{ study: "Brandes 2023 genome-wide prediction of disease variant effects", metrics: ["AUC"], protocols: ["BEELINE 2020 Figure 2"] }] };
@@ -248,6 +258,10 @@ describe("workflow", () => {
   });
   it("has no schedule, so it cannot collide with discovery or the pipeline alert", () => {
     expect(wf).not.toMatch(/^\s*schedule:/m);
+  });
+  it("only reports after a release unless WATCHER_MODE is set, and scopes the bot token to issues", () => {
+    expect(wf).toContain("github.event_name == 'workflow_run' && (vars.WATCHER_MODE || 'report-only')");
+    expect(wf).toContain("permission-issues: write");
   });
   it("takes the repository from the run, not a fixed name", () => {
     expect(wf).not.toContain("rewire-benchmark-data");

@@ -85,7 +85,8 @@ export function keySignature(f) {
 
 /**
  * What changed between two releases' discrepancies.json. A finding is matched to its earlier
- * self by ID, through its previous_ids, or by the stable parts of its key (keySignature).
+ * self by ID or through its previous_ids; failing both, by the stable parts of its key
+ * (keySignature) among earlier findings whose ID is not in the current file.
  * previous_ids are written only for findings with a review claim, so a rule change that changes
  * the key itself is matched only for reviewed findings; any other finding it re-keys shows as
  * new and its earlier self as gone. Every earlier finding a current one covers is matched, so a
@@ -96,20 +97,23 @@ export function keySignature(f) {
 export function diffReleases(previous, current) {
   const prevList = previous.discrepancies ?? [];
   const prev = new Map(prevList.map((f) => [f.id, f]));
-  const bySig = new Map();
-  for (const f of prevList) {
-    const sig = keySignature(f);
-    if (sig) bySig.set(sig, [...(bySig.get(sig) ?? []), f]);
-  }
   const cur = current.discrepancies ?? [];
   const curById = new Map(cur.map((f) => [f.id, f]));
+  // Only earlier findings whose ID is gone from the current file can have been re-keyed.
+  const bySig = new Map();
+  for (const f of prevList) {
+    const sig = curById.has(f.id) ? null : keySignature(f);
+    if (sig) bySig.set(sig, [...(bySig.get(sig) ?? []), f]);
+  }
   const added = [];
   const rose = [];
   const refired = [];
   const matched = new Set();
   const priorIds = new Map();
   for (const f of cur.filter(live)) {
-    const priors = [...keysOf(f).map((k) => prev.get(k)).filter(Boolean), ...(bySig.get(keySignature(f)) ?? [])];
+    const direct = keysOf(f).map((k) => prev.get(k)).filter(Boolean);
+    // The key is a fallback, for a finding with no match by ID or previous_ids.
+    const priors = direct.length ? direct : (bySig.get(keySignature(f)) ?? []);
     const ids = [...new Set(priors.map((p) => p.id))];
     for (const id of ids) matched.add(id);
     if (ids.length) priorIds.set(f.id, ids);
@@ -503,6 +507,8 @@ export function checkExplanation(text, facts) {
   for (const token of nameTokens(facts)) rest = rest.replace(new RegExp(`(?<![\\w.-])${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`, 'g'), ' ');
   // "the two systems" names the compared pair, which is always two; it states no count.
   rest = rest.replace(/\b(?:the|both|these|those) two (?:systems|models|methods|tools|sides)\b|\btwo-study\b/gi, ' ');
+  // A two-study conflict always has exactly two studies.
+  if (facts.rule === RULE_TEXT['two-study-conflict']) rest = rest.replace(/\b(?:the|both|these|those) two studies\b/gi, ' ');
   const stray = [...(rest.match(/\d+(?:[.,]\d+)?/g) ?? []), ...(rest.match(NUMBER_WORDS) ?? [])];
   // The stray numbers are not repeated in the issue: they are what must not be published.
   if (stray.length) return { ok: false, why: 'it stated numbers, which must come from the release data', stray: [...new Set(stray)].slice(0, 5) };
@@ -516,7 +522,7 @@ const NUMBER_WORDS = new RegExp(`\\b(?:${[
   'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen',
   'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety',
   'hundreds?', 'thousands?', 'millions?', 'dozens?', 'half', 'halves', 'thirds', 'quarters?', 'fifths', 'tenths',
-  'twice', 'thrice', 'percent', 'per cent',
+  'twice', 'thrice', 'percent', 'per cent', 'zero', 'a third', 'a fifth', 'a tenth',
 ].join('|')})\\b`, 'gi');
 
 /** Words of the names in the facts that carry digits and could stand for the whole name. */
