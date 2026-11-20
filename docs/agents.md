@@ -172,3 +172,35 @@ The mode for bot pull requests is the repository variable `REVIEWER_MODE` (unset
 ### Limits and cost
 
 One Sonnet call per review with up to 1 web search and 2 web fetches plus one per distinct source URL (at most 10), 16,000 output tokens, 2 `pause_turn` resumes, effort `high`. No structuring call once the estimated cost passes $1.50. The job summary and `usage.json` in the artifact give each review's tokens and cost.
+
+## Weekly digest
+
+`.github/workflows/digest.yml` runs `scripts/agents/digest.mjs` every Monday at 06:30 UTC (#259). It opens one issue, "Weekly digest: <from> to <to>", labelled `digest` and assigned to timini, and closes the previous week's with a link to the new one. A second run in the same week updates that week's issue instead of opening another.
+
+Every fact is read from GitHub, the release assets and `deployment.json` on the site. No model decides any of them. Sections, each a count with links:
+
+- **Waiting on Tim:** open issues labelled `needs-tim`, open pull requests requesting his review, and open agent pull requests with the reviewer's latest verdict. When GitHub recorded a review state that contradicts the verdict in its body (an "approve" body recorded as changes requested), it says so.
+- **What the agents did:** discovery issues filed here and article issues in other repositories (found by their `discovery-key` marker), intake pull requests (`intake/` branches) opened, merged and closed, and reviewer verdicts with failed and unverifiable field counts (parsed from the reviewer's headline).
+- **Runs and spend:** runs per agent, links to failed runs, and spend summed from each run's `usage.json` artifact. A run counts when its agent job ran: it left an artifact or failed. Pull request dry runs of discovery and intake do not count. A run without `usage.json` is shown as not recorded.
+- **Releases:** `serving/` releases cut in the window, which one the site serves, and whether the newest is live.
+- **Agent records still provisional:** records from `data/omics/intake-*` batches on main whose status in `data/entities` is still `discovered` or `needs_review`.
+- **Discrepancies:** the newest `kg/` release's `discrepancies.json` compared with the newest one published before the window: new (public ones linked to `/contested/`), resolved, and stopped firing; then the open `Lead:` issues.
+- **Pipeline:** open `pipeline-broken` issues, and those closed in the window, in every repository it can read.
+
+Tier 1 ranking changes and the gap scanner's proposals, also asked for in #259, are not in it yet.
+
+### Modes
+
+| Mode | Model calls | GitHub writes | When |
+| --- | --- | --- | --- |
+| `dry-run` | No | No | Pull requests that touch the digest, and by hand. It reads `tests/agents-digest-fixtures/`. |
+| `report-only` | Summary only | No | By hand (the default for manual runs). The digest is in the job summary and the `digest-<run>` artifact. |
+| `live` | Summary only | The digest issue | The Monday schedule, and by hand. |
+
+Locally: `GH_TOKEN=$(gh auth token) node scripts/agents/digest.mjs --report-only --no-summary --out /tmp/digest`. A personal token can read more than the bot, so a local run may cover repositories the scheduled one skips.
+
+### Setup and cost
+
+It posts as the rewire-bot app (`REWIRE_BOT_APP_ID`, `REWIRE_BOT_PRIVATE_KEY`), which needs issues write here. The token is made for every repository the app is installed on; the digest reads the other repositories in `DIGEST_REPOS` (a repository variable, comma separated; default `rewire.it` and `rewire-database` under the same owner) and lists any it cannot read under "Not covered". Without the app it posts with the workflow's own token and reads only this repository. Workflow runs and artifacts are read with the workflow's own token (`actions: read`). The repository comes from `GITHUB_REPOSITORY`, so it moves with the workflow file.
+
+With `ANTHROPIC_API_KEY` set, Haiku 5.5 writes a three-sentence summary at the top from the computed counts only (prompt [agents/digest.md](../agents/digest.md)). The call is skipped if its worst-case cost would pass $0.25; a typical one costs well under $0.01. Without the key, or if the call fails, the digest has no summary and says why.
