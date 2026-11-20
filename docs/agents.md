@@ -172,3 +172,38 @@ The mode for bot pull requests is the repository variable `REVIEWER_MODE` (unset
 ### Limits and cost
 
 One Sonnet call per review with up to 1 web search and 2 web fetches plus one per distinct source URL (at most 10), 16,000 output tokens, 2 `pause_turn` resumes, effort `high`. No structuring call once the estimated cost passes $1.50. The job summary and `usage.json` in the artifact give each review's tokens and cost.
+
+## Disagreement watcher
+
+`.github/workflows/watcher.yml` runs `scripts/agents/watcher.mjs` after every successful run of "Cut and publish a release", and by hand (#258). It turns new discrepancies between studies ([discrepancies.md](discrepancies.md)) into "Lead:" issues in the format of #209 to #211, so new findings are noticed without someone opening `/contested/`.
+
+What it does:
+
+1. It diffs `discrepancies.json` of the newest knowledge-graph bundle (`kg/<id>`, in publication order) against the bundle published before it. A finding is matched to its earlier self by ID or through `previous_ids`, so a rule change that re-keys findings does not make them new. Resolved findings are not live.
+2. For each new medium or high finding, each finding whose severity rose, and each resolved finding that fires again, it files one issue labelled `lead` and `needs-tim` and assigned to timini, so GitHub emails him. The issue links the contested page and gives, from the release data only: each study's verdict and comparison counts, up to four comparisons per study with their values, and the protocols, datasets, metrics and configurations each study used. Names and links come from the release's `records.jsonl.gz`.
+3. Sonnet 5.5 writes one paragraph, "Likely explanations to check", from those facts (prompt [agents/watcher.md](../agents/watcher.md)). The script drops the paragraph if it contains a link or a number that is not in the facts, and files the issue without it, saying why. Without `ANTHROPIC_API_KEY` the issues are filed without it.
+4. Dedupe: every issue carries a hidden `discrepancy-lead` marker with the finding's ID. A finding is never filed twice: not when a lead issue has its marker, and not when a hand-written "Lead:" issue names its ID or one of its `previous_ids`. A finding that already has a lead issue gets a comment instead when its severity rises or it fires again. A finding that has follow-up actions but no lead issue is skipped and named in the job summary.
+5. At most 5 lead issues a run, most severe first. Any more go into one summary issue (same labels and assignee) listing each finding, whose markers stop later runs filing them separately.
+6. A finding that stops being live gets a comment on its open lead issue saying so. The issue is not closed.
+
+Every comment carries a marker with the release ID, so a release run that cuts no release (the watcher then diffs the same two releases again) files and posts nothing.
+
+It records nothing in the store. A `discrepancy_review` revision counts only with status `source_checked`, and every action in `data/vocab/discrepancy-action.ttl` (`investigated` included) and every working state in `discrepancy-state.ttl` (`investigating` included) says someone has looked at the sources. When the watcher files a lead nobody has, so the finding stays `open` until the first real revision. Each lead's "To check" list ends with recording that revision.
+
+Depth tiers: #258 asks for tier 3 findings to go to a weekly digest only. There is no digest yet, so the watcher files leads for every tier and states the finding's tier (the lowest of its two systems) in the issue.
+
+### Modes
+
+| Mode | Model calls | GitHub writes | When |
+| --- | --- | --- | --- |
+| `dry-run` | No | No | Pull requests that touch the watcher, and by hand. It reads `tests/agents-watcher-fixtures/`: real findings from release `2026-11-19-0528a0ffe3cb`, trimmed and arranged into two new findings, a rise and two findings that stopped. |
+| `report-only` | Yes | No | By hand, with optional `current` and `previous` release IDs. The planned issues and comments are in the job summary and the `watcher-<run>` artifact. |
+| `live` | Yes | Issues and comments | After every successful release run, and by hand. |
+
+Locally, against any two releases: download `discrepancies.json` from both `kg/<id>` releases and `public.omics.releases.<id>.records.jsonl.gz` from the newer `serving/<id>`, then run `node scripts/agents/watcher.mjs --dry-run --previous <old.json> --current <new.json> --records <records.jsonl.gz> --issues <issues.json> --out /tmp/watcher`. `--issues` takes the issue list as JSON (`number`, `title`, `body`, `state`); without it the fixture list is used.
+
+### Setup and cost
+
+It uses the `ANTHROPIC_API_KEY` secret and the rewire-bot app (`REWIRE_BOT_APP_ID`, `REWIRE_BOT_PRIVATE_KEY`, issues write), like discovery. Without the app it files with `GITHUB_TOKEN`. It refuses to run outside the rewire-bio organisation, and takes the repository from the run, so it moves with the code.
+
+One Sonnet call per filed lead, with no tools: about 3,000 to 6,000 input tokens and up to 2,000 output tokens, about $0.01 to $0.03. No call is made once the run's estimated cost passes $1; at 5 leads a run that cannot happen. A release with no new finding costs nothing.
