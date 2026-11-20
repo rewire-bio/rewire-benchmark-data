@@ -223,8 +223,10 @@ describe("writeSummary", () => {
   it("strips dashes and stays under the cost cap", async () => {
     const { facts } = await dryRun();
     const usage = new Usage();
-    const client = { messages: { create: async () => ({ stop_reason: "end_turn", usage: { input_tokens: 900, output_tokens: 90 }, content: [{ type: "text", text: "One PR waits — #310." }] }) } };
+    const requests: any[] = [];
+    const client = { messages: { create: async (req: any) => (requests.push(req), { stop_reason: "end_turn", usage: { input_tokens: 900, output_tokens: 90 }, content: [{ type: "text", text: "One PR waits — #310." }] }) } };
     const { text } = await writeSummary(client, usage, { system: "s", facts, log: () => {} });
+    expect(requests[0].thinking).toEqual({ type: "disabled" });
     expect(text).toBe("One PR waits, #310.");
     expect(usage.total()).toBeLessThan(0.25);
     expect(renderDigest(facts, { summary: text }).startsWith("One PR waits, #310.")).toBe(true);

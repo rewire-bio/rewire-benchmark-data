@@ -670,6 +670,8 @@ export async function writeSummary(client, usage, { system, facts, log }) {
   const message = await client.messages.create({
     model: MODELS.summary,
     max_tokens: LIMITS.summaryMaxTokens,
+    // Haiku 5.5 thinks by default and thinking counts against max_tokens; three sentences need none.
+    thinking: { type: 'disabled' },
     system,
     messages: [{ role: 'user', content: `<facts>\n${input}\n</facts>` }],
   });
