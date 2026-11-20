@@ -1,17 +1,32 @@
 name: Pipeline alert
-# Opens one issue labelled pipeline-broken, assigned to timini, when a check or release run
-# on main fails, and closes it when every failing source has succeeded again (#252). Once a
-# day it also checks that benchmarks.rewirebio.io serves the newest serving/ release, and
-# files the same issue if it has lagged for more than 24 hours. rewire-database runs the
-# same script for its adoption and deploy workflows and files its own issue there.
+# Opens one issue labelled pipeline-broken, assigned to timini, when a check, release or agent
+# run fails, and closes it when every failing source has succeeded again (#252). Once a day it
+# also checks that benchmarks.rewirebio.io serves the newest serving/ release, and files the
+# same issue if it has lagged for more than 24 hours. rewire-database runs the same script for
+# its adoption and deploy workflows and files its own issue there.
+#
+# Runs on main count: pushes, schedules, manual runs and runs started by another workflow. The
+# intake and reviewer agents also run on the pull requests the intake opens (intake/ branches),
+# so their runs there count too; other pull request runs do not. A run cancelled by a newer one
+# changes nothing.
+#
 # workflow_run matches workflows by name; tests/pipeline-alert.test.ts checks the names.
+# "Monthly entity sweep" is not merged yet; it is listed so its first run is watched.
+# The watcher already runs after the release, which runs after the checks, so this is the third
+# workflow_run step after a push. GitHub runs no workflow_run chain longer than three.
 on:
   workflow_run:
     workflows:
       - "Cut and publish a release"
       - "Benchmark data checks"
+      - "Discovery scan"
+      - "Intake agent"
+      - "Reviewer agent"
+      - "Disagreement watcher"
+      - "Weekly digest"
+      - "Monthly entity sweep"
     types: [completed]
-    branches: [main]
+    branches: [main, "intake/**"]
   schedule:
     - cron: "17 7 * * *"
   workflow_dispatch:
@@ -26,13 +41,18 @@ on:
 permissions:
   contents: read
   actions: read
+  checks: read # annotations tell a timed-out job from a cancelled one
   issues: write
-# One alert at a time, so two finishing runs cannot each open an issue.
-concurrency:
-  group: pipeline-alert
-  cancel-in-progress: false
 jobs:
   alert:
+    # Skipped runs (an intake run for an issue label other than entity-request) and cancelled
+    # runs change nothing, so they start no job.
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion != 'skipped' && github.event.workflow_run.conclusion != 'cancelled')
+    # One alert at a time, so two finishing runs cannot each open an issue. Set on the job, so a
+    # run skipped by the condition above never holds the queue's one waiting place.
+    concurrency:
+      group: pipeline-alert
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -48,7 +68,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.event.workflow_run.id || inputs.run_id }}
           DRY_RUN: ${{ inputs.dry_run && '--dry-run' || '' }}
-        run: node scripts/ops/pipeline-alert.mjs run --run-id "$RUN_ID" $DRY_RUN
+        run: node scripts/ops/pipeline-alert.mjs run --run-id "$RUN_ID" --pr-workflows intake.yml,reviewer.yml --pr-branch-prefix intake/ $DRY_RUN
       - name: Check the live release
         if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.run_id == '')
         env:

@@ -1,9 +1,15 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { logExcerpt, outcomeOf, plan, readState, sourceOf, staleness } from "../scripts/ops/pipeline-alert.mjs";
+import { judgeJobs, logExcerpt, outcomeOf, plan, readState, sourceOf, staleness, timedOutByAnnotations } from "../scripts/ops/pipeline-alert.mjs";
 
-// The workflows whose failures on main open the pipeline-broken issue in this repository.
-const WATCHED = ["release.yml", "data.yml"];
+// The workflows whose failures open the pipeline-broken issue in this repository.
+const WATCHED = ["release.yml", "data.yml", "discovery.yml", "intake.yml", "reviewer.yml", "watcher.yml", "digest.yml"];
+// Watched by name before their workflow file is merged. Once the file exists, add it to WATCHED.
+const AWAITED = ["Monthly entity sweep"];
+// Workflows whose runs on the intake agent's pull requests count, and the branch prefix the
+// intake pushes to (scripts/agents/intake.mjs).
+const PR_WORKFLOWS = ["intake.yml", "reviewer.yml"];
+const PR_BRANCH_PREFIX = "intake/";
 
 const now = "2026-11-17T12:00:00.000Z";
 const failed = { source: "release.yml", outcome: "fail" as const, url: "https://run/1", summary: "job `release` failure", details: "```\nboom\n```", now };
@@ -22,8 +28,42 @@ describe("outcomeOf", () => {
     expect(outcomeOf({ head_branch: "main", event: "workflow_run", conclusion: "skipped" })).toBe("ignore");
     expect(outcomeOf({ head_branch: "main", event: "push", conclusion: "cancelled" })).toBe("ignore");
   });
+  it("counts intake and reviewer runs on the intake agent's pull requests, and nothing else from pull requests", () => {
+    const repo = { full_name: "rewire-bio/rewire-benchmark-data" };
+    const botRun = { event: "pull_request", head_branch: "intake/issue-250", path: ".github/workflows/reviewer.yml", repository: repo, head_repository: repo };
+    const prRuns = { workflows: PR_WORKFLOWS, branchPrefix: PR_BRANCH_PREFIX };
+    expect(outcomeOf({ ...botRun, conclusion: "failure" }, prRuns)).toBe("fail");
+    expect(outcomeOf({ ...botRun, conclusion: "success" }, prRuns)).toBe("pass");
+    expect(outcomeOf({ ...botRun, conclusion: "cancelled" }, prRuns)).toBe("ignore");
+    expect(outcomeOf({ ...botRun, path: ".github/workflows/intake.yml", conclusion: "failure" }, prRuns)).toBe("fail");
+    // The data checks on a bot pull request are ordinary review, and so is any other branch or a fork.
+    expect(outcomeOf({ ...botRun, path: ".github/workflows/data.yml", conclusion: "failure" }, prRuns)).toBe("ignore");
+    expect(outcomeOf({ ...botRun, head_branch: "claude/feature", conclusion: "failure" }, prRuns)).toBe("ignore");
+    expect(outcomeOf({ ...botRun, head_repository: { full_name: "someone/fork" }, conclusion: "failure" }, prRuns)).toBe("ignore");
+    // Without the option, as in rewire-database, no pull request run counts.
+    expect(outcomeOf({ ...botRun, conclusion: "failure" })).toBe("ignore");
+  });
   it("names the source by workflow file", () => {
     expect(sourceOf({ path: ".github/workflows/release.yml", name: "Cut and publish a release" })).toBe("release.yml");
+  });
+});
+
+describe("judgeJobs", () => {
+  it("ignores a failed run whose only unsuccessful jobs were cancelled", () => {
+    expect(judgeJobs([{ id: 1, conclusion: "cancelled" }, { id: 2, conclusion: "skipped" }])).toBe("ignore");
+  });
+  it("fails a run with a failed job, even beside a cancelled one", () => {
+    expect(judgeJobs([{ id: 1, conclusion: "cancelled" }, { id: 2, conclusion: "failure" }])).toBe("fail");
+  });
+  it("fails a run whose cancelled job hit its time limit", () => {
+    const annotations = [{ message: "The job running on runner GitHub Actions 3 has exceeded the maximum execution time of 30 minutes." }];
+    expect(timedOutByAnnotations(annotations)).toBe(true);
+    expect(timedOutByAnnotations([{ message: "The operation was canceled." }])).toBe(false);
+    expect(timedOutByAnnotations(null)).toBe(false);
+    expect(judgeJobs([{ id: 1, conclusion: "cancelled" }], new Set([1]))).toBe("fail");
+  });
+  it("fails a run that failed before any job ran", () => {
+    expect(judgeJobs([])).toBe("fail");
   });
 });
 
@@ -116,6 +156,11 @@ describe("alert workflow", () => {
     expect(listed).toContain(nameOf(file));
   });
   it("lists no other workflow", () => {
-    expect(listed.sort()).toEqual(WATCHED.map(nameOf).sort());
+    expect(listed.sort()).toEqual([...new Set([...WATCHED.map(nameOf), ...AWAITED])].sort());
+  });
+  it("counts pull request runs only of the intake and reviewer, on the intake's branches", () => {
+    expect(alert).toContain(`--pr-workflows ${PR_WORKFLOWS.join(",")} --pr-branch-prefix ${PR_BRANCH_PREFIX} `);
+    expect(alert).toMatch(new RegExp(`branches: \\[main, "${PR_BRANCH_PREFIX}\\*\\*"\\]`));
+    expect(readFileSync("scripts/agents/intake.mjs", "utf8")).toContain("`" + PR_BRANCH_PREFIX + "issue-${");
   });
 });
