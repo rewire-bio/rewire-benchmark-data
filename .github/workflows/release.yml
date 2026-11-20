@@ -48,8 +48,9 @@ jobs:
         with:
           app-id: ${{ vars.REWIRE_BOT_APP_ID }}
           private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
-          owner: rewire-bio
-          repositories: rewire-benchmark-data
+          # No owner or repositories: the token is scoped to the repository this runs in,
+          # so it keeps working if the store moves to another repository.
+          permission-contents: write
       - uses: actions/checkout@v4
         with:
           ref: main
