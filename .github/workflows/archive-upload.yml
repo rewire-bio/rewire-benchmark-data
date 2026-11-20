@@ -52,6 +52,12 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Without this, checkout leaves the default GITHUB_TOKEN in the local git config as
+          # an http.extraheader, and that beats credentials in a remote URL. The push below
+          # then goes out as github-actions[bot], which main's protection refuses: the first
+          # real run uploaded all 871 objects and then lost the manifest commit to a 403.
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 24
