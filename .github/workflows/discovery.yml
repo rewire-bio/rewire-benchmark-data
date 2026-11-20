@@ -55,6 +55,7 @@ jobs:
           node-version: 24
       # A token for rewire.it article issues, only when the REWIRE_BOT app is configured. Secrets
       # cannot appear in `if:`, so the org variable gates it; a missing key fails this step only.
+      # It can read and file issues in rewire.it and nothing else.
       - name: Token for rewire.it
         id: app
         if: env.MODE != 'dry-run' && vars.REWIRE_BOT_APP_ID != ''
@@ -63,12 +64,15 @@ jobs:
         with:
           app-id: ${{ vars.REWIRE_BOT_APP_ID }}
           private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
-          owner: rewire-bio
+          owner: ${{ github.repository_owner }}
           repositories: rewire.it
+          permission-issues: write
       # Data issues are filed as the rewire-bot app, so the entity-request label they carry starts
       # the intake agent (intake.yml). Labels added with GITHUB_TOKEN start no workflow. If the
       # app token cannot be made, the issues are filed with GITHUB_TOKEN and intake must be
       # started by hand.
+      # With no owner or repositories the token covers this repository only, and it can read and
+      # file issues and labels, nothing else.
       - name: Token for this repository
         id: data_app
         if: env.MODE == 'live' && vars.REWIRE_BOT_APP_ID != ''
@@ -77,8 +81,7 @@ jobs:
         with:
           app-id: ${{ vars.REWIRE_BOT_APP_ID }}
           private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
-          owner: rewire-bio
-          repositories: rewire-benchmark-data
+          permission-issues: write
       - name: Install the Anthropic SDK
         if: env.MODE != 'dry-run' && env.HAS_KEY == 'true'
         run: npm ci --prefix scripts/agents --no-audit --no-fund

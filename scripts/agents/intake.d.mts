@@ -45,3 +45,4 @@ export function sourceBlocks(texts: { url: string; text: string }[]): string;
 export function isChallengePage(title: string, head: string): boolean;
 export function fetchSource(url: string, opts?: { fetchImpl?: typeof fetch; now?: () => Date }): Promise<Record<string, any>>;
 export function main(argv?: string[], env?: Record<string, string | undefined>, deps?: Record<string, any>): Promise<any>;
+export function exitCodeFor(outcome: string | undefined): 0 | 1;

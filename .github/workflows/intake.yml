@@ -47,6 +47,8 @@ jobs:
       HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     steps:
       # The bot token pushes the branch and opens the pull request, so its CI runs. Live only.
+      # It covers this repository only (no owner or repositories given): contents to push the
+      # branch, pull requests to open one, issues to read the request and comment on it.
       - name: Token for the rewire-bot app
         id: app
         if: env.MODE == 'live' && env.HAS_KEY == 'true'
@@ -54,8 +56,9 @@ jobs:
         with:
           app-id: ${{ vars.REWIRE_BOT_APP_ID }}
           private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
-          owner: rewire-bio
-          repositories: rewire-benchmark-data
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
       - uses: actions/checkout@v4
         with:
           token: ${{ steps.app.outputs.token || github.token }}
