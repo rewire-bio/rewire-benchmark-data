@@ -1,0 +1,45 @@
+# Gold pairs for rdf-kg-mcp's search recall check, run with its scripts/search_recall.py:
+#   uv run python scripts/search_recall.py <kg bundle> --gold <this file>
+# Each row: a bucket, the text passed to search, the record search should return, the class
+# used as the types filter (the expected record's kind), and the query's own record when it is
+# not the answer. Asserted statements only, so inferred links do not make pairs.
+PREFIX rb: <https://benchmarks.rewire.it/vocab#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?bucket ?query ?expected ?type ?self WHERE {
+  VALUES ?type { rb:Model rb:Method rb:Configuration rb:Pipeline rb:Service rb:Benchmark rb:Task
+                 rb:Protocol rb:Evaluator rb:Dataset rb:DatasetSubset rb:UseCase }
+  GRAPH <https://benchmarks.rewire.it/graph/asserted> {
+    {
+      # The name of a record that is an alias finds the record it is an alias of.
+      ?self rb:aliasOf ?expected ; rdfs:label ?query .
+      BIND("alias_of" AS ?bucket)
+    } UNION {
+      # A name the source reported, where it differs from the record's name and no other record
+      # of the same class reported it, finds the record. A reported name shared by many records
+      # ("ESM2" on every configuration that ran it) has no single right answer.
+      ?expected rb:reportedName ?query ; rdfs:label ?name .
+      FILTER(LCASE(STR(?query)) != LCASE(STR(?name)))
+      FILTER NOT EXISTS { ?other rb:reportedName ?query ; a ?type . FILTER(?other != ?expected) }
+      BIND("reported_name" AS ?bucket)
+    } UNION {
+      # A checkpoint's name finds its family or the model it is a variant of.
+      ?self rb:entityLevel ?level ; rdfs:label ?query .
+      FILTER(STRENDS(STR(?level), "/checkpoint"))
+      { ?self rb:family ?expected } UNION { ?self rb:variantOf ?expected }
+      BIND("checkpoint_to_parent" AS ?bucket)
+    } UNION {
+      # A configuration's name finds what it configures.
+      ?self rb:configurationOf ?expected ; rdfs:label ?query .
+      BIND("configuration_to_target" AS ?bucket)
+    } UNION {
+      # A name respelled: hyphens dropped ("ESM-2" as "ESM2"), or one added between a letter and
+      # a digit ("ESM2" as "ESM-2"), finds the record.
+      ?expected rdfs:label ?name .
+      BIND(IF(CONTAINS(?name, "-"), REPLACE(?name, "-", ""),
+              REPLACE(?name, "^([^0-9]*[A-Za-z])([0-9])", "$1-$2")) AS ?query)
+      FILTER(?query != ?name)
+      BIND("spelling" AS ?bucket)
+    }
+    ?expected a ?type .
+  }
+}

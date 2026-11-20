@@ -13,6 +13,7 @@ import crypto from "node:crypto";
 import { loadRecords } from "../omics/records";
 import { publicRecords, type RecordEntry } from "../omics/schema";
 import { schemeIri } from "../omics/vocab";
+import { draftBlock } from "./draft-block";
 import { attributeProperty, declarationsTurtle, encoding, missing, nodes, notExported, registry, shapesTurtle } from "./attribute-terms";
 
 /** scheme: the value is a concept key in data/vocab/<scheme>.ttl, exported as the concept IRI. */
@@ -324,6 +325,7 @@ if (process.argv[1]?.endsWith("export.ts")) {
       release_id: release.release_id,
       files: { "asserted.nq": { sha256: assertedSha, quads: lines.length } },
       mapping_sha256: sha(fs.readFileSync(mappingFile)),
+      draft: draftBlock(mapping),
       inferred: null,
       note: "Asserted statements only. Inference and SHACL validation are a later build step.",
     };

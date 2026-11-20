@@ -24,9 +24,10 @@ export const statuses = [
   "superseded",
   "excluded",
 ] as const;
+export const recordIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const recordSchema = z
   .object({
-    id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    id: z.string().regex(recordIdPattern),
     kind: z.enum(kinds),
     name: z.string().min(1),
     description: z.string(),
