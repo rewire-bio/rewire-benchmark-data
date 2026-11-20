@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  LABEL, LIMITS, SWEEP_LABEL, candidatesFor, checkLink, checkedValue, confirmPrompt, isPlaceholder, checkpointBase, fixtureFetch, githubFacts, hfFacts, hfIdsInText, knownFromIssues, licenceAgrees, main, markUmbrellas, parseUpdateMarker, planIssues, refsOf, renderUpdateIssue, tiersDue,
+  LABEL, LIMITS, SWEEP_LABEL, candidatesFor, checkLink, checkedValue, confirmPrompt, factsText, isPlaceholder, checkpointBase, fixtureFetch, githubFacts, hfFacts, hfIdsInText, knownFromIssues, licenceAgrees, main, markUmbrellas, parseUpdateMarker, pinnedCommit, planIssues, refsOf, renderUpdateIssue, tiersDue,
 } from "../scripts/agents/sweep.mjs";
 
 // The monthly entity sweep (#257). Everything here runs without an API key or network: the dry
@@ -103,7 +103,7 @@ describe("dry run", () => {
     expect(r.plan.file[0].issue.body).toContain("- https://huggingface.co/rewire-fixtures/Dune_500M");
   });
 
-  it("drops what Sonnet does not confirm, what an earlier issue filed, and repositories Haiku says are not the entity's own", async () => {
+  it("drops what Sonnet does not confirm, what an earlier issue filed, and repositories that are not the entity's own", async () => {
     const r = await dryRun();
     expect(r.unconfirmed.map((u: { observed: string }) => u.observed).sort()).toEqual(["rewire-fixtures/Dune_100M-GGUF", "rewire-fixtures/Dunes-demo"]);
     expect(r.plan.skipped.map((s: { key: string }) => s.key)).toEqual(["fixture-model-quarry:archived:rewirefixturesquarry"]);
@@ -191,7 +191,6 @@ describe("live and report-only runs with fakes", () => {
     const created: { title: string; labels: string[] }[] = [];
     const reply = (value: unknown) => ({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify(value) }], usage: { input_tokens: inputTokens, output_tokens: 100 } });
     const answerFor = (prompt: string) => {
-      if (prompt.startsWith("Ownership check")) return answers.ownership.all;
       if (prompt.startsWith("Benchmark page check")) return answers.pages["https://arena.example.org/"];
       const id = /Record (\S+) \(/.exec(prompt)?.[1] ?? "";
       return answers.confirm[id] ?? { changes: [] };
@@ -219,12 +218,12 @@ describe("live and report-only runs with fakes", () => {
   }
   const args = ["--store-dir", `${FIXTURES}/entities`];
 
-  it("uses Haiku with thinking off to classify and Sonnet with the fallback to confirm, then files the issues", async () => {
+  it("uses Haiku with thinking off to read a changed page and Sonnet with the fallback to confirm, then files the issues", async () => {
     const f = fakes();
     const r = await main(args, env, f.deps);
     const haiku = f.calls.filter((c) => c.model === "claude-haiku-5-5");
     const sonnet = f.calls.filter((c) => c.model === "claude-sonnet-5-5");
-    expect(haiku).toHaveLength(2); // one ownership call, one changed page
+    expect(haiku).toHaveLength(1); // one changed page; ownership is never asked
     for (const c of haiku) expect(c.thinking).toEqual({ type: "disabled" });
     expect(sonnet.map((c) => /Record (\S+)/.exec(c.prompt)?.[1]).sort()).toEqual(["fixture-benchmark-arena", "fixture-model-dune", "fixture-model-helix", "fixture-model-quarry"]);
     for (const c of sonnet) expect(c.fallbacks).toBe("default");
@@ -291,7 +290,7 @@ describe("live and report-only runs with fakes", () => {
 
 describe("candidates are changes, not gaps the model fills", () => {
   const facts = (releases: { tag: string; published_at: string }[]) => new Map([["github:o/tool", { state: "ok", archived: false, licence: null, html_url: "https://github.com/o/tool", releases: releases.map((r) => ({ ...r, url: `https://github.com/o/tool/releases/tag/${r.tag}` })) }]]);
-  const ref = { host: "github", owner: "o", repo: "tool", name: "tool", own: true, baseline: "2026-09-16T00:00:00Z", urls: ["https://github.com/o/tool"] };
+  const ref = { host: "github", owner: "o", repo: "tool", name: "tool", own: true, exact: true, baseline: "2026-09-16T00:00:00Z", urls: ["https://github.com/o/tool"] };
   const old = { tag: "v1.0.1", published_at: "2022-03-06T00:00:00Z" };
   const fresh = { tag: "v2.0.0", published_at: "2026-10-01T00:00:00Z" };
   const rec = (attributes: Record<string, unknown>, kind = "model") => ({ id: "r", kind, name: "Tool", attributes: { depth_tier: 1, ...attributes } });
@@ -310,7 +309,7 @@ describe("candidates are changes, not gaps the model fills", () => {
     expect(r).toMatchObject({ type: "release", observed: "v2.0.0" });
   });
 
-  it("sends an umbrella repository that matches several records to the ownership call", () => {
+  it("does not count an umbrella repository that matches several records as any one record's own", () => {
     const sources = new Map([["s1", { id: "s1", attributes: { url: "https://github.com/facebookresearch/esm" } }]]);
     const records = ["ESM-1v", "ESMFold2", "ESM-2"].map((name, n) => ({ id: `m${n}`, kind: "model", name, source_ids: ["s1"], attributes: { depth_tier: 1 } }));
     // m9 names the Hugging Face repository in its own access text; m8 only matches it by name.
@@ -427,5 +426,96 @@ describe("placeholder access values", () => {
     const issue = renderUpdateIssue({ record, action: "update", changes: [{ ...c, value: checkedValue(c, `official_source_linked. ${sentence}`) ?? "", reason: "Own repository, archived." }], runDate: "2026-12-01" });
     expect(parseUpdateMarker(issue.body)?.fields).toEqual({ access: sentence });
     expect(issue.body).toContain("| access | not recorded (placeholder official_source_linked) |");
+  });
+});
+
+describe("real records from run 44739151738", () => {
+  // The records, their sources and the GitHub answers as recorded on 2026-11-20: mRNABench and
+  // ViennaRNA RNAfold (sources pinned at the commits of tags v1.3.0 and v2.7.2), the 13 ViroBench
+  // records that cite the ViroBench pipeline (moved to SII-AGI4S/ViroBench), and the 16
+  // BenchBench-Cloning records whose repository is gone (404).
+  const REAL = `${FIXTURES}/real`;
+  const http = JSON.parse(readFileSync(`${REAL}/http.json`, "utf8"));
+  const env = { ANTHROPIC_API_KEY: "test", GITHUB_REPOSITORY: "rewire-bio/rewire-benchmark-data", RUN_URL: "https://run/1" };
+
+  // A confirmer that says yes to every proposal, with a value that carries what was observed: what
+  // is filed is then decided by the data alone.
+  function yesToAll() {
+    const calls: { model: string; prompt: string }[] = [];
+    const answer = (prompt: string) => {
+      const changes = [...prompt.matchAll(/^(\d+)\. (\w+) \(field (\w+)\): observed ("[^"]*")/gm)].map(([, n, type, , observed]) => {
+        const o = JSON.parse(observed);
+        const value = type === "moved" ? `The code moved to github.com/${o}.` : type === "archived" ? "The GitHub repository was archived (read-only) by its owner." : `${o} (Git tag at the pinned commit)`;
+        return { n: Number(n), real: true, value, reason: "Confirmed." };
+      });
+      return { changes };
+    };
+    const reply = (req: { model: string; messages: { content: string }[] }) => {
+      calls.push({ model: req.model, prompt: req.messages[0].content });
+      return { model: req.model, stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify(answer(req.messages[0].content)) }], usage: { input_tokens: 1000, output_tokens: 100 } };
+    };
+    return { calls, anthropic: { messages: { create: async (req: never) => reply(req) }, beta: { messages: { create: async (req: never) => reply(req) } } } };
+  }
+  const run = async () => {
+    const m = yesToAll();
+    const r = await main(["--store-dir", `${REAL}/entities`, "--report-only"], env, { anthropic: m.anthropic, github: { listIssues: async () => [] }, fetch: fixtureFetch(http), now: at("2026-12-01T05:00:00Z"), log: quiet });
+    return { r, calls: m.calls };
+  };
+
+  it("reads the commit a source pins", () => {
+    expect(pinnedCommit("https://github.com/morrislab/mRNABench/blob/74f96b8e6ae9f41cc3cccff089d826a62d5604b8/README.md")).toBe("74f96b8e6ae9f41cc3cccff089d826a62d5604b8");
+    expect(pinnedCommit("https://github.com/o/r", "Git commit 1ffec79f5e258896160f7362ced8263450f371dc")).toBe("1ffec79f5e258896160f7362ced8263450f371dc");
+    expect(pinnedCommit("https://github.com/QIANJINYDX/ViroBench", "arXiv 2605.25388v1")).toBeNull();
+  });
+
+  it("proposes the tag at the pinned commit for mRNABench, and only notes the newer release", async () => {
+    const { r } = await run();
+    const files = r.plan.file.map((p: { record: { id: string } }) => p.record.id);
+    expect(files).toEqual(["discovery-benchmark-mrnabench"]);
+    const issue = r.plan.file[0].issue;
+    expect(parseUpdateMarker(issue.body)).toMatchObject({ record_id: "discovery-benchmark-mrnabench", fields: { version: "v1.3.0 (Git tag at the pinned commit)" }, evidence: ["https://github.com/morrislab/mRNABench/releases/tag/v1.3.0"] });
+    expect(issue.body).not.toContain("v1.3.2 (Git");
+    expect(issue.body).toContain("pinned commit: 74f96b8e6ae9f41cc3cccff089d826a62d5604b8");
+    const look = r.look.find((l: { records: string[] }) => l.records.includes("discovery-benchmark-mrnabench"));
+    expect(look.detail).toContain("a newer release exists: v1.3.2 (2026-10-19), v1.3.1 (2026-10-19)");
+    expect(look.detail).toContain("(tag v1.3.0)");
+  });
+
+  it("does not propose a release of the shared ViennaRNA package as the RNAfold version", async () => {
+    const { r } = await run();
+    expect(JSON.stringify(r.plan.file)).not.toContain("viennarna");
+    const look = r.look.find((l: { records: string[] }) => l.records.includes("discovery-model-viennarna-rnafold"));
+    expect(look.detail).toContain("not named exactly for this entity");
+    expect(look.detail).toContain("v2.8.0");
+  });
+
+  it("never files a change on a repository the data does not tie to the record, and asks no model about it", async () => {
+    const { r, calls } = await run();
+    for (const id of ["virocaduceus", "virodnabert2", "virohyena"]) expect(JSON.stringify(r.plan.file)).not.toContain(id);
+    expect(calls.filter((c) => c.model.startsWith("claude-haiku"))).toEqual([]);
+    expect(calls.map((c) => /Record (\S+)/.exec(c.prompt)?.[1])).toEqual(["discovery-benchmark-mrnabench"]);
+    // Two runs give the same plan and the same summary lines.
+    const again = await run();
+    expect(again.r.plan.file.map((p: { issue: { body: string } }) => p.issue.body)).toEqual(r.plan.file.map((p: { issue: { body: string } }) => p.issue.body));
+    expect(again.r.look).toEqual(r.look);
+  });
+
+  it("reports the ViroBench move once, in the sweep issue, and the BenchBench-Cloning 404 once", async () => {
+    const { r } = await run();
+    const body: string = r.deadIssue.body;
+    const visible = body.split("\n").filter((l) => !l.startsWith("<!--"));
+    expect(visible.filter((l) => l.includes("ViroBench"))).toEqual(["- `lit-microbial-20261011-virobench-benchmark-virobench` (ViroBench): QIANJINYDX/ViroBench now SII-AGI4S/ViroBench"]);
+    expect(visible.filter((l) => l.includes("benchbench-cloning"))).toHaveLength(1);
+    expect(r.deadIssue.title).toBe("Entity sweep 2026-12: 1 dead link and 1 repository change");
+    // The missing repository keeps its marker, so it is not listed on its own next month.
+    expect(body).toContain("<!-- entity-sweep-dead: benchbench-cloning-20261106-benchmark-suite:missing:benchling/benchbench-cloning -->");
+    // The records that only cite these repositories add no line of their own.
+    expect(r.look.filter((l: { type: string }) => l.type !== "version")).toEqual([]);
+  });
+
+  it("writes the facts whole, not cut mid-value", () => {
+    const releases = Array.from({ length: 5 }, (_, n) => ({ tag: `v1.${n}.0`, published_at: "2026-10-19T07:16:17Z", url: `https://github.com/morrislab/mRNABench/releases/tag/v1.${n}.0` }));
+    const text = factsText({ repository: "morrislab/mRNABench", baseline: "2026-09-16T10:30:21.823561+00:00", recorded_version: "none", releases_since_baseline: releases });
+    expect(text).toBe("repository: morrislab/mRNABench; baseline: 2026-09-16T10:30:21.823561+00:00; recorded version: none; releases since baseline: v1.0.0 (2026-10-19), v1.1.0 (2026-10-19), v1.2.0 (2026-10-19), v1.3.0 (2026-10-19), v1.4.0 (2026-10-19)");
   });
 });
