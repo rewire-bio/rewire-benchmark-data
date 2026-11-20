@@ -1,0 +1,101 @@
+name: Weekly digest
+# In live mode it opens one issue a week, "Weekly digest: <from> to <to>", labelled digest and
+# assigned to timini, and closes the previous one (#259). The schedule runs report-only until the
+# repository variable DIGEST_MODE is live. It lists what the agents did, runs and spend, releases and
+# adoption, provisional agent records, discrepancies, pipeline-broken issues and what waits on Tim.
+# The facts come from GitHub, the release assets and the live site; Haiku only writes an optional
+# three-sentence summary (cost cap $0.25 a run). Setup in docs/agents.md.
+on:
+  schedule:
+    # Mondays 06:30 UTC: before pipeline-alert (07:17) and discovery (08:00).
+    - cron: "30 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry-run: fixtures, no model or GitHub calls. report-only: real digest in the job summary. live: opens the issue."
+        type: choice
+        options: [dry-run, report-only, live]
+        default: report-only
+      days:
+        description: Days to cover
+        default: "7"
+  pull_request:
+    paths:
+      - agents/digest.md
+      - scripts/agents/digest.mjs
+      - tests/agents-digest*/**
+      - tests/agents-digest*
+      - .github/workflows/digest.yml
+permissions:
+  contents: read
+  issues: write
+  actions: read
+concurrency:
+  group: digest-${{ github.event_name == 'pull_request' && github.ref || 'weekly' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # The schedule only reports until the repository variable DIGEST_MODE is set to live.
+      MODE: ${{ github.event_name == 'schedule' && (vars.DIGEST_MODE || 'report-only') || github.event_name == 'pull_request' && 'dry-run' || inputs.mode }}
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      # The rewire-bot app posts the issue and reads the other repositories it is installed on
+      # (rewire.it, rewire-database). No repositories list, so a repository the app lacks is
+      # reported as not read instead of failing the token. The permissions are cut down to what
+      # the digest needs: it can write issues and read everything else, and push nothing.
+      - name: Token for the rewire-bot app
+        id: app
+        if: env.MODE != 'dry-run' && vars.REWIRE_BOT_APP_ID != ''
+        continue-on-error: true
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REWIRE_BOT_APP_ID }}
+          private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-issues: write
+          permission-contents: read
+          permission-pull-requests: read
+          permission-metadata: read
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /agents/
+            /scripts/agents/
+            /scripts/ops/
+            /tests/agents-digest-fixtures/
+            /data/entities/
+            /data/omics/intake-*/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install the Anthropic SDK
+        if: env.MODE != 'dry-run' && env.HAS_KEY == 'true'
+        run: npm ci --prefix scripts/agents --no-audit --no-fund
+      - name: Digest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          # Workflow runs and artifacts are read with the workflow's own token (actions: read).
+          ACTIONS_TOKEN: ${{ github.token }}
+          DIGEST_REPOS: ${{ vars.DIGEST_REPOS }}
+          DAYS: ${{ inputs.days || '7' }}
+        run: |
+          case "$MODE" in
+            dry-run) args="--dry-run" ;;
+            report-only) args="--report-only --days $DAYS" ;;
+            live) args="--days $DAYS" ;;
+            *) echo "::error::Unknown mode $MODE"; exit 1 ;;
+          esac
+          node scripts/agents/digest.mjs $args --out digest-out
+      - name: Keep the digest and its facts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ github.run_id }}
+          path: digest-out
+          if-no-files-found: ignore
+          retention-days: 30
