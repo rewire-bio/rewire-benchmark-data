@@ -1,5 +1,6 @@
 name: Intake agent
-# Turns an issue labelled entity-request into a pull request that adds its entity records (#255).
+# Turns an issue labelled entity-request into a pull request that adds its entity records (#255),
+# and an entity-update issue from the monthly entity sweep (#257) into one that updates a record.
 # The prompt is agents/intake.md; setup and cost are in docs/agents.md. It never merges.
 #
 # Live runs push the branch and open the pull request as the rewire-bot GitHub App, so the pull
@@ -37,8 +38,8 @@ env:
   NODE_OPTIONS: --max-old-space-size=8192
 jobs:
   intake:
-    # Only the entity-request label starts a run from an issue.
-    if: github.event_name != 'issues' || github.event.label.name == 'entity-request'
+    # Only the entity-request and entity-update labels start a run from an issue.
+    if: github.event_name != 'issues' || github.event.label.name == 'entity-request' || github.event.label.name == 'entity-update'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

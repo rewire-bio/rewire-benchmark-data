@@ -1,0 +1,117 @@
+name: Entity sweep
+# On the 1st of each month, checks the tier 1 entities (and the tier 2 entities in January, April,
+# July and October) against their own sources: new releases and checkpoints, licence changes,
+# archived or moved repositories, new benchmark versions and dead links (#257). It files one
+# entity-update issue per entity with a confirmed change, which the intake agent turns into a
+# pull request, and one entity-sweep issue for the dead links. Code: scripts/agents/sweep.mjs;
+# prompt: agents/sweep.md; docs/agents.md.
+#
+# The schedule only reports until the repository variable SWEEP_MODE is live. Issues are filed
+# as the rewire-bot app, so their entity-update label starts the intake. The repository is
+# always this one (github.repository), so the workflow moves with the code.
+on:
+  schedule:
+    # 05:00 UTC on the 1st: before the digest (Mondays 06:30), pipeline-alert (07:17) and discovery (08:00).
+    - cron: "0 5 1 * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry-run: fixtures, no model or GitHub calls. report-only: real checks, prints the issues. live: files them."
+        type: choice
+        options: [dry-run, report-only, live]
+        default: report-only
+      tier:
+        description: "Tiers to sweep: 1, 2 or 1,2 (default: the tiers due this month; tier 3 is never swept)"
+        default: ""
+      limit:
+        description: Most entities to check (0 for all)
+        default: "0"
+      ids:
+        description: Record IDs to check instead, comma-separated
+        default: ""
+  pull_request:
+    paths:
+      - agents/sweep.md
+      - scripts/agents/sweep.mjs
+      - scripts/agents/intake.mjs
+      - scripts/agents/discovery.mjs
+      - tests/agents-sweep-fixtures/**
+      - tests/agents-sweep.test.ts
+      - .github/workflows/sweep.yml
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: sweep-${{ github.event_name == 'pull_request' && github.ref || 'monthly' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      MODE: ${{ github.event_name == 'schedule' && (vars.SWEEP_MODE || 'report-only') || github.event_name == 'pull_request' && 'dry-run' || inputs.mode }}
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - name: Refuse to run outside rewire-bio
+        id: repo
+        run: |
+          if [ "${GITHUB_REPOSITORY%%/*}" != "rewire-bio" ]; then echo "::error::The sweep only runs in rewire-bio repositories."; exit 1; fi
+          # A scheduled event carries no repository object, so take the name from GITHUB_REPOSITORY.
+          echo "name=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+      # Issues only: rewire-bot may push to main without the checks, and the sweep never needs to.
+      - name: Token for the rewire-bot app
+        id: app
+        if: env.MODE == 'live' && vars.REWIRE_BOT_APP_ID != ''
+        continue-on-error: true
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REWIRE_BOT_APP_ID }}
+          private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ steps.repo.outputs.name }}
+          permission-issues: write
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            agents
+            scripts/agents
+            tests/agents-sweep-fixtures
+            data/entities
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install the Anthropic SDK
+        if: env.MODE != 'dry-run' && env.HAS_KEY == 'true'
+        run: npm ci --prefix scripts/agents --no-audit --no-fund
+      - name: Sweep
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          APP_TOKEN: ${{ steps.app.outputs.token != '' }}
+          # GitHub API reads (releases, licences) use the workflow's own token for its rate limit.
+          READ_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TIER: ${{ inputs.tier }}
+          LIMIT: ${{ inputs.limit || '0' }}
+          IDS: ${{ inputs.ids }}
+        run: |
+          case "$MODE" in
+            dry-run) args="--dry-run" ;;
+            report-only) args="--report-only" ;;
+            live) args="" ;;
+            *) echo "::error::Unknown mode $MODE"; exit 1 ;;
+          esac
+          if [ "$MODE" != dry-run ]; then
+            if [[ "$TIER" =~ ^[12](,[12])?$ ]]; then args="$args --tier $TIER"; elif [ -n "$TIER" ]; then echo "::error::tier must be 1, 2 or 1,2"; exit 1; fi
+            if [[ "$LIMIT" =~ ^[0-9]+$ ]] && [ "$LIMIT" != 0 ]; then args="$args --limit $LIMIT"; fi
+            if [[ "$IDS" =~ ^[a-z0-9,._-]+$ ]]; then args="$args --ids $IDS"; elif [ -n "$IDS" ]; then echo "::error::ids must be record IDs separated by commas"; exit 1; fi
+          fi
+          node scripts/agents/sweep.mjs $args --out sweep-out
+      - name: Keep the plan and token usage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sweep-${{ github.run_id }}
+          path: sweep-out
+          if-no-files-found: ignore
+          retention-days: 90

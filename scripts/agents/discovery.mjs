@@ -85,6 +85,9 @@ export const LABELS = {
   // Filed by the disagreement watcher (watcher.mjs).
   lead: { color: 'd93f0b', description: 'A discrepancy between studies to investigate' },
   'needs-tim': { color: 'b60205', description: 'Needs a decision or action from Tim' },
+  // Filed by the monthly entity sweep (sweep.mjs). entity-update starts the intake agent.
+  'entity-update': { color: '1d76db', description: 'A change to an existing record for the intake agent' },
+  'entity-sweep': { color: 'c2e0c6', description: 'Dead links and other findings of the monthly entity sweep' },
 };
 
 const TIER_SCOPE = {
