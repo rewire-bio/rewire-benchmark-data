@@ -6,7 +6,7 @@
  *   - it is an evaluation, result or claim (intake adds entities only until #274);
  *   - the release would refuse it (validateSnapshot, the check tests/release-validation.test.ts
  *     runs on the whole store), for example a model without entity_level.
- * Usage: npx tsx scripts/agents/intake-check.ts <batch.jsonl> */
+ * Usage: npx tsx scripts/agents/intake-check.ts <batch.jsonl>... (an update checks its changed record and its new sources together) */
 import fs from "node:fs";
 import { attributeIssues, normalizeAttributes } from "../../shared/omics/attributes";
 import { deriveTier, tierKinds } from "../../shared/omics/depth-tier";
@@ -16,9 +16,14 @@ import { ZodError } from "zod";
 type Rec = { id: string; kind: string; links: { relation: string; target_id: string }[]; facets: { areas?: string[] }; attributes: Record<string, unknown> };
 
 /** What the release's snapshot validation says about the batch. `storedSources` are the stored
- * source records the batch cites but does not add. */
+ * source records the batch cites but does not add, in source_ids or anywhere else in a record
+ * (an existing record's profile cites sources of its own). */
 export function releaseProblems(records: Rec[], storedSources: Rec[] = []): string[] {
-  const cited = new Set(records.flatMap((r) => (r as unknown as { source_ids: string[] }).source_ids ?? []));
+  const text = records.map((r) => JSON.stringify(r)).join("\n");
+  const cited = new Set([
+    ...records.flatMap((r) => (r as unknown as { source_ids: string[] }).source_ids ?? []),
+    ...storedSources.filter((s) => text.includes(`"${s.id}"`)).map((s) => s.id),
+  ]);
   const own = new Set(records.map((r) => r.id));
   const visible = [...records, ...storedSources.filter((s) => cited.has(s.id) && !own.has(s.id))];
   try {
@@ -51,12 +56,12 @@ export function intakeProblems(records: Rec[], storedSources: Rec[] = []): strin
 }
 
 if (process.argv[1]?.endsWith("intake-check.ts")) {
-  const file = process.argv[2];
-  if (!file) {
-    console.error("Usage: npx tsx scripts/agents/intake-check.ts <batch.jsonl>");
+  const files = process.argv.slice(2);
+  if (!files.length) {
+    console.error("Usage: npx tsx scripts/agents/intake-check.ts <batch.jsonl>...");
     process.exit(1);
   }
-  const records = fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as Rec);
+  const records = files.flatMap((file) => fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as Rec));
   const sourcesFile = "data/entities/sources.jsonl";
   const stored = fs.existsSync(sourcesFile)
     ? fs.readFileSync(sourcesFile, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as Rec)

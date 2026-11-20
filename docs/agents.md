@@ -97,6 +97,13 @@ What it does:
 
 Every record has status `discovered`. Models, methods and benchmarks carry `depth_tier` from their areas, and an `entity_level` (model `family`, `checkpoint` or `service`; method `method` or `family`; benchmark `suite` or `challenge`) that the verifier may correct, with `family`, `method` or `suite` when none is valid. Datasets and sources do not, because the attribute registry does not declare it for them. Each review object carries `reviewed_at` and no `date`, `reviewer` `claude-sonnet` (or `claude` if a refusal fallback answered) and a `reviewer_note` naming the run. Sources carry no licence string, because a new one would need a reviewed row in `data/archive/licence-map.tsv`. The agent adds no links between records.
 
+### Entity-update issues
+
+The monthly entity sweep (below) files `entity-update` issues, and that label starts the intake too. Each issue carries a hidden `entity-update` marker with JSON that says what to do:
+
+- `"action": "add"`: new checkpoints next to an existing record. The issue reads like an entity request (names and primary source URLs), so it takes the same path as one. Its pull request closes the issue, as for tier 3, because the sweep asks for entities only.
+- `"action": "update"`: change fields of an existing record (`record_id`, `fields`, `evidence`). Only the fields the attribute registry declares for that kind may change: model `version`, `checkpoint_revision`, `licence` and `access`; method the same without `licence`; benchmark `version`. The script fetches and hashes each evidence page (reusing a stored source with the same URL), and Sonnet 5.5 marks each proposed value supported, corrected or unsupported, as in step 5. Only supported and corrected values are written. The record keeps its ID, status and review object; its `source_locator` gains a sentence naming the issue and where each value is stated, and new evidence sources are added to its `source_ids`. The batch folder `data/omics/update-<n>-<date>/` holds `changed.jsonl` (the record as changed), `batch.jsonl` (new sources), `notes.md` and `review.json`. The checks are `intake-check.ts` on both files, `records -- add` for the new sources, the edit in place, `records -- change <review.json> <batch-dir> <id>` and `records -- check`. The pull request closes the issue.
+
 To run it again on the same issue, remove and re-add the label, or run the workflow by hand. A rerun pushes the branch only when there is no open or merged pull request for it. It deletes a branch left by an earlier run before pushing, so the push never carries main's later changes to workflow files, which GitHub can refuse from a token without the workflows permission. A failed store check or a refused push is commented on the issue and fails the run, so the pipeline alert sees it.
 
 ### Modes
@@ -226,7 +233,7 @@ Every fact is read from GitHub, the release assets and `deployment.json` on the 
 
 - **Waiting on Tim:** open issues labelled `needs-tim`, open pull requests requesting his review, and open agent pull requests with the reviewer's latest verdict. When GitHub recorded a review state that contradicts the verdict in its body (an "approve" body recorded as changes requested), it says so.
 - **What the agents did:** discovery issues filed here and article issues in other repositories (found by their `discovery-key` marker), intake pull requests (`intake/` branches) opened, merged and closed, and reviewer verdicts with failed and unverifiable field counts (parsed from the reviewer's headline).
-- **Runs and spend:** runs per agent, links to failed runs, and spend summed from each run's `usage.json` artifact. A run counts when its agent job ran: it left an artifact or failed. Pull request dry runs of discovery and intake do not count. A run without a readable `usage.json` is shown as not recorded. It reads at most 100 artifacts, newest first, after dropping those of pull request dry runs; a counted run left out by that cap is shown as not read, not as missing.
+- **Runs and spend:** runs per agent (discovery, intake, reviewer and the monthly entity sweep), links to failed runs, and spend summed from each run's `usage.json` artifact. A run counts when its agent job ran: it left an artifact or failed. Pull request dry runs of discovery and intake do not count. A run without a readable `usage.json` is shown as not recorded. It reads at most 100 artifacts, newest first, after dropping those of pull request dry runs; a counted run left out by that cap is shown as not read, not as missing.
 - **Releases:** `serving/` releases cut in the window, which one the site serves, and whether the newest is live.
 - **Agent records still provisional:** records from `data/omics/intake-*` batches on main whose status in `data/entities` is still `discovered` or `needs_review`.
 - **Discrepancies:** the newest `kg/` release's `discrepancies.json` compared with the newest one published before the window: new (public ones linked to `/contested/`), resolved, and stopped firing; the number open, meaning not settled, as on the site and over MCP; findings settled since the baseline that still fire; then the open `Lead:` issues.
@@ -251,3 +258,54 @@ Locally: `GH_TOKEN=$(gh auth token) node scripts/agents/digest.mjs --report-only
 It posts as the rewire-bot app (`REWIRE_BOT_APP_ID`, `REWIRE_BOT_PRIVATE_KEY`), which needs issues write here. The token is made for every repository the app is installed on but limited to issues write and contents, pull requests and metadata read, so it cannot push; the digest reads the other repositories in `DIGEST_REPOS` (a repository variable, comma separated; default `rewire.it` and `rewire-database` under the same owner) and lists any it cannot read under "Not covered". Without the app it posts with the workflow's own token and reads only this repository. Workflow runs and artifacts are read with the workflow's own token (`actions: read`). The repository comes from `GITHUB_REPOSITORY`, so it moves with the workflow file.
 
 With `ANTHROPIC_API_KEY` set, Haiku 5.5 writes a three-sentence summary at the top from the computed counts only (prompt [agents/digest.md](../agents/digest.md)). The call is skipped if its worst-case cost would pass $0.25; a typical one costs well under $0.01. Without the key, if the call fails, would pass the cap, or stops before it finishes, the digest has no summary and says why under "Not covered". A list cut short by its page limit is noted there too, and a body over GitHub's size limit is cut before the hidden marker so the next run still finds the issue.
+
+## Monthly entity sweep
+
+`.github/workflows/sweep.yml` runs `scripts/agents/sweep.mjs` at 05:00 UTC on the 1st of each month (#257). It checks whether the entities in the store have changed at their own sources and files one `entity-update` issue per entity with a confirmed change, which the intake agent turns into a pull request. The prompt is [agents/sweep.md](../agents/sweep.md).
+
+Which entities: models, methods, benchmarks and use cases by `attributes.depth_tier` ([tiers.md](tiers.md)). Tier 1 every month; tier 2 in January, April, July and October; tier 3 never. Datasets carry no depth tier and are not swept. A manual run can choose `tier` (1, 2 or 1,2), `limit` or `ids`.
+
+What it checks, deterministic first:
+
+1. **Repositories.** The GitHub and Hugging Face repositories in each entity's sources and in its own `version`, `licence` and `access` text. A repository that the record's own fields name is the entity's own. So is one whose name matches the entity's, unless records of more than one name claim it (an umbrella such as `facebookresearch/esm` for ESM-1v, ESM-2 and ESMFold, or `songlab-cal/tape` for TAPE and TAPE LSTM); then only a record named exactly as the repository keeps it. Any other (a shared leaderboard repository cited by twenty models, for example) goes to one Haiku 5.5 call, with thinking off, that decides from names and repository descriptions whether it is the entity's own; only own repositories are checked further. Each repository is read once from the APIs:
+   - GitHub: archived, moved (the API's `full_name` differs), licence, releases (not drafts or prereleases);
+   - Hugging Face: moved, licence, and newer repositories by the same author whose name starts with the checkpoint's base name (`gLM2_650M` gives `gLM2`). The author is taken from the canonical ID the API returns, because the API's author filter is case-sensitive.
+
+   A read that fails (a 403 or 429 rate limit, a timeout) is not treated as an empty answer: the job summary counts and lists every repository, release list or checkpoint list that was not read.
+2. **Candidates.** A release published after the stored sources were retrieved whose tag the record does not mention, when the record tracks a version (it has one, or its version is missing for a reason other than `inapplicable`). A record with no version gets a separately labelled `version_gap` candidate ("version not recorded, release since the stored sources"), still only for releases after the stored sources. A model `family` record with no version gets none: a code release is not the version of a model family. A licence that the record's licence text does not name. An archived or moved repository, for kinds with an `access` field. A new Hugging Face checkpoint created after the stored sources and not named anywhere in the store.
+3. **Benchmark pages.** A benchmark's project page (not a paper host) is fetched and its SHA-256 compared with the stored `artifact_sha256`. Each page is fetched once, whatever the number of records citing it. A changed page goes to Haiku, which says whether it names a newer version than the record's. Up to 25 changed pages a run; the summary says how many were over the cap or could not be fetched, and how many cited pages were skipped because their address does not name the benchmark.
+4. **Confirmation.** Sonnet 5.5 (low effort, refusal fallback on) gets each entity's record and its candidates with the facts the APIs returned, and says for each whether it is real and what the field should now say. Only confirmed changes are filed, and only when Sonnet's text carries what the APIs observed: the release tag, the new location or the licence, or the word archived. A new checkpoint is filed under its observed ID, never under a name the model wrote.
+5. **Dead links.** Every source URL of the swept entities, once: HEAD, then GET if HEAD fails. Dead means 404 or 410 on both, or a host that does not resolve. Anything else (401, 403, 429, 5xx, timeouts, bot walls) is blocked and only listed in the job summary; most of these are paper hosts rate-limiting a bulk check.
+
+What it files, in live mode, as the rewire-bot app:
+
+- One issue per entity and action, labelled `entity-update` and the entity's `tier-N`: "Update <name>: ..." for field changes, "Add new checkpoint ..." for new checkpoints. The body has a table of stored and proposed values with the evidence, and the hidden marker the intake agent reads (see "Entity-update issues" under the intake agent).
+- At most 15 a run, tier 1 first. Any more go into one summary issue labelled `entity-sweep`; the next month's run files them if they still hold.
+- One issue for the run's new dead links, labelled `entity-sweep` (not `entity-update`, so the intake does not pick it up), which also lists archived or moved repositories of benchmarks and use cases, which have no `access` field.
+
+Dedupe: each change has a hidden `entity-update-key` marker (record, change type and value). A change whose key is in any issue, open or closed, is not filed again, so a rejected change is not proposed every month. A new checkpoint is keyed by its Hugging Face ID alone, so when a family record and its checkpoint records all find it, one add issue is filed, by the first record in tier and kind order, naming the others. Dead links and repository changes on benchmarks and use cases are listed once: not again while any sweep issue, open or closed, lists them.
+
+Entities only: it never proposes results, scores or leaderboard values, only metadata (versions, checkpoints, licences, access) and new checkpoint records. #257 also asks for new leaderboard values and retracted or revised preprints; the first waits for the store rebuild, and the second is not covered yet. It does not run the `database-refresh` cycle (`docs/refresh.md`), whose schedule in `maintenance/schedule.json` stays `planned`; it only works the metadata part of that cycle.
+
+### Modes
+
+| Mode | Model calls | GitHub writes | When |
+| --- | --- | --- | --- |
+| `dry-run` | No | No | Pull requests that touch the sweep, and by hand. It reads `tests/agents-sweep-fixtures/`: a small store, the HTTP and API answers, the model answers and the existing issues. |
+| `report-only` | Yes | No | The monthly schedule while `SWEEP_MODE` is unset, and by hand (the default for manual runs). The planned issues are in the job summary and the `sweep-<run>` artifact (`plan.json`, `issues/*.md`, `usage.json`). |
+| `live` | Yes | The issues | The schedule once the repository variable `SWEEP_MODE` is `live` (`gh variable set SWEEP_MODE --body live`), and by hand. |
+
+Without `ANTHROPIC_API_KEY` the deterministic checks still run and the summary lists every candidate as not confirmed; nothing is filed. Locally: `READ_TOKEN=$(gh auth token) node scripts/agents/sweep.mjs --report-only --tier 1 --out /tmp/sweep` (a full tier 1 pass of about 590 entities took under two minutes).
+
+### Setup and cost
+
+The app token is limited to issues write on this repository. Issues filed with it start the intake agent; if the token cannot be made, the issues are filed with the workflow's own token, which starts no workflow, and the summary says to re-add the label by hand. GitHub API reads use the workflow's own token for its rate limit. The repository comes from `GITHUB_REPOSITORY` and must belong to rewire-bio. It never starts a GPU run or anything billable other than the Anthropic API.
+
+No model call is made whose worst case (prompt length and `max_tokens`) would take the run past $2. Expected cost per run: one Haiku ownership call and a few page calls at well under $0.01 each, and one Sonnet call per entity with candidates at about $0.01 to $0.02, so under $0.50 for a month with twenty candidates. `usage.json` in the artifact has the real figure, and the weekly digest adds it to the spend table.
+
+### Known gaps
+
+- Repository ownership by name match misses an entity whose repository has an unrelated name and is not named in its fields; Haiku sees only repositories its sources cite.
+- Releases without a GitHub release (tags only) are not seen, because tags carry no date.
+- A dead source is reported, not replaced: finding where it moved is a person's job.
+

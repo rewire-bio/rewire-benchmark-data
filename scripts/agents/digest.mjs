@@ -24,7 +24,7 @@ import { tmpdir } from 'node:os';
 import { createInterface } from 'node:readline';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { PRICES, Usage, clean } from './discovery.mjs';
+import { DEFAULT_REPO, PRICES, Usage, clean } from './discovery.mjs';
 import { ASSIGNEE, LABEL as PIPELINE_LABEL, staleness } from '../ops/pipeline-alert.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -34,7 +34,7 @@ export const FIXTURES = 'tests/agents-digest-fixtures';
 export const LABEL = 'digest';
 export const NEEDS_TIM = 'needs-tim';
 export const SITE = 'https://benchmarks.rewirebio.io';
-export const AGENTS = { discovery: 'discovery.yml', intake: 'intake.yml', reviewer: 'reviewer.yml' };
+export const AGENTS = { discovery: 'discovery.yml', intake: 'intake.yml', reviewer: 'reviewer.yml', sweep: 'sweep.yml' };
 export const MODELS = { summary: 'claude-haiku-5-5' };
 export const LIMITS = { costUsd: 0.25, summaryMaxTokens: 400, artifacts: 100, maxListed: 15, maxDays: 31, bodyChars: 65000 };
 const FAIL = new Set(['failure', 'timed_out', 'startup_failure']);
@@ -584,7 +584,7 @@ export async function collect(src, { repo, otherRepos, site, server = 'https://g
     runsByAgent[agent] = runs;
   }
   // Pull request dry runs leave artifacts too; drop them before the cap so they cannot use it up.
-  const artifacts = (await src.artifacts(w.since)).filter((a) => /^(discovery|intake|reviewer)-\d+$/.test(a.name) && inWindow(a.created_at, w));
+  const artifacts = (await src.artifacts(w.since)).filter((a) => new RegExp(`^(${Object.keys(AGENTS).join('|')})-\\d+$`).test(a.name) && inWindow(a.created_at, w));
   const toRead = artifactsToRead(artifacts, countedRunIds(runsByAgent, w));
   const usage = {};
   for (const a of toRead.read) usage[a.workflow_run.id] = await src.usage(a);
@@ -703,7 +703,7 @@ function parseArgs(argv) {
 export async function main(argv = process.argv.slice(2), env = process.env, deps = {}) {
   const args = parseArgs(argv);
   const mode = args.dryRun ? 'dry run' : args.reportOnly ? 'report only' : 'live';
-  const repo = env.GITHUB_REPOSITORY || 'rewire-bio/rewire-benchmark-data';
+  const repo = env.GITHUB_REPOSITORY || DEFAULT_REPO;
   const owner = repo.split('/')[0];
   const otherRepos = (env.DIGEST_REPOS || `${owner}/rewire.it,${owner}/rewire-database`).split(',').map((s) => s.trim()).filter((s) => s && s !== repo);
   const site = (env.DIGEST_SITE || SITE).replace(/\/$/, '');

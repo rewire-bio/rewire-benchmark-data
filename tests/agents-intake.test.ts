@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   KIND_FIELDS, SOURCE_FIELDS, buildBatch, doiOf, fetchSource, pageText, sourceBlocks, fetchableUrl, htmlTitle, isChallengePage, main, publicationStatusOf, renderSkipComment,
   proposalSchema, screenEntities, urlsInText, verifiedValue, versionOf, withSourceUrls, exitCodeFor,
+  UPDATE_FIELDS, buildUpdate, parseUpdateMarker, replaceRecordLine,
 } from "../scripts/agents/intake.mjs";
 import { Usage } from "../scripts/agents/discovery.mjs";
 import { intakeProblems } from "../scripts/agents/intake-check";
@@ -464,5 +465,137 @@ describe("live run with fakes", () => {
   it("passes without a key and does nothing", async () => {
     const result = await main(["--issue", "1"], {}, { now, log: quiet });
     expect(result.outcome).toBe("no key");
+  });
+});
+
+// Entity-update issues from the monthly entity sweep (#257). The fixture is the real SpliceAI
+// record, whose GitHub repository its owner archived, and the issue the sweep files for it.
+describe("entity-update issues", () => {
+  const UPDATE = `${FIXTURES}/update`;
+  const fixture = (name: string) => JSON.parse(readFileSync(`${UPDATE}/${name}`, "utf8"));
+  const record = JSON.parse(readFileSync(`${UPDATE}/entities/models.jsonl`, "utf8").split("\n")[0]);
+  const evidence = "https://github.com/Illumina/SpliceAI";
+
+  it("reads the sweep's marker and only the fields the registry declares per kind", () => {
+    expect(parseUpdateMarker(fixture("issue.json").body)).toMatchObject({ record_id: "discovery-model-spliceai", action: "update", evidence: [evidence] });
+    expect(parseUpdateMarker("no marker")).toBeNull();
+    expect(parseUpdateMarker("<!-- entity-update: [1] -->")).toBeNull();
+    for (const [kind, fields] of Object.entries(UPDATE_FIELDS)) {
+      const names = declared(kind);
+      for (const f of fields) expect(names, `${kind}.${f}`).toContain(f);
+    }
+  });
+
+  it("writes only verified values, appends the evidence source and says what changed", () => {
+    const sources = new Map([[evidence, { id: "update-1-source-x", record: { id: "update-1-source-x", kind: "source", attributes: { url: evidence } } }], ["https://x.org/a", { error: "HTTP 403" }]]);
+    const verification = { fields: [
+      { field: "access", verdict: "corrected", value: "Archived on GitHub.", locator: `${evidence}: banner` },
+      { field: "version", verdict: "unsupported", value: "", locator: "" },
+    ] };
+    const built = buildUpdate({ record, fields: { access: "archived", version: "v9", training_data: "x" }, verification, sources, issue: 1, runDate: "2026-12-01" });
+    expect(built.kept).toEqual(["access"]);
+    expect(built.record.attributes.access).toBe("Archived on GitHub.");
+    expect(built.record.attributes.version).toBeUndefined();
+    expect(built.record.id).toBe(record.id);
+    expect(built.record.status).toBe(record.status);
+    expect(built.record.source_ids).toEqual([...record.source_ids, "update-1-source-x"]);
+    expect(built.record.attributes.source_locator).toContain("Updated from issue #1");
+    expect(buildUpdate({ record, fields: { access: "x" }, verification, sources, issue: 7, runDate: "2026-12-01", repo: "rewire-bio/next-store" }).record.attributes.source_locator).toContain("issue rewire-bio/next-store#7");
+    expect(built.records.map((r: { id: string }) => r.id)).toEqual(["update-1-source-x"]);
+    expect(built.records[0].facets.areas).toEqual(record.facets.areas);
+    expect(built.dropped.map((d: { reason: string }) => d.reason)).toEqual([
+      "the verification pass did not confirm the proposed value",
+      "the intake agent does not update training_data on a model",
+    ]);
+    // Nothing verified: no record.
+    expect(buildUpdate({ record, fields: { access: "x" }, verification: { fields: [] }, sources, issue: 1, runDate: "2026-12-01" }).record).toBeNull();
+  });
+
+  it("drops a missing_metadata entry for a field it fills", () => {
+    const withMissing = { ...record, attributes: { ...record.attributes, missing_metadata: { version: { reason: "unextracted" } } } };
+    const built = buildUpdate({ record: withMissing, fields: { version: "v2" }, verification: { fields: [{ field: "version", verdict: "supported", value: "", locator: "README" }] }, sources: new Map(), issue: 1, runDate: "2026-12-01" });
+    expect(built.record.attributes.version).toBe("v2");
+    expect(built.record.attributes.missing_metadata).toBeUndefined();
+  });
+
+  it("replaces one line of a store file and nothing else", () => {
+    const text = `{"id":"a","x":1}\n${JSON.stringify(record)}\n{"id":"z"}\n`;
+    const out = replaceRecordLine(text, { ...record, name: "SpliceAI changed" });
+    expect(out.split("\n")[0]).toBe('{"id":"a","x":1}');
+    expect(JSON.parse(out.split("\n")[1]).name).toBe("SpliceAI changed");
+    expect(out.endsWith('{"id":"z"}\n')).toBe(true);
+    expect(() => replaceRecordLine(text, { id: "missing" })).toThrow("not in the store file");
+  });
+
+  it("dry run: writes the changed record and the receipt, and would open a pull request that closes the issue", async () => {
+    const root = tempRoot();
+    const result = await main(["--dry-run", "--fixtures", UPDATE, "--store-dir", `${UPDATE}/entities`, "--root", root, "--no-store-checks"], {}, { now, log: quiet });
+    expect(result.outcome).toBe("ready: pull request not opened in this mode");
+    expect(result.pull.title).toBe("Update SpliceAI: access from #9998");
+    expect(result.pull.body).toContain("Closes #9998");
+    expect(result.pull.body).not.toMatch(/[\u2013\u2014]/);
+    const dir = join(root, "data/omics/update-9998-20261119");
+    const changed = JSON.parse(readFileSync(join(dir, "changed.jsonl"), "utf8"));
+    expect(changed.attributes.access).toContain("archived (read-only)");
+    expect(JSON.parse(readFileSync(join(dir, "review.json"), "utf8")).scope).toContain("Fields access of discovery-model-spliceai");
+    // The evidence URL is new to the fixture store, so it becomes a source record.
+    expect(readFileSync(join(dir, "batch.jsonl"), "utf8")).toContain(evidence);
+  });
+
+  it("live with fakes: Sonnet verifies, the checks and records -- change run, then it pushes and opens the pull request", async () => {
+    const calls: string[] = [];
+    const commands: string[] = [];
+    const created: Record<string, unknown>[] = [];
+    const anthropic = {
+      beta: { messages: { stream: (req: { model: string }) => ({ finalMessage: async () => {
+        calls.push(`research ${req.model}`);
+        return { model: req.model, stop_reason: "end_turn", content: [{ type: "text", text: "notes" }], usage: { input_tokens: 1000, output_tokens: 100 } };
+      } }) } },
+      messages: { create: async (req: { model: string }) => {
+        calls.push(`structure ${req.model}`);
+        return { stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify(fixture("verification.json")) }], usage: { input_tokens: 500, output_tokens: 200 } };
+      } },
+    };
+    const github = {
+      getIssue: async () => fixture("issue.json"),
+      pullsFor: async () => [],
+      createPull: async (_repo: string, pull: Record<string, unknown>) => {
+        created.push(pull);
+        return { html_url: "https://github.com/rewire-bio/rewire-benchmark-data/pull/2" };
+      },
+      comment: async () => {},
+    };
+    const fetchImpl = async () => new Response("This repository was archived by the owner.", { status: 200, headers: { "content-type": "text/html" } });
+    const run = (cmd: string, args: string[]) => {
+      commands.push([cmd, ...args].join(" "));
+      // No branch left by an earlier run.
+      if (args[0] === "ls-remote") return { ok: false, output: "" };
+      return { ok: true, output: "ok" };
+    };
+    const root = tempRoot();
+    const env = { ANTHROPIC_API_KEY: "test", GITHUB_REPOSITORY: "rewire-bio/rewire-benchmark-data" };
+    const result = await main(["--issue", "9998", "--store-dir", `${UPDATE}/entities`, "--root", root], env, { anthropic, github, fetch: fetchImpl, run, now, log: quiet });
+    expect(calls).toEqual(["research claude-sonnet-5-5", "structure claude-haiku-5-5"]);
+    expect(commands.map((c) => (c.startsWith("git commit") ? c.split(" ").slice(0, 5).join(" ") : c))).toEqual([
+      "npx tsx scripts/agents/intake-check.ts data/omics/update-9998-20261119/changed.jsonl data/omics/update-9998-20261119/batch.jsonl",
+      "npm run -s records -- add data/omics/update-9998-20261119/batch.jsonl data/omics/update-9998-20261119",
+      "npm run -s records -- change data/omics/update-9998-20261119/review.json data/omics/update-9998-20261119 discovery-model-spliceai",
+      "npm run -s records -- check",
+      "git ls-remote --exit-code --heads origin refs/heads/intake/issue-9998",
+      "git checkout -B intake/issue-9998",
+      "git add -- data/omics/update-9998-20261119 data/entities data/provenance",
+      expect.stringMatching(/^git commit -m Update SpliceAI/),
+      "git push --force origin HEAD:refs/heads/intake/issue-9998",
+    ]);
+    // The store file under the root holds the changed record.
+    expect(readFileSync(join(root, "data/entities/models.jsonl"), "utf8")).toContain("archived (read-only)");
+    expect(String(created[0].body)).toContain("Closes #9998");
+    expect(result.outcome).toBe("opened");
+  });
+
+  it("asks to re-add the entity-update label when it skips an update issue", () => {
+    const text = renderSkipComment({ kind: "record", detail: "No model", usage: new Usage(), label: "entity-update" });
+    expect(text).toContain("the record to update is not in the store");
+    expect(text).toContain("remove and re-add the `entity-update` label");
   });
 });

@@ -25,7 +25,7 @@ import { createReadStream, existsSync, mkdirSync, readFileSync, appendFileSync, 
 import { createInterface } from 'node:readline';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { AREAS, Usage, clean, normalise, tierOf } from './discovery.mjs';
+import { AREAS, DEFAULT_REPO, Usage, clean, normalise, tierOf } from './discovery.mjs';
 import { ENTITY_LEVELS, fetchSource, sourceBlocks } from './intake.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -53,7 +53,9 @@ const ENTITY_KINDS = ['model', 'method', 'benchmark', 'dataset'];
 const TIER_KINDS = ['model', 'method', 'benchmark'];
 /** Fields the model judges, per record, when the record has them. source_ids and name always. */
 export const REVIEWED_FIELDS = ['name', 'description', 'areas', 'entity_level', 'version', 'access', 'licence', 'training_data', 'task', 'scope_note', 'species', 'repository', 'limitations', 'source_ids'];
-const BATCH_FILE = /^data\/omics\/[^/]+\/batch\.jsonl$/;
+// An intake update pull request (entity-update issues, #257) puts the changed record in
+// changed.jsonl and only new sources in batch.jsonl, so both are reviewed.
+const BATCH_FILE = /^data\/omics\/[^/]+\/(batch|changed)\.jsonl$/;
 
 const unique = (list) => [...new Set(list)];
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
@@ -430,7 +432,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   const args = parseArgs(argv);
   const clock = deps.now ?? (() => new Date());
   const runDate = clock().toISOString().slice(0, 10);
-  const repo = env.GITHUB_REPOSITORY || 'rewire-bio/rewire-benchmark-data';
+  const repo = env.GITHUB_REPOSITORY || DEFAULT_REPO;
   const runUrl = env.GITHUB_RUN_ID ? `${env.GITHUB_SERVER_URL || 'https://github.com'}/${repo}/actions/runs/${env.GITHUB_RUN_ID}` : '';
   const usage = new Usage();
   const notes = [];

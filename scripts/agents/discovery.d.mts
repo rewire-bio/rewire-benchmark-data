@@ -1,3 +1,4 @@
+export const DEFAULT_REPO: string;
 export const ARTICLE_REPO: string;
 export const PROMPT_PATH: string;
 export const FIXTURES: string;

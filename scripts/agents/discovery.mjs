@@ -26,6 +26,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
+/** The record store's repository when GITHUB_REPOSITORY is unset (local runs). Workflows always set it. One constant for every agent, so the store rebuild changes it in one place. */
+export const DEFAULT_REPO = 'rewire-bio/rewire-benchmark-data';
 export const ARTICLE_REPO = 'rewire-bio/rewire.it';
 export const PROMPT_PATH = 'agents/discovery.md';
 export const FIXTURES = 'tests/agents-discovery-fixtures';
@@ -85,6 +87,9 @@ export const LABELS = {
   // Filed by the disagreement watcher (watcher.mjs).
   lead: { color: 'd93f0b', description: 'A discrepancy between studies to investigate' },
   'needs-tim': { color: 'b60205', description: 'Needs a decision or action from Tim' },
+  // Filed by the monthly entity sweep (sweep.mjs). entity-update starts the intake agent.
+  'entity-update': { color: '1d76db', description: 'A change to an existing record for the intake agent' },
+  'entity-sweep': { color: 'c2e0c6', description: 'Dead links and other findings of the monthly entity sweep' },
 };
 
 const TIER_SCOPE = {
@@ -760,7 +765,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   const args = parseArgs(argv);
   const mode = args.dryRun ? 'dry run' : args.reportOnly ? 'report only' : 'live';
   const runDate = (deps.now ?? new Date()).toISOString().slice(0, 10);
-  const repo = env.GITHUB_REPOSITORY || 'rewire-bio/rewire-benchmark-data';
+  const repo = env.GITHUB_REPOSITORY || DEFAULT_REPO;
   const usage = new Usage();
   const notes = [];
   const log = deps.log ?? ((m) => console.log(m));
