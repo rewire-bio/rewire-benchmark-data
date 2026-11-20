@@ -6,12 +6,17 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { recordSchema } from "../scripts/omics/schema";
 import {
+  batchLines,
+  candidateText,
   dupeRulings,
   draftThroughKg,
   kgCandidates,
+  kgStatusLines,
   kgTools,
   main,
+  RECORD_FIELDS,
   nameOverlap,
   needsRuling,
   pruneRecords,
@@ -39,7 +44,7 @@ const sortDeep = (v: unknown): unknown =>
   Array.isArray(v) ? v.map(sortDeep) : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sortDeep((v as Record<string, unknown>)[k])])) : v;
 
 /** A fake rdf-kg-mcp: possible duplicates by shared words, an overlay, and an export like the server's. */
-function fakeKg({ problems = {} as Record<string, string[]> } = {}) {
+function fakeKg({ problems = {} as Record<string, string[]>, fails = (() => false) as (name: string, args: any) => boolean } = {}) {
   const drafts = new Map<string, any>();
   const calls: string[] = [];
   const words = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(" ");
@@ -51,6 +56,8 @@ function fakeKg({ problems = {} as Record<string, string[]> } = {}) {
   const client = {
     async callTool({ name, arguments: args }: { name: string; arguments: any }) {
       calls.push(name);
+      // A failure after startup: the server stopped answering or crashed mid-run.
+      if (fails(name, args)) throw new Error(`MCP error -32001: ${name} timed out`);
       let out: any;
       if (name === "draft_upsert") {
         const r = args.record;
@@ -294,5 +301,142 @@ describe("the reviewer's link and duplicate checks", () => {
     const { kg } = fakeKg();
     const found = await possibleDuplicates([model], { kg });
     expect(found.get("b-model-x-1b")!.map((d) => d.id)).toEqual(["catalog-model-evo-2", "discovery-model-evo-2"]);
+  });
+});
+
+describe("knowledge-graph failures after startup", () => {
+  const entities = [{ key: "e1", kind: "model", name: "Evo2", aliases: [] }];
+
+  it("tells the verifier the duplicate search failed, not that it found none", async () => {
+    const failures: any[] = [];
+    const { kg } = fakeKg({ fails: (name) => name === "draft_upsert" || name === "search" });
+    const c = await kgCandidates(kg, entities, { failures });
+    expect(c.get("e1")!.duplicates).toEqual([]);
+    expect(c.get("e1")!.duplicateSearchError).toMatch(/timed out/);
+    expect(failures.map((f) => f.step)).toEqual(["duplicate_search", "link_search"]);
+    const text = candidateText(entities, c);
+    expect(text).not.toContain("none found");
+    expect(text).toContain("The duplicate search failed for this entity");
+    expect(text).toContain("The link-target search failed for this entity");
+    // A search that worked still says none found.
+    const ok = await kgCandidates(fakeKg().kg, [{ key: "e1", kind: "model", name: "Helixgram", aliases: [] }]);
+    expect(candidateText([{ key: "e1", kind: "model", name: "Helixgram" }], ok)).toContain("none found");
+  });
+
+  it("returns an error, not a throw, when draft_export fails", async () => {
+    const { kg } = fakeKg({ fails: (name) => name === "draft_export" });
+    const rec = { id: "m1", kind: "model", name: "Helixgram", description: "d", status: "discovered", facets: {}, source_ids: [], links: [], attributes: {} };
+    expect((await draftThroughKg(kg, [rec])).error).toMatch(/^draft_export failed: .*timed out/);
+  });
+
+  it("says in the pull request which steps fell back", () => {
+    const lines = kgStatusLines({ used: true, release: "kg/x", failures: [
+      { step: "duplicate_search", entity: "Evo2", query: "Evo2", error: "timed out" },
+      { step: "draft_overlay", error: "draft_export failed: timed out" },
+    ] }).join("\n");
+    expect(lines).toContain("these steps failed during the run and fell back");
+    expect(lines).toContain("Duplicate search for Evo2 failed (timed out)");
+    expect(lines).toContain("The script wrote batch.jsonl itself");
+    expect(lines).toContain("a human must check the store for duplicates");
+    expect(lines).not.toContain("was written through its draft overlay");
+    expect(lines).not.toMatch(/[\u2013\u2014]/);
+  });
+
+  it("records a failed duplicate search in kg.json and the pull request body", async () => {
+    const root = tempRoot();
+    const { kg } = fakeKg({ fails: (name, args) => name === "draft_upsert" && String(args.record.id).startsWith("intake-probe-") });
+    const result = await main(["--dry-run", "--fixtures", FIXTURES, "--root", root, "--no-store-checks"], {}, { now, log: quiet, kg });
+    expect(result.outcome).toBe("ready: pull request not opened in this mode");
+    const receipt = JSON.parse(fs.readFileSync(path.join(root, result.batchDir, "kg.json"), "utf8"));
+    expect(receipt.failures.length).toBeGreaterThan(0);
+    expect(new Set(receipt.failures.map((f: any) => f.step))).toEqual(new Set(["duplicate_search"]));
+    expect(result.pull.body).toContain("these steps failed during the run and fell back");
+    expect(result.pull.body).toContain("The reviewer agent does not approve this pull request.");
+    expect(result.pull.body).not.toContain("was searched for possible duplicates and link targets");
+    const review = JSON.parse(fs.readFileSync(path.join(root, result.batchDir, "review.json"), "utf8"));
+    expect(review.limitations.join(" ")).toContain("duplicate search failed");
+  });
+
+  it("says the script wrote the batch when the overlay export fails", async () => {
+    const root = tempRoot();
+    const { kg } = fakeKg({ fails: (name) => name === "draft_export" });
+    const result = await main(["--dry-run", "--fixtures", FIXTURES, "--root", root, "--no-store-checks"], {}, { now, log: quiet, kg });
+    expect(result.outcome).toBe("ready: pull request not opened in this mode");
+    const receipt = JSON.parse(fs.readFileSync(path.join(root, result.batchDir, "kg.json"), "utf8"));
+    expect(receipt.failures.map((f: any) => f.step)).toEqual(["draft_overlay"]);
+    expect(receipt.summary).toBeNull();
+    expect(result.pull.body).toContain("Writing the batch through the draft overlay failed (draft_export failed");
+    expect(result.pull.body).toContain("The reviewer agent does not approve this pull request.");
+  });
+
+  const readBatch = (root: string, result: any) => fs.readFileSync(path.join(root, result.batchDir, "batch.jsonl"), "utf8");
+
+  it("records a failed probe removal and keeps probes out of the batch", async () => {
+    const root = tempRoot();
+    const { kg } = fakeKg({ fails: (name, args) => name === "draft_remove" && String(args.id).startsWith("intake-probe-") });
+    const result = await main(["--dry-run", "--fixtures", FIXTURES, "--root", root, "--no-store-checks"], {}, { now, log: quiet, kg });
+    expect(result.outcome).toBe("ready: pull request not opened in this mode");
+    const receipt = JSON.parse(fs.readFileSync(path.join(root, result.batchDir, "kg.json"), "utf8"));
+    const steps = receipt.failures.map((f: any) => f.step);
+    expect(steps).toContain("probe_cleanup");
+    // The probes could not be removed, so the export would hold them: it is refused.
+    expect(steps).toContain("draft_overlay");
+    expect(receipt.failures.find((f: any) => f.step === "draft_overlay").error).toContain("records outside it: intake-probe-");
+    expect(readBatch(root, result)).not.toContain("intake-probe-");
+    expect(result.pull.body).not.toContain("was written through its draft overlay");
+  });
+
+  it("keeps what the overlay dropped out of the batch when the export then fails", async () => {
+    const root = tempRoot();
+    const bad = "intake-9998-20261120-model-evo-2-fixture-1b-base";
+    const { kg } = fakeKg({ problems: { [bad]: ["attributes: bad"] }, fails: (name) => name === "draft_export" });
+    const result = await main(["--dry-run", "--fixtures", FIXTURES, "--root", root, "--no-store-checks"], {}, { now, log: quiet, kg });
+    expect(result.outcome).toBe("ready: pull request not opened in this mode");
+    expect(result.dropped.map((d: any) => d.id)).toContain(bad);
+    expect(readBatch(root, result)).not.toContain(`"id":"${bad}"`);
+    const receipt = JSON.parse(fs.readFileSync(path.join(root, result.batchDir, "kg.json"), "utf8"));
+    expect(receipt.failures.find((f: any) => f.step === "draft_overlay").dropped).toContain(bad);
+    expect(result.pull.body).toContain(`It had already dropped \`${bad}\``);
+  });
+
+  it("reports a draft_upsert that times out as a failure, not a refusal, and keeps the record", async () => {
+    const root = tempRoot();
+    const { kg } = fakeKg({ fails: (name, args) => name === "draft_upsert" && !String(args.record.id).startsWith("intake-probe-") && args.record.kind !== "source" });
+    const result = await main(["--dry-run", "--fixtures", FIXTURES, "--root", root, "--no-store-checks"], {}, { now, log: quiet, kg });
+    expect(result.outcome).toBe("ready: pull request not opened in this mode");
+    expect(result.dropped.some((d: any) => /refused it/.test(d.reason))).toBe(false);
+    const receipt = JSON.parse(fs.readFileSync(path.join(root, result.batchDir, "kg.json"), "utf8"));
+    expect(receipt.failures.map((f: any) => f.step)).toEqual(["draft_overlay"]);
+    expect(receipt.failures[0].error).toMatch(/^draft_upsert failed for .*timed out/);
+    expect(result.pull.body).toContain("The reviewer agent does not approve this pull request.");
+  });
+
+  it("still drops a record the server refuses", async () => {
+    const { kg } = fakeKg();
+    const rec = (id: string, kind: string) => ({ id, kind, name: id, description: "d", status: "discovered", facets: {}, source_ids: [], links: [], attributes: {} });
+    const out = await draftThroughKg(kg, [rec("catalog-model-evo-2", "model"), rec("m1", "model")]);
+    expect(out.error).toBeUndefined();
+    expect(out.dropped.map((d) => d.id)).toEqual(["catalog-model-evo-2"]);
+    expect(out.dropped[0].reason).toContain("refused it");
+  });
+
+  it("writes the same bytes as the overlay export when it falls back", async () => {
+    expect(RECORD_FIELDS).toEqual(Object.keys(recordSchema.shape));
+    const records = [
+      { id: "m2", kind: "model", name: "Helixgram", description: "d", status: "discovered", facets: { contexts: ["research"], areas: ["dna-genomes"] }, source_ids: ["s1"], links: [{ relation: "derived_from", target_id: "m1" }], attributes: { z: 1, a: { y: 2, b: 3 } } },
+      { id: "m1", kind: "model", name: "Other", description: "d", status: "discovered", facets: {}, source_ids: ["s1"], links: [], attributes: { b: [{ d: 1, c: 2 }], a: "x" } },
+      { id: "s1", kind: "source", name: "Page", description: "d", status: "discovered", facets: {}, source_ids: [], links: [], attributes: { url: "https://x", artifact_sha256: "0" } },
+    ];
+    const { kg } = fakeKg();
+    const out = await draftThroughKg(kg, records);
+    expect(out.error).toBeUndefined();
+    expect(batchLines(records)).toBe(out.batchText);
+    const m2 = batchLines(records).split("\n")[1];
+    expect(m2).toContain('"facets":{"areas":["dna-genomes"],"contexts":["research"]}');
+    // Top-level fields in schema order and links sorted, as the server's normalise does.
+    const shuffled = { attributes: records[0].attributes, links: [{ relation: "used_by", target_id: "a" }, ...records[0].links], kind: "model", id: "m2", name: "Helixgram", description: "d", status: "discovered", facets: records[0].facets, source_ids: ["s1"] };
+    const line = batchLines([shuffled]);
+    expect(line.startsWith('{"id":"m2","kind":"model","name":"Helixgram"')).toBe(true);
+    expect(line).toContain('"links":[{"relation":"derived_from","target_id":"m1"},{"relation":"used_by","target_id":"a"}]');
   });
 });

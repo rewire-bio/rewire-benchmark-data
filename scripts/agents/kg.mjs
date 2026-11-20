@@ -17,10 +17,14 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 export const START_TIMEOUT_MS = 180000;
 export const CALL_TIMEOUT_MS = 60000;
 
-/** Parse an MCP tool result: the structured content, else the JSON text. Throws on a tool error. */
+/**
+ * Parse an MCP tool result: the structured content, else the JSON text. Throws on a tool error,
+ * with `refused` set: the server answered and refused the call. A timeout or a lost connection
+ * throws from callTool without it.
+ */
 export function toolResult(name, result) {
   const text = (result?.content ?? []).filter((c) => c.type === 'text').map((c) => c.text).join('\n');
-  if (result?.isError) throw new Error(`${name}: ${text.slice(0, 500) || 'tool error'}`);
+  if (result?.isError) throw Object.assign(new Error(`${name}: ${text.slice(0, 500) || 'tool error'}`), { refused: true });
   if (result?.structuredContent && typeof result.structuredContent === 'object') {
     // FastMCP wraps a non-object return as { result }.
     const s = result.structuredContent;
