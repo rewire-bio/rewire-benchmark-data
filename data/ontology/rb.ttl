@@ -406,3 +406,13 @@ rb:resultingState a owl:ObjectProperty ; rdfs:label "resulting state" ;
     rdfs:comment "The review state the action left the discrepancy in (vocab/discrepancy-state)." .
 rb:discrepancyKey a owl:DatatypeProperty ; rdfs:label "discrepancy key" ;
     rdfs:comment "The canonical key the discrepancy's ID hashes: rule, compared systems, anchor, metric and outlier study key." .
+
+# Release graph (scripts/kg/release_graph.py): what a release serves, copied from its use-case
+# file. These terms appear only in the release graph, which the reasoner never reads, and no
+# record property is a subproperty of them.
+rb:servedEvaluation a owl:ObjectProperty ; rdfs:label "served evaluation" ;
+    rdfs:comment "Relevance judgement to an evaluation the release serves as evidence for it. Only active judgements graded direct or proxy have any; a judgement without one is withheld, for example because a source it rests on carries an evidence concern." .
+rb:servedBaseline a owl:ObjectProperty ; rdfs:label "served baseline" ;
+    rdfs:comment "Use case to a method of its reviewed baseline, as the release serves it." .
+rb:runReceipt a owl:ObjectProperty ; rdfs:label "run receipt" ;
+    rdfs:comment "Record to the source of a run receipt on one of its run-recipe instructions that is executed and covers the full protocol. A result counts as reproduced only when it, or its evaluation, cites such a source." .

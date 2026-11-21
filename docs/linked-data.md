@@ -57,6 +57,54 @@ What the bundle holds:
 - `discrepancies.json` (schema version 2): the same findings as JSON, with `release_id`, `rules`, `excluded` (`disputed` and `concern` result counts) and a `discrepancies` list. The manifest's `derived` block has its checksum, counts by rule, severity and review state, the excluded counts and any retired reviews.
 - Named queries in the manifest's `queries`, for rdf-kg-mcp v0.2.0 and later: `open_discrepancies`, `discrepancies_for_system`, `discrepancy_history` and `contested_results_for_use_case`.
 
+## Release graph
+
+The asserted graph holds every public record, including relevance judgements the release does not show. Whether a judgement is shown is decided when the release is built (`shared/omics/use-cases.ts`): it is withheld when a source it rests on is unchecked or carries an evidence concern, when a reviewed evaluation is no longer eligible, or when pinned evidence changed since review. That decision is not a record field, so a query over the records alone cannot tell which evidence the website shows. In release 2026-11-21-4940d4f45aee, 38 of 462 judgements were withheld while their own record status was still reviewed. Working from the records alone, six of the website's 31 use-case boards came out differently: five counted withheld comparisons in coverage, and one use case was ranked where the website ranks nothing.
+
+`scripts/kg/release_graph.py` copies the decision from the release's `use-cases.json` into `release.nq`, so a query and the website read the same evidence:
+
+| Statement | Meaning |
+| --- | --- |
+| `<judgement> rb:servedEvaluation <evaluation>` | An active judgement graded direct or proxy, and each evaluation the release serves for it. A judgement with none is withheld |
+| `<use case> rb:servedBaseline <method>` | The use case's reviewed baseline methods, as served |
+| `<record> rb:runReceipt <source>` | The source of a run receipt on an executed, full-protocol run-recipe instruction of the record. A result is "reproduced" only when it or its evaluation cites one |
+
+Nothing in this graph is inferred, and no record's status, value or links change. The build fails if `use-cases.json` is missing for a release, is for another release, or names a judgement, evaluation, use case or method the asserted graph does not have. A bundle built before a release is cut (`release_id` `unreleased`) has run receipts only, so the ranking and gap queries return nothing useful on it.
+
+## Named queries for ranking, gaps, recipes and provenance
+
+`scripts/kg/product_queries.py` adds four named queries to the manifest. They answer the main product questions without hand-written SPARQL.
+
+| Query | Parameters | Returns |
+| --- | --- | --- |
+| `rank_for_use_case` | `use_case` (IRI) | The rows of the use case's board: configurations ranked on one comparison, one column and one metric, with the result and evaluation each value is read from, its tool, origin, whether the origin is an independent study, review status, run receipt, coverage and open discrepancies |
+| `gaps` | `use_case` (IRI, optional), `tier` (integer, optional), `level` (string, optional) | Use cases with no directly relevant served judgement, one study or no independent evaluation; and, per protocol a use case is assessed by, no served evidence, one study or no independent evaluation |
+| `recipe_for` | `subject` (IRI) | Records with run recipes (the record, what it contains and what contains it), the recipes as stored, and the run receipts on executed full-protocol instructions |
+| `provenance` | `result` (IRI) | The sources a result cites with the locator, URL, DOI, retrieval date and artifact hash; the review of the result and its evaluation; and claims about the result |
+
+`rank_for_use_case` follows the website's board rules (rewire-database `lib/use-case-comparisons.ts` and `lib/use-case-ranking.ts`):
+
+- A comparison is the served judgements of the use case that share a `comparison_group`, or one judgement without a group. Its ranked column is its first judgement by `stratum_order`, then ID.
+- The metric is the group's `headline_metric`, else the metric most of its reviewed results report.
+- A configuration's value is the first result on that metric in its last served evaluation in that column. A comparison of one judgement with no stratum label is also fixed to one metric qualifier, and skips evaluations without such a result.
+- One comparison is ranked: a directly relevant one before a proxy one, then the most configurations with a value, then one that scores a served baseline, then the comparison ID. It needs two configurations with a value and a stated direction. Ties share a rank. A value in percent is compared as a fraction.
+- `independent` is true only for the origin `independent_paper`. A Rewire run is not counted as independent, as on the website.
+- There is no composite score. A rank holds for one protocol and one metric.
+
+A use case's record ID is not always `use-case-` followed by its website slug (the slug `protein-variant-stability` belongs to `use-case-protein-stability`). Find the record by `rb:slug`. A wrong IRI returns no rows, the same as a use case the release does not rank.
+
+The query is a second implementation of the website's rules, and no automated check compares the two yet. All 31 boards of release 2026-11-21-4940d4f45aee matched when compared by hand. Where the two can differ, though no board does in that release:
+
+- Parent. A configuration with more than one `configuration_of`, `family` or `variant_of` link gets the parent whose IRI sorts last, because RDF keeps no link order and the website takes the first link in the record. One such configuration is on a board.
+- Baseline tie-break. The query counts a configuration as a baseline if any of its parent links is a served baseline; the website looks at the first link only.
+- Direction. If the ranked results of one column state both directions, the query takes "lower"; the website takes the first one it reads. None of the 213 ranked columns mixes directions.
+- Order. IDs and metric qualifiers are ordered by code point (qualifiers lower-cased), where the website uses locale order, on the display label for qualifiers.
+- Last evaluation and first result. The query orders evaluations and results by IRI; the website uses the order in `use-cases.json`. Every judgement lists its evaluations in sorted order.
+
+`recipe_for` returns what the store records today. It does not return a pointer to a recipe file in rewire-benchmarks or a verified status for one, because the store has no such field yet (ADR 0005 is proposed, not accepted). A recipe file there names its store recipe in `store_recipe_id` and its record in `kg_record_id`, so the join can be made from that side. A receipt is evidence for the stored instruction it is attached to, not for a recipe file written later.
+
+In `gaps`, a study is a DOI, or a source and the paper it is a `companion_of`. Most protocols come from one paper, so `single_source` at the protocol level is the common case; the use-case level is the more useful signal. Use-case rows come first, and `level` set to `use_case` returns only those (18 rows of 616 in release 2026-11-21-4940d4f45aee). A use case with no depth tier is left out when `tier` is set.
+
 ## Commands
 
 ```sh
@@ -65,12 +113,12 @@ npm run kg -- export    # write public/kg/asserted.nq and an export manifest
 npm run kg -- terms     # regenerate rb-attributes.ttl and attribute-shapes.ttl from the attribute registry
 npm run kg -- subset <ids-file> <dir>  # the given records, the records linking to them and their link targets
 npm run kg:shapes       # export, then SHACL on the asserted graph without inference (a few minutes)
-npm run kg:build        # inference, checks, SHACL and discrepancies (with derived SHACL); writes inferred.nq, derived.nq, discrepancies.json, ontology/ and the bundle manifest
+npm run kg:build        # inference, checks, SHACL, discrepancies (with derived SHACL) and the release graph; writes inferred.nq, derived.nq, release.nq, discrepancies.json, ontology/ and the bundle manifest
 npm run kg:bundle       # export, then kg:build: the whole bundle for the current release
 npm run test:kg         # vocabulary and inference tests
 ```
 
-`npm run build` does not build the knowledge graph; run `npm run kg:bundle` after it. The KG build needs [uv](https://docs.astral.sh/uv/), which installs the pinned Python dependencies in `scripts/kg/requirements.txt`. It takes about two minutes locally and 1.5 GB of memory. `kg:shapes` skips property shapes on links only the reasoner creates (property chains and inverses); it runs on every pull request. `records -- add` and `records -- change` run the same shapes on a subset: the records they wrote, the records that link to them, and the records those link to. Violations on the last group are ignored, because their own links lead outside the subset. The output is sorted and deterministic: the same release, mapping and vocabulary give byte-identical files.
+`npm run build` does not build the knowledge graph; run `npm run kg:bundle` after it. For a release, `kg:build` reads `public/omics/releases/<release id>/use-cases.json`, which `npm run omics:release` writes. `npm run release:fetch` does not provide it: it writes gzipped files under `data/omics/releases/`. The KG build needs [uv](https://docs.astral.sh/uv/), which installs the pinned Python dependencies in `scripts/kg/requirements.txt`. Measured on release 2026-11-21-4940d4f45aee, it takes eight to nine minutes locally and about 6 GB of memory. `kg:shapes` skips property shapes on links only the reasoner creates (property chains and inverses); it runs on every pull request. `records -- add` and `records -- change` run the same shapes on a subset: the records they wrote, the records that link to them, and the records those link to. Violations on the last group are ignored, because their own links lead outside the subset. The output is sorted and deterministic: the same release, mapping and vocabulary give byte-identical files.
 
 To update a pinned vocabulary, download it, re-run the extraction command in `data/ontology/imports/sources.json` where one is listed, update the checksum there, and review the change in the inferred graph.
 
@@ -83,6 +131,7 @@ To update a pinned vocabulary, download it, re-run the extraction command in `da
 | `asserted.nq` | `https://benchmarks.rewire.it/graph/asserted` | The public records |
 | `inferred.nq` | `https://benchmarks.rewire.it/graph/inferred` | Inferred statements about records |
 | `derived.nq` | `https://benchmarks.rewire.it/graph/derived` | Discrepancies between studies |
+| `release.nq` | `https://benchmarks.rewire.it/graph/release` | What the release serves: evaluations behind active judgements, baseline methods and run receipts |
 | `ontology/` | `https://benchmarks.rewire.it/graph/ontology` | `rb.ttl`, the pinned imports and the concept schemes (`ontology/vocab/`) |
 | `manifest.json` | | Checksums, counts, graph roles and descriptions, prefixes, reasoner and SHACL details, example and named queries |
 
