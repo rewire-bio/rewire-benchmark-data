@@ -1,0 +1,47 @@
+name: Intake queue
+# Starts an intake run for labelled issues that no run is coming for. The intake workflow
+# (intake.yml) queues its live runs, and one run works every waiting issue, but an issue can still
+# be left with only its label: a run works 6 issues at most and the monthly sweep can file 15, a
+# run that ends on a rate limit stops, and the run of a label added again can be the waiting run
+# GitHub cancels. Nothing else would start a run for those.
+#
+# Every two hours this asks whether an open issue with an intake label still needs a run
+# (intake.mjs --queued: no open or merged pull request, and no final answer since the label was
+# added). It reads GitHub with the default token and installs nothing. Only when an issue waits
+# does it start intake.yml in live mode with no issue number, which works the queue and nothing
+# else. The repository variable INTAKE_QUEUE_SCHEDULE set to off stops the scheduled check.
+on:
+  schedule:
+    - cron: "23 */2 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  actions: write # to start intake.yml; a run started with this token does start, unlike a push
+concurrency:
+  group: intake-queue-check
+  cancel-in-progress: false
+jobs:
+  check:
+    if: github.event_name != 'schedule' || vars.INTAKE_QUEUE_SCHEDULE != 'off'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/agents
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Issues waiting for an intake run
+        id: waiting
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/agents/intake.mjs --queued
+      # No ref is given, so the run is of the default branch, whatever branch this one is on.
+      - name: Start a live intake run that works the queue
+        if: steps.waiting.outputs.any == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run intake.yml --repo "$GITHUB_REPOSITORY" -f mode=live
