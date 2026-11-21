@@ -11,11 +11,13 @@
 // tier and labels; the issue bodies; and every GitHub write. The prompt is agents/discovery.md.
 //
 //   node scripts/agents/discovery.mjs --dry-run [--fixtures <dir>] [--out <dir>]
-//   node scripts/agents/discovery.mjs [--report-only] [--max-pairs 4] [--lookback-days 30] [--out <dir>]
+//   node scripts/agents/discovery.mjs [--report-only] [--max-pairs 4] [--lookback-days 30] [--out <dir>] [--state <file>]
 //
 // --dry-run   reads candidates, issues, store names and articles from fixtures; no model
 //             call, no network, no write. CI runs it through tests/agents-discovery.test.ts.
 // --report-only  calls the models and reads GitHub, but prints the issues instead of filing.
+// --state     a JSON file of candidates the judge rejected. They are not judged again until
+//             the lookback period has passed. The workflow keeps the file in the Actions cache.
 //
 // Environment: ANTHROPIC_API_KEY (live only; when empty the run writes a notice and exits 0),
 // GH_TOKEN or GITHUB_TOKEN for this repository, ARTICLE_TOKEN for rewire.it (optional; without
@@ -152,6 +154,68 @@ function longEnough(form) {
   return form.replace(/ /g, '').length >= 3;
 }
 
+/**
+ * A name with its spelling differences removed: matchForm without the spaces, without a "v"
+ * before a version number and without a trailing ".0". "Torch Craft", "Alpha Genome", "Splice AI",
+ * "Enchant-3" and "BioEmu 2.0" equal "TorchCraft", "AlphaGenome", "SpliceAI", "Enchant v3" and
+ * "BioEmu-2". A different version number is a different name: "ESM3" does not equal "ESM-2".
+ */
+export function spellForm(text) {
+  return squash(matchForm(text));
+}
+
+function squash(form) {
+  return form.replace(/(^| )v (?=\d)/g, '$1').replace(/(\d) 0(?= |$)/g, '$1').replace(/ /g, '');
+}
+
+/** Long enough to compare as a spelling: four characters or more. */
+function spelled(spelling) {
+  return spelling.length >= 4;
+}
+
+/**
+ * True when the text holds the name in another spelling. A word of the text is what stands
+ * between two spaces, so "HyPLM-Flash" is one word and spells "HyPLMFlash". A version after
+ * the word counts as part of it ("Enchant v3" spells "Enchant-3"). Two separate words do not
+ * make a name: "the tier rule" does not spell "TierRule".
+ */
+function spells(text, spelling) {
+  const words = String(text ?? '').split(/\s+/).map(spellForm).filter(Boolean);
+  for (let i = 0; i < words.length; i++) {
+    let run = words[i];
+    if (run === spelling) return true;
+    for (let j = i + 1; j < words.length && /^\d+$/.test(words[j]) && run.length < spelling.length; j++) {
+      run += words[j];
+      if (run === spelling) return true;
+    }
+  }
+  return false;
+}
+
+/** A name without its trailing version or size ("ESM-2 650M" and "ESM3" give "esm"), in spellForm. */
+function baseOf(text) {
+  const words = matchForm(text).split(' ');
+  while (words.length > 1 && /^(\d+|v|[mbk])$/.test(words.at(-1))) words.pop();
+  return words.join('');
+}
+
+// Store maps are built once per run; these indexes are derived from them once.
+const storeIndexes = new WeakMap();
+function storeIndex(storeNames) {
+  let index = storeIndexes.get(storeNames);
+  if (!index) {
+    index = { spelling: new Map(), base: new Map() };
+    for (const [form, id] of storeNames) {
+      const spelling = squash(form);
+      if (spelled(spelling) && !index.spelling.has(spelling)) index.spelling.set(spelling, { form, id });
+      const base = baseOf(form);
+      if (base.length >= 3) index.base.set(base, [...(index.base.get(base) ?? []), { form, id }]);
+    }
+    storeIndexes.set(storeNames, index);
+  }
+  return index;
+}
+
 const MARKER = /<!-- discovery-key: ([a-z0-9-]+) -->/g;
 
 /** Keys of issues this script filed. */
@@ -197,12 +261,15 @@ function mentions(text, name) {
 export function findDuplicate(candidate, { issues = [], storeNames = new Map(), articles = [] }) {
   const key = keyOf(candidate.name);
   const names = namesOf(candidate);
+  const spellings = [...new Set(names.map(squash))].filter(spelled);
   const ids = identifiersOf(candidate);
   for (const issue of issues) {
     const ref = `${issue.repo}#${issue.number}`;
     if (markersIn(issue.body).includes(key)) return { where: 'issue', ref, url: issue.html_url, reason: `filed before as ${ref}` };
     const name = names.find((n) => mentions(issue.title, n));
     if (name) return { where: 'issue', ref, url: issue.html_url, reason: `"${name}" is in the title of ${ref}` };
+    const spelling = spellings.find((n) => spells(issue.title, n));
+    if (spelling) return { where: 'issue', ref, url: issue.html_url, reason: `"${spelling}" is in the title of ${ref} under another spelling` };
     const body = String(issue.body ?? '').toLowerCase();
     const id = ids.find((i) => body.includes(i));
     if (id) return { where: 'issue', ref, url: issue.html_url, reason: `${id} is cited in ${ref}` };
@@ -211,6 +278,64 @@ export function findDuplicate(candidate, { issues = [], storeNames = new Map(), 
   for (const raw of [candidate.name, ...(candidate.aliases ?? [])]) {
     const n = [matchForm(raw), normalise(raw)].find((form) => longEnough(form) && storeNames.has(form));
     if (n) return { where: 'store', ref: storeNames.get(n), reason: `"${n}" matches store record ${storeNames.get(n)}` };
+  }
+  if (storeNames.size) {
+    const index = storeIndex(storeNames).spelling;
+    const spelling = spellings.find((n) => index.has(n));
+    if (spelling) return { where: 'store', ref: index.get(spelling).id, reason: `"${spelling}" matches store record ${index.get(spelling).id} ("${index.get(spelling).form}") under another spelling` };
+  }
+  return null;
+}
+
+/**
+ * Records and requests whose name differs from the candidate's only by a version or size
+ * ("ESM-2 650M" and "ESM-2", "BioEmu-3" and "BioEmu-2"). These are not duplicates: a new version
+ * is a resource of its own. They are given to the judge, which decides.
+ */
+export function nearMatches(candidate, { issues = [], storeNames = new Map() }, limit = 5) {
+  const bases = [...new Set([candidate.name, ...(candidate.aliases ?? [])].map(baseOf))].filter((b) => b.length >= 3);
+  const out = [];
+  const index = storeNames.size ? storeIndex(storeNames).base : new Map();
+  for (const base of bases) for (const { form, id } of index.get(base) ?? []) out.push(`store record ${id} ("${form}")`);
+  for (const issue of issues) {
+    const words = String(issue.title ?? '').split(/\s+/).map(baseOf);
+    if (bases.some((b) => words.includes(b))) out.push(`${issue.repo}#${issue.number}: ${clean(issue.title)}`);
+  }
+  return [...new Set(out)].slice(0, limit);
+}
+
+/** The last FILE or SKIP in the judge's notes, or null when the notes give neither in capitals. */
+export function verdictOf(notes) {
+  return [...String(notes ?? '').matchAll(/\b(FILE|SKIP)\b/g)].at(-1)?.[1] ?? null;
+}
+
+// ---------- Rejected candidates ----------
+
+/**
+ * Candidates the judge rejected, read from the state file. A missing file is an empty list. An
+ * unreadable one is too, with a note: the cost of that is judging a candidate again.
+ */
+export function readRejected(path, notes = []) {
+  if (!path || !existsSync(path)) return [];
+  try {
+    const list = JSON.parse(readFileSync(path, 'utf8')).rejected;
+    if (!Array.isArray(list)) throw new Error('no "rejected" list');
+    return list.filter((r) => r && Array.isArray(r.names) && typeof r.date === 'string');
+  } catch (e) {
+    notes.push(`The rejected-candidate file could not be read (${errorText(e)}); candidates rejected before may be judged again.`);
+    return [];
+  }
+}
+
+/** The rejection that still covers this candidate, or null. A rejection lapses after `days`. */
+export function findRejected(candidate, rejected, runDate, days) {
+  const names = namesOf(candidate);
+  for (const r of rejected) {
+    const age = ageInDays(r.date, runDate);
+    if (age === null || age < 0 || age >= days) continue;
+    if (!names.some((n) => r.names.includes(n))) continue;
+    const until = new Date(Date.parse(`${r.date}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+    return { where: 'rejected', ref: r.name, reason: `the judge rejected it on ${r.date} (${clean(r.reason) || 'no reason recorded'}); it can be judged again from ${until}` };
   }
   return null;
 }
@@ -434,7 +559,8 @@ export class Usage {
     this.byModel = {};
     this.calls = 0;
   }
-  add(model, usage) {
+  /** `assumed` is the tool use to count when the response does not report any (researchTurn). */
+  add(model, usage, assumed) {
     if (!usage) return;
     this.calls += 1;
     const prompt = (usage.input_tokens ?? 0) + (usage.cache_creation_input_tokens ?? 0) + (usage.cache_read_input_tokens ?? 0);
@@ -444,8 +570,9 @@ export class Usage {
     m.output += usage.output_tokens ?? 0;
     m.cacheWrite += usage.cache_creation_input_tokens ?? 0;
     m.cacheRead += usage.cache_read_input_tokens ?? 0;
-    m.webSearches += usage.server_tool_use?.web_search_requests ?? 0;
-    m.webFetches += usage.server_tool_use?.web_fetch_requests ?? 0;
+    const tools = usage.server_tool_use ?? assumed;
+    m.webSearches += tools?.web_search_requests ?? 0;
+    m.webFetches += tools?.web_fetch_requests ?? 0;
   }
   costOf(model) {
     const m = this.byModel[model];
@@ -628,8 +755,11 @@ function textOf(message) {
 
 /**
  * One research call with the server web tools, resuming pause_turn up to the cap. Returns the
- * notes, or null on a refusal or when the cap is reached. With `partial`, a call that reaches
- * the cap returns the text written so far instead of null. Sonnet 5.5 can decline biology
+ * notes, or null on a refusal, when the cap is reached, or when the reply was cut off at
+ * max_tokens. With `partial`, a call that reaches the cap returns the text written so far, and
+ * a reply cut off at max_tokens is returned as it is. The scan uses that, because every
+ * candidate in its notes is still checked and judged; the judge does not, because notes without
+ * their ending have no verdict. Sonnet 5.5 can decline biology
  * requests (refusal category `bio`); for Sonnet the server-side fallback re-runs a declined
  * request on a model the API picks, billed at that model's prices (usage.add reads
  * message.model). Haiku 5.5 has no server-side fallback.
@@ -638,6 +768,10 @@ function textOf(message) {
  * code execution, and the API does not count those against max_uses after a resume, so each
  * resume is given only what is left. A resume keeps at least one use, because the tool cannot
  * be removed from a conversation that already holds its results.
+ *
+ * The counts come from usage.server_tool_use. A response that does not report it is counted as
+ * having used everything the request allowed, in the allowance and in the cost estimate, so a
+ * missing field cannot hide searches from either dollar check.
  */
 async function researchTurn(client, usage, { model, system, prompt, searches, fetches, log, partial = false }) {
   const messages = [{ role: 'user', content: prompt }];
@@ -646,6 +780,7 @@ async function researchTurn(client, usage, { model, system, prompt, searches, fe
   let searched = 0;
   let fetched = 0;
   for (let turn = 0; turn <= LIMITS.maxContinuations; turn++) {
+    const allowed = { web_search_requests: Math.max(1, searches - searched), web_fetch_requests: Math.max(1, fetches - fetched) };
     const message = await client.beta.messages.stream({
       model,
       ...fallback,
@@ -653,16 +788,22 @@ async function researchTurn(client, usage, { model, system, prompt, searches, fe
       system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
       output_config: { effort: 'medium' },
       tools: [
-        { type: 'web_search_20260318', name: 'web_search', max_uses: Math.max(1, searches - searched) },
-        { type: 'web_fetch_20260209', name: 'web_fetch', max_uses: Math.max(1, fetches - fetched), max_content_tokens: LIMITS.fetchContentTokens },
+        { type: 'web_search_20260318', name: 'web_search', max_uses: allowed.web_search_requests },
+        { type: 'web_fetch_20260209', name: 'web_fetch', max_uses: allowed.web_fetch_requests, max_content_tokens: LIMITS.fetchContentTokens },
       ],
       messages,
     }).finalMessage();
-    usage.add(message.model ?? model, message.usage);
-    searched += message.usage?.server_tool_use?.web_search_requests ?? 0;
-    fetched += message.usage?.server_tool_use?.web_fetch_requests ?? 0;
+    const used = message.usage?.server_tool_use ?? allowed;
+    if (!message.usage?.server_tool_use) log('the response did not report its tool use; counted as the full allowance');
+    usage.add(message.model ?? model, message.usage ?? {}, allowed);
+    searched += used.web_search_requests ?? 0;
+    fetched += used.web_fetch_requests ?? 0;
     if (message.stop_reason === 'refusal') {
       log(`refused (${message.stop_details?.category ?? 'no category'})`);
+      return null;
+    }
+    if (message.stop_reason === 'max_tokens' && !partial) {
+      log('cut off at max_tokens');
       return null;
     }
     if (message.stop_reason !== 'pause_turn') return textOf(message);
@@ -720,7 +861,7 @@ export function knownTitles(issues, repo, limit = LIMITS.knownTitles) {
 }
 
 /** The scan prompt for one lane. */
-export function scanPrompt({ lane, runDate, lookbackDays, titles }) {
+export function scanPrompt({ lane, runDate, lookbackDays, titles, rejected = [] }) {
   const since = new Date(Date.parse(`${runDate}T00:00:00Z`) - lookbackDays * 86_400_000).toISOString().slice(0, 10);
   return [
     `Run date: ${runDate}. Find AI-for-biology models, methods, benchmarks and datasets that the database does not hold yet.`,
@@ -734,6 +875,7 @@ export function scanPrompt({ lane, runDate, lookbackDays, titles }) {
     'Already requested. These are issue titles. Do not list a resource they name as a candidate, under any spelling or version, and do not write about it in your notes:',
     ...(titles.length ? titles.map((t) => `- ${t}`) : ['- (none yet)']),
     '',
+    ...(rejected.length ? ['Checked in an earlier run and not filed. Do not list these either:', ...rejected.map((n) => `- ${n}`), ''] : []),
     `List each candidate with its name, aliases, type, release date, a one-paragraph summary, its primary URLs, and whether it is in scope and why. Up to ${LIMITS.scanCandidates} candidates. If you find nothing that is not already requested, say so; do not fill the list.`,
   ].join('\n');
 }
@@ -746,7 +888,7 @@ export function scanPrompt({ lane, runDate, lookbackDays, titles }) {
  * A candidate the script already knows never reaches the judge, whatever the scan wrote about
  * it: the prompt asks the scan not to return known names, and this check enforces it.
  */
-async function liveCandidates(client, usage, { scanModel, system, runDate, lookbackDays, titles, isKnown, skipped, judged, notes, log }) {
+async function liveCandidates(client, usage, { scanModel, system, runDate, lookbackDays, titles, rejectedNames = [], isKnown, near = () => [], checked = '', onReject = () => {}, skipped, judged, notes, log }) {
   // Scan and triage, one lane at a time. The first lane rotates by day, so a lane the budget
   // check skips one day runs first on another.
   const first = Math.floor(Date.parse(`${runDate}T00:00:00Z`) / 86_400_000) % SCAN_LANES.length;
@@ -754,6 +896,7 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
   const byLane = [];
   const seen = new Map();
   let echoed = 0;
+  let rejectedBefore = 0;
   for (const lane of lanes) {
     if (usage.total() + LIMITS.scanLaneUsd > LIMITS.maxScanUsd) {
       notes.push(`Scan lane "${lane.name}" was not run: the scan would have passed $${LIMITS.maxScanUsd}.`);
@@ -768,7 +911,7 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
         fetches: LIMITS.scanFetches,
         partial: true,
         log: (m) => log(`scan ${lane.name}: ${m}`),
-        prompt: scanPrompt({ lane, runDate, lookbackDays, titles }),
+        prompt: scanPrompt({ lane, runDate, lookbackDays, titles, rejected: rejectedNames }),
       });
       if (!scanNotes) {
         notes.push(`Scan lane "${lane.name}" was refused or did not finish.`);
@@ -791,6 +934,11 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
     for (const c of triaged.candidates ?? []) {
       if (!c?.name) continue;
       const dup = isKnown(c);
+      if (dup?.where === 'rejected') {
+        rejectedBefore += 1;
+        skipped.push({ name: c.name, reason: `not judged again: ${dup.reason}` });
+        continue;
+      }
       if (dup) {
         echoed += 1;
         skipped.push({ name: c.name, reason: `already known, not judged: ${dup.reason}` });
@@ -822,6 +970,7 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
     return;
   }
   if (echoed) notes.push(`The scan returned ${echoed} candidate${echoed === 1 ? '' : 's'} that an issue or the record store already holds. None was judged.`);
+  if (rejectedBefore) notes.push(`The scan returned ${rejectedBefore} candidate${rejectedBefore === 1 ? '' : 's'} that the judge rejected in the last ${lookbackDays} days. None was judged again.`);
 
   // One from each lane in turn, so the judge cap is shared between lanes.
   const out = [];
@@ -834,6 +983,7 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
       continue;
     }
     try {
+      const similar = near(c);
       const research = await researchTurn(client, usage, {
         model: MODELS.judge,
         system,
@@ -851,7 +1001,13 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
           `Summary: ${c.summary}`,
           `URLs: ${(c.urls ?? []).join(' ')}`,
           '',
-          'The database does not hold this resource. An earlier release date is not a reason to skip it; record the date and judge the resource on its substance.',
+          `A script compared the name and aliases with ${checked || 'the issues and the record store'} and found none under this spelling. It cannot tell whether the database holds the resource under another name.`,
+          ...(similar.length ? [
+            'Records and requests with a similar name:',
+            ...similar.map((s) => `- ${s}`),
+            'If the candidate is one of these under another spelling, or only a size, checkpoint or minor release of it, conclude SKIP and name the one it matches. A new version that changes what the resource can do is a resource of its own.',
+          ] : []),
+          'An earlier release date is not a reason to skip it; record the date and judge the resource on its substance.',
           'Open the primary sources. Write notes covering every point under Verification and Articles in your instructions, with each URL and its retrieval date. End with FILE or SKIP and the reason.',
         ].join('\n'),
       });
@@ -864,8 +1020,17 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
         notes: research,
         schema: JUDGEMENT_SCHEMA,
       });
-      if (judgement) judged.push(judgement);
-      else skipped.push({ name: c.name, reason: 'could not structure the judge notes' });
+      if (!judgement) {
+        skipped.push({ name: c.name, reason: 'could not structure the judge notes' });
+        continue;
+      }
+      // The notes decide, not the structuring call: notes that end with SKIP are never filed.
+      if (verdictOf(research) === 'SKIP' && judgement.decision !== 'skip') {
+        judgement.decision = 'skip';
+        judgement.skip_reason ||= 'the judge notes conclude SKIP';
+      }
+      if (judgement.decision === 'skip') onReject(c, judgement);
+      judged.push(judgement);
     } catch (e) {
       skipped.push({ name: c.name, reason: `judge call failed (${errorText(e)}); the next run picks it up` });
     }
@@ -875,7 +1040,7 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
 // ---------- Main ----------
 
 function parseArgs(argv) {
-  const args = { dryRun: false, reportOnly: false, fixtures: FIXTURES, out: '', storeDir: '', maxPairs: LIMITS.maxPairs, lookbackDays: 30 };
+  const args = { dryRun: false, reportOnly: false, fixtures: FIXTURES, out: '', storeDir: '', state: '', maxPairs: LIMITS.maxPairs, lookbackDays: 30 };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--dry-run') args.dryRun = true;
@@ -883,11 +1048,14 @@ function parseArgs(argv) {
     else if (a === '--fixtures') args.fixtures = argv[++i];
     else if (a === '--out') args.out = argv[++i];
     else if (a === '--store-dir') args.storeDir = argv[++i];
-    else if (a === '--max-pairs') args.maxPairs = Number(argv[++i]);
+    else if (a === '--state') args.state = argv[++i];
+    else if (a === '--max-pairs') args.maxPairs = /^\d+$/.test(argv[++i] ?? '') ? Number(argv[i]) : NaN;
     else if (a === '--lookback-days') args.lookbackDays = Number(argv[++i]);
     else throw new Error(`unknown argument ${a}`);
   }
   if (!Number.isFinite(args.lookbackDays) || args.lookbackDays < 1) throw new Error('--lookback-days needs a positive number');
+  // A mistyped value (NaN) would switch the cap off: every comparison with NaN is false.
+  if (!Number.isInteger(args.maxPairs)) throw new Error('--max-pairs needs a whole number, 0 or more');
   return args;
 }
 
@@ -953,8 +1121,22 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       articles = [];
       notes.push(`Blog index could not be read (${errorText(e)}); published articles were not checked.`);
     }
-    storeNames = await readStoreNames(args.storeDir ? resolve(ROOT, args.storeDir) : undefined, matchForm);
+    const storeDir = args.storeDir ? resolve(ROOT, args.storeDir) : join(ROOT, 'data/entities');
+    storeNames = await readStoreNames(storeDir, matchForm);
+    // readStoreNames skips files that are missing, so a store that moved, or a checkout without
+    // it, reads as empty. Then every stored resource would look new and be filed. Stop before
+    // any model call or GitHub write.
+    if (!storeNames.size) {
+      const message = `No record-store names were read from ${storeDir}. Nothing was scanned or filed, because every stored resource would look new. Check that the workflow checks out data/entities.`;
+      emit(`## Discovery scan, ${runDate} (${mode})\n\nStopped: ${message}\n`);
+      throw new Error(message);
+    }
   }
+  const statePath = !args.dryRun && args.state ? resolve(args.state) : '';
+  const rejected = readRejected(statePath, notes).filter((r) => {
+    const age = ageInDays(r.date, runDate);
+    return age !== null && age < args.lookbackDays;
+  });
 
   const skipped = [];
   const filed = [];
@@ -977,8 +1159,18 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         runDate,
         lookbackDays: args.lookbackDays,
         titles: knownTitles(issues, repo),
+        rejectedNames: rejected.slice(-LIMITS.knownTitles).map((r) => r.name),
         // Names only before judging: a scan URL may be a dependency, not the candidate's own source.
-        isKnown: (c) => findDuplicate({ ...c, sources: [] }, { issues, storeNames }),
+        isKnown: (c) => findDuplicate({ ...c, sources: [] }, { issues, storeNames }) ?? findRejected(c, rejected, runDate, args.lookbackDays),
+        near: (c) => nearMatches(c, { issues, storeNames }),
+        checked: `${issues.length} issue titles and ${storeNames.size} record-store names`,
+        // Remembered under the scan's names and the judge's, because the next scan may return either.
+        onReject: (c, judgement) => rejected.push({
+          name: c.name,
+          names: [...new Set([c.name, ...(c.aliases ?? []), judgement.name, ...(judgement.aliases ?? [])].map(matchForm))].filter(longEnough),
+          date: runDate,
+          reason: clean(judgement.skip_reason).slice(0, 200),
+        }),
         skipped,
         judged: candidates,
         notes,
@@ -1027,6 +1219,10 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   } finally {
     const summary = renderSummary({ mode, runDate, usage, filed, skipped, notes });
     emit(summary);
+    if (statePath) {
+      mkdirSync(dirname(statePath), { recursive: true });
+      writeFileSync(statePath, `${JSON.stringify({ rejected }, null, 2)}\n`);
+    }
     if (args.out) {
       mkdirSync(args.out, { recursive: true });
       writeFileSync(join(args.out, 'plan.json'), `${JSON.stringify(filed, null, 2)}\n`);

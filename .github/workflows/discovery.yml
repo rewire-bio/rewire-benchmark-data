@@ -82,6 +82,17 @@ jobs:
           app-id: ${{ vars.REWIRE_BOT_APP_ID }}
           private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
           permission-issues: write
+      # Candidates the judge rejected, so they are not judged again every day. Actions caches
+      # cannot be overwritten, so each run saves under its own key and restores the newest.
+      # Losing the cache only costs judging those candidates again.
+      - name: Restore the rejected candidates
+        if: env.MODE != 'dry-run' && env.HAS_KEY == 'true'
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: discovery-state
+          key: discovery-state-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: discovery-state-
       - name: Install the Anthropic SDK
         if: env.MODE != 'dry-run' && env.HAS_KEY == 'true'
         run: npm ci --prefix scripts/agents --no-audit --no-fund
@@ -95,11 +106,18 @@ jobs:
         run: |
           case "$MODE" in
             dry-run) args="--dry-run --out discovery-out" ;;
-            report-only) args="--report-only --out discovery-out" ;;
-            live) args="--out discovery-out" ;;
+            report-only) args="--report-only --out discovery-out --state discovery-state/rejected.json" ;;
+            live) args="--out discovery-out --state discovery-state/rejected.json" ;;
             *) echo "::error::Unknown mode $MODE"; exit 1 ;;
           esac
           node scripts/agents/discovery.mjs $args --max-pairs "$MAX_PAIRS"
+      - name: Keep the rejected candidates
+        if: always() && env.MODE != 'dry-run' && hashFiles('discovery-state/rejected.json') != ''
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: discovery-state
+          key: discovery-state-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Keep the planned issues and token usage
         if: always()
         uses: actions/upload-artifact@v4

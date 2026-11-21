@@ -60,6 +60,10 @@ Every primary URL you cite carries the date you retrieved it, in ISO form (YYYY-
 
 The script checks your candidates against every open and closed issue in rewire-benchmark-data, the article issues in rewire.it when it can read them, and the names in the record store. The user message lists the titles of requests already filed. Never return a resource named there as a candidate, under any spelling, and do not spend searches on it: the script drops it, and it takes the place of a resource the database lacks. The one exception is a new version that changes what the resource can do. Give that under its own versioned name, give the known name in `existing_name`, and explain what is new.
 
+The script matches names and their spellings. It cannot tell that a resource is stored under a different name. When you verify a candidate, the user message may list records and requests with a similar name. If the candidate is one of them under another spelling, or only a size, checkpoint or minor release of it, conclude SKIP and name the one it matches.
+
+The user message may also list candidates checked in an earlier run and not filed. Do not return those.
+
 ## Articles
 
 Every worthwhile candidate also gets an article request, whatever its tier. The article is a substantive researched piece for AI researchers and practitioners. It explains the scientific task, the inputs and outputs, the useful capabilities, the evidence, the baselines, access and licensing, and the limitations, in plain language. For each candidate give:

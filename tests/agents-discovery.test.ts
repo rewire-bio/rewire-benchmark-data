@@ -1,11 +1,11 @@
-import { mkdtempSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   AREAS, GENOMIC_AREAS, LABELS, LIMITS, PRICES, PROTEIN_AREAS, SCAN_LANES, Usage, ageInDays, clean, dataLabels, findDuplicate,
-  identifiersOf, keyOf, knownTitles, main, matchForm, parseBlogIndex, planFiling, readStoreNames, renderArticleIssue,
-  renderDataIssue, scanPrompt, tierOf,
+  findRejected, githubClient, identifiersOf, keyOf, knownTitles, main, matchForm, nearMatches, parseBlogIndex, planFiling,
+  readRejected, readStoreNames, renderArticleIssue, renderDataIssue, scanPrompt, spellForm, tierOf, verdictOf,
 } from "../scripts/agents/discovery.mjs";
 
 // The discovery scan (#254). Everything here runs without an API key or network: the dry run
@@ -583,5 +583,329 @@ describe("recorded scan of 20 November 2026", () => {
     const client = replay();
     await main([...args, "--report-only"], env, { now: new Date("2026-11-22T08:00:00Z"), log: quiet, anthropic: client, github: github(realIssues), fetch: blog });
     expect(String(client.calls[0].params.messages[0].content)).toContain("Lane: proteins.");
+  });
+});
+
+// Guards the review of #339 found untested or open. Each test here fails when its guard is removed.
+describe("guards on the live path", () => {
+  const judgements = JSON.parse(readFileSync(`${FIXTURES}/judgements.json`, "utf8"));
+  const runDay = new Date("2026-11-21T08:00:00Z");
+  const env = { ANTHROPIC_API_KEY: "test", GITHUB_REPOSITORY: "rewire-bio/rewire-benchmark-data" };
+  const args = ["--store-dir", `${FIXTURES}/entities`];
+  const blog = async () => ({ ok: true, status: 200, text: async () => "" });
+  const tools = { web_search_requests: 1, web_fetch_requests: 1 };
+  const scanCandidate = (name: string, extra: Record<string, unknown> = {}) => ({ name, aliases: [], kind: "model", released: "2026-11-10", summary: "s", urls: [], in_scope: true, reason: "", ...extra });
+  const judgementFor = (name: string, n: number) => ({ ...judgements[0], name, aliases: [], sources: [{ url: `https://doi.org/10.1101/2026.11.01.80000${n}`, title: "Preprint", role: "preprint", retrieved_at: "2026-11-21" }] });
+
+  // A stand-in Anthropic client. `candidates` come back from the genomics lane; the other lanes
+  // find nothing. `judge` gives the judge's reply for a name, `scan` the scan's reply for a
+  // lane and request number, and `structured` can replace a structuring reply.
+  function standIn({ candidates = [] as any[], judge = (name: string): any => ({}), scan = (lane: string, request: number): any => ({}), structured = (notes: string): any => undefined, decision = "file" } = {}) {
+    const calls: { kind: string; params: any }[] = [];
+    const requests: Record<string, number> = {};
+    const message = (text: string, over: any = {}) => ({ content: [{ type: "text", text }], stop_reason: "end_turn", usage: { input_tokens: 1000, output_tokens: 100, server_tool_use: tools }, stop_details: null, ...over });
+    return {
+      calls,
+      judgedNames: () => [...new Set(calls.filter((c) => c.kind === "stream").map((c) => /^Name: (.*)$/m.exec(String(c.params.messages[0].content))?.[1]).filter(Boolean))],
+      judgePrompt: (name: string) => String(calls.find((c) => c.kind === "stream" && String(c.params.messages[0].content).includes(`Name: ${name}\n`))?.params.messages[0].content),
+      beta: { messages: { stream(params: any) {
+        calls.push({ kind: "stream", params });
+        const prompt = String(params.messages[0].content);
+        const lane = /Lane: ([^.]*)\./.exec(prompt)?.[1];
+        const name = /^Name: (.*)$/m.exec(prompt)?.[1];
+        const key = lane ?? name!;
+        requests[key] = (requests[key] ?? 0) + 1;
+        const reply = lane ? message(`scan notes ${lane}`, scan(lane, requests[key])) : message(`notes for ${name}\nFILE`, judge(name!));
+        return { finalMessage: async () => ({ ...reply, model: params.model }) };
+      } } },
+      messages: { async create(params: any) {
+        calls.push({ kind: "create", params });
+        const notes = String(params.messages[0].content);
+        const plain = { usage: { input_tokens: 500, output_tokens: 50 } };
+        const override = structured(notes);
+        if (override) return message("", { ...plain, ...override });
+        if (notes.includes("scan notes")) return message(JSON.stringify({ candidates: notes.includes("scan notes genomics") ? candidates : [] }), plain);
+        const name = /notes for (.*)/.exec(notes)?.[1] ?? "";
+        return message(JSON.stringify({ ...judgementFor(name, candidates.findIndex((c) => c.name === name) + 1), decision, skip_reason: decision === "skip" ? "an incremental checkpoint" : "" }), plain);
+      } },
+    };
+  }
+
+  function github(issues: any[] = []) {
+    const created: any[] = [];
+    let next = 900;
+    return {
+      created,
+      async listIssues() { return [...issues]; },
+      async ensureLabels() {},
+      async createIssue(r: string, issue: any) { const number = next++; created.push({ repo: r, number, ...issue }); return { number, html_url: `https://github.com/${r}/issues/${number}` }; },
+      async updateIssue() {},
+    };
+  }
+  const run = (client: any, data: any, extra: string[] = [], over: Record<string, any> = {}) =>
+    main([...args, ...extra], { ...env, ...over.env }, { now: over.now ?? runDay, log: quiet, anthropic: client, github: data, fetch: blog, ...over.deps });
+  const eight = ["Alder", "Birch", "Cedar", "Dogwood", "Elder", "Fir", "Ginkgo", "Hazel"].map((n) => scanCandidate(`${n}Fold`));
+
+  describe("record store", () => {
+    it("stops before any model call or issue when no store name can be read", async () => {
+      const client = standIn({ candidates: [scanCandidate("Bacformer")] });
+      const data = github();
+      const summaryFile = join(mkdtempSync(join(tmpdir(), "discovery-")), "summary.md");
+      await expect(main(["--store-dir", "no/such/dir"], { ...env, GITHUB_STEP_SUMMARY: summaryFile }, { now: runDay, log: quiet, anthropic: client, github: data, fetch: blog }))
+        .rejects.toThrow("No record-store names were read");
+      expect(client.calls).toEqual([]);
+      expect(data.created).toEqual([]);
+      expect(readFileSync(summaryFile, "utf8")).toContain("Nothing was scanned or filed");
+    });
+    it("drops a stored name before the judge in a live run", async () => {
+      const client = standIn({ candidates: [scanCandidate("Bacformer"), scanCandidate("ESM2"), scanCandidate("AlderFold")] });
+      const data = github();
+      const { skipped } = await run(client, data);
+      expect(client.judgedNames()).toEqual(["AlderFold"]);
+      expect(data.created.map((i) => i.title)).toEqual(["Add discovered model AlderFold: Predicts variant effects on gene expression from DNA sequence."]);
+      expect(skipped!.find((s) => s.name === "Bacformer")?.reason).toContain("matches store record bacformer-20261115-model-bacformer");
+      expect(data.created[0].body).toContain("4 record-store names");
+    });
+    it("is checked out by the workflow", () => {
+      const workflow = readFileSync(".github/workflows/discovery.yml", "utf8");
+      expect(/sparse-checkout: \|\n((?: {12}\S+\n)+)/.exec(workflow)?.[1].split("\n").map((l) => l.trim())).toContain("data/entities");
+    });
+  });
+
+  describe("filing and judging limits", () => {
+    it("judges at most six candidates a run and files at most four", async () => {
+      const client = standIn({ candidates: eight });
+      const data = github();
+      const { skipped } = await run(client, data);
+      expect(LIMITS.maxJudged).toBe(6);
+      expect(client.judgedNames()).toEqual(eight.slice(0, 6).map((c) => c.name));
+      expect(skipped!.filter((s) => s.reason === "over the judge cap of 6; the next run picks it up").map((s) => s.name)).toEqual(["GinkgoFold", "HazelFold"]);
+      expect(LIMITS.maxPairs).toBe(4);
+      expect(data.created).toHaveLength(4);
+    });
+    it("judges no further candidate once the run has cost more than $1", async () => {
+      // Each judge call reports 60 searches: $0.60. The third candidate starts after $1.20.
+      const client = standIn({ candidates: eight, judge: () => ({ usage: { input_tokens: 1000, output_tokens: 100, server_tool_use: { web_search_requests: 60, web_fetch_requests: 0 } } }) });
+      const { skipped, usage } = await run(client, github(), ["--report-only"]);
+      expect(LIMITS.maxRunUsd).toBe(1);
+      expect(client.judgedNames()).toEqual(["AlderFold", "BirchFold"]);
+      expect(skipped!.filter((s) => s.reason === "run cost passed $1; not judged, the next run picks it up")).toHaveLength(4);
+      expect(usage!.total()).toBeLessThan(LIMITS.maxRunUsd + 0.6 + 0.1);
+    });
+    it("refuses a --max-pairs that is not a whole number", async () => {
+      for (const bad of ["abc", "-1", "2.5", ""]) await expect(run(standIn(), github(), ["--max-pairs", bad])).rejects.toThrow("--max-pairs needs a whole number");
+      const data = github();
+      await run(standIn({ candidates: eight }), data, ["--max-pairs", "0"]);
+      expect(data.created).toEqual([]);
+    });
+    it("files four by default in the workflow", () => {
+      const workflow = readFileSync(".github/workflows/discovery.yml", "utf8");
+      expect(workflow).toContain("MAX_PAIRS: ${{ inputs.max_pairs || '4' }}");
+      expect(workflow).toMatch(/max_pairs:\n\s+description: [^\n]+\n\s+default: "4"\n/);
+      expect(workflow).toContain('--max-pairs "$MAX_PAIRS"');
+    });
+    it("gives the judge its own search and fetch allowance, page size and reply size", async () => {
+      const client = standIn({ candidates: [scanCandidate("AlderFold")] });
+      await run(client, github(), ["--report-only"]);
+      const judge = client.calls.find((c) => c.kind === "stream" && String(c.params.messages[0].content).includes("Name: AlderFold"))!.params;
+      expect(judge.tools.map((t: any) => [t.name, t.max_uses, t.max_content_tokens])).toEqual([["web_search", 3, undefined], ["web_fetch", 4, 15000]]);
+      expect(judge.max_tokens).toBe(10000);
+      const scan = client.calls.find((c) => c.kind === "stream")!.params;
+      expect(scan.tools.map((t: any) => t.max_uses)).toEqual([8, 2]);
+    });
+  });
+
+  describe("judge replies that are not a verdict", () => {
+    it("does not file a candidate whose judge call stopped at the resume cap", async () => {
+      const client = standIn({ candidates: [scanCandidate("AlderFold"), scanCandidate("BirchFold")], judge: (name) => name === "AlderFold" ? { stop_reason: "pause_turn" } : {} });
+      const data = github();
+      const { skipped } = await run(client, data);
+      expect(client.calls.filter((c) => c.kind === "stream" && String(c.params.messages[0].content).includes("Name: AlderFold"))).toHaveLength(1 + LIMITS.maxContinuations);
+      expect(skipped!.find((s) => s.name === "AlderFold")?.reason).toBe("judge refused or did not finish");
+      expect(data.created.map((i) => i.title.split(":")[0])).toEqual(["Add discovered model BirchFold"]);
+    });
+    it("does not file a candidate whose judge reply was cut off at max_tokens", async () => {
+      const client = standIn({ candidates: [scanCandidate("AlderFold"), scanCandidate("BirchFold")], judge: (name) => name === "AlderFold" ? { stop_reason: "max_tokens", content: [{ type: "text", text: "notes for AlderFold, which stop in the middle of" }] } : {} });
+      const data = github();
+      const { skipped } = await run(client, data);
+      expect(skipped!.find((s) => s.name === "AlderFold")?.reason).toBe("judge refused or did not finish");
+      expect(data.created.map((i) => i.title.split(":")[0])).toEqual(["Add discovered model BirchFold"]);
+    });
+    it("does not file notes that end with SKIP, whatever the structuring call returns", async () => {
+      const client = standIn({ candidates: [scanCandidate("AlderFold")], judge: () => ({ content: [{ type: "text", text: "notes for AlderFold\nIt could be FILE, but it is a checkpoint.\nSKIP: an incremental checkpoint." }] }) });
+      const data = github();
+      const { skipped } = await run(client, data);
+      expect(data.created).toEqual([]);
+      expect(skipped!.find((s) => s.name === "AlderFold")?.reason).toBe("judge: the judge notes conclude SKIP");
+      expect(verdictOf("Verdict: FILE. The paper says skip connections help.")).toBe("FILE");
+      expect(verdictOf("SKIP at first, then on reading the preprint: FILE")).toBe("FILE");
+      expect(verdictOf("I would file this.")).toBeNull();
+    });
+    it("does not use a structuring reply that did not finish", async () => {
+      const cut = { stop_reason: "max_tokens", content: [{ type: "text", text: JSON.stringify({ candidates: [scanCandidate("AlderFold")] }) }] };
+      const client = standIn({ structured: (notes) => notes.includes("scan notes genomics") ? cut : undefined });
+      const { summary } = await run(client, github(), ["--report-only"]);
+      expect(summary).toContain('Scan lane "genomics": triage returned no usable candidate list.');
+      expect(client.judgedNames()).toEqual([]);
+    });
+  });
+
+  describe("searches a response does not report", () => {
+    it("counts a response without server_tool_use as the full allowance, for resumes and for cost", async () => {
+      const silent = { input_tokens: 1000, output_tokens: 100 };
+      const client = standIn({
+        candidates: [scanCandidate("AlderFold")],
+        scan: () => ({ stop_reason: "pause_turn", usage: silent }),
+        judge: () => ({ stop_reason: "pause_turn", usage: silent }),
+      });
+      const { usage } = await run(client, github(), ["--report-only"]);
+      const uses = (match: string) => client.calls.filter((c) => c.kind === "stream" && String(c.params.messages[0].content).includes(match)).map((c) => c.params.tools.map((t: any) => t.max_uses));
+      // The first request is taken to have used all 8 searches and both fetches; a resume keeps the minimum of one.
+      expect(uses("Lane: genomics.")).toEqual([[8, 2], [1, 1], [1, 1]]);
+      expect(uses("Name: AlderFold")).toEqual([[3, 4], [1, 1], [1, 1]]);
+      // Three lanes of 8 + 1 + 1 searches, and one judge call of 3 + 1 + 1.
+      expect(usage!.byModel["claude-haiku-5-5"].webSearches).toBe(30);
+      expect(usage!.byModel["claude-sonnet-5-5"].webSearches).toBe(5);
+    });
+    it("still reads a reported count of zero as zero", async () => {
+      const client = standIn({ scan: (lane, request) => request === 1 ? { stop_reason: "pause_turn", usage: { input_tokens: 1, output_tokens: 1, server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 } } } : {} });
+      await run(client, github(), ["--report-only"]);
+      expect(client.calls.filter((c) => c.kind === "stream").slice(0, 2).map((c) => c.params.tools.map((t: any) => t.max_uses))).toEqual([[8, 2], [8, 2]]);
+    });
+  });
+
+  describe("candidates the judge rejected", () => {
+    const stateFile = () => join(mkdtempSync(join(tmpdir(), "discovery-")), "state", "rejected.json");
+
+    it("remembers a rejection and does not judge the candidate again the next day", async () => {
+      const state = stateFile();
+      const candidates = [scanCandidate("AlderFold", { aliases: ["Alder-Fold v1"] }), scanCandidate("BirchFold")];
+      const first = standIn({ candidates, decision: "skip" });
+      await run(first, github(), ["--state", state]);
+      expect(first.judgedNames()).toEqual(["AlderFold", "BirchFold"]);
+      const saved = JSON.parse(readFileSync(state, "utf8")).rejected;
+      expect(saved.map((r: any) => [r.name, r.date, r.reason])).toEqual([["AlderFold", "2026-11-21", "an incremental checkpoint"], ["BirchFold", "2026-11-21", "an incremental checkpoint"]]);
+      expect(saved[0].names).toEqual(["alderfold", "alder fold v 1"]);
+
+      // Next day the scan returns the first under its alias, the second again, and one new name.
+      const second = standIn({ candidates: [scanCandidate("Alder-Fold v1"), scanCandidate("BirchFold"), scanCandidate("CedarFold")] });
+      const data = github();
+      const { skipped, summary } = await run(second, data, ["--state", state], { now: new Date("2026-11-22T08:00:00Z") });
+      expect(second.judgedNames()).toEqual(["CedarFold"]);
+      expect(skipped!.find((s) => s.name === "BirchFold")?.reason).toBe("not judged again: the judge rejected it on 2026-11-21 (an incremental checkpoint); it can be judged again from 2026-12-21");
+      expect(summary).toContain("The scan returned 2 candidates that the judge rejected in the last 30 days. None was judged again.");
+      expect(data.created).toHaveLength(1);
+      // The scan is told not to return them.
+      const scan = String(second.calls[0].params.messages[0].content);
+      expect(scan).toContain("Checked in an earlier run and not filed. Do not list these either:\n- AlderFold\n- BirchFold\n");
+      expect(JSON.parse(readFileSync(state, "utf8")).rejected).toHaveLength(2);
+    });
+    it("judges a rejected candidate again once the lookback period has passed, and drops the old entry", async () => {
+      const state = stateFile();
+      await run(standIn({ candidates: [scanCandidate("AlderFold")], decision: "skip" }), github(), ["--state", state]);
+      const later = standIn({ candidates: [scanCandidate("AlderFold")] });
+      const data = github();
+      await run(later, data, ["--state", state], { now: new Date("2026-12-21T08:00:00Z") });
+      expect(later.judgedNames()).toEqual(["AlderFold"]);
+      expect(data.created).toHaveLength(1);
+      expect(JSON.parse(readFileSync(state, "utf8")).rejected).toEqual([]);
+      const entry = [{ name: "AlderFold", names: ["alderfold"], date: "2026-11-21", reason: "" }];
+      expect(findRejected({ name: "AlderFold" }, entry, "2026-12-20", 30)?.where).toBe("rejected");
+      expect(findRejected({ name: "AlderFold" }, entry, "2026-12-21", 30)).toBeNull();
+    });
+    it("records only what the judge rejected: not a filed candidate, a failed call or a refusal", async () => {
+      const state = stateFile();
+      const client = standIn({ candidates: [scanCandidate("AlderFold"), scanCandidate("BirchFold")], judge: (name) => name === "BirchFold" ? { stop_reason: "refusal", content: [] } : {} });
+      await run(client, github(), ["--state", state]);
+      expect(JSON.parse(readFileSync(state, "utf8")).rejected).toEqual([]);
+    });
+    it("runs with a missing state file, says so when it cannot be read, and writes none in a dry run", async () => {
+      const state = stateFile();
+      const { summary } = await run(standIn({ candidates: [scanCandidate("AlderFold")] }), github(), ["--state", state, "--report-only"]);
+      expect(summary).not.toContain("could not be read");
+      writeFileSync(state, "{ not json");
+      expect(readRejected(state)).toEqual([]);
+      const again = await run(standIn({ candidates: [scanCandidate("AlderFold")] }), github(), ["--state", state, "--report-only"]);
+      expect(again.summary).toContain("The rejected-candidate file could not be read");
+      const dry = stateFile();
+      await main(["--dry-run", "--fixtures", FIXTURES, "--state", dry], {}, { now, log: quiet });
+      expect(existsSync(dry)).toBe(false);
+    });
+    it("is kept between runs by the workflow, and not in a dry run", () => {
+      const workflow = readFileSync(".github/workflows/discovery.yml", "utf8");
+      expect(workflow).toContain("uses: actions/cache/restore@v4");
+      expect(workflow).toContain("restore-keys: discovery-state-");
+      expect(workflow).toContain("if: always() && env.MODE != 'dry-run' && hashFiles('discovery-state/rejected.json') != ''");
+      expect(workflow.match(/key: discovery-state-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/g)).toHaveLength(2);
+      expect(workflow).toContain('report-only) args="--report-only --out discovery-out --state discovery-state/rejected.json"');
+      expect(workflow).toContain('live) args="--out discovery-out --state discovery-state/rejected.json"');
+      expect(workflow).toContain('dry-run) args="--dry-run --out discovery-out" ;;');
+    });
+  });
+
+  describe("names under another spelling", () => {
+    const candidate = (name: string) => ({ name, aliases: [], sources: [] });
+    const known = async () => ({ issues: realIssues, storeNames: await readStoreNames(`${FIXTURES}/entities`, matchForm) });
+
+    it("drops a known resource written with other spacing, hyphens, a v before the version or a trailing .0", async () => {
+      const k = await known();
+      const refs = Object.fromEntries(["BioEmu 2.0", "BioEmu v2", "Perturb-PFN", "Torch Craft", "CycPep-Net", "HyPLMFlash", "h-EVO", "Enchant-3", "Splice AI", "Protein Gym", "Bac-former"]
+        .map((n) => [n, findDuplicate(candidate(n), k)?.ref.replace("rewire-bio/rewire-benchmark-data", "")]));
+      expect(refs).toEqual({
+        "BioEmu 2.0": "#241", "BioEmu v2": "#241", "Perturb-PFN": "#246", "Torch Craft": "#243", "CycPep-Net": "#283", "HyPLMFlash": "#233", "h-EVO": "#250",
+        "Enchant-3": "#229", "Splice AI": "#336", "Protein Gym": "discovery-benchmark-proteingym", "Bac-former": "#245",
+      });
+      expect(spellForm("Enchant v3")).toBe(spellForm("Enchant-3"));
+    });
+    it("does not drop another version, a longer or shorter word, or a short name", async () => {
+      const k = await known();
+      for (const n of ["BioEmu-3", "Enchant v4", "ESM3", "ESM-2 650M", "ProteinGym-Indels", "Mimo", "Torch", "Bac", "h-E"]) expect([n, findDuplicate(candidate(n), k)]).toEqual([n, null]);
+      // Words of a title that only run together by chance are not a name: "areas to" is not "AreaSto".
+      expect(findDuplicate(candidate("Tierrule"), k)).toBeNull();
+      // Three characters are too few to compare as a spelling.
+      expect(findDuplicate(candidate("G-PT"), { issues: [{ repo: "r", number: 1, title: "Add GPT for cells" }] })).toBeNull();
+      expect(findDuplicate(candidate("G-PTX"), { issues: [{ repo: "r", number: 1, title: "Add GPTX for cells" }] })?.ref).toBe("r#1");
+    });
+    it("gives the judge the records and requests that differ only by version or size, and no claim that the database lacks the resource", async () => {
+      const k = await known();
+      expect(nearMatches(candidate("ESM-2 650M"), k)).toEqual(['store record discovery-model-esm-2 ("esm 2")']);
+      expect(nearMatches(candidate("BioEmu-3"), k)).toEqual(["rewire-bio/rewire-benchmark-data#241: Add BioEmu-2: October 2026 research preview"]);
+      expect(nearMatches(candidate("AlderFold"), k)).toEqual([]);
+
+      const client = standIn({ candidates: [scanCandidate("ESM-2 650M"), scanCandidate("AlderFold")] });
+      await run(client, github(realIssues), ["--report-only"]);
+      const near = client.judgePrompt("ESM-2 650M");
+      expect(near).toContain('Records and requests with a similar name:\n- store record discovery-model-esm-2 ("esm 2")\nIf the candidate is one of these under another spelling, or only a size, checkpoint or minor release of it, conclude SKIP');
+      expect(near).toContain(`A script compared the name and aliases with ${realIssues.length} issue titles and 4 record-store names and found none under this spelling.`);
+      const plain = client.judgePrompt("AlderFold");
+      expect(plain).not.toContain("similar name");
+      for (const prompt of [near, plain]) expect(prompt).not.toContain("The database does not hold this resource");
+    });
+  });
+
+  describe("reading GitHub", () => {
+    it("lists open and closed issues on every page and leaves out pull requests", async () => {
+      const urls: string[] = [];
+      const pages: Record<string, any[]> = {
+        "1": [{ number: 1, title: "Add One", body: null, state: "closed", labels: [{ name: "entity-request" }], user: { login: "someone" } }, { number: 2, title: "A pull request", pull_request: {} }],
+        "2": [{ number: 3, title: "Add Three", body: "b", state: "open", labels: [] }],
+      };
+      const fake = async (url: any) => {
+        urls.push(String(url));
+        const page = /[?&]page=(\d+)/.exec(String(url))![1];
+        return { ok: true, status: 200, json: async () => pages[page], headers: { get: () => page === "1" ? '<https://api.github.com/x?page=2>; rel="next"' : null } };
+      };
+      const issues = await githubClient("t", fake as any).listIssues("rewire-bio/rewire-benchmark-data");
+      expect(urls).toEqual([1, 2].map((p) => `https://api.github.com/repos/rewire-bio/rewire-benchmark-data/issues?state=all&per_page=100&page=${p}`));
+      expect(issues.map((i: any) => [i.number, i.state, i.labels])).toEqual([[1, "closed", ["entity-request"]], [3, "open", []]]);
+    });
+    it("drops a candidate named only in a rewire.it issue", async () => {
+      const client = standIn({ candidates: [scanCandidate("AlderFold"), scanCandidate("BirchFold")] });
+      const data = github();
+      const articles = github([{ repo: "rewire-bio/rewire.it", number: 77, title: "Research AlderFold: what it changes", body: "", labels: ["article"] }]);
+      const { skipped } = await run(client, data, [], { env: { ARTICLE_TOKEN: "t" }, deps: { articleGithub: articles } });
+      expect(client.judgedNames()).toEqual(["BirchFold"]);
+      expect(skipped!.find((s) => s.name === "AlderFold")?.reason).toBe('already known, not judged: "alderfold" is in the title of rewire-bio/rewire.it#77');
+    });
   });
 });
