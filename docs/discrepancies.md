@@ -190,7 +190,7 @@ The highest revision sets the current state. Every revision is kept and publishe
 | --- | --- |
 | `action` | investigated, contacted-authors, reported-upstream, awaiting-correction, reran, corrected-records or closed |
 | `investigation_url` | Our own analysis: an issue, a dated review |
-| `date` | When this step was taken. If absent, the action's date is `reported_on` |
+| `date` | When this step was taken, not when the authors replied (that goes in `upstream_response`). If absent, the action's date is `reported_on`. The build fails if a revision is dated before an earlier one |
 | `report_url`, `reported_on` | What we raised with the authors, and when |
 | `upstream_response` | What they said |
 | `awaiting`, `expected_by` | What has to happen next, and when they said it would |
