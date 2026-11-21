@@ -183,6 +183,10 @@ class Fixture:
         return self.run("rank_for_use_case", use_case=ID["use-case"])
 
 
+def self_rank_rows(use_case: URIRef) -> list[dict]:
+    return Fixture().run("rank_for_use_case", use_case=use_case)
+
+
 class RankForUseCaseTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -332,6 +336,31 @@ class GapsTest(unittest.TestCase):
         self.assertEqual(self.fixture.run("gaps", tier=Literal(2)), [])
         self.assertEqual(self.fixture.run("gaps", use_case=ID["bench"]), [])
 
+    def test_a_use_case_without_a_tier_matches_no_tier(self) -> None:
+        fixture = Fixture()
+        fixture.asserted.remove((ID["use-case"], RB.depthTier, None))
+        self.assertEqual(self.gaps(fixture.run("gaps")), self.gaps(self.rows))
+        self.assertEqual(self.gaps(fixture.run("gaps", use_case=ID["use-case"])), self.gaps(self.rows))
+        for tier in (1, 2, 3):
+            self.assertEqual(fixture.run("gaps", tier=Literal(tier)), [], tier)
+
+    def test_level_keeps_one_level_and_use_case_rows_come_first(self) -> None:
+        fixture = Fixture()
+        for judgement in ("j1", "j2"):
+            fixture.release.remove((ID[judgement], RB.servedEvaluation, None))
+        rows = fixture.run("gaps")
+        levels = [str(r["level"]) for r in rows]
+        self.assertEqual(levels, sorted(levels, reverse=True))
+        self.assertEqual(levels[0], "use_case")
+        self.assertIn("protocol", levels)
+        for level in ("use_case", "protocol"):
+            kept = fixture.run("gaps", level=Literal(level))
+            self.assertEqual(self.gaps(kept), {row for row in self.gaps(rows) if row[0] == level}, level)
+            self.assertEqual(len(kept), levels.count(level), level)
+        self.assertEqual(fixture.run("gaps", level=Literal("use case")), [])
+        [level] = [p for p in QUERIES["gaps"]["params"] if p["name"] == "level"]
+        self.assertEqual((level["type"], level["required"]), ("string", False))
+
 
 class RecipeAndProvenanceTest(unittest.TestCase):
     @classmethod
@@ -366,6 +395,11 @@ class RecipeAndProvenanceTest(unittest.TestCase):
         self.assertEqual((local(review["status"]), local(URIRef(str(review["reviewedBy"]))), str(review["date"])),
                          ("source_checked", "claude", "2026-10-02"))
         self.assertEqual(str(rows[4]["field"]), "attributes.printed_value")
+
+    def test_provenance_is_empty_for_a_record_that_is_not_a_result(self) -> None:
+        # A use case has claims about it, an evaluation has a review and a source, a source has a review.
+        for name in ("use-case", "e1-b", "config-a", "paper", "j1", "no-such-record"):
+            self.assertEqual(self.fixture.run("provenance", result=ID[name]), [], name)
 
 
 class ReleaseGraphTest(unittest.TestCase):
@@ -419,8 +453,10 @@ class ReleaseGraphTest(unittest.TestCase):
 
     def test_a_release_needs_its_use_case_file(self) -> None:
         self.assertIsNone(build.load_use_cases("unreleased", None))
-        with self.assertRaisesRegex(build.BuildError, "use-cases.json not found"):
+        with self.assertRaisesRegex(build.BuildError, "use-cases.json not found; run npm run omics:release first") as raised:
             build.load_use_cases("1999-01-01-000000000000", None)
+        # release:fetch writes data/omics/releases/<id>/use-cases.json.gz, which the build does not read.
+        self.assertNotIn("release:fetch", str(raised.exception))
 
     def test_release_terms_are_declared_and_stay_out_of_the_reasoner(self) -> None:
         vocab = rdflib.Graph().parse(build.VOCABULARY, format="turtle")
@@ -444,6 +480,15 @@ class QueryFormatTest(unittest.TestCase):
             self.assertIn(query, build.NAMED_QUERIES)
         columns = QUERIES["rank_for_use_case"]["sparql"].split("WHERE", 1)[0]
         self.assertNotIn("score", columns.lower())
+
+    def test_use_case_parameters_say_to_look_the_record_up_by_slug(self) -> None:
+        # A record ID is not always use-case-<slug>, and a wrong IRI returns no rows without an error.
+        for name in ("rank_for_use_case", "gaps"):
+            [param] = [p for p in QUERIES[name]["params"] if p["name"] == "use_case"]
+            self.assertIn("rb:slug", param["description"], name)
+        self.assertIn("rb:slug", QUERIES["rank_for_use_case"]["description"])
+        self.assertEqual(self_rank_rows(ID["no-such-use-case"]), [])
+        self.assertEqual(self_rank_rows(ID["bench"]), [])
 
 
 if __name__ == "__main__":

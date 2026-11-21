@@ -78,7 +78,7 @@ Nothing in this graph is inferred, and no record's status, value or links change
 | Query | Parameters | Returns |
 | --- | --- | --- |
 | `rank_for_use_case` | `use_case` (IRI) | The rows of the use case's board: configurations ranked on one comparison, one column and one metric, with the result and evaluation each value is read from, its tool, origin, whether the origin is an independent study, review status, run receipt, coverage and open discrepancies |
-| `gaps` | `use_case` (IRI, optional), `tier` (integer, optional) | Use cases with no directly relevant served judgement, one study or no independent evaluation; and, per protocol a use case is assessed by, no served evidence, one study or no independent evaluation |
+| `gaps` | `use_case` (IRI, optional), `tier` (integer, optional), `level` (string, optional) | Use cases with no directly relevant served judgement, one study or no independent evaluation; and, per protocol a use case is assessed by, no served evidence, one study or no independent evaluation |
 | `recipe_for` | `subject` (IRI) | Records with run recipes (the record, what it contains and what contains it), the recipes as stored, and the run receipts on executed full-protocol instructions |
 | `provenance` | `result` (IRI) | The sources a result cites with the locator, URL, DOI, retrieval date and artifact hash; the review of the result and its evaluation; and claims about the result |
 
@@ -91,11 +91,19 @@ Nothing in this graph is inferred, and no record's status, value or links change
 - `independent` is true only for the origin `independent_paper`. A Rewire run is not counted as independent, as on the website.
 - There is no composite score. A rank holds for one protocol and one metric.
 
-Two things the graph cannot reproduce exactly. A configuration with more than one `configuration_of`, `family` or `variant_of` link gets the parent whose IRI sorts last, because RDF keeps no link order and the website takes the first link in the record (19 configurations in release 2026-11-21-4940d4f45aee, one of them on a board). IDs are ordered by code point, where the website uses locale order.
+A use case's record ID is not always `use-case-` followed by its website slug (the slug `protein-variant-stability` belongs to `use-case-protein-stability`). Find the record by `rb:slug`. A wrong IRI returns no rows, the same as a use case the release does not rank.
+
+The query is a second implementation of the website's rules, and no automated check compares the two yet. All 31 boards of release 2026-11-21-4940d4f45aee matched when compared by hand. Where the two can differ, though no board does in that release:
+
+- Parent. A configuration with more than one `configuration_of`, `family` or `variant_of` link gets the parent whose IRI sorts last, because RDF keeps no link order and the website takes the first link in the record. One such configuration is on a board.
+- Baseline tie-break. The query counts a configuration as a baseline if any of its parent links is a served baseline; the website looks at the first link only.
+- Direction. If the ranked results of one column state both directions, the query takes "lower"; the website takes the first one it reads. None of the 213 ranked columns mixes directions.
+- Order. IDs and metric qualifiers are ordered by code point (qualifiers lower-cased), where the website uses locale order, on the display label for qualifiers.
+- Last evaluation and first result. The query orders evaluations and results by IRI; the website uses the order in `use-cases.json`. Every judgement lists its evaluations in sorted order.
 
 `recipe_for` returns what the store records today. It does not return a pointer to a recipe file in rewire-benchmarks or a verified status for one, because the store has no such field yet (ADR 0005 is proposed, not accepted). A recipe file there names its store recipe in `store_recipe_id` and its record in `kg_record_id`, so the join can be made from that side. A receipt is evidence for the stored instruction it is attached to, not for a recipe file written later.
 
-In `gaps`, a study is a DOI, or a source and the paper it is a `companion_of`. Most protocols come from one paper, so `single_source` at the protocol level is the common case; the use-case level is the more useful signal.
+In `gaps`, a study is a DOI, or a source and the paper it is a `companion_of`. Most protocols come from one paper, so `single_source` at the protocol level is the common case; the use-case level is the more useful signal. Use-case rows come first, and `level` set to `use_case` returns only those (18 rows of 616 in release 2026-11-21-4940d4f45aee). A use case with no depth tier is left out when `tier` is set.
 
 ## Commands
 
@@ -110,7 +118,7 @@ npm run kg:bundle       # export, then kg:build: the whole bundle for the curren
 npm run test:kg         # vocabulary and inference tests
 ```
 
-`npm run build` does not build the knowledge graph; run `npm run kg:bundle` after it. For a release, `kg:build` reads `public/omics/releases/<release id>/use-cases.json`, which `npm run omics:release` writes and `npm run release:fetch` downloads. The KG build needs [uv](https://docs.astral.sh/uv/), which installs the pinned Python dependencies in `scripts/kg/requirements.txt`. It takes about two minutes locally and 1.5 GB of memory. `kg:shapes` skips property shapes on links only the reasoner creates (property chains and inverses); it runs on every pull request. `records -- add` and `records -- change` run the same shapes on a subset: the records they wrote, the records that link to them, and the records those link to. Violations on the last group are ignored, because their own links lead outside the subset. The output is sorted and deterministic: the same release, mapping and vocabulary give byte-identical files.
+`npm run build` does not build the knowledge graph; run `npm run kg:bundle` after it. For a release, `kg:build` reads `public/omics/releases/<release id>/use-cases.json`, which `npm run omics:release` writes. `npm run release:fetch` does not provide it: it writes gzipped files under `data/omics/releases/`. The KG build needs [uv](https://docs.astral.sh/uv/), which installs the pinned Python dependencies in `scripts/kg/requirements.txt`. Measured on release 2026-11-21-4940d4f45aee, it takes eight to nine minutes locally and about 6 GB of memory. `kg:shapes` skips property shapes on links only the reasoner creates (property chains and inverses); it runs on every pull request. `records -- add` and `records -- change` run the same shapes on a subset: the records they wrote, the records that link to them, and the records those link to. Violations on the last group are ignored, because their own links lead outside the subset. The output is sorted and deterministic: the same release, mapping and vocabulary give byte-identical files.
 
 To update a pinned vocabulary, download it, re-run the extraction command in `data/ontology/imports/sources.json` where one is listed, update the checksum there, and review the change in the inferred graph.
 

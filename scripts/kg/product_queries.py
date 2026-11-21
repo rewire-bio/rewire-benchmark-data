@@ -265,11 +265,14 @@ def evidence(s: str, protocol: str = "") -> str:
           BIND(IF(COALESCE(?origin{s} = <{ORIGIN}independent_paper>, false), 1, 0) AS ?isIndependent{s})"""
 
 
+# A use case with no depth tier counts as tier -1, so that a given tier does not match it: an
+# unbound ?depthTier would make the comparison an error, which COALESCE turns into true.
+# Use-case rows come first: they are few, and protocol rows are mostly single_source.
 GAPS = f"""SELECT ?useCase ?useCaseName ?depthTier ?level ?protocol ?protocolName ?gap ?evaluations ?studies WHERE {{
   ?useCase a rb:UseCase ; rdfs:label ?useCaseName .
   OPTIONAL {{ ?useCase rb:depthTier ?depthTier }}
   FILTER(COALESCE(?useCase = $use_case, true))
-  FILTER(COALESCE(?depthTier = $tier, true))
+  FILTER(COALESCE(COALESCE(?depthTier, -1) = $tier, true))
   {{
     ?useCase a rb:UseCase .
     OPTIONAL {{
@@ -300,7 +303,8 @@ GAPS = f"""SELECT ?useCase ?useCaseName ?depthTier ?level ?protocol ?protocolNam
         || (?gap = "single_source" && ?studies = 1)
         || (?gap = "no_independent_result" && ?evaluations > 0 && ?independentP = 0))
   }}
-}} ORDER BY ?useCase ?level ?protocol ?gap"""
+  FILTER(COALESCE(?level = $level, true))
+}} ORDER BY DESC(?level) ?useCase ?protocol ?gap"""
 
 RECIPE_FOR = f"""SELECT ?record ?recordName ?storeRecipes ?fullProtocolReceipt ?receiptName ?receiptUrl ?receiptRevision ?receiptDate WHERE {{
   {{ ?record rb:runRecipes ?storeRecipes . FILTER(?record = $subject) }}
@@ -316,9 +320,11 @@ RECIPE_FOR = f"""SELECT ?record ?recordName ?storeRecipes ?fullProtocolReceipt ?
   }}
 }} ORDER BY ?record ?fullProtocolReceipt"""
 
+# Only a result has provenance here: another record's IRI returns nothing. The isIRI filter drops
+# the one empty group rdflib returns when the review subquery matches nothing.
 PROVENANCE = f"""SELECT ?step ?record ?name ?locator ?url ?doi ?retrieved ?sha256 ?status ?reviewedBy ?reviewMethod ?date ?field ?value WHERE {{
   {{
-    $result {SOURCE} ?record ; rb:sourceLocator ?locator .
+    $result a rb:Result ; {SOURCE} ?record ; rb:sourceLocator ?locator .
     ?record rdfs:label ?name ; rb:status ?status .
     OPTIONAL {{ ?record {URL} ?url }}
     OPTIONAL {{ ?record rb:doi ?doi }}
@@ -328,6 +334,7 @@ PROVENANCE = f"""SELECT ?step ?record ?name ?locator ?url ?doi ?retrieved ?sha25
   }} UNION {{
     {{ SELECT ?record ?name ?status ?date (GROUP_CONCAT(DISTINCT STR(?by); separator=" ") AS ?reviewedBy)
              (GROUP_CONCAT(DISTINCT STR(?method); separator=" ") AS ?reviewMethod) WHERE {{
+      $result a rb:Result .
       {{ BIND($result AS ?record) }} UNION {{ $result rb:evaluation ?record }}
       ?record rdfs:label ?name ; rb:status ?status .
       OPTIONAL {{ ?record rb:reviewedBy ?by }}
@@ -336,8 +343,10 @@ PROVENANCE = f"""SELECT ?step ?record ?name ?locator ?url ?doi ?retrieved ?sha25
       OPTIONAL {{ ?record rb:reviewedAt ?reviewedAt }}
       BIND(COALESCE(STR(?reviewDate), STR(?reviewedAt)) AS ?date)
     }} GROUP BY ?record ?name ?status ?date }}
+    FILTER(isIRI(?record))
     BIND("review" AS ?step)
   }} UNION {{
+    $result a rb:Result .
     ?record rb:subject $result ; rdfs:label ?name ; rb:status ?status ; rb:claimField ?field .
     OPTIONAL {{ ?record rb:value ?value }}
     OPTIONAL {{ ?record rb:sourceLocator ?locator }}
@@ -364,11 +373,14 @@ QUERIES = [
         "given in receipt), coverage (evaluated: how many of the use case's served comparisons score the "
         "tool; relevant: how many there are) and the unsettled discrepancies the ranked result takes part in "
         "(openFindings, IRIs separated by spaces). No composite score: a rank holds for this protocol only. "
-        "No rows means the release ranks nothing for the use case.",
+        "No rows means the release ranks nothing for the use case, or that use_case is not a use case record. "
+        "A record ID is not always use-case- followed by the website slug: find the record by its slug, "
+        '?useCase rb:slug "protein-variant-stability".',
         "sparql": RANK_FOR_USE_CASE,
         "params": [
             {"name": "use_case", "type": "iri", "required": True,
-             "description": "The use case record, e.g. id:use-case-splicing-follow-up."},
+             "description": "The use case record, e.g. id:use-case-splicing-follow-up. Look it up by rb:slug; "
+             "do not build it from the website slug."},
         ],
     },
     {
@@ -380,13 +392,17 @@ QUERIES = [
         "study). For each protocol a use case is assessed by (level protocol): no_served_evidence (the "
         "release serves no evaluation on it for this use case), single_source and no_independent_result. "
         "evaluations and studies are the counts behind the row. A study is a DOI, or a source and the "
-        "paper it is a companion of.",
+        "paper it is a companion of. Use-case rows come first. With no parameter the result is several "
+        "hundred rows, most of them protocols with one study: set level to use_case for the short list.",
         "sparql": GAPS,
         "params": [
             {"name": "use_case", "type": "iri", "required": False,
-             "description": "Only this use case, e.g. id:use-case-splicing-follow-up. Leave unset for all."},
+             "description": "Only this use case, e.g. id:use-case-splicing-follow-up (look it up by rb:slug). "
+             "Leave unset for all."},
             {"name": "tier", "type": "integer", "required": False,
              "description": "Only use cases of this depth tier: 1, 2 or 3 (docs/tiers.md). Leave unset for all."},
+            {"name": "level", "type": "string", "required": False,
+             "description": "Only rows of this level: use_case or protocol. Leave unset for both."},
         ],
     },
     {
@@ -413,7 +429,7 @@ QUERIES = [
         "cites, with the locator of the value in it, its URL and DOI, when its artifact was retrieved and the "
         "artifact's SHA-256. step review: the review of the result and of its evaluation (status, reviewers, "
         "methods and date). step claim: each claim about the result, such as a correction or a discrepancy "
-        "review, with the field it is about and its date.",
+        "review, with the field it is about and its date. No rows means result is not a result record.",
         "sparql": PROVENANCE,
         "params": [
             {"name": "result", "type": "iri", "required": True,

@@ -493,7 +493,8 @@ def load_use_cases(release_id: str, path: Path | None) -> dict | None:
             return None
         path = ROOT / "public" / "omics" / "releases" / release_id / "use-cases.json"
     if not path.exists():
-        raise BuildError(f"{path} not found; run npm run omics:release (or npm run release:fetch) first")
+        # release:fetch does not help: it writes gzipped files under data/omics/releases/.
+        raise BuildError(f"{path} not found; run npm run omics:release first, on the commit the release was cut from")
     return json.loads(path.read_text("utf-8"))
 
 

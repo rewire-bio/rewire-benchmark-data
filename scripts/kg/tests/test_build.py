@@ -877,7 +877,7 @@ class DiscrepancyTest(unittest.TestCase):
         dataset.default_union = True
         node = URIRef(build.ID + found["id"])
         given = {"severity": Literal("medium"), "system": ID.modelA, "discrepancy": node,
-                 "use_case": ID.useCase, "tier": Literal(1), "subject": ID.protocol, "result": ID["result-3-0-a"]}
+                 "use_case": ID.useCase, "tier": Literal(1), "level": Literal("use_case"), "subject": ID.protocol, "result": ID["result-3-0-a"]}
         rows = {}
         for query in build.NAMED_QUERIES:
             names = {p["name"] for p in query["params"]}
