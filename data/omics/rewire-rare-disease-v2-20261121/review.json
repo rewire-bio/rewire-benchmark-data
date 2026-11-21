@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "method": "automated_source_review",
+  "review_methods": [
+    "execution-evidence-review",
+    "source-hash-verification"
+  ],
+  "reviewer": "Claude agent, automated. One agent wrote the generator and ran the checks; a second automated pass reviewed the draft and the batch was rebuilt to fix its findings. No human review",
+  "reviewed_at": "2026-11-21T14:00:00Z",
+  "scope": "229 records for Rewire's rare-disease-v2 study in rewire-bio/amp-2026-studies at commit 3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19 (tag amp-2026-v7). extract/build_batch.py reads each value as the literal JSON number token at a recorded pointer, re-reads every pointer and interval from the same bytes after building, and asserts record counts, the main filters, the score count per case set, the gnomAD split flags, the run that produced each Evo 2 score and which records cite each Evo 2 receipt. All eleven source files were downloaded again from their raw URLs and hash to the recorded SHA-256. Details are in docs/reviews/2026-11-21-rare-disease-v2-records.md.",
+  "limitations": [
+    "A second automated pass found three faults in the first draft (a receipt cited on case sets it supplied no ranked score for, the split text, and the wording of the gnomAD concern). The batch was rebuilt to fix them. No human reviewed it.",
+    "Nothing was rerun. No GPU or paid run was made.",
+    "The study is the project's own, not an independent reproduction.",
+    "npm run batch -- check-values was not run: it parses table and row locators, not JSON pointers. The generator's own re-read replaces it.",
+    "The 135 results raise check C1, rule minority-unit, by 135: they carry unit fraction, as the files do, and the store's majority unit for top-k accuracy is percent."
+  ],
+  "errors": [],
+  "files": {
+    "batch.jsonl": "e0936025c9baab4dfcd0e6e11d6eac12b017e1577bb2d8586167961d550bd03f",
+    "extract/build_batch.py": "d21429f414f7b4948a5e68e253f919ef50c7e3fc68d7c319a9235ead2c76df94",
+    "notes.md": "7c9e5b4eced1e895c896b5988be0d69b87bb131ae00911baec84482d34aa9cc8"
+  },
+  "source_artifacts": {
+    "rewire-local-20261121-rdv2-receipt-evo2-run": "fc161ed5d7d061de4445d33a1fdde87aaef212d0e941ed81733d7aef3c5bb3b4",
+    "rewire-local-20261121-rdv2-receipt-evo2-run-extra": "a53128489d205f05d9b599adebc339bf56e0560730f403a50d5a456ad36434ed",
+    "rewire-local-20261121-rdv2-receipt-evo2-run2": "d937576844eec7a416f224c6d2bf4ccaa68d2517fbe13b9d1c2842ca1721ede0",
+    "rewire-local-20261121-rdv2-receipt-evo2-run3": "ed533ea8cb514a72d904e7622c1d2465f55c99b4c31f8f8fabc2c58767593d51",
+    "rewire-local-20261121-rdv2-source-analysis-snv-indel": "f7f2d75e3be1df390c5429e4cc730389cdc42f9fc33e1e4a6d31edc993de189c",
+    "rewire-local-20261121-rdv2-source-protocol": "1cd87827233991a886601526908cda1c08d8f5c50a2bb6e83367a7e9cf554a47",
+    "rewire-local-20261121-rdv2-source-readme": "570ab11fba7a829fc8abe355ab5968bda9070ed8a8c909d77da727c7d144798b",
+    "rewire-local-20261121-rdv2-source-results-indel-120": "84f688bb18d08390bc62ff72726efc9e2d981503acc0936cb7a308745c3ab88c",
+    "rewire-local-20261121-rdv2-source-results-replication-500": "b50c2a14c02fa4a1d86047895d09eb8ed9d2daa52b9848d57bf5da01fb347023",
+    "rewire-local-20261121-rdv2-source-results-snv-200": "052f7beb544f826333a1b627b6beadd77aa26fcb3e5e0fe53d73064f011901bc",
+    "rewire-local-20261121-rdv2-source-results-snv-all1kg": "e4e5292ecdbcfdf248ea576b6074fcb05179b8c42b9b597c932fe7e442d9d38b"
+  }
+}
