@@ -115,7 +115,7 @@ export const LIMITS = {
   issueMinutes: 20, // one issue's process in a queued run
   mergeablePolls: 6, // reads of a pull request while GitHub has not yet said whether it merges
   mergeablePollSeconds: 5,
-  refreshesPerPull: 20, // rebuilds of one pull request on its base branch before a person is asked; a second rebuild on the same commit of the base branch asks at once
+  refreshesPerPull: 20, // rebuilds of one pull request on its base branch before a person is asked
 };
 
 export const KINDS = ['model', 'method', 'benchmark', 'dataset'];
@@ -2949,9 +2949,13 @@ async function refresh(args, env, deps) {
     // A push GitHub refused over a workflow file is refused again until the token changes, so a
     // run after a push to the base branch leaves the pull request; a run that names it tries.
     if (!args.pr && recent.some((m) => m.kind === 'refused')) return skip('an earlier push of its rebuild was refused over a workflow file; a manual run that names this pull request tries again');
+    // A commit built on this commit of the base branch cannot conflict with it. So either the
+    // base branch moved after the job checked it out, or GitHub's answer is an old one. Nothing is
+    // wrong with the pull request: no second rebuild on the same commit, no label, and the run
+    // after the next push looks again.
+    if (base && marks.some((m) => m.kind === 'refreshed' && m.base === base)) return skip(`it was rebuilt on ${short(base)} already, which is the commit this run would build on; the next run looks again`);
     // The count is of the whole life of the pull request, so it is high: every other batch that
-    // merges takes one. A rebuild on a commit it was already rebuilt on is the sign of a loop.
-    if (base && marks.some((m) => m.kind === 'refreshed' && m.base === base)) return await handOver(`it was rebuilt on ${short(base)} already and conflicts with it again`);
+    // merges takes one.
     if (refreshes >= LIMITS.refreshesPerPull) return await handOver(`it was rebuilt ${refreshes} times already and conflicts again`);
 
     // 3. The batch on the base branch, added again and checked.

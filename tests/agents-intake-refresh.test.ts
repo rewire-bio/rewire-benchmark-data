@@ -247,8 +247,6 @@ describe("a live refresh, with fakes", () => {
       [{ files: [...fixture.files, { filename: "data/omics/intake-350-20261122/batch.jsonl", status: "added" }] }, "it has 2 intake batch files, not one"],
       [{ files: fixture.files.map((x: any) => ({ ...x, filename: x.filename.replace("intake-350-", "intake-349-") })) }, "its batch folder data/omics/intake-349-20261121 is not one of issue #350, which its branch names"],
       [{ comments: Array(LIMITS.refreshesPerPull).fill(refreshed) }, `it was rebuilt ${LIMITS.refreshesPerPull} times already and conflicts again`],
-      // A rebuild on the commit of main it was rebuilt on before is a loop, whatever the count.
-      [{ comments: [{ user: BOT_LOGIN, body: renderRefreshComment({ kind: "refreshed", pull: fixture.pull, base: BASE, lines: 4 }) }] }, `it was rebuilt on ${BASE.slice(0, 7)} already and conflicts with it again`],
       // A second commit that is not the intake's revision is a person's; one rebuilt commit would replace it.
       [{ pull: { commits: 2 } }, "it has 2 commits and was not revised by the intake agent, so someone added to it by hand"],
     ] as const) {
@@ -264,7 +262,12 @@ describe("a live refresh, with fakes", () => {
     expect(some.bodies[0]).toContain(`"n":${LIMITS.refreshesPerPull}`);
     // The count is of the pull request's whole life, and every other batch that merges takes one.
     expect(LIMITS.refreshesPerPull).toBeGreaterThanOrEqual(15);
-    // A rebuild on another commit of main does not count as a loop.
+    // Already rebuilt on the commit of main this run would build on: a commit on it cannot
+    // conflict with it, so GitHub's answer is old or main has moved. Not rebuilt twice, not labelled.
+    const same = fakes({ comments: [{ user: BOT_LOGIN, body: renderRefreshComment({ kind: "refreshed", pull: fixture.pull, base: BASE, lines: 4 }) }] });
+    expect((await refreshOne(same)).outcome).toBe(`skipped: it was rebuilt on ${BASE.slice(0, 7)} already, which is the commit this run would build on; the next run looks again`);
+    expect(commandsOf(same.log)).toEqual(["git rev-parse HEAD"]);
+    expect(writesOf(same.log)).toEqual([]);
     const moved = fakes({ comments: [{ user: BOT_LOGIN, body: renderRefreshComment({ kind: "refreshed", pull: fixture.pull, base: "b".repeat(40), lines: 4 }) }] });
     expect((await refreshOne(moved)).outcome).toBe("refreshed");
     // A revised pull request has two commits, the marker and revision.json: it is rebuilt.
@@ -712,7 +715,7 @@ describe("where an issue stands in the queue", () => {
     expect(queueState([failed])).toEqual({ state: "retry", attempts: 1 });
     expect(queueState(Array(LIMITS.queueAttempts - 1).fill(failed)).state).toBe("retry");
     expect(queueState(Array(LIMITS.queueAttempts).fill(failed))).toEqual({ state: "exhausted", attempts: LIMITS.queueAttempts });
-    // A person removing and re-adding the label starts a run of its own; the count is not reset by that.
+    // Without the time of the label, every attempt counts. With it, a label added again starts the count at none (below).
     expect(queueState([...issue347, failed, failed]).state).toBe("exhausted");
   });
 
