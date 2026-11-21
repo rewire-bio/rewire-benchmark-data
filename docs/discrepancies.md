@@ -190,7 +190,7 @@ The highest revision sets the current state. Every revision is kept and publishe
 | --- | --- |
 | `action` | investigated, contacted-authors, reported-upstream, awaiting-correction, reran, corrected-records or closed |
 | `investigation_url` | Our own analysis: an issue, a dated review |
-| `date` | When this step was taken. If absent, the action's date is `reported_on` |
+| `date` | When this step was taken, not when the authors replied (that goes in `upstream_response`). If absent, the action's date is `reported_on`. The build fails if a revision is dated before an earlier one |
 | `report_url`, `reported_on` | What we raised with the authors, and when |
 | `upstream_response` | What they said |
 | `awaiting`, `expected_by` | What has to happen next, and when they said it would |
@@ -292,7 +292,7 @@ The bundle's `derived.nq` holds the findings and their actions in the graph `htt
 | `discrepancy_history` | `discrepancy` (IRI, required, e.g. `id:discrepancy-52a714eb6bb63442`) | the finding's follow-up actions in revision order: type, resulting state, date, URL, next check, claim |
 | `contested_results_for_use_case` | `use_case` (IRI, required, e.g. `id:use-case-patient-rna-splicing-validation`) | results on the use case's protocols that an unsettled finding rests on, with their role (`outlier` or `consensus`) |
 
-Install the server with `uvx --from git+https://github.com/rewire-bio/rdf-kg-mcp@v0.2.0 rdf-kg-mcp serve <bundle>` ([linked-data.md](linked-data.md#bundle)). `list_queries` lists them and `run_query` runs one. `sparql_query` with `graphs: ["derived"]` runs any other read-only query, for example:
+Install the server with `uvx --from git+https://github.com/rewire-bio/rdf-kg-mcp@v0.4.0 rdf-kg-mcp serve <bundle>` ([linked-data.md](linked-data.md#bundle)). `list_queries` lists them and `run_query` runs one. `sparql_query` with `graphs: ["derived"]` runs any other read-only query, for example:
 
 ```sparql
 PREFIX rb: <https://benchmarks.rewire.it/vocab#>

@@ -786,6 +786,12 @@ def reviews(index: Index) -> Reviews:
         revisions = [c["revision"] for c in items]
         for revision in sorted({n for n in revisions if revisions.count(n) > 1}):
             problems.append(f"{target}: more than one accepted review claim has revision {revision}")
+        # A date is the day the step was taken, so it cannot fall before an earlier revision's.
+        dated = [c for c in items if c["date"] is not None]
+        for earlier, later in zip(dated, dated[1:]):
+            if str(later["date"]) < str(earlier["date"]):
+                problems.append(f"{target}: revision {later['revision']} is dated {later['date']}, before revision "
+                                f"{earlier['revision']} ({earlier['date']})")
     return Reviews(dict(actions), dict(previous), problems)
 
 

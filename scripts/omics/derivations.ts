@@ -16,9 +16,10 @@ type Derivation = {
   script_sha256: string;
 };
 
-/** Origins whose evaluation was run by the source's authors or by another paper's authors. A
- * Rewire execution or a paper's quotation of another paper's result cannot carry a derivation. */
-const derivableOrigins = new Set(["author_reported", "independent_paper", "unreported"]);
+/** Origins whose evaluation was run by the source's authors or by another paper's authors, or
+ * published in a benchmark's own results file. A Rewire execution or a paper's quotation of
+ * another paper's result cannot carry a derivation. */
+const derivableOrigins = new Set(["author_reported", "benchmark_reported", "independent_paper", "unreported"]);
 
 export function derivationIssues(records: RecordEntry[], root = "."): string[] {
   const byId = new Map(records.map((record) => [record.id, record]));

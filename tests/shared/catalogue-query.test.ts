@@ -62,6 +62,19 @@ test("pagination is bounded, stable and rejects reuse across filters or releases
   );
 });
 
+test("the literature filter counts a benchmark's own results file and leaves out a Rewire run", () => {
+  const total = (origin: string, filter: string) => {
+    const source = fixture();
+    source.records.find((r: any) => r.id === "evaluation-one").attributes.origin = origin;
+    // The origin filter applies to evaluations and results only.
+    return createCatalogueQuery(source).list({ kind: "evaluation", origin: filter }).total;
+  };
+  assert.equal(total("benchmark_reported", "literature"), 1);
+  assert.equal(total("benchmark_reported", "benchmark_reported"), 1);
+  assert.equal(total("benchmark_reported", "rewire"), 0);
+  assert.equal(total("rewire_run", "literature"), 0);
+});
+
 test("excluded and private records cannot leak through queries or imports", () => {
   const source = fixture();
   source.records.find((r: any) => r.id === "model-one").status = "excluded";

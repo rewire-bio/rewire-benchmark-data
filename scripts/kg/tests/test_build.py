@@ -703,6 +703,18 @@ class DiscrepancyTest(unittest.TestCase):
         self.claim(graph, "r1b", found["id"], "reported-upstream", 1)
         self.assertEqual(len(self.derived(graph).problems), 1)
 
+    def test_a_revision_dated_before_an_earlier_one_fails(self) -> None:
+        graph = disagreement()
+        [found] = self.reversals(self.derive(graph)[1])
+        self.claim(graph, "r1", found["id"], "investigating", 1, "investigated", "2026-10-23")
+        self.claim(graph, "r2", found["id"], "explained", 2, "investigated")
+        self.claim(graph, "r3", found["id"], "explained", 3, "contacted-authors", "2026-11-21", reported_on="2026-10-15")
+        self.assertEqual(self.derived(graph).problems, [])
+        # The reply date, or the reported date a missing date falls back to, is before revision 1.
+        self.claim(graph, "r4", found["id"], "explained", 4, "contacted-authors", reported_on="2026-10-15")
+        [problem] = self.derived(graph).problems
+        self.assertIn("revision 4 is dated 2026-10-15, before revision 3 (2026-11-21)", problem)
+
     def test_previous_ids_map_claims_forward(self) -> None:
         graph = disagreement()
         [found] = self.reversals(self.derive(graph)[1])
