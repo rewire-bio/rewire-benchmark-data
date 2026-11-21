@@ -42,11 +42,14 @@ export async function commitRelease({ releaseId, cwd = process.cwd(), attempts =
       if (attempt >= attempts) throw new Error(`Could not push the release after ${attempt} attempts: ${String(error.stderr || error.message).trim()}`);
     }
     await wait(attempt);
-    // A pull request merged while this release was being cut. The next run releases it.
     git('fetch', 'origin', 'main');
-    git('checkout', '--detach', 'FETCH_HEAD');
+    const remote = git('rev-parse', 'FETCH_HEAD');
+    // The push failed for another reason and main is where this push expects it: push again.
+    try { git('merge-base', '--is-ancestor', remote, 'HEAD'); continue; } catch { /* main has moved */ }
+    // A pull request merged while this release was being cut. The next run releases it.
+    git('checkout', '--detach', remote);
     git('merge', '--no-ff', '-m', message, release);
-    log(`main moved to ${git('rev-parse', 'FETCH_HEAD')}; merged release commit ${release} into it.`);
+    log(`main moved to ${remote}; merged release commit ${release} into it.`);
   }
   const main = git('rev-parse', 'HEAD');
   if (main !== release) git('checkout', '--detach', release);

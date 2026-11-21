@@ -99,6 +99,18 @@ describe("release commit", () => {
     expect(fs.readFileSync(path.join(runner, "shared/omics/locator.ts"), "utf8")).toBe("export const built = true;\n");
   });
 
+  it("pushes the same commit again, without a merge, when a push fails and main has not moved", async () => {
+    const { origin, runner } = repositories();
+    const built = build(runner);
+    // The origin refuses the first push only.
+    const hook = path.join(origin, "hooks", "pre-receive");
+    fs.writeFileSync(hook, '#!/bin/sh\nif [ ! -e "$GIT_DIR/refused" ]; then touch "$GIT_DIR/refused"; exit 1; fi\n', { mode: 0o755 });
+    const result = await commitRelease(options(runner));
+    expect(fs.existsSync(path.join(origin, "refused"))).toBe(true);
+    expect(result.main).toBe(result.release);
+    expect(git(origin, "rev-list", "--parents", "-n", "1", "main").split(" ")).toEqual([result.release, built]);
+  });
+
   it("gives up after the allowed attempts", async () => {
     const { other, runner } = repositories();
     build(runner);

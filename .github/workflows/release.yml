@@ -123,7 +123,9 @@ jobs:
           # release commit is then merged into the new main, not rebased onto it, so it still
           # holds exactly the code the release was built with (#267). The next run releases
           # that pull request.
-          echo "sha=$(node scripts/release/commit.mjs commit "$RELEASE")" >> "$GITHUB_OUTPUT"
+          # Assigned first: a failure inside `echo "$(...)"` would not fail the step.
+          sha=$(node scripts/release/commit.mjs commit "$RELEASE")
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
       # rewire-database copies shared code from the tagged commit. Published assets are never
       # replaced, so check the commit before anything is published.
       - name: Check the release commit sits on the commit the release was built from
