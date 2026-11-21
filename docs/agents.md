@@ -8,16 +8,46 @@ Agents that run from GitHub Actions and call the Claude API. They are paid from 
 
 What it does:
 
-1. Haiku 5.5 searches the web for AI-for-biology models, methods, benchmarks and datasets announced in the last three days (web search and web fetch server tools). Set the repository variable `DISCOVERY_SCAN_MODEL` to `claude-sonnet-5-5` to scan with Sonnet instead.
-2. Haiku 5.5 turns the notes into a candidate list. The script drops candidates that are out of scope or whose name is already in an issue title or the record store.
-3. Sonnet 5.5 checks each remaining candidate against its primary sources (up to six a run). Haiku 5.5 turns those notes into fixed fields.
+1. Haiku 5.5 searches the web for AI-for-biology models, methods, benchmarks and datasets that the database does not hold yet (web search and web fetch server tools). It makes one call for each of three lanes: genomics, proteins, and cells and other biology. Set the repository variable `DISCOVERY_SCAN_MODEL` to `claude-sonnet-5-5` to scan with Sonnet instead.
+2. Haiku 5.5 turns each lane's notes into a candidate list. The script drops candidates whose name is already in an issue title or the record store, then those the judge rejected in the last 30 days, then those triage calls out of scope or weak.
+3. Sonnet 5.5 checks each remaining candidate against its primary sources (up to six a run, taken from the lanes in turn). It is given the records and requests whose name differs only by a version or size. Haiku 5.5 turns those notes into fixed fields. Notes that end with SKIP are never filed, whatever the fixed fields say, and notes cut off at the output limit are dropped.
 4. The script deduplicates again, on names, aliases, DOIs, arXiv IDs and GitHub or Hugging Face repositories, against:
    - every open and closed issue in this repository, and in rewire.it when it has a token;
    - the names in `data/entities/` (read line by line, not through the record store loader);
    - the article links on rewirebio.io/blog.
-5. For each new candidate, up to four a run, it files:
-   - **a data issue here**, labelled `entity-request` and `tier-1`, `tier-2` or `tier-3`. The depth tier comes from the candidate's areas by the rule in [tiers.md](tiers.md). Tier 1 and 2 issues ask for full records; tier 3 issues ask for a metadata-only record.
+5. For each new candidate, up to four a day, it files:
+   - **a data issue here**, labelled `entity-request` and `tier-1`, `tier-2` or `tier-3`. The depth tier comes from the candidate's areas by the rule in [tiers.md](tiers.md). Tier 1 and 2 issues ask for full records; tier 3 issues ask for a metadata-only record. The intake agent reads the `tier-3` label to decide whether its pull request closes the issue.
    - **an article issue in rewire.it**, labelled `article`, for every tier. When a published article already covers the resource, the data issue links it instead.
+
+### What counts as new
+
+New means new to the database, not released this week. The scan looks first at resources released or first announced in the last 30 days (`--lookback-days`), and an older resource is still a candidate when the database lacks it. Release age never drops a candidate. It only decides the order: within a lane, candidates released inside the 30 days are judged first, then undated ones, then older ones.
+
+Why 30 days and not 3. The first three scheduled runs (18 to 20 November 2026) asked for the last three days and filed nothing: 9 of their 18 candidates were dropped for their release date alone. In the same month the old local automation filed resources that were weeks or months old when it found them: RFD4-Proteína 22 days after release, MIMOSA 48 days after its preprint, SEPIQ 2026 five months after publication. A resource usually becomes findable some weeks after its date: the preprint is indexed, the code and weights follow, other papers start to cite it. Thirty days covers that lag and keeps the search queries specific to a recent period. A longer period costs nothing more, because the search count is fixed.
+
+### Known resources
+
+Three checks keep a known resource from being filed twice.
+
+- The scan is shown the titles of the 60 most recent requests in this repository and told not to return them. A request is an issue this script filed, one labelled `entity-request`, or one titled "Add <Name> ...".
+- The script does not rely on that. Before judging, it drops every candidate whose name or alias is in the title of any issue, open or closed, or in the record store. The scheduled run of 20 November returned five names from its own list; `tests/agents-discovery.test.ts` replays that reply and checks that none reaches the judge.
+- After judging, it checks again with the primary identifiers.
+
+Issues filed by hand or by the old automation have no marker, so they are matched by the name in the title, whoever opened them. Names are compared without accents and with letters split from digits, so "RFD4-Proteina" matches "RFD4-Proteína" and "BioEmu2" matches "BioEmu-2".
+
+A name of four characters or more is also compared as a spelling: without spaces or hyphens, without a "v" before a version number, and without a trailing ".0". So "Torch Craft", "HyPLMFlash", "Enchant-3" and "BioEmu 2.0" match the requests for TorchCraft, HyPLM-Flash, Enchant v3 and BioEmu-2, and "Alpha Genome" matches a stored AlphaGenome. In a title, one word (what stands between two spaces) and the version after it are compared; two separate words are not joined, so "the tier rule" does not match a resource called TierRule.
+
+A different version or a size is not a match: "BioEmu-3", "ESM3" and "ESM-2 650M" go to the judge. The judge is told which records and requests have the same name without its version or size, and to skip the candidate when it is one of them under another spelling, or only a size, checkpoint or minor release of it. The judge is not told that the database lacks the resource. It is told what the script compared.
+
+The script stops before any model call when it reads no name from `data/entities/`. A store that had moved, or a checkout without it, would otherwise make every stored resource look new.
+
+### Rejected candidates
+
+A candidate the judge rejects is remembered for the lookback period (30 days) and not judged again in that time. Without this, the same rejected candidates would take the six judge slots every day. The scan is also told not to return them. Only a SKIP verdict is remembered: a refusal, a failed call or a filed candidate is not.
+
+The list is `discovery-state/rejected.json` (`--state`), kept between runs in the Actions cache. A cache cannot be overwritten, so each run saves under its own key and restores the newest. GitHub removes a cache that is not read for seven days, and a cache can be deleted by hand. Losing it costs judging those candidates once more and nothing else. `report-only` runs read and write the list too; dry runs do not.
+
+The cap of four is per day. The script counts the issues it already filed on the run date (by their marker and creation date), so a second live run on the same day files only the remainder. The day is the UTC date, so a run just before 00:00 UTC and one just after can file four each. Issues without the marker, such as those of the old local automation, are not counted. `--max-pairs` must be a whole number; anything else stops the run.
 
 Each issue carries a hidden `discovery-key` marker so later runs recognise it.
 
@@ -38,18 +68,20 @@ Locally: `node scripts/agents/discovery.mjs --dry-run --out /tmp/discovery` writ
 1. Add the repository or organisation secret `ANTHROPIC_API_KEY`, from the Console organisation linked to the plan's API credits. Without it every run passes with a notice and does nothing.
 2. Run "Discovery scan" by hand with mode `report-only` and check the summary: the candidates, the skipped reasons and the cost.
 3. Then the daily schedule files issues on its own. Run it by hand in `live` mode if you do not want to wait.
-4. Optional, for article issues in rewire.it: set the organisation variable `REWIRE_BOT_APP_ID` and the secret `REWIRE_BOT_PRIVATE_KEY` for a GitHub App installed on rewire.it with issues read and write. Without it, each article request is a section at the### Limits and cost
+4. Optional, for article issues in rewire.it: set the organisation variable `REWIRE_BOT_APP_ID` and the secret `REWIRE_BOT_PRIVATE_KEY` for a GitHub App installed on rewire.it with issues read and write. Without it, each article request is a section at the end of its data issue.
+
+### Limits and cost
 
 Limits are in `LIMITS` in the script:
 
-- web searches: 10 for the scan and 3 per candidate;
-- web fetches: 5 for the scan and 4 per candidate, each up to 15,000 tokens;
+- web searches: 8 for each of the three scan lanes (24 a run) and 3 per judged candidate;
+- web fetches: 2 per scan lane and 4 per judged candidate, each up to 15,000 tokens;
 - 10,000 output tokens per research response, including thinking;
-- 2 `pause_turn` resumes per research call;
-- 6 candidates judged and 4 issue pairs filed per run;
+- 2 `pause_turn` resumes per research call. The script counts searches and fetches across resumes and gives each resume only what is left, with a minimum of one. A response that does not report its tool use is counted as having used everything the request allowed, in the allowance and in the cost estimate;
+- 6 candidates judged a run and 4 issue pairs filed a day;
 - a 30-minute job timeout.
 
-No further candidate is judged once the run's estimated cost passes $1.
+No further scan lane starts when the scan would pass $0.35, and no further candidate is judged once the run's estimated cost passes $1. The first lane rotates by day, so a lane that the budget check skips one day runs first on another.
 
 Prices used for the estimate (Claude pricing page, 17 November 2026):
 
@@ -58,23 +90,41 @@ Prices used for the estimate (Claude pricing page, 17 November 2026):
 - Web search: $10 per 1,000 searches.
 - Web fetch: tokens only.
 
-Worst case, from the limits. A research call can make 3 requests, and each request holds every page fetched so far. Search allowances can restart on a resume.
+The scan budget is about $0.35 a run. Search fees are nearly all of it. Measured on the scheduled runs of 18 to 20 November 2026, one scan call with 9 or 10 searches and one fetch:
+
+| Run | Searches | Prompt tokens (mostly cache reads) | Cost |
+| --- | --- | --- | --- |
+| 18 November | 9 | 73,000 | $0.095 |
+| 19 November | 10 | 110,000, in the higher price band | $0.124 |
+| 20 November | 10 | 85,000 | $0.105 |
+
+Tokens were $0.005 to $0.02 of each. Three lanes of 8 searches are 24 searches, so expect $0.24 in search fees and $0.27 to $0.30 in all. With one extra search for each of the two resumes of each lane, the search fees can reach $0.30. Each lane holds 8 searches, not 24, so its prompt should stay under 100,000 tokens.
+
+Worst case, from the limits, if nothing is cached. A research call can make 3 requests, and each request holds every page fetched so far.
 
 | Step | Input | Output | Searches | Cost |
 | --- | --- | --- | --- | --- |
-| Scan (Haiku) | 3 requests of up to about 110,000 tokens, at the higher band | 30,000 | 30 | about $0.55 |
-| Judge, per candidate (Sonnet) | 3 requests of up to about 82,000 tokens | 30,000 | 9 | about $0.88 |
+| Scan, per lane (Haiku) | 3 requests of up to about 110,000 tokens, at the higher band | 30,000 | 10 | about $0.34 |
+| Judge, per candidate (Sonnet) | 3 requests of up to about 82,000 tokens | 30,000 | 5 | about $0.84 |
 
-Judging stops after the $1 mark, so a run can reach about $1.90 and a month about $57.
+A lane starts only while the scan has spent $0.25 or less, so the uncached worst case for the scan is about $0.59. Judging stops after the $1 mark, so a run can reach about $1.84 and a month about $55.
 
-Typical cost is not measured yet. Expect about $0.10 for the scan and $0.15 to $0.25 per judged candidate, so about $0.60 for a day with three candidates and $15 to $25 a month. Each run's job summary has the real token counts and cost; check them after the first week.
+Two things are outside that figure. A judge request that Sonnet refuses is run again on a fallback model, and a model missing from the price table is estimated at Opus prices, twice Sonnet's, so one judge call can cost about $1.65 and a run about $2.65. The SDK retries a failed request up to three times; a retried request that was billed is not in the estimate.
+
+Each data issue filed as the rewire-bot app starts one intake run, and an intake pull request starts one reviewer run. Four issues a day is up to 120 intake runs and 120 reviewer runs a month. Their cost is in the intake and reviewer sections below and is not part of the discovery figures here. Watch the weekly digest's spend against the $100 a month for the fleet, and lower `max_pairs` in the workflow if it runs over.
+
+Typical cost of judging is not measured yet, because no run has reached the judge. Expect $0.15 to $0.25 per judged candidate, so about $0.90 for a day with three candidates and $15 to $30 a month. Each run's job summary has the real token counts and cost.
 
 A Sonnet 5.5 request about biology can be refused (refusal category `bio`). Judge calls use the server-side fallback (`fallbacks: "default"`), which retries on another model at that model's price. Haiku 5.5 has no fallback. A refused candidate is skipped and named in the summary. A failed call (rate limit, overload) skips only its own candidate; the summary is written whatever fails.
 
 ### Known gaps
 
 - A candidate that matches an existing rewire.it article issue or a record in the store is skipped whole. The old automation filed the missing half of the pair and linked the existing one; this version does not.
-- No real API call has been made yet. The first `report-only` run is the first real test of the request shapes and the prompt.
+- The scan and triage calls have run against the API (18 to 20 November 2026). The judge call, the filing path and the lane prompts have not: no candidate has reached the judge yet. Run `report-only` once after a prompt change and read the skipped reasons.
+- The search count across `pause_turn` resumes relies on `usage.server_tool_use` in each response. It has not been observed on a resumed scan. When the field is missing the script counts the full allowance, so a resumed call then gets one search and one fetch.
+- A candidate whose name or alias is a common word in some issue title ("Atlas", "Evo", "State", "Cell") is dropped as known. The summary lists it under Skipped with the issue it matched, so it can be filed by hand. Title matching was left strict for the first live runs.
+- The rejected-candidate cache has not run in Actions yet. The script side is tested; the restore and save steps first run on the first scheduled or manual run after #339.
+- A resource stored under a different name, not just another spelling or version, is not recognised by the script. The judge and the intake agent's duplicate check are what catch it.
 
 ## Intake agent
 
