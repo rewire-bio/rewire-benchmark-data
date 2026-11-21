@@ -119,6 +119,7 @@ export function originLabel(origin: unknown): string {
     (
       {
         author_reported: "Author-reported evaluation",
+        benchmark_reported: "Benchmark-reported evaluation, scorer not stated",
         independent_paper: "Independent external evaluation",
         paper_compilation: "Result quoted from another source",
         rewire_run: "Rewire evaluation",

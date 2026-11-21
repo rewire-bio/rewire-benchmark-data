@@ -44,6 +44,12 @@ describe("controlled vocabularies", () => {
           expect(schemes.get(scheme)!.concepts.has(key) || retired.has(key), `${scheme}: ${row.source_string} -> ${key}`).toBe(true);
   });
 
+  it("has an origin for a benchmark's own results file that does not say who scored the method", () => {
+    expect(schemes.get("origin")!.concepts.get("benchmark_reported")?.label).toBe("Benchmark reported");
+    const evaluation = { id: "x", facets: {}, attributes: { origin: "benchmark_reported" }, status: "source_checked" };
+    expect(() => validateVocabularies(mapping, [evaluation], schemes)).not.toThrow();
+  });
+
   it("rejects free text in a controlled field", () => {
     const record = { id: "x", facets: { areas: ["genomics"] }, attributes: { metric: "AUPRC" }, status: "source_checked" };
     expect(controlledValues(mapping, record).map((v) => v.field).sort()).toEqual(["attributes.metric", "facets.areas", "status"]);
