@@ -95,6 +95,13 @@ flowchart LR
   G[Follow-up actions<br/>review claims] --> B
 ```
 
+## Licence
+
+Two licences apply, and neither reaches what belongs to a source.
+
+- **Code and scripts:** MIT. See [LICENSE](LICENSE).
+- **Data:** the compilation and annotations Rewire made are offered under CC BY 4.0. Values and text taken from cited sources, and the stored copies of those sources, stay under the terms of each source. See [LICENSE-DATA.md](LICENSE-DATA.md) for what is covered and what is not.
+
 ## Provenance
 
 This repository was split from rewire-database at `e13852aa4d190fb52fad29f38b0d6a5257aadb3b`. Each release keeps its receipt (`data/omics/releases/<id>.json`: counts, file hashes and changelog) in the repository. Its files are assets of its `serving/<id>` GitHub release; releases up to `2026-10-14-87122402bd1c` also have them in Git history.
