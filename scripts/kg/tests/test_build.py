@@ -877,7 +877,7 @@ class DiscrepancyTest(unittest.TestCase):
         dataset.default_union = True
         node = URIRef(build.ID + found["id"])
         given = {"severity": Literal("medium"), "system": ID.modelA, "discrepancy": node,
-                 "use_case": ID.useCase}
+                 "use_case": ID.useCase, "tier": Literal(1), "level": Literal("use_case"), "subject": ID.protocol, "result": ID["result-3-0-a"]}
         rows = {}
         for query in build.NAMED_QUERIES:
             names = {p["name"] for p in query["params"]}
@@ -906,7 +906,7 @@ class DiscrepancyTest(unittest.TestCase):
         names = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
         self.assertEqual({q["name"] for q in build.NAMED_QUERIES},
                          {"open_discrepancies", "discrepancies_for_system", "discrepancy_history",
-                          "contested_results_for_use_case"})
+                          "contested_results_for_use_case", "rank_for_use_case", "gaps", "recipe_for", "provenance"})
         for query in build.NAMED_QUERIES:
             self.assertLessEqual(set(query), {"name", "title", "sparql", "description", "params"}, query["name"])
             self.assertRegex(query["name"], names)

@@ -8,16 +8,20 @@ vocabulary (data/ontology/rb.ttl) and the pinned external vocabularies
   derived.nq       discrepancies between studies' results (scripts/kg/contradictions.py),
                    in the derived named graph
   discrepancies.json  the same discrepancies as JSON, for the website; not part of the bundle
+  release.nq       what the release serves (scripts/kg/release_graph.py): the evaluations behind
+                   each active relevance judgement, baseline methods and run receipts, in the
+                   release named graph. Read from the release's use-cases.json
   ontology/        the vocabulary files the server loads into the ontology graph
   manifest.json    bundle format 1.0 (see rewire-bio/rdf-kg-mcp docs/bundle-format.md)
 
 The build fails if the reasoner finds an inconsistency, if a protected link is inferred,
 if a result's inferred system differs from what its evaluation tested, if SHACL
 validation fails (data/ontology/shapes.ttl and attribute-shapes.ttl for the records,
-derived-shapes.ttl for the derived graph), or if an accepted discrepancy_review claim names
-a discrepancy that is not derived and not settled.
+derived-shapes.ttl for the derived graph), if an accepted discrepancy_review claim names
+a discrepancy that is not derived and not settled, or if the release's use-cases.json is missing,
+is for another release or names a record the asserted graph does not have.
 
-Usage: npm run kg:build   (or: python scripts/kg/build.py [--kg-dir public/kg])
+Usage: npm run kg:build   (or: python scripts/kg/build.py [--kg-dir public/kg] [--use-cases FILE])
        python scripts/kg/build.py --shapes-only [--kg-dir public/kg] [--context FILE] [--shard I/N]
          SHACL over the asserted graph and the vocabulary only, without inference: the
          check pull requests run on the whole exported store. `npm run records -- add`
@@ -49,6 +53,8 @@ import rdflib.collection
 from rdflib import OWL, RDF, RDFS, BNode, URIRef
 
 import contradictions
+import product_queries
+import release_graph
 
 ROOT = Path(__file__).resolve().parents[2]
 ONTOLOGY_DIR = ROOT / "data" / "ontology"
@@ -69,6 +75,7 @@ GRAPHS = {
     "asserted": "https://benchmarks.rewire.it/graph/asserted",
     "inferred": "https://benchmarks.rewire.it/graph/inferred",
     "derived": "https://benchmarks.rewire.it/graph/derived",
+    "release": "https://benchmarks.rewire.it/graph/release",
     "ontology": "https://benchmarks.rewire.it/graph/ontology",
 }
 MLS_HAS_VALUE = URIRef("http://www.w3.org/ns/mls#hasValue")
@@ -473,10 +480,25 @@ NAMED_QUERIES = [
              "description": "The use case record, e.g. id:use-case-splicing-follow-up."},
         ],
     },
+    # Ranking, gaps, recipes and provenance (#261).
+    *product_queries.QUERIES,
 ]
 
 
-def build(kg_dir: Path) -> dict:
+def load_use_cases(release_id: str, path: Path | None) -> dict | None:
+    """The release's use-case artifact, which says what the release serves. A bundle built before
+    a release is cut (release_id "unreleased") has none; a release must have its own."""
+    if path is None:
+        if release_id == "unreleased":
+            return None
+        path = ROOT / "public" / "omics" / "releases" / release_id / "use-cases.json"
+    if not path.exists():
+        # release:fetch does not help: it writes gzipped files under data/omics/releases/.
+        raise BuildError(f"{path} not found; run npm run omics:release first, on the commit the release was cut from")
+    return json.loads(path.read_text("utf-8"))
+
+
+def build(kg_dir: Path, use_cases: Path | None = None) -> dict:
     started = time.monotonic()
     manifest_path = kg_dir / "manifest.json"
     exported = json.loads(manifest_path.read_text("utf-8"))
@@ -513,7 +535,17 @@ def build(kg_dir: Path) -> dict:
           f"{sum(d['resolved'] for d in discrepancies)} resolved ones; left out {result.excluded['disputed']} disputed results "
           f"and {result.excluded['concern']} under an evidence concern", file=sys.stderr)
 
+    try:
+        release, release_counts = release_graph.release_triples(
+            asserted, load_use_cases(exported["release_id"], use_cases), exported["release_id"])
+    except release_graph.ReleaseGraphError as error:
+        raise BuildError(str(error)) from error
+    print(f"Release graph: {release_counts['served_evaluations']} served evaluations of "
+          f"{release_counts['served_judgements']} judgements, {release_counts['served_baselines']} baseline methods, "
+          f"{release_counts['run_receipts']} run receipts", file=sys.stderr)
+
     (kg_dir / "inferred.nq").write_text(nquads(inferred, GRAPHS["inferred"]), "utf-8")
+    (kg_dir / "release.nq").write_text(nquads(release, GRAPHS["release"]), "utf-8")
     (kg_dir / "derived.nq").write_text(nquads(derived, GRAPHS["derived"]), "utf-8")
     (kg_dir / "discrepancies.json").write_text(json.dumps(
         {"schema_version": 5, "release_id": exported["release_id"], "rules": rules, "excluded": result.excluded,
@@ -524,6 +556,7 @@ def build(kg_dir: Path) -> dict:
     files: dict[str, dict] = {"asserted.nq": exported["files"]["asserted.nq"]}
     files["inferred.nq"] = {"sha256": sha256(kg_dir / "inferred.nq"), "quads": len(inferred)}
     files["derived.nq"] = {"sha256": sha256(kg_dir / "derived.nq"), "quads": len(derived)}
+    files["release.nq"] = {"sha256": sha256(kg_dir / "release.nq"), "quads": len(release)}
     for path in ontology_files():
         relative = bundle_path(path)
         dest = kg_dir / relative
@@ -546,13 +579,18 @@ def build(kg_dir: Path) -> dict:
         "title": "Rewire benchmark data",
         "description": "Reviewed biological benchmark records (models, methods, configurations, benchmarks, "
         "tasks, protocols, datasets, evaluations, results, sources and claims) as RDF, with OWL 2 RL "
-        "inferences in a separate graph, and discrepancies between studies' results in a derived graph.",
+        "inferences in a separate graph, discrepancies between studies' results in a derived graph, and "
+        "what the release serves as use-case evidence in a release graph.",
         "homepage": "https://github.com/rewire-bio/rewire-benchmark-data",
         "graphs": GRAPHS,
         "graph_descriptions": {
             "derived": "Discrepancies between studies' results found by the rules in scripts/kg/contradictions.py, "
             "with their review state and follow-up actions. Each is a lead for review, not a finding that a "
             "result is wrong.",
+            "release": "What the release serves, copied from its use-case file: the evaluations behind each active "
+            "direct or proxy relevance judgement (rb:servedEvaluation), each use case's reviewed baseline methods "
+            "(rb:servedBaseline), and the sources of run receipts on executed full-protocol run recipes "
+            "(rb:runReceipt). A judgement in the asserted graph with no served evaluation is withheld.",
         },
         "files": dict(sorted(files.items())),
         "prefixes": {
@@ -602,6 +640,11 @@ def build(kg_dir: Path) -> dict:
             "shapes_sha256": sha256(DERIVED_SHAPES),
             "discrepancies_json_sha256": sha256(kg_dir / "discrepancies.json"),
         },
+        "release": {
+            "generator": "scripts/kg/release_graph.py",
+            "generator_sha256": sha256(Path(release_graph.__file__)),
+            **release_counts,
+        },
         "shacl": {
             "conforms": True,
             "engine": f"pyshacl {importlib.metadata.version('pyshacl')}",
@@ -625,6 +668,7 @@ def build(kg_dir: Path) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--kg-dir", default=str(ROOT / "public" / "kg"))
+    parser.add_argument("--use-cases", help="the release's use-cases.json (default public/omics/releases/<id>/use-cases.json)")
     parser.add_argument("--shapes-only", action="store_true", help="SHACL on the asserted graph, no inference")
     parser.add_argument("--context", help="with --shapes-only: file of record IRIs present only as link targets")
     parser.add_argument("--shard", help="with --shapes-only, check only group I of N targeted shapes (I/N)")
@@ -647,7 +691,7 @@ def main() -> None:
                 file=sys.stderr,
             )
             return
-        build(Path(args.kg_dir))
+        build(Path(args.kg_dir), Path(args.use_cases) if args.use_cases else None)
     except BuildError as error:
         print(f"Knowledge-graph build failed: {error}", file=sys.stderr)
         sys.exit(1)
