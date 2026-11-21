@@ -1,0 +1,72 @@
+{
+  "note": "Pull request #338 as the GitHub API gave it on 2026-11-21, in the shape of intake.mjs githubClient: the pull request, its files and its reviews. The review is the one the reviewer agent posted, before reviews carried the reviewer-verdict marker.",
+  "pull": {
+    "number": 338,
+    "title": "Add CycPepNet from #283",
+    "body": "Adds the entity records requested in #283. Closes #283.\n\nEntities only, until the claims recollection (#274): no evaluation, result or claim. Every record has status `discovered` and carries its review receipt; nothing here has had an independent review yet.\n\n**Records**\n\n- `intake-283-20261121-benchmark-cycpepnet` (benchmark, depth tier 2)\n\n**Sources**\n\n- https://github.com/molML/CycPepNet/blob/1ed5e2b98d0239468b1998b64aa6c18148ede11a/README.md: `intake-283-20261121-source-cycpepnet-readme-md-at-1ed5e2b98d0239468b1998b64aa6c18148ede`, SHA-256 62ea199bdeeec90c9a4b8a6e87f83e316e51ab00d515a61415f870f92eb0aa8b, text/html\n- https://github.com/molML/CycPepNet/blob/1ed5e2b98d0239468b1998b64aa6c18148ede11a/cycpepnet/benchmark.py: `intake-283-20261121-source-cycpepnet-cycpepnet-benchmark-py-at-1ed5e2b98d0239468b1998b6`, SHA-256 4a9a9353eea36cbb1ef24a2a1f3ea59fb89b7d09f21951d9857f2344d5aab407, text/html\n- https://github.com/molML/CycPepNet/blob/1ed5e2b98d0239468b1998b64aa6c18148ede11a/results/learnability.csv: `intake-283-20261121-source-cycpepnet-results-learnability-csv-at-1ed5e2b98d0239468b1998`, SHA-256 fa693c66deb651b07040f7c8886b3f41bdfda8437182e444f54b5b5ce496458a, text/html\n- https://github.com/molML/CycPepNet/blob/1ed5e2b98d0239468b1998b64aa6c18148ede11a/data/sources.csv: `intake-283-20261121-source-cycpepnet-data-sources-csv-at-1ed5e2b98d0239468b1998b64aa6c1`, SHA-256 3f9ad0f6650ea4fae1d553dd35246aac6804eb412753bcd13698b76902aa8821, text/html\n- https://doi.org/10.26434/chemrxiv.15011871/v1: not opened (HTTP 403)\n\n**Not added**\n\n- None.\n\n**Links**\n\n- None.\n\n**Possible duplicates in the store**\n\n- None.\n\nThe knowledge graph release 2026-11-21-4940d4f45aee was searched for possible duplicates and link targets, and the batch was written through its draft overlay (rdf-kg-mcp), which checked each record and link against the release.\n\nBatch folder: `data/omics/intake-283-20261121`. Its `notes.md` lists every proposed field and whether the verification pass confirmed it; `kg.json` lists every link and duplicate ruling with its locator.\n\n**Checks.** The agent ran `npm run records -- add` (including the SHACL subset check), `npm run records -- check`, and a check that `normalizeAttributes` leaves every record unchanged and that each depth tier matches the rule in docs/tiers.md. The source bytes are hashed but not yet in the archive object store.\n\n**Cost.** Estimated $0.1062; 4 model calls; wall-clock 146 s. Run: https://github.com/rewire-bio/rewire-benchmark-data/actions/runs/44865055220\n\n| Model | Input | Cache write | Cache read | Output | Web searches | Web fetches | Estimated cost |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| claude-haiku-5-5 | 11862 | 10730 | 17419 | 10218 | 0 | 1 | $0.0078 |\n| claude-sonnet-5-5 | 4 | 29852 | 0 | 2372 | 0 | 0 | $0.0984 |\n| Total | | | | | | | $0.1062 |\n\nOpened by the intake agent. It does not merge.",
+    "state": "open",
+    "author": "rewire-bot[bot]",
+    "head_ref": "intake/issue-283",
+    "head_sha": "48e41abb7316ef9e57631db9e5bbff37f50d2703",
+    "head_repo": "rewire-bio/rewire-benchmark-data",
+    "commits": 1,
+    "labels": [],
+    "html_url": "https://github.com/rewire-bio/rewire-benchmark-data/pull/338"
+  },
+  "files": [
+    {
+      "filename": "data/entities/benchmarks.jsonl",
+      "status": "modified"
+    },
+    {
+      "filename": "data/entities/sources.jsonl",
+      "status": "modified"
+    },
+    {
+      "filename": "data/omics/intake-283-20261121/batch.jsonl",
+      "status": "added"
+    },
+    {
+      "filename": "data/omics/intake-283-20261121/kg.json",
+      "status": "added"
+    },
+    {
+      "filename": "data/omics/intake-283-20261121/notes.md",
+      "status": "added"
+    },
+    {
+      "filename": "data/omics/intake-283-20261121/review.json",
+      "status": "added"
+    },
+    {
+      "filename": "data/provenance/records/1.jsonl",
+      "status": "modified"
+    },
+    {
+      "filename": "data/provenance/records/2.jsonl",
+      "status": "modified"
+    },
+    {
+      "filename": "data/provenance/records/7.jsonl",
+      "status": "modified"
+    },
+    {
+      "filename": "data/provenance/records/8.jsonl",
+      "status": "modified"
+    },
+    {
+      "filename": "data/provenance/records/e.jsonl",
+      "status": "modified"
+    }
+  ],
+  "reviews": [
+    {
+      "id": 6002774507,
+      "user": "rewire-reviewer[bot]",
+      "state": "CHANGES_REQUESTED",
+      "commit_id": "48e41abb7316ef9e57631db9e5bbff37f50d2703",
+      "body": "**Reviewer agent verdict: request changes.** 1 fields fail and 0 could not be verified, out of 9.\n\n**Problems**\n\n- `intake-283-20261121-benchmark-cycpepnet` areas (fail): proteins-complexes is not supported. No source describes proteins or complexes; targets (OPRM1, MC4R, SSTR2) appear only as labels in binding tasks. Drop proteins-complexes or name the passage that supports it. molecular-interactions is supported by the binding-affinity tasks. Evidence: README.md (Framework definition table); benchmark.py BENCHMARK_TASKS\n\n<details><summary>CycPepNet (benchmark): 7 of 8 fields pass</summary>\n\n| Field | Value | Source | Verdict | Evidence or problem |\n| --- | --- | --- | --- | --- |\n| name | CycPepNet | intake-283-20261121-source-cycpepnet-readme-md-at-1ed5e2b98d0239468b1998b64aa... | pass | README.md and repository use \"CycPepNet\" |\n| description | Open framework that compares molecular representations and machine-learning models for cyclic-peptide binding affinit... | intake-283-20261121-source-cycpepnet-readme-md-at-1ed5e2b98d0239468b1998b64aa... | pass | README.md first paragraph (open framework comparing molecular representations and ML models for cyclic-peptide binding affinity, permeability, half-life; 20 tasks); benchmark.py BENCHMARK_TASKS has 10 _reg and 10 _cls entries |\n| areas | molecular-interactions, proteins-complexes | intake-283-20261121-source-cycpepnet-readme-md-at-1ed5e2b98d0239468b1998b64aa... | fail | proteins-complexes is not supported. No source describes proteins or complexes; targets (OPRM1, MC4R, SSTR2) appear only as labels in binding tasks. Drop proteins-complexes or name the passage that supports it. molecular-interactions is supported by the binding-affinity tasks. Evidence: README.md... |\n| entity_level | suite | intake-283-20261121-source-cycpepnet-readme-md-at-1ed5e2b98d0239468b1998b64aa... | pass | benchmark.py defines a registry of 20 tasks; README.md calls it a framework of tasks, models and splits, not a single challenge |\n| task | Predict binding affinity (OPRM1 Ki, MC4R Ki, SSTR2 IC50), membrane permeability and half-life of cyclic peptides, as ... | intake-283-20261121-source-cycpepnet-readme-md-at-1ed5e2b98d0239468b1998b64aa... | pass | README.md \"Framework definition\" table and benchmark.py: binding tasks OPRM1 Ki, MC4R Ki, SSTR2 IC50 with <=100 nM threshold (np.log10(100.0), classify_above=False); permeability log >= -6; half-life >= 8 h (np.log10(8)); splits butina_morgan (Morgan binary fingerprints) and random; Optuna tunes ... |\n| limitations | Prediction archives exist for only part of the historical run set; The NPMMPD input is a different snapshot from Figs... | intake-283-20261121-source-cycpepnet-readme-md-at-1ed5e2b98d0239468b1998b64aa... | pass | README.md \"Results and figures\", \"Input data\" and \"License\": partial predictions for historical run set; NPMMPD 6,362 vs 5,638 rows snapshot mismatch; PEPlife2 export query to recover; PepTherDia selection predicate, scraper and page order not recovered; Macrocycle-DB export API unverified and hi... |\n| source_ids | intake-283-20261121-source-cycpepnet-readme-md-at-1ed5e2b98d0239468b1998b64aa6c18148ede, intake-283-20261121-source-c... | intake-283-20261121-source-cycpepnet-readme-md-at-1ed5e2b98d0239468b1998b64aa... | pass | All four sources are in one repository at the same commit and the record concerns the whole project. Note: data/sources.csv and results/learnability.csv rows did not render, so they are not confirmed to support specific claims; README.md and cycpepnet/benchmark.py settle the claims. |\n| depth_tier | 2 | intake-283-20261121-source-cycpepnet-readme-md-at-1ed5e2b98d0239468b1998b64aa... | pass | matches docs/tiers.md for the record areas |\n\n</details>\n\n<details><summary>(store diff) (pull request): 1 of 1 fields pass</summary>\n\n| Field | Value | Source | Verdict | Evidence or problem |\n| --- | --- | --- | --- | --- |\n| store diff | 5 record lines |   | pass | every record line the pull request adds or removes belongs to a record in batch.jsonl or changes.jsonl, as the file says |\n\n</details>\n\n**Sources re-fetched by the reviewer**\n\n- `intake-283-20261121-source-cycpepnet-cycpepnet-benchmark-py-at-1ed5e2b98d0239468b1998b6` https://github.com/molML/CycPepNet/blob/1ed5e2b98d0239468b1998b64aa6c18148ede11a/cycpepnet/benchmark.py: SHA-256 differs from the recorded one (the page changed or is generated per request; the recorded hash describes one retrieval)\n- `intake-283-20261121-source-cycpepnet-data-sources-csv-at-1ed5e2b98d0239468b1998b64aa6c1` https://github.com/molML/CycPepNet/blob/1ed5e2b98d0239468b1998b64aa6c18148ede11a/data/sources.csv: SHA-256 differs from the recorded one (the page changed or is generated per request; the recorded hash describes one retrieval)\n- `intake-283-20261121-source-cycpepnet-readme-md-at-1ed5e2b98d0239468b1998b64aa6c18148ede` https://github.com/molML/CycPepNet/blob/1ed5e2b98d0239468b1998b64aa6c18148ede11a/README.md: SHA-256 differs from the recorded one (the page changed or is generated per request; the recorded hash describes one retrieval)\n- `intake-283-20261121-source-cycpepnet-results-learnability-csv-at-1ed5e2b98d0239468b1998` https://github.com/molML/CycPepNet/blob/1ed5e2b98d0239468b1998b64aa6c18148ede11a/results/learnability.csv: SHA-256 differs from the recorded one (the page changed or is generated per request; the recorded hash describes one retrieval)\n\n- The reviewer could not open: data/sources.csv; results/learnability.csv\n\nReviewed by the reviewer agent (`.github/workflows/reviewer.yml`, prompt `agents/reviewer.md`), claude-sonnet-5-5, independently of the intake agent. Estimated cost $0.1711. Run: https://github.com/rewire-bio/rewire-benchmark-data/actions/runs/44865330938",
+      "html_url": "https://github.com/rewire-bio/rewire-benchmark-data/pull/338#pullrequestreview-6002774507"
+    }
+  ]
+}

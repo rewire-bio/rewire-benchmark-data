@@ -18,6 +18,9 @@ export function buildTable(records: any[], review: any, mechanical: Problem[]): 
 export function overallVerdict(rows: Row[]): string;
 export function headline(rows: Row[], verdict: string, blocker?: string): string;
 export function renderReview(input: any): string;
+export const VERDICT_MARKER: string;
+export function verdictMarker(input: { rows: Row[]; verdict: string; blocker?: string; headSha?: string | null }): string;
+export function revisionCites(revision: any): { id: string; field: string; passage: string; source_url: string }[];
 export function githubClient(token: string, fetchImpl?: typeof fetch): any;
 export function reviewInput(records: any[], changed?: any[], storeUrls?: Map<string, string>): any[];
 export function reviewSchema(paths?: string[]): Record<string, any>;
