@@ -14,14 +14,29 @@ name: Intake agent
 #
 # The revise job answers a review: when the reviewer agent (the rewire-reviewer app) requests
 # changes on a pull request the intake opened, the intake revises the batch once, changing only
-# the fields the review did not pass, and pushes one commit to the same branch; the reviewer then
-# reviews again. One revision per pull request. A second request for changes, or anything the
-# revision cannot settle, labels the pull request needs-tim and leaves it. A review starts a
-# report-only revision, which writes nothing, until the repository variable INTAKE_REVISE_MODE is
-# set to live.
+# the fields the review did not pass, and pushes the batch built again on main to the same branch;
+# the reviewer then reviews again. One revision per pull request. A second request for changes, or
+# anything the revision cannot settle, labels the pull request needs-tim and leaves it. A review
+# starts a report-only revision, which writes nothing, until the repository variable
+# INTAKE_REVISE_MODE is set to live.
+#
+# The refresh job keeps intake pull requests mergeable. Every batch adds lines to the same store
+# files, so when one merges the others conflict with main, their CI does not run and the reviewer
+# never looks again. After a push to main that touches data/, the job rebuilds each open intake
+# pull request that conflicts: its batch folder, added again with records add on main, pushed as
+# one commit with a lease. No model call, and not a revision. Report-only, which pushes nothing,
+# until the repository variable INTAKE_REFRESH_MODE is set to live.
+#
+# Live intake runs queue: one at a time, in one concurrency group. GitHub keeps one waiting run
+# per group and cancels the one it replaces, so each run also works every labelled issue that has
+# no pull request and no final answer yet (intake.mjs --drain).
 on:
   issues:
     types: [labeled]
+  push:
+    branches: [main]
+    paths:
+      - data/**
   pull_request_review:
     types: [submitted]
   workflow_dispatch:
@@ -43,6 +58,9 @@ on:
       revise_pr:
         description: "Instead of an issue: revise this intake pull request after the reviewer agent requested changes (one revision per pull request). Uses mode; dry-run reads tests/agents-intake-revise-fixtures"
         default: ""
+      refresh_pr:
+        description: "Instead of an issue: rebuild this intake pull request on main if it conflicts (no model call, not a revision). Uses mode; dry-run reads tests/agents-intake-refresh-fixtures"
+        default: ""
   pull_request:
     paths:
       - agents/intake.md
@@ -54,10 +72,14 @@ permissions:
   contents: read
   issues: write
   pull-requests: read
-# One run per issue at a time, and one revision per pull request at a time; pull request dry runs
-# have their own group. Only a dry run is cancelled by a newer one.
+# Live intake runs share the group intake-queue, so one runs at a time and the model API sees one
+# intake. A label the intake does not act on gets a group of its own: in the queue it would take
+# the one waiting place from a run that has work. One revision per pull request at a time, one
+# automatic refresh at a time, and pull request dry runs have their own group. Only a dry run is
+# cancelled by a newer one; a waiting run is replaced by a newer one of its group, which is why a
+# queued run works every waiting issue and a refresh looks at every open pull request.
 concurrency:
-  group: intake-${{ github.event_name == 'pull_request_review' && format('revise-{0}', github.event.pull_request.number) || inputs.revise_pr && format('revise-{0}', inputs.revise_pr) || github.event_name == 'pull_request' && github.ref || github.event.issue.number || inputs.issue || 'none' }}
+  group: intake-${{ github.event_name == 'push' && 'refresh' || inputs.refresh_pr && format('refresh-{0}', inputs.refresh_pr) || github.event_name == 'pull_request_review' && format('revise-{0}', github.event.pull_request.number) || inputs.revise_pr && format('revise-{0}', inputs.revise_pr) || github.event_name == 'pull_request' && github.ref || github.event_name == 'issues' && ((github.event.label.name == 'entity-request' || github.event.label.name == 'entity-update') && 'queue' || format('label-{0}', github.run_id)) || inputs.mode == 'live' && 'queue' || inputs.issue || 'none' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 env:
   NODE_OPTIONS: --max-old-space-size=8192
@@ -67,13 +89,18 @@ jobs:
   intake:
     # The entity-request label starts a run from an issue, and so does entity-update, which the
     # monthly entity sweep (sweep.yml) puts on the issues it files.
-    # A review, or a manual run that names a pull request to revise, is the revise job's.
-    if: github.event_name != 'pull_request_review' && !inputs.revise_pr && (github.event_name != 'issues' || github.event.label.name == 'entity-request' || github.event.label.name == 'entity-update')
+    # A review, or a manual run that names a pull request to revise, is the revise job's; a push
+    # to main, or a manual run that names a pull request to refresh, is the refresh job's.
+    if: github.event_name != 'pull_request_review' && !inputs.revise_pr && github.event_name != 'push' && !inputs.refresh_pr && (github.event_name != 'issues' || github.event.label.name == 'entity-request' || github.event.label.name == 'entity-update')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # A live run works up to 6 issues and starts none after 35 minutes; one issue gets 20 (LIMITS).
+    timeout-minutes: 60
     env:
       MODE: ${{ github.event_name == 'issues' && 'live' || github.event_name == 'pull_request' && 'dry-run' || inputs.mode }}
       ISSUE: ${{ github.event.issue.number || inputs.issue }}
+      # When the label was added. A waiting run starts after the run before it has worked the
+      # queue; if that run answered this issue after this time, this run does not work it again.
+      SINCE: ${{ github.event_name == 'issues' && github.event.issue.updated_at || '' }}
       HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     steps:
       # The bot token pushes the branch and opens the pull request, so its CI runs. Live only.
@@ -157,11 +184,16 @@ jobs:
           case "$MODE" in
             dry-run) args="--dry-run" ;;
             report-only) args="--report-only --issue $ISSUE ${REPLAY:-}" ;;
-            live) args="--issue $ISSUE" ;;
+            # The issue first, then every labelled issue still waiting for a run, one process each.
+            # With no issue number, a manual live run works the waiting issues only.
+            live) args="--drain${ISSUE:+ --issue $ISSUE}${SINCE:+ --since $SINCE}" ;;
             *) echo "::error::Unknown mode $MODE"; exit 1 ;;
           esac
-          if [ "$MODE" != dry-run ] && ! [[ "$ISSUE" =~ ^[0-9]+$ ]]; then
+          if [ "$MODE" = report-only ] && ! [[ "$ISSUE" =~ ^[0-9]+$ ]]; then
             echo "::error::An issue number is required in $MODE mode"; exit 1
+          fi
+          if [ "$MODE" = live ] && [ -n "$ISSUE" ] && ! [[ "$ISSUE" =~ ^[0-9]+$ ]]; then
+            echo "::error::The issue must be a number"; exit 1
           fi
           node scripts/agents/intake.mjs $args --out intake-out
           # The dry run again on the knowledge-graph fixture: the real server on the fixture bundle.
@@ -185,6 +217,16 @@ jobs:
               const dropped = (r.fields ?? []).flatMap((f) => f.dropped ?? []).join(", ");
               if (r.outcome !== "ready: revision not pushed in this mode" || dropped !== "proteins-complexes") {
                 console.error("::error::The revision dry run did not drop the one unsupported area: " + r.outcome + "; dropped " + dropped); process.exit(1);
+              }'
+          fi
+          # The refresh of a conflicting pull request, on the fixture of pull request #352: its
+          # store diff is tied to its batch. No git, no store and no model call.
+          if [ "$MODE" = dry-run ]; then
+            node scripts/agents/intake.mjs --refresh --dry-run --out intake-out/refresh
+            node -e '
+              const r = JSON.parse(require("fs").readFileSync("intake-out/refresh/result.json", "utf8"));
+              if (r.outcome !== "ready: refresh not pushed in this mode" || r.pulls?.[0]?.lines !== 4) {
+                console.error("::error::The refresh dry run did not tie the four store lines of the fixture to its batch: " + r.outcome); process.exit(1);
               }'
           fi
       # A report-only run that changed an existing record is reviewed in place by the reviewer agent
@@ -235,7 +277,8 @@ jobs:
       && startsWith(github.event.pull_request.head.ref, 'intake/issue-')
       && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The store checks run twice: on the first batch added to main, then on the revised one.
+    timeout-minutes: 45
     env:
       # A review starts a report-only revision unless the repository variable INTAKE_REVISE_MODE
       # says live. Unset, nothing is pushed, labelled or commented, so no pull request is revised,
@@ -262,8 +305,8 @@ jobs:
           if [ "$author" != 'rewire-bot[bot]' ] || ! [[ "$branch" =~ ^intake/issue-[0-9]+$ ]] || [ "$head" != "$GITHUB_REPOSITORY" ]; then
             echo "::error::Pull request $PR is not an intake pull request of this repository (author $author, branch $branch, head repository ${head:-none})"; exit 1
           fi
-      # Live only. This repository only: contents to push the one commit, pull requests to write the
-      # revision marker in the description, issues to label the pull request and comment on it.
+      # Live only. This repository only: contents to push the rebuilt branch, pull requests to write
+      # the revision marker in the description, issues to label the pull request and comment on it.
       - name: Token for the rewire-bot app
         id: app
         if: env.MODE == 'live' && env.HAS_KEY == 'true'
@@ -274,51 +317,30 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
           permission-issues: write
-      # The pull request's head and its parent commit: the store with the batch, and the store
-      # files as they were before it. The intake pushes one commit on top; it never force-pushes.
-      - uses: actions/checkout@v4
-        with:
-          ref: refs/pull/${{ env.PR }}/head
-          fetch-depth: 2
-          token: ${{ steps.app.outputs.token || github.token }}
-      # The agent's code and prompt come from the default branch, never from the pull request.
+      # The default branch, never the pull request: the agent, the records CLI and the store all
+      # come from it. The script takes one thing from the pull request, its batch folder, which
+      # holds data only, and adds the batch again on this checkout. So the revised branch is built
+      # on main as it is now, and merges. It is pushed with a lease on the head commit the review
+      # was read against.
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
-          path: agent
-          persist-credentials: false
-          sparse-checkout: |
-            agents
-            scripts/agents
-            tests/agents-intake-revise-fixtures
-      # The store checks run the pull request's own records CLI. That is the default branch's code
-      # only if the pull request changes nothing but data; otherwise nothing of it is installed or
-      # run, and the script labels the pull request needs-tim before it runs any command.
-      - name: Check the pull request changes only data
-        id: files
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # On its own line, so a failed call fails the step instead of counting no files.
-          files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename')
-          [ -n "$files" ] || { echo "::error::The pull request lists no files"; exit 1; }
-          other=$(printf '%s\n' "$files" | grep -cv '^data/' || true)
-          echo "Files outside data/: $other"
-          echo "data_only=$([ "$other" = 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          token: ${{ steps.app.outputs.token || github.token }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
       - uses: astral-sh/setup-uv@v6
-      - name: Install the store tools of the pull request
-        if: steps.files.outputs.data_only == 'true' && env.MODE != 'dry-run'
+      - name: Install the store tools
+        if: env.MODE != 'dry-run'
         run: npm ci --no-audit --no-fund
       - name: Install the agent dependencies
-        run: npm ci --prefix agent/scripts/agents --no-audit --no-fund
+        run: npm ci --prefix scripts/agents --no-audit --no-fund
       # The same server and newest bundle as the first run. Any failure here leaves KG_BUNDLE unset;
       # the revision then writes the batch itself and records that the draft overlay did not
       # finish, so the reviewer agent does not approve the pull request.
       - name: Knowledge graph server and bundle
-        if: steps.files.outputs.data_only == 'true' && env.MODE != 'dry-run' && env.HAS_KEY == 'true'
+        if: env.MODE != 'dry-run' && env.HAS_KEY == 'true'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -352,15 +374,117 @@ jobs:
         run: |
           case "$MODE" in
             dry-run) args="--dry-run --root $RUNNER_TEMP/revise" ;;
-            report-only) args="--report-only --pr $PR --root ." ;;
-            live) args="--pr $PR --root ." ;;
+            report-only) args="--report-only --pr $PR" ;;
+            live) args="--pr $PR" ;;
           esac
-          node agent/scripts/agents/intake.mjs --revise $args --out "$RUNNER_TEMP/intake-out"
+          node scripts/agents/intake.mjs --revise $args --out "$RUNNER_TEMP/intake-out"
       - name: Keep the result and token usage
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: intake-revise-${{ github.run_id }}
+          path: ${{ runner.temp }}/intake-out
+          if-no-files-found: ignore
+          retention-days: 30
+
+  refresh:
+    # A push to main that touches data/, or a manual run that names a pull request. The script
+    # checks each pull request again from the API: open, by the bot, an intake branch of this
+    # repository, not labelled needs-tim, and conflicting with main.
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.refresh_pr != '')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # A push starts a report-only refresh unless the repository variable INTAKE_REFRESH_MODE
+      # says live. Unset, nothing is pushed, labelled or commented.
+      MODE: ${{ github.event_name == 'push' && (vars.INTAKE_REFRESH_MODE || 'report-only') || inputs.mode }}
+      PR: ${{ inputs.refresh_pr }}
+    steps:
+      - name: Check the inputs
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != push ] && ! [[ "$PR" =~ ^[0-9]+$ ]]; then echo "::error::A pull request number is required"; exit 1; fi
+          case "$MODE" in dry-run|report-only|live) ;; *) echo "::error::Unknown mode $MODE"; exit 1 ;; esac
+      # A manual run names any pull request, so its author, branch and head repository are read
+      # from the API here, before the app token exists.
+      - name: Check the pull request is the intake's
+        if: env.PR != '' && env.MODE != 'dry-run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          author=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.user.login')
+          branch=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.head.ref')
+          head=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.head.repo.full_name // ""')
+          if [ "$author" != 'rewire-bot[bot]' ] || ! [[ "$branch" =~ ^intake/issue-[0-9]+$ ]] || [ "$head" != "$GITHUB_REPOSITORY" ]; then
+            echo "::error::Pull request $PR is not an intake pull request of this repository (author $author, branch $branch, head repository ${head:-none})"; exit 1
+          fi
+      # Most pushes to main find no open intake pull request; then nothing is installed or run.
+      - name: Open intake pull requests
+        id: open
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$MODE" = dry-run ] || [ -n "$PR" ]; then echo "any=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          # On its own line, so a failed call fails the step instead of counting none.
+          pulls=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" --jq '.[] | select(.user.login == "rewire-bot[bot]" and (.head.ref | startswith("intake/issue-"))) | .number')
+          echo "Open intake pull requests: ${pulls:-none}"
+          echo "any=$([ -n "$pulls" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      # Live only. This repository only: contents to push the rebuilt branch, pull requests and
+      # issues to label a pull request and comment on it.
+      - name: Token for the rewire-bot app
+        id: app
+        if: env.MODE == 'live' && steps.open.outputs.any == 'true'
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REWIRE_BOT_APP_ID }}
+          private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
+      # The default branch: the agent, the records CLI and the store. The script takes each pull
+      # request's batch folder, which holds data only, and nothing else of it.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          token: ${{ steps.app.outputs.token || github.token }}
+      - uses: actions/setup-node@v4
+        if: steps.open.outputs.any == 'true'
+        with:
+          node-version: 24
+          cache: npm
+      - uses: astral-sh/setup-uv@v6
+        if: steps.open.outputs.any == 'true'
+      - name: Install the store tools
+        if: steps.open.outputs.any == 'true' && env.MODE != 'dry-run'
+        run: npm ci --no-audit --no-fund
+      - name: Install the agent dependencies
+        if: steps.open.outputs.any == 'true'
+        run: npm ci --prefix scripts/agents --no-audit --no-fund
+      - name: Commit as the bot
+        if: steps.app.outputs.token != ''
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          SLUG: ${{ steps.app.outputs.app-slug }}
+        run: |
+          id=$(gh api "/users/${SLUG}%5Bbot%5D" --jq .id)
+          git config user.name "${SLUG}[bot]"
+          git config user.email "${id}+${SLUG}[bot]@users.noreply.github.com"
+      # No ANTHROPIC_API_KEY here: a refresh makes no model call.
+      - name: Refresh the pull requests
+        if: steps.open.outputs.any == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+        run: |
+          case "$MODE" in
+            dry-run) args="--dry-run" ;;
+            report-only) args="--report-only${PR:+ --pr $PR}" ;;
+            live) args="${PR:+--pr $PR}" ;;
+          esac
+          node scripts/agents/intake.mjs --refresh $args --out "$RUNNER_TEMP/intake-out"
+      - name: Keep the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intake-refresh-${{ github.run_id }}
           path: ${{ runner.temp }}/intake-out
           if-no-files-found: ignore
           retention-days: 30

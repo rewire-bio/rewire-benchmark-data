@@ -1,0 +1,55 @@
+{
+  "note": "Pull request #352 (Add ProtCell from #350) as it stood on 21 Nov 2026: open, conflicting with main after #353 merged. diff is its store diff from the commit it shares with main, without context lines.",
+  "pull": {
+    "number": 352,
+    "title": "Add ProtCell from #350",
+    "body": "Adds the entity records requested in #350. Refs #350: the issue stays open, because its tier asks for evaluations too, which wait for #274.\n\nEntities only, until the claims recollection (#274): no evaluation, result or claim. Every record has status `discovered` and carries its review receipt; nothing here has had an independent review yet.\n\n**Records**\n\n- `intake-350-20261121-model-protcell` (model, depth tier 3)\n\n**Sources**\n\n- https://www.biorxiv.org/content/10.64898/2026.10.22.760932v1: `intake-350-20261121-source-protcell-a-foundation-model-for-single-cell-proteomics-biorx`, SHA-256 f03aeb298cbdf3d75727e35083342f76d9047af40489a49e40faf61f12cb8e40, text/html\n\n**Not added**\n\n- None.\n\n**Links**\n\n- None.\n\n**Possible duplicates in the store**\n\n- None.\n\nThe knowledge graph release 2026-11-21-82c4be3e6b5e was searched for possible duplicates and link targets, and the batch was written through its draft overlay (rdf-kg-mcp), which checked each record and link against the release.\n\nBatch folder: `data/omics/intake-350-20261121`. Its `notes.md` lists every proposed field and whether the verification pass confirmed it; `kg.json` lists every link and duplicate ruling with its locator.\n\n**Checks.** The agent ran `npm run records -- add` (including the SHACL subset check), `npm run records -- check`, and a check that `normalizeAttributes` leaves every record unchanged and that each depth tier matches the rule in docs/tiers.md. The source bytes are hashed but not yet in the archive object store.\n\n**Cost.** Estimated $0.0267; 4 model calls; wall-clock 114 s. Run: https://github.com/rewire-bio/rewire-benchmark-data/actions/runs/44922537391\n\n| Model | Input | Cache write | Cache read | Output | Web searches | Web fetches | Estimated cost |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| claude-haiku-5-5 | 8854 | 18406 | 14878 | 5753 | 0 | 1 | $0.0062 |\n| claude-sonnet-5-5 | 4 | 3669 | 9875 | 1031 | 0 | 0 | $0.0205 |\n| Total | | | | | | | $0.0267 |\n\nOpened by the intake agent. It does not merge.",
+    "state": "open",
+    "author": "rewire-bot[bot]",
+    "head_ref": "intake/issue-350",
+    "head_sha": "61df692bffbf9c6544ce08916d530616cf6bca74",
+    "head_repo": "rewire-bio/rewire-benchmark-data",
+    "commits": 1,
+    "labels": [],
+    "html_url": "https://github.com/rewire-bio/rewire-benchmark-data/pull/352",
+    "mergeable": false,
+    "base_ref": "main"
+  },
+  "merge_base": "4a234a9f7ded054935dc327854640634969a8236",
+  "files": [
+    {
+      "filename": "data/entities/models.jsonl",
+      "status": "modified"
+    },
+    {
+      "filename": "data/entities/sources.jsonl",
+      "status": "modified"
+    },
+    {
+      "filename": "data/omics/intake-350-20261121/batch.jsonl",
+      "status": "added"
+    },
+    {
+      "filename": "data/omics/intake-350-20261121/kg.json",
+      "status": "added"
+    },
+    {
+      "filename": "data/omics/intake-350-20261121/notes.md",
+      "status": "added"
+    },
+    {
+      "filename": "data/omics/intake-350-20261121/review.json",
+      "status": "added"
+    },
+    {
+      "filename": "data/provenance/records/3.jsonl",
+      "status": "modified"
+    },
+    {
+      "filename": "data/provenance/records/6.jsonl",
+      "status": "modified"
+    }
+  ],
+  "comments": [],
+  "diff": "diff --git a/data/entities/models.jsonl b/data/entities/models.jsonl\nindex 9168f8c6..f0af36b5 100644\n--- a/data/entities/models.jsonl\n+++ b/data/entities/models.jsonl\n@@ -125,6 +125,7 @@\n+{\"id\":\"intake-350-20261121-model-protcell\",\"kind\":\"model\",\"name\":\"ProtCell\",\"description\":\"A transformer encoder foundation model for single-cell proteomics that combines protein-identity and continuous-abundance embeddings and learns cell- and protein-level representations through masked abundance modeling, developed using approximately 380 million cells from 98 datasets.\",\"status\":\"discovered\",\"facets\":{\"areas\":[\"single-cell\"],\"contexts\":[\"research\"],\"method_types\":[\"foundation_model\"]},\"source_ids\":[\"intake-350-20261121-source-protcell-a-foundation-model-for-single-cell-proteomics-biorx\"],\"links\":[],\"attributes\":{\"depth_tier\":3,\"entity_level\":\"family\",\"missing_metadata\":{\"access\":{\"note\":\"Not confirmed against the primary sources by the intake verification pass.\",\"reason\":\"unextracted\"},\"licence\":{\"note\":\"Not confirmed against the primary sources by the intake verification pass.\",\"reason\":\"unextracted\"},\"version\":{\"note\":\"Not confirmed against the primary sources by the intake verification pass.\",\"reason\":\"unextracted\"}},\"provenance_note\":\"Requested in rewire-benchmark-data issue #350. Added by the intake agent on 2026-11-21 as metadata only; no evaluation or result was extracted.\",\"review\":{\"method\":[\"ai-assisted-source-review\"],\"method_note\":\"claude-sonnet-5-5 opened the primary sources with web fetch and confirmed each stored field at a location in a source; fields it could not confirm were left out and listed in missing_metadata. claude-haiku-5-5 drafted the fields from the issue. The script fetched each source and recorded its SHA-256.\",\"reviewed_at\":\"2026-11-21T16:05:48Z\",\"reviewer\":[\"claude-sonnet\"],\"reviewer_note\":\"Intake agent (.github/workflows/intake.yml), automated; no human review. Run https://github.com/rewire-bio/rewire-benchmark-data/actions/runs/44922537391.\"},\"source_locator\":\"description: https://www.biorxiv.org/content/10.64898/2026.10.22.760932v1, abstract; training_data: https://www.biorxiv.org/content/10.64898/2026.10.22.760932v1, abstract: 98 datasets for pretraining and evaluation\",\"training_data\":\"Approximately 380 million cells from 98 datasets.\"}}\ndiff --git a/data/entities/sources.jsonl b/data/entities/sources.jsonl\nindex a9744ec8..c24203e6 100644\n--- a/data/entities/sources.jsonl\n+++ b/data/entities/sources.jsonl\n@@ -859,6 +859,7 @@\n+{\"id\":\"intake-350-20261121-source-protcell-a-foundation-model-for-single-cell-proteomics-biorx\",\"kind\":\"source\",\"name\":\"ProtCell: a foundation model for single-cell proteomics | bioRxiv\",\"description\":\"Preprint retrieved by the intake agent on 2026-11-21.\",\"status\":\"discovered\",\"facets\":{\"areas\":[\"single-cell\"],\"contexts\":[\"research\"]},\"source_ids\":[],\"links\":[],\"attributes\":{\"artifact_sha256\":\"f03aeb298cbdf3d75727e35083342f76d9047af40489a49e40faf61f12cb8e40\",\"media_type\":\"text/html\",\"publication_status\":\"preprint\",\"retrieved_at\":\"2026-11-21T16:05:32Z\",\"url\":\"https://www.biorxiv.org/content/10.64898/2026.10.22.760932v1\",\"version\":\"10.64898/2026.10.22.760932 version 1\"}}\ndiff --git a/data/provenance/records/3.jsonl b/data/provenance/records/3.jsonl\nindex 205b9f1c..35c57d91 100644\n--- a/data/provenance/records/3.jsonl\n+++ b/data/provenance/records/3.jsonl\n@@ -2073,6 +2073,7 @@\n+{\"id\":\"intake-350-20261121-model-protcell\",\"sha256\":\"4428b052b7abff363b64b1414d46886378ab24c1c550f78ccd53f3d0c13ae4bb\",\"added_in\":\"data/omics/intake-350-20261121\",\"added_by\":\"records:add\",\"changed_by\":[]}\ndiff --git a/data/provenance/records/6.jsonl b/data/provenance/records/6.jsonl\nindex 7ee5930d..fc579e2c 100644\n--- a/data/provenance/records/6.jsonl\n+++ b/data/provenance/records/6.jsonl\n@@ -1999,6 +1999,7 @@\n+{\"id\":\"intake-350-20261121-source-protcell-a-foundation-model-for-single-cell-proteomics-biorx\",\"sha256\":\"ca6ec69ce91f954979d574870cd765929f45a2442477ec36de77ca66ac320c41\",\"added_in\":\"data/omics/intake-350-20261121\",\"added_by\":\"records:add\",\"changed_by\":[]}\n"
+}

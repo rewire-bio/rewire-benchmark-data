@@ -17,6 +17,8 @@
 //   node scripts/agents/intake.mjs --dry-run [--fixtures <dir>] [--out <dir>] [--no-store-checks]
 //   node scripts/agents/intake.mjs --issue <n> [--report-only] [--out <dir>]
 //   node scripts/agents/intake.mjs --revise --pr <n> [--report-only] [--root <dir>] [--out <dir>]
+//   node scripts/agents/intake.mjs --refresh [--pr <n>] [--report-only | --dry-run] [--out <dir>]
+//   node scripts/agents/intake.mjs --drain [--issue <n>] [--since <time>] [--out <dir>]
 //
 // --dry-run       reads the issue, the proposal, the verification and the fetched sources from
 //                 fixtures; no model call and no network. It still writes the batch and, unless
@@ -31,7 +33,21 @@
 //                 pass, writes the batch through the same draft and batch path, and pushes one
 //                 commit to the pull request's branch. One revision per pull request; after
 //                 that, or when it cannot settle a field, it labels the pull request needs-tim.
-//                 --root is a checkout of the pull request's head with its parent commit.
+//                 --root is a checkout of the base branch. The script puts the pull request's
+//                 batch folder on it, so the revised branch is built on the base branch as it
+//                 is now, and pushes with a lease on the head commit it read.
+//
+// --refresh       rebuilds an intake pull request that conflicts with its base branch: the batch
+//                 folder as the pull request holds it, added again with records add on a checkout
+//                 of the base branch (--root), pushed as one commit with a lease. No model call,
+//                 and not a revision. Without --pr it looks at every open intake pull request.
+//
+// --drain         live only: works the issue given, then every open issue with an intake label
+//                 that has no pull request and no final answer from the intake, one process per
+//                 issue, each on a clean checkout. The intake workflow queues its runs, and
+//                 GitHub keeps only one waiting run, so a run works the issues of the runs it
+//                 replaced. --since is the time the label was added: an issue the intake has
+//                 answered since then is not worked again.
 //
 // Environment: ANTHROPIC_API_KEY (not needed for --dry-run; when empty the run writes a notice
 // and exits 0), GH_TOKEN for this repository (the rewire-bot app token in live mode, so the pull
@@ -84,6 +100,17 @@ export const LIMITS = {
   verifyToolCalls: 8, // kg_search and kg_describe calls in the verification pass
   reviseFetches: 2, // web fetches in the one revision call after a review
   reviseCharsPerToken: 3, // a low figure, so the token estimate before the revision call is high
+  apiRetries: 3, // waits after a 429 or 529 from the model API, on top of the SDK's own short retries
+  apiRetryBaseSeconds: 20, // the wait doubles: 20, 40, 80 seconds, unless the reply names one (retry-after)
+  apiRetryMaxSeconds: 120, // the longest single wait
+  apiRetryWaitSeconds: 480, // all the waits of one run together
+  queueIssues: 6, // issues one queued run works, the labelled one included
+  queueMinutes: 35, // a queued run starts no further issue after this long
+  queueAttempts: 3, // runs an issue gets when each one ends on a rate limit or a server error
+  issueMinutes: 20, // one issue's process in a queued run
+  mergeablePolls: 6, // reads of a pull request while GitHub has not yet said whether it merges
+  mergeablePollSeconds: 5,
+  refreshesPerPull: 6, // rebuilds of one pull request on its base branch before a person is asked
 };
 
 export const KINDS = ['model', 'method', 'benchmark', 'dataset'];
@@ -1252,6 +1279,8 @@ export function githubClient(token, fetchImpl = fetch) {
       return {
         number: p.number, title: p.title, body: p.body ?? '', state: p.state, author: p.user?.login, head_ref: p.head?.ref, head_sha: p.head?.sha,
         head_repo: p.head?.repo?.full_name ?? '', commits: p.commits, labels: (p.labels ?? []).map((l) => l.name), html_url: p.html_url,
+        // null while GitHub has not worked it out; false means the branch conflicts with its base.
+        mergeable: p.mergeable ?? null, base_ref: p.base?.ref ?? '',
       };
     },
     async pullFiles(repo, number) {
@@ -1278,6 +1307,41 @@ export function githubClient(token, fetchImpl = fetch) {
     },
     async addLabels(repo, number, labels) {
       return call('POST', `/repos/${repo}/issues/${number}/labels`, { labels });
+    },
+    // The calls below are for the refresh (--refresh) and the queue (--drain).
+    /** The commit two commits share: the state of the base branch a pull request was built on. */
+    async compare(repo, base, head) {
+      const c = await call('GET', `/repos/${repo}/compare/${base}...${head}?per_page=1`);
+      return { merge_base: c.merge_base_commit?.sha ?? '' };
+    },
+    /** Every comment on an issue or pull request, oldest first. */
+    async comments(repo, number) {
+      const out = [];
+      for (let page = 1; page < 10; page++) {
+        const batch = await call('GET', `/repos/${repo}/issues/${number}/comments?per_page=100&page=${page}`);
+        out.push(...batch.map((c) => ({ user: c.user?.login, body: c.body ?? '', created_at: c.created_at })));
+        if (batch.length < 100) break;
+      }
+      return out;
+    },
+    /** Open issues with a label, pull requests left out. */
+    async labelledIssues(repo, label) {
+      const out = [];
+      for (let page = 1; page < 10; page++) {
+        const batch = await call('GET', `/repos/${repo}/issues?state=open&labels=${encodeURIComponent(label)}&per_page=100&page=${page}`);
+        out.push(...batch.filter((i) => !i.pull_request).map((i) => ({ number: i.number })));
+        if (batch.length < 100) break;
+      }
+      return out;
+    },
+    async openPulls(repo) {
+      const out = [];
+      for (let page = 1; page < 10; page++) {
+        const batch = await call('GET', `/repos/${repo}/pulls?state=open&per_page=100&page=${page}`);
+        out.push(...batch.map((p) => ({ number: p.number, author: p.user?.login, head_ref: p.head?.ref, head_repo: p.head?.repo?.full_name ?? '' })));
+        if (batch.length < 100) break;
+      }
+      return out;
     },
   };
 }
@@ -1572,6 +1636,169 @@ async function structure(client, usage, { instruction, notes, schema }) {
 
 function errorText(e) {
   return `${e?.status ? `${e.status} ` : ''}${String(e?.message ?? e).split('\n')[0].slice(0, 200)}`;
+}
+
+// ---------- Rate limits and overload ----------
+
+/**
+ * 'rate limit' for a 429 and 'overloaded' for a 529 from the model API, also when the error
+ * arrives inside a stream with no status; '' for anything else. These two are worth a wait.
+ */
+export function retryableError(e) {
+  const type = e?.error?.error?.type ?? e?.error?.type ?? '';
+  const text = String(e?.message ?? '');
+  if (e?.status === 429 || type === 'rate_limit_error' || /rate_limit_error/.test(text)) return 'rate limit';
+  if (e?.status === 529 || type === 'overloaded_error' || /overloaded_error/.test(text)) return 'overloaded';
+  return '';
+}
+
+/** Why another run may succeed where this one failed (rate limit, overload, server error, dropped connection), or ''. */
+export function transientError(e) {
+  const kind = retryableError(e);
+  if (kind) return kind;
+  if (e?.status >= 500) return 'server error';
+  if (/APIConnection|ECONNRESET|ETIMEDOUT|EAI_AGAIN|fetch failed|socket hang up/i.test(`${e?.name ?? ''} ${e?.message ?? ''}`)) return 'connection error';
+  return '';
+}
+
+/** Seconds to wait before retry number `attempt` (from 0): the reply's retry-after when it gives one, else the doubling wait; never over the cap. */
+export function retryDelaySeconds(e, attempt) {
+  const headers = e?.headers;
+  const asked = Math.ceil(Number(typeof headers?.get === 'function' ? headers.get('retry-after') : headers?.['retry-after']));
+  const wait = Number.isFinite(asked) && asked > 0 ? asked : LIMITS.apiRetryBaseSeconds * 2 ** attempt;
+  return Math.min(LIMITS.apiRetryMaxSeconds, wait);
+}
+
+const pause = (ms) => new Promise((done) => setTimeout(done, ms));
+
+/**
+ * Make a model API call, waiting and trying again after a 429 or a 529. Bounded three ways: at
+ * most LIMITS.apiRetries retries of one call, at most LIMITS.apiRetryWaitSeconds of waiting in
+ * the whole run, and no retry once the run's estimated cost is over its cap. Every retry and its
+ * wait is counted in usage.retries. The error is thrown again when a bound is reached.
+ */
+export async function withApiRetry(call, { usage, log = () => {}, sleep = pause, what = 'model call' }) {
+  const retries = (usage.retries ??= { count: 0, waitSeconds: 0, gaveUp: 0 });
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await call();
+    } catch (e) {
+      const kind = retryableError(e);
+      if (!kind) throw e;
+      const wait = retryDelaySeconds(e, attempt);
+      const stop = attempt >= LIMITS.apiRetries ? `${LIMITS.apiRetries} retries were made`
+        : retries.waitSeconds + wait > LIMITS.apiRetryWaitSeconds ? `the run has already waited ${retries.waitSeconds} s of its ${LIMITS.apiRetryWaitSeconds} s`
+        : usage.total() > LIMITS.maxRunUsd ? `the run is over its $${LIMITS.maxRunUsd} cost cap`
+        : '';
+      if (stop) {
+        retries.gaveUp += 1;
+        log(`${what}: ${kind}; not tried again, because ${stop}`);
+        throw e;
+      }
+      retries.count += 1;
+      retries.waitSeconds += wait;
+      log(`${what}: ${kind}; waiting ${wait} s, then retry ${attempt + 1} of ${LIMITS.apiRetries}`);
+      await sleep(wait * 1000);
+    }
+  }
+}
+
+/**
+ * The Anthropic client with withApiRetry around the two calls this script makes. A request the
+ * API refuses with 429 or 529 before it starts reports no tokens and adds nothing to the cost
+ * estimate. A stream that fails after it started has reported its input tokens (and the output
+ * tokens of its first event only), and those are added to the estimate before the retry, so the
+ * cost cap checks see them.
+ */
+export function retryingClient(client, usage, { log = () => {}, sleep = pause } = {}) {
+  return {
+    beta: { messages: { stream: (req) => ({
+      finalMessage: () => withApiRetry(async () => {
+        const stream = client.beta.messages.stream(req);
+        try {
+          return await stream.finalMessage();
+        } catch (e) {
+          let partial = null;
+          try {
+            partial = stream.currentMessage?.usage ?? null;
+          } catch {
+            // No message was started.
+          }
+          if (partial) usage.add(req.model, partial);
+          throw e;
+        }
+      }, { usage, log, sleep, what: `${req.model} research call` }),
+    }) } },
+    messages: { create: (req) => withApiRetry(() => client.messages.create(req), { usage, log, sleep, what: `${req.model} structuring call` }) },
+  };
+}
+
+/** The retries of a run, as a line for the job summary; '' when there were none. */
+function retryNote(usage) {
+  const r = usage.retries;
+  if (!r?.count && !r?.gaveUp) return '';
+  return `The model API answered 429 or 529: ${r.count} retr${r.count === 1 ? 'y' : 'ies'} after waiting ${r.waitSeconds} s in all${r.gaveUp ? `; ${r.gaveUp} call${r.gaveUp === 1 ? '' : 's'} still failed` : ''}.`;
+}
+
+// ---------- The queue: issues a run works after its own ----------
+
+/** The hidden marker at the end of each comment the intake writes on an issue: the outcome, and whether another run should try again. */
+export const RUN_MARKER = 'intake-run';
+
+export function runMarker({ outcome, retry = false }) {
+  // No '>' inside the JSON, so nothing in an outcome can close the comment early.
+  return `<!-- ${RUN_MARKER}: ${JSON.stringify({ outcome: String(outcome ?? '').slice(0, 200), retry: Boolean(retry) }).replace(/>/g, '\\u003e')} -->`;
+}
+
+/** The marker on the last line of a comment, or null. */
+export function parseRunMarker(body) {
+  const last = String(body ?? '').trimEnd().split('\n').at(-1) ?? '';
+  const m = new RegExp(`^<!-- ${RUN_MARKER}: (\\{.*\\}) -->$`).exec(last);
+  if (!m) return null;
+  try {
+    return JSON.parse(m[1]);
+  } catch {
+    return null;
+  }
+}
+
+/** A failure comment written before the marker existed, for a run that ended on a rate limit or overload (issue #347). */
+const LEGACY_RETRY = /^The intake agent wrote a batch but `the intake run` failed[\s\S]*?(\b(429|529)\b|rate_limit_error|overloaded_error)/;
+const INTAKE_COMMENT = /^The intake agent /;
+
+/**
+ * Where an issue stands, from its comments ({ user, body }, oldest first). Pure.
+ *   new        the intake never answered: the run its label started was lost, or never started
+ *   retry      the last answer was a failure another run may get past, and fewer than
+ *              LIMITS.queueAttempts runs ended that way
+ *   exhausted  as retry, but the attempts are used up; a person removes and re-adds the label
+ *   done       the last answer was final (a pull request, a skip, a failed check)
+ */
+export function queueState(comments) {
+  const own = (comments ?? []).filter((c) => c.user === BOT_LOGIN).map((c) => ({ body: String(c.body ?? ''), marker: parseRunMarker(c.body) })).filter((c) => c.marker || INTAKE_COMMENT.test(c.body));
+  const retry = (c) => (c.marker ? c.marker.retry === true : LEGACY_RETRY.test(c.body));
+  if (!own.length) return { state: 'new', attempts: 0 };
+  const attempts = own.filter(retry).length;
+  if (!retry(own.at(-1))) return { state: 'done', attempts };
+  return { state: attempts < LIMITS.queueAttempts ? 'retry' : 'exhausted', attempts };
+}
+
+/**
+ * Open issues with an intake label that still need a run, lowest number first: no open or merged
+ * pull request from intake/issue-<n>, and a queueState of new or retry. `settled` holds issue
+ * numbers already found to need none, so one run does not ask about them twice.
+ */
+export async function queuedIssues(gh, repo, settled = new Set()) {
+  const numbers = new Set();
+  for (const label of [LABEL, UPDATE_LABEL]) for (const i of await gh.labelledIssues(repo, label)) numbers.add(i.number);
+  const out = [];
+  for (const number of [...numbers].filter((n) => !settled.has(n)).sort((a, b) => a - b)) {
+    const pulls = await gh.pullsFor(repo, `intake/issue-${number}`);
+    const queue = pulls.some((p) => p.state === 'open' || p.merged_at) ? { state: 'done', attempts: 0 } : queueState(await gh.comments(repo, number));
+    if (queue.state === 'new' || queue.state === 'retry') out.push({ number, ...queue });
+    else settled.add(number);
+  }
+  return out;
 }
 
 async function draftProposal(client, usage, { system, issue, runDate, log }) {
@@ -2026,7 +2253,7 @@ export function renderRevisionLines({ fields, derived, reviewUrl = '' }) {
 
 export function renderRevisionComment({ kind, reason, detail = '', runUrl, usage }) {
   const first = kind === 'revised'
-    ? 'The intake agent revised this pull request after the review. It changed only the fields the review did not pass, and pushed one commit; the reviewer agent reviews it again.'
+    ? 'The intake agent revised this pull request after the review. It changed only the fields the review did not pass. The branch now holds two commits built on the base branch as it is today, the first batch and then the revision; the reviewer agent reviews it again.'
     : `The intake agent did not revise this pull request: ${clean(reason)}. It is labelled \`${HUMAN_LABEL}\` and left for a person.`;
   return [
     first,
@@ -2052,10 +2279,11 @@ async function storedSources(dir, ids) {
 /**
  * Revise one intake pull request after the reviewer agent requested changes (--revise --pr <n>).
  * One revision per pull request: a second request, or anything the revision cannot settle, labels
- * the pull request needs-tim and leaves it. The working tree (--root) is the pull request's head,
- * with its parent commit fetched. Modes are those of the intake: dry-run reads fixtures and calls
- * nothing; report-only calls the model and writes the batch in the working tree only; live also
- * commits, marks the pull request, pushes and comments.
+ * the pull request needs-tim and leaves it. The working tree (--root) is a checkout of the base
+ * branch; the pull request's batch folder is put on it and added again, so the revision is built
+ * on the base branch as it is now and the pushed branch merges. Modes are those of the intake:
+ * dry-run reads fixtures and calls nothing; report-only calls the model and writes the batch in
+ * the working tree only; live also commits, marks the pull request, pushes and comments.
  */
 async function revise(args, env, deps) {
   const started = Date.now();
@@ -2137,15 +2365,29 @@ async function revise(args, env, deps) {
     if (batchFiles.length !== 1) return await handOver(`it has ${batchFiles.length} intake batch files, not one`);
     const batchDir = dirname(batchFiles[0]);
     state.batchDir = batchDir;
-    const storeFiles = files.filter((f) => /^data\/(entities|provenance)\//.test(f.filename));
     const outside = files.map((f) => f.filename).filter((f) => !f.startsWith(`${batchDir}/`) && !/^data\/(entities|provenance)\//.test(f));
     if (outside.length) return await handOver(`it touches files outside the batch folder and the store (${outside.slice(0, 5).join(', ')})`);
     if (!verdict.problems.length) return await handOver(`the review requests changes but lists no failed field${verdict.blocker ? ` (${verdict.blocker})` : ''}`);
+    // The base branch as checked out, with the pull request's batch folder on it. Nothing else of
+    // the pull request is taken: its store files are written again by records add, below.
+    let tree = null;
+    if (storeChecks) {
+      tree = await batchOnBase({ pull, batchDir, gh, repo, run });
+      if (tree.error) return await handOver(tree.error, { failed: 'checkout', detail: tree.detail });
+    }
     const folder = args.dryRun ? join(fixtures, 'batch') : join(args.root, batchDir);
     const original = readFileSync(join(folder, 'batch.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
     const receipt = existsSync(join(folder, 'kg.json')) ? readJson(join(folder, 'kg.json')) : null;
     const plan = planRevision(verdict.problems, original);
     if (plan.blocked.length) return await handOver(`the review failed fields the revision may not change: ${plan.blocked.map((b) => `${b.field} of ${b.id} (${b.reason})`).join('; ')}`);
+
+    // The first batch on the base branch, before any model call: the same rebuild a refresh does.
+    // It shows the batch still passes the store checks there and that the store lines the pull
+    // request held are the batch and nothing else. It is left staged; step 6 commits it.
+    if (storeChecks) {
+      const first = readdBatch({ batchDir, tree, records: original, run, log });
+      if (first.error) return await handOver(first.error, { failed: first.failed ?? 'rebuild', detail: first.detail });
+    }
 
     // 4. The sources of the records under revision, fetched again for their text.
     const asked = original.filter((r) => plan.ask.some((p) => p.id === r.id));
@@ -2172,6 +2414,7 @@ async function revise(args, env, deps) {
           const { default: Anthropic } = await import('@anthropic-ai/sdk');
           client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 3, timeout: 10 * 60 * 1000 });
         }
+        client = retryingClient(client, usage, { log, sleep: deps.sleep });
         const revised = await reviseFields(client, usage, { system: readFileSync(join(ROOT, PROMPT_PATH), 'utf8'), records: asked, problems: plan.ask, texts, runDate, log });
         if (revised.error) return await handOver(revised.error);
         reply = revised.reply;
@@ -2183,17 +2426,6 @@ async function revise(args, env, deps) {
     if (applied.unresolved.length) return await handOver(`the revision could not settle every failed field: ${applied.unresolved.map((u) => `${u.field} of ${u.id} (${u.reason})`).join('; ')}`);
     state.fields = applied.fields;
     state.derived = applied.derived;
-
-    // 6. The store as it was before the batch, so records -- add writes the revised records. The
-    // pull request has one commit, so its parent holds the store files without the batch.
-    if (storeChecks) {
-      const head = run('git', ['rev-parse', 'HEAD']);
-      if (!head.ok || head.output.trim() !== pull.head_sha) return await handOver('the working tree is not the pull request head', { failed: 'checkout' });
-      for (const f of storeFiles) {
-        const r = f.status === 'added' ? run('git', ['rm', '-q', '-f', '--', f.filename]) : run('git', ['checkout', 'HEAD~1', '--', f.filename]);
-        if (!r.ok) return await handOver(`could not restore ${f.filename} to its state before the batch`, { failed: 'restore the store', detail: clean(r.output).slice(0, 500) });
-      }
-    }
 
     // 7. The same draft and batch path as the first run. The revised receipt never says less than
     // the first one: its failed steps are kept, and a draft overlay that does not finish is one more.
@@ -2227,6 +2459,19 @@ async function revise(args, env, deps) {
     if (stray.length) return await handOver(`the revised batch differs from the first in more than the failed fields: ${stray.slice(0, 8).join('; ')}`);
     state.records = revised;
     state.batchText = batchText;
+
+    // 6. The revision is settled. Live, the first batch on the base branch becomes the first of
+    // the two commits pushed. Then the store goes back to what the base branch has, without the
+    // batch, so records -- add writes the revised records; a store file only the batch made is
+    // removed.
+    if (storeChecks) {
+      if (write) {
+        const r = run('git', ['commit', '-q', '-m', String(pull.title ?? `Intake batch of #${pull.number}`).slice(0, 200), '-m', rebuildCommitBody({ pull, tree })]);
+        if (!r.ok) return await handOver('`git commit` of the batch on the base branch failed', { failed: 'git commit', detail: clean(r.output).slice(-1500) });
+      }
+      const r = run('git', ['restore', '--source', tree.base, '--staged', '--worktree', '--', ...STORE_PATHS]);
+      if (!r.ok) return await handOver('could not put the store back as the base branch has it', { failed: 'restore the store', detail: clean(r.output).slice(0, 500) });
+    }
 
     // 8. The batch folder: the revised lines, the receipts, and what the revision did.
     const out = join(args.root, batchDir);
@@ -2294,8 +2539,20 @@ async function revise(args, env, deps) {
       if (!r.ok) return await handOver(`\`${cmd} ${cmdArgs[0]}\` failed`, { failed: `${cmd} ${cmdArgs[0]}`, detail: clean(r.output).slice(-1500) });
     }
     await gh.updatePull(repo, pull.number, { body });
-    const pushed = run('git', ['push', 'origin', `HEAD:refs/heads/${pull.head_ref}`]);
-    if (!pushed.ok) return await handOver('the push of the revision failed', { failed: 'git push', detail: clean(pushed.output).slice(-1500) });
+    // The branch is replaced by the two commits built on the base branch, but only if its head is
+    // still the commit the review was read against.
+    const pushed = run('git', ['push', `--force-with-lease=refs/heads/${pull.head_ref}:${pull.head_sha}`, 'origin', `HEAD:refs/heads/${pull.head_ref}`]);
+    if (!pushed.ok && leaseLost(pushed.output)) {
+      // Something else moved the branch (a refresh, a person). Nothing was pushed, so the marker
+      // comes off again and the review of the new head starts the revision afresh.
+      try {
+        await gh.updatePull(repo, pull.number, { body: String(pull.body ?? '') });
+        return skip('the branch moved while the revision ran, so nothing was pushed');
+      } catch (e) {
+        return await handOver(`the branch moved while the revision ran, and the revision marker could not be taken off the description again (${errorText(e)})`, { failed: 'git push' });
+      }
+    }
+    if (!pushed.ok) return await handOver(workflowRefusal(pushed.output) ? WORKFLOW_REFUSAL : 'the push of the revision failed', { failed: 'git push', detail: clean(pushed.output).slice(-1500) });
     state.pushed = true;
     state.outcome = 'revised';
     try {
@@ -2321,6 +2578,8 @@ async function revise(args, env, deps) {
       ...(state.fields.length || state.derived.length ? ['### Changes', '', ...renderRevisionLines({ fields: state.fields, derived: state.derived }).slice(2), ''] : []),
       state.comment ? `### Comment it would post, with the label ${state.label}\n\n${state.comment}\n` : null,
       state.pull && !state.pushed ? `### Pull request description it would write\n\n${state.pull.body}\n` : null,
+      retryNote(usage) || null,
+      retryNote(usage) ? '' : null,
       '### Token usage',
       '',
       usage.table(),
@@ -2332,16 +2591,418 @@ async function revise(args, env, deps) {
       writeFileSync(join(args.out, 'result.json'), `${JSON.stringify({ outcome: state.outcome, pr: state.pr, fields: state.fields, derived: state.derived, kg: state.kg, label: state.label, comment: state.comment, pull: state.pull, pushed: state.pushed }, null, 2)}\n`);
       if (state.reply) writeFileSync(join(args.out, 'revise-reply.json'), `${JSON.stringify(state.reply, null, 2)}\n`);
       if (state.batchText) writeFileSync(join(args.out, 'batch.jsonl'), state.batchText);
-      writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total(), seconds: Math.round((Date.now() - started) / 1000) }, null, 2)}\n`);
+      writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total(), retries: usage.retries ?? { count: 0, waitSeconds: 0, gaveUp: 0 }, seconds: Math.round((Date.now() - started) / 1000) }, null, 2)}\n`);
     }
     log(`Estimated cost of this run: $${usage.total().toFixed(4)}`);
+  }
+}
+
+// ---------- Rebuilding a pull request on its base branch (refresh, and the revision) ----------
+
+/** The hidden marker in the comment a refresh leaves on the pull request: the count of refreshes. */
+export const REFRESH_MARKER = 'intake-refresh';
+export const REFRESH_FIXTURES = 'tests/agents-intake-refresh-fixtures';
+/** The store files a batch is added to. Shards and kind files, so every intake pull request touches the same few. */
+const STORE_PATHS = ['data/entities', 'data/provenance'];
+const WORKFLOW_REFUSAL = 'GitHub refused the push because the base branch changed a workflow file since the pull request was opened, and the rewire-bot app has no workflows permission';
+
+/** git's message when a push with a lease finds the branch is no longer at the commit named. */
+const leaseLost = (output) => /stale info/.test(String(output ?? ''));
+/** GitHub's message when a push would bring a workflow change to a branch and the token may not write workflows. */
+const workflowRefusal = (output) => /refusing to allow .*workflow/i.test(String(output ?? ''));
+
+/**
+ * The store lines a git diff with no context (--unified=0) adds and removes:
+ * { added: [line], removed: [line] }. File headers are left out. Pure.
+ */
+export function storeLines(diffText) {
+  const added = [];
+  const removed = [];
+  for (const raw of String(diffText ?? '').split('\n')) {
+    if (/^(\+\+\+|---) /.test(raw)) continue;
+    if (raw[0] === '+') added.push(raw.slice(1));
+    else if (raw[0] === '-') removed.push(raw.slice(1));
+  }
+  return { added, removed };
+}
+
+/**
+ * Tie the store lines a pull request adds to its batch. For every record of batch.jsonl there is
+ * one record line and one provenance line, the provenance line names the batch folder, and its
+ * sha256 is the digest of the record line as stored (the record's identity). Nothing else is
+ * added and nothing is removed. Returns the problems; none means a rebuild that adds the same
+ * lines keeps every digest. Pure.
+ */
+export function tieToBatch({ added, removed }, records, batchDir) {
+  const problems = [];
+  if (removed.length) problems.push(`it removes or changes ${removed.length} store line${removed.length === 1 ? '' : 's'}; a pull request that only adds records removes none`);
+  const lines = added.map((line) => {
+    try {
+      const value = JSON.parse(line);
+      return value && typeof value.id === 'string' ? { line, value, provenance: value.kind === undefined && typeof value.sha256 === 'string' } : null;
+    } catch {
+      return null;
+    }
+  });
+  if (lines.some((l) => !l)) problems.push('a line it adds to the store is not a record or a provenance line');
+  const ids = new Set(records.map((r) => r.id));
+  for (const id of ids) {
+    const own = lines.filter((l) => l?.value.id === id);
+    const record = own.filter((l) => !l.provenance);
+    const provenance = own.filter((l) => l.provenance);
+    if (record.length !== 1 || provenance.length !== 1) problems.push(`${id} has ${record.length} record line${record.length === 1 ? '' : 's'} and ${provenance.length} provenance line${provenance.length === 1 ? '' : 's'} in the store diff, not one of each`);
+    else if (provenance[0].value.sha256 !== sha256(record[0].line)) problems.push(`the provenance of ${id} gives SHA-256 ${provenance[0].value.sha256}, but its store line has ${sha256(record[0].line)}`);
+    else if (provenance[0].value.added_in !== batchDir) problems.push(`the provenance of ${id} names ${provenance[0].value.added_in}, not ${batchDir}`);
+  }
+  const strays = unique(lines.filter((l) => l && !ids.has(l.value.id)).map((l) => l.value.id));
+  if (strays.length) problems.push(`it adds store lines for ${strays.length} record${strays.length === 1 ? '' : 's'} that batch.jsonl does not hold (${strays.slice(0, 5).join(', ')})`);
+  return problems;
+}
+
+const sameLines = (a, b) => a.length === b.length && [...a].sort().every((line, i) => line === [...b].sort()[i]);
+
+/**
+ * Put the working tree on the checked-out commit of the base branch, clean, with the pull
+ * request's batch folder on top, and read the store lines the pull request adds (its diff from
+ * the commit it shares with the base branch). Only the batch folder is taken from the pull
+ * request. Returns { base, mergeBase, old } or { error, detail }.
+ */
+async function batchOnBase({ pull, batchDir, gh, repo, run }) {
+  const head = run('git', ['rev-parse', 'HEAD']);
+  const base = head.ok ? head.output.trim() : '';
+  if (!/^[0-9a-f]{40}$/.test(base)) return { error: 'the checkout has no commit of the base branch to build on', detail: clean(head.output).slice(0, 500) };
+  if (base === pull.head_sha) return { error: 'the checkout is the pull request head, not the base branch' };
+  const { merge_base: mergeBase } = await gh.compare(repo, base, pull.head_sha);
+  if (!/^[0-9a-f]{40}$/.test(mergeBase ?? '')) return { error: 'GitHub gave no common commit of the pull request and the base branch' };
+  for (const cmdArgs of [
+    ['fetch', '--quiet', '--depth', '1', 'origin', pull.head_sha, mergeBase],
+    ['checkout', '--quiet', '--force', '--detach', base],
+    ['reset', '--quiet', '--hard', base],
+    ['clean', '-fdq', '--', 'data'],
+    ['checkout', '--quiet', pull.head_sha, '--', batchDir],
+  ]) {
+    const r = run('git', cmdArgs);
+    if (!r.ok) return { error: `\`git ${cmdArgs[0]}\` failed while putting the batch folder on the base branch`, detail: clean(r.output).slice(-1500) };
+  }
+  const diff = run('git', ['diff', '--unified=0', '--no-color', mergeBase, pull.head_sha, '--', ...STORE_PATHS]);
+  if (!diff.ok) return { error: 'could not read the store lines the pull request adds', detail: clean(diff.output).slice(-1500) };
+  return { base, mergeBase, old: storeLines(diff.output) };
+}
+
+/**
+ * Add the batch folder's batch to the store of the base branch, the way the first run did
+ * (intake-check, records add, records check), stage it, and check that the store now gains
+ * exactly the lines the pull request held. records add writes no date and no state of the store
+ * into a line, so the same batch gives the same record lines and the same provenance lines on
+ * any base; the comparison shows it did. Returns { lines } or { error, failed, detail }.
+ */
+function readdBatch({ batchDir, tree, records, run, log }) {
+  const tie = tieToBatch(tree.old, records, batchDir);
+  if (tie.length) return { error: `the store lines the pull request adds are not its batch as records add writes it: ${tie.slice(0, 4).join('; ')}` };
+  for (const [name, cmd, cmdArgs] of [
+    ['intake-check', 'npx', ['tsx', 'scripts/agents/intake-check.ts', `${batchDir}/batch.jsonl`]],
+    ['records add', 'npm', ['run', '-s', 'records', '--', 'add', `${batchDir}/batch.jsonl`, batchDir]],
+    ['records check', 'npm', ['run', '-s', 'records', '--', 'check']],
+  ]) {
+    log(`Running ${name}`);
+    const r = run(cmd, cmdArgs);
+    log(r.output.split('\n').slice(-15).join('\n'));
+    if (!r.ok) return { error: `\`${name}\` failed on the batch added to the base branch as it is now`, failed: name, detail: `\`\`\`\n${clean(r.output.split('\n').slice(-30).join('\n').slice(-3000)).replace(/```/g, "'''")}\n\`\`\`` };
+  }
+  const staged = run('git', ['add', '--', batchDir, ...STORE_PATHS]);
+  if (!staged.ok) return { error: '`git add` failed', failed: 'git add', detail: clean(staged.output).slice(-1500) };
+  const diff = run('git', ['diff', '--cached', '--unified=0', '--no-color', tree.base, '--', ...STORE_PATHS]);
+  if (!diff.ok) return { error: 'could not read the store lines the rebuild adds', failed: 'git diff', detail: clean(diff.output).slice(-1500) };
+  const now = storeLines(diff.output);
+  if (now.removed.length || !sameLines(now.added, tree.old.added)) {
+    const missing = tree.old.added.filter((l) => !now.added.includes(l)).length;
+    const extra = now.added.filter((l) => !tree.old.added.includes(l)).length;
+    return { error: `the batch added to the base branch does not write the store lines the pull request held (${missing} of its ${tree.old.added.length} lines are not written, ${extra} other lines are, ${now.removed.length} are removed), so a rebuild would change a record or its digest`, failed: 'store lines' };
+  }
+  return { lines: now.added.length };
+}
+
+const short = (sha) => String(sha ?? '').slice(0, 7);
+
+function rebuildCommitBody({ pull, tree }) {
+  return `The batch folder of #${pull.number} as the pull request held it at ${short(pull.head_sha)}, added again with records add on the base branch at ${short(tree.base)}. The store gains the same lines as before, so every record keeps its digest and its provenance line.`;
+}
+
+export function renderRefreshComment({ kind, reason = '', detail = '', pull, base = '', lines = 0, n = 1, runUrl = '' }) {
+  if (kind !== 'refreshed') {
+    return [
+      `The intake agent did not rebuild this pull request on its base branch: ${clean(reason)}. It is labelled \`${HUMAN_LABEL}\` and left for a person.`,
+      '',
+      detail ? `${detail}\n` : '',
+      `A refresh calls no model and changes no record.${runUrl ? ` Run: ${runUrl}` : ''}`,
+    ].filter((l) => l !== '').join('\n');
+  }
+  return [
+    `The intake agent rebuilt this pull request on \`${pull.base_ref || 'main'}\` at ${short(base)}, because it conflicted with it. The batch folder is as it was at ${short(pull.head_sha)}, and the store gains the same ${lines} lines as before, so every record keeps its digest.`,
+    '',
+    `This is not a revision: no model was called and no field changed. The reviewer agent reviews the new commit.${runUrl ? ` Run: ${runUrl}` : ''}`,
+    '',
+    `<!-- ${REFRESH_MARKER}: ${JSON.stringify({ n, base, from: pull.head_sha })} -->`,
+  ].join('\n');
+}
+
+/**
+ * Rebuild intake pull requests that conflict with their base branch (--refresh [--pr <n>]).
+ * The working tree (--root) is a checkout of the base branch. For each pull request: the batch
+ * folder as the pull request holds it is put on that checkout, added again with records add,
+ * and pushed as one commit in place of the branch, with a lease on the head commit that was
+ * read. No model call. It does not count as the one revision: the pull request keeps one commit,
+ * and its description and batch folder are not touched. Dry-run reads fixtures and runs nothing;
+ * report-only rebuilds and checks in the working tree and pushes nothing; live pushes and comments.
+ */
+async function refresh(args, env, deps) {
+  const mode = args.dryRun ? 'dry run' : args.reportOnly ? 'report only' : 'live';
+  const write = !args.dryRun && !args.reportOnly;
+  const clock = deps.now ?? (() => new Date());
+  const runDate = clock().toISOString().slice(0, 10);
+  const repo = env.GITHUB_REPOSITORY || DEFAULT_REPO;
+  const runUrl = env.GITHUB_RUN_ID ? `${env.GITHUB_SERVER_URL || 'https://github.com'}/${repo}/actions/runs/${env.GITHUB_RUN_ID}` : '';
+  const log = deps.log ?? ((m) => console.log(m));
+  const sleep = deps.sleep ?? pause;
+  const run = deps.run ?? ((cmd, cmdArgs) => runCommand(cmd, cmdArgs, { cwd: args.root }));
+  const emit = (text) => (env.GITHUB_STEP_SUMMARY ? appendFileSync(env.GITHUB_STEP_SUMMARY, `${text}\n`) : log(text));
+  const fixtures = resolve(ROOT, args.fixtures === FIXTURES ? REFRESH_FIXTURES : args.fixtures);
+  const fixture = args.dryRun ? readJson(join(fixtures, 'pull.json')) : null;
+  const gh = args.dryRun ? null : (deps.github ?? githubClient(env.GH_TOKEN || env.GITHUB_TOKEN));
+  // A live refresh pushes to the pull request, so it never skips the store checks (parseArgs).
+  const storeChecks = args.storeChecks && !args.dryRun;
+
+  async function one(number) {
+    const state = { pr: number, outcome: '', lines: 0, base: '', label: null, comment: null, pushed: false };
+    let pull = null;
+    const skip = (why) => ({ ...state, outcome: `skipped: ${why}` });
+    /** Stop and leave the pull request to a person: the label and one comment. A labelled pull request is not looked at again. */
+    const handOver = async (reason, { failed = '', detail = '' } = {}) => {
+      state.outcome = failed ? `failed: ${failed}` : `${HUMAN_LABEL}: ${reason}`;
+      state.reason = reason;
+      state.label = HUMAN_LABEL;
+      const comment = renderRefreshComment({ kind: 'handed over', reason, detail, runUrl });
+      if (!write) return { ...state, comment };
+      for (const call of [() => gh.addLabels(repo, pull.number, [HUMAN_LABEL]), () => gh.comment(repo, pull.number, comment)]) {
+        try {
+          await call();
+        } catch (e) {
+          log(`Could not label or comment on #${pull.number} (${errorText(e)}).`);
+        }
+      }
+      return state;
+    };
+
+    // 1. The pull request, and whether it conflicts. GitHub works that out after each push to the
+    // base branch; until it has, mergeable is null, which is never read as "merges".
+    pull = fixture ? fixture.pull : await gh.pull(repo, number);
+    for (let i = 0; !fixture && pull.state === 'open' && pull.mergeable === null && i < LIMITS.mergeablePolls; i++) {
+      await sleep(LIMITS.mergeablePollSeconds * 1000);
+      pull = await gh.pull(repo, number);
+    }
+    state.pr = pull.number;
+    if (pull.state !== 'open') return skip('the pull request is not open');
+    if (pull.author !== BOT_LOGIN) return skip(`the author is ${pull.author}, not ${BOT_LOGIN}`);
+    const issue = /^intake\/issue-(\d+)$/.exec(pull.head_ref ?? '')?.[1];
+    if (!issue || pull.head_repo !== repo) return skip(`the head ${pull.head_ref} is not an intake branch of this repository`);
+    if ((pull.labels ?? []).includes(HUMAN_LABEL)) return skip(`the pull request is labelled ${HUMAN_LABEL}`);
+    if (pull.mergeable === true) return skip('it merges with its base branch as it is');
+    if (pull.mergeable !== false) return skip('GitHub has not yet said whether it merges; the next run looks again');
+
+    // 2. What a refresh may rebuild: one batch that only adds records, and nothing else.
+    const files = fixture ? fixture.files : await gh.pullFiles(repo, pull.number);
+    if (files.some((f) => f.filename.endsWith(`/${CHANGES_FILE}`))) return await handOver('it changes an existing record, and a refresh only adds records again; the change has to be made again against the record as it is now (close this pull request, then remove and re-add the label on the issue)');
+    const batchFiles = files.map((f) => f.filename).filter((f) => /^data\/omics\/intake-[^/]+\/batch\.jsonl$/.test(f));
+    if (batchFiles.length !== 1) return await handOver(`it has ${batchFiles.length} intake batch files, not one`);
+    const batchDir = dirname(batchFiles[0]);
+    if (!batchDir.startsWith(`data/omics/intake-${issue}-`)) return await handOver(`its batch folder ${batchDir} is not one of issue #${issue}, which its branch names`);
+    const outside = files.map((f) => f.filename).filter((f) => !f.startsWith(`${batchDir}/`) && !/^data\/(entities|provenance)\//.test(f));
+    if (outside.length) return await handOver(`it touches files outside the batch folder and the store (${outside.slice(0, 5).join(', ')})`);
+    const refreshes = (fixture ? fixture.comments ?? [] : await gh.comments(repo, pull.number)).filter((c) => c.user === BOT_LOGIN && new RegExp(`<!-- ${REFRESH_MARKER}: `).test(c.body)).length;
+    if (refreshes >= LIMITS.refreshesPerPull) return await handOver(`it was rebuilt ${refreshes} times already and conflicts again`);
+
+    // 3. The batch on the base branch, added again and checked.
+    let tree;
+    if (storeChecks) {
+      tree = await batchOnBase({ pull, batchDir, gh, repo, run });
+      if (tree.error) return await handOver(tree.error, { failed: 'checkout', detail: tree.detail });
+      state.base = tree.base;
+      const records = readFileSync(join(args.root, batchDir, 'batch.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+      const added = readdBatch({ batchDir, tree, records, run, log });
+      if (added.error) return await handOver(added.error, { failed: added.failed, detail: added.detail });
+      state.lines = added.lines;
+    } else {
+      // No store and no git: the fixture's store diff is tied to the fixture batch, nothing more.
+      const records = readFileSync(join(fixtures, 'batch.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+      const old = storeLines(fixture ? fixture.diff : '');
+      const tie = tieToBatch(old, records, batchDir);
+      if (tie.length) return await handOver(`the store lines the pull request adds are not its batch as records add writes it: ${tie.slice(0, 4).join('; ')}`);
+      state.lines = old.added.length;
+    }
+    if (!write) return { ...state, outcome: 'ready: refresh not pushed in this mode' };
+
+    // 4. One commit in place of the branch, only if its head is still the commit that was read.
+    const committed = run('git', ['commit', '-q', '-m', String(pull.title ?? `Intake batch of #${pull.number}`).slice(0, 200), '-m', rebuildCommitBody({ pull, tree })]);
+    if (!committed.ok) return await handOver('`git commit` failed', { failed: 'git commit', detail: clean(committed.output).slice(-1500) });
+    const pushed = run('git', ['push', `--force-with-lease=refs/heads/${pull.head_ref}:${pull.head_sha}`, 'origin', `HEAD:refs/heads/${pull.head_ref}`]);
+    if (!pushed.ok && leaseLost(pushed.output)) return skip('the branch moved while the refresh ran, so nothing was pushed; the next run looks again');
+    if (!pushed.ok) return await handOver(workflowRefusal(pushed.output) ? WORKFLOW_REFUSAL : 'the push of the rebuilt branch failed', { failed: 'git push', detail: clean(pushed.output).slice(-1500) });
+    state.pushed = true;
+    state.outcome = 'refreshed';
+    try {
+      await gh.comment(repo, pull.number, renderRefreshComment({ kind: 'refreshed', pull, base: tree.base, lines: state.lines, n: refreshes + 1, runUrl }));
+    } catch (e) {
+      log(`Could not comment on #${pull.number} (${errorText(e)}).`);
+    }
+    return state;
+  }
+
+  const results = [];
+  let outcome = '';
+  try {
+    if (!args.dryRun && args.pr === 0 && !gh.openPulls) throw new Error('--refresh without --pr needs a GitHub client that lists pull requests');
+    const numbers = args.pr ? [args.pr] : fixture ? [fixture.pull.number]
+      : (await gh.openPulls(repo)).filter((p) => p.author === BOT_LOGIN && /^intake\/issue-\d+$/.test(p.head_ref ?? '') && p.head_repo === repo).map((p) => p.number).sort((a, b) => a - b);
+    for (const number of numbers) {
+      try {
+        results.push(await one(number));
+      } catch (e) {
+        // One pull request that cannot be read or rebuilt does not stop the others.
+        results.push({ pr: number, outcome: `failed: ${errorText(e)}`, lines: 0, base: '', label: null, comment: null, pushed: false });
+      }
+    }
+    const failed = results.filter((r) => r.outcome.startsWith('failed:'));
+    outcome = results.length === 1 ? results[0].outcome
+      : failed.length ? `failed: ${failed.length} of ${results.length} pull requests (${failed.map((r) => `#${r.pr}`).join(', ')})`
+      : `${results.filter((r) => r.outcome === 'refreshed').length} of ${results.length} open intake pull requests refreshed`;
+    return { pulls: results, ...(results.length === 1 ? results[0] : {}), outcome };
+  } finally {
+    emit([
+      `## Intake refresh, ${runDate} (${mode})`,
+      '',
+      `Outcome: ${outcome || 'error'}`,
+      '',
+      results.length ? '| Pull request | Outcome | Store lines | Base |\n| --- | --- | --- | --- |' : 'No open intake pull request.',
+      ...results.map((r) => `| #${r.pr} | ${clean(r.outcome)} | ${r.lines || ''} | ${short(r.base)} |`),
+      '',
+      ...results.filter((r) => r.comment).map((r) => `### Comment it would post on #${r.pr}, with the label ${r.label}\n\n${r.comment}\n`),
+      'No model call is made in a refresh.',
+      '',
+    ].join('\n'));
+    if (args.out) {
+      mkdirSync(args.out, { recursive: true });
+      writeFileSync(join(args.out, 'result.json'), `${JSON.stringify({ outcome, pulls: results }, null, 2)}\n`);
+    }
+  }
+}
+
+/**
+ * Work the queue (--drain [--issue <n>]): the issue given first, then each open issue with an
+ * intake label that still needs a run (queuedIssues), one at a time. Each issue runs in its own
+ * process on the checkout put back to the commit this run started on, so no issue sees another's
+ * batch. Bounded by LIMITS.queueIssues, LIMITS.queueMinutes and, per issue, LIMITS.issueMinutes.
+ * It stops at the first issue that ends on a rate limit: the rest stay queued for the next run.
+ */
+async function drain(args, env, deps) {
+  const started = Date.now();
+  const clock = deps.now ?? (() => new Date());
+  const runDate = clock().toISOString().slice(0, 10);
+  const repo = env.GITHUB_REPOSITORY || DEFAULT_REPO;
+  const log = deps.log ?? ((m) => console.log(m));
+  const run = deps.run ?? ((cmd, cmdArgs, opts = {}) => runCommand(cmd, cmdArgs, { cwd: args.root, ...opts }));
+  const emit = (text) => (env.GITHUB_STEP_SUMMARY ? appendFileSync(env.GITHUB_STEP_SUMMARY, `${text}\n`) : log(text));
+  const elapsedMinutes = deps.elapsedMinutes ?? (() => (Date.now() - started) / 60000);
+  if (!env.ANTHROPIC_API_KEY) {
+    const summary = `## Intake queue, ${runDate}\n\nSkipped: the ANTHROPIC_API_KEY secret is not set (docs/agents.md).\n`;
+    emit(summary);
+    log('::notice::Intake skipped: ANTHROPIC_API_KEY is not set.');
+    return { outcome: 'no key', summary };
+  }
+  const gh = deps.github ?? githubClient(env.GH_TOKEN || env.GITHUB_TOKEN);
+  const outDir = args.out || join(tmpdir(), `intake-out-${process.pid}`);
+  const results = [];
+  const tried = new Set();
+  const settled = new Set();
+  let left = '';
+  let outcome = '';
+  try {
+    const head = run('git', ['rev-parse', 'HEAD']);
+    const base = head.ok ? head.output.trim() : '';
+    if (!/^[0-9a-f]{40}$/.test(base)) throw new Error(`the checkout has no commit to start each issue on (${clean(head.output).slice(0, 200)})`);
+    for (;;) {
+      let next = 0;
+      let since = '';
+      if (!tried.size && args.issue) {
+        next = args.issue;
+        since = args.since;
+      } else {
+        const queue = (await queuedIssues(gh, repo, settled)).filter((q) => !tried.has(q.number));
+        if (!queue.length) break;
+        const names = queue.map((q) => `#${q.number}`).join(', ');
+        if (results.length >= LIMITS.queueIssues) left = `${names}: this run has worked its ${LIMITS.queueIssues} issues`;
+        else if (elapsedMinutes() > LIMITS.queueMinutes) left = `${names}: this run has gone on for over ${LIMITS.queueMinutes} minutes`;
+        if (left) break;
+        next = queue[0].number;
+      }
+      tried.add(next);
+      // Every issue but the first starts on the commit the run started on, with nothing of the
+      // issue before it in the tree.
+      if (results.length) {
+        const reset = [['checkout', '--quiet', '--force', '--detach', base], ['reset', '--quiet', '--hard', base], ['clean', '-fdq', '--', 'data']].map((a) => run('git', a)).find((r) => !r.ok);
+        if (reset) {
+          left = `#${next} and any after it: the checkout could not be put back to ${short(base)} (${clean(reset.output).slice(0, 200)})`;
+          results.push({ issue: next, outcome: 'failed: reset the checkout', ok: false, prUrl: null, transient: '' });
+          break;
+        }
+      }
+      const out = join(outDir, `issue-${next}`);
+      log(`Working issue #${next}`);
+      const r = run(process.execPath, [fileURLToPath(import.meta.url), '--issue', String(next), '--root', args.root, '--out', out, ...(since ? ['--since', since] : [])], { timeoutMs: LIMITS.issueMinutes * 60 * 1000 });
+      log(r.output);
+      const result = existsSync(join(out, 'result.json')) ? readJson(join(out, 'result.json')) : {};
+      // A process that ended without a result (killed at its time limit, or broken before it read
+      // the issue) wrote no comment. One is written here, so the attempt is counted and the issue
+      // is not tried without end.
+      if (!r.ok && !result.outcome) {
+        try {
+          await gh.comment(repo, next, `The intake agent's run for this issue ended without an answer (it gets ${LIMITS.issueMinutes} minutes), so no pull request was opened. The next intake run tries this issue again; an issue gets at most ${LIMITS.queueAttempts} such runs.\n\n${runMarker({ outcome: 'error: the run ended without a result', retry: true })}`);
+        } catch (e) {
+          log(`Could not comment on #${next} (${errorText(e)}).`);
+        }
+      }
+      results.push({ issue: next, outcome: result.outcome || (r.ok ? 'no result written' : 'error'), ok: r.ok, prUrl: result.prUrl ?? null, transient: result.transient ?? '', kg: result.kg ?? null });
+      if (result.transient === 'rate limit' || result.transient === 'overloaded') {
+        left = `any issue still queued: #${next} ended on a ${result.transient === 'overloaded' ? 'model API overload' : 'rate limit'}, so this run starts no other`;
+        break;
+      }
+    }
+    const failed = results.filter((r) => !r.ok);
+    outcome = failed.length ? `failed: ${failed.length} of ${results.length} issue runs (${failed.map((r) => `#${r.issue}`).join(', ')})` : `worked ${results.length} issue${results.length === 1 ? '' : 's'}`;
+    return { outcome, issues: results, left };
+  } finally {
+    emit([
+      `## Intake queue, ${runDate}`,
+      '',
+      `Outcome: ${outcome || 'error'}`,
+      '',
+      results.length ? '| Issue | Outcome | Pull request |\n| --- | --- | --- |' : 'No issue needed a run.',
+      ...results.map((r) => `| #${r.issue} | ${clean(r.outcome)} | ${r.prUrl ?? ''} |`),
+      '',
+      left ? `Left for the next run, which the next intake label or a manual live run with no issue number starts: ${left}.\n` : null,
+      'Each issue has its own summary above and its own folder in the artifact.',
+      '',
+    ].filter((l) => l !== null).join('\n'));
+    if (left) log(`::warning::Intake queue: left for the next run: ${left}`);
+    mkdirSync(outDir, { recursive: true });
+    // The knowledge graph figures of the first issue stand for the run (the workflow reports them).
+    writeFileSync(join(outDir, 'result.json'), `${JSON.stringify({ outcome, issues: results.map(({ kg, ...r }) => r), left, kg: results.find((r) => r.kg)?.kg ?? null }, null, 2)}\n`);
   }
 }
 
 // ---------- Main ----------
 
 function parseArgs(argv) {
-  const args = { dryRun: false, reportOnly: false, replay: false, revise: false, fixtures: FIXTURES, out: '', issue: 0, pr: 0, storeDir: '', root: ROOT, storeChecks: true };
+  const args = { dryRun: false, reportOnly: false, replay: false, revise: false, refresh: false, drain: false, since: '', fixtures: FIXTURES, out: '', issue: 0, pr: 0, storeDir: '', root: ROOT, storeChecks: true };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--dry-run') args.dryRun = true;
@@ -2352,6 +3013,9 @@ function parseArgs(argv) {
     else if (a === '--issue') args.issue = Number(argv[++i]);
     else if (a === '--revise') args.revise = true;
     else if (a === '--pr') args.pr = Number(argv[++i]);
+    else if (a === '--refresh') args.refresh = true;
+    else if (a === '--drain') args.drain = true;
+    else if (a === '--since') args.since = argv[++i] ?? '';
     else if (a === '--store-dir') args.storeDir = argv[++i];
     else if (a === '--root') args.root = resolve(argv[++i]);
     else if (a === '--no-store-checks') args.storeChecks = false;
@@ -2360,18 +3024,23 @@ function parseArgs(argv) {
   // A replay runs an issue again against an older store and KG release (to compare with what an
   // earlier run produced), so it skips the check for an existing pull request. Report-only only.
   if (args.replay && !args.reportOnly) throw new Error('--replay needs --report-only');
-  if (args.pr && !args.revise) throw new Error('--pr needs --revise');
-  // A live revision pushes to the pull request, so it never skips the store checks.
-  if (args.revise && !args.dryRun && !args.reportOnly && !args.storeChecks) throw new Error('a live --revise cannot use --no-store-checks');
+  if (args.pr && !args.revise && !args.refresh) throw new Error('--pr needs --revise or --refresh');
+  if (args.revise && args.refresh) throw new Error('--revise and --refresh are separate runs');
+  if (!Number.isInteger(args.pr) || args.pr < 0 || !Number.isInteger(args.issue) || args.issue < 0) throw new Error('--pr and --issue take a number');
+  // A live revision or refresh pushes to the pull request, so it never skips the store checks.
+  if ((args.revise || args.refresh) && !args.dryRun && !args.reportOnly && !args.storeChecks) throw new Error(`a live ${args.revise ? '--revise' : '--refresh'} cannot use --no-store-checks`);
+  // The queue opens pull requests; a dry run or a report-only run works one issue, as before.
+  if (args.drain && (args.dryRun || args.reportOnly || args.revise || args.refresh || args.replay)) throw new Error('--drain is a live intake run; it takes --issue, --since, --root and --out only');
+  if (args.since && Number.isNaN(Date.parse(args.since))) throw new Error('--since takes a time, such as 2026-11-21T09:00:00Z');
   return args;
 }
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
 /** Run a command in the repository; returns { ok, output }. */
-function runCommand(cmd, args, { cwd }) {
+function runCommand(cmd, args, { cwd, timeoutMs = 0 }) {
   try {
-    const output = execFileSync(cmd, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 });
+    const output = execFileSync(cmd, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024, ...(timeoutMs ? { timeout: timeoutMs } : {}) });
     return { ok: true, output };
   } catch (e) {
     return { ok: false, output: `${e.stdout ?? ''}${e.stderr ?? ''}` || String(e.message) };
@@ -2385,6 +3054,8 @@ function runCommand(cmd, args, { cwd }) {
 export async function main(argv = process.argv.slice(2), env = process.env, deps = {}) {
   const args = parseArgs(argv);
   if (args.revise) return revise(args, env, deps);
+  if (args.refresh) return refresh(args, env, deps);
+  if (args.drain) return drain(args, env, deps);
   const started = Date.now();
   const mode = args.dryRun ? 'dry run' : args.reportOnly ? 'report only' : 'live';
   const write = !args.dryRun && !args.reportOnly;
@@ -2438,7 +3109,8 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     if (comment && (issue?.labels ?? []).includes(UPDATE_LABEL)) comment = comment.replace(`\`${LABEL}\` label`, `\`${UPDATE_LABEL}\` label`);
     if (write && comment) {
       try {
-        await gh.comment(repo, issue.number, comment);
+        // The marker tells a later queued run that this issue has its answer.
+        await gh.comment(repo, issue.number, `${comment}\n\n${runMarker({ outcome })}`);
       } catch (e) {
         notes.push(`Could not comment on the issue (${errorText(e)}).`);
       }
@@ -2693,6 +3365,14 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       await finish('skipped: closed', null);
       return result();
     }
+    // A queued run that worked this issue after its label was added has answered it already.
+    if (write && args.since && gh.comments) {
+      const answered = (await gh.comments(repo, issue.number)).some((c) => c.user === BOT_LOGIN && (parseRunMarker(c.body) || INTAKE_COMMENT.test(c.body)) && Date.parse(c.created_at) > Date.parse(args.since));
+      if (answered) {
+        await finish('skipped: an earlier run worked this issue after the label was added', null);
+        return result();
+      }
+    }
     if (!args.dryRun && !args.replay) {
       const pulls = await gh.pullsFor(repo, branch);
       const live = pulls.find((p) => p.state === 'open' || p.merged_at);
@@ -2714,6 +3394,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       const { default: Anthropic } = await import('@anthropic-ai/sdk');
       client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 3, timeout: 10 * 60 * 1000 });
     }
+    if (client) client = retryingClient(client, usage, { log, sleep: deps.sleep });
     // An entity-update issue from the sweep that asks for field changes takes the update path.
     const marker = (issue.labels ?? []).includes(UPDATE_LABEL) ? parseUpdateMarker(issue.body) : null;
     if (marker?.action === 'update') return await runUpdate(marker, storeDir, storeUrls, client, system);
@@ -2940,9 +3621,13 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   } catch (e) {
     notes.push(`The run failed: ${errorText(e)}`);
     state.outcome = 'error';
+    // A rate limit, an overload, a server error or a dropped connection: the comment says another
+    // run should try, and a queued run (--drain) then does, up to LIMITS.queueAttempts runs.
+    state.transient = transientError(e);
     if (write && issue?.number) {
       try {
-        await gh.comment(repo, issue.number, renderFailureComment({ step: 'the intake run', output: errorText(e), runUrl, usage }));
+        const again = state.transient ? `\n\nThe failure looks temporary (${state.transient}). The next intake run tries this issue again; an issue gets at most ${LIMITS.queueAttempts} such runs.` : '';
+        await gh.comment(repo, issue.number, `${renderFailureComment({ step: 'the intake run', output: errorText(e), runUrl, usage })}${again}\n\n${runMarker({ outcome: `error: ${errorText(e)}`, retry: Boolean(state.transient) })}`);
       } catch {
         // The job fails anyway; the summary carries the error.
       }
@@ -2950,18 +3635,19 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     throw e;
   } finally {
     await closeKg().catch(() => {});
+    if (retryNote(usage)) notes.push(retryNote(usage));
     const summary = renderSummary({ mode, issue: issue?.number ?? args.issue, runDate, outcome: state.outcome, entities: state.entities, dropped: state.dropped, sourceNotes: state.sourceNotes, notes, usage, prUrl: state.prUrl, kgState: state.kg, kgLog: state.kgLog });
     emit(summary);
     if (state.comment) emit(`### Comment it would post\n\n${state.comment}\n`);
     if (state.pull && !state.prUrl) emit(`### Pull request it would open\n\n**${state.pull.title}**\n\n${state.pull.body}\n`);
     if (args.out) {
       mkdirSync(args.out, { recursive: true });
-      writeFileSync(join(args.out, 'result.json'), `${JSON.stringify({ outcome: state.outcome, entities: state.entities, dropped: state.dropped, sources: state.sourceNotes, kg: state.kg, links: state.kgLog?.links ?? [], duplicate_rulings: state.kgLog?.duplicates ?? [], rejected_links: state.kgLog?.rejected_links ?? [], change: state.change ?? null, pull: state.pull ?? null, comment: state.comment ?? null, prUrl: state.prUrl || null }, null, 2)}\n`);
+      writeFileSync(join(args.out, 'result.json'), `${JSON.stringify({ outcome: state.outcome, entities: state.entities, dropped: state.dropped, sources: state.sourceNotes, kg: state.kg, links: state.kgLog?.links ?? [], duplicate_rulings: state.kgLog?.duplicates ?? [], rejected_links: state.kgLog?.rejected_links ?? [], change: state.change ?? null, pull: state.pull ?? null, comment: state.comment ?? null, prUrl: state.prUrl || null, transient: state.transient ?? '' }, null, 2)}\n`);
       if (state.proposal) writeFileSync(join(args.out, 'proposal.json'), `${JSON.stringify(state.proposal, null, 2)}\n`);
       if (state.verification) writeFileSync(join(args.out, 'verification.json'), `${JSON.stringify(state.verification, null, 2)}\n`);
       writeFileSync(join(args.out, 'batch.jsonl'), state.batchText ?? state.records.map((r) => `${JSON.stringify(r)}\n`).join(''));
       if (state.changesText) writeFileSync(join(args.out, CHANGES_FILE), state.changesText);
-      writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total(), seconds: Math.round((Date.now() - started) / 1000) }, null, 2)}\n`);
+      writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total(), retries: usage.retries ?? { count: 0, waitSeconds: 0, gaveUp: 0 }, seconds: Math.round((Date.now() - started) / 1000) }, null, 2)}\n`);
     }
     log(`Estimated cost of this run: $${usage.total().toFixed(4)}`);
   }
