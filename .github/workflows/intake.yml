@@ -16,7 +16,9 @@ name: Intake agent
 # changes on a pull request the intake opened, the intake revises the batch once, changing only
 # the fields the review did not pass, and pushes one commit to the same branch; the reviewer then
 # reviews again. One revision per pull request. A second request for changes, or anything the
-# revision cannot settle, labels the pull request needs-tim and leaves it.
+# revision cannot settle, labels the pull request needs-tim and leaves it. A review starts a
+# report-only revision, which writes nothing, until the repository variable INTAKE_REVISE_MODE is
+# set to live.
 on:
   issues:
     types: [labeled]
@@ -235,8 +237,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      # A review revises live unless the repository variable INTAKE_REVISE_MODE says report-only.
-      MODE: ${{ github.event_name == 'pull_request_review' && (vars.INTAKE_REVISE_MODE || 'live') || inputs.mode }}
+      # A review starts a report-only revision unless the repository variable INTAKE_REVISE_MODE
+      # says live. Unset, nothing is pushed, labelled or commented, so no pull request is revised,
+      # approved and merged without a person having turned that on.
+      MODE: ${{ github.event_name == 'pull_request_review' && (vars.INTAKE_REVISE_MODE || 'report-only') || inputs.mode }}
       PR: ${{ github.event.pull_request.number || inputs.revise_pr }}
       HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     steps:
@@ -244,6 +248,20 @@ jobs:
         run: |
           if ! [[ "$PR" =~ ^[0-9]+$ ]]; then echo "::error::A pull request number is required"; exit 1; fi
           case "$MODE" in dry-run|report-only|live) ;; *) echo "::error::Unknown mode $MODE"; exit 1 ;; esac
+      # A manual run names any pull request, and the job's condition has not looked at it. So the
+      # author, the branch and the head repository are read from the API here, before the app token
+      # exists and before anything of the pull request is checked out. The dry run reads fixtures.
+      - name: Check the pull request is the intake's
+        if: env.MODE != 'dry-run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          author=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.user.login')
+          branch=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.head.ref')
+          head=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.head.repo.full_name // ""')
+          if [ "$author" != 'rewire-bot[bot]' ] || ! [[ "$branch" =~ ^intake/issue-[0-9]+$ ]] || [ "$head" != "$GITHUB_REPOSITORY" ]; then
+            echo "::error::Pull request $PR is not an intake pull request of this repository (author $author, branch $branch, head repository ${head:-none})"; exit 1
+          fi
       # Live only. This repository only: contents to push the one commit, pull requests to write the
       # revision marker in the description, issues to label the pull request and comment on it.
       - name: Token for the rewire-bot app

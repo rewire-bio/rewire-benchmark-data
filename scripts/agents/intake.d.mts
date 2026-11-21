@@ -93,7 +93,8 @@ export function parseReviewVerdict(body: string): { source: "marker" | "problems
 export function revisedAlready(pull: { body?: string; commits?: number }, files?: { filename: string }[]): string;
 export function planRevision(problems: ReviewProblem[], records: any[]): { ask: ReviewProblem[]; derived: ReviewProblem[]; blocked: (ReviewProblem & { reason: string })[] };
 export function applyRevision(records: any[], problems: ReviewProblem[], reply: { revisions?: any[] } | null, texts?: Map<string, { url: string; text: string }>): { records: any[]; fields: RevisedField[]; derived: DerivedField[]; unresolved: { id: string; field: string; verdict: string; problem: string; reason: string }[] };
-export function strayChanges(before: any[], after: any[], fields: { id: string; field: string; action: string }[]): string[];
+export function strayChanges(before: any[], after: any[], fields: { id: string; field: string; action: string }[], derived?: { id: string; field: string }[]): string[];
+export function reviseCostBound(promptChars: number, model?: string): number;
 export function renderRevisionLines(input: { fields: RevisedField[]; derived: DerivedField[]; reviewUrl?: string }): string[];
 export function renderRevisionComment(input: { kind: "revised" | "handed over"; reason?: string; detail?: string; runUrl?: string; usage: Usage }): string;
 export function main(argv?: string[], env?: Record<string, string | undefined>, deps?: Record<string, any>): Promise<any>;

@@ -551,7 +551,7 @@ export function renderReview({ records, rows, verdict, sourceNotes, notes = [], 
     for (const row of rows.filter((x) => x.id === id)) out.push(`| ${row.field} | ${cell(row.value, 120)} | ${cell(row.sources, 80)} | ${row.verdict} | ${cell(row.note, 300)} |`);
     out.push('', '</details>', '');
   }
-  if (sourceNotes.length) out.push('**Sources re-fetched by the reviewer**', '', ...sourceNotes.map((s) => `- ${s}`), '');
+  if (sourceNotes.length) out.push('**Sources re-fetched by the reviewer**', '', ...sourceNotes.map((s) => `- ${clean(s)}`), '');
   if (notes.length) out.push(...notes.map((n) => `- ${n}`), '');
   out.push(`Reviewed by the reviewer agent (\`.github/workflows/reviewer.yml\`, prompt \`${PROMPT_PATH}\`), ${MODELS.review}, independently of the intake agent. Estimated cost $${usage.total().toFixed(4)}.${runUrl ? ` Run: ${runUrl}` : ''}`);
   // The marker is added after the cut, so a long review never loses it.

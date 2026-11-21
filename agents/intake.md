@@ -81,7 +81,7 @@ An independent reviewer agent judges every field of the records after the pull r
 
 Decide each listed field, and no other field:
 
-- `drop`, when no source states the value. For `areas`, `limitations` and `links`, name exactly the values to drop, copied from the record; the rest stay. For any other field the whole value is dropped and recorded as missing. `entity_level` cannot be dropped.
+- `drop`, when no source states the value. For `areas`, `limitations` and `links`, name exactly the values to drop, copied from the record; the rest stay, and a drop that names no value settles nothing. For any other field the whole value is dropped and recorded as missing. `entity_level` cannot be dropped.
 - `cite`, when a source states the value. Quote the passage that states it, copied word for word from the source text (one or two sentences), and give the URL of that source. The script looks for the quote in the page text and rejects one it cannot find, so do not paraphrase, shorten with an ellipsis or join separate sentences.
 - `none`, when you can do neither, with the reason.
 
