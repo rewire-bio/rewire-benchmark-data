@@ -1,8 +1,8 @@
 # Evo 2 cloud operations: Rewire-run records, 2026-11-21
 
-Reviewer: Claude agent, automated. The same agent wrote the generator and ran the checks. There was no independent second pass and no human review. Nothing was rerun and no GPU or paid run was made.
+Reviewer: Claude agent, automated. One agent wrote the generator and ran the checks. A second automated pass then reviewed the draft and found the two faults listed under "Status rulings"; the batch was rebuilt to fix them before it reached main. There was no human review. Nothing was rerun and no GPU or paid run was made.
 
-Batch: `data/omics/rewire-evo2-cloud-operations-20261121/` (90 records). Notes and the list of what was left out are in its `notes.md`.
+Batch: `data/omics/rewire-evo2-cloud-operations-20261121/` (92 records). Notes and the list of what was left out are in its `notes.md`.
 
 ## Source
 
@@ -19,31 +19,43 @@ Batch: `data/omics/rewire-evo2-cloud-operations-20261121/` (90 records). Notes a
 | `rewire-local-20261121-evo2ops-source-protocol` | `protocol.md` | `e24ab6967b409dcf8663b5b9d8917b85ba91146987089240206dfa737b25e2f7` |
 | `rewire-local-20261121-evo2ops-source-amendment-7` | `protocol/amendments/007-current-predictors.md` | `ddaa89b7ed8a4660221b08f49bfba708ce519ae36a7ab8fa58ea2b9ea4f2590e` |
 | `rewire-local-20261121-evo2ops-source-readme` | `README.md` | `a5beed84f477a15b8682ee8e8a4903de75d28b5b3292f2ad89f18fd06b7068ca` |
+| `rewire-local-20261121-evo2ops-source-run-log` | `evidence/run-log.md` | `9b42944eb2c1c7afeeb295f725bf1945ad8470f355b6a2e21531348c3f56e0e0` |
+| `rewire-local-20261121-evo2ops-receipt-reproduction-runpod-l40s` | `evidence/runs/reproduction-30e7ae49/platforms/P5/attempt-1/receipt-main.json` | `60f60324a7cda6b66b370ea2569e71175f66a1baf64455d17b6a65813df02fd8` |
 
 ## How values were checked
 
 `extract/build_batch.py evo2ops <checkout> <batch folder>` builds the batch from a checkout at the pinned commit and refuses any other commit. It reads JSON with floats kept as strings, so each `printed_value` is the literal number token in the file. Each result's `source_locator` is the file path and the JSON pointer. After building, the script reads every pointer again and compares the token and the interval bounds with the record. `--check` rebuilds in memory and compares with the stored `batch.jsonl` byte for byte.
 
-The script asserts: 9 sources, 1 benchmark, 4 subsets, 5 protocols, 9 configurations, 31 evaluations and 31 results; 12 `reproduced` and 19 `source_checked`; the attempt used per platform (P2 attempt 1, P3 attempt 1, P5 attempt 2, from `operations.json`); that each receipt has status `completed`, its own platform ID and 3,893 variants scored; that the P2 AUROC is the same at both pointers that hold it; that no CADD v1.7, SpliceAI or missense REVEL score is missing; that amendment 7 states the version and origin of each lookup score; that every source is cited by a record; and that a result is `reproduced` exactly when it cites one receipt, with its evaluation carrying the same status and sources.
+The script asserts: 11 sources, 1 benchmark, 4 subsets, 5 protocols, 9 configurations, 31 evaluations and 31 results; every record `source_checked` and none with a run recipe; that no receipt of the recorded run contains the word AUROC; that the L40S throughput is 0.6117 in the recorded receipt and 0.9081 in the reproduction receipt for the same GPU model, sequence count and variant count; that the run log has the sentence about the slower L40S host; that the recorded run's revision is `e93491a`; the attempt used per platform (P2 attempt 1, P3 attempt 1, P5 attempt 2, from `operations.json`); that each receipt has status `completed`, its own platform ID and 3,893 variants scored; that the P2 AUROC is the same at both pointers that hold it; that no CADD v1.7, SpliceAI or missense REVEL score is missing; that amendment 7 states the version and origin of each lookup score; that every source is cited by a record; that a result cites a receipt exactly when its value is read from that receipt; and that the reproduction receipt is cited by the L40S throughput result alone, with 0.9081 in its limitations.
 
 `npm run batch -- check-values` was not run. It parses table and row locators and cannot read a JSON pointer.
 
 ## Status rulings
 
-- `reproduced`, 12 results and their 12 evaluations: Evo 2 7B AUROC on the all, coding and noncoding subsets for each platform, and W1 throughput for each platform. Each cites its own platform's `receipt-main.json` and no other receipt. Each protocol holding them carries a run recipe whose executed instruction names that receipt as a `full_protocol` validation receipt.
-- `source_checked`, 19 results: CADD v1.3, phyloP, the consequence rule, CADD v1.7, SpliceAI and REVEL (lookup scores, no GPU run, no receipt), and the Evo 2 7B missense AUROC. The missense analysis is amendment 7, run after the recorded run on the committed P2 scores (`followup/current_predictors.py` lines 115 and 116). No receipt covers that analysis, so it is not marked `reproduced` and its protocol has no run recipe.
-- The receipt covers the GPU run. AUROC is computed afterwards from the committed scores by `scripts/analyse.py`. The recipe's limitations say so.
-- The runs are the project's own. `reproduced` does not claim that a published score was reproduced.
+All 92 records are `source_checked`. None is `reproduced`, no protocol carries a run recipe and no evaluation has a `reproduction` attribute.
+
+The first draft marked 12 results and evaluations `reproduced` and gave four AUROC protocols and the throughput protocol a run recipe whose executed instructions named the three receipts. The second pass found:
+
+1. **The receipts do not hold or bind the AUROC.** `receipt-main.json` holds W0 to W3 counts, timings and throughput. It has no AUROC and no hash of `w1_brca1_scores.tsv`. AUROC is computed off the machine into `results.json`. The nine Evo 2 7B AUROC results now cite `results.json` and no receipt.
+2. **The Runpod L40S throughput was not repeated.** The stored value is 0.6117 sequences per second (`platforms/P5/attempt-2/receipt-main.json`, `/results/w1/sequences_per_second`). The study's reproduction run measured 0.9081 on an NVIDIA L40S for the same 5,219 sequences and 3,893 variants (`evidence/runs/reproduction-30e7ae49/platforms/P5/attempt-1/receipt-main.json`). `evidence/run-log.md` says the recorded attempt ran "on a slower L40S host (0.61 windows per second, against 0.93 on the host used earlier the same day)". The result, its evaluation and the throughput protocol now state both figures in `limitations` and cite both files.
+
+Why the recipes were removed and not only the status changed: the board's "Reproduced" badge does not read `status`. It is given to any result that cites, or whose evaluation cites, the validation receipt of an executed `full_protocol` recipe instruction (`run_receipts` in `scripts/kg/release_graph.py`, used by `scripts/kg/product_queries.py`). The L40S throughput exists only in its receipt, so the result must cite it. While any recipe named that receipt, the badge would stay. Removing the recipes also removes two smaller faults: the instruction code was the README block with one platform filled in, which is not the command the recorded run used, and the recipe said "at the pinned commit" although the run was made at `e93491a`.
+
+This matches the store. On main, 14 of 18 `rewire_run` evaluations are `source_checked`, complete runs among them. The `reproduced` ones are MFASS evaluations with a `reproduction` attribute, and the one receipt citation was accepted after comparing the receipt's own metrics with the stored values (`docs/reviews/2026-11-21-mfass-receipt-citation.md`).
+
+Open for the owner: reproduction run 30e7ae49 does repeat all nine Evo 2 7B AUROCs exactly (`/platforms/P2|P3|P5/w1_auroc` is equal in both `results.json` files, and the two Runpod L40S `w1_brca1_scores.tsv` files are byte-identical). If `reproduced` should cover that, ingest the reproduction run as a second source set and move those nine records with `records -- change`. This batch does not make that call.
+
+`tests/omics-run-receipt-badge.test.ts` holds these rulings: no record of the batch is `reproduced` or carries a recipe, no result of the batch can get the badge, a receipt is cited only by a result whose value is read from it, and the L40S throughput states both figures. It also checks, for the whole store, that the badge never lands on a result whose status is not `reproduced`.
 
 ## Checks
 
-- `npm run records -- add` accepted the batch and the SHACL check of the 90 records and their 5 link targets passed.
-- `npm run records -- check`: 93,307 records match their provenance.
+- `npm run records -- add` accepted the batch and the SHACL check of the 92 records and their 5 link targets passed.
+- `npm run records -- check`: 93,309 records match their provenance.
 - `npm run check:task-links`: passes. Each new protocol is `part_of` the new benchmark.
-- `npm run checks -- report` before and after the add: every rule count is unchanged and equals `data/omics/checks-baseline.json`.
-
+- `tests/checks-baseline.test.ts` passes after the add: every rule count equals `data/omics/checks-baseline.json`, which is untouched.
+- `tests/omics-run-receipt-badge.test.ts` passes.
 - `npm run depth-tier -- check`: 0 records differ from the rule, so tier 1 on the new benchmark matches it.
-- Not run: `npm run archive -- fetch`. The nine sources have no archive object yet. The fetch writes rows that name a local cache as the home of the bytes, and this pass ran in a clone that was deleted afterwards.
+- Not run: `npm run archive -- fetch`. The eleven sources have no archive object yet. The fetch writes rows that name a local cache as the home of the bytes, and this pass ran in a clone that was deleted afterwards.
 
 ## Use-case judgements needed
 
@@ -57,4 +69,4 @@ No use case links to these protocols and no judgement was written in this pass. 
 
 ## Gaps
 
-Listed in the batch `notes.md` under "Not ingested": the other workloads, cross-platform agreement, classification flips, the follow-up and reproduction runs with their receipts, costs, and `evo2-size-by-use-case`, which has no result file.
+Listed in the batch `notes.md` under "Not ingested": the other workloads, cross-platform agreement, classification flips, the follow-up runs, the results of the reproduction run, costs, and `evo2-size-by-use-case`, which has no result file.

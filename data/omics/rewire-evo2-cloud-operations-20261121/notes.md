@@ -4,11 +4,11 @@ Rewire's own study `rewire-bio/evo2-cloud-operations`, pinned at commit `f8ae11c
 
 ## What is in the batch
 
-90 records, all built by `extract/build_batch.py evo2ops` from files at the pinned commit:
+92 records, all built by `extract/build_batch.py evo2ops` from files at the pinned commit:
 
 | Kind | Count | Content |
 | --- | --- | --- |
-| source | 9 | `results.json`, `operations.json` and three `receipt-main.json` files of recorded run b75c67aa, `evidence/current-predictors/results.json`, `protocol.md`, `protocol/amendments/007-current-predictors.md`, `README.md` |
+| source | 11 | `results.json`, `operations.json` and three `receipt-main.json` files of recorded run b75c67aa, `evidence/current-predictors/results.json`, `protocol.md`, `protocol/amendments/007-current-predictors.md`, `README.md`, `evidence/run-log.md`, and the Runpod L40S `receipt-main.json` of reproduction run 30e7ae49 |
 | benchmark | 1 | the study |
 | dataset_subset | 4 | BRCA1 SNVs: all 3,893, coding 2,768, noncoding 1,125, missense 2,086 |
 | protocol | 5 | AUROC on each subset, and W1 scoring throughput |
@@ -20,11 +20,16 @@ Every evaluation has origin `rewire_run`.
 
 ## Status
 
-12 results and their 12 evaluations are `reproduced`: Evo 2 7B AUROC on the all, coding and noncoding subsets on each of the three platforms (9), and W1 throughput on each platform (3). Each cites the `receipt-main.json` of its own platform, and that receipt is the `full_protocol` validation receipt of an executed instruction in the protocol's run recipe. The receipt records that the run completed and scored all 3,893 variants.
+All 92 records are `source_checked`. No result or evaluation is `reproduced`, no protocol carries a run recipe, and no evaluation has a `reproduction` attribute. So no receipt is a recipe's validation receipt, and the board cannot show a "Reproduced" badge on a result of this batch.
 
-19 results and their evaluations are `source_checked` and cite no receipt: the lookup predictors (no GPU run), and all four missense results, which come from the amendment 7 analysis done after the recorded run.
+An earlier draft of this batch marked 12 results `reproduced` and gave each protocol a run recipe naming the three receipts. Review found two faults, and the draft was rebuilt before it reached main:
 
-`reproduced` here means Rewire ran the full protocol and the receipt is cited. It does not mean a published score was reproduced, and the run is the project's own.
+- The receipts hold counts, timings and throughput. They hold no AUROC and no hash of `w1_brca1_scores.tsv`. AUROC is computed afterwards, off the machine, into `results.json`. The nine Evo 2 7B AUROC results therefore cite `results.json` only.
+- The Runpod L40S throughput of the recorded run, 0.6117 sequences per second, was not repeated. Reproduction run 30e7ae49 measured 0.9081 on another L40S host for the same 5,219 sequences, and `evidence/run-log.md` calls the recorded host a slower one. The result, its evaluation and the throughput protocol state both figures in `limitations` and cite the reproduction receipt and the run log.
+
+The three throughput results cite the receipt of their own platform, because the value is read from it. The Runpod L40S receipt of the reproduction run is a source only for the limitation above. No value is taken from it.
+
+The store's other `reproduced` records are evaluations with a `reproduction` attribute and a receipt whose own metrics equal the stored values (`docs/reviews/2026-11-21-mfass-receipt-citation.md`). These records do not meet that bar.
 
 ## Decisions
 
@@ -34,12 +39,13 @@ Every evaluation has origin `rewire_run`.
 - Scoring seconds and peak memory are kept as evaluation attributes (`timing_seconds`, `peak_memory`), not as results. The vocabulary has no byte unit.
 - A lookup score has a `version` only where amendment 7 states it (CADD v1.3, CADD v1.7, REVEL v1.3; the script asserts the strings). phyloP, SpliceAI and the consequence rule are marked unextracted.
 - No source carries a licence: the README says the study code licence is to be set at publication.
+- `metric_implementation` names the revision the recorded run used, `e93491a` (`provenance.json` of the run), not the pinned commit. Between the two, `src/study/analysis.py` gained 82 lines and lost none, and `src/evo2ops`, `configs` and `container` did not change.
 - No use-case link and no judgement was written. The judgements needed are listed in the dated review.
 
 ## Not ingested
 
 - W0 loss, W2 exon classifier AUROC, W3 memory by sequence length, W4 repeat scores.
 - Cross-platform agreement (`/agreement_with_reference`), classification flips (`evidence/classification-flips/results.json`) and the follow-up runs (`evidence/followup-20261011/`, nine receipts).
-- The reproduction run `evidence/runs/reproduction-30e7ae49/` (three receipts) and the `receipt-repeat.json` files. No result in this batch rests on them.
+- The results of the reproduction run `evidence/runs/reproduction-30e7ae49/` and the `receipt-repeat.json` files. No value in this batch is read from them. Its `results.json` holds the same nine Evo 2 7B AUROCs as the recorded run at `/platforms/P2|P3|P5/w1_auroc`, and its Runpod H100 and Google Cloud H100 throughputs are 2.9232 and 2.9232 against 2.9075 and 2.9297 recorded. Ingesting it as a second run, with a `reproduction` attribute on the evaluations it repeats, is the route to `reproduced` if the owner wants that status here.
 - Costs (`operations.json`, `evidence/checks/verification.json`).
 - `rewire-bio/evo2-size-by-use-case` at `027c2c1fcbdf14a0cc00e203795a630bd91020e7`: its README says no paid runs have been made, `evidence/claims.json` is empty and it has no result file. Nothing to ingest.

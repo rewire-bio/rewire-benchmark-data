@@ -198,6 +198,43 @@ def evo2ops(root):
             "rewire_run_receipt",
             {**no_licence, "source_locator": "JSON pointers /status, /environment and /results/w1"})
 
+    # The receipts hold throughput and counts, not the AUROC, and the study's repeat on another
+    # L40S host gave a different throughput. The repeat's receipt and the run log are sources so
+    # that the limitation on the L40S throughput is pinned to bytes.
+    repro_rel = "evidence/runs/reproduction-30e7ae49/platforms/P5/attempt-1/receipt-main.json"
+    repro = load(root, repro_rel)
+    assert repro["status"] == "completed" and repro["environment"]["platform_id"] == "P5"
+    assert repro["environment"]["gpu_name"] == receipt_doc["P5"]["environment"]["gpu_name"] == "NVIDIA L40S"
+    for field in ("sequences_scored", "variants"):
+        assert repro["results"]["w1"][field] == receipt_doc["P5"]["results"]["w1"][field], field
+    l40s_recorded = receipt_doc["P5"]["results"]["w1"]["sequences_per_second"]
+    l40s_repeat = repro["results"]["w1"]["sequences_per_second"]
+    assert (l40s_recorded, l40s_repeat) == ("0.6117", "0.9081"), (l40s_recorded, l40s_repeat)
+    for p in platforms:
+        assert "auroc" not in json.dumps(receipt_doc[p]).lower(), p
+    S_REPRO_P5 = b.source(
+        f"{P}-receipt-reproduction-runpod-l40s", repro_rel,
+        "evo2-cloud-operations reproduction run 30e7ae49: run receipt, Runpod L40S (P5, attempt-1)",
+        "Receipt written on the Runpod L40S machine of the study's reproduction run. Cited only for its W1 throughput, "
+        "which differs from the recorded run's on another L40S host. No result of this batch takes its value from it.",
+        "rewire_run_receipt",
+        {**no_licence, "source_locator": "JSON pointers /status, /environment/gpu_name and /results/w1"})
+    log_rel = "evidence/run-log.md"
+    log = (root / log_rel).read_text()
+    slow_host = "P5 attempt 2 completed W0 to W4 on a slower L40S host\n  (0.61 windows per second, against 0.93 on the host used earlier the same day)."
+    assert slow_host in log
+    S_LOG = b.source(f"{P}-source-run-log", log_rel, "evo2-cloud-operations: run log",
+                     "Dated log of every run and failed attempt of the study, including the host used for each L40S attempt.",
+                     "rewire_execution_report",
+                     {**no_licence, "source_locator": "Section '2026-10-09, clean recorded run'"})
+    l40s_limit = (f"The Runpod L40S value of the recorded run, {l40s_recorded} sequences per second, was not repeated: the study's "
+                  f"reproduction run 30e7ae49 measured {l40s_repeat} on another L40S host for the same "
+                  f"{receipt_doc['P5']['results']['w1']['sequences_scored']} sequences, and the run log calls the recorded host a slower one.")
+    prov = json.loads((root / f"{run}/provenance.json").read_text())
+    run_rev = prov[0]["git_revision"]
+    assert len(prov) == 1 and run_rev == "e93491ac66490ae30d052d2862eea0e37d27f011", prov
+    ran_at = f"the recorded run used revision {run_rev[:7]} ({run}/provenance.json), an ancestor of the pinned commit"
+
     cur = load(root, "evidence/current-predictors/results.json")
     strata = {
         "all": ("all SNVs", int(cur["main"]["all"]["n"]), int(cur["main"]["all"]["lof"]), "/main/all"),
@@ -212,6 +249,7 @@ def evo2ops(root):
         "A run by the project with its own code on public data. It is not an independent reproduction of a published score.",
         "The L40S gave different per-variant scores from the two H100s (results.json, /agreement_with_reference/P5), so the hardware is part of each result.",
         "Baseline scores need no GPU and are covered by no run receipt.",
+        "No result is marked reproduced. The run receipts hold counts, timings and throughput but neither the AUROC nor a hash of the scores file, and AUROC is computed afterwards from the committed scores.",
     ]
     BENCH = b.add(f"{P}-benchmark", "benchmark",
                   "Evo 2 7B on BRCA1 saturation genome editing SNVs across cloud GPUs (Rewire, evo2-cloud-operations)",
@@ -220,40 +258,6 @@ def evo2ops(root):
                   {"entity_level": "suite", "version": b.commit, "task": "Zero-shot classification of BRCA1 loss-of-function SNVs",
                    "scope_note": "Recorded run b75c67aa of 9 October 2026 and its amendment 7 analysis. W0, W2, W3, W4, the reproduction run, the follow-up runs and costs are not ingested.",
                    "depth_tier": 1, "limitations": limits, "source_locator": "protocol.md, Workloads and Analysis; README.md, Status"})
-
-    readme_code = ("make test\nset -a; source ~/.config/evo2ops/env; set +a\n"
-                   "uv run --frozen python scripts/experiment.py --config configs/full.json \\\n  --output results/full --platforms {p}")
-    assert "uv run --frozen python scripts/experiment.py --config configs/full.json" in (root / "README.md").read_text()
-
-    def recipe(key, title, protocol_id):
-        return [{
-            "id": f"evo2ops-{key}", "protocol_id": protocol_id, "version": b.commit, "title": title,
-            "purpose": "generate_and_evaluate",
-            "summary": "Launch one cloud GPU, run the pinned Evo 2 7B image on the committed inputs, copy the receipt and scores back and delete the machine.",
-            "inputs": ["Committed code and configs/full.json at the pinned commit; inputs fetched and hash-checked by make test.",
-                       "Cloud credentials kept outside the repository."],
-            "outputs": ["results/full/platforms/<ID>/attempt-<n>/receipt-main.json and w1_brca1_scores.tsv.",
-                        "results/full/results.json and operations.json, rebuilt after every run."],
-            "requirements": {
-                "data": "Public inputs fetched at run time and checked against data/manifest.json. The Findlay et al. BRCA1 table is free for nonprofit use only (data/LICENSES.md).",
-                "weights": "Evo 2 7B from Hugging Face at a pinned revision, hash-checked before loading.",
-                "licence": "Study code licence not yet set (README.md, Licences). Evo 2 code and weights are Apache-2.0.",
-                "software": "The container image pinned by digest in the receipts; uv, jq, ssh and the cloud CLIs locally.",
-                "hardware": "One H100 80 GB or one L40S 48 GB; at least 100 GB of disk.",
-            },
-            "instructions": [{
-                "runtime": "command_line", "title": f"Run the study on {platforms[p][0]} ({p})",
-                "code": readme_code.format(p=p), "status": "executed",
-                "validation_receipt": {"source_id": receipts[p],
-                                       "source_locator": "JSON pointers /status (completed) and /results/w1 (3,893 variants scored)",
-                                       "scope": "full_protocol",
-                                       "platform": f"{receipt_doc[p]['environment']['gpu_name']}, image {receipt_doc[p]['environment']['image']}"},
-                "source_ids": [S_README], "source_locator": "README.md: Run it",
-            } for p in platforms],
-            "limitations": ["The receipt covers the GPU run. AUROC is computed afterwards from the committed scores by scripts/analyse.py.",
-                            "A run by the project with its own code, not an independent reproduction."],
-            "source_ids": [S_README, S_PROTO], "source_locator": "README.md: Run it; protocol.md: Workloads",
-        }]
 
     subsets, protocols = {}, {}
     for key, (label, n, lof, ptr) in strata.items():
@@ -274,9 +278,6 @@ def evo2ops(root):
         }
         src = [S_PROTO, S_RES, S_CUR]
         pid = f"{P}-protocol-brca1-{key}-auroc"
-        if key != "missense":
-            attrs["run_recipes"] = recipe(f"w1-{key}", f"Evo 2 7B BRCA1 scoring, {label}: run on one cloud GPU", pid)
-            src = src + [S_README] + list(receipts.values())
         protocols[key] = b.add(pid, "protocol", f"Zero-shot BRCA1 loss-of-function classification, {label} (evo2-cloud-operations W1)",
                                f"AUROC of a variant score for BRCA1 loss of function on {n} SNVs.", "source_checked", areas, src,
                                [("part_of", BENCH), ("uses_data", subsets[key])], attrs)
@@ -284,13 +285,12 @@ def evo2ops(root):
     protocols["throughput"] = b.add(
         pid, "protocol", "Evo 2 7B BRCA1 variant scoring throughput on one GPU (evo2-cloud-operations W1)",
         "Sequences scored per second while scoring 3,893 BRCA1 SNVs as paired 8,192 bp windows at batch size 1.",
-        "source_checked", areas, [S_PROTO, S_README] + list(receipts.values()),
+        "source_checked", areas, [S_PROTO, S_README] + list(receipts.values()) + [S_REPRO_P5, S_LOG],
         [("part_of", BENCH), ("uses_data", subsets["all"])],
         {"protocol": "Workload W1: 8,192 bp windows centred on each SNV, variant and reference windows scored at batch size 1; throughput is sequences scored divided by scoring seconds as written by the run.",
          "version": b.commit, "metric": "inference-throughput", "metric_direction": "higher", "unit": "sample-per-second",
          "unit_detail": "8,192 bp sequences per second",
-         "limitations": ["One run per platform. Throughput depends on the host as well as the GPU model.", limits[1]],
-         "run_recipes": recipe("w1-throughput", "Evo 2 7B BRCA1 scoring throughput: run on one cloud GPU", pid),
+         "limitations": ["One run per platform. Throughput depends on the host as well as the GPU model.", l40s_limit, limits[1]],
          "source_locator": "protocol.md, Workloads (W1)"})
 
     # configurations
@@ -329,10 +329,10 @@ def evo2ops(root):
         return {"protocol_id": protocols[key], "dataset_version": subsets[key if key in subsets else "all"],
                 "split": "none; every variant of the subset is scored", "population": f"{n}/{n}",
                 "inputs": "variant and reference sequence, or the lookup score for the variant",
-                "adaptation": adaptation, "metric_implementation": "src/study/analysis.py at the pinned commit",
+                "adaptation": adaptation, "metric_implementation": f"src/study/analysis.py; {ran_at}",
                 "aggregation": "one AUROC over all variants of the subset", "budget": "one run per platform"}
 
-    count = {"reproduced": 0, "source_checked": 0}
+    count = {"source_checked": 0}
 
     def auroc(key, system_key, sysname, value_source, ptr, ci, status, sources, missing=0):
         label, n, lof, _ = strata[key]
@@ -348,8 +348,9 @@ def evo2ops(root):
                     "source_locator": f"{b.sources[value_source][0]}, JSON pointer {ptr.rsplit('/', 1)[0]}"})
         b.result(f"{P}-result-{slug(system_key)}-brca1-{key}-auroc", f"{sysname} on BRCA1 {label}: AUROC", status, sources, ev,
                  value_source, ptr, "auroc", "higher", "unitless",
-                 ("Run by Rewire; a full-protocol run receipt for this platform is cited. Not an independent reproduction of a published score."
-                  if status == "reproduced" else
+                 ("Computed by Rewire from the Evo 2 scores committed by the recorded run on this platform. The run receipt of the "
+                  "platform holds neither the AUROC nor a hash of the scores file, so it is not cited and the value is not marked reproduced."
+                  if system_key in platforms and key != "missense" else
                   "Computed by Rewire from a lookup score or from committed Evo 2 scores; no run receipt covers this value."),
                  ci=ci, resamples=2000 if ci else None,
                  ci_scope="bootstrap over positions, the three SNVs at a position kept together" if ci else None,
@@ -361,9 +362,9 @@ def evo2ops(root):
     for key in ("all", "coding", "noncoding"):
         base = f"/brca1_evo2_vs_baselines/{key}"
         assert pointer(res, f"{base}/evo2_7b/auroc") == pointer(res, f"/platforms/P2/w1_auroc/{key}") == cur["main"][key]["auroc"]["evo2_7b"]["auroc"]
-        auroc(key, "P2", "Evo 2 7B (Google Cloud H100)", S_RES, f"{base}/evo2_7b/auroc", f"{base}/evo2_7b/ci95", "reproduced", [S_RES, receipts["P2"]])
+        auroc(key, "P2", "Evo 2 7B (Google Cloud H100)", S_RES, f"{base}/evo2_7b/auroc", f"{base}/evo2_7b/ci95", "source_checked", [S_RES])
         for p in ("P3", "P5"):
-            auroc(key, p, f"Evo 2 7B ({platforms[p][0]})", S_RES, f"/platforms/{p}/w1_auroc/{key}", None, "reproduced", [S_RES, receipts[p]])
+            auroc(key, p, f"Evo 2 7B ({platforms[p][0]})", S_RES, f"/platforms/{p}/w1_auroc/{key}", None, "source_checked", [S_RES])
         for name, system_key, sysname in (("cadd", "cadd-v1-3", "CADD v1.3"), ("phylop", "phylop", "Mammalian phyloP"), ("consequence_rule", "consequence-rule", "Consequence rule")):
             auroc(key, system_key, sysname, S_RES, f"{base}/{name}/auroc", f"{base}/{name}/ci95", "source_checked", [S_RES])
         for name, system_key, sysname in (("cadd_v1.7", "cadd-v1-7", "CADD v1.7"), ("spliceai", "spliceai", "SpliceAI")):
@@ -379,9 +380,11 @@ def evo2ops(root):
 
     for p, (label, pslug) in platforms.items():
         w1 = receipt_doc[p]["results"]["w1"]
+        tp_sources = [receipts[p]] + ([S_REPRO_P5, S_LOG] if p == "P5" else [])
+        tp_limits = ["One run on one host. Throughput depends on the host as well as the GPU model."] + ([l40s_limit] if p == "P5" else [])
         ev = b.add(f"{P}-evaluation-evo2-7b-{pslug}-scoring-throughput", "evaluation", f"Evo 2 7B scoring throughput on {label}",
                    f"Throughput of workload W1 on {label}: {w1['sequences_scored']} sequences of 8,192 bp for 3,893 variants at batch size 1.",
-                   "reproduced", {"areas": ["dna-genomes"]}, [receipts[p]],
+                   "source_checked", {"areas": ["dna-genomes"]}, tp_sources,
                    [("system", cfg[p]), ("assessment", protocols["throughput"]), ("data", subsets["all"])],
                    {"origin": "rewire_run", "execution_scope": "complete_selected_evaluation", "protocol": "Workload W1, batch size 1",
                     "version": b.commit, "eligible_count": 3893, "scored_count": w1["variants"],
@@ -389,27 +392,38 @@ def evo2ops(root):
                     "timing_seconds": {"w1_scoring_seconds": w1["scoring_seconds"]},
                     "peak_memory": f"{w1['peak_memory_allocated_bytes']} bytes allocated (JSON pointer /results/w1/peak_memory_allocated_bytes)",
                     "inference_hardware": receipt_doc[p]["environment"]["gpu_name"],
-                    "comparison": {**comparison("throughput", 3893, "zero-shot inference"), "metric_implementation": "src/evo2ops/workloads.py at the pinned commit",
+                    "comparison": {**comparison("throughput", 3893, "zero-shot inference"), "metric_implementation": f"src/evo2ops/workloads.py; {ran_at}",
                                    "aggregation": "sequences scored divided by scoring seconds, one run"},
+                    "limitations": tp_limits,
                     "source_locator": f"{b.sources[receipts[p]][0]}, JSON pointer /results/w1"})
-        b.result(f"{P}-result-evo2-7b-{pslug}-scoring-throughput", f"Evo 2 7B on {label}: W1 sequences per second", "reproduced",
-                 [receipts[p]], ev, receipts[p], "/results/w1/sequences_per_second", "inference-throughput", "higher", "sample-per-second",
-                 "Read from the run receipt of this platform, which is the full W1 workload. One run; no interval.",
-                 extra={"unit_detail": "8,192 bp sequences per second", "hardware": receipt_doc[p]["environment"]["gpu_name"]})
-        count["reproduced"] += 1
+        b.result(f"{P}-result-evo2-7b-{pslug}-scoring-throughput", f"Evo 2 7B on {label}: W1 sequences per second", "source_checked",
+                 tp_sources, ev, receipts[p], "/results/w1/sequences_per_second", "inference-throughput", "higher", "sample-per-second",
+                 "Read from the run receipt of this platform, which is the full W1 workload. One run; no interval. "
+                 "Source checked, not marked reproduced: no run recipe names the receipt." +
+                 (f" The study's repeat on another L40S host measured {l40s_repeat}." if p == "P5" else ""),
+                 extra={"unit_detail": "8,192 bp sequences per second", "hardware": receipt_doc[p]["environment"]["gpu_name"],
+                        "limitations": tp_limits})
+        count["source_checked"] += 1
 
     kinds = {}
     for r in b.records:
         kinds[r["kind"]] = kinds.get(r["kind"], 0) + 1
-    assert kinds == {"source": 9, "benchmark": 1, "dataset_subset": 4, "protocol": 5, "configuration": 9, "evaluation": 31, "result": 31}, kinds
-    assert count == {"reproduced": 12, "source_checked": 19}, count
+    assert kinds == {"source": 11, "benchmark": 1, "dataset_subset": 4, "protocol": 5, "configuration": 9, "evaluation": 31, "result": 31}, kinds
+    assert count == {"source_checked": 31}, count
+    # No record is marked reproduced and none carries a run recipe, so no receipt is a recipe's
+    # validation receipt and the board cannot badge a result of this batch as reproduced.
+    assert all(r["status"] == "source_checked" and "run_recipes" not in r["attributes"] for r in b.records)
+    all_receipts = set(receipts.values()) | {S_REPRO_P5}
     by_id = {r["id"]: r for r in b.records}
     for r in b.records:
         if r["kind"] == "result":
             ev = by_id[r["links"][0]["target_id"]]
             assert ev["status"] == r["status"] and ev["source_ids"] == r["source_ids"], r["id"]
-            has_receipt = [s for s in r["source_ids"] if s in receipts.values()]
-            assert (r["status"] == "reproduced") == (len(has_receipt) == 1), r["id"]
+            # A receipt is cited only by a result whose value is read from it (throughput).
+            own = [s for s in r["source_ids"] if s in all_receipts and r["attributes"]["source_locator"].startswith(b.sources[s][0])]
+            assert bool(own) == (r["attributes"]["metric"] == "inference-throughput"), r["id"]
+            assert (S_REPRO_P5 in r["source_ids"]) == (r["id"] == f"{P}-result-evo2-7b-runpod-l40s-scoring-throughput"), r["id"]
+            assert (S_REPRO_P5 not in r["source_ids"]) or any(l40s_repeat in t for t in r["attributes"]["limitations"]), r["id"]
     return b
 
 
