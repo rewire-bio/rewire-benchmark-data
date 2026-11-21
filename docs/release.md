@@ -19,7 +19,9 @@ The dispatch needs the repository secret `WEBSITE_DISPATCH_TOKEN`: a fine-graine
 
 ### Merging while a release is being cut
 
-Merge reviewed PRs whenever they are ready; there is no need to wait for a release run. Release runs share one concurrency group and queue rather than cancel. GitHub keeps one waiting run, so a run waiting behind the current one may be replaced by a newer one; that loses nothing, because each run builds `main` as it is when it starts. If a PR is merged while a release is being cut, the release push is rejected; the workflow rebases the release commit onto the new `main` and pushes again (up to five attempts). The merged PR is not in that release, and the run its merge starts releases it next. A rebase conflict, which only a hand-cut release merged at the same time can cause, fails the run.
+Merge reviewed PRs whenever they are ready; there is no need to wait for a release run. Release runs share one concurrency group and queue rather than cancel. GitHub keeps one waiting run, so a run waiting behind the current one may be replaced by a newer one; that loses nothing, because each run builds `main` as it is when it starts. If a PR is merged while a release is being cut, the release push is rejected; the workflow merges the release commit into the new `main` and pushes again (up to five attempts, `scripts/release/commit.mjs`). It does not rebase: the release commit stays on the commit the release was built from, and `serving/<id>` and `kg/<id>` name it, so the shared code rewire-database copies from the tagged commit is the code the release was built with. `commit.mjs commit` checks the release commit before it pushes, so a commit that fails never reaches `main`. `commit.mjs verify` checks it again, and that it is on `main`, before anything is published, and checks both tags before the website is asked to adopt. The merged PR is not in that release, and the run its merge starts releases it next. A merge conflict, which only a hand-cut release merged at the same time can cause, fails the run.
+
+Do not re-run a release run that started before #337 was merged (20 November 2026 or earlier), and do not start the workflow from a branch or tag that has the older workflow file. GitHub re-runs a run with the workflow file it first ran with, and that file rebases. Start a new run from `main` instead (Actions, "Cut and publish a release").
 
 "Benchmark data checks" also accepts `merge_group` events, so a merge queue can be enabled for `main` in the repository settings. If it is, the release bot must be allowed to push to `main` directly.
 
@@ -59,7 +61,7 @@ Cut a release by hand when you want it reviewed as a pull request first:
 
    `release:fetch` downloads the current release's files, which the build checks withdrawn use-case mappings against and some tests read. The build writes the new release's receipt (`data/omics/releases/<release-id>.json`, the exact manifest bytes) and its gzipped files (`data/omics/releases/<release-id>/`), builds the prepared SQLite file in `public/serving/` (see [serving-contract.md](serving-contract.md)), and packages the website inputs (`website/manifest.json` and `website/files/`). It never overwrites existing bytes.
 3. Open the PR with the config change, the receipt and `website/manifest.json`. The release files are ignored by Git and are not part of the PR. Review scientific changes separately from packaging. CI rebuilds the release and fails if the receipt or manifest differs from the PR's; they list the SHA-256 of every release file, so a match means the files were reproduced.
-4. After merge, CI rebuilds the release, publishes the prepared file and release files (tag `serving/<release-id>`) publishes the bundle (tag `kg/<release-id>`) and dispatches `data-release` to the website, as for an automated release.
+4. After merge, CI rebuilds the release, publishes the prepared file and release files (tag `serving/<release-id>`) publishes the bundle (tag `kg/<release-id>`) and dispatches `data-release` to the website, as for an automated release. The tags name the PR's merge commit on `main`. That is the commit CI rebuilt the release from in the same run, and the publish job runs only if the rebuild matched the committed receipt and manifest, so the tagged commit holds code that reproduces the release. `commit.mjs verify` does not apply to a hand-cut release: its `source_revision` is the branch commit `prepare` ran on, which this repository reads for the release notes only.
 5. Once the release is live, record it with `npm run refresh -- record-publication` and `npm run refresh -- export` (see [refresh.md](refresh.md#review-prs-and-publication)).
 
 Never edit a frozen release in place. Corrections always go into a new release.
@@ -73,7 +75,9 @@ Git keeps each release's receipt (`data/omics/releases/<id>.json`) and the curre
 The release workflow pushes the release commit before it publishes, and the release files are not in Git, so a failed publish leaves `main` naming a release whose files exist nowhere public. The next release run then stops at `release:fetch` ("is neither a release asset nor in Git"), and the website is not asked to adopt it. Publish it by hand from the release commit:
 
 ```sh
-git checkout <release commit>   # "Cut release <id>" on main
+git fetch origin main
+git checkout <release commit>   # "Cut release <id>": the "Release commit <sha>" line in the failed run's commit step, not a merge of it into main
+node scripts/release/commit.mjs verify HEAD   # stops here if this is not the commit the release was built on
 gh run download <failed run id> -n unpublished-release   # the files the failed run built
 RELEASE_TARGET_SHA=$(git rev-parse HEAD) npm run serving:publish
 ```

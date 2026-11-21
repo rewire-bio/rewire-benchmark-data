@@ -24,7 +24,8 @@ permissions:
   actions: write
 # Release runs queue rather than cancel. GitHub keeps one waiting run per group, so a merge
 # made while a release is being cut replaces any older waiting run; that is harmless,
-# because each run builds main as it is when it starts.
+# because each run builds main as it is when it starts. The merge is not in the release
+# being cut, and it is not in the commit that release's tags name either (#267).
 concurrency:
   group: benchmark-data-release
   cancel-in-progress: false
@@ -117,23 +118,25 @@ jobs:
         run: |
           git config user.name "rewire-release-bot"
           git config user.email "rewire-release-bot@users.noreply.github.com"
-          git add -A data website
-          git commit -m "Cut release $RELEASE [skip ci]"
-          # A pull request merged while this release was being cut moves main on. Rebase the
-          # release commit onto it and push again; the next run releases that pull request.
-          for attempt in 1 2 3 4 5; do
-            if git push origin HEAD:main; then break; fi
-            if [ "$attempt" = 5 ]; then echo "::error::Could not push the release after $attempt attempts."; exit 1; fi
-            sleep $((attempt * 5))
-            git fetch origin main
-            git rebase origin/main
-          done
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          # The release commit is made on the commit the release was built from, and the tags
+          # name it. A pull request merged while this release was being cut moves main on; the
+          # release commit is then merged into the new main, not rebased onto it, so it still
+          # holds exactly the code the release was built with (#267). The next run releases
+          # that pull request.
+          # Assigned first: a failure inside `echo "$(...)"` would not fail the step.
+          sha=$(node scripts/release/commit.mjs commit "$RELEASE")
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      # rewire-database copies shared code from the tagged commit. Published assets are never
+      # replaced, so check the commit before anything is published.
+      - name: Check the release commit sits on the commit the release was built from
+        if: steps.pending.outputs.release == 'true'
+        run: node scripts/release/commit.mjs verify "${{ steps.commit.outputs.sha }}"
       - name: Publish the prepared release file and the release files
         if: steps.pending.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          # Tag the release commit itself; the website reads its revision from the tag.
+          # Tag the release commit, the one made on the commit the release was built from;
+          # the website reads its revision from the tag.
           RELEASE_TARGET_SHA: ${{ steps.commit.outputs.sha }}
         run: npm run serving:publish
       - name: Publish the knowledge-graph bundle (never replaces an existing asset)
@@ -156,6 +159,11 @@ jobs:
             website/files
             data/omics/releases/*/*.gz
           retention-days: 14
+      - name: Check both tags name the release commit
+        if: steps.pending.outputs.release == 'true'
+        env:
+          RELEASE: ${{ steps.candidate.outputs.next }}
+        run: node scripts/release/commit.mjs verify "${{ steps.commit.outputs.sha }}" "serving/$RELEASE" "kg/$RELEASE"
       - name: Ask the website to adopt it
         if: steps.pending.outputs.release == 'true'
         env:
