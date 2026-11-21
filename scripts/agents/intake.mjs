@@ -19,6 +19,7 @@
 //   node scripts/agents/intake.mjs --revise --pr <n> [--report-only] [--root <dir>] [--out <dir>]
 //   node scripts/agents/intake.mjs --refresh [--pr <n>] [--report-only | --dry-run] [--out <dir>]
 //   node scripts/agents/intake.mjs --drain [--issue <n>] [--since <time>] [--out <dir>]
+//   node scripts/agents/intake.mjs --queued
 //
 // --dry-run       reads the issue, the proposal, the verification and the fetched sources from
 //                 fixtures; no model call and no network. It still writes the batch and, unless
@@ -47,14 +48,18 @@
 //                 issue, each on a clean checkout. The intake workflow queues its runs, and
 //                 GitHub keeps only one waiting run, so a run works the issues of the runs it
 //                 replaced. --since is the time the label was added: an issue the intake has
-//                 answered since then is not worked again.
+//                 answered for good since then is not worked again.
+//
+// --queued        lists the issues a --drain run would work and writes any=true or any=false to
+//                 GITHUB_OUTPUT. Reads GitHub only; intake-queue.yml asks it every two hours and
+//                 starts a live run only when an issue waits.
 //
 // Environment: ANTHROPIC_API_KEY (not needed for --dry-run; when empty the run writes a notice
 // and exits 0), GH_TOKEN for this repository (the rewire-bot app token in live mode, so the pull
 // request author is the bot and pull request CI runs), GITHUB_REPOSITORY, GITHUB_STEP_SUMMARY,
 // GITHUB_SERVER_URL and GITHUB_RUN_ID (for the run link).
 
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createReadStream, existsSync, mkdirSync, readFileSync, appendFileSync, writeFileSync } from 'node:fs';
 import { createInterface } from 'node:readline';
@@ -105,12 +110,12 @@ export const LIMITS = {
   apiRetryMaxSeconds: 120, // the longest single wait
   apiRetryWaitSeconds: 480, // all the waits of one run together
   queueIssues: 6, // issues one queued run works, the labelled one included
-  queueMinutes: 35, // a queued run starts no further issue after this long
+  queueMinutes: 25, // a queued run starts no further issue after this long: setup, this and one issue's 20 minutes stay under the job's 60 and the app token's hour
   queueAttempts: 3, // runs an issue gets when each one ends on a rate limit or a server error
   issueMinutes: 20, // one issue's process in a queued run
   mergeablePolls: 6, // reads of a pull request while GitHub has not yet said whether it merges
   mergeablePollSeconds: 5,
-  refreshesPerPull: 6, // rebuilds of one pull request on its base branch before a person is asked
+  refreshesPerPull: 20, // rebuilds of one pull request on its base branch before a person is asked; a second rebuild on the same commit of the base branch asks at once
 };
 
 export const KINDS = ['model', 'method', 'benchmark', 'dataset'];
@@ -1334,6 +1339,16 @@ export function githubClient(token, fetchImpl = fetch) {
       }
       return out;
     },
+    /** When an intake label was last added to an issue (ISO time), or '' when the events name none. */
+    async labelledAt(repo, number) {
+      let last = '';
+      for (let page = 1; page < 10; page++) {
+        const batch = await call('GET', `/repos/${repo}/issues/${number}/events?per_page=100&page=${page}`);
+        for (const e of batch) if (e.event === 'labeled' && [LABEL, UPDATE_LABEL].includes(e.label?.name) && String(e.created_at ?? '') > last) last = e.created_at;
+        if (batch.length < 100) break;
+      }
+      return last;
+    },
     async openPulls(repo) {
       const out = [];
       for (let page = 1; page < 10; page++) {
@@ -1773,9 +1788,14 @@ const INTAKE_COMMENT = /^The intake agent /;
  *              LIMITS.queueAttempts runs ended that way
  *   exhausted  as retry, but the attempts are used up; a person removes and re-adds the label
  *   done       the last answer was final (a pull request, a skip, a failed check)
+ * `since` is the time the intake label was last added. Answers older than it belong to an earlier
+ * label and are not counted, so removing and re-adding the label starts the issue afresh: a final
+ * answer is run again and the attempts start at none.
  */
-export function queueState(comments) {
-  const own = (comments ?? []).filter((c) => c.user === BOT_LOGIN).map((c) => ({ body: String(c.body ?? ''), marker: parseRunMarker(c.body) })).filter((c) => c.marker || INTAKE_COMMENT.test(c.body));
+export function queueState(comments, since = '') {
+  const from = since ? Date.parse(since) : NaN;
+  const own = (comments ?? []).filter((c) => c.user === BOT_LOGIN && (Number.isNaN(from) || !c.created_at || Date.parse(c.created_at) >= from))
+    .map((c) => ({ body: String(c.body ?? ''), marker: parseRunMarker(c.body) })).filter((c) => c.marker || INTAKE_COMMENT.test(c.body));
   const retry = (c) => (c.marker ? c.marker.retry === true : LEGACY_RETRY.test(c.body));
   if (!own.length) return { state: 'new', attempts: 0 };
   const attempts = own.filter(retry).length;
@@ -1784,8 +1804,22 @@ export function queueState(comments) {
 }
 
 /**
+ * Where an issue stands, read from GitHub. An issue the comments call done or exhausted is looked
+ * at once more against the time its label was last added (the issue's events): a label run that
+ * GitHub cancelled while it waited leaves only the label, and the answer of an earlier label must
+ * not hide it. One more call, made only for an issue that would otherwise be left.
+ */
+export async function issueQueueState(gh, repo, number) {
+  const comments = await gh.comments(repo, number);
+  const all = queueState(comments);
+  if (all.state === 'new' || all.state === 'retry' || !gh.labelledAt) return all;
+  const since = await gh.labelledAt(repo, number);
+  return since ? queueState(comments, since) : all;
+}
+
+/**
  * Open issues with an intake label that still need a run, lowest number first: no open or merged
- * pull request from intake/issue-<n>, and a queueState of new or retry. `settled` holds issue
+ * pull request from intake/issue-<n>, and a queue state of new or retry. `settled` holds issue
  * numbers already found to need none, so one run does not ask about them twice.
  */
 export async function queuedIssues(gh, repo, settled = new Set()) {
@@ -1794,7 +1828,7 @@ export async function queuedIssues(gh, repo, settled = new Set()) {
   const out = [];
   for (const number of [...numbers].filter((n) => !settled.has(n)).sort((a, b) => a - b)) {
     const pulls = await gh.pullsFor(repo, `intake/issue-${number}`);
-    const queue = pulls.some((p) => p.state === 'open' || p.merged_at) ? { state: 'done', attempts: 0 } : queueState(await gh.comments(repo, number));
+    const queue = pulls.some((p) => p.state === 'open' || p.merged_at) ? { state: 'done', attempts: 0 } : await issueQueueState(gh, repo, number);
     if (queue.state === 'new' || queue.state === 'retry') out.push({ number, ...queue });
     else settled.add(number);
   }
@@ -2345,6 +2379,8 @@ async function revise(args, env, deps) {
     if (pull.state !== 'open') return skip('the pull request is not open');
     if (pull.author !== BOT_LOGIN) return skip(`the author is ${pull.author}, not ${BOT_LOGIN}`);
     if (!/^intake\/issue-\d+$/.test(pull.head_ref ?? '') || pull.head_repo !== repo) return skip(`the head ${pull.head_ref} is not an intake branch of this repository`);
+    // The checkout is the default branch, and the revised branch is built on it.
+    if (pull.base_ref && pull.base_ref !== (env.BASE_BRANCH || 'main')) return skip(`its base branch is ${pull.base_ref}, not ${env.BASE_BRANCH || 'main'}`);
     if ((pull.labels ?? []).includes(HUMAN_LABEL)) return skip(`the pull request is already labelled ${HUMAN_LABEL}`);
     const reviews = (fixture ? fixture.reviews : await gh.reviews(repo, pull.number)).filter((r) => r.user === REVIEWER_LOGIN);
     const review = reviews.at(-1);
@@ -2609,6 +2645,29 @@ async function revise(args, env, deps) {
 
 /** The hidden marker in the comment a refresh leaves on the pull request: the count of refreshes. */
 export const REFRESH_MARKER = 'intake-refresh';
+/** The marker in the comment for a push GitHub refused over a workflow file: automatic runs leave the pull request after it. */
+export const REFUSED_MARKER = 'intake-refresh-refused';
+/** The marker in the comment for a step that failed for the first time: the step is named, and a second failure of it asks a person. */
+export const FAILED_MARKER = 'intake-refresh-failed';
+
+/** What the refresh wrote on a pull request before, oldest first: [{ kind: 'refreshed' | 'refused' | 'failed', base, step }] from the bot's comments. Pure. */
+export function refreshMarks(comments) {
+  const kinds = { [REFRESH_MARKER]: 'refreshed', [REFUSED_MARKER]: 'refused', [FAILED_MARKER]: 'failed' };
+  const out = [];
+  for (const c of comments ?? []) {
+    if (c.user !== BOT_LOGIN) continue;
+    const m = /<!-- (intake-refresh(?:-refused|-failed)?): (\{.*\}) -->/.exec(String(c.body ?? ''));
+    if (!m) continue;
+    let value = {};
+    try {
+      value = JSON.parse(m[2]);
+    } catch {
+      // A marker that cannot be read still counts as one of its kind.
+    }
+    out.push({ kind: kinds[m[1]], base: String(value.base ?? ''), step: String(value.step ?? '') });
+  }
+  return out;
+}
 export const REFRESH_FIXTURES = 'tests/agents-intake-refresh-fixtures';
 /** The store files a batch is added to. Shards and kind files, so every intake pull request touches the same few. */
 const STORE_PATHS = ['data/entities', 'data/provenance'];
@@ -2743,7 +2802,26 @@ function rebuildCommitBody({ pull, tree }) {
   return `The batch folder of #${pull.number} as the pull request held it at ${short(pull.head_sha)}, added again with records add on the base branch at ${short(tree.base)}. The store gains the same lines as before, so every record keeps its digest and its provenance line.`;
 }
 
-export function renderRefreshComment({ kind, reason = '', detail = '', pull, base = '', lines = 0, n = 1, runUrl = '' }) {
+export function renderRefreshComment({ kind, reason = '', detail = '', step = '', pull, base = '', lines = 0, n = 1, runUrl = '' }) {
+  if (kind === 'failed once') {
+    return [
+      `The intake agent could not rebuild this pull request on its base branch: ${clean(reason)}. It is the first time this step failed here, and the fault may be the run's (a download, the network) and not the batch's, so the pull request is not labelled. The next refresh tries again; if the same step fails again, the pull request is labelled \`${HUMAN_LABEL}\`.`,
+      '',
+      detail ? `${detail}\n` : '',
+      `A refresh calls no model and changes no record.${runUrl ? ` Run: ${runUrl}` : ''}`,
+      '',
+      `<!-- ${FAILED_MARKER}: ${JSON.stringify({ step, base })} -->`,
+    ].filter((l, i, all) => l !== '' || all[i - 1] !== '').join('\n');
+  }
+  if (kind === 'refused') {
+    return [
+      `The intake agent rebuilt this pull request on its base branch but could not push it. ${WORKFLOW_REFUSAL}. Nothing was pushed and the pull request is not labelled.`,
+      '',
+      `Refreshes after a push to the base branch leave this pull request alone from now on. A manual run of the intake workflow with \`refresh_pr\` set to its number tries the push again, once the token may write workflows (docs/agents.md).${runUrl ? ` Run: ${runUrl}` : ''}`,
+      '',
+      `<!-- ${REFUSED_MARKER}: ${JSON.stringify({ base, from: pull.head_sha })} -->`,
+    ].join('\n');
+  }
   if (kind !== 'refreshed') {
     return [
       `The intake agent did not rebuild this pull request on its base branch: ${clean(reason)}. It is labelled \`${HUMAN_LABEL}\` and left for a person.`,
@@ -2789,13 +2867,34 @@ async function refresh(args, env, deps) {
   // The base branch as the job checked it out, read once: every pull request of this run is
   // rebuilt on it, never on the commit made for the pull request before it.
   const base = storeChecks ? baseCommit(run) : '';
+  const baseBranch = env.BASE_BRANCH || 'main';
 
   async function one(number) {
     const state = { pr: number, outcome: '', lines: 0, base: '', label: null, comment: null, pushed: false };
     let pull = null;
+    // Steps that failed on this pull request since it was last rebuilt (their marked comments).
+    let failedBefore = [];
     const skip = (why) => ({ ...state, outcome: `skipped: ${why}` });
-    /** Stop and leave the pull request to a person: the label and one comment. A labelled pull request is not looked at again. */
+    /**
+     * Stop and leave the pull request to a person: the label and one comment. A labelled pull
+     * request is not looked at again, so a step that fails (a store tool, git) labels it only the
+     * second time. A tool that fails cannot be told from a batch that no longer fits the base
+     * branch by its exit code, and one failed download must not take a sound pull request out of
+     * the refresh for good. The first failure leaves a marked comment and no label.
+     */
     const handOver = async (reason, { failed = '', detail = '' } = {}) => {
+      if (failed && failed !== 'store lines' && !failedBefore.includes(failed)) {
+        state.outcome = write ? `failed: ${failed}` : `not rebuilt: ${reason}`;
+        state.reason = reason;
+        const comment = renderRefreshComment({ kind: 'failed once', reason, detail, step: failed, base, runUrl });
+        if (!write) return { ...state, comment };
+        try {
+          await gh.comment(repo, pull.number, comment);
+        } catch (e) {
+          log(`Could not comment on #${pull.number} (${errorText(e)}).`);
+        }
+        return state;
+      }
       // A failed check fails a live run, which labels the pull request, so it fails once. A run
       // that writes nothing would fail again after every push to the base branch; it reports only.
       state.outcome = failed && write ? `failed: ${failed}` : `${HUMAN_LABEL}: ${reason}`;
@@ -2825,6 +2924,8 @@ async function refresh(args, env, deps) {
     if (pull.author !== BOT_LOGIN) return skip(`the author is ${pull.author}, not ${BOT_LOGIN}`);
     const issue = /^intake\/issue-(\d+)$/.exec(pull.head_ref ?? '')?.[1];
     if (!issue || pull.head_repo !== repo) return skip(`the head ${pull.head_ref} is not an intake branch of this repository`);
+    // The checkout is the default branch; a pull request against another branch is not rebuilt on it.
+    if (pull.base_ref && pull.base_ref !== baseBranch) return skip(`its base branch is ${pull.base_ref}, not ${baseBranch}`);
     if ((pull.labels ?? []).includes(HUMAN_LABEL)) return skip(`the pull request is labelled ${HUMAN_LABEL}`);
     if (pull.mergeable === true) return skip('it merges with its base branch as it is');
     if (pull.mergeable !== false) return skip('GitHub has not yet said whether it merges; the next run looks again');
@@ -2838,7 +2939,19 @@ async function refresh(args, env, deps) {
     if (!batchDir.startsWith(`data/omics/intake-${issue}-`)) return await handOver(`its batch folder ${batchDir} is not one of issue #${issue}, which its branch names`);
     const outside = files.map((f) => f.filename).filter((f) => !f.startsWith(`${batchDir}/`) && !/^data\/(entities|provenance)\//.test(f));
     if (outside.length) return await handOver(`it touches files outside the batch folder and the store (${outside.slice(0, 5).join(', ')})`);
-    const refreshes = (fixture ? fixture.comments ?? [] : await gh.comments(repo, pull.number)).filter((c) => c.user === BOT_LOGIN && new RegExp(`<!-- ${REFRESH_MARKER}: `).test(c.body)).length;
+    // The intake pushes one commit, and a revision a second one with its marker and revision.json.
+    // Any other second commit is a person's, and the one commit of a rebuild would replace it.
+    if ((pull.commits ?? 1) > 1 && !new RegExp(`<!-- ${REVISION_MARKER}: `).test(String(pull.body ?? '')) && !files.some((f) => f.filename.endsWith(`/${REVISION_FILE}`))) return await handOver(`it has ${pull.commits} commits and was not revised by the intake agent, so someone added to it by hand, and a rebuild would replace that commit with the intake's own`);
+    const marks = refreshMarks(fixture ? fixture.comments ?? [] : await gh.comments(repo, pull.number));
+    const refreshes = marks.filter((m) => m.kind === 'refreshed').length;
+    const recent = marks.slice(marks.map((m) => m.kind).lastIndexOf('refreshed') + 1);
+    failedBefore = recent.filter((m) => m.kind === 'failed').map((m) => m.step);
+    // A push GitHub refused over a workflow file is refused again until the token changes, so a
+    // run after a push to the base branch leaves the pull request; a run that names it tries.
+    if (!args.pr && recent.some((m) => m.kind === 'refused')) return skip('an earlier push of its rebuild was refused over a workflow file; a manual run that names this pull request tries again');
+    // The count is of the whole life of the pull request, so it is high: every other batch that
+    // merges takes one. A rebuild on a commit it was already rebuilt on is the sign of a loop.
+    if (base && marks.some((m) => m.kind === 'refreshed' && m.base === base)) return await handOver(`it was rebuilt on ${short(base)} already and conflicts with it again`);
     if (refreshes >= LIMITS.refreshesPerPull) return await handOver(`it was rebuilt ${refreshes} times already and conflicts again`);
 
     // 3. The batch on the base branch, added again and checked.
@@ -2866,10 +2979,18 @@ async function refresh(args, env, deps) {
     if (!committed.ok) return await handOver('`git commit` failed', { failed: 'git commit', detail: clean(committed.output).slice(-1500) });
     const pushed = run('git', ['push', `--force-with-lease=refs/heads/${pull.head_ref}:${pull.head_sha}`, 'origin', `HEAD:refs/heads/${pull.head_ref}`]);
     if (!pushed.ok && leaseLost(pushed.output)) return skip('the branch moved while the refresh ran, so nothing was pushed; the next run looks again');
-    // The token's limit, not a fault of the pull request: no label and no comment, so a later run
-    // with a token that may write workflows rebuilds it. The run fails, so the alert says so.
+    // The token's limit, not a fault of the pull request: no label, so a run with a token that
+    // may write workflows rebuilds it. The run fails, so the alert says so, and one marked comment
+    // keeps the runs after later pushes to the base branch from failing on it again.
     if (!pushed.ok && workflowRefusal(pushed.output)) {
       log(`::error::Pull request #${pull.number} was not refreshed: ${WORKFLOW_REFUSAL}. ${clean(pushed.output).slice(-500)}`);
+      if (!recent.some((m) => m.kind === 'refused')) {
+        try {
+          await gh.comment(repo, pull.number, renderRefreshComment({ kind: 'refused', pull, base: tree.base, runUrl }));
+        } catch (e) {
+          log(`Could not comment on #${pull.number} (${errorText(e)}).`);
+        }
+      }
       return { ...state, outcome: 'failed: git push refused over a workflow file', reason: WORKFLOW_REFUSAL };
     }
     if (!pushed.ok) return await handOver('the push of the rebuilt branch failed', { failed: 'git push', detail: clean(pushed.output).slice(-1500) });
@@ -2911,7 +3032,7 @@ async function refresh(args, env, deps) {
       results.length ? '| Pull request | Outcome | Store lines | Base |\n| --- | --- | --- | --- |' : 'No open intake pull request.',
       ...results.map((r) => `| #${r.pr} | ${clean(r.outcome)} | ${r.lines || ''} | ${short(r.base)} |`),
       '',
-      ...results.filter((r) => r.comment).map((r) => `### Comment it would post on #${r.pr}, with the label ${r.label}\n\n${r.comment}\n`),
+      ...results.filter((r) => r.comment).map((r) => `### Comment it would post on #${r.pr}${r.label ? `, with the label ${r.label}` : ''}\n\n${r.comment}\n`),
       'No model call is made in a refresh.',
       '',
     ].join('\n'));
@@ -2928,6 +3049,8 @@ async function refresh(args, env, deps) {
  * process on the checkout put back to the commit this run started on, so no issue sees another's
  * batch. Bounded by LIMITS.queueIssues, LIMITS.queueMinutes and, per issue, LIMITS.issueMinutes.
  * It stops at the first issue that ends on a rate limit: the rest stay queued for the next run.
+ * After each issue it checks that the issue carries an answer, and writes one if the issue's own
+ * process did not, so every run of an issue is counted; if it cannot, it stops.
  */
 async function drain(args, env, deps) {
   const started = Date.now();
@@ -2936,6 +3059,8 @@ async function drain(args, env, deps) {
   const repo = env.GITHUB_REPOSITORY || DEFAULT_REPO;
   const log = deps.log ?? ((m) => console.log(m));
   const run = deps.run ?? ((cmd, cmdArgs, opts = {}) => runCommand(cmd, cmdArgs, { cwd: args.root, ...opts }));
+  // One issue's process, in a process group of its own, so its time limit ends everything it started.
+  const runIssue = deps.runIssue ?? (deps.run ? async (cmd, cmdArgs, opts) => deps.run(cmd, cmdArgs, opts) : (cmd, cmdArgs, opts = {}) => runGroup(cmd, cmdArgs, { cwd: args.root, ...opts }));
   const emit = (text) => (env.GITHUB_STEP_SUMMARY ? appendFileSync(env.GITHUB_STEP_SUMMARY, `${text}\n`) : log(text));
   const elapsedMinutes = deps.elapsedMinutes ?? (() => (Date.now() - started) / 60000);
   if (!env.ANTHROPIC_API_KEY) {
@@ -2983,20 +3108,32 @@ async function drain(args, env, deps) {
       }
       const out = join(outDir, `issue-${next}`);
       log(`Working issue #${next}`);
-      const r = run(process.execPath, [fileURLToPath(import.meta.url), '--issue', String(next), '--root', args.root, '--out', out, ...(since ? ['--since', since] : [])], { timeoutMs: LIMITS.issueMinutes * 60 * 1000 });
+      const r = await runIssue(process.execPath, [fileURLToPath(import.meta.url), '--issue', String(next), '--root', args.root, '--out', out, ...(since ? ['--since', since] : [])], { timeoutMs: LIMITS.issueMinutes * 60 * 1000 });
       log(r.output);
       const result = existsSync(join(out, 'result.json')) ? readJson(join(out, 'result.json')) : {};
-      // A process that ended without a result (killed at its time limit, or broken before it read
-      // the issue) wrote no comment. One is written here, so the attempt is counted and the issue
-      // is not tried without end.
-      if (!r.ok && !result.outcome) {
+      // Every run of an issue has to leave an answer on it, or the issue stays new and each later
+      // run works it again with no count. A process that ended without a result (killed at its
+      // time limit, or broken before it read the issue) wrote none, and a comment can fail to
+      // post. So the issue is read again here and the answer written if it is missing. A pull
+      // request is an answer, and a closed issue is not in the queue.
+      let unanswered = '';
+      if (!result.prUrl && result.outcome !== 'skipped: closed') {
         try {
-          await gh.comment(repo, next, `The intake agent's run for this issue ended without an answer (it gets ${LIMITS.issueMinutes} minutes), so no pull request was opened. The next intake run tries this issue again; an issue gets at most ${LIMITS.queueAttempts} such runs.\n\n${runMarker({ outcome: 'error: the run ended without a result', retry: true })}`);
+          if ((await issueQueueState(gh, repo, next)).state === 'new') {
+            await gh.comment(repo, next, result.outcome
+              ? `The intake agent worked this issue and opened no pull request (${clean(result.outcome).slice(0, 200)}), but its own comment did not reach the issue. The job summary of the run has the details.${result.transient ? ` The failure looks temporary (${result.transient}). The next intake run tries this issue again; an issue gets at most ${LIMITS.queueAttempts} such runs.` : ''}\n\n${runMarker({ outcome: result.outcome, retry: Boolean(result.transient) })}`
+              : `The intake agent's run for this issue ended without an answer (it gets ${LIMITS.issueMinutes} minutes), so no pull request was opened. The next intake run tries this issue again; an issue gets at most ${LIMITS.queueAttempts} such runs.\n\n${runMarker({ outcome: 'error: the run ended without a result', retry: true })}`);
+          }
         } catch (e) {
-          log(`Could not comment on #${next} (${errorText(e)}).`);
+          unanswered = errorText(e);
+          log(`Could not read or comment on #${next} (${unanswered}).`);
         }
       }
-      results.push({ issue: next, outcome: result.outcome || (r.ok ? 'no result written' : 'error'), ok: r.ok, prUrl: result.prUrl ?? null, transient: result.transient ?? '', kg: result.kg ?? null });
+      results.push({ issue: next, outcome: result.outcome || (r.ok ? 'no result written' : 'error'), ok: r.ok && !unanswered, prUrl: result.prUrl ?? null, transient: result.transient ?? '', kg: result.kg ?? null });
+      if (unanswered) {
+        left = `any issue still queued: the answer on #${next} could not be read or written (${clean(unanswered).slice(0, 200)}), so this run starts no other`;
+        break;
+      }
       if (result.transient === 'rate limit' || result.transient === 'overloaded') {
         left = `any issue still queued: #${next} ended on a ${result.transient === 'overloaded' ? 'model API overload' : 'rate limit'}, so this run starts no other`;
         break;
@@ -3014,7 +3151,7 @@ async function drain(args, env, deps) {
       results.length ? '| Issue | Outcome | Pull request |\n| --- | --- | --- |' : 'No issue needed a run.',
       ...results.map((r) => `| #${r.issue} | ${clean(r.outcome)} | ${r.prUrl ?? ''} |`),
       '',
-      left ? `Left for the next run, which the next intake label or a manual live run with no issue number starts: ${left}.\n` : null,
+      left ? `Left for the next run, which the two-hourly check (intake-queue.yml), the next intake label or a manual live run with no issue number starts: ${left}.\n` : null,
       'Each issue has its own summary above and its own folder in the artifact.',
       '',
     ].filter((l) => l !== null).join('\n'));
@@ -3028,7 +3165,7 @@ async function drain(args, env, deps) {
 // ---------- Main ----------
 
 function parseArgs(argv) {
-  const args = { dryRun: false, reportOnly: false, replay: false, revise: false, refresh: false, drain: false, since: '', fixtures: FIXTURES, out: '', issue: 0, pr: 0, storeDir: '', root: ROOT, storeChecks: true };
+  const args = { dryRun: false, reportOnly: false, replay: false, revise: false, refresh: false, drain: false, queued: false, since: '', fixtures: FIXTURES, out: '', issue: 0, pr: 0, storeDir: '', root: ROOT, storeChecks: true };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--dry-run') args.dryRun = true;
@@ -3041,6 +3178,7 @@ function parseArgs(argv) {
     else if (a === '--pr') args.pr = Number(argv[++i]);
     else if (a === '--refresh') args.refresh = true;
     else if (a === '--drain') args.drain = true;
+    else if (a === '--queued') args.queued = true;
     else if (a === '--since') args.since = argv[++i] ?? '';
     else if (a === '--store-dir') args.storeDir = argv[++i];
     else if (a === '--root') args.root = resolve(argv[++i]);
@@ -3057,6 +3195,7 @@ function parseArgs(argv) {
   if ((args.revise || args.refresh) && !args.dryRun && !args.reportOnly && !args.storeChecks) throw new Error(`a live ${args.revise ? '--revise' : '--refresh'} cannot use --no-store-checks`);
   // The queue opens pull requests; a dry run or a report-only run works one issue, as before.
   if (args.drain && (args.dryRun || args.reportOnly || args.revise || args.refresh || args.replay)) throw new Error('--drain is a live intake run; it takes --issue, --since, --root and --out only');
+  if (args.queued && argv.length > 1) throw new Error('--queued takes no other argument');
   if (args.since && Number.isNaN(Date.parse(args.since))) throw new Error('--since takes a time, such as 2026-11-21T09:00:00Z');
   return args;
 }
@@ -3074,6 +3213,58 @@ function runCommand(cmd, args, { cwd, timeoutMs = 0 }) {
 }
 
 /**
+ * Run a command in a process group of its own and wait for it; resolves to { ok, output }. At
+ * the time limit the whole group gets SIGTERM, and SIGKILL `graceMs` later, so nothing the
+ * command started (the knowledge graph server, npm, uv, git) runs on beside the next issue.
+ */
+export function runGroup(cmd, args, { cwd, timeoutMs = 0, graceMs = 10000 } = {}) {
+  return new Promise((done) => {
+    const child = spawn(cmd, args, { cwd, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    let output = '';
+    let timedOut = false;
+    const timers = [];
+    const signal = (name) => {
+      try {
+        process.kill(-child.pid, name);
+      } catch {
+        // The group has ended.
+      }
+    };
+    const keep = (chunk) => {
+      if (output.length < 64 * 1024 * 1024) output += chunk;
+    };
+    child.stdout.on('data', keep);
+    child.stderr.on('data', keep);
+    if (timeoutMs) {
+      timers.push(setTimeout(() => {
+        timedOut = true;
+        signal('SIGTERM');
+        timers.push(setTimeout(() => signal('SIGKILL'), graceMs));
+      }, timeoutMs));
+    }
+    const end = (ok, extra = '') => {
+      // Whatever of the group outlived the command is ended with it.
+      if (timedOut) signal('SIGKILL');
+      timers.forEach(clearTimeout);
+      done({ ok, output: `${output}${extra}` });
+    };
+    child.on('error', (e) => end(false, String(e.message)));
+    child.on('close', (code) => end(code === 0 && !timedOut, timedOut ? `\nEnded at its time limit of ${Math.round(timeoutMs / 1000)} s.` : ''));
+  });
+}
+
+/** The issues a --drain run would work (--queued). Reads GitHub only, and tells the workflow whether any waits. */
+async function queued(args, env, deps) {
+  const repo = env.GITHUB_REPOSITORY || DEFAULT_REPO;
+  const log = deps.log ?? ((m) => console.log(m));
+  const gh = deps.github ?? githubClient(env.GH_TOKEN || env.GITHUB_TOKEN);
+  const issues = await queuedIssues(gh, repo);
+  log(issues.length ? `Waiting for an intake run: ${issues.map((q) => `#${q.number} (${q.state})`).join(', ')}` : 'No labelled issue waits for an intake run.');
+  if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `any=${issues.length ? 'true' : 'false'}\n`);
+  return { outcome: `${issues.length} issue${issues.length === 1 ? '' : 's'} waiting`, issues };
+}
+
+/**
  * Run the intake for one issue. Returns { outcome, summary, records, ... } so tests can inspect a
  * dry run. `deps` replaces GitHub, Anthropic, fetch, command execution and the clock in tests.
  */
@@ -3082,6 +3273,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   if (args.revise) return revise(args, env, deps);
   if (args.refresh) return refresh(args, env, deps);
   if (args.drain) return drain(args, env, deps);
+  if (args.queued) return queued(args, env, deps);
   const started = Date.now();
   const mode = args.dryRun ? 'dry run' : args.reportOnly ? 'report only' : 'live';
   const write = !args.dryRun && !args.reportOnly;
@@ -3391,10 +3583,11 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       await finish('skipped: closed', null);
       return result();
     }
-    // A queued run that worked this issue after its label was added has answered it already.
+    // A queued run that worked this issue after its label was added has answered it already,
+    // unless its answer was a failure another run may get past: that one is tried again here.
     if (write && args.since && gh.comments) {
-      const answered = (await gh.comments(repo, issue.number)).some((c) => c.user === BOT_LOGIN && (parseRunMarker(c.body) || INTAKE_COMMENT.test(c.body)) && Date.parse(c.created_at) > Date.parse(args.since));
-      if (answered) {
+      const earlier = queueState(await gh.comments(repo, issue.number), args.since).state;
+      if (earlier === 'done' || earlier === 'exhausted') {
         await finish('skipped: an earlier run worked this issue after the label was added', null);
         return result();
       }

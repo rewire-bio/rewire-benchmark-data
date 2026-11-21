@@ -12,19 +12,25 @@ import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import {
   BOT_LOGIN,
+  FAILED_MARKER,
+  githubClient,
   HUMAN_LABEL,
+  issueQueueState,
   LIMITS,
   main,
   parseRunMarker,
   queueState,
   queuedIssues,
   REFRESH_MARKER,
+  refreshMarks,
+  REFUSED_MARKER,
   renderRefreshComment,
   retryableError,
   retryDelaySeconds,
   retryingClient,
   REVISION_MARKER,
   revisedAlready,
+  runGroup,
   runMarker,
   storeLines,
   tieToBatch,
@@ -219,6 +225,11 @@ describe("a live refresh, with fakes", () => {
       [{ author: "timini" }, `the author is timini, not ${BOT_LOGIN}`],
       [{ head_ref: "feature/x" }, "the head feature/x is not an intake branch of this repository"],
       [{ head_repo: "someone/fork" }, "the head intake/issue-350 is not an intake branch of this repository"],
+      // The branch name is matched whole: a longer name that holds an intake branch name is not one.
+      [{ head_ref: "x/intake/issue-5/y" }, "the head x/intake/issue-5/y is not an intake branch of this repository"],
+      [{ head_ref: "intake/issue-350-again" }, "the head intake/issue-350-again is not an intake branch of this repository"],
+      // The checkout is main, so a pull request against another branch is not rebuilt on it.
+      [{ base_ref: "release-1" }, "its base branch is release-1, not main"],
       [{ labels: [HUMAN_LABEL] }, `the pull request is labelled ${HUMAN_LABEL}`],
     ] as const) {
       const f = fakes({ pull });
@@ -236,6 +247,10 @@ describe("a live refresh, with fakes", () => {
       [{ files: [...fixture.files, { filename: "data/omics/intake-350-20261122/batch.jsonl", status: "added" }] }, "it has 2 intake batch files, not one"],
       [{ files: fixture.files.map((x: any) => ({ ...x, filename: x.filename.replace("intake-350-", "intake-349-") })) }, "its batch folder data/omics/intake-349-20261121 is not one of issue #350, which its branch names"],
       [{ comments: Array(LIMITS.refreshesPerPull).fill(refreshed) }, `it was rebuilt ${LIMITS.refreshesPerPull} times already and conflicts again`],
+      // A rebuild on the commit of main it was rebuilt on before is a loop, whatever the count.
+      [{ comments: [{ user: BOT_LOGIN, body: renderRefreshComment({ kind: "refreshed", pull: fixture.pull, base: BASE, lines: 4 }) }] }, `it was rebuilt on ${BASE.slice(0, 7)} already and conflicts with it again`],
+      // A second commit that is not the intake's revision is a person's; one rebuilt commit would replace it.
+      [{ pull: { commits: 2 } }, "it has 2 commits and was not revised by the intake agent, so someone added to it by hand"],
     ] as const) {
       const f = fakes(given as any);
       const r = await refreshOne(f);
@@ -247,6 +262,16 @@ describe("a live refresh, with fakes", () => {
     const some = fakes({ comments: [...Array(LIMITS.refreshesPerPull - 1).fill(refreshed), { ...refreshed, user: "timini" }] });
     expect((await refreshOne(some)).outcome).toBe("refreshed");
     expect(some.bodies[0]).toContain(`"n":${LIMITS.refreshesPerPull}`);
+    // The count is of the pull request's whole life, and every other batch that merges takes one.
+    expect(LIMITS.refreshesPerPull).toBeGreaterThanOrEqual(15);
+    // A rebuild on another commit of main does not count as a loop.
+    const moved = fakes({ comments: [{ user: BOT_LOGIN, body: renderRefreshComment({ kind: "refreshed", pull: fixture.pull, base: "b".repeat(40), lines: 4 }) }] });
+    expect((await refreshOne(moved)).outcome).toBe("refreshed");
+    // A revised pull request has two commits, the marker and revision.json: it is rebuilt.
+    const revised = fakes({ pull: { commits: 2, body: `x\n\n<!-- ${REVISION_MARKER}: {"n":1} -->` } });
+    expect((await refreshOne(revised)).outcome).toBe("refreshed");
+    const withFile = fakes({ pull: { commits: 2 }, files: [...fixture.files, { filename: `${BATCH_DIR}/revision.json`, status: "added" }] });
+    expect((await refreshOne(withFile)).outcome).toBe("refreshed");
   });
 
   it("hands over a pull request whose store lines are not its batch, without running the store tools", async () => {
@@ -259,14 +284,42 @@ describe("a live refresh, with fakes", () => {
     expect(writesOf(f.log).map((l) => l.split(" ")[0])).toEqual(["label", "comment"]);
   });
 
-  it("hands over and fails the run when the batch no longer passes a store check on main", async () => {
-    for (const [fail, outcome] of [["npx tsx scripts/agents/intake-check.ts", "failed: intake-check"], ["npm run -s records -- add", "failed: records add"], ["npm run -s records -- check", "failed: records check"]] as const) {
-      const f = fakes({ fail, failOutput: "Batch cannot replace or duplicate record: intake-350-20261121-source-x" });
+  it("fails the run and does not label the pull request the first time a store check fails: the fault may be the tool's", async () => {
+    for (const [fail, step] of [["npx tsx scripts/agents/intake-check.ts", "intake-check"], ["npm run -s records -- add", "records add"], ["npm run -s records -- check", "records check"]] as const) {
+      const f = fakes({ fail, failOutput: "error: Failed to download `pyshacl`: connection reset by peer" });
       const r = await refreshOne(f);
-      expect(r.outcome).toBe(outcome);
-      expect(writesOf(f.log)).toEqual([`label #352 ${HUMAN_LABEL}`, expect.stringMatching(/^comment #352 The intake agent did not rebuild this pull request on its base branch: `.*` failed on the batch added to the base branch as it is now\./)]);
-      expect(f.bodies[0]).toContain("Batch cannot replace or duplicate record");
+      expect(r.outcome).toBe(`failed: ${step}`);
+      expect(r.label).toBeNull();
+      expect(writesOf(f.log)).toEqual([expect.stringMatching(/^comment #352 The intake agent could not rebuild this pull request on its base branch: `.*` failed on the batch added to the base branch as it is now\. It is the first time this step failed here/)]);
+      expect(f.bodies[0]).toContain("Failed to download");
+      expect(f.bodies[0]).toContain("the pull request is not labelled");
+      expect(refreshMarks([{ user: BOT_LOGIN, body: f.bodies[0] }])).toEqual([{ kind: "failed", base: BASE, step }]);
     }
+  });
+
+  it("hands over and fails the run when the same store check fails a second time", async () => {
+    const first = fakes({ fail: "npm run -s records -- add", failOutput: "Batch cannot replace or duplicate record: intake-350-20261121-source-x" });
+    await refreshOne(first);
+    const before = [{ user: BOT_LOGIN, body: first.bodies[0] }];
+    const f = fakes({ fail: "npm run -s records -- add", failOutput: "Batch cannot replace or duplicate record: intake-350-20261121-source-x", comments: before });
+    const r = await refreshOne(f);
+    expect(r.outcome).toBe("failed: records add");
+    expect(r.label).toBe(HUMAN_LABEL);
+    expect(writesOf(f.log)).toEqual([`label #352 ${HUMAN_LABEL}`, expect.stringMatching(/^comment #352 The intake agent did not rebuild this pull request on its base branch: `records add` failed on the batch added to the base branch as it is now\./)]);
+    expect(f.bodies[0]).toContain("Batch cannot replace or duplicate record");
+    // Another step failing is the first failure of that step.
+    const other = fakes({ fail: "npm run -s records -- check", comments: before });
+    expect((await refreshOne(other)).label).toBeNull();
+    // A failure before the last rebuild is not held against the pull request, and neither is one
+    // somebody else's comment claims.
+    const rebuilt = { user: BOT_LOGIN, body: renderRefreshComment({ kind: "refreshed", pull: fixture.pull, base: "b".repeat(40), lines: 4 }) };
+    const since = fakes({ fail: "npm run -s records -- add", comments: [...before, rebuilt] });
+    expect((await refreshOne(since)).label).toBeNull();
+    const forged = fakes({ fail: "npm run -s records -- add", comments: [{ ...before[0], user: "timini" }] });
+    expect((await refreshOne(forged)).label).toBeNull();
+    // A sound pull request with one failure behind it is rebuilt as usual.
+    const sound = fakes({ comments: before });
+    expect((await refreshOne(sound)).outcome).toBe("refreshed");
   });
 
   it("pushes nothing when the rebuilt store does not gain exactly the lines the pull request held", async () => {
@@ -302,18 +355,40 @@ describe("a live refresh, with fakes", () => {
     expect(f.log.join("\n")).not.toMatch(/label |comment /);
   });
 
-  it("fails the run, and neither labels nor comments, when GitHub refuses the push over a workflow file main changed", async () => {
+  it("fails the run once, with one comment and no label, when GitHub refuses the push over a workflow file main changed", async () => {
     // The token's limit, not a fault of the pull request: it stays open to a later refresh.
-    const f = fakes({ fail: "git push", failOutput: " ! [remote rejected] HEAD -> intake/issue-350 (refusing to allow a GitHub App to create or update workflow `.github/workflows/intake.yml` without `workflows` permission)" });
+    const failOutput = " ! [remote rejected] HEAD -> intake/issue-350 (refusing to allow a GitHub App to create or update workflow `.github/workflows/intake.yml` without `workflows` permission)";
+    const f = fakes({ fail: "git push", failOutput });
     const r = await refreshOne(f);
     expect(r.outcome).toBe("failed: git push refused over a workflow file");
     expect(r.reason).toContain("the rewire-bot app token may not write workflows");
-    expect(writesOf(f.log).at(-1)).toBe(LEASE_PUSH);
-    expect(f.log.join("\n")).not.toMatch(/label |comment /);
-    // Any other refused push is left to a person.
+    expect(writesOf(f.log).slice(-2)).toEqual([LEASE_PUSH, expect.stringMatching(/^comment #352 The intake agent rebuilt this pull request on its base branch but could not push it\./)]);
+    expect(f.log.join("\n")).not.toMatch(/label /);
+    expect(f.bodies[0]).toContain("`refresh_pr`");
+    const refused = [{ user: BOT_LOGIN, body: f.bodies[0] }];
+    expect(refreshMarks(refused)).toEqual([{ kind: "refused", base: BASE, step: "" }]);
+    // The run after the next push to main leaves that pull request, and does not fail on it again.
+    const next = fakes({ fail: "git push", failOutput, comments: refused });
+    const all = await main(["--refresh", "--root", rootWithBatch()], env, next.deps);
+    expect(all.pulls.map((p: any) => p.outcome)).toEqual(["skipped: an earlier push of its rebuild was refused over a workflow file; a manual run that names this pull request tries again"]);
+    expect(commandsOf(next.log)).toEqual(["git rev-parse HEAD"]);
+    expect(writesOf(next.log)).toEqual([]);
+    // A manual run that names it tries the push again. Refused again, it fails and adds no second comment.
+    const again = fakes({ fail: "git push", failOutput, comments: refused });
+    expect((await refreshOne(again)).outcome).toBe("failed: git push refused over a workflow file");
+    expect(again.log.join("\n")).not.toMatch(/label |comment /);
+    const allowed = fakes({ comments: refused });
+    expect((await refreshOne(allowed)).outcome).toBe("refreshed");
+    // After a rebuild that was pushed, the refusal is over: automatic runs look at it again.
+    const after = fakes({ comments: [...refused, { user: BOT_LOGIN, body: allowed.bodies[0].replaceAll(BASE, "b".repeat(40)) }] });
+    expect((await main(["--refresh", "--root", rootWithBatch()], env, after.deps)).pulls[0].outcome).toBe("refreshed");
+    // Any other refused push is a failed step: a comment the first time, a person the second.
     const other = fakes({ fail: "git push", failOutput: "remote: Repository not found." });
     expect((await refreshOne(other)).outcome).toBe("failed: git push");
-    expect(writesOf(other.log).slice(-2).map((l) => l.split(" ")[0])).toEqual(["label", "comment"]);
+    expect(writesOf(other.log).slice(-2).map((l) => l.split(" ")[0])).toEqual(["git", "comment"]);
+    const twice = fakes({ fail: "git push", failOutput: "remote: Repository not found.", comments: [{ user: BOT_LOGIN, body: other.bodies[0] }] });
+    expect((await refreshOne(twice)).outcome).toBe("failed: git push");
+    expect(writesOf(twice.log).slice(-2).map((l) => l.split(" ")[0])).toEqual(["label", "comment"]);
   });
 
   it("in report-only mode rebuilds and checks, and writes nothing to GitHub or the branch", async () => {
@@ -326,7 +401,13 @@ describe("a live refresh, with fakes", () => {
     expect(JSON.parse(fs.readFileSync(path.join(out, "result.json"), "utf8")).pulls[0]).toMatchObject({ pr: 352, lines: 4, base: BASE, pushed: false });
     // What it would write for a pull request it hands over is in the result, not on GitHub. It
     // does not fail the run: nothing labels the pull request, so it would fail after every push.
-    const handed = fakes({ fail: "npm run -s records -- add" });
+    const once = fakes({ fail: "npm run -s records -- add" });
+    const o = await refreshOne(once, ["--report-only"]);
+    expect(o.outcome).toBe("not rebuilt: `records add` failed on the batch added to the base branch as it is now");
+    expect(o.label).toBeNull();
+    expect(o.comment).toContain("the pull request is not labelled");
+    expect(writesOf(once.log)).toEqual([]);
+    const handed = fakes({ fail: "npm run -s records -- add", comments: [{ user: BOT_LOGIN, body: `x\n\n<!-- ${FAILED_MARKER}: {"step":"records add","base":"${BASE}"} -->` }] });
     const h = await refreshOne(handed, ["--report-only"]);
     expect(h.outcome).toBe(`${HUMAN_LABEL}: \`records add\` failed on the batch added to the base branch as it is now`);
     expect(h.label).toBe(HUMAN_LABEL);
@@ -660,14 +741,20 @@ describe("where an issue stands in the queue", () => {
 
 describe("a queued run, with fakes", () => {
   const START = "c".repeat(40);
-  function fakes({ queue = [[348, 349], [349], []] as number[][], outcomes = {} as Record<number, { outcome: string; ok?: boolean; transient?: string; prUrl?: string }>, minutes = [] as number[], failReset = false } = {}) {
+  // An issue's process that opens no pull request comments on the issue itself, unless `silent`
+  // (its comment did not post) or the outcome is "killed" (it ended without a result).
+  function fakes({ queue = [[348, 349], [349], []] as number[][], outcomes = {} as Record<number, { outcome: string; ok?: boolean; transient?: string; prUrl?: string; silent?: boolean }>, minutes = [] as number[], failReset = false, failComment = false } = {}) {
     const log: string[] = [];
     const lists = [...queue];
+    const own = new Map<number, { user: string; body: string }[]>();
     const github = {
       labelledIssues: async (_r: string, label: string) => (label === "entity-request" ? (lists.length > 1 ? lists.shift()! : lists[0] ?? []).map((number) => ({ number })) : []),
       pullsFor: async () => [],
-      comments: async () => [],
-      comment: async (_r: string, number: number, body: string) => void posted.push({ number, body }),
+      comments: async (_r: string, number: number) => [...(own.get(number) ?? []), ...posted.filter((p) => p.number === number).map((p) => ({ user: BOT_LOGIN, body: p.body }))],
+      comment: async (_r: string, number: number, body: string) => {
+        if (failComment) throw Object.assign(new Error("POST comments: 502 Bad Gateway"), { status: 502 });
+        posted.push({ number, body });
+      },
     };
     const posted: { number: number; body: string }[] = [];
     const run = (cmd: string, args: string[], opts: { timeoutMs?: number } = {}) => {
@@ -685,6 +772,7 @@ describe("a queued run, with fakes", () => {
       const given = outcomes[number] ?? { outcome: "opened", prUrl: `https://github.com/${REPO}/pull/${number + 1000}` };
       const out = args[args.indexOf("--out") + 1];
       if (given.outcome === "killed") return { ok: false, output: "" };
+      if (!given.prUrl && !given.silent) own.set(number, [...(own.get(number) ?? []), { user: BOT_LOGIN, body: `The intake agent wrote a batch but \`the intake run\` failed.\n\n${runMarker({ outcome: given.outcome, retry: Boolean(given.transient) })}` }]);
       fs.mkdirSync(out, { recursive: true });
       fs.writeFileSync(path.join(out, "result.json"), JSON.stringify({ outcome: given.outcome, prUrl: given.prUrl ?? null, transient: given.transient ?? "", kg: { used: true, release: `kg-of-${number}` } }));
       return { ok: given.ok ?? true, output: `log of ${number}` };
@@ -731,6 +819,11 @@ describe("a queued run, with fakes", () => {
     const r = await drain(f);
     expect(f.log.filter((l) => l.startsWith("issue "))).toEqual(["issue 347 since 2026-11-21T09:00:00Z", "issue 348"]);
     expect(r.outcome).toBe("failed: 1 of 2 issue runs (#348)");
+    // The run's own issue too: answered with a failure another run may get past, it stays on the
+    // list as retry, and this run does not start it a second time.
+    const first = fakes({ queue: [[347]], outcomes: { 347: { outcome: "error", ok: false, transient: "server error" } } });
+    await drain(first);
+    expect(first.log.filter((l) => l.startsWith("issue "))).toEqual(["issue 347 since 2026-11-21T09:00:00Z"]);
   });
 
   it("stops at its issue limit and its time limit, and says what is left", async () => {
@@ -772,6 +865,36 @@ describe("a queued run, with fakes", () => {
     const own = fakes({ queue: [[]], outcomes: { 347: { outcome: "error", ok: false, transient: "server error" } } });
     await drain(own);
     expect(own.posted).toEqual([]);
+    // Nor for a pull request, which is the answer, or a closed issue, which is not in the queue.
+    const opened = fakes({ queue: [[]], outcomes: { 347: { outcome: "opened", prUrl: "https://github.com/x/y/pull/1", silent: true } } });
+    await drain(opened);
+    expect(opened.posted).toEqual([]);
+    const closed = fakes({ queue: [[]], outcomes: { 347: { outcome: "skipped: closed", silent: true } } });
+    await drain(closed);
+    expect(closed.posted).toEqual([]);
+  });
+
+  it("writes the answer itself when an issue's own comment did not reach the issue, so the issue does not stay new", async () => {
+    // A final outcome: the issue is done, and no later run works it again.
+    const final = fakes({ queue: [[]], outcomes: { 347: { outcome: "failed: records add", ok: false, silent: true } } });
+    await drain(final);
+    expect(final.posted).toHaveLength(1);
+    expect(final.posted[0].body).toContain("its own comment did not reach the issue");
+    expect(parseRunMarker(final.posted[0].body)).toEqual({ outcome: "failed: records add", retry: false });
+    expect(queueState([{ user: BOT_LOGIN, body: final.posted[0].body }]).state).toBe("done");
+    // A failure another run may get past: counted as one attempt.
+    const again = fakes({ queue: [[]], outcomes: { 347: { outcome: "error", ok: false, transient: "rate limit", silent: true } } });
+    await drain(again);
+    expect(parseRunMarker(again.posted[0].body)).toEqual({ outcome: "error", retry: true });
+    expect(queueState([{ user: BOT_LOGIN, body: again.posted[0].body }])).toEqual({ state: "retry", attempts: 1 });
+  });
+
+  it("stops and fails the run when no answer can be written on an issue, instead of working on with nothing counted", async () => {
+    const f = fakes({ outcomes: { 347: { outcome: "skipped: out of scope", silent: true } }, failComment: true });
+    const r = await drain(f);
+    expect(f.log.filter((l) => l.startsWith("issue "))).toEqual(["issue 347 since 2026-11-21T09:00:00Z"]);
+    expect(r.outcome).toBe("failed: 1 of 1 issue runs (#347)");
+    expect(r.left).toContain("the answer on #347 could not be read or written (502 POST comments: 502 Bad Gateway), so this run starts no other");
   });
 
   it("stops when the checkout cannot be put back, without starting the next issue on a used tree", async () => {
@@ -1002,6 +1125,197 @@ describe("waits on 429 and 529", () => {
   });
 });
 
+// ---------- Fixes after the review of the refresh and the queue ----------
+
+describe("a label added again", () => {
+  const at = (created_at: string, body: string) => ({ user: BOT_LOGIN, body, created_at });
+  const skipped = (t: string) => at(t, `The intake agent did not open a pull request: the request is out of scope for the database. Remove and re-add the \`entity-request\` label to run it again.\n\n${runMarker({ outcome: "skipped: out of scope" })}`);
+  const failed = (t: string) => at(t, `The intake agent wrote a batch but \`the intake run\` failed, so no pull request was opened.\n\n${runMarker({ outcome: "error: 529 overloaded", retry: true })}`);
+
+  it("starts the issue afresh: answers older than the label are not counted", () => {
+    const comments = [skipped("2026-11-21T09:05:00Z")];
+    expect(queueState(comments).state).toBe("done");
+    expect(queueState(comments, "2026-11-21T09:00:00Z").state).toBe("done");
+    expect(queueState(comments, "2026-11-21T10:00:00Z")).toEqual({ state: "new", attempts: 0 });
+    // An issue that used its attempts gets them again with a new label, and only then.
+    const used = Array.from({ length: LIMITS.queueAttempts }, (_, i) => failed(`2026-11-21T09:0${i}:00Z`));
+    expect(queueState(used, "2026-11-21T08:00:00Z").state).toBe("exhausted");
+    expect(queueState(used, "2026-11-21T10:00:00Z")).toEqual({ state: "new", attempts: 0 });
+    expect(queueState([...used, failed("2026-11-21T10:05:00Z")], "2026-11-21T10:00:00Z")).toEqual({ state: "retry", attempts: 1 });
+    // #347 was labelled before its run failed: it is still tried again.
+    expect(queueState(issue347.map((c: any) => ({ ...c, created_at: "2026-11-21T08:31:00Z" })), "2026-11-21T08:30:00Z")).toEqual({ state: "retry", attempts: 1 });
+  });
+
+  it("is found by the queue when its label run was cancelled while waiting, with one more call only for an issue that would be left", async () => {
+    const asked: number[] = [];
+    const gh = {
+      labelledIssues: async (_r: string, label: string) => (label === "entity-request" ? [283, 300, 347, 360] : [361]).map((number) => ({ number })),
+      pullsFor: async () => [],
+      comments: async (_r: string, number: number) => (number === 283 || number === 300 ? [skipped("2026-11-21T09:05:00Z")] : number === 361 ? Array.from({ length: LIMITS.queueAttempts }, () => failed("2026-11-21T09:05:00Z")) : number === 347 ? issue347 : []),
+      labelledAt: async (_r: string, number: number) => {
+        asked.push(number);
+        // #283 and #361 were labelled again after their answers; #300 was not.
+        return number === 300 ? "2026-11-21T09:00:00Z" : "2026-11-21T11:00:00Z";
+      },
+    };
+    const settled = new Set<number>();
+    expect(await queuedIssues(gh, REPO, settled)).toEqual([{ number: 283, state: "new", attempts: 0 }, { number: 347, state: "retry", attempts: 1 }, { number: 360, state: "new", attempts: 0 }, { number: 361, state: "new", attempts: 0 }]);
+    expect([...settled]).toEqual([300]);
+    // The events are read only for the issues the comments call done or exhausted.
+    expect(asked).toEqual([283, 300, 361]);
+    expect(await issueQueueState({ comments: gh.comments, labelledAt: async () => "" }, REPO, 283)).toEqual({ state: "done", attempts: 0 });
+  });
+
+  it("reads the time from the issue's events: the last time an intake label was added", async () => {
+    const urls: string[] = [];
+    const events = [
+      { event: "labeled", label: { name: "entity-request" }, created_at: "2026-11-21T08:00:00Z" },
+      { event: "unlabeled", label: { name: "entity-request" }, created_at: "2026-11-21T09:00:00Z" },
+      { event: "labeled", label: { name: "entity-request" }, created_at: "2026-11-21T10:00:00Z" },
+      { event: "labeled", label: { name: "tier-2" }, created_at: "2026-11-21T12:00:00Z" },
+      { event: "closed", created_at: "2026-11-21T13:00:00Z" },
+    ];
+    const client = githubClient("t", (async (url: string) => {
+      urls.push(url);
+      return new Response(JSON.stringify(url.includes("/issues/5/") ? [] : events), { status: 200 });
+    }) as typeof fetch);
+    expect(await client.labelledAt(REPO, 283)).toBe("2026-11-21T10:00:00Z");
+    expect(urls).toEqual([`https://api.github.com/repos/${REPO}/issues/283/events?per_page=100&page=1`]);
+    expect(await client.labelledAt(REPO, 5)).toBe("");
+  });
+});
+
+describe("the run a label started, when an earlier run reached its issue first", () => {
+  const at = (created_at: string, body: string) => ({ user: BOT_LOGIN, body, created_at });
+  const SINCE = ["--since", "2026-11-21T09:00:00Z"];
+  const retry = (t: string) => at(t, `The intake agent wrote a batch but \`the intake run\` failed.\n\n${runMarker({ outcome: "error: 429", retry: true })}`);
+
+  it("works the issue when that run ended on a failure another run may get past", async () => {
+    const f = intakeFakes({ comments: [retry("2026-11-21T09:05:00Z")] });
+    expect((await runIssue(f, SINCE)).outcome).toBe("opened");
+    expect(f.posted).toHaveLength(1);
+  });
+
+  it("does not work it once its attempts since the label are used up", async () => {
+    const f = intakeFakes({ comments: Array.from({ length: LIMITS.queueAttempts }, (_, i) => retry(`2026-11-21T09:1${i}:00Z`)) });
+    expect((await runIssue(f, SINCE)).outcome).toBe("skipped: an earlier run worked this issue after the label was added");
+    expect(f.calls).toEqual([]);
+    // Attempts before the label do not count against the new one.
+    const before = intakeFakes({ comments: Array.from({ length: LIMITS.queueAttempts }, (_, i) => retry(`2026-11-21T08:1${i}:00Z`)) });
+    expect((await runIssue(before, SINCE)).outcome).toBe("opened");
+  });
+
+  it("takes a final answer without a marker as an answer too", async () => {
+    const f = intakeFakes({ comments: [at("2026-11-21T09:05:00Z", "The intake agent opened https://github.com/x/y/pull/1 with 2 records. It needs a review before merging.")] });
+    expect((await runIssue(f, SINCE)).outcome).toBe("skipped: an earlier run worked this issue after the label was added");
+    expect(f.calls).toEqual([]);
+    expect(f.posted).toEqual([]);
+  });
+});
+
+describe("the list the two-hourly check asks for", () => {
+  it("names the waiting issues and tells the workflow whether there are any, reading GitHub only", async () => {
+    const lines: string[] = [];
+    const gh = (numbers: number[]) => ({ labelledIssues: async (_r: string, label: string) => (label === "entity-request" ? numbers : []).map((number) => ({ number })), pullsFor: async () => [], comments: async (_r: string, number: number) => (number === 347 ? issue347 : []) });
+    const output = path.join(tempRoot(), "output");
+    const r = await main(["--queued"], { ...env, GITHUB_OUTPUT: output }, { github: gh([347, 360]), log: (m: string) => void lines.push(m) });
+    expect(r.outcome).toBe("2 issues waiting");
+    expect(lines).toEqual(["Waiting for an intake run: #347 (retry), #360 (new)"]);
+    expect(fs.readFileSync(output, "utf8")).toBe("any=true\n");
+    fs.rmSync(output);
+    expect((await main(["--queued"], { ...env, GITHUB_OUTPUT: output }, { github: gh([]), log: quiet })).outcome).toBe("0 issues waiting");
+    expect(fs.readFileSync(output, "utf8")).toBe("any=false\n");
+    await expect(main(["--queued", "--issue", "5"], env, { github: gh([]) })).rejects.toThrow("--queued takes no other argument");
+  });
+});
+
+describe("an issue's process at its time limit", () => {
+  it("is ended with everything it started", async () => {
+    const dir = tempRoot();
+    const pidFile = path.join(dir, "pid");
+    // A parent that starts a child which would run for a minute, then waits itself.
+    const script = `const { spawn } = require("node:child_process"); const c = spawn(process.execPath, ["-e", "setTimeout(() => {}, 60000)"], { stdio: "ignore" }); require("node:fs").writeFileSync(${JSON.stringify(pidFile)}, String(c.pid)); console.log("started"); setTimeout(() => {}, 60000);`;
+    const started = Date.now();
+    const r = await runGroup(process.execPath, ["-e", script], { cwd: dir, timeoutMs: 1500, graceMs: 500 });
+    expect(r.ok).toBe(false);
+    expect(r.output).toContain("started");
+    expect(r.output).toContain("Ended at its time limit of 2 s.");
+    expect(Date.now() - started).toBeLessThan(20_000);
+    const pid = Number(fs.readFileSync(pidFile, "utf8"));
+    const alive = () => {
+      try {
+        process.kill(pid, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    for (let i = 0; i < 50 && alive(); i++) await new Promise((done) => setTimeout(done, 100));
+    expect(alive()).toBe(false);
+  }, 30_000);
+
+  it("gives the output and the exit of a command that ends in time", async () => {
+    expect(await runGroup(process.execPath, ["-e", "console.log('fine')"], { timeoutMs: 20_000 })).toEqual({ ok: true, output: "fine\n" });
+    expect((await runGroup(process.execPath, ["-e", "console.error('bad'); process.exit(3)"])).ok).toBe(false);
+    expect((await runGroup("no-such-command-here", [])).ok).toBe(false);
+  });
+});
+
+describe("what the review's mutations got past", () => {
+  it("keeps an answer GitHub has not given apart from one that says the pull request merges", async () => {
+    const pullOf = (mergeable: unknown) => githubClient("t", (async () => new Response(JSON.stringify({ number: 352, state: "open", user: { login: BOT_LOGIN }, head: { ref: "intake/issue-350", sha: HEAD, repo: { full_name: REPO } }, base: { ref: "main" }, labels: [], ...(mergeable === undefined ? {} : { mergeable }) }), { status: 200 })) as typeof fetch).pull(REPO, 352);
+    expect((await pullOf(null)).mergeable).toBeNull();
+    expect((await pullOf(undefined)).mergeable).toBeNull();
+    expect((await pullOf(false)).mergeable).toBe(false);
+    expect((await pullOf(true)).mergeable).toBe(true);
+    expect((await pullOf(false)).base_ref).toBe("main");
+  });
+
+  it("names a record that has two record lines or two provenance lines in the store diff", () => {
+    const lines = storeLines(fixture.diff);
+    const record = lines.added.find((l) => l.includes('"kind":"model"'))!;
+    const provenance = lines.added.find((l) => l.includes('"added_in"') && l.includes("model-protcell"))!;
+    expect(tieToBatch({ added: [...lines.added, record], removed: [] }, batch, BATCH_DIR)).toEqual(["intake-350-20261121-model-protcell has 2 record lines and 1 provenance line in the store diff, not one of each"]);
+    expect(tieToBatch({ added: [...lines.added, provenance], removed: [] }, batch, BATCH_DIR)).toEqual(["intake-350-20261121-model-protcell has 1 record line and 2 provenance lines in the store diff, not one of each"]);
+  });
+
+  it("waits on a 529 that carries a status and no error type", () => {
+    expect(retryableError({ status: 529, message: "upstream" })).toBe("overloaded");
+    expect(retryableError({ status: 429, message: "slow down" })).toBe("rate limit");
+    expect(retryableError({ status: 500, message: "upstream" })).toBe("");
+  });
+
+  it("waits and tries the structuring call again too", async () => {
+    const usage = new Usage();
+    const sleeps: number[] = [];
+    let n = 0;
+    const client = {
+      beta: { messages: { stream: () => ({ finalMessage: async () => ({}) }) } },
+      messages: { create: async () => {
+        n += 1;
+        if (n === 1) throw Object.assign(new Error("429 rate_limit_error"), { status: 429 });
+        return { ok: true };
+      } },
+    };
+    const wrapped = retryingClient(client, usage, { sleep: async (ms: number) => void sleeps.push(ms) });
+    expect(await wrapped.messages.create({ model: "claude-haiku-5-5" })).toEqual({ ok: true });
+    expect(n).toBe(2);
+    expect(sleeps).toEqual([LIMITS.apiRetryBaseSeconds * 1000]);
+    expect((usage as any).retries).toEqual({ count: 1, waitSeconds: LIMITS.apiRetryBaseSeconds, gaveUp: 0 });
+  });
+
+  it("reads the refresh's own marks from the bot's comments only", () => {
+    const body = (marker: string, json: string) => `text\n\n<!-- ${marker}: ${json} -->`;
+    expect(refreshMarks([
+      { user: BOT_LOGIN, body: body(REFRESH_MARKER, '{"n":1,"base":"abc","from":"def"}') },
+      { user: "timini", body: body(REFUSED_MARKER, '{"base":"abc"}') },
+      { user: BOT_LOGIN, body: body(FAILED_MARKER, '{"step":"records add","base":"abc"}') },
+      { user: BOT_LOGIN, body: body(REFUSED_MARKER, '{"base":"abc","from":"def"}') },
+      { user: BOT_LOGIN, body: "The intake agent opened a pull request." },
+    ])).toEqual([{ kind: "refreshed", base: "abc", step: "" }, { kind: "failed", base: "abc", step: "records add" }, { kind: "refused", base: "abc", step: "" }]);
+  });
+});
+
 // ---------- The workflow ----------
 
 describe("the refresh job and the queue in intake.yml", () => {
@@ -1063,7 +1377,10 @@ describe("the refresh job and the queue in intake.yml", () => {
 
   it("installs and runs nothing when no intake pull request is open", () => {
     const open = step("Open intake pull requests");
-    expect(open).toContain(`select(.user.login == "rewire-bot[bot]" and (.head.ref | startswith("intake/issue-")))`);
+    // The script's own filter, so no app token is made for a pull request it would not touch:
+    // the bot's, the whole branch name, and a head in this repository.
+    expect(open).toContain(`select(.user.login == "rewire-bot[bot]" and (.head.ref | test("^intake/issue-[0-9]+$")) and .head.repo.full_name == env.GITHUB_REPOSITORY)`);
+    expect(open).not.toContain("startswith");
     for (const name of ["Install the store tools", "Install the agent dependencies", "Refresh the pull requests"]) expect(step(name)).toContain("steps.open.outputs.any == 'true'");
   });
 
@@ -1083,11 +1400,41 @@ describe("the refresh job and the queue in intake.yml", () => {
     expect(run).toContain('report-only) args="--report-only --issue $ISSUE ${REPLAY:-}" ;;');
     expect(intake).toContain("      SINCE: ${{ github.event_name == 'issues' && github.event.issue.updated_at || '' }}\n");
     expect(intake).toContain("      MODE: ${{ github.event_name == 'issues' && 'live' || github.event_name == 'pull_request' && 'dry-run' || inputs.mode }}\n");
-    // Six issues of up to 20 minutes do not fit; the run starts none after 35 minutes, so 60 holds the last one.
-    expect(LIMITS.queueMinutes + LIMITS.issueMinutes).toBeLessThan(60);
+    // Six issues of up to 20 minutes do not fit. The run starts none after 25 minutes, so the
+    // last one ends by minute 45 of the script, which leaves the setup 10 minutes under the job's
+    // 60 and the hour the app token lives. A job killed at its limit would leave no answer.
+    expect(LIMITS.queueMinutes + LIMITS.issueMinutes).toBeLessThanOrEqual(50);
     expect(intake).toContain("\n    timeout-minutes: 60\n");
     // All the waits of one run fit in one issue's time several times over.
     expect(LIMITS.apiRetryWaitSeconds).toBeLessThan((LIMITS.issueMinutes * 60) / 2);
+  });
+
+  it("asks every two hours whether an issue waits, and starts a live run that works the queue only when one does", () => {
+    const check = fs.readFileSync(".github/workflows/intake-queue.yml", "utf8");
+    expect(check).toMatch(/\non:\n  schedule:\n    - cron: "\d+ \*\/2 \* \* \*"\n  workflow_dispatch:\n/);
+    // A repository variable stops the scheduled check.
+    expect(check).toContain("\n    if: github.event_name != 'schedule' || vars.INTAKE_QUEUE_SCHEDULE != 'off'\n");
+    // It reads GitHub with the default token: no app token, no API key, nothing installed. The
+    // one thing it may write is a workflow run.
+    expect(check).toContain("\npermissions:\n  contents: read\n  issues: read\n  pull-requests: read\n  actions: write ");
+    expect(check).not.toMatch(/create-github-app-token|ANTHROPIC_API_KEY|npm ci|secrets\./);
+    expect(check).toContain("        id: waiting\n        env:\n          GH_TOKEN: ${{ github.token }}\n        run: node scripts/agents/intake.mjs --queued\n");
+    // The run it starts is a manual live run with no issue number, of the default branch: the
+    // intake job takes it, in the queue's group, and --drain works the waiting issues only.
+    expect(check).toContain("        if: steps.waiting.outputs.any == 'true'\n        env:\n          GH_TOKEN: ${{ github.token }}\n        run: gh workflow run intake.yml --repo \"$GITHUB_REPOSITORY\" -f mode=live\n");
+    expect(check).not.toMatch(/--ref|-f issue=|revise_pr|refresh_pr/);
+    expect(group[1]).toContain(" || inputs.mode == 'live' && 'queue' || ");
+    expect(step("Run the intake", intake)).toContain('live) args="--drain${ISSUE:+ --issue $ISSUE}${SINCE:+ --since $SINCE}" ;;');
+    // The intake workflow itself has no schedule: an idle check must not count as an intake run
+    // that passed, which would close an alert about one that failed.
+    expect(workflow).not.toMatch(/\n  schedule:\n/);
+    expect(fs.readFileSync(".github/workflows/pipeline-alert.yml", "utf8")).toContain('      - "Intake queue"\n');
+  });
+
+  it("rebuilds only pull requests against the branch it checked out", () => {
+    expect(step("Refresh the pull requests")).toContain("          BASE_BRANCH: ${{ github.event.repository.default_branch }}\n");
+    const revise = workflow.slice(workflow.indexOf("\n  revise:\n"), workflow.indexOf("\n  refresh:\n"));
+    expect(step("Revise the batch", revise)).toContain("          BASE_BRANCH: ${{ github.event.repository.default_branch }}\n");
   });
 
   it("runs the refresh dry run on pull requests that touch the agent", () => {

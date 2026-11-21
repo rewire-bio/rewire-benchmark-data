@@ -12,6 +12,7 @@ import {
   applyRevision,
   batchLines,
   HUMAN_LABEL,
+  LIMITS,
   main,
   parseReviewVerdict,
   planRevision,
@@ -435,6 +436,22 @@ describe("a live revision, with fakes", () => {
     expect(r.records.find((x: any) => x.id === ID).facets.areas).toEqual(["molecular-interactions"]);
   });
 
+  it("waits and tries its model call again on a 429, like the first run", async () => {
+    const f = fakes();
+    const sleeps: number[] = [];
+    const stream = f.deps.anthropic.beta.messages.stream;
+    let refused = false;
+    f.deps.anthropic.beta.messages.stream = (req: any) => {
+      if (refused) return stream(req);
+      refused = true;
+      return { finalMessage: async () => { throw Object.assign(new Error('429 {"type":"error","error":{"type":"rate_limit_error","message":"Number of concurrent connections has exceeded your rate limit."}}'), { status: 429 }); } };
+    };
+    const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, { ...f.deps, sleep: async (ms: number) => void sleeps.push(ms) });
+    expect(r.outcome).toBe("revised");
+    expect(sleeps).toEqual([LIMITS.apiRetryBaseSeconds * 1000]);
+    expect(f.calls).toEqual(["research claude-sonnet-5-5", "structure claude-haiku-5-5"]);
+  });
+
   it("labels the pull request and calls no model when it was already revised", async () => {
     for (const pull of [{ body: `${fixture.pull.body}\n\n<!-- ${REVISION_MARKER}: {"n":1} -->` }, { commits: 2 }]) {
       const f = fakes({ pull });
@@ -474,6 +491,8 @@ describe("a live revision, with fakes", () => {
       [{ pull: { head_repo: "" } }, "skipped: the head intake/issue-283 is not an intake branch of this repository"],
       [{ pull: { head_repo: undefined } }, "skipped: the head intake/issue-283 is not an intake branch of this repository"],
       [{ pull: { state: "closed" } }, "skipped: the pull request is not open"],
+      // The checkout is main, and the revised branch is built on it.
+      [{ pull: { base_ref: "release-1" } }, "skipped: its base branch is release-1, not main"],
       [{ pull: { labels: [HUMAN_LABEL] } }, "skipped: the pull request is already labelled needs-tim"],
     ];
     for (const [options, outcome] of cases) {

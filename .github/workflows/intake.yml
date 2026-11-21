@@ -25,11 +25,16 @@ name: Intake agent
 # never looks again. After a push to main that touches data/, the job rebuilds each open intake
 # pull request that conflicts: its batch folder, added again with records add on main, pushed as
 # one commit with a lease. No model call, and not a revision. Report-only, which pushes nothing,
-# until the repository variable INTAKE_REFRESH_MODE is set to live.
+# until the repository variable INTAKE_REFRESH_MODE is set to live. A store step that fails is
+# commented the first time and labelled needs-tim the second; a push GitHub refuses over a
+# workflow file is commented once, and later automatic runs leave that pull request.
 #
 # Live intake runs queue: one at a time, in one concurrency group. GitHub keeps one waiting run
 # per group and cancels the one it replaces, so each run also works every labelled issue that has
-# no pull request and no final answer yet (intake.mjs --drain).
+# no pull request and no final answer yet (intake.mjs --drain). A run works 6 issues at most, a
+# run that ends on a rate limit stops, and the run of a label added again can be the one that is
+# cancelled. So intake-queue.yml asks every two hours whether a labelled issue still waits, and
+# if one does it starts this workflow in live mode with no issue number, which works the queue.
 on:
   issues:
     types: [labeled]
@@ -93,7 +98,8 @@ jobs:
     # to main, or a manual run that names a pull request to refresh, is the refresh job's.
     if: github.event_name != 'pull_request_review' && !inputs.revise_pr && github.event_name != 'push' && !inputs.refresh_pr && (github.event_name != 'issues' || github.event.label.name == 'entity-request' || github.event.label.name == 'entity-update')
     runs-on: ubuntu-latest
-    # A live run works up to 6 issues and starts none after 35 minutes; one issue gets 20 (LIMITS).
+    # A live run works up to 6 issues and starts none after 25 minutes; one issue gets 20 (LIMITS).
+    # With the setup that stays under this limit and under the hour the app token lives.
     timeout-minutes: 60
     env:
       MODE: ${{ github.event_name == 'issues' && 'live' || github.event_name == 'pull_request' && 'dry-run' || inputs.mode }}
@@ -371,6 +377,8 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          # The branch that was checked out: a pull request against another one is left alone.
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           case "$MODE" in
             dry-run) args="--dry-run --root $RUNNER_TEMP/revise" ;;
@@ -417,7 +425,9 @@ jobs:
           if [ "$author" != 'rewire-bot[bot]' ] || ! [[ "$branch" =~ ^intake/issue-[0-9]+$ ]] || [ "$head" != "$GITHUB_REPOSITORY" ]; then
             echo "::error::Pull request $PR is not an intake pull request of this repository (author $author, branch $branch, head repository ${head:-none})"; exit 1
           fi
-      # Most pushes to main find no open intake pull request; then nothing is installed or run.
+      # Most pushes to main find no open intake pull request; then nothing is installed or run,
+      # and no app token is made. The filter is the script's: the bot's, an intake/issue-<n> branch,
+      # of this repository.
       - name: Open intake pull requests
         id: open
         env:
@@ -425,7 +435,7 @@ jobs:
         run: |
           if [ "$MODE" = dry-run ] || [ -n "$PR" ]; then echo "any=true" >> "$GITHUB_OUTPUT"; exit 0; fi
           # On its own line, so a failed call fails the step instead of counting none.
-          pulls=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" --jq '.[] | select(.user.login == "rewire-bot[bot]" and (.head.ref | startswith("intake/issue-"))) | .number')
+          pulls=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" --jq '.[] | select(.user.login == "rewire-bot[bot]" and (.head.ref | test("^intake/issue-[0-9]+$")) and .head.repo.full_name == env.GITHUB_REPOSITORY) | .number')
           echo "Open intake pull requests: ${pulls:-none}"
           echo "any=$([ -n "$pulls" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
       # Live only. This repository only: contents to push the rebuilt branch, pull requests and
@@ -473,6 +483,8 @@ jobs:
         if: steps.open.outputs.any == 'true'
         env:
           GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          # The branch that was checked out: a pull request against another one is left alone.
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           case "$MODE" in
             dry-run) args="--dry-run" ;;
