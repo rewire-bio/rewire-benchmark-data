@@ -1,13 +1,17 @@
-// Daily discovery scan (rewire-benchmark-data #254). Finds new AI-for-biology models,
-// methods, benchmarks and datasets, checks them against primary sources, and files a data
-// issue here and an article issue in rewire.it for each one that is not already known.
+// Daily discovery scan (rewire-benchmark-data #254). Finds AI-for-biology models, methods,
+// benchmarks and datasets that the database does not hold yet, checks them against primary
+// sources, and files a data issue here and an article issue in rewire.it for each one.
+//
+// "New" means new to the database. The scan looks first at the last 30 days of releases, and
+// an older resource is still a candidate when the database lacks it. Release age never drops
+// a candidate; it only decides which candidates are judged first.
 //
 // The model only searches, reads and writes notes. This script owns everything that must be
 // exact: deduplication against issues, the record store and published articles; the depth
 // tier and labels; the issue bodies; and every GitHub write. The prompt is agents/discovery.md.
 //
 //   node scripts/agents/discovery.mjs --dry-run [--fixtures <dir>] [--out <dir>]
-//   node scripts/agents/discovery.mjs [--report-only] [--max-pairs 4] [--lookback-days 3] [--out <dir>]
+//   node scripts/agents/discovery.mjs [--report-only] [--max-pairs 4] [--lookback-days 30] [--out <dir>]
 //
 // --dry-run   reads candidates, issues, store names and articles from fixtures; no model
 //             call, no network, no write. CI runs it through tests/agents-discovery.test.ts.
@@ -32,12 +36,16 @@ export const ARTICLE_REPO = 'rewire-bio/rewire.it';
 export const PROMPT_PATH = 'agents/discovery.md';
 export const FIXTURES = 'tests/agents-discovery-fixtures';
 
-// Models and limits. Haiku runs the broad scan and turns notes into structured fields; Sonnet
-// judges each candidate against its primary sources. DISCOVERY_SCAN_MODEL overrides the scan model.
+// Models and limits. Haiku runs the scan and turns notes into structured fields; Sonnet judges
+// each candidate against its primary sources. DISCOVERY_SCAN_MODEL overrides the scan model.
 export const MODELS = { scan: 'claude-haiku-5-5', judge: 'claude-sonnet-5-5', triage: 'claude-haiku-5-5' };
 // Worst case per research call is (1 + maxContinuations) requests, each holding every page
-// fetched so far; web search allowances can restart on a resume. docs/agents.md derives the
-// monthly bound from these numbers.
+// fetched so far. researchTurn counts searches and fetches across resumes, so the allowances
+// below hold for the whole call. docs/agents.md derives the cost bounds from these numbers.
+//
+// Scan budget: about $0.35 a run. Search fees are nearly all of it ($0.01 each); the three
+// scheduled runs of 18 to 20 November 2026 cost $0.10 to $0.12 for 9 or 10 searches, of which
+// tokens were about $0.01. Three lanes of 8 searches are 24 searches, about $0.24 to $0.30.
 export const LIMITS = {
   maxPairs: 4, // issue pairs filed per run
   maxJudged: 6, // candidates sent to the judge per run
@@ -45,8 +53,12 @@ export const LIMITS = {
   maxContinuations: 2, // pause_turn resumes per research call
   maxTokens: 16000, // structuring calls
   researchMaxTokens: 10000, // scan and judge calls: notes plus thinking
-  scanSearches: 10,
-  scanFetches: 5,
+  scanSearches: 8, // per scan lane
+  scanFetches: 2, // per scan lane
+  scanCandidates: 6, // per scan lane
+  maxScanUsd: 0.35, // no further lane starts when the scan would pass this
+  scanLaneUsd: 0.1, // measured cost of one lane, used for that check
+  knownTitles: 60, // request titles shown to the scan so it does not return them
   judgeSearches: 3,
   judgeFetches: 4,
   fetchContentTokens: 15000,
@@ -75,6 +87,13 @@ export const AREAS = [
 export const GENOMIC_AREAS = ['dna-genomes', 'rna-transcriptomes'];
 export const PROTEIN_AREAS = ['proteins-complexes', 'protein-function', 'protein-structure'];
 export const KINDS = ['model', 'method', 'benchmark', 'dataset'];
+// One scan call per lane. A single call with every search in it wandered, and its prompt
+// passed 100,000 tokens, where Haiku costs five times as much. The first lane each day rotates.
+export const SCAN_LANES = [
+  { name: 'genomics', focus: 'DNA and RNA: genomic and transcriptomic sequence models, variant effect and regulatory prediction, RNA structure and function, and the benchmarks and datasets that evaluate them' },
+  { name: 'proteins', focus: 'proteins: structure prediction, protein and antibody design, function and fitness prediction, protein language models, protein interactions, and the benchmarks and datasets that evaluate them' },
+  { name: 'cells and other biology', focus: 'single-cell and spatial models, perturbation prediction, molecular interactions and small molecules in a biological setting, microbes, metabolomics, biological networks, scientific agents for biology, and the benchmarks and datasets that evaluate them' },
+];
 const STORE_FILES = ['models', 'methods', 'benchmarks', 'datasets', 'pipelines', 'services'];
 const PRIMARY_ROLES = new Set(['paper', 'preprint', 'repository', 'model_card', 'dataset_card']);
 
@@ -118,6 +137,16 @@ export function keyOf(name) {
   return normalise(name).replace(/ /g, '-');
 }
 
+/**
+ * The form names are compared in. Like normalise, but accents are dropped ("Proteína" equals
+ * "Proteina") and a letter next to a digit is split ("BioEmu2" equals "BioEmu-2"). Keys and
+ * markers keep using normalise, so a marker already written stays valid.
+ */
+export function matchForm(text) {
+  return normalise(String(text ?? '').normalize('NFKD').replace(/[\u0300-\u036f]/g, ''))
+    .replace(/([a-z])(?=\d)|(\d)(?=[a-z])/g, '$1$2 ');
+}
+
 const MARKER = /<!-- discovery-key: ([a-z0-9-]+) -->/g;
 
 /** Keys of issues this script filed. */
@@ -147,18 +176,18 @@ export function identifiersOf(candidate) {
 }
 
 function namesOf(candidate) {
-  return [candidate.name, ...(candidate.aliases ?? [])].map(normalise).filter((n) => n.length >= 3);
+  return [...new Set([candidate.name, ...(candidate.aliases ?? [])].map(matchForm))].filter((n) => n.length >= 3);
 }
 
 function mentions(text, name) {
-  return ` ${normalise(text)} `.includes(` ${name} `);
+  return ` ${matchForm(text)} `.includes(` ${name} `);
 }
 
 /**
  * Where a candidate is already known, or null. Checks, in order: a discovery marker; a name or
- * alias in an issue title (issues filed by hand or by the old automation have no marker); a
- * primary identifier in an issue body; a name in the record store; a name in a published
- * article's URL slug or title.
+ * alias in an issue title (issues filed by hand or by the old automation have no marker, so
+ * the title is all there is to match); a primary identifier in an issue body; a name in the
+ * record store. Names are compared in matchForm, whoever filed the issue.
  */
 export function findDuplicate(candidate, { issues = [], storeNames = new Map(), articles = [] }) {
   const key = keyOf(candidate.name);
@@ -173,9 +202,10 @@ export function findDuplicate(candidate, { issues = [], storeNames = new Map(), 
     const id = ids.find((i) => body.includes(i));
     if (id) return { where: 'issue', ref, url: issue.html_url, reason: `${id} is cited in ${ref}` };
   }
-  for (const n of names) {
-    const id = storeNames.get(n);
-    if (id) return { where: 'store', ref: id, reason: `"${n}" matches store record ${id}` };
+  // The store map is keyed by matchForm here and by normalise when another agent built it.
+  for (const raw of [candidate.name, ...(candidate.aliases ?? [])]) {
+    const n = [matchForm(raw), normalise(raw)].find((form) => form.length >= 3 && storeNames.has(form));
+    if (n) return { where: 'store', ref: storeNames.get(n), reason: `"${n}" matches store record ${storeNames.get(n)}` };
   }
   return null;
 }
@@ -191,8 +221,11 @@ export function findArticle(candidate, articles = []) {
   return null;
 }
 
-/** Names (and reported names) of every record of the kinds discovery can add, by streaming the store files. */
-export async function readStoreNames(dir = join(ROOT, 'data/entities')) {
+/**
+ * Names (and reported names) of every record of the kinds discovery can add, by streaming the
+ * store files. `form` is how a name becomes a key: normalise for the other agents, matchForm here.
+ */
+export async function readStoreNames(dir = join(ROOT, 'data/entities'), form = normalise) {
   const names = new Map();
   for (const kind of STORE_FILES) {
     const file = join(dir, `${kind}.jsonl`);
@@ -202,7 +235,7 @@ export async function readStoreNames(dir = join(ROOT, 'data/entities')) {
       if (!line.trim()) continue;
       const record = JSON.parse(line);
       for (const name of [record.name, record.attributes?.reported_name]) {
-        const n = normalise(name);
+        const n = form(name);
         if (n.length >= 3 && !names.has(n)) names.set(n, record.id);
       }
     }
@@ -348,9 +381,10 @@ export function renderArticleIssue(candidate, { dataUrl, runDate, dedupNote }) {
 
 /**
  * Decide what to file. Candidates the judge rejected, duplicates of issues or store records,
- * and repeats within the run are skipped with a reason. At most maxPairs are filed.
+ * and repeats within the run are skipped with a reason. At most maxPairs are filed in a day:
+ * `filedToday` is how many this script already filed on the run date.
  */
-export function planFiling(candidates, { issues, storeNames, articles, articleAccess, runDate, maxPairs = LIMITS.maxPairs }) {
+export function planFiling(candidates, { issues, storeNames, articles, articleAccess, runDate, maxPairs = LIMITS.maxPairs, filedToday = 0 }) {
   const file = [];
   const skipped = [];
   const seen = [];
@@ -374,8 +408,10 @@ export function planFiling(candidates, { issues, storeNames, articles, articleAc
       skipped.push({ name: candidate.name, reason: `repeats ${repeat.name} in this run` });
       continue;
     }
-    if (file.length >= maxPairs) {
-      skipped.push({ name: candidate.name, reason: `over the per-run cap of ${maxPairs}; the next run picks it up` });
+    if (file.length + filedToday >= maxPairs) {
+      skipped.push({ name: candidate.name, reason: filedToday
+        ? `over the daily cap of ${maxPairs} (${filedToday} already filed today); the next run picks it up`
+        : `over the per-run cap of ${maxPairs}; the next run picks it up` });
       continue;
     }
     seen.push({ name: candidate.name, marker: `<!-- discovery-key: ${keyOf(candidate.name)} --> ${identifiersOf(candidate).join(' ')}` });
@@ -472,7 +508,10 @@ export function githubClient(token, fetchImpl = fetch) {
       const out = [];
       for (let page = 1; page < 50; page++) {
         const { data, link } = await call('GET', `/repos/${repo}/issues?state=all&per_page=100&page=${page}`);
-        for (const i of data) if (!i.pull_request) out.push({ repo, number: i.number, title: i.title, body: i.body ?? '', html_url: i.html_url, state: i.state });
+        for (const i of data) {
+          if (i.pull_request) continue;
+          out.push({ repo, number: i.number, title: i.title, body: i.body ?? '', html_url: i.html_url, state: i.state, labels: (i.labels ?? []).map((l) => l.name ?? l), created_at: i.created_at, user: i.user?.login });
+        }
         if (!link.includes('rel="next"')) break;
       }
       return out;
@@ -519,11 +558,12 @@ const SCAN_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['name', 'aliases', 'kind', 'summary', 'urls', 'in_scope', 'reason'],
+        required: ['name', 'aliases', 'kind', 'released', 'summary', 'urls', 'in_scope', 'reason'],
         properties: {
           name: { type: 'string' },
           aliases: { type: 'array', items: { type: 'string' } },
           kind: { type: 'string', enum: KINDS },
+          released: { type: 'string', description: 'Release date as YYYY-MM-DD or YYYY-MM; empty when the notes do not give one' },
           summary: { type: 'string' },
           urls: { type: 'array', items: { type: 'string' } },
           in_scope: { type: 'boolean' },
@@ -583,18 +623,23 @@ function textOf(message) {
 
 /**
  * One research call with the server web tools, resuming pause_turn up to the cap. Returns the
- * notes, or null on a refusal or when the cap is reached. Sonnet 5.5 can decline biology
+ * notes, or null on a refusal or when the cap is reached. With `partial`, a call that reaches
+ * the cap returns the text written so far instead of null. Sonnet 5.5 can decline biology
  * requests (refusal category `bio`); for Sonnet the server-side fallback re-runs a declined
  * request on a model the API picks, billed at that model's prices (usage.add reads
  * message.model). Haiku 5.5 has no server-side fallback.
+ *
+ * The search and fetch allowances are for the whole call. This tool version runs searches from
+ * code execution, and the API does not count those against max_uses after a resume, so each
+ * resume is given only what is left. A resume keeps at least one use, because the tool cannot
+ * be removed from a conversation that already holds its results.
  */
-async function researchTurn(client, usage, { model, system, prompt, searches, fetches, log }) {
+async function researchTurn(client, usage, { model, system, prompt, searches, fetches, log, partial = false }) {
   const messages = [{ role: 'user', content: prompt }];
-  const tools = [
-    { type: 'web_search_20260318', name: 'web_search', max_uses: searches },
-    { type: 'web_fetch_20260209', name: 'web_fetch', max_uses: fetches, max_content_tokens: LIMITS.fetchContentTokens },
-  ];
   const fallback = model.startsWith('claude-haiku') ? {} : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' };
+  const written = [];
+  let searched = 0;
+  let fetched = 0;
   for (let turn = 0; turn <= LIMITS.maxContinuations; turn++) {
     const message = await client.beta.messages.stream({
       model,
@@ -602,19 +647,26 @@ async function researchTurn(client, usage, { model, system, prompt, searches, fe
       max_tokens: LIMITS.researchMaxTokens,
       system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
       output_config: { effort: 'medium' },
-      tools,
+      tools: [
+        { type: 'web_search_20260318', name: 'web_search', max_uses: Math.max(1, searches - searched) },
+        { type: 'web_fetch_20260209', name: 'web_fetch', max_uses: Math.max(1, fetches - fetched), max_content_tokens: LIMITS.fetchContentTokens },
+      ],
       messages,
     }).finalMessage();
     usage.add(message.model ?? model, message.usage);
+    searched += message.usage?.server_tool_use?.web_search_requests ?? 0;
+    fetched += message.usage?.server_tool_use?.web_fetch_requests ?? 0;
     if (message.stop_reason === 'refusal') {
       log(`refused (${message.stop_details?.category ?? 'no category'})`);
       return null;
     }
     if (message.stop_reason !== 'pause_turn') return textOf(message);
+    written.push(textOf(message));
     messages.push({ role: 'assistant', content: message.content });
   }
   log('stopped after the pause_turn cap');
-  return null;
+  const text = written.filter(Boolean).join('\n\n');
+  return partial && text ? text : null;
 }
 
 /** One Haiku call that turns notes into JSON matching a schema. Null if it cannot. */
@@ -638,60 +690,138 @@ function errorText(e) {
   return `${e?.status ? `${e.status} ` : ''}${String(e?.message ?? e).split('\n')[0].slice(0, 200)}`;
 }
 
+/** Days from a release date (YYYY-MM-DD or YYYY-MM) to the run date, or null when it does not parse. */
+export function ageInDays(released, runDate) {
+  const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?/.exec(String(released ?? '').trim());
+  if (!m) return null;
+  const then = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3] ?? 1));
+  const days = Math.floor((Date.parse(`${runDate}T00:00:00Z`) - then) / 86_400_000);
+  return Number.isFinite(days) ? days : null;
+}
+
+/**
+ * Titles of the requests already filed here, newest first, for the scan to leave out. A
+ * request is an issue this script filed (marker), one labelled entity-request, or one titled
+ * "Add <Name> ..." as the old automation and the owner write them. Other issues ("Add areas
+ * to the records ...", lanes, leads) are not resources and only cost tokens.
+ */
+export function knownTitles(issues, repo, limit = LIMITS.knownTitles) {
+  return issues
+    .filter((i) => i.repo === repo)
+    .filter((i) => markersIn(i.body).length || (i.labels ?? []).includes('entity-request') || /^Add (discovered )?[A-Z0-9]/.test(i.title ?? ''))
+    .sort((a, b) => b.number - a.number)
+    .slice(0, limit)
+    .map((i) => i.title);
+}
+
+/** The scan prompt for one lane. */
+export function scanPrompt({ lane, runDate, lookbackDays, titles }) {
+  const since = new Date(Date.parse(`${runDate}T00:00:00Z`) - lookbackDays * 86_400_000).toISOString().slice(0, 10);
+  return [
+    `Run date: ${runDate}. Find AI-for-biology models, methods, benchmarks and datasets that the database does not hold yet.`,
+    `Lane: ${lane.name}. This search covers one part of the field: ${lane.focus}.`,
+    '',
+    `Look first for resources released or first announced in the last ${lookbackDays} days (since ${since}). An older resource is also a candidate when it is substantive and something public happened to it in that period: a new version, a journal paper for an earlier preprint, a first release of code or weights, a new benchmark round, or new use as a baseline. Give each candidate's release date when a source states it. Never leave a candidate out for its age alone.`,
+    '',
+    `You have ${LIMITS.scanSearches} web searches and ${LIMITS.scanFetches} page fetches. Make each query different, and do not search for a name in the list below.`,
+    `Valid areas: ${AREAS.join(', ')}.`,
+    '',
+    'Already requested. These are issue titles. Do not list a resource they name as a candidate, under any spelling or version, and do not write about it in your notes:',
+    ...(titles.length ? titles.map((t) => `- ${t}`) : ['- (none yet)']),
+    '',
+    `List each candidate with its name, aliases, type, release date, a one-paragraph summary, its primary URLs, and whether it is in scope and why. Up to ${LIMITS.scanCandidates} candidates. If you find nothing that is not already requested, say so; do not fill the list.`,
+  ].join('\n');
+}
+
 /**
  * Scan, triage and judge. Dropped candidates go into `skipped` with a reason. A failed call
- * (rate limit, overload, timeout) loses only its own candidate; a failed scan or triage leaves
- * nothing to judge. `judged` is filled in place so the caller keeps whatever finished.
+ * (rate limit, overload, timeout) loses only its own lane or candidate. `judged` is filled in
+ * place so the caller keeps whatever finished.
+ *
+ * A candidate the script already knows never reaches the judge, whatever the scan wrote about
+ * it: the prompt asks the scan not to return known names, and this check enforces it.
  */
-async function liveCandidates(client, usage, { scanModel, system, runDate, lookbackDays, recentTitles, isKnown, skipped, judged, notes, log }) {
-  let scanNotes;
-  let triaged;
-  try {
-    scanNotes = await researchTurn(client, usage, {
-      model: scanModel,
-      system,
-      searches: LIMITS.scanSearches,
-      fetches: LIMITS.scanFetches,
-      log: (m) => log(`scan ${m}`),
-      prompt: [
-        `Run date: ${runDate}. Find AI-for-biology models, methods, benchmarks and datasets first announced or released in the last ${lookbackDays} days.`,
-        `Valid areas: ${AREAS.join(', ')}.`,
-        'Recently filed requests, which you can skip:',
-        ...recentTitles.map((t) => `- ${t}`),
-        '',
-        'List each candidate with its name, aliases, type, a one-paragraph summary, its primary URLs, and whether it is in scope and why. Up to 12 candidates.',
-      ].join('\n'),
-    });
-    if (!scanNotes) {
-      notes.push('The scan was refused or did not finish; nothing was judged.');
-      return;
+async function liveCandidates(client, usage, { scanModel, system, runDate, lookbackDays, titles, isKnown, skipped, judged, notes, log }) {
+  // Scan and triage, one lane at a time. The first lane rotates by day, so a lane the budget
+  // check skips one day runs first on another.
+  const first = Math.floor(Date.parse(`${runDate}T00:00:00Z`) / 86_400_000) % SCAN_LANES.length;
+  const lanes = SCAN_LANES.map((_, i) => SCAN_LANES[(first + i) % SCAN_LANES.length]);
+  const byLane = [];
+  const seen = new Map();
+  let echoed = 0;
+  for (const lane of lanes) {
+    if (usage.total() + LIMITS.scanLaneUsd > LIMITS.maxScanUsd) {
+      notes.push(`Scan lane "${lane.name}" was not run: the scan would have passed $${LIMITS.maxScanUsd}.`);
+      continue;
     }
-    triaged = await structure(client, usage, {
-      instruction: 'Extract every candidate from these scan notes. Keep URLs exactly as written. Set in_scope false for anything the notes call out of scope, weak or a duplicate.',
-      notes: scanNotes,
-      schema: SCAN_SCHEMA,
-    });
-  } catch (e) {
-    notes.push(`The scan failed (${errorText(e)}); nothing was judged.`);
+    let triaged;
+    try {
+      const scanNotes = await researchTurn(client, usage, {
+        model: scanModel,
+        system,
+        searches: LIMITS.scanSearches,
+        fetches: LIMITS.scanFetches,
+        partial: true,
+        log: (m) => log(`scan ${lane.name}: ${m}`),
+        prompt: scanPrompt({ lane, runDate, lookbackDays, titles }),
+      });
+      if (!scanNotes) {
+        notes.push(`Scan lane "${lane.name}" was refused or did not finish.`);
+        continue;
+      }
+      triaged = await structure(client, usage, {
+        instruction: 'Extract every candidate from these scan notes. Keep URLs exactly as written. Set released to the release date the notes give, as YYYY-MM-DD or YYYY-MM, or leave it empty. Set in_scope false only for a candidate the notes call out of scope or weak. Do not set in_scope false because of a release date, and do not set it false because the notes call the candidate a duplicate or already known: a script checks that.',
+        notes: scanNotes,
+        schema: SCAN_SCHEMA,
+      });
+    } catch (e) {
+      notes.push(`Scan lane "${lane.name}" failed (${errorText(e)}).`);
+      continue;
+    }
+    if (!triaged) {
+      notes.push(`Scan lane "${lane.name}": triage returned no usable candidate list.`);
+      continue;
+    }
+    const fresh = [];
+    for (const c of triaged.candidates ?? []) {
+      if (!c?.name) continue;
+      const dup = isKnown(c);
+      if (dup) {
+        echoed += 1;
+        skipped.push({ name: c.name, reason: `already known, not judged: ${dup.reason}` });
+        continue;
+      }
+      if (!c.in_scope) {
+        skipped.push({ name: c.name, reason: `triage: ${clean(c.reason)}` });
+        continue;
+      }
+      const forms = [c.name, ...(c.aliases ?? [])].map(matchForm).filter((n) => n.length >= 3);
+      const other = forms.map((n) => seen.get(n)).find(Boolean);
+      if (other) {
+        skipped.push({ name: c.name, reason: `repeats ${other} from another scan lane` });
+        continue;
+      }
+      for (const n of forms) seen.set(n, c.name);
+      fresh.push(c);
+    }
+    // Inside the lookback first, then undated, then older. A stable sort keeps the scan's order within each group.
+    const rank = (c) => {
+      const age = ageInDays(c.released, runDate);
+      return age === null ? 1 : age <= lookbackDays ? 0 : 2;
+    };
+    byLane.push(fresh.map((c, i) => ({ c, i })).sort((a, b) => rank(a.c) - rank(b.c) || a.i - b.i).map((x) => x.c));
+    log(`scan ${lane.name}: ${triaged.candidates?.length ?? 0} candidates, ${fresh.length} to judge`);
+  }
+  if (!byLane.length) {
+    notes.push('No scan lane finished; nothing was judged.');
     return;
   }
-  if (!triaged) {
-    notes.push('Triage returned no usable candidate list; nothing was judged.');
-    return;
-  }
+  if (echoed) notes.push(`The scan returned ${echoed} candidate${echoed === 1 ? '' : 's'} that an issue or the record store already holds. None was judged.`);
+
+  // One from each lane in turn, so the judge cap is shared between lanes.
   const out = [];
-  for (const c of triaged.candidates) {
-    if (!c.in_scope) {
-      skipped.push({ name: c.name, reason: `triage: ${clean(c.reason)}` });
-      continue;
-    }
-    const dup = isKnown(c);
-    if (dup) {
-      skipped.push({ name: c.name, reason: dup.reason });
-      continue;
-    }
-    out.push(c);
-  }
+  for (let i = 0; byLane.some((l) => i < l.length); i++) for (const l of byLane) if (i < l.length) out.push(l[i]);
+
   for (const c of out.slice(LIMITS.maxJudged)) skipped.push({ name: c.name, reason: `over the judge cap of ${LIMITS.maxJudged}; the next run picks it up` });
   for (const c of out.slice(0, LIMITS.maxJudged)) {
     if (usage.total() > LIMITS.maxRunUsd) {
@@ -710,11 +840,13 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
           `Valid areas: ${AREAS.join(', ')}.`,
           '',
           `Name: ${c.name}`,
-          `Aliases: ${c.aliases.join(', ') || 'none'}`,
+          `Aliases: ${(c.aliases ?? []).join(', ') || 'none'}`,
           `Type: ${c.kind}`,
+          `Released: ${c.released || 'not known'}`,
           `Summary: ${c.summary}`,
-          `URLs: ${c.urls.join(' ')}`,
+          `URLs: ${(c.urls ?? []).join(' ')}`,
           '',
+          'The database does not hold this resource. An earlier release date is not a reason to skip it; record the date and judge the resource on its substance.',
           'Open the primary sources. Write notes covering every point under Verification and Articles in your instructions, with each URL and its retrieval date. End with FILE or SKIP and the reason.',
         ].join('\n'),
       });
@@ -738,7 +870,7 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
 // ---------- Main ----------
 
 function parseArgs(argv) {
-  const args = { dryRun: false, reportOnly: false, fixtures: FIXTURES, out: '', storeDir: '', maxPairs: LIMITS.maxPairs, lookbackDays: 3 };
+  const args = { dryRun: false, reportOnly: false, fixtures: FIXTURES, out: '', storeDir: '', maxPairs: LIMITS.maxPairs, lookbackDays: 30 };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--dry-run') args.dryRun = true;
@@ -750,6 +882,7 @@ function parseArgs(argv) {
     else if (a === '--lookback-days') args.lookbackDays = Number(argv[++i]);
     else throw new Error(`unknown argument ${a}`);
   }
+  if (!Number.isFinite(args.lookbackDays) || args.lookbackDays < 1) throw new Error('--lookback-days needs a positive number');
   return args;
 }
 
@@ -793,7 +926,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
   if (args.dryRun) {
     issues = [...readJson(join(fixtures, 'issues.json')), ...(articleAccess ? readJson(join(fixtures, 'article-issues.json')) : [])];
     articles = readJson(join(fixtures, 'articles.json'));
-    storeNames = await readStoreNames(join(fixtures, 'entities'));
+    storeNames = await readStoreNames(join(fixtures, 'entities'), matchForm);
   } else {
     issues = await gh.listIssues(repo);
     if (articleGh) {
@@ -815,7 +948,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       articles = [];
       notes.push(`Blog index could not be read (${errorText(e)}); published articles were not checked.`);
     }
-    storeNames = await readStoreNames(args.storeDir ? resolve(ROOT, args.storeDir) : undefined);
+    storeNames = await readStoreNames(args.storeDir ? resolve(ROOT, args.storeDir) : undefined, matchForm);
   }
 
   const skipped = [];
@@ -833,13 +966,12 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 3, timeout: 10 * 60 * 1000 });
       }
       const system = readFileSync(join(ROOT, PROMPT_PATH), 'utf8');
-      const recentTitles = issues.filter((i) => i.repo === repo).sort((a, b) => b.number - a.number).slice(0, 40).map((i) => i.title);
       await liveCandidates(client, usage, {
         scanModel: env.DISCOVERY_SCAN_MODEL || MODELS.scan,
         system,
         runDate,
         lookbackDays: args.lookbackDays,
-        recentTitles,
+        titles: knownTitles(issues, repo),
         // Names only before judging: a scan URL may be a dependency, not the candidate's own source.
         isKnown: (c) => findDuplicate({ ...c, sources: [] }, { issues, storeNames }),
         skipped,
@@ -850,7 +982,11 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     }
 
     // Plan and file.
-    const plan = planFiling(candidates, { issues, storeNames, articles, articleAccess, runDate, maxPairs: args.maxPairs });
+    // The cap is per day, not per run: a second live run on the same date files only what the
+    // first left of it. Issues this script filed carry its marker.
+    const filedToday = issues.filter((i) => i.repo === repo && markersIn(i.body).length && String(i.created_at ?? '').slice(0, 10) === runDate).length;
+    if (filedToday) notes.push(`${filedToday} issue${filedToday === 1 ? ' was' : 's were'} already filed today; the cap of ${args.maxPairs} counts them.`);
+    const plan = planFiling(candidates, { issues, storeNames, articles, articleAccess, runDate, maxPairs: args.maxPairs, filedToday });
     skipped.push(...plan.skipped);
     const write = !args.dryRun && !args.reportOnly;
     if (write && plan.file.length) {
