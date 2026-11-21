@@ -599,8 +599,14 @@ describe("a live revision, with fakes", () => {
       f.deps.github.pullFiles = async () => {
         throw new Error("the files call broke");
       };
-      await expect(main(["--revise", "--pr", "338", ...mode, "--root", rootWithBatch()], env, f.deps)).rejects.toThrow("the files call broke");
+      const out = tempRoot();
+      await expect(main(["--revise", "--pr", "338", ...mode, "--root", rootWithBatch(), "--out", out], env, f.deps)).rejects.toThrow("the files call broke");
       expect(f.log).toEqual(writes);
+      // Report-only does not plan a label or comment for a run that broke: the error is the result.
+      const result = JSON.parse(fs.readFileSync(path.join(out, "result.json"), "utf8"));
+      expect(result.outcome).toBe("error");
+      expect(result.label).toBe(writes.length ? HUMAN_LABEL : null);
+      expect(result.comment).toBeNull();
     }
   });
 
