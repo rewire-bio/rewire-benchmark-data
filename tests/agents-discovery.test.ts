@@ -384,6 +384,9 @@ describe("issues filed by hand or by the old automation, with no marker", () => 
   it("still lets through a resource none of them names", () => {
     for (const name of ["GenoNova fixture", "HyCell-XL", "Emu", "Pois", "BioEmu-3"]) expect([name, findDuplicate({ name, aliases: [], sources: [] }, { issues: realIssues })]).toEqual([name, null]);
   });
+  it("ignores a two-character alias, which would match half the titles", () => {
+    expect(findDuplicate({ name: "GenoNova fixture", aliases: ["v3", "V 3", "2"], sources: [] }, { issues: realIssues })).toBeNull();
+  });
   it("compares names without accents and with letters split from digits, and leaves keys alone", () => {
     expect(matchForm("RFD4-Proteína")).toBe(matchForm("rfd 4 proteina"));
     expect(matchForm("ESM2")).toBe(matchForm("ESM-2"));

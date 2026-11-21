@@ -147,6 +147,11 @@ export function matchForm(text) {
     .replace(/([a-z])(?=\d)|(\d)(?=[a-z])/g, '$1$2 ');
 }
 
+/** A name long enough to compare: three characters or more, not counting the spaces matchForm adds ("v3" is not). */
+function longEnough(form) {
+  return form.replace(/ /g, '').length >= 3;
+}
+
 const MARKER = /<!-- discovery-key: ([a-z0-9-]+) -->/g;
 
 /** Keys of issues this script filed. */
@@ -176,7 +181,7 @@ export function identifiersOf(candidate) {
 }
 
 function namesOf(candidate) {
-  return [...new Set([candidate.name, ...(candidate.aliases ?? [])].map(matchForm))].filter((n) => n.length >= 3);
+  return [...new Set([candidate.name, ...(candidate.aliases ?? [])].map(matchForm))].filter(longEnough);
 }
 
 function mentions(text, name) {
@@ -204,7 +209,7 @@ export function findDuplicate(candidate, { issues = [], storeNames = new Map(), 
   }
   // The store map is keyed by matchForm here and by normalise when another agent built it.
   for (const raw of [candidate.name, ...(candidate.aliases ?? [])]) {
-    const n = [matchForm(raw), normalise(raw)].find((form) => form.length >= 3 && storeNames.has(form));
+    const n = [matchForm(raw), normalise(raw)].find((form) => longEnough(form) && storeNames.has(form));
     if (n) return { where: 'store', ref: storeNames.get(n), reason: `"${n}" matches store record ${storeNames.get(n)}` };
   }
   return null;
@@ -236,7 +241,7 @@ export async function readStoreNames(dir = join(ROOT, 'data/entities'), form = n
       const record = JSON.parse(line);
       for (const name of [record.name, record.attributes?.reported_name]) {
         const n = form(name);
-        if (n.length >= 3 && !names.has(n)) names.set(n, record.id);
+        if (longEnough(n) && !names.has(n)) names.set(n, record.id);
       }
     }
   }
@@ -795,7 +800,7 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
         skipped.push({ name: c.name, reason: `triage: ${clean(c.reason)}` });
         continue;
       }
-      const forms = [c.name, ...(c.aliases ?? [])].map(matchForm).filter((n) => n.length >= 3);
+      const forms = [c.name, ...(c.aliases ?? [])].map(matchForm).filter(longEnough);
       const other = forms.map((n) => seen.get(n)).find(Boolean);
       if (other) {
         skipped.push({ name: c.name, reason: `repeats ${other} from another scan lane` });
