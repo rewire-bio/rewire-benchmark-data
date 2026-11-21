@@ -304,9 +304,14 @@ export function nearMatches(candidate, { issues = [], storeNames = new Map() }, 
   return [...new Set(out)].slice(0, limit);
 }
 
-/** The last FILE or SKIP in the judge's notes, or null when the notes give neither in capitals. */
+/**
+ * The judge's verdict: FILE or SKIP in capitals, or null when the notes give neither. The
+ * prompt asks for the verdict and then the reason, so this reads the last line that has
+ * either word and takes the first of them: "FILE (not SKIP, because ...)" is FILE.
+ */
 export function verdictOf(notes) {
-  return [...String(notes ?? '').matchAll(/\b(FILE|SKIP)\b/g)].at(-1)?.[1] ?? null;
+  const line = String(notes ?? '').split('\n').findLast((l) => /\b(FILE|SKIP)\b/.test(l));
+  return line ? /\b(FILE|SKIP)\b/.exec(line)[1] : null;
 }
 
 // ---------- Rejected candidates ----------

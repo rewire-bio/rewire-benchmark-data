@@ -738,7 +738,8 @@ describe("guards on the live path", () => {
       expect(data.created).toEqual([]);
       expect(skipped!.find((s) => s.name === "AlderFold")?.reason).toBe("judge: the judge notes conclude SKIP");
       expect(verdictOf("Verdict: FILE. The paper says skip connections help.")).toBe("FILE");
-      expect(verdictOf("SKIP at first, then on reading the preprint: FILE")).toBe("FILE");
+      expect(verdictOf("SKIP was my first reading.\nAfter the preprint: FILE (not SKIP, the weights are new).")).toBe("FILE");
+      expect(verdictOf("FILE looked right.\nSKIP: it is the same checkpoint. The FILE case fails.\nSources are listed above.")).toBe("SKIP");
       expect(verdictOf("I would file this.")).toBeNull();
     });
     it("does not use a structuring reply that did not finish", async () => {
