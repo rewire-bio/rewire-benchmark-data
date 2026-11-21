@@ -2542,17 +2542,25 @@ async function revise(args, env, deps) {
     // The branch is replaced by the two commits built on the base branch, but only if its head is
     // still the commit the review was read against.
     const pushed = run('git', ['push', `--force-with-lease=refs/heads/${pull.head_ref}:${pull.head_sha}`, 'origin', `HEAD:refs/heads/${pull.head_ref}`]);
-    if (!pushed.ok && leaseLost(pushed.output)) {
-      // Something else moved the branch (a refresh, a person). Nothing was pushed, so the marker
-      // comes off again and the review of the new head starts the revision afresh.
+    // Two refusals are no fault of the pull request, so it gets no label and stays open to a later
+    // run. The lease: something else moved the branch (a refresh, a person), and the review of the
+    // new head starts the revision afresh. A workflow file: the base branch changed one since the
+    // pull request was opened and the app token may not write workflows; that run fails, so the
+    // alert says so. Nothing was pushed either way, so the marker comes off the description again.
+    const lost = !pushed.ok && leaseLost(pushed.output);
+    if (lost || (!pushed.ok && workflowRefusal(pushed.output))) {
       try {
         await gh.updatePull(repo, pull.number, { body: String(pull.body ?? '') });
-        return skip('the branch moved while the revision ran, so nothing was pushed');
       } catch (e) {
-        return await handOver(`the branch moved while the revision ran, and the revision marker could not be taken off the description again (${errorText(e)})`, { failed: 'git push' });
+        return await handOver(`the push was refused (${lost ? 'the branch moved while the revision ran' : WORKFLOW_REFUSAL}), and the revision marker could not be taken off the description again (${errorText(e)})`, { failed: 'git push' });
       }
+      if (lost) return skip('the branch moved while the revision ran, so nothing was pushed');
+      notes.push(`${WORKFLOW_REFUSAL}. Nothing was pushed, and the pull request was not marked, labelled or commented. ${clean(pushed.output).slice(-500)}`);
+      log(`::error::Pull request #${pull.number} was not revised: ${WORKFLOW_REFUSAL}.`);
+      state.outcome = 'failed: git push refused over a workflow file';
+      return result();
     }
-    if (!pushed.ok) return await handOver(workflowRefusal(pushed.output) ? WORKFLOW_REFUSAL : 'the push of the revision failed', { failed: 'git push', detail: clean(pushed.output).slice(-1500) });
+    if (!pushed.ok) return await handOver('the push of the revision failed', { failed: 'git push', detail: clean(pushed.output).slice(-1500) });
     state.pushed = true;
     state.outcome = 'revised';
     try {
@@ -2604,7 +2612,7 @@ export const REFRESH_MARKER = 'intake-refresh';
 export const REFRESH_FIXTURES = 'tests/agents-intake-refresh-fixtures';
 /** The store files a batch is added to. Shards and kind files, so every intake pull request touches the same few. */
 const STORE_PATHS = ['data/entities', 'data/provenance'];
-const WORKFLOW_REFUSAL = 'GitHub refused the push because the base branch changed a workflow file since the pull request was opened, and the rewire-bot app has no workflows permission';
+const WORKFLOW_REFUSAL = 'GitHub refused the push because the base branch changed a workflow file since the pull request was opened, and the rewire-bot app token may not write workflows';
 
 /** git's message when a push with a lease finds the branch is no longer at the commit named. */
 const leaseLost = (output) => /stale info/.test(String(output ?? ''));
@@ -2659,18 +2667,25 @@ export function tieToBatch({ added, removed }, records, batchDir) {
   return problems;
 }
 
+/** The commit the working tree is on, or '' when git gives none. */
+function baseCommit(run) {
+  const head = run('git', ['rev-parse', 'HEAD']);
+  return head.ok ? head.output.trim() : '';
+}
+
 const sameLines = (a, b) => a.length === b.length && [...a].sort().every((line, i) => line === [...b].sort()[i]);
 
 /**
  * Put the working tree on the checked-out commit of the base branch, clean, with the pull
  * request's batch folder on top, and read the store lines the pull request adds (its diff from
  * the commit it shares with the base branch). Only the batch folder is taken from the pull
- * request. Returns { base, mergeBase, old } or { error, detail }.
+ * request. `base` is the commit to build on: the checkout's HEAD when the job starts. A run that
+ * rebuilds several pull requests reads it once (baseCommit) and passes it each time, because
+ * after the first commit HEAD is no longer the base branch. Returns { base, mergeBase, old } or
+ * { error, detail }.
  */
-async function batchOnBase({ pull, batchDir, gh, repo, run }) {
-  const head = run('git', ['rev-parse', 'HEAD']);
-  const base = head.ok ? head.output.trim() : '';
-  if (!/^[0-9a-f]{40}$/.test(base)) return { error: 'the checkout has no commit of the base branch to build on', detail: clean(head.output).slice(0, 500) };
+async function batchOnBase({ pull, batchDir, gh, repo, run, base = baseCommit(run) }) {
+  if (!/^[0-9a-f]{40}$/.test(base)) return { error: 'the checkout has no commit of the base branch to build on' };
   if (base === pull.head_sha) return { error: 'the checkout is the pull request head, not the base branch' };
   const { merge_base: mergeBase } = await gh.compare(repo, base, pull.head_sha);
   if (!/^[0-9a-f]{40}$/.test(mergeBase ?? '')) return { error: 'GitHub gave no common commit of the pull request and the base branch' };
@@ -2771,6 +2786,9 @@ async function refresh(args, env, deps) {
   const gh = args.dryRun ? null : (deps.github ?? githubClient(env.GH_TOKEN || env.GITHUB_TOKEN));
   // A live refresh pushes to the pull request, so it never skips the store checks (parseArgs).
   const storeChecks = args.storeChecks && !args.dryRun;
+  // The base branch as the job checked it out, read once: every pull request of this run is
+  // rebuilt on it, never on the commit made for the pull request before it.
+  const base = storeChecks ? baseCommit(run) : '';
 
   async function one(number) {
     const state = { pr: number, outcome: '', lines: 0, base: '', label: null, comment: null, pushed: false };
@@ -2778,7 +2796,9 @@ async function refresh(args, env, deps) {
     const skip = (why) => ({ ...state, outcome: `skipped: ${why}` });
     /** Stop and leave the pull request to a person: the label and one comment. A labelled pull request is not looked at again. */
     const handOver = async (reason, { failed = '', detail = '' } = {}) => {
-      state.outcome = failed ? `failed: ${failed}` : `${HUMAN_LABEL}: ${reason}`;
+      // A failed check fails a live run, which labels the pull request, so it fails once. A run
+      // that writes nothing would fail again after every push to the base branch; it reports only.
+      state.outcome = failed && write ? `failed: ${failed}` : `${HUMAN_LABEL}: ${reason}`;
       state.reason = reason;
       state.label = HUMAN_LABEL;
       const comment = renderRefreshComment({ kind: 'handed over', reason, detail, runUrl });
@@ -2824,7 +2844,7 @@ async function refresh(args, env, deps) {
     // 3. The batch on the base branch, added again and checked.
     let tree;
     if (storeChecks) {
-      tree = await batchOnBase({ pull, batchDir, gh, repo, run });
+      tree = await batchOnBase({ pull, batchDir, gh, repo, run, base });
       if (tree.error) return await handOver(tree.error, { failed: 'checkout', detail: tree.detail });
       state.base = tree.base;
       const records = readFileSync(join(args.root, batchDir, 'batch.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
@@ -2846,7 +2866,13 @@ async function refresh(args, env, deps) {
     if (!committed.ok) return await handOver('`git commit` failed', { failed: 'git commit', detail: clean(committed.output).slice(-1500) });
     const pushed = run('git', ['push', `--force-with-lease=refs/heads/${pull.head_ref}:${pull.head_sha}`, 'origin', `HEAD:refs/heads/${pull.head_ref}`]);
     if (!pushed.ok && leaseLost(pushed.output)) return skip('the branch moved while the refresh ran, so nothing was pushed; the next run looks again');
-    if (!pushed.ok) return await handOver(workflowRefusal(pushed.output) ? WORKFLOW_REFUSAL : 'the push of the rebuilt branch failed', { failed: 'git push', detail: clean(pushed.output).slice(-1500) });
+    // The token's limit, not a fault of the pull request: no label and no comment, so a later run
+    // with a token that may write workflows rebuilds it. The run fails, so the alert says so.
+    if (!pushed.ok && workflowRefusal(pushed.output)) {
+      log(`::error::Pull request #${pull.number} was not refreshed: ${WORKFLOW_REFUSAL}. ${clean(pushed.output).slice(-500)}`);
+      return { ...state, outcome: 'failed: git push refused over a workflow file', reason: WORKFLOW_REFUSAL };
+    }
+    if (!pushed.ok) return await handOver('the push of the rebuilt branch failed', { failed: 'git push', detail: clean(pushed.output).slice(-1500) });
     state.pushed = true;
     state.outcome = 'refreshed';
     try {

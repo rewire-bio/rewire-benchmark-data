@@ -652,11 +652,27 @@ describe("a live revision, with fakes", () => {
     expect(r.pushed).toBe(false);
   });
 
-  it("says so when GitHub refuses the push over a workflow file main changed", async () => {
+  it("fails the run, and leaves the pull request unmarked and unlabelled, when GitHub refuses the push over a workflow file main changed", async () => {
+    // The token's limit, not a fault of the pull request: a later run with another token can revise it.
     const f = fakes({ fail: "git push", pushOutput: " ! [remote rejected] HEAD -> intake/issue-283 (refusing to allow a GitHub App to create or update workflow `.github/workflows/intake.yml` without `workflows` permission)" });
     const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
+    expect(r.outcome).toBe("failed: git push refused over a workflow file");
+    expect(writesOf(f.log).slice(-3)).toEqual(["body with marker", LEASE_PUSH, "body without marker"]);
+    expect(f.log.join("\n")).not.toMatch(/label |comment /);
+    expect(r.pushed).toBe(false);
+  });
+
+  it("labels the pull request when a refused push leaves the marker on the description", async () => {
+    const f = fakes({ fail: "git push", pushOutput: "(stale info)" });
+    const update = f.deps.github.updatePull;
+    let n = 0;
+    f.deps.github.updatePull = async (r: string, number: number, patch: { body: string }) => {
+      if (++n === 2) throw new Error("PATCH /pulls/338: 502");
+      return update(r, number, patch);
+    };
+    const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
     expect(r.outcome).toBe("failed: git push");
-    expect(f.log.slice(-2)).toEqual([`label ${HUMAN_LABEL}`, expect.stringMatching(/^comment The intake agent did not revise this pull request: GitHub refused the push because the base branch changed a workflow file/)]);
+    expect(f.log.slice(-2)).toEqual([`label ${HUMAN_LABEL}`, expect.stringMatching(/the revision marker could not be taken off the description again/)]);
   });
 
   it("does nothing without an API key", async () => {

@@ -148,7 +148,7 @@ function fakes({ pull = {} as Record<string, unknown>, pulls = null as Record<st
 }
 const commandsOf = (log: string[]) => log.filter((l) => /^(git|npm|npx) /.test(l));
 const writesOf = (log: string[]) => log.filter((l) => /^(label|comment) /.test(l) || /^git (commit|push)/.test(l));
-const onBase = ["git rev-parse HEAD", `git fetch --quiet --depth 1 origin ${HEAD} ${MERGE_BASE}`, `git checkout --quiet --force --detach ${BASE}`, `git reset --quiet --hard ${BASE}`, "git clean -fdq -- data", `git checkout --quiet ${HEAD} -- ${BATCH_DIR}`, `git diff --unified=0 --no-color ${MERGE_BASE} ${HEAD} -- ${STORE}`];
+const onBase = [`git fetch --quiet --depth 1 origin ${HEAD} ${MERGE_BASE}`, `git checkout --quiet --force --detach ${BASE}`, `git reset --quiet --hard ${BASE}`, "git clean -fdq -- data", `git checkout --quiet ${HEAD} -- ${BATCH_DIR}`, `git diff --unified=0 --no-color ${MERGE_BASE} ${HEAD} -- ${STORE}`];
 const readded = [`npx tsx scripts/agents/intake-check.ts ${BATCH_DIR}/batch.jsonl`, `npm run -s records -- add ${BATCH_DIR}/batch.jsonl ${BATCH_DIR}`, "npm run -s records -- check", `git add -- ${BATCH_DIR} ${STORE}`, `git diff --cached --unified=0 --no-color ${BASE} -- ${STORE}`];
 const LEASE_PUSH = `git push --force-with-lease=refs/heads/intake/issue-350:${HEAD} origin HEAD:refs/heads/intake/issue-350`;
 const refreshOne = (f: ReturnType<typeof fakes>, extra: string[] = [], root = rootWithBatch()) => main(["--refresh", "--pr", "352", "--root", root, ...extra], env, f.deps);
@@ -159,6 +159,7 @@ describe("a live refresh, with fakes", () => {
     const r = await refreshOne(f);
     expect(r.outcome).toBe("refreshed");
     expect(commandsOf(f.log)).toEqual([
+      "git rev-parse HEAD",
       ...onBase,
       ...readded,
       expect.stringMatching(/^git commit -q -m Add ProtCell from #350 -m The batch folder of #352 as the pull request held it at 61df692, added again with records add on the base branch at aaaaaaa\./),
@@ -196,7 +197,7 @@ describe("a live refresh, with fakes", () => {
     const f = fakes({ pull: { mergeable: true } });
     const r = await refreshOne(f);
     expect(r.outcome).toBe("skipped: it merges with its base branch as it is");
-    expect(f.log).toEqual(["read #352"]);
+    expect(f.log).toEqual(["git rev-parse HEAD", "read #352"]);
   });
 
   it("never reads an answer GitHub has not given as merging: it asks again, a bounded number of times", async () => {
@@ -204,7 +205,7 @@ describe("a live refresh, with fakes", () => {
     const r = await refreshOne(f);
     expect(r.outcome).toBe("skipped: GitHub has not yet said whether it merges; the next run looks again");
     expect(f.sleeps).toEqual(Array(LIMITS.mergeablePolls).fill(LIMITS.mergeablePollSeconds * 1000));
-    expect(f.log).toEqual(Array(LIMITS.mergeablePolls + 1).fill("read #352"));
+    expect(f.log.slice(1)).toEqual(Array(LIMITS.mergeablePolls + 1).fill("read #352"));
     // Unknown twice, then conflicting: the refresh goes ahead.
     const later = fakes();
     later.states.set(352, [{ mergeable: null }, { mergeable: null }, { mergeable: false }]);
@@ -222,7 +223,7 @@ describe("a live refresh, with fakes", () => {
     ] as const) {
       const f = fakes({ pull });
       expect((await refreshOne(f)).outcome).toBe(`skipped: ${why}`);
-      expect(commandsOf(f.log)).toEqual([]);
+      expect(commandsOf(f.log)).toEqual(["git rev-parse HEAD"]);
       expect(writesOf(f.log)).toEqual([]);
     }
   });
@@ -239,7 +240,7 @@ describe("a live refresh, with fakes", () => {
       const f = fakes(given as any);
       const r = await refreshOne(f);
       expect(r.outcome).toContain(`${HUMAN_LABEL}: ${reason}`);
-      expect(commandsOf(f.log)).toEqual([]);
+      expect(commandsOf(f.log)).toEqual(["git rev-parse HEAD"]);
       expect(writesOf(f.log)).toEqual([`label #352 ${HUMAN_LABEL}`, expect.stringMatching(/^comment #352 The intake agent did not rebuild this pull request on its base branch: /)]);
     }
     // Refresh comments by someone else, or fewer than the limit, do not count against it.
@@ -254,7 +255,7 @@ describe("a live refresh, with fakes", () => {
     const f = fakes({ oldDiff: edited });
     const r = await refreshOne(f);
     expect(r.outcome).toBe(`${HUMAN_LABEL}: the store lines the pull request adds are not its batch as records add writes it: the provenance of intake-350-20261121-model-protcell gives SHA-256 ${JSON.parse(storeLines(fixture.diff).added.find((l) => l.includes('"added_in"') && l.includes("model-protcell"))!).sha256}, but its store line has ${sha256(storeLines(edited).added.find((l) => l.includes("(edited)"))!)}`);
-    expect(commandsOf(f.log)).toEqual(onBase);
+    expect(commandsOf(f.log)).toEqual(["git rev-parse HEAD", ...onBase]);
     expect(writesOf(f.log).map((l) => l.split(" ")[0])).toEqual(["label", "comment"]);
   });
 
@@ -275,7 +276,7 @@ describe("a live refresh, with fakes", () => {
       const r = await refreshOne(f);
       expect(r.outcome).toBe("failed: store lines");
       expect(r.reason).toContain("so a rebuild would change a record or its digest");
-      expect(commandsOf(f.log)).toEqual([...onBase, ...readded]);
+      expect(commandsOf(f.log)).toEqual(["git rev-parse HEAD", ...onBase, ...readded]);
       expect(writesOf(f.log).map((l) => l.split(" ")[0])).toEqual(["label", "comment"]);
     }
   });
@@ -301,11 +302,18 @@ describe("a live refresh, with fakes", () => {
     expect(f.log.join("\n")).not.toMatch(/label |comment /);
   });
 
-  it("says why when GitHub refuses the push over a workflow file main changed, and asks a person", async () => {
+  it("fails the run, and neither labels nor comments, when GitHub refuses the push over a workflow file main changed", async () => {
+    // The token's limit, not a fault of the pull request: it stays open to a later refresh.
     const f = fakes({ fail: "git push", failOutput: " ! [remote rejected] HEAD -> intake/issue-350 (refusing to allow a GitHub App to create or update workflow `.github/workflows/intake.yml` without `workflows` permission)" });
     const r = await refreshOne(f);
-    expect(r.outcome).toBe("failed: git push");
-    expect(writesOf(f.log).slice(-2)).toEqual([`label #352 ${HUMAN_LABEL}`, "comment #352 The intake agent did not rebuild this pull request on its base branch: GitHub refused the push because the base branch changed a workflow file since the pull request was opened, and the rewire-bot app has no workflows permission. It is labelled `needs-tim` and left for a person."]);
+    expect(r.outcome).toBe("failed: git push refused over a workflow file");
+    expect(r.reason).toContain("the rewire-bot app token may not write workflows");
+    expect(writesOf(f.log).at(-1)).toBe(LEASE_PUSH);
+    expect(f.log.join("\n")).not.toMatch(/label |comment /);
+    // Any other refused push is left to a person.
+    const other = fakes({ fail: "git push", failOutput: "remote: Repository not found." });
+    expect((await refreshOne(other)).outcome).toBe("failed: git push");
+    expect(writesOf(other.log).slice(-2).map((l) => l.split(" ")[0])).toEqual(["label", "comment"]);
   });
 
   it("in report-only mode rebuilds and checks, and writes nothing to GitHub or the branch", async () => {
@@ -313,12 +321,14 @@ describe("a live refresh, with fakes", () => {
     const out = tempRoot();
     const r = await refreshOne(f, ["--report-only", "--out", out]);
     expect(r.outcome).toBe("ready: refresh not pushed in this mode");
-    expect(commandsOf(f.log)).toEqual([...onBase, ...readded]);
+    expect(commandsOf(f.log)).toEqual(["git rev-parse HEAD", ...onBase, ...readded]);
     expect(writesOf(f.log)).toEqual([]);
     expect(JSON.parse(fs.readFileSync(path.join(out, "result.json"), "utf8")).pulls[0]).toMatchObject({ pr: 352, lines: 4, base: BASE, pushed: false });
-    // What it would write for a pull request it hands over is in the result, not on GitHub.
+    // What it would write for a pull request it hands over is in the result, not on GitHub. It
+    // does not fail the run: nothing labels the pull request, so it would fail after every push.
     const handed = fakes({ fail: "npm run -s records -- add" });
     const h = await refreshOne(handed, ["--report-only"]);
+    expect(h.outcome).toBe(`${HUMAN_LABEL}: \`records add\` failed on the batch added to the base branch as it is now`);
     expect(h.label).toBe(HUMAN_LABEL);
     expect(h.comment).toContain("left for a person");
     expect(writesOf(handed.log)).toEqual([]);
@@ -336,6 +346,9 @@ describe("a live refresh, with fakes", () => {
     const r = await main(["--refresh", "--root", rootWithBatch()], env, f.deps);
     expect(f.log.filter((l) => l.startsWith("read "))).toEqual(["read #338", "read #352", "read #354"]);
     expect(r.pulls.map((p: any) => `${p.pr} ${p.outcome.split(":")[0]}`)).toEqual(["338 skipped", "352 refreshed", "354 skipped"]);
+    // main is read once, before the first pull request, not again after a commit was made on it.
+    expect(f.log.filter((l) => l === "git rev-parse HEAD")).toHaveLength(1);
+    expect(f.log.indexOf("git rev-parse HEAD")).toBeLessThan(f.log.indexOf("read #338"));
     expect(r.outcome).toBe("1 of 3 open intake pull requests refreshed");
   });
 
@@ -383,6 +396,7 @@ describe("a refresh against a real repository", () => {
   const MODELS = "data/entities/models.jsonl";
   const PROVENANCE = "data/provenance/records/0.jsonl";
   const DIR = "data/omics/intake-7-20261121";
+  const DIR8 = "data/omics/intake-8-20261121";
   const record = (id: string) => JSON.stringify({ id, kind: "model", name: id });
   const provenance = (id: string, dir: string) => JSON.stringify({ id, sha256: sha256(record(id)), added_in: dir, added_by: "records:add", changed_by: [] });
   const sorted = (lines: string[]) => `${[...lines].sort((a, b) => (JSON.parse(a).id < JSON.parse(b).id ? -1 : 1)).join("\n")}\n`;
@@ -433,6 +447,13 @@ describe("a refresh against a real repository", () => {
     add(seed, ["intake-7-a"], DIR);
     const head = commit("Add intake-7-a from #7");
     git(seed, "push", "--quiet", "origin", "intake/issue-7");
+    // A second intake pull request, from the same main.
+    git(seed, "checkout", "--quiet", "-b", "intake/issue-8", mergeBase);
+    fs.mkdirSync(path.join(seed, DIR8), { recursive: true });
+    fs.writeFileSync(path.join(seed, DIR8, "batch.jsonl"), `${record("intake-8-a")}\n`);
+    add(seed, ["intake-8-a"], DIR8);
+    const head8 = commit("Add intake-8-a from #8");
+    git(seed, "push", "--quiet", "origin", "intake/issue-8");
     // Another batch merges into main.
     git(seed, "checkout", "--quiet", "main");
     add(seed, ["intake-6-a"], "data/omics/intake-6-20261121");
@@ -445,9 +466,10 @@ describe("a refresh against a real repository", () => {
       if (cmd !== "git") {
         // intake-check and records check pass; records add writes the store as the CLI would.
         if (args.includes("add")) {
-          const ids = fs.readFileSync(path.join(work, DIR, "batch.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l).id);
+          const dir = args.at(-1)!;
+          const ids = fs.readFileSync(path.join(work, dir, "batch.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l).id);
           added.push(ids);
-          add(work, ids, DIR);
+          add(work, ids, dir);
         }
         return { ok: true, output: "ok" };
       }
@@ -459,15 +481,17 @@ describe("a refresh against a real repository", () => {
     };
     const log: string[] = [];
     const pull = { number: 70, title: "Add intake-7-a from #7", body: "First description.", state: "open", author: BOT_LOGIN, head_ref: "intake/issue-7", head_sha: head, head_repo: REPO, commits: 1, labels: [], mergeable: false, base_ref: "main" };
+    const pull8 = { ...pull, number: 80, title: "Add intake-8-a from #8", head_ref: "intake/issue-8", head_sha: head8 };
     const github = {
-      pull: async () => pull,
-      pullFiles: async () => [MODELS, PROVENANCE, `${DIR}/batch.jsonl`, `${DIR}/notes.md`].map((filename) => ({ filename, status: filename.startsWith(DIR) ? "added" : "modified" })),
+      pull: async (_r: string, number: number) => (number === 80 ? pull8 : pull),
+      pullFiles: async (_r: string, number: number) => (number === 80 ? [MODELS, PROVENANCE, `${DIR8}/batch.jsonl`] : [MODELS, PROVENANCE, `${DIR}/batch.jsonl`, `${DIR}/notes.md`]).map((filename) => ({ filename, status: filename.startsWith("data/omics/") ? "added" : "modified" })),
+      openPulls: async () => [pull, pull8].map((p) => ({ number: p.number, author: p.author, head_ref: p.head_ref, head_repo: p.head_repo })),
       comments: async () => [],
       compare: async () => ({ merge_base: mergeBase }),
       addLabels: async (_r: string, _n: number, labels: string[]) => void log.push(`label ${labels.join(",")}`),
       comment: async (_r: string, _n: number, body: string) => void log.push(`comment ${body.split("\n")[0]}`),
     };
-    return { origin, seed, work, head, base, mergeBase, added, log, pull, deps: { github, run, now, sleep: async () => {}, log: quiet } };
+    return { origin, seed, work, head, head8, base, mergeBase, added, log, pull, deps: { github, run, now, sleep: async () => {}, log: quiet } };
   }
 
   it("conflicts before, and after the refresh is one commit on main that merges, with every store line as it was", async () => {
@@ -500,6 +524,41 @@ describe("a refresh against a real repository", () => {
     git(s.seed, "fetch", "--quiet", "origin");
     git(s.seed, "merge", "--quiet", "--no-edit", "--ff-only", tip);
     expect(s.log).toEqual([expect.stringMatching(/^comment The intake agent rebuilt this pull request on `main` at /)]);
+  });
+
+  it("rebuilds two conflicting pull requests in one run each on main, not one on top of the other", async () => {
+    const s = scene();
+    const r = await main(["--refresh", "--root", s.work], env, s.deps);
+    expect(r.pulls.map((p: any) => `${p.pr} ${p.outcome}`)).toEqual(["70 refreshed", "80 refreshed"]);
+    expect(r.pulls.map((p: any) => p.base)).toEqual([s.base, s.base]);
+    for (const [branch, dir, id, other] of [["intake/issue-7", DIR, "intake-7-a", "intake-8-a"], ["intake/issue-8", DIR8, "intake-8-a", "intake-7-a"]]) {
+      const tip = git(s.origin, "rev-parse", `refs/heads/${branch}`);
+      // One commit on main as it was when the run started.
+      expect(git(s.origin, "rev-parse", `${tip}^`)).toBe(s.base);
+      // Its own batch folder and the two store files, and nothing of the other pull request.
+      const changed = git(s.origin, "diff", "--name-only", s.base, tip).split("\n");
+      expect(changed.filter((f) => f.startsWith("data/omics/")).every((f) => f.startsWith(`${dir}/`))).toBe(true);
+      expect(changed.filter((f) => !f.startsWith("data/omics/")).sort()).toEqual([MODELS, PROVENANCE].sort());
+      const lines = storeLines(git(s.origin, "diff", "--unified=0", s.base, tip, "--", "data/entities", "data/provenance"));
+      expect(lines.added.sort()).toEqual([record(id), provenance(id, dir)].sort());
+      expect(git(s.origin, "show", `${tip}:${MODELS}`)).not.toContain(other);
+    }
+  });
+
+  it("puts the store back as main has it with git restore, removing a store file only the batch made", async () => {
+    // What the revision does between its two commits (intake.mjs, step 6).
+    const s = scene();
+    await main(["--refresh", "--pr", "70", "--report-only", "--root", s.work], env, s.deps);
+    const shard = "data/provenance/records/f.jsonl";
+    fs.writeFileSync(path.join(s.work, shard), `${provenance("intake-7-b", DIR)}\n`);
+    git(s.work, "add", "--", shard);
+    expect(git(s.work, "status", "--porcelain", "--", "data/entities", "data/provenance")).not.toBe("");
+    git(s.work, "restore", "--source", s.base, "--staged", "--worktree", "--", "data/entities", "data/provenance");
+    expect(fs.existsSync(path.join(s.work, shard))).toBe(false);
+    expect(git(s.work, "status", "--porcelain", "--", "data/entities", "data/provenance")).toBe("");
+    expect(fs.readFileSync(path.join(s.work, MODELS), "utf8")).toBe(sorted(["a-first", "intake-6-a", "z-last"].map(record)));
+    // The batch folder is still there, staged, for the commit.
+    expect(git(s.work, "status", "--porcelain", "--", DIR)).toContain(`${DIR}/batch.jsonl`);
   });
 
   it("pushes nothing when the branch moved after the pull request was read", async () => {
