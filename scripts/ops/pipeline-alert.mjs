@@ -40,7 +40,8 @@ const LOG_CHARS = 6000;
  */
 export function outcomeOf(run, prRuns = {}) {
   if (run.event === 'merge_group') return 'ignore';
-  const pr = run.event === 'pull_request' || run.event === 'pull_request_target';
+  // A review of an intake pull request starts the intake's one revision (intake.yml, revise job).
+  const pr = run.event === 'pull_request' || run.event === 'pull_request_target' || run.event === 'pull_request_review';
   if (pr ? !watchedPullRequest(run, prRuns) : run.head_branch !== 'main') return 'ignore';
   if (FAIL.has(run.conclusion)) return 'fail';
   if (run.conclusion === 'success') return 'pass';

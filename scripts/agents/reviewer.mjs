@@ -57,6 +57,11 @@ export const PROMPT_PATH = 'agents/reviewer.md';
 export const FIXTURES = 'tests/agents-reviewer-fixtures';
 export const BOT_LOGIN = 'rewire-bot[bot]';
 export const MODES = ['dry-run', 'report-only', 'comment', 'approve'];
+/** The hidden marker at the end of a review: the verdict as JSON, which the intake agent reads to revise (intake.mjs --revise). */
+export const VERDICT_MARKER = 'reviewer-verdict';
+const VERDICT_MARKER_MAX = 30000;
+/** The intake agent's receipt of its one revision after a review, in the batch folder. */
+const REVISION_FILE = 'revision.json';
 
 // Sonnet judges; Haiku only turns its notes into the fixed verdict shape.
 export const MODELS = { review: 'claude-sonnet-5-5', structure: 'claude-haiku-5-5' };
@@ -500,7 +505,31 @@ export function headline(rows, verdict, blocker = '') {
   return `**Reviewer agent verdict: ${verdict}.** ${fields}`;
 }
 
-export function renderReview({ records, rows, verdict, sourceNotes, notes = [], usage, runUrl, mode, blocker = '' }) {
+/**
+ * The verdict as a hidden HTML comment: the head commit, the verdict, why an all-pass review is
+ * not an approval, and every row that did not pass. The intake agent's revision reads it, so it
+ * does not depend on the wording of the review.
+ */
+export function verdictMarker({ rows, verdict, blocker = '', headSha = null }) {
+  const failed = rows.filter((r) => r.verdict !== 'pass');
+  const build = (max, keep = failed.length) => {
+    const problems = failed.slice(0, keep).map((r) => ({ id: r.id, field: r.field, verdict: r.verdict, note: max ? cell(r.note, max) : '' }));
+    // Nothing in the JSON may end the comment or start a tag.
+    const json = JSON.stringify({ version: 1, head_sha: headSha, verdict, blocker, problems, ...(keep < failed.length ? { truncated: failed.length - keep } : {}) }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/--/g, '-\\u002d');
+    return `<!-- ${VERDICT_MARKER}: ${json} -->`;
+  };
+  // At most VERDICT_MARKER_MAX characters, so the review keeps most of GitHub's 65,536: shorter
+  // notes first, then no notes, then fewer rows with the number left out (`truncated`).
+  for (const max of [600, 150, 0]) {
+    const marker = build(max);
+    if (marker.length <= VERDICT_MARKER_MAX) return marker;
+  }
+  let keep = failed.length;
+  while (keep > 0 && build(0, keep).length > VERDICT_MARKER_MAX) keep = Math.floor(keep / 2);
+  return build(0, keep);
+}
+
+export function renderReview({ records, rows, verdict, sourceNotes, notes = [], usage, runUrl, mode, blocker = '', headSha = null }) {
   const problems = rows.filter((r) => r.verdict !== 'pass');
   const entityIds = unique(rows.map((r) => r.id));
   const out = [
@@ -522,10 +551,12 @@ export function renderReview({ records, rows, verdict, sourceNotes, notes = [], 
     for (const row of rows.filter((x) => x.id === id)) out.push(`| ${row.field} | ${cell(row.value, 120)} | ${cell(row.sources, 80)} | ${row.verdict} | ${cell(row.note, 300)} |`);
     out.push('', '</details>', '');
   }
-  if (sourceNotes.length) out.push('**Sources re-fetched by the reviewer**', '', ...sourceNotes.map((s) => `- ${s}`), '');
+  if (sourceNotes.length) out.push('**Sources re-fetched by the reviewer**', '', ...sourceNotes.map((s) => `- ${clean(s)}`), '');
   if (notes.length) out.push(...notes.map((n) => `- ${n}`), '');
   out.push(`Reviewed by the reviewer agent (\`.github/workflows/reviewer.yml\`, prompt \`${PROMPT_PATH}\`), ${MODELS.review}, independently of the intake agent. Estimated cost $${usage.total().toFixed(4)}.${runUrl ? ` Run: ${runUrl}` : ''}`);
-  return out.filter((l, i, all) => !(l === '' && all[i - 1] === '')).join('\n').slice(0, 65000);
+  // The marker is added after the cut, so a long review never loses it.
+  const marker = verdictMarker({ rows, verdict, blocker, headSha });
+  return `${out.filter((l, i, all) => !(l === '' && all[i - 1] === '')).join('\n').slice(0, 65000 - marker.length - 2)}\n\n${marker}`;
 }
 
 // ---------- GitHub ----------
@@ -685,7 +716,13 @@ export async function possibleDuplicates(records, { receipt = null, kg = null, f
   return out;
 }
 
-async function modelReview(client, usage, { system, records, changed = [], storeUrls = new Map(), extraUrls, texts = [], runDate, log }) {
+/** The fields a revision kept with a quoted passage, for the review prompt. */
+export function revisionCites(revision) {
+  return (revision?.fields ?? []).filter((f) => f.action === 'cite').map((f) => ({ id: String(f.id), field: String(f.field), passage: clean(f.passage).slice(0, 1000), source_url: clean(f.source_url) }));
+}
+
+async function modelReview(client, usage, { system, records, changed = [], storeUrls = new Map(), extraUrls, texts = [], runDate, log, revision = null }) {
+  const cited = revisionCites(revision);
   const withText = new Set(texts.filter((t) => t.text).map((t) => t.url));
   const input = reviewInput(records, changed, storeUrls);
   const paths = unique(changed.flatMap((r) => (r.change?.fields ?? []).map((f) => f.path)));
@@ -705,6 +742,7 @@ async function modelReview(client, usage, { system, records, changed = [], store
       'Records (JSON):',
       JSON.stringify(input, null, 2),
       '',
+      ...(cited.length ? ['The intake agent revised this batch after an earlier review. For these fields it kept the value and quoted a passage as support. Each quote is its claim, not evidence: find the passage in the source yourself, and judge whether it states the value (JSON):', JSON.stringify(cited, null, 2), ''] : []),
       'For a changed record (changed_record: true), judge every entry of changed_fields by its path: is the new value what a source states for this exact entity, and does the change keep what the source does not contradict? Give the path as the field name.',
       'For every record and every field listed for it (and source_ids), write the verdict (pass, fail or unverifiable), the problem if any, and the URL and location that decide it. Check source attribution for each cited source. For links, judge each relation: does a source state it, at the locator given or elsewhere? For duplicates, judge each ruling: is the store record named a different resource (distinct) as ruled? A record with any link or ruling you cannot confirm fails that field. List any page that failed to load.',
     ].join('\n'),
@@ -852,6 +890,10 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     // The records the change cites as sources may be new in this batch; the changed records are judged by field.
     const receipt = receiptFile && existsSync(receiptFile) ? readJson(receiptFile) : null;
     const records = withReceipt(stored, receipt);
+    // revision.json beside the batch: the intake agent revised it once after an earlier review.
+    const revisionFile = args.dryRun ? '' : batches.map((f) => join(args.root, dirname(f), REVISION_FILE)).find((f) => existsSync(f));
+    const revision = revisionFile ? readJson(revisionFile) : null;
+    if (revision) notes.push(`The intake agent revised this batch once after an earlier review (${REVISION_FILE} in the batch folder). This review judges the revised records in full, and the intake agent does not revise again.`);
 
     // 2. Mechanical checks against the store, without the records under review, and possible
     // duplicates from the intake's overlay diff and the reviewer's own search of the graph.
@@ -911,7 +953,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 3, timeout: 10 * 60 * 1000 });
       }
       const system = readFileSync(join(ROOT, PROMPT_PATH), 'utf8');
-      const result = await modelReview(client, usage, { system, records, changed, storeUrls: store.sourceUrls, extraUrls: [], texts, runDate, log });
+      const result = await modelReview(client, usage, { system, records, changed, storeUrls: store.sourceUrls, extraUrls: [], texts, runDate, log, revision });
       if (result.notes) state.notes = result.notes;
       if (result.error) {
         notes.push(`The model review failed: ${result.error}. Every field it would have judged is unverifiable.`);
@@ -927,7 +969,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       ...storeDiffRows(tie, { lines: [...diff.records.values()].reduce((n, e) => n + e.added.length + e.removed.length, 0) }),
     ];
     state.verdict = overallVerdict(state.rows);
-    const rendered = { records: [...records, ...changed], rows: state.rows, verdict: state.verdict, sourceNotes, notes, usage, runUrl, mode: args.mode };
+    const rendered = { records: [...records, ...changed], rows: state.rows, verdict: state.verdict, sourceNotes, notes, usage, runUrl, mode: args.mode, headSha: pull.head_sha ?? null };
     // Every field passes, but a failed duplicate check leaves the store unchecked: the review says
     // so in its headline in every mode, and is never an approval.
     const dupeBlocked = state.verdict === 'approve' && dupeFailures.length > 0;

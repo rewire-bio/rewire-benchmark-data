@@ -11,9 +11,19 @@ name: Intake agent
 # The run starts rdf-kg-mcp on the latest knowledge graph release (kg/<id>) over stdio, to find
 # possible duplicates and link targets and to write the batch through its draft overlay. If the
 # bundle or the server is not available, the run goes on with name checks only (docs/agents.md).
+#
+# The revise job answers a review: when the reviewer agent (the rewire-reviewer app) requests
+# changes on a pull request the intake opened, the intake revises the batch once, changing only
+# the fields the review did not pass, and pushes one commit to the same branch; the reviewer then
+# reviews again. One revision per pull request. A second request for changes, or anything the
+# revision cannot settle, labels the pull request needs-tim and leaves it. A review starts a
+# report-only revision, which writes nothing, until the repository variable INTAKE_REVISE_MODE is
+# set to live.
 on:
   issues:
     types: [labeled]
+  pull_request_review:
+    types: [submitted]
   workflow_dispatch:
     inputs:
       issue:
@@ -30,6 +40,9 @@ on:
       store_ref:
         description: "Report-only replay: run against the store (data/) at this commit, and skip the existing pull request check"
         default: ""
+      revise_pr:
+        description: "Instead of an issue: revise this intake pull request after the reviewer agent requested changes (one revision per pull request). Uses mode; dry-run reads tests/agents-intake-revise-fixtures"
+        default: ""
   pull_request:
     paths:
       - agents/intake.md
@@ -41,9 +54,10 @@ permissions:
   contents: read
   issues: write
   pull-requests: read
-# One run per issue at a time; pull request dry runs have their own group.
+# One run per issue at a time, and one revision per pull request at a time; pull request dry runs
+# have their own group. Only a dry run is cancelled by a newer one.
 concurrency:
-  group: intake-${{ github.event_name == 'pull_request' && github.ref || github.event.issue.number || inputs.issue || 'none' }}
+  group: intake-${{ github.event_name == 'pull_request_review' && format('revise-{0}', github.event.pull_request.number) || inputs.revise_pr && format('revise-{0}', inputs.revise_pr) || github.event_name == 'pull_request' && github.ref || github.event.issue.number || inputs.issue || 'none' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 env:
   NODE_OPTIONS: --max-old-space-size=8192
@@ -53,7 +67,8 @@ jobs:
   intake:
     # The entity-request label starts a run from an issue, and so does entity-update, which the
     # monthly entity sweep (sweep.yml) puts on the issues it files.
-    if: github.event_name != 'issues' || github.event.label.name == 'entity-request' || github.event.label.name == 'entity-update'
+    # A review, or a manual run that names a pull request to revise, is the revise job's.
+    if: github.event_name != 'pull_request_review' && !inputs.revise_pr && (github.event_name != 'issues' || github.event.label.name == 'entity-request' || github.event.label.name == 'entity-update')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -161,6 +176,17 @@ jobs:
                 console.error("::error::The knowledge-graph dry run did not rule the UCE duplicate or link the fixture checkpoint: " + links); process.exit(1);
               }'
           fi
+          # The revision after a review, on the fixture of pull request #338: the review asked to
+          # drop one area. No model call, no graph and no store; it writes the revised batch folder.
+          if [ "$MODE" = dry-run ]; then
+            env -u KG_BUNDLE node scripts/agents/intake.mjs --revise --dry-run --root "$RUNNER_TEMP/revise" --out intake-out/revise
+            node -e '
+              const r = JSON.parse(require("fs").readFileSync("intake-out/revise/result.json", "utf8"));
+              const dropped = (r.fields ?? []).flatMap((f) => f.dropped ?? []).join(", ");
+              if (r.outcome !== "ready: revision not pushed in this mode" || dropped !== "proteins-complexes") {
+                console.error("::error::The revision dry run did not drop the one unsupported area: " + r.outcome + "; dropped " + dropped); process.exit(1);
+              }'
+          fi
       # A report-only run that changed an existing record is reviewed in place by the reviewer agent
       # (--worktree: the store diff is git diff HEAD), so the field-level review and the store diff
       # check can be seen before any pull request exists. Report-only; it posts nothing.
@@ -192,5 +218,149 @@ jobs:
         with:
           name: intake-${{ github.run_id }}
           path: intake-out
+          if-no-files-found: ignore
+          retention-days: 30
+
+  revise:
+    # A review by the reviewer agent that requests changes on a pull request the intake opened from
+    # an intake branch of this repository, or a manual run that names the pull request. Any other
+    # review starts no job and makes no token. The script checks the same again from the API, and
+    # that the review is the latest one and is of the head commit.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && inputs.revise_pr != '') ||
+      (github.event_name == 'pull_request_review'
+      && github.event.review.state == 'changes_requested'
+      && github.event.review.user.login == 'rewire-reviewer[bot]'
+      && github.event.pull_request.user.login == 'rewire-bot[bot]'
+      && startsWith(github.event.pull_request.head.ref, 'intake/issue-')
+      && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # A review starts a report-only revision unless the repository variable INTAKE_REVISE_MODE
+      # says live. Unset, nothing is pushed, labelled or commented, so no pull request is revised,
+      # approved and merged without a person having turned that on.
+      MODE: ${{ github.event_name == 'pull_request_review' && (vars.INTAKE_REVISE_MODE || 'report-only') || inputs.mode }}
+      PR: ${{ github.event.pull_request.number || inputs.revise_pr }}
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - name: Check the pull request number
+        run: |
+          if ! [[ "$PR" =~ ^[0-9]+$ ]]; then echo "::error::A pull request number is required"; exit 1; fi
+          case "$MODE" in dry-run|report-only|live) ;; *) echo "::error::Unknown mode $MODE"; exit 1 ;; esac
+      # A manual run names any pull request, and the job's condition has not looked at it. So the
+      # author, the branch and the head repository are read from the API here, before the app token
+      # exists and before anything of the pull request is checked out. The dry run reads fixtures.
+      - name: Check the pull request is the intake's
+        if: env.MODE != 'dry-run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          author=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.user.login')
+          branch=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.head.ref')
+          head=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.head.repo.full_name // ""')
+          if [ "$author" != 'rewire-bot[bot]' ] || ! [[ "$branch" =~ ^intake/issue-[0-9]+$ ]] || [ "$head" != "$GITHUB_REPOSITORY" ]; then
+            echo "::error::Pull request $PR is not an intake pull request of this repository (author $author, branch $branch, head repository ${head:-none})"; exit 1
+          fi
+      # Live only. This repository only: contents to push the one commit, pull requests to write the
+      # revision marker in the description, issues to label the pull request and comment on it.
+      - name: Token for the rewire-bot app
+        id: app
+        if: env.MODE == 'live' && env.HAS_KEY == 'true'
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REWIRE_BOT_APP_ID }}
+          private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
+      # The pull request's head and its parent commit: the store with the batch, and the store
+      # files as they were before it. The intake pushes one commit on top; it never force-pushes.
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ env.PR }}/head
+          fetch-depth: 2
+          token: ${{ steps.app.outputs.token || github.token }}
+      # The agent's code and prompt come from the default branch, never from the pull request.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: agent
+          persist-credentials: false
+          sparse-checkout: |
+            agents
+            scripts/agents
+            tests/agents-intake-revise-fixtures
+      # The store checks run the pull request's own records CLI. That is the default branch's code
+      # only if the pull request changes nothing but data; otherwise nothing of it is installed or
+      # run, and the script labels the pull request needs-tim before it runs any command.
+      - name: Check the pull request changes only data
+        id: files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # On its own line, so a failed call fails the step instead of counting no files.
+          files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename')
+          [ -n "$files" ] || { echo "::error::The pull request lists no files"; exit 1; }
+          other=$(printf '%s\n' "$files" | grep -cv '^data/' || true)
+          echo "Files outside data/: $other"
+          echo "data_only=$([ "$other" = 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: astral-sh/setup-uv@v6
+      - name: Install the store tools of the pull request
+        if: steps.files.outputs.data_only == 'true' && env.MODE != 'dry-run'
+        run: npm ci --no-audit --no-fund
+      - name: Install the agent dependencies
+        run: npm ci --prefix agent/scripts/agents --no-audit --no-fund
+      # The same server and newest bundle as the first run. Any failure here leaves KG_BUNDLE unset;
+      # the revision then writes the batch itself and records that the draft overlay did not
+      # finish, so the reviewer agent does not approve the pull request.
+      - name: Knowledge graph server and bundle
+        if: steps.files.outputs.data_only == 'true' && env.MODE != 'dry-run' && env.HAS_KEY == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv tool install --quiet "$RDF_KG_MCP"
+          npm run -s kg -- draft-block "$RUNNER_TEMP/draft-block.json"
+          tag=$(gh release list --limit 100 --json tagName,createdAt --jq '[.[] | select(.tagName | startswith("kg/"))] | sort_by(.createdAt) | last | .tagName')
+          mkdir -p "$RUNNER_TEMP/kg"
+          gh release download "$tag" --pattern 'kg-*.tar.gz' --dir "$RUNNER_TEMP/kg"
+          bundle=$(ls "$RUNNER_TEMP"/kg/kg-*.tar.gz)
+          echo "Bundle $tag: $(du -h "$bundle" | cut -f1)"
+          {
+            echo "KG_BUNDLE=$bundle"
+            echo "KG_DRAFT_CONFIG=$RUNNER_TEMP/draft-block.json"
+            echo "KG_MCP_COMMAND=rdf-kg-mcp"
+            echo "RDF_KG_MCP_CACHE=$RUNNER_TEMP/kg-cache"
+          } >> "$GITHUB_ENV"
+      - name: Commit as the bot
+        if: steps.app.outputs.token != ''
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          SLUG: ${{ steps.app.outputs.app-slug }}
+        run: |
+          id=$(gh api "/users/${SLUG}%5Bbot%5D" --jq .id)
+          git config user.name "${SLUG}[bot]"
+          git config user.email "${id}+${SLUG}[bot]@users.noreply.github.com"
+      - name: Revise the batch
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+        run: |
+          case "$MODE" in
+            dry-run) args="--dry-run --root $RUNNER_TEMP/revise" ;;
+            report-only) args="--report-only --pr $PR --root ." ;;
+            live) args="--pr $PR --root ." ;;
+          esac
+          node agent/scripts/agents/intake.mjs --revise $args --out "$RUNNER_TEMP/intake-out"
+      - name: Keep the result and token usage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intake-revise-${{ github.run_id }}
+          path: ${{ runner.temp }}/intake-out
           if-no-files-found: ignore
           retention-days: 30

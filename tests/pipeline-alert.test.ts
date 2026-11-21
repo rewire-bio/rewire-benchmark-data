@@ -36,6 +36,10 @@ describe("outcomeOf", () => {
     expect(outcomeOf({ ...botRun, conclusion: "success" }, prRuns)).toBe("pass");
     expect(outcomeOf({ ...botRun, conclusion: "cancelled" }, prRuns)).toBe("ignore");
     expect(outcomeOf({ ...botRun, path: ".github/workflows/intake.yml", conclusion: "failure" }, prRuns)).toBe("fail");
+    // The intake's revision after a review runs on the review event of the same pull request.
+    expect(outcomeOf({ ...botRun, event: "pull_request_review", path: ".github/workflows/intake.yml", conclusion: "failure" }, prRuns)).toBe("fail");
+    expect(outcomeOf({ ...botRun, event: "pull_request_review", path: ".github/workflows/intake.yml", conclusion: "skipped" }, prRuns)).toBe("ignore");
+    expect(outcomeOf({ ...botRun, event: "pull_request_review", head_branch: "claude/feature", path: ".github/workflows/intake.yml", conclusion: "failure" }, prRuns)).toBe("ignore");
     // The data checks on a bot pull request are ordinary review, and so is any other branch or a fork.
     expect(outcomeOf({ ...botRun, path: ".github/workflows/data.yml", conclusion: "failure" }, prRuns)).toBe("ignore");
     expect(outcomeOf({ ...botRun, head_branch: "claude/feature", conclusion: "failure" }, prRuns)).toBe("ignore");
