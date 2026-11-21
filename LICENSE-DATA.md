@@ -10,6 +10,8 @@ No single licence covers a release file. Most of what a release holds is values 
 
 ## What is licensed
 
+Licensor: Tim Richardson, who writes and maintains Rewire.
+
 Licence: Creative Commons Attribution 4.0 International (`CC-BY-4.0`). The full text is at https://creativecommons.org/licenses/by/4.0/legalcode and a summary is at https://creativecommons.org/licenses/by/4.0/.
 
 It covers:
@@ -28,7 +30,7 @@ In this repository that means:
 
 - **Cited values.** A score, a sample count or a fact about a model or dataset that a record takes from a publication is the source's. The record carries the citation and the place in the source it was read from. Credit the source for the value.
 - **Quoted text, titles, names and trade marks.** They stay with their owners.
-- **Stored copies of sources.** The repository and its release assets hold copies of some source files, so that a recorded value can be checked against the bytes it was read from. Each copy stays under the licence of its source. Holding or publishing a copy here grants nothing in it. Some of those licences do not allow commercial use, and some do not allow changes. [docs/source-preservation.md](docs/source-preservation.md) says which copies are published, which are kept privately, and the licence each source was read as carrying.
+- **Stored copies of sources.** The repository and its release assets hold copies of some source files, so that a recorded value can be checked against the bytes it was read from. Each copy stays under the licence of its source, and so does a text layer extracted from a copy: it is the source's text in another format, not Rewire's work. Holding or publishing a copy here grants nothing in it. Some of those licences do not allow commercial use, and some do not allow changes. [docs/source-preservation.md](docs/source-preservation.md) says which copies are published, which are kept privately, and the licence each source was read as carrying.
 - **Model licences.** The licence recorded for a model is the licence of that model's weights or code, as its developers state it. It is not a licence for this data.
 - **Imported vocabularies.** The files under `data/ontology/imports/` are copies or subsets of other projects' ontologies. Each stays under its own terms. `data/ontology/imports/sources.json` gives the address and the licence of each.
 
