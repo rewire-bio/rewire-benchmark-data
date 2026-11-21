@@ -7,6 +7,11 @@
 //       (`source_revision` in its data/omics/release-config.json), changes only data/ and
 //       website/, and is on origin/main; with tags, also unless each tag on origin names it
 //
+// `commit` runs the first two of those checks before it pushes anything, so a commit that
+// would fail them never reaches main. `verify` is for automated releases only. A release cut
+// by hand (docs/release.md) is tagged at its pull request's merge commit, which data.yml
+// rebuilt the release from in the same run.
+//
 // rewire-database pins the commit that `serving/<id>` names and copies shared/omics from it, so
 // that commit must hold exactly the code the release was built with. When main has moved on
 // while the release was being cut, the release commit is therefore merged into main, never
@@ -20,11 +25,25 @@ const RELEASE_PATHS = ['data/', 'website/'];
 const runner = cwd => (...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 ** 2 }).trim();
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+/** Throws unless `sha` has one parent, the commit its release config says the release was built from, and changes only release paths. Returns that parent. */
+function checkReleaseCommit(git, sha) {
+  const built = JSON.parse(git('show', `${sha}:${CONFIG}`)).source_revision;
+  if (!built) throw new Error(`${CONFIG} at ${sha} records no source_revision`);
+  const parents = git('rev-list', '--parents', '-n', '1', sha).split(' ').slice(1);
+  if (parents.length !== 1 || parents[0] !== built)
+    throw new Error(`Release commit ${sha} has parent ${parents.join(' ') || '(none)'}, but the release was built from ${built}. The tag would name code the release was not built from.`);
+  const outside = git('diff', '--name-only', built, sha).split('\n').filter(file => file && !RELEASE_PATHS.some(prefix => file.startsWith(prefix)));
+  if (outside.length) throw new Error(`Release commit ${sha} changes files outside ${RELEASE_PATHS.join(' and ')}: ${outside.slice(0, 5).join(', ')}`);
+  return built;
+}
+
 /**
  * Commit the release on the commit it was built from and push it to main. If main has moved
  * on, merge the release commit into the new main (main first, so its first-parent history
  * stays the list of merged pull requests) and push that. The work tree ends at the release
  * commit, so the publish steps run the code the release was built with.
+ * The release commit is checked before the first push: a commit that is not on the commit the
+ * release config names, or that changes other files, is refused and main is left as it was.
  * Returns { release, built, main }: the release commit, its parent, and the commit pushed to main.
  */
 export async function commitRelease({ releaseId, cwd = process.cwd(), attempts = 5, wait = attempt => pause(attempt * 5000), log = console.error }) {
@@ -34,6 +53,10 @@ export async function commitRelease({ releaseId, cwd = process.cwd(), attempts =
   git('add', '-A', 'data', 'website');
   git('commit', '-m', message);
   const release = git('rev-parse', 'HEAD');
+  // Nothing is pushed unless the commit can be tagged. A failure after the push would leave
+  // main naming a release that cannot be published.
+  checkReleaseCommit(git, release);
+  log(`Release commit ${release}, made on ${built}.`);
   for (let attempt = 1; ; attempt++) {
     try {
       git('push', 'origin', 'HEAD:main');
@@ -60,13 +83,7 @@ export async function commitRelease({ releaseId, cwd = process.cwd(), attempts =
 export function verifyReleaseCommit({ commit, tags = [], cwd = process.cwd() }) {
   const git = runner(cwd);
   const sha = git('rev-parse', `${commit}^{commit}`);
-  const built = JSON.parse(git('show', `${sha}:${CONFIG}`)).source_revision;
-  if (!built) throw new Error(`${CONFIG} at ${sha} records no source_revision`);
-  const parents = git('rev-list', '--parents', '-n', '1', sha).split(' ').slice(1);
-  if (parents.length !== 1 || parents[0] !== built)
-    throw new Error(`Release commit ${sha} has parent ${parents.join(' ') || '(none)'}, but the release was built from ${built}. The tag would name code the release was not built from.`);
-  const outside = git('diff', '--name-only', built, sha).split('\n').filter(file => file && !RELEASE_PATHS.some(prefix => file.startsWith(prefix)));
-  if (outside.length) throw new Error(`Release commit ${sha} changes files outside ${RELEASE_PATHS.join(' and ')}: ${outside.slice(0, 5).join(', ')}`);
+  const built = checkReleaseCommit(git, sha);
   try {
     git('merge-base', '--is-ancestor', sha, 'origin/main');
   } catch {
