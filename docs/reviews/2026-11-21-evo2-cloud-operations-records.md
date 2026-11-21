@@ -34,7 +34,7 @@ The script asserts: 11 sources, 1 benchmark, 4 subsets, 5 protocols, 9 configura
 
 All 92 records are `source_checked`. None is `reproduced`, no protocol carries a run recipe and no evaluation has a `reproduction` attribute.
 
-The first draft marked 12 results and evaluations `reproduced` and gave four AUROC protocols and the throughput protocol a run recipe whose executed instructions named the three receipts. The second pass found:
+The first draft marked 12 results and evaluations `reproduced` and gave three AUROC protocols (all, coding and noncoding SNVs) and the throughput protocol a run recipe whose executed instructions named the three receipts. The second pass found:
 
 1. **The receipts do not hold or bind the AUROC.** `receipt-main.json` holds W0 to W3 counts, timings and throughput. It has no AUROC and no hash of `w1_brca1_scores.tsv`. AUROC is computed off the machine into `results.json`. The nine Evo 2 7B AUROC results now cite `results.json` and no receipt.
 2. **The Runpod L40S throughput was not repeated.** The stored value is 0.6117 sequences per second (`platforms/P5/attempt-2/receipt-main.json`, `/results/w1/sequences_per_second`). The study's reproduction run measured 0.9081 on an NVIDIA L40S for the same 5,219 sequences and 3,893 variants (`evidence/runs/reproduction-30e7ae49/platforms/P5/attempt-1/receipt-main.json`). `evidence/run-log.md` says the recorded attempt ran "on a slower L40S host (0.61 windows per second, against 0.93 on the host used earlier the same day)". The result, its evaluation and the throughput protocol now state both figures in `limitations` and cite both files.

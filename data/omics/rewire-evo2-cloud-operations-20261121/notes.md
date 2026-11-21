@@ -22,7 +22,7 @@ Every evaluation has origin `rewire_run`.
 
 All 92 records are `source_checked`. No result or evaluation is `reproduced`, no protocol carries a run recipe, and no evaluation has a `reproduction` attribute. So no receipt is a recipe's validation receipt, and the board cannot show a "Reproduced" badge on a result of this batch.
 
-An earlier draft of this batch marked 12 results `reproduced` and gave each protocol a run recipe naming the three receipts. Review found two faults, and the draft was rebuilt before it reached main:
+An earlier draft of this batch marked 12 results `reproduced` and gave four protocols (AUROC on all, coding and noncoding SNVs, and throughput) a run recipe naming the three receipts. Review found two faults, and the draft was rebuilt before it reached main:
 
 - The receipts hold counts, timings and throughput. They hold no AUROC and no hash of `w1_brca1_scores.tsv`. AUROC is computed afterwards, off the machine, into `results.json`. The nine Evo 2 7B AUROC results therefore cite `results.json` only.
 - The Runpod L40S throughput of the recorded run, 0.6117 sequences per second, was not repeated. Reproduction run 30e7ae49 measured 0.9081 on another L40S host for the same 5,219 sequences, and `evidence/run-log.md` calls the recorded host a slower one. The result, its evaluation and the throughput protocol state both figures in `limitations` and cite the reproduction receipt and the run log.
