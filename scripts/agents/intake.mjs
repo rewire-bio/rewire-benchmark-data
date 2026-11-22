@@ -2001,11 +2001,15 @@ export const AMEND_FIELDS = ['training_data', 'task', 'scope_note'];
 export const REVISABLE_FIELDS = [...DROP_VALUES, ...DROP_WHOLE, 'entity_level', 'depth_tier', 'duplicates'];
 const DROPPED_NOTE = 'Dropped in the revision after review: the reviewer agent found it unsupported and the intake agent found no passage that states it.';
 const MIN_PASSAGE_CHARS = 20;
-/** The longest value an amend may write, and the shortest quote a duplicate ruling may rest on. */
+/** The longest value an amend may write. */
 const MAX_AMEND_CHARS = 500;
 /** The longest passage an amend may rest on: a sentence or two, not the page. */
 const MAX_AMEND_PASSAGE_CHARS = 600;
-const MIN_GROUND_CHARS = 4;
+const MIN_GROUND_CHARS = 12;
+/** How many words of a quoted phrase the other record must lack for the phrase to show a difference. */
+const MIN_TELLING_WORDS = 2;
+/** The one pair of kinds that is a whole and a part: two such records at one address can differ in scope. */
+const WHOLE_AND_PART = ['dataset', 'dataset_subset'];
 /** What a ruling of distinct may rest on. */
 export const RULING_GROUNDS = ['different_resource', 'different_source', 'different_scope'];
 
@@ -2095,64 +2099,139 @@ function verbatim(quote, text, min = MIN_PASSAGE_CHARS) {
   return needle.length >= min && folded(text).includes(needle);
 }
 
-const NUMBER_WORDS = new Set(['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety', 'hundred', 'hundreds', 'thousand', 'thousands', 'million', 'millions', 'billion', 'billions', 'trillion', 'half', 'dozen', 'dozens', 'twice', 'thrice', 'percent']);
-/** Words that may open a sentence with a capital letter without being a name. */
-const OPENERS = new Set(['a', 'about', 'all', 'also', 'an', 'and', 'approximately', 'as', 'at', 'both', 'by', 'each', 'for', 'from', 'in', 'it', 'its', 'no', 'not', 'of', 'on', 'only', 'or', 'some', 'the', 'these', 'this', 'those', 'to', 'with']);
-
-/** The words of a text as written: letters and digits, with a hyphen, dot, comma, slash, underscore or apostrophe kept inside a word ("5,434", "CITE-seq", "MET_affinity.csv"). */
-const wordsOf = (text) => String(text ?? '').match(/[\p{L}\p{N}]+(?:[-_.,/'\u2019][\p{L}\p{N}]+)*/gu) ?? [];
-/** A word as compared: lower case, without the separators of a written number. */
-const wordKey = (w) => (/^\d[\d,]*(\.\d+)?$/.test(w) ? w.replace(/,/g, '') : w.toLowerCase());
+/** Words and signs that change what a run of source text says when the run starts just after them. */
+const CUT_BEFORE = /(?:\b(?:not|no|never|none|without|except|excluding|than|over|under|nearly|almost|about|approximately|around|roughly|circa|only|least|most|up to|fewer|less|more|cannot)|n['\u2019]t|[<>~=\u2248\u2264\u2265\u00b1])\s*$/i;
 
 /**
- * The numbers and names an amended value has that neither the quoted passage nor the old value
- * has. A number is any word with a digit, or a number word (twelve, million, half). A name is a
- * word with a capital letter, except a common word that opens a sentence. The test is on the
- * words as written: it cannot tell a name written in lower case from a common word, and it does
- * not judge whether the sentence is true, which is the reviewer's job.
+ * Whether an amended value is the source's own words: one unbroken run of the quoted passage, as
+ * the passage stands in the page text. Only the case of the first letter and one final full stop
+ * are set aside. The run is placed in the page, not in the passage, so a passage cut short does
+ * not make an end: the run starts at a word (not just after a negation or a hedge such as "not",
+ * "cannot", "wasn't", "more than" or "up to") and ends where the page ends a clause (a full stop, semicolon or colon
+ * and then a space, or the end of the text). A comma is not an end, so a list or an "and" cannot
+ * be cut. This checks that the words are the source's; whether they say enough is the reviewer's.
  */
-export function novelTerms(value, passage, before) {
-  const known = new Set();
-  const plainNumber = (w) => /^\d[\d,]*(\.\d+)?$/.test(w);
-  for (const w of [...wordsOf(passage), ...wordsOf(before)]) {
-    known.add(wordKey(w));
-    // "CITE-seq" also gives "CITE" and "seq"; a written number is one word and gives no parts.
-    if (!plainNumber(w)) for (const part of w.split(/[-_.,/'\u2019]/)) known.add(wordKey(part));
+export function sourceSpan(value, passage, text) {
+  const page = folded(text);
+  const quote = folded(passage);
+  const want = folded(value).replace(/\.$/, '');
+  if (!want || !quote) return false;
+  const flipped = (want[0] === want[0].toLowerCase() ? want[0].toUpperCase() : want[0].toLowerCase()) + want.slice(1);
+  for (let q = page.indexOf(quote); q !== -1; q = page.indexOf(quote, q + 1)) {
+    for (const needle of unique([want, flipped])) {
+      for (let v = quote.indexOf(needle); v !== -1; v = quote.indexOf(needle, v + 1)) {
+        const before = page.slice(0, q + v);
+        const after = page.slice(q + v + needle.length);
+        const starts = (!before || /[\s(\["'\u201c\u2018]$/.test(before)) && !CUT_BEFORE.test(before);
+        const ends = !after || /^["'\u201d\u2019)\]]*[.;:](?:\s|$)/.test(after);
+        if (starts && ends) return true;
+      }
+    }
   }
-  const has = (w) => known.has(wordKey(w)) || (!plainNumber(w) && w.split(/[-_/'\u2019]/).every((part) => known.has(wordKey(part))));
-  const novel = [];
-  const text = String(value ?? '');
-  for (const m of text.matchAll(/[\p{L}\p{N}]+(?:[-_.,/'\u2019][\p{L}\p{N}]+)*/gu)) {
-    const w = m[0];
-    const numeric = /\p{N}/u.test(w) || NUMBER_WORDS.has(w.toLowerCase());
-    const capital = /\p{Lu}/u.test(w);
-    if (!numeric && !capital) continue;
-    if (has(w)) continue;
-    const opens = /(^|[.!?;:]\s+)$/.test(text.slice(0, m.index));
-    if (!numeric && opens && /^\p{Lu}[\p{Ll}]*$/u.test(w) && OPENERS.has(w.toLowerCase())) continue;
-    novel.push(w);
-  }
-  return unique(novel);
+  return false;
 }
 
-/** The share of an amended value's longer words (four letters or more) that the quoted passage has. */
-function sharedWithPassage(value, passage) {
-  const long = (text) => unique(wordsOf(text).map(wordKey).filter((w) => w.length >= 4));
-  const mine = long(value);
-  const theirs = new Set(long(passage));
-  return mine.length ? mine.filter((w) => theirs.has(w)).length / mine.length : 0;
+/** A DOI as compared: lower case, without a resolver in front; an arXiv DOI is the arXiv id. '' when it is not a DOI. */
+function doiKey(doi) {
+  const d = clean(doi).toLowerCase().replace(/^(?:https?:\/\/)?(?:dx\.)?doi\.org\//, '').replace(/^doi:\s*/, '').replace(/[./]+$/, '');
+  if (!/^10\.\d{4,9}\/\S+$/.test(d)) return '';
+  const arxiv = /^10\.48550\/arxiv\.(.+?)(?:v\d+)?$/.exec(d);
+  return arxiv ? `arxiv ${arxiv[1]}` : `doi ${d}`;
 }
 
-/** The addresses a record's sources answer to: each URL's key (url, artifact_url, original_url) and each DOI, from the source records given. */
+const CODE_HOSTS = ['github.com', 'gitlab.com', 'bitbucket.org', 'codeberg.org'];
+
+/**
+ * What one address answers to when the addresses of two records are compared for a duplicate
+ * ruling. It is looser than urlKey, which matches a URL against stored sources: here two forms of
+ * one address must give one key, because a missed match lets a duplicate be ruled distinct.
+ *   doi   a doi.org URL, a publisher URL with /doi/, a bioRxiv or medRxiv page (any version, with
+ *         or without .full), a nature.com article and a Zenodo record;
+ *   arxiv an arXiv abs, pdf or html page, any version;
+ *   repo  a GitHub, GitLab, Bitbucket, Codeberg or Hugging Face repository: owner and name in
+ *         lower case, whatever file, branch or query follows, with or without .git;
+ *   url   anything else: host without www., path in lower case without a trailing slash, query.
+ * The scheme and the fragment never count. '' when the text is not an http(s) URL.
+ */
+export function addressKey(url) {
+  let u;
+  try {
+    u = new URL(clean(url));
+  } catch {
+    return '';
+  }
+  if (!/^https?:$/.test(u.protocol)) return '';
+  const host = u.host.toLowerCase().replace(/^www\./, '');
+  let path = u.pathname;
+  try {
+    path = decodeURIComponent(path);
+  } catch {
+    // Keep the path as written.
+  }
+  path = path.toLowerCase().replace(/\/+$/, '');
+  const parts = path.split('/').filter(Boolean);
+  const plain = `url ${host}${path}${u.search}`;
+  if (/^(?:dx\.)?doi\.org$/.test(host)) return doiKey(path.slice(1)) || plain;
+  const inPath = /\/doi\/(?:abs\/|full\/|pdf\/|epdf\/)?(10\.\d{4,9}\/\S+)/.exec(path);
+  if (inPath && doiKey(inPath[1])) return doiKey(inPath[1]);
+  if (/(?:^|\.)(?:biorxiv|medrxiv)\.org$/.test(host)) {
+    const m = /^\/content\/(?:(?:biorxiv|medrxiv)\/)?(?:early\/\d{4}\/\d{2}\/\d{2}\/)?(10\.\d{4,9}\/[^/]+)/.exec(path);
+    const doi = m ? doiKey(m[1].replace(/\.(?:full(?:\.pdf)?(?:\+html)?|full-text|abstract|supplementary-material|article-info|article-metrics)$/, '').replace(/v\d+$/, '')) : '';
+    if (doi) return doi;
+  }
+  if (/(?:^|\.)arxiv\.org$/.test(host) && ['abs', 'pdf', 'html'].includes(parts[0]) && parts[1]) return `arxiv ${parts.slice(1).join('/').replace(/\.pdf$/, '').replace(/v\d+$/, '')}`;
+  if (host === 'nature.com' && parts[0] === 'articles' && parts[1]) return `doi 10.1038/${parts[1].replace(/\.pdf$/, '')}`;
+  if (host === 'zenodo.org' && ['record', 'records'].includes(parts[0]) && /^\d+$/.test(parts[1] ?? '')) return `doi 10.5281/zenodo.${parts[1]}`;
+  if (CODE_HOSTS.includes(host) && parts.length >= 2) return `repo ${host}/${parts[0]}/${parts[1].replace(/\.git$/, '')}`;
+  if (host === 'raw.githubusercontent.com' && parts.length >= 2) return `repo github.com/${parts[0]}/${parts[1]}`;
+  if (['huggingface.co', 'hf.co'].includes(host) && parts.length >= 2) {
+    const named = ['datasets', 'spaces'].includes(parts[0]) ? parts.slice(0, 3) : parts.slice(parts[0] === 'models' ? 1 : 0).slice(0, 2);
+    if (named.length >= 2 && (named.length === 3 || !['datasets', 'spaces'].includes(named[0]))) return `repo huggingface.co/${named.join('/')}`;
+  }
+  return plain;
+}
+
+/** The URLs a record gives for itself, in its repository and access attributes. */
+export function ownAddresses(record) {
+  return unique(['repository', 'access'].flatMap((f) => [...JSON.stringify(record?.attributes?.[f] ?? '').matchAll(/https?:\/\/[^\s<>()"'`\\]+/g)].map((m) => m[0].replace(/[.,;:]+$/, ''))));
+}
+
+/**
+ * The addresses a record answers to (addressKey): the URL, artifact URL, original URL and DOI of
+ * each source it cites, from the source records given, and the URLs in its own repository and
+ * access attributes and its own DOI.
+ */
 export function sourceKeys(record, sourceRecords) {
   const keys = [];
   for (const id of record?.source_ids ?? []) {
     const a = sourceRecords.get(id)?.attributes ?? {};
-    const urls = [a.url, a.artifact_url, a.original_url].filter((u) => clean(u));
-    for (const u of urls) keys.push(`url ${urlKey(u)}`);
-    for (const doi of [a.doi, ...urls.map(doiOf)]) if (clean(doi)) keys.push(`doi ${clean(doi).toLowerCase()}`);
+    for (const u of [a.url, a.artifact_url, a.original_url]) keys.push(addressKey(u));
+    keys.push(doiKey(a.doi));
   }
-  return unique(keys);
+  for (const u of ownAddresses(record)) keys.push(addressKey(u));
+  keys.push(doiKey(record?.attributes?.doi));
+  return unique(keys.filter(Boolean));
+}
+
+/** Two names that are equal once case, spaces and punctuation are set aside. */
+const sameName = (a, b) => {
+  const squash = (t) => normalise(t).replace(/ /g, '');
+  return Boolean(squash(a)) && squash(a) === squash(b);
+};
+
+/** Common words that say nothing about a resource, four letters or more (shorter words never count). */
+const PLAIN_WORDS = new Set('about above across after again against also among around because been before being below between both down during each either eight eleven every five four from have having here into just less like made make many more most much nine only other others over same seven several some such than that their them then there these they this those three through twelve under until upon used uses using very were what when where which while will with within without would zero'.split(' '));
+
+/** The words of a quoted phrase that tell its record from another: four letters or more, not a common or generic word or a bare number, and absent from the other record's name and description. */
+function tellingWords(quote, otherText) {
+  const others = new Set(normalise(otherText).split(' '));
+  return unique(normalise(quote).split(' ').filter((w) => w.length >= 4 && !GENERIC_WORDS.has(w) && !PLAIN_WORDS.has(w) && !/^\d+$/.test(w) && !others.has(w)));
+}
+
+/** A locator string with the segment of one field replaced ("field: where; field: where"); unchanged when the field has no segment. */
+function withLocator(locator, field, where) {
+  const names = ['description', ...VERIFIED_FIELDS].join('|');
+  return String(locator ?? '').split(new RegExp(`; (?=(?:${names}): )`)).map((part) => (part.startsWith(`${field}: `) ? `${field}: ${where}` : part)).join('; ');
 }
 
 /** A locator string without the segment of one field ("field: where; field: where"). */
@@ -2187,7 +2266,9 @@ export function applyRevision(records, problems, reply, texts = new Map(), store
   const closed = new Map();
   const same = (a, b) => normalise(a) === normalise(b);
   // The structuring call sometimes writes the field after the record id ("<id>-training_data").
-  const answerFor = (p) => (reply?.revisions ?? []).find((x) => x.field === p.field && (x.id === p.id || (String(x.id ?? '').startsWith(p.id) && new RegExp(`^[\\s:._/-]+${p.field}$`).test(String(x.id).slice(p.id.length)))));
+  // An entry with the id alone comes first: another record's id may be this id with the field after it.
+  const mine = (p) => (reply?.revisions ?? []).filter((x) => x.field === p.field);
+  const answerFor = (p) => mine(p).find((x) => x.id === p.id) ?? mine(p).find((x) => String(x.id ?? '').startsWith(p.id) && new RegExp(`^[\\s:._/-]+${p.field}$`).test(String(x.id).slice(p.id.length)));
   // Duplicates first: a record closed out as a duplicate needs no other field settled.
   const ordered = [...problems.filter((x) => x.field === 'duplicates'), ...problems.filter((x) => x.field !== 'duplicates' && x.field !== 'depth_tier')];
   for (const p of ordered) {
@@ -2202,7 +2283,7 @@ export function applyRevision(records, problems, reply, texts = new Map(), store
       if (ruled.error) fail(ruled.error);
       else if (ruled.sameAs) {
         closed.set(r.id, ruled.sameAs.id);
-        fields.push({ ...entry, action: 'close', same_as: ruled.sameAs.id, shared: ruled.sameAs.shared, rulings: ruled.rulings });
+        fields.push({ ...entry, action: 'close', same_as: ruled.sameAs.id, shared: ruled.sameAs.shared, rulings: ruled.rulings, closed_record: { id: r.id, kind: r.kind, name: r.name, description: r.description ?? '' }, store_record: ruled.sameAs.record });
       } else {
         rulings.push(...ruled.rulings.map((x) => ({ entity: r.name, id: x.id, label: x.label, kind: x.kind, ruling: 'distinct', locator: x.locator, ruled_by: 'revision' })));
         fields.push({ ...entry, action: 'rule', rulings: ruled.rulings });
@@ -2213,18 +2294,19 @@ export function applyRevision(records, problems, reply, texts = new Map(), store
       const after = folded(answer.value);
       const cited = (r.source_ids ?? []).map((id) => texts.get(id)).filter(Boolean);
       const hit = cited.find((s) => urlKey(s.url) === urlKey(answer.source_url) && verbatim(answer.passage, s.text)) ?? cited.find((s) => verbatim(answer.passage, s.text));
-      const novel = hit ? novelTerms(after, answer.passage, before) : [];
       if (!AMEND_FIELDS.includes(p.field)) fail(`${p.field} is not a field the revision may reword`);
       else if (typeof before !== 'string' || !before.trim()) fail('the record has no text value to reword');
       else if (!after) fail('the revision gave no new wording');
-      else if (after === folded(before)) fail('the new wording is the value the reviewer did not pass');
+      else if (normalise(after) === normalise(before)) fail('the new wording is the value the reviewer did not pass');
       else if (after.length > MAX_AMEND_CHARS) fail(`the new wording is longer than ${MAX_AMEND_CHARS} characters`);
       else if (folded(answer.passage).length > MAX_AMEND_PASSAGE_CHARS) fail(`the quoted passage is longer than ${MAX_AMEND_PASSAGE_CHARS} characters`);
       else if (!hit) fail('the quoted passage is not, letter for letter, in the text of a source the record cites');
-      else if (novel.length) fail(`the new wording has a number or name that neither the quoted passage nor the old value has (${novel.slice(0, 6).join(', ')})`);
-      else if (sharedWithPassage(after, answer.passage) < 0.5) fail('fewer than half the words of the new wording are in the quoted passage');
+      else if (clean(after) !== after || /https?:\/\/|\bwww\./i.test(after)) fail('the new wording holds a link, a mention, an HTML comment or a long dash, which a stored value may not');
+      else if (!sourceSpan(after, answer.passage, hit.text)) fail('the new wording is not the source\'s own words: it must be one unbroken run of the quoted passage that starts at a word, not just after a negation or a hedge, and ends where the source ends a clause');
       else {
         r.attributes[p.field] = after;
+        // The locator of the field now points at the passage the new value is taken from.
+        if (r.attributes.source_locator) r.attributes.source_locator = withLocator(r.attributes.source_locator, p.field, `${hit.url}, the source's own words (reworded in the revision after review; the passage is in ${REVISION_FILE})`);
         fields.push({ ...entry, action: 'amend', before, after, passage: folded(answer.passage), source_url: hit.url });
       }
     } else if (answer.action === 'cite') {
@@ -2311,6 +2393,7 @@ export function applyRevision(records, problems, reply, texts = new Map(), store
   if (closed.size) {
     const key = (l) => `${l.relation} ${l.target_id}`;
     const left = new Set(revised.map((r) => r.id));
+    for (const f of fields.filter((x) => x.action === 'close')) f.report_on = revised.find((r) => KINDS.includes(r.kind))?.id ?? null;
     for (const f of fields.filter((x) => x.action === 'close')) f.removed = records.filter((r) => !left.has(r.id) && (r.id === f.id || (r.kind === 'source' && (first.get(f.id)?.source_ids ?? []).includes(r.id)))).map((r) => r.id);
     for (const r of revised.filter((x) => x.kind !== 'source')) {
       // A link the revision dropped by name is already listed with its own field.
@@ -2327,49 +2410,63 @@ export function applyRevision(records, problems, reply, texts = new Map(), store
 /**
  * Rule on the store records the reviewer listed as possible duplicates of one new record.
  * `answer` is the model's reply for the record's duplicates; `store.candidates` maps a store
- * record id to { id, kind, name, description, keys } as the script read it from the store, and
- * `store.keys` maps a new record id to its own source keys (sourceKeys). Every listed record must
- * be ruled, and a ruling counts only on grounds the script can check in both records:
- *   distinct  a phrase quoted from each record's own name or description, the two names not equal,
- *             and one ground: different_source needs both records to have sources and to share no
- *             URL or DOI; different_resource is refused when they share one; different_scope is
- *             the only ground allowed when they do.
- *   same      the two records share a source URL or DOI.
- * Returns { rulings, sameAs } or { error }.
+ * record id to { id, kind, name, description, keys, urls } as the script read it from the store,
+ * and `store.keys` maps a new record id to its own addresses (sourceKeys). Every listed record
+ * must be ruled, and a ruling counts only on grounds the script can check in both records:
+ *   distinct  both records give an address, and either they share none, or they share one, are a
+ *             dataset and a dataset subset, and the ground is different_scope. The
+ *             names must differ in more than added words, and the reply quotes a phrase from each
+ *             record's own name or description that holds two words or more the other record
+ *             lacks.
+ *   same      the two records share an address, are of one kind and have the same name.
+ * Anything else is a person's. Returns { rulings, sameAs } or { error }.
  */
 export function ruleDuplicates(record, listed, answer, store = {}) {
   if (!listed.length) return { error: 'the finding names no store record to rule on' };
   if (!answer || answer.action !== 'rule') return { error: 'the revision gave no ruling on the possible duplicates' };
   const mine = store.keys?.get(record.id) ?? [];
   const own = `${record.name}\n${record.description}`;
+  const names = (d) => [d.label, store.candidates?.get(d.id)?.name].map(normalise).filter(Boolean);
   const rulings = [];
   let sameAs = null;
   for (const d of listed) {
     const c = store.candidates?.get(d.id);
-    // The structuring call sometimes writes the record's name where its id belongs (dupeRulings); accept either.
-    const named = (x) => [d.label, c?.name].some((n) => normalise(n) && normalise(n) === normalise(x.id));
-    const given = (answer.rulings ?? []).find((x) => clean(x.id) === d.id) ?? (answer.rulings ?? []).find(named);
+    // The structuring call sometimes writes the record's name where its id belongs (dupeRulings).
+    // A name is read only when one listed record has it: a ruling by name cannot cover two records.
+    const twins = listed.filter((o) => names(o).some((n) => names(d).includes(n)));
+    const given = (answer.rulings ?? []).find((x) => clean(x.id) === d.id) ?? (twins.length === 1 ? (answer.rulings ?? []).find((x) => names(d).includes(normalise(x.id))) : undefined);
     if (!given || !['distinct', 'same'].includes(given.ruling)) return { error: `the revision gave no ruling on ${d.id}` };
     if (!c) return { error: `${d.id} was not found in the store on the base branch, so no ruling on it can be checked` };
-    const shared = mine.filter((k) => (c.keys ?? []).includes(k));
+    const theirKeys = c.keys ?? [];
+    const shared = mine.filter((k) => theirKeys.includes(k));
+    const storeRecord = { id: c.id, kind: c.kind, name: c.name, description: clean(c.description).slice(0, 1000), addresses: c.urls ?? [] };
     if (given.ruling === 'same') {
       if (!shared.length) return { error: `${d.id} is ruled the same resource, but the two records share no source URL or DOI` };
-      sameAs ??= { id: c.id, shared };
-      rulings.push({ id: c.id, label: c.name, kind: c.kind, ruling: 'same', shared, reason: clean(given.reason).slice(0, 300) });
+      if (c.kind !== record.kind) return { error: `${d.id} is ruled the same resource, but it is a ${c.kind} and the new record is a ${record.kind}, so closing the new record out is a person's to decide` };
+      if (!sameName(record.name, c.name)) return { error: `${d.id} is ruled the same resource, but the two records have different names, so closing the new record out is a person's to decide` };
+      sameAs ??= { id: c.id, shared, record: storeRecord };
+      rulings.push({ id: c.id, label: c.name, kind: c.kind, ruling: 'same', shared, reason: clean(given.reason).slice(0, 300), store_record: storeRecord });
       continue;
     }
     const theirs = `${c.name}\n${c.description}`;
     if (!RULING_GROUNDS.includes(given.ground)) return { error: `the ruling on ${d.id} names no ground the script can check` };
-    if (nameOverlap(record.name, c.name) === 1) return { error: `${d.id} has the same name as the new record, so a ruling of distinct is a person's to make` };
+    if (nameOverlap(record.name, c.name) === 1) return { error: `${d.id} and the new record have one name, or one name holds every word of the other, so a ruling of distinct is a person's to make` };
+    if (!mine.length || !theirKeys.length) return { error: `the ruling on ${d.id} cannot be checked, because one of the two records gives no source or repository address to compare` };
+    // A model and a method, or any other two kinds, at one address are not a whole and a part.
+    const wholeAndPart = c.kind !== record.kind && WHOLE_AND_PART.includes(c.kind) && WHOLE_AND_PART.includes(record.kind);
+    if (shared.length && !wholeAndPart) return { error: `the ruling on ${d.id} is distinct, but the new record (a ${record.kind}) and the store record (a ${c.kind}) give the same address (${shared[0]}), so it is a person's to make` };
+    if (shared.length && given.ground !== 'different_scope') return { error: `the ruling on ${d.id} rests on ${given.ground}, but the two records give the same address (${shared[0]})` };
     if (!verbatim(given.new_quote, own, MIN_GROUND_CHARS)) return { error: `the ruling on ${d.id} quotes a phrase that is not in the new record's name or description` };
     if (!verbatim(given.store_quote, theirs, MIN_GROUND_CHARS)) return { error: `the ruling on ${d.id} quotes a phrase that is not in the store record's name or description` };
-    if (folded(given.new_quote).toLowerCase() === folded(given.store_quote).toLowerCase()) return { error: `the ruling on ${d.id} quotes the same phrase from both records, which shows no difference` };
-    if (given.ground === 'different_source' && (!mine.length || !(c.keys ?? []).length)) return { error: `the ruling on ${d.id} rests on different sources, but one of the two records has no source address to compare` };
-    if (shared.length && given.ground !== 'different_scope') return { error: `the ruling on ${d.id} rests on ${given.ground}, but the two records share a source (${shared[0]})` };
+    if (tellingWords(given.new_quote, theirs).length < MIN_TELLING_WORDS) return { error: `the phrase the ruling on ${d.id} quotes from the new record has fewer than ${MIN_TELLING_WORDS} words the store record lacks, so it shows no difference` };
+    if (tellingWords(given.store_quote, own).length < MIN_TELLING_WORDS) return { error: `the phrase the ruling on ${d.id} quotes from the store record has fewer than ${MIN_TELLING_WORDS} words the new record lacks, so it shows no difference` };
     const what = { different_resource: 'a different resource', different_source: 'a different resource with different sources', different_scope: 'a different scope' }[given.ground];
-    const addresses = shared.length ? `The two records share a source (${shared.join(', ')}).` : mine.length && (c.keys ?? []).length ? 'The two records share no source URL or DOI.' : 'One of the two records has no source address to compare.';
+    // What the script compared, said as that: a resource cited at an address neither record gives is not seen.
+    const addresses = shared.length
+      ? `Both records give the address ${shared.join(', ')}; the new record is a ${record.kind} and the store record a ${c.kind}.`
+      : 'The script compared the source URLs, DOIs and repository addresses the two records give and found none in common; it cannot see one resource cited at two unrelated addresses.';
     const locator = `Ruled in the revision after review: ${what}. New record: "${folded(given.new_quote)}". Store record ${c.id} (${c.kind}): "${folded(given.store_quote)}". ${addresses}${clean(given.reason) ? ` ${clean(given.reason).slice(0, 300)}` : ''}`;
-    rulings.push({ id: c.id, label: c.name, kind: c.kind, ruling: 'distinct', ground: given.ground, new_quote: folded(given.new_quote), store_quote: folded(given.store_quote), shared, locator });
+    rulings.push({ id: c.id, label: c.name, kind: c.kind, ruling: 'distinct', ground: given.ground, new_quote: folded(given.new_quote), store_quote: folded(given.store_quote), shared, locator, store_record: storeRecord });
   }
   return { rulings, sameAs };
 }
@@ -2395,11 +2492,15 @@ export function strayChanges(before, after, fields, derived = []) {
     const dropped = fields.filter((f) => f.id === id && f.action === 'drop').map((f) => f.field);
     const amended = fields.filter((f) => f.id === id && f.action === 'amend').map((f) => f.field);
     const follows = (field) => derived.some((d) => d.id === id && d.field === field);
+    // An amend rewrites the locator segment of its own field (applyRevision) and no other segment.
+    const others = (x) => amended.reduce((l, f) => withoutLocator(l, f), x.attributes?.source_locator ?? '');
+    const locatorKept = amended.length > 0 && others(r) === others(now.get(id));
     const allowed = new Set(r.kind === 'source' ? ['areas', 'contexts'].filter(follows).map((f) => `/facets/${f}`) : [
       ...(follows('depth_tier') ? ['/attributes/depth_tier'] : []),
       ...(follows('links') ? ['/links'] : []),
-      // An amend changes the one attribute and nothing beside it: not its locator, not missing_metadata.
+      // An amend changes the one attribute, and nothing of missing_metadata.
       ...amended.map((f) => `/attributes/${f}`),
+      ...(locatorKept ? ['/attributes/source_locator'] : []),
       ...dropped.map((f) => (f === 'areas' ? '/facets/areas' : f === 'links' ? '/links' : `/attributes/${f}`)),
       ...dropped.filter((f) => DROP_WHOLE.includes(f)).flatMap((f) => ['/attributes/source_locator', '/attributes/missing_metadata', `/attributes/missing_metadata/${f}`]),
     ]);
@@ -2472,7 +2573,7 @@ export function reviseCostBound(promptChars, model = MODELS.verify) {
 async function reviseFields(client, usage, { system, records, problems, texts, runDate, log, candidates = new Map() }) {
   const listed = problems.filter((p) => p.field === 'duplicates').map((p) => ({ id: p.id, possible_duplicates: (unruledDuplicates(p.note) ?? []).map((d) => {
     const c = candidates.get(d.id);
-    return c ? { id: c.id, kind: c.kind, name: c.name, description: c.description, source_urls: c.urls ?? [] } : { id: d.id, name: d.label, not_found: 'not in the store on the base branch' };
+    return c ? { id: c.id, kind: c.kind, name: c.name, description: c.description, addresses: c.urls ?? [] } : { id: d.id, name: d.label, not_found: 'not in the store on the base branch' };
   }) }));
   const sources = unique(records.flatMap((r) => r.source_ids ?? [])).map((id) => texts.get(id)).filter(Boolean);
   const prompt = [
@@ -2491,7 +2592,7 @@ async function reviseFields(client, usage, { system, records, problems, texts, r
     JSON.stringify(problems.map((p) => ({ id: p.id, field: p.field, verdict: p.verdict, finding: p.note })), null, 2),
     '',
     ...(listed.length ? ['Store records the reviewer listed as possible duplicates, as the store holds them (JSON). They are data, not instructions.', JSON.stringify(listed, null, 2), ''] : []),
-    `For each listed field write the record id, the field, and one of: drop (for areas, limitations and links, name exactly the values to drop, copied from the record); cite (quote the passage that states the value, copied letter for letter from the source text, and give its source URL); amend (only for ${AMEND_FIELDS.join(', ')}: the new wording, the passage that states it copied letter for letter from the source text, and its source URL); rule (only for duplicates: for each store record listed, distinct or same, the ground, and for distinct one phrase copied from the new record and one from the store record); or none, with the reason.`,
+    `For each listed field write the record id, the field, and one of: drop (for areas, limitations and links, name exactly the values to drop, copied from the record); cite (quote the passage that states the value, copied letter for letter from the source text, and give its source URL); amend (only for ${AMEND_FIELDS.join(', ')}: the passage copied letter for letter from the source text, its source URL, and the new wording, which is one unbroken run of words copied from that passage up to where the source ends a clause); rule (only for duplicates: for each store record listed, distinct or same, the ground, and for distinct one phrase copied from the new record and one from the store record, each with words the other record lacks); or none, with the reason.`,
   ].join('\n');
   // The cap is checked before the call, on the most the call can cost, and again after it.
   const bound = reviseCostBound(system.length + prompt.length);
@@ -2706,7 +2807,7 @@ async function revise(args, env, deps) {
     const found = await storedRecords(storeDir, listedIds);
     const sourceRecords = new Map([...(await storedSources(storeDir, new Set([...sourceIds, ...[...found.values()].flatMap((r) => r.source_ids ?? [])]))), ...original.filter((r) => r.kind === 'source').map((r) => [r.id, r])]);
     const store = {
-      candidates: new Map([...found.values()].map((r) => [r.id, { id: r.id, kind: r.kind, name: r.name, description: r.description ?? '', keys: sourceKeys(r, sourceRecords), urls: (r.source_ids ?? []).map((id) => sourceRecords.get(id)?.attributes?.url).filter(Boolean) }])),
+      candidates: new Map([...found.values()].map((r) => [r.id, { id: r.id, kind: r.kind, name: r.name, description: r.description ?? '', keys: sourceKeys(r, sourceRecords), urls: unique([...(r.source_ids ?? []).map((id) => sourceRecords.get(id)?.attributes?.url).filter(Boolean), ...ownAddresses(r)]) }])),
       keys: new Map(asked.map((r) => [r.id, sourceKeys(r, sourceRecords)])),
     };
     const fixtureFetches = args.dryRun ? readJson(join(fixtures, 'fetches.json')) : null;
