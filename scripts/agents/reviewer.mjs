@@ -422,13 +422,16 @@ export function worktreePull(run) {
 /**
  * Merge the model's verdicts with the mechanical problems into one row per record and field. A
  * field the model did not return is `unverifiable`. A mechanical problem makes its field `fail`.
+ * `extra` adds a field to a record that does not have it ([{ id, field, value }]): the place a
+ * removal made by a revision is judged (closeRows), so a verdict on it is kept and a missing one
+ * is `unverifiable`.
  */
-export function buildTable(records, review, mechanical) {
+export function buildTable(records, review, mechanical, extra = []) {
   const byId = new Map((review?.records ?? []).map((r) => [r.id, r]));
   const rows = [];
   for (const r of records.filter((x) => ENTITY_KINDS.includes(x.kind))) {
     const verdicts = new Map((byId.get(r.id)?.fields ?? []).map((f) => [f.field, f]));
-    const fields = unique([...fieldsOf(r), ...(TIER_KINDS.includes(r.kind) ? ['depth_tier'] : []), ...mechanical.filter((m) => m.id === r.id).map((m) => m.field)]);
+    const fields = unique([...fieldsOf(r), ...(TIER_KINDS.includes(r.kind) ? ['depth_tier'] : []), ...mechanical.filter((m) => m.id === r.id).map((m) => m.field), ...extra.filter((x) => x.id === r.id).map((x) => x.field)]);
     for (const field of fields) {
       const mech = mechanical.filter((m) => m.id === r.id && m.field === field).map((m) => m.text);
       const v = verdicts.get(field);
@@ -447,7 +450,7 @@ export function buildTable(records, review, mechanical) {
         verdict = ['pass', 'fail', 'unverifiable'].includes(v.verdict) ? v.verdict : 'unverifiable';
         note = clean(verdict === 'pass' ? v.evidence : [v.problem, v.evidence].filter(Boolean).join(' Evidence: '));
       }
-      rows.push({ id: r.id, kind: r.kind, field, value: field === 'depth_tier' ? String(r.attributes?.depth_tier ?? '') : fieldValue(r, field), sources: (r.source_ids ?? []).join(', '), verdict, note });
+      rows.push({ id: r.id, kind: r.kind, field, value: field === 'depth_tier' ? String(r.attributes?.depth_tier ?? '') : [fieldValue(r, field), ...extra.filter((x) => x.id === r.id && x.field === field).map((x) => x.value)].filter(Boolean).join('; '), sources: (r.source_ids ?? []).join(', '), verdict, note });
     }
   }
   return rows;
@@ -754,6 +757,17 @@ export function revisionCloses(revision) {
   }));
 }
 
+/**
+ * Where each removal a revision made is judged: the duplicates field of a record still in the
+ * batch (report_on, or the first entity record when that one is not there). The row is in the
+ * table whether or not the record has rulings of its own, so a fail on it requests changes and
+ * no verdict on it leaves the review short of an approval.
+ */
+export function closeRows(revision, records) {
+  const entities = records.filter((r) => ENTITY_KINDS.includes(r.kind));
+  return revisionCloses(revision).filter(() => entities.length).map((c) => ({ id: (entities.find((r) => r.id === c.report_on) ?? entities[0]).id, field: 'duplicates', value: `${c.removed_record.id} removed as the same resource as ${c.store_record.id}` }));
+}
+
 /** The lines of the review prompt that hand the model what a revision claims: cited passages, new wordings, rulings and removals. */
 export function revisionPromptLines(revision) {
   const cited = revisionCites(revision);
@@ -764,7 +778,7 @@ export function revisionPromptLines(revision) {
     ...(cited.length ? ['The intake agent revised this batch after an earlier review. For these fields it kept the value and quoted a passage as support. Each quote is its claim, not evidence: find the passage in the source yourself, and judge whether it states the value (JSON):', JSON.stringify(cited, null, 2), ''] : []),
     ...(amended.length ? ['The intake agent revised this batch after an earlier review. For these fields it replaced the value (before) with a run of words copied from a passage of the source (after). The script checked only that the words are in the page. Find the passage in the source yourself, and judge whether the new value, read by itself, says what the source says: fail the field when words left out before or after it change its meaning (JSON):', JSON.stringify(amended, null, 2), ''] : []),
     ...(ruled.length ? ['The intake agent revised this batch after an earlier review and ruled these store records distinct from a new record (id). Each ruling is its claim. The store record is given as the store holds it. The script compared only the addresses the two records give, so one resource cited at two addresses is not seen. Judge each ruling from the two records and the sources, and fail duplicates of the new record when the store record is the same resource (JSON):', JSON.stringify(ruled, null, 2), ''] : []),
-    ...(closed.length ? ['The intake agent revised this batch after an earlier review and removed these records from it as the same resource as a store record. A removed record is no longer among the records below. Judge each removal from the two records and the sources. When the removed record is a different resource from the store record, fail the duplicates field of the record named in report_on and say which removed record should have stayed (JSON):', JSON.stringify(closed, null, 2), ''] : []),
+    ...(closed.length ? ['The intake agent revised this batch after an earlier review and removed these records from it as the same resource as a store record. A removed record is no longer among the records below. Judge each removal from the two records and the sources. Write a verdict on the duplicates field of the record named in report_on: pass when the removed record is the same resource as the store record, fail when it is a different resource, saying which removed record should have stayed (JSON):', JSON.stringify(closed, null, 2), ''] : []),
   ];
 }
 
@@ -1010,7 +1024,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       }
     }
     state.rows = [
-      ...buildTable(records, review, mechanical),
+      ...buildTable(records, review, mechanical, closeRows(revision, records)),
       ...changeRows(changed, review, changeMechanical),
       ...storeDiffRows(tie, { lines: [...diff.records.values()].reduce((n, e) => n + e.added.length + e.removed.length, 0) }),
     ];

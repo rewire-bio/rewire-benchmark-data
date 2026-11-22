@@ -14,7 +14,8 @@ export function readStore(dir: string, exclude?: Set<string>): Promise<{ names: 
 export function mechanicalProblems(records: any[], known: { storeNames: Map<string, string>; storeSourceIds: Set<string>; storeKinds?: Map<string, string>; receipt?: any; kgDuplicates?: Map<string, { id: string; kind: string; label: string; match?: string }[]> }): Problem[];
 export function withReceipt(records: any[], receipt: any): any[];
 export function possibleDuplicates(records: any[], opts?: { receipt?: any; kg?: any; failures?: { step: string; entity?: string; error: string }[] }): Promise<Map<string, { id: string; kind: string; label: string; match?: string }[]>>;
-export function buildTable(records: any[], review: any, mechanical: Problem[]): Row[];
+export function buildTable(records: any[], review: any, mechanical: Problem[], extra?: { id: string; field: string; value: string }[]): Row[];
+export function closeRows(revision: any, records: any[]): { id: string; field: string; value: string }[];
 export function overallVerdict(rows: Row[]): string;
 export function headline(rows: Row[], verdict: string, blocker?: string): string;
 export function renderReview(input: any): string;

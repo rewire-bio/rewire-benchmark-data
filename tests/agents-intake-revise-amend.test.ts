@@ -31,7 +31,7 @@ import {
   unruledDuplicates,
 } from "../scripts/agents/intake.mjs";
 import { kgApi } from "../scripts/agents/kg.mjs";
-import { mechanicalProblems, main as reviewerMain, revisionAmends, revisionCites, revisionCloses, revisionPromptLines, revisionRulings } from "../scripts/agents/reviewer.mjs";
+import { closeRows, mechanicalProblems, main as reviewerMain, revisionAmends, revisionCites, revisionCloses, revisionPromptLines, revisionRulings } from "../scripts/agents/reviewer.mjs";
 
 const FIXTURES = "tests/agents-intake-revise-amend-fixtures";
 const now = () => new Date("2026-11-22T09:00:00Z");
@@ -228,6 +228,11 @@ describe("amend: new wording on a quoted passage", () => {
     expect(span("40 panels were measured (doi 10.64898/2026.10.22.760932v1) with release v1.5 of the kit.", "Up to 40 panels were measured (doi 10.64898/2026.10.22.760932v1) with release v1.5 of the kit.")).toBe(false);
     expect(span("The encoder was pretrained on 12 cohorts", "The encoder was pretrained on 12 cohorts, except those held out for testing.")).toBe(false);
     expect(span("Used for training.", "it was never used for training.")).toBe(false);
+    const more = "The cells cannot be used for pretraining of it. The panel wasn't measured in every cohort. The kit isn\u2019t sold for clinical use.";
+    expect(sourceSpan("Be used for pretraining of it.", more, more)).toBe(false);
+    expect(sourceSpan("Measured in every cohort.", more, more)).toBe(false);
+    expect(sourceSpan("Sold for clinical use.", more, more)).toBe(false);
+    expect(sourceSpan("The panel wasn't measured in every cohort.", more, more)).toBe(true);
     // A part of a written number or of an identifier is not a number of its own.
     expect(span("A panel of 1", "A panel of 1.5 million cells was held out;")).toBe(false);
     expect(span("5 million cells was held out", "A panel of 1.5 million cells was held out;")).toBe(false);
@@ -479,13 +484,22 @@ describe("rule: a store record is a different resource", () => {
     // The case the review of #358 found accepted: a dataset named "Fraser kinase datasets" that cites the same repository.
     const store = sharing({ kind: "dataset", name: "Fraser kinase datasets" });
     for (const ground of ["different_resource", "different_source", "different_scope"])
-      expect(error(withRuling(SCIPLEX, { ground }), store)).toBe(`the ruling on ${SCIPLEX} is distinct, but the two records are both a dataset and give the same address (${REPO_KEY}), so it is a person's to make`);
+      expect(error(withRuling(SCIPLEX, { ground }), store)).toBe(`the ruling on ${SCIPLEX} is distinct, but the new record (a dataset) and the store record (a dataset) give the same address (${REPO_KEY}), so it is a person's to make`);
     const applied = applyRevision(p354.batch, p354.verdict.problems, { revisions: [p354.reply.revisions[0], withRuling(SCIPLEX, { ground: "different_scope" })] }, p354.texts, store);
     expect(applied.rulings).toEqual([]);
     expect(applied.unresolved.map((u: any) => u.field)).toEqual(["duplicates"]);
   });
 
-  it("rules a record of another kind at the same address distinct only on scope", () => {
+  it("does not take a model and a method, or any two kinds but a dataset and its subset, at one address for a whole and a part", () => {
+    const model = { ...dataset, kind: "model" };
+    for (const kind of ["method", "model", "benchmark", "dataset_subset"])
+      expect(ruleDuplicates(model, listed, withRuling(SCIPLEX, { ground: "different_scope" }), sharing({ kind })).error).toBe(`the ruling on ${SCIPLEX} is distinct, but the new record (a model) and the store record (a ${kind}) give the same address (${REPO_KEY}), so it is a person's to make`);
+    expect(error(withRuling(SCIPLEX, { ground: "different_scope" }), sharing({ kind: "benchmark" }))).toContain("the new record (a dataset) and the store record (a benchmark) give the same address");
+    // A subset in the batch against a dataset in the store is the same pair.
+    expect(ruleDuplicates({ ...dataset, kind: "dataset_subset" }, listed, withRuling(SCIPLEX, { ground: "different_scope" }), sharing({ kind: "dataset" })).error).toBeUndefined();
+  });
+
+  it("rules a dataset subset at the address of a dataset distinct only on scope", () => {
     // The store record is a dataset subset: a part and the whole share a source by construction.
     expect(error(answer, sharing())).toBe(`the ruling on ${SCIPLEX} rests on different_source, but the two records give the same address (${REPO_KEY})`);
     expect(error(withRuling(SCIPLEX, { ground: "different_resource" }), sharing())).toBe(`the ruling on ${SCIPLEX} rests on different_resource, but the two records give the same address (${REPO_KEY})`);
@@ -571,7 +585,7 @@ describe("rule: a store record is a different resource", () => {
     const store = store354();
     const paperOnly = { ...storeRecords.find((r) => r.id === SCIPLEX), kind: "dataset", attributes: { repository: "https://github.com/fraser-lab/Kinase_Inhibitor_Datasets/tree/main" } };
     store.candidates.set(SCIPLEX, candidate(paperOnly));
-    expect(error(answer, store)).toBe(`the ruling on ${SCIPLEX} is distinct, but the two records are both a dataset and give the same address (${REPO_KEY}), so it is a person's to make`);
+    expect(error(answer, store)).toBe(`the ruling on ${SCIPLEX} is distinct, but the new record (a dataset) and the store record (a dataset) give the same address (${REPO_KEY}), so it is a person's to make`);
   });
 });
 
@@ -640,7 +654,7 @@ describe("rule: a store record is the same resource", () => {
     }]);
     const prompt = revisionPromptLines({ fields: applied.fields, derived: applied.derived }).join("\n");
     expect(prompt).toContain("removed these records from it as the same resource as a store record");
-    expect(prompt).toContain("fail the duplicates field of the record named in report_on");
+    expect(prompt).toContain("Write a verdict on the duplicates field of the record named in report_on");
     expect(prompt).toContain(dataset.description);
     expect(revisionCloses(null)).toEqual([]);
     expect(revisionPromptLines(null)).toEqual([]);
@@ -899,7 +913,7 @@ describe("a live revision of #354, with fakes", () => {
 });
 
 /** The reviewer agent's run on a revised batch folder, with fakes: the prompt its model is given. */
-async function reviewPrompt(root: string, p: Loaded) {
+async function reviewPrompt(root: string, p: Loaded, review: any = { records: [], unopened: [] }, result: { rows?: any[]; outcome?: string } = {}) {
   const revised = readBatch(root, p, "batch.jsonl").trim().split("\n").map((l) => JSON.parse(l));
   fs.mkdirSync(path.join(root, "data/entities"), { recursive: true });
   const fileOf: Record<string, string> = { benchmark: "benchmarks", dataset: "datasets", model: "models", source: "sources" };
@@ -921,10 +935,10 @@ async function reviewPrompt(root: string, p: Loaded) {
       prompts.push(req.messages[0].content);
       return { model: req.model, stop_reason: "end_turn", content: [{ type: "text", text: "notes" }], usage: { input_tokens: 2000, output_tokens: 500 } };
     } }) } },
-    messages: { create: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify({ records: [], unopened: [] }) }], usage: { input_tokens: 500, output_tokens: 500 } }) },
+    messages: { create: async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify(review) }], usage: { input_tokens: 500, output_tokens: 500 } }) },
   };
   const fetchImpl = async (url: string) => new Response(`bytes ${url}`, { status: 200, headers: { "content-type": "text/html" } });
-  await reviewerMain(["--pr", String(p.fixture.pull.number), "--mode", "report-only", "--root", root], env, { github: client, approver: client, anthropic, fetch: fetchImpl, run: () => ({ ok: true, output: "" }), now, log: quiet, sleep: async () => {} });
+  Object.assign(result, await reviewerMain(["--pr", String(p.fixture.pull.number), "--mode", "report-only", "--root", root], env, { github: client, approver: client, anthropic, fetch: fetchImpl, run: () => ({ ok: true, output: "" }), now, log: quiet, sleep: async () => {} }));
   return prompts;
 }
 
@@ -951,6 +965,59 @@ describe("the reviewer's run on a revised pull request", () => {
     expect(prompts[0]).toContain('"addresses_in_common": []');
     // A dropped link needs no word from the intake agent.
     expect(prompts[0]).not.toContain("kept the value and quoted a passage");
+  });
+});
+
+describe("the reviewer's run on a pull request with a record closed out", () => {
+  // #354 with the duplicates its only failed field, and a dataset of the same name at the repository in the store.
+  const closedOut = async () => {
+    const root = rootWith(p354);
+    const sources = path.join(root, "data/entities/sources.jsonl");
+    fs.writeFileSync(sources, fs.readFileSync(sources, "utf8").replaceAll("https://arxiv.org/pdf/2607.23447v1", REPO_URL));
+    const subsets = path.join(root, "data/entities/dataset-subsets.jsonl");
+    fs.writeFileSync(subsets, fs.readFileSync(subsets, "utf8").replace('"kind":"dataset_subset"', '"kind":"dataset"').replace('"name":"Sci-Plex HDAC-inhibitor subset, 3 cell lines by 4 drugs (GIM preprocessing)"', '"name":"Kinase Inhibitor Datasets"'));
+    const body = p354.fixture.reviews.at(-1).body;
+    const marker = JSON.parse(/<!-- reviewer-verdict: (\{.*\}) -->$/.exec(body)![1]);
+    const only = `${body.split("<!-- reviewer-verdict")[0]}<!-- reviewer-verdict: ${JSON.stringify({ ...marker, problems: marker.problems.slice(1) })} -->`;
+    const reply = { revisions: [{ ...p354.reply.revisions[1], rulings: [{ id: SCIPLEX, ruling: "same", ground: "none", new_quote: "", store_quote: "", reason: "" }, p354.reply.revisions[1].rulings[1]] }] };
+    const f = fakes({ ...p354, fixture: { ...p354.fixture, reviews: [{ ...p354.fixture.reviews.at(-1), body: only }] } } as Loaded, { reply });
+    expect((await main(["--revise", "--pr", "354", "--root", root], env, f.deps)).outcome).toBe("revised");
+    return root;
+  };
+  const verdicts = (duplicates: any[]) => {
+    const benchmark = p354.batch.find((r) => r.id === BENCHMARK);
+    const fields = ["name", "description", "areas", "entity_level", "task", "scope_note", "links", "source_ids"].filter((f) => f in benchmark.attributes || ["name", "description", "areas", "links", "source_ids"].includes(f));
+    return { records: [{ id: BENCHMARK, fields: [...fields.map((field) => ({ field, verdict: "pass", problem: "", evidence: "README" })), ...duplicates] }], unopened: [] };
+  };
+
+  it("has a row for the removal on a record still in the batch, and a fail on it requests changes", async () => {
+    const root = await closedOut();
+    const result: { rows?: any[]; outcome?: string } = {};
+    const prompts = await reviewPrompt(root, p354, verdicts([{ field: "duplicates", verdict: "fail", problem: `${DATASET} is a different resource from ${SCIPLEX} and should have stayed`, evidence: "README" }]), result);
+    expect(prompts[0]).toContain("removed these records from it as the same resource as a store record");
+    expect(prompts[0]).toContain(`"report_on": "${BENCHMARK}"`);
+    const row = result.rows!.find((x) => x.id === BENCHMARK && x.field === "duplicates");
+    expect(row).toEqual(expect.objectContaining({ verdict: "fail", value: `${DATASET} removed as the same resource as ${SCIPLEX}`, note: expect.stringContaining("should have stayed") }));
+    expect(result.outcome).toBe("not posted (report-only): request changes");
+  });
+
+  it("is not an approval when the reviewer says nothing about the removal, and is one when it passes it", async () => {
+    const root = await closedOut();
+    const silent: { rows?: any[]; outcome?: string } = {};
+    await reviewPrompt(root, p354, verdicts([]), silent);
+    expect(silent.rows!.filter((x) => x.verdict !== "pass").map((x) => `${x.field} ${x.verdict}`)).toEqual(["duplicates unverifiable"]);
+    expect(silent.outcome).toBe("not posted (report-only): request changes");
+    const passed: { rows?: any[]; outcome?: string } = {};
+    await reviewPrompt(root, p354, verdicts([{ field: "duplicates", verdict: "pass", problem: "", evidence: "Both are the repository itself." }]), passed);
+    expect(passed.rows!.filter((x) => x.verdict !== "pass")).toEqual([]);
+  });
+
+  it("puts the row on the first record of the batch when the record named for the report is not there", () => {
+    const records = p354.batch.filter((r) => r.id !== DATASET);
+    const revision = { fields: [{ id: DATASET, action: "close", same_as: SCIPLEX, report_on: "gone" }] };
+    expect(closeRows(revision, records)).toEqual([{ id: BENCHMARK, field: "duplicates", value: `${DATASET} removed as the same resource as ${SCIPLEX}` }]);
+    expect(closeRows({ fields: [{ id: MODEL, action: "amend" }] }, records)).toEqual([]);
+    expect(closeRows(null, records)).toEqual([]);
   });
 });
 

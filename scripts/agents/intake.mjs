@@ -2008,6 +2008,8 @@ const MAX_AMEND_PASSAGE_CHARS = 600;
 const MIN_GROUND_CHARS = 12;
 /** How many words of a quoted phrase the other record must lack for the phrase to show a difference. */
 const MIN_TELLING_WORDS = 2;
+/** The one pair of kinds that is a whole and a part: two such records at one address can differ in scope. */
+const WHOLE_AND_PART = ['dataset', 'dataset_subset'];
 /** What a ruling of distinct may rest on. */
 export const RULING_GROUNDS = ['different_resource', 'different_source', 'different_scope'];
 
@@ -2098,14 +2100,14 @@ function verbatim(quote, text, min = MIN_PASSAGE_CHARS) {
 }
 
 /** Words and signs that change what a run of source text says when the run starts just after them. */
-const CUT_BEFORE = /(?:\b(?:not|no|never|none|without|except|excluding|than|over|under|nearly|almost|about|approximately|around|roughly|circa|only|least|most|up to|fewer|less|more)|[<>~=\u2248\u2264\u2265\u00b1])\s*$/i;
+const CUT_BEFORE = /(?:\b(?:not|no|never|none|without|except|excluding|than|over|under|nearly|almost|about|approximately|around|roughly|circa|only|least|most|up to|fewer|less|more|cannot)|n['\u2019]t|[<>~=\u2248\u2264\u2265\u00b1])\s*$/i;
 
 /**
  * Whether an amended value is the source's own words: one unbroken run of the quoted passage, as
  * the passage stands in the page text. Only the case of the first letter and one final full stop
  * are set aside. The run is placed in the page, not in the passage, so a passage cut short does
  * not make an end: the run starts at a word (not just after a negation or a hedge such as "not",
- * "more than" or "up to") and ends where the page ends a clause (a full stop, semicolon or colon
+ * "cannot", "wasn't", "more than" or "up to") and ends where the page ends a clause (a full stop, semicolon or colon
  * and then a space, or the end of the text). A comma is not an end, so a list or an "and" cannot
  * be cut. This checks that the words are the source's; whether they say enough is the reviewer's.
  */
@@ -2411,8 +2413,8 @@ export function applyRevision(records, problems, reply, texts = new Map(), store
  * record id to { id, kind, name, description, keys, urls } as the script read it from the store,
  * and `store.keys` maps a new record id to its own addresses (sourceKeys). Every listed record
  * must be ruled, and a ruling counts only on grounds the script can check in both records:
- *   distinct  both records give an address, and either they share none, or they share one, are of
- *             different kinds and the ground is different_scope (a subset and the whole). The
+ *   distinct  both records give an address, and either they share none, or they share one, are a
+ *             dataset and a dataset subset, and the ground is different_scope. The
  *             names must differ in more than added words, and the reply quotes a phrase from each
  *             record's own name or description that holds two words or more the other record
  *             lacks.
@@ -2450,7 +2452,9 @@ export function ruleDuplicates(record, listed, answer, store = {}) {
     if (!RULING_GROUNDS.includes(given.ground)) return { error: `the ruling on ${d.id} names no ground the script can check` };
     if (nameOverlap(record.name, c.name) === 1) return { error: `${d.id} and the new record have one name, or one name holds every word of the other, so a ruling of distinct is a person's to make` };
     if (!mine.length || !theirKeys.length) return { error: `the ruling on ${d.id} cannot be checked, because one of the two records gives no source or repository address to compare` };
-    if (shared.length && c.kind === record.kind) return { error: `the ruling on ${d.id} is distinct, but the two records are both a ${c.kind} and give the same address (${shared[0]}), so it is a person's to make` };
+    // A model and a method, or any other two kinds, at one address are not a whole and a part.
+    const wholeAndPart = c.kind !== record.kind && WHOLE_AND_PART.includes(c.kind) && WHOLE_AND_PART.includes(record.kind);
+    if (shared.length && !wholeAndPart) return { error: `the ruling on ${d.id} is distinct, but the new record (a ${record.kind}) and the store record (a ${c.kind}) give the same address (${shared[0]}), so it is a person's to make` };
     if (shared.length && given.ground !== 'different_scope') return { error: `the ruling on ${d.id} rests on ${given.ground}, but the two records give the same address (${shared[0]})` };
     if (!verbatim(given.new_quote, own, MIN_GROUND_CHARS)) return { error: `the ruling on ${d.id} quotes a phrase that is not in the new record's name or description` };
     if (!verbatim(given.store_quote, theirs, MIN_GROUND_CHARS)) return { error: `the ruling on ${d.id} quotes a phrase that is not in the store record's name or description` };

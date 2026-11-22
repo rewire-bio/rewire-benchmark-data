@@ -221,7 +221,7 @@ On 21 Nov 2026 the revision settled #338 and handed #352 and #354 to a person. B
 - The record has a text value in that field. The new wording is not empty, is at most 500 characters, and is not the old value again: a change of case, spacing or punctuation alone is not an amend.
 - The passage is in the page text the script fetched for a source the record cites, letter for letter. Only runs of white space are folded. Case, punctuation and every word must match, the passage is 20 to 600 characters long, and text the model fetched or remembers does not count. If the script could not open the page, no amend passes.
 - The new wording is one unbroken run of that passage (`sourceSpan`). Nothing is added, left out or reordered. Only the case of its first letter and one final full stop may differ.
-- The run is placed in the page, not in the passage, so a passage that is cut short does not make an end. It starts at a word, and not just after a negation or a hedge ("not", "without", "more than", "up to", "approximately" and a short list like them): that word has to be part of the run. It ends where the page ends a clause: a full stop, a semicolon or a colon followed by a space, or the end of the text. A comma is not an end, so a list or an "and" cannot be cut ("for pretraining" out of "for pretraining and evaluation" is refused).
+- The run is placed in the page, not in the passage, so a passage that is cut short does not make an end. It starts at a word, and not just after a negation or a hedge ("not", "cannot", "wasn't", "without", "more than", "up to", "approximately" and a short list like them): that word has to be part of the run. It ends where the page ends a clause: a full stop, a semicolon or a colon followed by a space, or the end of the text. A comma is not an end, so a list or an "and" cannot be cut ("for pretraining" out of "for pretraining and evaluation" is refused).
 - The wording holds nothing a stored value may not: no link, no @-mention, no HTML comment, no em or en dash. A run of the page that has one goes to a person.
 - The revised batch differs from the first in that attribute and in the segment of `source_locator` for that field, which now names the source and says the value is its own words. No other segment of the locator and nothing of `missing_metadata` changes.
 
@@ -252,7 +252,7 @@ A ruling of `distinct` counts only when:
 
 - every store record the finding names has a ruling, given by its id or, as the structuring call sometimes writes it, by its whole name. A name is read only when one listed record has it;
 - both records give at least one address. A record with none cannot be compared, on any ground;
-- the two records share no address, or they share one, are of different kinds and the ground is `different_scope` (a dataset and a dataset subset from one repository). Two records of one kind at one address go to a person, whatever the ground and the phrases;
+- the two records share no address, or they share one, are a dataset and a dataset subset, and the ground is `different_scope`. Any other two records at one address go to a person, whatever the ground and the phrases: two datasets, and also a model and a method, which the duplicate check treats as one kind;
 - neither name holds every distinctive word of the other (`nameOverlap` below 1). "Kinase Inhibitor Datasets v2" against "Kinase_Inhibitor_Datasets" goes to a person;
 - the reply quotes one phrase from the new record and one from the store record, each found letter for letter in that record's own name or description and at least 12 characters long, and each holds two words or more that the other record's name and description lack. Words under four letters, common words ("other", "from", "five"), generic words ("dataset", "benchmark") and bare numbers do not count.
 
@@ -265,7 +265,7 @@ If any named record has no ruling, or a ruling fails a check, the field is unset
 A ruling that passes these checks is still a claim, and the reviewer judges each one again with its own input (`revisionPromptLines` in `reviewer.mjs`, read from `revision.json`):
 
 - for a ruling of `distinct`, the store record itself as the intake script read it from main (name, description, addresses), the ground, and the addresses the two records have in common. Before, the reviewer saw only the id, the label and the locator the revision wrote;
-- for a close-out, the removed record (name, kind, description), the store record, the links that moved, and the id of a record still in the batch (`report_on`). The removed record is not among the records under review, so the reviewer fails `duplicates` on that record when it finds the removal wrong;
+- for a close-out, the removed record (name, kind, description), the store record, the links that moved, and the id of a record still in the batch (`report_on`). The removed record is not among the records under review, so the reviewer writes its verdict on the removal as `duplicates` of that record. The review table has that row whether or not the record has rulings of its own (`closeRows`): a fail requests changes, and so does a row with no verdict, which is unverifiable;
 - for an amend, the old value, the new one and the passage.
 
 `kg.json` keeps its shape. A second request for changes sends the pull request to a person.
