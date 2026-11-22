@@ -54,6 +54,7 @@ export function queriesOf(activity: Record<string, any>[]): string[];
 export function triageLane(candidates: Candidate[], opts: { isKnown: (candidate: Candidate) => { where: string; reason: string } | null; seen: Map<string, string> }): { fresh: Candidate[]; dropped: LaneDrop[] };
 export function laneReport(lane: { name: string; focus?: string }): LaneReport;
 export function laneCounts(report: LaneReport): { searches: number; fetches: number; output_tokens: number; raw: number; known: number; remembered: number; other: number; to_judge: number };
+export function scanEnding(requests: Record<string, any>[]): string;
 export function laneLine(report: LaneReport): string;
 export function redactor(env?: Record<string, string | undefined>): (text: unknown) => string;
 export function writeLaneReports(out: string, reports: LaneReport[], opts: { mode: string; runDate: string; redact?: (text: unknown) => string }): void;

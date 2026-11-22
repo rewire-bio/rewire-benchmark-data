@@ -607,7 +607,9 @@ export class Usage {
 export function renderSummary({ mode, runDate, usage, filed, skipped, notes = [], lanes = [] }) {
   const laneRows = lanes.map((report) => {
     const n = laneCounts(report);
-    return `| ${report.lane} | ${clean(report.status)} | ${n.searches} | ${n.fetches} | ${n.raw} | ${n.known} | ${n.remembered} | ${n.other} | ${n.to_judge} |`;
+    // The status can carry the text of an API error. A bar or a line break would split the row.
+    const status = clean(report.status).replace(/\s+/g, ' ').replace(/\|/g, '\\|');
+    return `| ${report.lane} | ${status} | ${n.searches} | ${n.fetches} | ${n.raw} | ${n.known} | ${n.remembered} | ${n.other} | ${n.to_judge} |`;
   });
   return [
     `## Discovery scan, ${runDate} (${mode})`,
@@ -775,18 +777,29 @@ function textOf(message) {
   return message.content.filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim();
 }
 
-/** Search queries written as string literals in code the model ran (best effort). */
+/**
+ * Search queries written as string literals in code the model ran (best effort): a string given
+ * to `query` or `web_search(`, and each string in a list assigned to a name that holds "quer" or
+ * "search" (`queries = [...]`). A query built at run time is not found; the code itself is kept.
+ */
 function queriesInCode(code) {
+  const text = String(code);
+  const literal = /(["'`])((?:(?!\1)[^\n\\]|\\.)+)\1/g;
   const found = [];
-  for (const m of String(code).matchAll(/(?:query["']?\s*[:=]?\s*|web_search\(\s*)(["'`])((?:(?!\1)[^\n])+)\1/g)) found.push(m[2]);
-  return [...new Set(found)];
+  for (const m of text.matchAll(/(?:query["']?\s*[:=]?\s*|web_search\(\s*)(["'`])((?:(?!\1)[^\n])+)\1/g)) found.push({ at: m.index, query: m[2] });
+  for (const list of text.matchAll(/\b\w*(?:quer|search)\w*\s*(?::[^=\n]*)?=\s*\[([^\]]*)\]/gi)) {
+    for (const m of list[1].matchAll(literal)) found.push({ at: list.index + m.index, query: m[2] });
+  }
+  return [...new Set(found.sort((a, b) => a.at - b.at).map((f) => f.query))];
 }
 
 /**
  * What the server tools did in one reply, for the lane files: each tool call with its query,
  * URL or code, and each result with the URLs and titles it returned or its error code. It reads
  * the blocks by their fields and not by an exact type, because the block types differ between
- * tool versions. Page text and encrypted fields are never copied; long strings are cut.
+ * tool versions. The page text a fetch returns and encrypted fields are never copied. What code
+ * printed (stdout, stderr) is kept up to the cap, and that can hold search result text or page
+ * text when the model ran its searches from code. Every string is cut at the cap.
  */
 export function toolActivity(content, cap = 4000) {
   const cut = (text) => {
@@ -892,16 +905,37 @@ export function laneCounts(report) {
   };
 }
 
-/** The line each lane prints. The four counts after "raw candidates" add up to it. */
+/**
+ * How a scan that returned notes ended. A reply cut at max_tokens, or a lane stopped at the
+ * pause_turn cap, still gives notes, but they may lack candidates the scan had not written yet.
+ */
+export function scanEnding(requests) {
+  const last = requests.at(-1)?.stop_reason;
+  if (last === 'max_tokens') return 'finished; the notes were cut at max_tokens and may be incomplete';
+  if (last === 'pause_turn') return 'finished; the scan stopped at the pause_turn cap and the notes may be incomplete';
+  return 'finished';
+}
+
+/**
+ * The line each lane prints. The four counts after "raw candidates" add up to it. "To judge" is
+ * what passed the filters; the judge cap and the run cost check come after. A lane whose notes
+ * may be incomplete says so at the end of its line.
+ */
 export function laneLine(report) {
   const n = laneCounts(report);
   if (report.raw_candidates === null) return `scan ${report.lane}: ${n.searches} searches, no candidate list (${report.status})`;
-  return `scan ${report.lane}: ${n.searches} searches, ${n.raw} raw candidates, ${n.known} dropped as known, ${n.remembered} dropped as remembered, ${n.other} dropped for another reason, ${n.to_judge} to judge`;
+  const ending = ['finished', 'read from fixtures'].includes(report.status) ? '' : ` (${report.status})`;
+  return `scan ${report.lane}: ${n.searches} searches, ${n.raw} raw candidates, ${n.known} dropped as known, ${n.remembered} dropped as remembered, ${n.other} dropped for another reason, ${n.to_judge} to judge${ending}`;
 }
 
-/** Replaces the values of the run's secrets, should one ever appear in text written to --out. */
+/**
+ * Replaces the values of the run's secrets, should one ever appear in text written to --out. It
+ * also replaces each value as JSON writes it, because the lane file is redacted after it is
+ * made into JSON, where a quote or a backslash in a value is escaped.
+ */
 export function redactor(env = {}) {
-  const secrets = ['ANTHROPIC_API_KEY', 'GH_TOKEN', 'GITHUB_TOKEN', 'ARTICLE_TOKEN'].map((k) => env[k]).filter((v) => typeof v === 'string' && v.length >= 8);
+  const values = ['ANTHROPIC_API_KEY', 'GH_TOKEN', 'GITHUB_TOKEN', 'ARTICLE_TOKEN'].map((k) => env[k]).filter((v) => typeof v === 'string' && v.length >= 8);
+  const secrets = [...new Set(values.flatMap((v) => [v, JSON.stringify(v).slice(1, -1)]))];
   return (text) => secrets.reduce((t, secret) => t.split(secret).join('[redacted]'), String(text));
 }
 
@@ -1122,7 +1156,7 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
       stop('the structuring call returned no usable candidate list', `Scan lane "${lane.name}": triage returned no usable candidate list.`);
       continue;
     }
-    report.status = 'finished';
+    report.status = scanEnding(report.requests);
     report.raw_candidates = triaged.candidates ?? [];
     const { fresh, dropped } = triageLane(report.raw_candidates, { isKnown, seen });
     report.dropped = dropped;
@@ -1425,7 +1459,13 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         if (p.article) writeFileSync(join(args.out, `${i + 1}-article.md`), `# ${p.article.title}\n\nLabels: ${p.article.labels.join(', ')}\n\n${p.article.body}\n`);
       }
       writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total() }, null, 2)}\n`);
-      writeLaneReports(args.out, laneReports, { mode, runDate, redact: redactor(env) });
+      // The lane files are a record of the run. A failure to write them must not replace the
+      // error that ended the run, or fail a run that filed its issues.
+      try {
+        writeLaneReports(args.out, laneReports, { mode, runDate, redact: redactor(env) });
+      } catch (e) {
+        log(`::warning::The lane files could not be written (${errorText(e)}).`);
+      }
     }
     log(`Estimated cost of this run: $${usage.total().toFixed(4)}`);
   }
