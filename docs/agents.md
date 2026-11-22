@@ -9,7 +9,7 @@ Agents that run from GitHub Actions and call the Claude API. They are paid from 
 What it does:
 
 1. Haiku 5.5 searches the web for AI-for-biology models, methods, benchmarks and datasets that the database does not hold yet (web search and web fetch server tools). It makes one call for each of three lanes: genomics, proteins, and cells and other biology. Set the repository variable `DISCOVERY_SCAN_MODEL` to `claude-sonnet-5-5` to scan with Sonnet instead.
-2. Haiku 5.5 turns each lane's notes into a candidate list. The script drops candidates whose name is already in an issue title or the record store, then those the judge rejected in the last 30 days, then those triage calls out of scope or weak.
+2. Haiku 5.5 turns each lane's notes into a candidate list (the "raw candidates"). The script drops candidates whose name is already in an issue title or the record store, then those the judge rejected in the last 30 days, then those triage calls out of scope or weak.
 3. Sonnet 5.5 checks each remaining candidate against its primary sources (up to six a run, taken from the lanes in turn). It is given the records and requests whose name differs only by a version or size. Haiku 5.5 turns those notes into fixed fields. Notes that end with SKIP are never filed, whatever the fixed fields say, and notes cut off at the output limit are dropped.
 4. The script deduplicates again, on names, aliases, DOIs, arXiv IDs and GitHub or Hugging Face repositories, against:
    - every open and closed issue in this repository, and in rewire.it when it has a token;
@@ -40,6 +40,27 @@ A name of four characters or more is also compared as a spelling: without spaces
 A different version or a size is not a match: "BioEmu-3", "ESM3" and "ESM-2 650M" go to the judge. The judge is told which records and requests have the same name without its version or size, and to skip the candidate when it is one of them under another spelling, or only a size, checkpoint or minor release of it. The judge is not told that the database lacks the resource. It is told what the script compared.
 
 The script stops before any model call when it reads no name from `data/entities/`. A store that had moved, or a checkout without it, would otherwise make every stored resource look new.
+
+### What each run records
+
+Every run, in every mode, writes its working to the run artifact (`discovery-<run id>`, kept 30 days) beside `plan.json` and `usage.json`. Under `scan/` there are two files for each lane:
+
+- `<lane>.json`: the search queries, each request's stop reason, tokens and reported searches and fetches, the tool calls and the URLs and titles they returned, the lane notes, the candidate list as the structuring call returned it before any filter, each dropped candidate with its category and reason, and the names sent to the judge.
+- `<lane>-notes.md`: the lane notes alone, as the scan wrote them.
+
+The job log and the summary carry one line per lane:
+
+`scan genomics: 8 searches, 5 raw candidates, 2 dropped as known, 1 dropped as remembered, 1 dropped for another reason, 1 to judge`
+
+The four counts after "raw candidates" add up to it. "Known" means an issue or the record store holds the name. "Remembered" means the judge rejected it in the lookback period. "Another reason" is a candidate with no name, one triage calls out of scope, or a repeat of another lane. A lane that stops before it has a candidate list prints why instead: the scan budget, a refusal or empty reply with its stop reason, a failed call, or a structuring reply that could not be used.
+
+The queries come from the tool blocks of the reply. This tool version can run searches from code, so a query may appear only inside a code block; the file keeps the code (cut at 4,000 characters) and the query strings found in it. The search and fetch counts are the ones the API reports, not a count of blocks. Page text is not copied. The files hold model output and public URLs only; the request, its headers and the environment are never written, and the value of each token the run holds is replaced should it ever appear in the text.
+
+A dry run has no scan. It reads `tests/agents-discovery-fixtures/scan.json`, runs the same triage on it and writes the same files, so the format is checked on every pull request.
+
+Why this exists. The scheduled run of 22 November 2026 (45041276604) made 24 searches and reported "0 candidates" in all three lanes, and the genomics lane had reported the same the day before. That count is taken before any filter in the script, so no skip list, remembered rejection or ordering rule dropped anything: the candidate lists came back empty. The artifact held only `plan.json` and `usage.json`, so nothing showed whether the searches found nothing, the notes named nothing, the script lost part of the notes, or the structuring call lost what the notes named.
+
+One defect was fixed with the lane files. A reply resumed after `pause_turn` holds only the text written after the pause, and the script used to keep only that last part, so a lane or a judge call that paused lost its earlier notes. It now joins the parts. The usage of 21 November shows that at least one lane was resumed that day: Haiku made 6 page fetches, one scan request made none, and a request allows 2. The lane files record each request's stop reason, so a resumed lane is visible from now on.
 
 ### Rejected candidates
 

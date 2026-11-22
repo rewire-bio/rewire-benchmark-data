@@ -47,8 +47,18 @@ export class Usage {
   total(): number;
   table(): string;
 }
-export function renderSummary(input: { mode: string; runDate: string; usage: Usage; filed: any[]; skipped: { name: string; reason: string }[]; notes?: string[] }): string;
+export interface LaneDrop { name: string; category: "known" | "remembered" | "other"; reason: string }
+export interface LaneReport { lane: string; focus?: string; status: string; requests: Record<string, any>[]; activity?: Record<string, any>[]; notes?: string; raw_candidates: Candidate[] | null; dropped: LaneDrop[]; to_judge: string[] }
+export function toolActivity(content: unknown, cap?: number): Record<string, any>[];
+export function queriesOf(activity: Record<string, any>[]): string[];
+export function triageLane(candidates: Candidate[], opts: { isKnown: (candidate: Candidate) => { where: string; reason: string } | null; seen: Map<string, string> }): { fresh: Candidate[]; dropped: LaneDrop[] };
+export function laneReport(lane: { name: string; focus?: string }): LaneReport;
+export function laneCounts(report: LaneReport): { searches: number; fetches: number; output_tokens: number; raw: number; known: number; remembered: number; other: number; to_judge: number };
+export function laneLine(report: LaneReport): string;
+export function redactor(env?: Record<string, string | undefined>): (text: unknown) => string;
+export function writeLaneReports(out: string, reports: LaneReport[], opts: { mode: string; runDate: string; redact?: (text: unknown) => string }): void;
+export function renderSummary(input: { mode: string; runDate: string; usage: Usage; filed: any[]; skipped: { name: string; reason: string }[]; notes?: string[]; lanes?: LaneReport[] }): string;
 export function githubClient(token: string, fetchImpl?: typeof fetch): any;
 export function parseBlogIndex(html: string, base?: string): Article[];
 export interface Planned { name: string; tier: Tier; labels: string[]; title: string; data: { title: string; body: string; labels: string[] }; article: { title: string; body: string; labels: string[] } | null; dataUrl?: string; articleUrl?: string; articleNote?: string }
-export function main(argv?: string[], env?: Record<string, string | undefined>, deps?: Record<string, any>): Promise<{ summary: string; planned: Planned[]; skipped?: { name: string; reason: string }[]; usage?: Usage }>;
+export function main(argv?: string[], env?: Record<string, string | undefined>, deps?: Record<string, any>): Promise<{ summary: string; planned: Planned[]; skipped?: { name: string; reason: string }[]; usage?: Usage; lanes?: LaneReport[] }>;

@@ -5,7 +5,8 @@ import { describe, expect, it } from "vitest";
 import {
   AREAS, GENOMIC_AREAS, LABELS, LIMITS, PRICES, PROTEIN_AREAS, SCAN_LANES, Usage, ageInDays, clean, dataLabels, findDuplicate,
   findRejected, githubClient, identifiersOf, keyOf, knownTitles, main, matchForm, nearMatches, parseBlogIndex, planFiling,
-  readRejected, readStoreNames, renderArticleIssue, renderDataIssue, scanPrompt, spellForm, tierOf, verdictOf,
+  laneLine, queriesOf, readRejected, readStoreNames, redactor, renderArticleIssue, renderDataIssue, scanPrompt, spellForm, tierOf,
+  toolActivity, triageLane, verdictOf,
 } from "../scripts/agents/discovery.mjs";
 
 // The discovery scan (#254). Everything here runs without an API key or network: the dry run
@@ -160,7 +161,96 @@ describe("dry run", () => {
   it("writes the planned issues to --out for inspection", async () => {
     const out = mkdtempSync(join(tmpdir(), "discovery-"));
     await dryRun(["--out", out]);
-    expect(readdirSync(out).sort()).toEqual(["1-data.md", "2-data.md", "3-data.md", "4-data.md", "5-data.md", "plan.json", "usage.json"]);
+    expect(readdirSync(out).sort()).toEqual(["1-data.md", "2-data.md", "3-data.md", "4-data.md", "5-data.md", "plan.json", "scan", "usage.json"]);
+  });
+});
+
+// What each run records about its scan lanes. The dry run reads tests/agents-discovery-fixtures/scan.json,
+// which is written for these tests and is not a recorded API reply.
+describe("lane files and lane lines", () => {
+  const lane = (out: string, name: string) => JSON.parse(readFileSync(join(out, "scan", `${name}.json`), "utf8"));
+
+  it("writes, for each lane of a dry run, the queries, the notes, the raw candidates and each drop with its reason", async () => {
+    const out = mkdtempSync(join(tmpdir(), "discovery-"));
+    const lines: string[] = [];
+    const { planned, lanes } = await main(["--dry-run", "--fixtures", FIXTURES, "--max-pairs", "10", "--out", out], {}, { now, log: (m: string) => lines.push(m) });
+    expect(readdirSync(join(out, "scan")).sort()).toEqual([
+      "cells-and-other-biology-notes.md", "cells-and-other-biology.json", "genomics-notes.md", "genomics.json", "proteins-notes.md", "proteins.json",
+    ]);
+    const genomics = lane(out, "genomics");
+    // One query was given to the search tool, one was inside code, one search returned an error.
+    expect(genomics.queries).toEqual(["bioRxiv genomic language model November 2026", "variant effect prediction benchmark 2026", "site:huggingface.co RNA foundation model"]);
+    expect(genomics.tool_activity.find((a: any) => a.results)?.results.map((r: any) => r.url)).toEqual(["https://www.biorxiv.org/content/10.1101/2026.11.10.700001v1", "https://example.org/news/ai-biology-roundup"]);
+    expect(genomics.tool_activity.find((a: any) => a.error)?.error).toBe("max_uses_exceeded");
+    expect(genomics.tool_activity.find((a: any) => a.stdout)?.stdout).toContain("VariantBench fixture");
+    expect(genomics.requests).toEqual([{ stop_reason: "end_turn", input_tokens: 9000, output_tokens: 900, web_search_requests: 3, web_fetch_requests: 1, tool_use_reported: true, text_characters: 260 }]);
+    // The candidate list is kept as it came back, before any filter.
+    expect(genomics.raw_candidates.map((c: any) => c.name)).toEqual(["GenoNova fixture", "VariantBench fixture", "Bacformer", "PipeWrap fixture", ""]);
+    expect(genomics.dropped).toEqual([
+      { name: "Bacformer", category: "known", reason: 'already known, not judged: "bacformer" matches store record bacformer-20261115-model-bacformer' },
+      { name: "PipeWrap fixture", category: "other", reason: "triage: workflow wrapper with no model" },
+      { name: "(no name)", category: "other", reason: "the candidate has no name" },
+    ]);
+    expect(genomics.to_judge).toEqual(["GenoNova fixture", "VariantBench fixture"]);
+    expect(genomics.counts).toMatchObject({ searches: 3, fetches: 1, raw: 5, known: 1, remembered: 0, other: 2, to_judge: 2 });
+    expect(readFileSync(join(out, "scan", "genomics-notes.md"), "utf8")).toContain("VariantBench fixture, a benchmark of variant effect predictors");
+    // Page text and encrypted search content are never copied.
+    const written = readdirSync(join(out, "scan")).map((f) => readFileSync(join(out, "scan", f), "utf8")).join("\n");
+    expect(written).not.toContain("Full page text");
+    expect(written).not.toContain("EqgfCioIARgB");
+    expect(written).not.toContain("encrypted_content");
+
+    expect(lane(out, "proteins").dropped.map((d: any) => [d.name, d.category])).toEqual([["MIMOSA", "known"], ["Enchant-3", "known"], ["GenoNova", "other"]]);
+    expect(lines.filter((l) => l.startsWith("scan "))).toEqual([
+      "scan genomics: 3 searches, 5 raw candidates, 1 dropped as known, 0 dropped as remembered, 2 dropped for another reason, 2 to judge",
+      "scan proteins: 2 searches, 3 raw candidates, 2 dropped as known, 0 dropped as remembered, 1 dropped for another reason, 0 to judge",
+      "scan cells and other biology: 8 searches, 0 raw candidates, 0 dropped as known, 0 dropped as remembered, 0 dropped for another reason, 0 to judge",
+    ]);
+    for (const report of lanes!) {
+      const n = lane(out, report.lane.replace(/ /g, "-")).counts;
+      expect(n.known + n.remembered + n.other + n.to_judge).toBe(n.raw);
+    }
+    // The lane files do not change what a dry run plans.
+    expect(planned).toHaveLength(5);
+  });
+
+  it("puts the lane table in the summary", async () => {
+    const { summary } = await dryRun();
+    expect(summary).toContain("### Scan lanes");
+    expect(summary).toContain("| genomics | read from fixtures | 3 | 1 | 5 | 1 | 0 | 2 | 2 |");
+    expect(summary).toContain("| cells and other biology | read from fixtures | 8 | 0 | 0 | 0 | 0 | 0 | 0 |");
+  });
+
+  it("reads tool blocks by their fields, so a block type it has not seen is still recorded", () => {
+    const activity = toolActivity([
+      { type: "text", text: "notes" },
+      { type: "some_future_tool_use", name: "web_search", input: { query: "arXiv q-bio.GN DNA language model" } },
+      { type: "some_future_tool_result", content: { results_blob: "x", content: [{ url: "https://arxiv.org/abs/2611.00001", title: "A DNA model", encrypted_content: "secret" }] } },
+      { type: "server_tool_use", name: "bash_code_execution", input: { command: "search --query 'RNA structure benchmark'\n" + "#".repeat(5000) } },
+      null,
+    ]);
+    expect(activity.map((a: any) => a.type)).toEqual(["some_future_tool_use", "some_future_tool_result", "server_tool_use"]);
+    expect(activity[1].results).toEqual([{ url: "https://arxiv.org/abs/2611.00001", title: "A DNA model" }]);
+    expect(activity[2].code).toMatch(/\[cut from 50\d\d characters\]$/);
+    expect(queriesOf(activity)).toEqual(["arXiv q-bio.GN DNA language model", "RNA structure benchmark"]);
+    expect(toolActivity(undefined)).toEqual([]);
+  });
+
+  it("sorts each dropped candidate into known, remembered or another reason", () => {
+    const candidate = (name: string, extra: any = {}) => ({ name, aliases: [], in_scope: true, reason: "", ...extra });
+    const isKnown = (c: any) => c.name === "Held" ? { where: "store", reason: "in the store" } : c.name === "Rejected" ? { where: "rejected", reason: "rejected before" } : null;
+    const seen = new Map([["earlier", "Earlier"]]);
+    const { fresh, dropped } = triageLane([candidate("Held"), candidate("Rejected"), candidate("Weak", { in_scope: false, reason: "a wrapper" }), candidate("Earlier"), candidate("New"), {}], { isKnown, seen });
+    expect(fresh.map((c: any) => c.name)).toEqual(["New"]);
+    expect(dropped.map((d: any) => [d.name, d.category])).toEqual([["Held", "known"], ["Rejected", "remembered"], ["Weak", "other"], ["Earlier", "other"], ["(no name)", "other"]]);
+    expect(laneLine({ lane: "genomics", status: "no notes; the last request stopped with refusal", requests: [{ web_search_requests: 2 }], raw_candidates: null, dropped: [], to_judge: [] }))
+      .toBe("scan genomics: 2 searches, no candidate list (no notes; the last request stopped with refusal)");
+  });
+
+  it("replaces the value of a token and leaves short values and other text alone", () => {
+    const redact = redactor({ ANTHROPIC_API_KEY: "sk-ant-fixture-0123456789", GH_TOKEN: "ghs_fixture0123456789", ARTICLE_TOKEN: "t" });
+    expect(redact("key sk-ant-fixture-0123456789 and token ghs_fixture0123456789, not this")).toBe("key [redacted] and token [redacted], not this");
+    expect(redactor({})("unchanged")).toBe("unchanged");
   });
 });
 
@@ -496,6 +586,11 @@ describe("recorded scan of 20 November 2026", () => {
     };
   }
 
+  const LANE_LINES = [
+    "scan genomics: 8 searches, 4 raw candidates, 2 dropped as known, 0 dropped as remembered, 0 dropped for another reason, 2 to judge",
+    "scan proteins: 8 searches, 4 raw candidates, 2 dropped as known, 0 dropped as remembered, 1 dropped for another reason, 1 to judge",
+    "scan cells and other biology: 8 searches, 3 raw candidates, 1 dropped as known, 0 dropped as remembered, 1 dropped for another reason, 1 to judge",
+  ];
   const judgedNames = (client: ReturnType<typeof replay>) => client.calls.filter((c) => c.kind === "stream")
     .map((c) => /Name: (.*)/.exec(String(c.params.messages[0].content))?.[1]).filter(Boolean);
 
@@ -577,6 +672,29 @@ describe("recorded scan of 20 November 2026", () => {
     expect(genomics.map((c) => c.params.tools[0].max_uses)).toEqual([8, 5, 2]);
     expect(planned.map((p) => p.name)).toContain("GenoNova fixture");
     expect(skipped!.find((s) => s.name === "Bacformer")?.reason).toContain("already known, not judged");
+  });
+
+  it("prints one line per lane and keeps the lane's working for the run artifact", async () => {
+    const out = mkdtempSync(join(tmpdir(), "discovery-"));
+    const lines: string[] = [];
+    const { lanes } = await main([...args, "--report-only", "--out", out], env, { now: runDay, log: (m: string) => lines.push(m), anthropic: replay(), github: github(realIssues), fetch: blog });
+    expect(lines.filter((l) => l.startsWith("scan "))).toEqual(LANE_LINES);
+    expect(lanes!.map((l: any) => l.status)).toEqual(["finished", "finished", "finished"]);
+    const genomics = JSON.parse(readFileSync(join(out, "scan", "genomics.json"), "utf8"));
+    expect(genomics.mode).toBe("report only");
+    expect(genomics.notes).toBe(recordedScan.genomics.notes);
+    expect(genomics.raw_candidates).toEqual(recordedScan.genomics.candidates);
+    expect(genomics.requests).toEqual([{ stop_reason: "end_turn", input_tokens: 2000, output_tokens: 500, web_search_requests: 8, web_fetch_requests: 0, tool_use_reported: true, text_characters: recordedScan.genomics.notes.length }]);
+    expect(genomics.dropped.map((d: any) => [d.name, d.category])).toEqual([["Ladon", "known"], ["Bacformer", "known"]]);
+    expect(genomics.to_judge).toEqual(["GenoNova fixture", "SpliceAtlas fixture"]);
+  });
+
+  it("gives a lane that never ran a line and a row with the reason", async () => {
+    const lines: string[] = [];
+    const { lanes, summary } = await main([...args, "--report-only"], env, { now: runDay, log: (m: string) => lines.push(m), anthropic: replay({ searches: 13 }), github: github(realIssues), fetch: blog });
+    expect(lines).toContain("scan cells and other biology: 0 searches, no candidate list (not run: scan budget)");
+    expect(lanes!.map((l: any) => [l.lane, l.status])).toContainEqual(["cells and other biology", "not run: scan budget"]);
+    expect(summary).toContain("| cells and other biology | not run: scan budget | 0 | 0 | 0 | 0 | 0 | 0 | 0 |");
   });
 
   it("rotates the first lane by day", async () => {
@@ -907,6 +1025,77 @@ describe("guards on the live path", () => {
       const { skipped } = await run(client, data, [], { env: { ARTICLE_TOKEN: "t" }, deps: { articleGithub: articles } });
       expect(client.judgedNames()).toEqual(["BirchFold"]);
       expect(skipped!.find((s) => s.name === "AlderFold")?.reason).toBe('already known, not judged: "alderfold" is in the title of rewire-bio/rewire.it#77');
+    });
+  });
+
+  describe("a reply resumed after pause_turn", () => {
+    const text = (t: string) => [{ type: "text", text: t }];
+    const structuredNotes = (client: ReturnType<typeof standIn>, marker: string) => String(client.calls.find((c) => c.kind === "create" && String(c.params.messages[0].content).includes(marker))?.params.messages[0].content);
+
+    it("keeps the scan notes written before the pause", async () => {
+      // The resumed reply holds only what was written after the pause.
+      const client = standIn({
+        candidates: [scanCandidate("AlderFold")],
+        scan: (lane, request) => lane !== "genomics" ? {} : request === 1
+          ? { stop_reason: "pause_turn", content: text("scan notes genomics, first part: AlderFold, a structure model.") }
+          : { content: text("Second part: nothing further.") },
+      });
+      const { lanes } = await run(client, github(), ["--report-only"]);
+      const notes = structuredNotes(client, "first part");
+      expect(notes).toContain("scan notes genomics, first part: AlderFold, a structure model.\n\nSecond part: nothing further.");
+      expect(client.judgedNames()).toEqual(["AlderFold"]);
+      const genomics = lanes!.find((l: any) => l.lane === "genomics")!;
+      expect(genomics.requests.map((r: any) => r.stop_reason)).toEqual(["pause_turn", "end_turn"]);
+      expect(genomics.notes).toContain("first part");
+    });
+    it("keeps the judge notes written before the pause, and still reads the verdict at the end", async () => {
+      const requests: Record<string, number> = {};
+      const client = standIn({
+        candidates: [scanCandidate("AlderFold")],
+        judge: (name) => (requests[name] = (requests[name] ?? 0) + 1) === 1
+          ? { stop_reason: "pause_turn", content: text(`notes for ${name}\nSources opened: the preprint.`) }
+          : { content: text("The weights are new.\nFILE") },
+      });
+      const data = github();
+      await run(client, data);
+      expect(structuredNotes(client, "Sources opened")).toContain("Sources opened: the preprint.\n\nThe weights are new.\nFILE");
+      expect(data.created).toHaveLength(1);
+    });
+    it("records why a lane has no notes", async () => {
+      const lines: string[] = [];
+      const client = standIn({ scan: (lane) => lane === "genomics" ? { stop_reason: "refusal", stop_details: { category: "bio" }, content: [] } : {} });
+      const { lanes, summary } = await run(client, github(), ["--report-only"], { deps: { log: (m: string) => lines.push(m) } });
+      expect(lines).toContain("scan genomics: 1 searches, no candidate list (no notes; the last request stopped with refusal)");
+      expect(lanes!.find((l: any) => l.lane === "genomics")!.requests).toHaveLength(1);
+      expect(summary).toContain("| genomics | no notes; the last request stopped with refusal | 1 | 1 | 0 | 0 | 0 | 0 | 0 |");
+      expect(summary).toContain('Scan lane "genomics" was refused or did not finish.');
+    });
+  });
+
+  describe("what a live run writes to --out", () => {
+    it("counts a remembered rejection apart from a known name, and keeps tokens out of the lane files", async () => {
+      const state = join(mkdtempSync(join(tmpdir(), "discovery-")), "state", "rejected.json");
+      await run(standIn({ candidates: [scanCandidate("AlderFold")], decision: "skip" }), github(), ["--state", state]);
+      const out = mkdtempSync(join(tmpdir(), "discovery-"));
+      const key = "sk-ant-fixture-0123456789";
+      const lines: string[] = [];
+      const client = standIn({
+        candidates: [scanCandidate("AlderFold"), scanCandidate("Bacformer"), scanCandidate("CedarFold")],
+        scan: (lane) => lane === "genomics" ? { content: [
+          { type: "server_tool_use", id: "s1", name: "web_search", input: { query: `bioRxiv protein structure ${key}` } },
+          { type: "web_search_tool_result", tool_use_id: "s1", content: [{ type: "web_search_result", url: "https://www.biorxiv.org/content/10.1101/2026.11.01.800001v1", title: "CedarFold" }] },
+          { type: "text", text: `scan notes genomics ${key}` },
+        ] } : {},
+      });
+      await run(client, github(), ["--state", state, "--out", out], { now: new Date("2026-11-22T08:00:00Z"), env: { ANTHROPIC_API_KEY: key }, deps: { log: (m: string) => lines.push(m) } });
+      expect(lines).toContain("scan genomics: 1 searches, 3 raw candidates, 1 dropped as known, 1 dropped as remembered, 0 dropped for another reason, 1 to judge");
+      const genomics = JSON.parse(readFileSync(join(out, "scan", "genomics.json"), "utf8"));
+      expect(genomics.dropped.map((d: any) => [d.name, d.category])).toEqual([["AlderFold", "remembered"], ["Bacformer", "known"]]);
+      expect(genomics.queries).toEqual(["bioRxiv protein structure [redacted]"]);
+      for (const file of readdirSync(join(out, "scan"))) expect(readFileSync(join(out, "scan", file), "utf8")).not.toContain(key);
+      expect(readFileSync(join(out, "scan", "genomics-notes.md"), "utf8")).toBe("scan notes genomics [redacted]\n");
+      // A lane that found nothing still has its files.
+      expect(JSON.parse(readFileSync(join(out, "scan", "proteins.json"), "utf8")).counts).toMatchObject({ raw: 0, to_judge: 0 });
     });
   });
 });

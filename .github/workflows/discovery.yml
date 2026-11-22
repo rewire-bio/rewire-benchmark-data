@@ -118,7 +118,11 @@ jobs:
         with:
           path: discovery-state
           key: discovery-state-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Keep the planned issues and token usage
+      # Every mode uploads its working: the planned issues, the token usage and, under scan/, each
+      # lane's queries, notes, candidate list before any filter and dropped candidates with reasons
+      # (docs/agents.md, "What each run records"). The script writes model output and public URLs
+      # only, never the request or the environment.
+      - name: Keep the planned issues, the token usage and the lane files
         if: always()
         uses: actions/upload-artifact@v4
         with:
