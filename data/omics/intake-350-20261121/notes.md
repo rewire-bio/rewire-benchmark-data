@@ -42,3 +42,9 @@ Each proposed field and whether the verification pass confirmed it. An empty kep
 | claude-haiku-5-5 | 8854 | 18406 | 14878 | 5753 | 0 | 1 | $0.0062 |
 | claude-sonnet-5-5 | 4 | 3669 | 9875 | 1031 | 0 | 0 | $0.0205 |
 | Total | | | | | | | $0.0267 |
+
+## Revision after review
+
+The reviewer agent requested changes (https://github.com/rewire-bio/rewire-benchmark-data/pull/352#pullrequestreview-6008013436). The intake agent revised the batch once; it changes only the fields the review did not pass, and it does not revise again.
+
+- `intake-350-20261121-model-protcell` training_data: reworded from "Approximately 380 million cells from 98 datasets." to "Approximately 380 million cells from 98 datasets for pretraining and evaluation.". Passage in https://www.biorxiv.org/content/10.64898/2026.10.22.760932v1: "Here, we present ProtCell, a foundation model developed using approximately 380 million cells from 98 datasets for pretraining and evaluation."
