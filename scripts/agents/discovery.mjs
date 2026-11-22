@@ -48,7 +48,7 @@ export const MODELS = { scan: 'claude-haiku-5-5', judge: 'claude-sonnet-5-5', tr
 // fetched so far. researchTurn counts the uses made from code across resumes, and the API counts
 // the direct ones, so the allowances below hold for the whole call. docs/agents.md derives the cost bounds from these numbers.
 //
-// Scan budget: about $0.35 a run. Search fees are nearly all of it ($0.01 each); the three
+// Scan budget: about $0.55 a run. Before direct tool calls, search fees were nearly all of it ($0.01 each); the three
 // scheduled runs of 18 to 20 November 2026 cost $0.10 to $0.12 for 9 or 10 searches, of which
 // tokens were about $0.01. Three lanes of 8 searches are 24 searches, about $0.24 to $0.30.
 export const LIMITS = {
@@ -61,8 +61,8 @@ export const LIMITS = {
   scanSearches: 8, // per scan lane
   scanFetches: 2, // per scan lane
   scanCandidates: 6, // per scan lane
-  maxScanUsd: 0.35, // no further lane starts when the scan would pass this
-  scanLaneUsd: 0.1, // measured cost of one lane, used for that check
+  maxScanUsd: 0.55, // no further lane starts when the scan would pass this
+  scanLaneUsd: 0.15, // measured cost of one lane with direct search results (22 Nov 2026), used for that check
   knownTitles: 60, // request titles shown to the scan so it does not return them
   judgeSearches: 3,
   judgeFetches: 4,
