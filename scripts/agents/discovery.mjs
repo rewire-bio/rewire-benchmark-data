@@ -780,15 +780,17 @@ function textOf(message) {
 /**
  * Search queries written as string literals in code the model ran (best effort): a string given
  * to `query` or `web_search(`, and each string in a list assigned to a name that holds "quer" or
- * "search" (`queries = [...]`). A query built at run time is not found; the code itself is kept.
+ * "search" (`queries = [...]`), but not one that holds "result", and not a list built with a
+ * loop. A query built at run time is not found; the code itself is kept.
  */
 function queriesInCode(code) {
   const text = String(code);
   const literal = /(["'`])((?:(?!\1)[^\n\\]|\\.)+)\1/g;
   const found = [];
   for (const m of text.matchAll(/(?:query["']?\s*[:=]?\s*|web_search\(\s*)(["'`])((?:(?!\1)[^\n])+)\1/g)) found.push({ at: m.index, query: m[2] });
-  for (const list of text.matchAll(/\b\w*(?:quer|search)\w*\s*(?::[^=\n]*)?=\s*\[([^\]]*)\]/gi)) {
-    for (const m of list[1].matchAll(literal)) found.push({ at: list.index + m.index, query: m[2] });
+  for (const list of text.matchAll(/\b(\w*(?:quer|search)\w*)\s*(?::[^=\n]*)?=\s*\[([^\]]*)\]/gi)) {
+    if (/result/i.test(list[1]) || /\bfor\b/.test(list[2])) continue;
+    for (const m of list[2].matchAll(literal)) found.push({ at: list.index + m.index, query: m[2] });
   }
   return [...new Set(found.sort((a, b) => a.at - b.at).map((f) => f.query))];
 }

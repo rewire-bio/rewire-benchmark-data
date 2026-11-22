@@ -257,6 +257,8 @@ describe("lane files and lane lines", () => {
       "results = await asyncio.gather(*[web_search(q) for q in queries])",
       'extra = web_search("site:huggingface.co RNA foundation model")',
       'labels = ["not a query"]',
+      'search_results = [r["title"] for r in results]',
+      'titles_of_queries = [r["url"] for r in results]',
     ].join("\n");
     const activity = toolActivity([{ type: "server_tool_use", name: "code_execution", input: { code } }]);
     expect(queriesOf(activity)).toEqual(["bioRxiv DNA language model 2026", "arXiv q-bio.GN variant effect benchmark", "site:huggingface.co RNA foundation model"]);
