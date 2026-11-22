@@ -2748,8 +2748,8 @@ async function revise(args, env, deps) {
     const failures = [...(receipt?.failures ?? [])];
     const carried = failures.length;
     // The rulings of the first run, then those the revision made. A record closed out keeps none.
-    const live = new Set(applied.records.map((r) => normalise(r.name)));
-    const duplicateRulings = [...(receipt?.duplicate_rulings ?? []), ...applied.rulings].filter((d) => live.has(normalise(d.entity)));
+    const gone = new Set(original.filter((r) => applied.closed.includes(r.id)).map((r) => normalise(r.name)));
+    const duplicateRulings = [...(receipt?.duplicate_rulings ?? []), ...applied.rulings].filter((d) => !gone.has(normalise(d.entity)));
     const usedBefore = Boolean(receipt?.kg) && receipt.kg.used !== false;
     let kg = null;
     let kgError = 'no KG bundle given (KG_BUNDLE)';
