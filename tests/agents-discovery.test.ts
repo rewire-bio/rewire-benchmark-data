@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   AREAS, GENOMIC_AREAS, LABELS, LIMITS, PRICES, PROTEIN_AREAS, SCAN_LANES, Usage, ageInDays, clean, dataLabels, findDuplicate,
   findRejected, githubClient, identifiersOf, keyOf, knownTitles, main, matchForm, nearMatches, parseBlogIndex, planFiling,
-  callCounts, DIRECT_ONLY, laneLine, queriesOf, readRejected, readStoreNames, redactor, renderArticleIssue, renderDataIssue, renderSummary, scanEnding, scanPrompt, spellForm, tierOf,
+  callCounts, DIRECT_ONLY, laneLine, pendingDirect, rejectedDirectOnly, queriesOf, readRejected, readStoreNames, redactor, renderArticleIssue, renderDataIssue, renderSummary, scanEnding, scanPrompt, spellForm, tierOf,
   toolActivity, triageLane, verdictOf,
 } from "../scripts/agents/discovery.mjs";
 
@@ -949,6 +949,79 @@ describe("guards on the live path", () => {
       const system = readFileSync("agents/discovery.md", "utf8");
       expect(system).toContain("Call the search and fetch tools yourself");
     });
+    it("keeps the advice on failed fetches out of the system prompt, which the judge also reads", () => {
+      // To the judge "keep the candidate" would mean FILE. Only the scan prompt says it.
+      const system = readFileSync("agents/discovery.md", "utf8");
+      expect(system).not.toContain("not a reason to drop a candidate");
+      expect(system).not.toMatch(/keep it and say/i);
+      expect(system).toContain("- A page that fails to load (403, paywall, timeout) is an access gap, not evidence that something is absent. Say which page failed and on which date.\n");
+    });
+
+    describe("when the API rejects allowed_callers", () => {
+      const invalid = (message: string, status = 400) => Object.assign(new Error(message), { status });
+      const fieldOf = (tool: any) => "allowed_callers" in tool;
+      const ofLane = (client: any, lane: string) => client.calls.filter((c: any) => c.kind === "stream" && String(c.params.messages[0].content).includes(`Lane: ${lane}.`)).map((c: any) => c.params.tools.map(fieldOf));
+
+      it("reads which tools a 400 names, and nothing from any other error", () => {
+        expect(rejectedDirectOnly(invalid('400 {"type":"error","error":{"type":"invalid_request_error","message":"tools.1.web_fetch_20260209.allowed_callers: Extra inputs are not permitted"}}'))).toEqual(["web_fetch"]);
+        expect(rejectedDirectOnly(invalid("tools.0.allowed_callers: unexpected value"))).toEqual(["web_search"]);
+        expect(rejectedDirectOnly(invalid("allowed_callers is not supported"))).toEqual(["web_search", "web_fetch"]);
+        expect(rejectedDirectOnly(invalid("max_uses: must be positive for web_fetch"))).toEqual([]);
+        expect(rejectedDirectOnly(invalid("allowed_callers: overloaded", 529))).toEqual([]);
+        expect(rejectedDirectOnly(new Error("allowed_callers"))).toEqual([]);
+        expect(rejectedDirectOnly(undefined)).toEqual([]);
+      });
+      it("sends the request once more without the field on the tool the 400 names, and keeps it off for the resumes", async () => {
+        const out = mkdtempSync(join(tmpdir(), "discovery-"));
+        const lines: string[] = [];
+        const client: any = standIn({
+          candidates: [scanCandidate("AlderFold")],
+          scan: (lane, request) => {
+            if (fieldOf(client.calls.at(-1).params.tools[1])) throw invalid('400 {"type":"error","error":{"type":"invalid_request_error","message":"tools.1.web_fetch_20260209.allowed_callers: Extra inputs are not permitted"}}');
+            return lane === "genomics" && request === 2 ? { stop_reason: "pause_turn" } : {};
+          },
+        });
+        const { lanes } = await run(client, github(), ["--report-only", "--out", out], { deps: { log: (m: string) => lines.push(m) } });
+        // Rejected, sent again without the field on fetch, then one resume that never sends it.
+        expect(ofLane(client, "genomics")).toEqual([[true, true], [true, false], [true, false]]);
+        // Each call starts with the field: a later lane asks again.
+        expect(ofLane(client, "proteins")).toEqual([[true, true], [true, false]]);
+        expect(lanes!.map((l: any) => l.status)).toEqual(["finished", "finished", "finished"]);
+        expect(lines.filter((l) => l.includes("rejected allowed_callers"))).toHaveLength(3);
+        expect(lines).toContain('scan genomics: the API rejected allowed_callers on web_fetch (400 400 {"type":"error","error":{"type":"invalid_request_error","message":"tools.1.web_fetch_20260209.allowed_callers: Extra inputs are not permitted"}}); sent again without it, so those calls can run from code');
+        const genomics = JSON.parse(readFileSync(join(out, "scan", "genomics.json"), "utf8"));
+        expect(genomics.requests.map((r: any) => r.allowed_callers_dropped)).toEqual([["web_fetch"], ["web_fetch"]]);
+        // The judge still sends the field on both tools, and its row would say if it had not.
+        const judge = client.calls.find((c: any) => c.kind === "stream" && String(c.params.messages[0].content).includes("Name: AlderFold"))!.params;
+        expect(judge.tools.map(fieldOf)).toEqual([true, true]);
+      });
+      it("drops the field from both tools when the 400 names neither", async () => {
+        const client: any = standIn({ scan: () => { if (client.calls.at(-1).params.tools.some(fieldOf)) throw invalid("allowed_callers: Extra inputs are not permitted"); return {}; } });
+        const { lanes } = await run(client, github(), ["--report-only"]);
+        expect(ofLane(client, "genomics")).toEqual([[true, true], [false, false]]);
+        expect(lanes!.map((l: any) => l.status)).toEqual(["finished", "finished", "finished"]);
+      });
+      it("leaves the row as it was when nothing is rejected", async () => {
+        const out = mkdtempSync(join(tmpdir(), "discovery-"));
+        await run(standIn(), github(), ["--report-only", "--out", out]);
+        expect(JSON.parse(readFileSync(join(out, "scan", "genomics.json"), "utf8")).requests.every((r: any) => !("allowed_callers_dropped" in r))).toBe(true);
+      });
+      it("does not send again after a 400 about something else, or after a second 400", async () => {
+        const other: any = standIn({ scan: () => { throw invalid("max_uses: Input should be greater than 0"); } });
+        const first = await run(other, github(), ["--report-only"]);
+        expect(ofLane(other, "genomics")).toEqual([[true, true]]);
+        expect(first.lanes!.map((l: any) => l.status)).toEqual(Array(3).fill("failed: 400 max_uses: Input should be greater than 0"));
+        expect(first.summary).toContain("No scan lane finished; nothing was judged.");
+        const twice: any = standIn({ scan: () => { throw invalid("tools.0.allowed_callers: Extra inputs are not permitted"); } });
+        const second = await run(twice, github(), ["--report-only"]);
+        expect(ofLane(twice, "genomics")).toEqual([[true, true], [false, true]]);
+        expect(second.lanes!.map((l: any) => l.status)).toEqual(Array(3).fill("failed: 400 tools.0.allowed_callers: Extra inputs are not permitted"));
+        // A resume that is rejected for a tool the field is already off: no further request.
+        const later: any = standIn({ scan: (lane, request) => { if (request !== 2) throw invalid("tools.0.allowed_callers: Extra inputs are not permitted"); return { stop_reason: "pause_turn" }; } });
+        await run(later, github(), ["--report-only"]);
+        expect(ofLane(later, "genomics")).toEqual([[true, true], [false, true], [false, true]]);
+      });
+    });
   });
 
   describe("judge replies that are not a verdict", () => {
@@ -1021,6 +1094,30 @@ describe("guards on the live path", () => {
       const refused = standIn({ scan: (lane, request) => lane === "genomics" && request === 1 ? paused([search(1), search(2)], 1, 0) : {} });
       await run(refused, github(), ["--report-only"]);
       expect(uses(refused)).toEqual([[8, 2], [8, 2]]);
+      // The same for a refused direct fetch: the surplus does not hide a later fetch that has no block.
+      const done = (id: string) => ({ type: "web_fetch_tool_result", tool_use_id: id, content: { type: "web_fetch_tool_error", error_code: "max_uses_exceeded" } });
+      const fetches = standIn({ scan: (lane, request) => lane === "genomics" && request === 1 ? paused([{ ...fetched, id: "srvtoolu_g" }, done("srvtoolu_g"), fetched, done("srvtoolu_f"), search(1, { type: "code_execution_20260120", tool_id: "srvtoolu_c" })], 1, 1) : lane === "genomics" && request === 2 ? paused([], 0, 1) : {} });
+      await run(fetches, github(), ["--report-only"]);
+      expect(uses(fetches)).toEqual([[8, 2], [7, 2], [7, 1]]);
+    });
+    it("does not take off a direct call whose use is reported one reply late", async () => {
+      const call = (name: string, id: string, input: any) => ({ type: "server_tool_use", id, name, input });
+      const answer = (type: string, id: string) => ({ type, tool_use_id: id, content: [] });
+      const reply = (content: any[], searches: number, fetches: number, stop = "pause_turn") => ({ stop_reason: stop, content: [...content, { type: "text", text: "scan notes so far" }], usage: { input_tokens: 1, output_tokens: 1, server_tool_use: { web_search_requests: searches, web_fetch_requests: fetches } } });
+      const first = [call("web_search", "s1", { query: "q1" }), answer("web_search_tool_result", "s1"), call("web_search", "s2", { query: "q2" }), call("web_fetch", "f1", { url: "https://example.org/a" })];
+      expect(pendingDirect(first)).toEqual({ searches: 1, fetches: 1 });
+      expect(pendingDirect([...first, answer("web_search_tool_result", "s2"), answer("web_fetch_tool_result", "f1")])).toEqual({ searches: 0, fetches: 0 });
+      expect(pendingDirect([{ ...first[2], caller: { type: "code_execution_20260120", tool_id: "c1" } }])).toEqual({ searches: 0, fetches: 0 });
+      expect(pendingDirect(undefined)).toEqual({ searches: 0, fetches: 0 });
+      // The first reply pauses on a search and a fetch that have not run. The second holds their
+      // results and reports their use, with no call block, and one more search with no block at
+      // all. Only that last one is taken off.
+      const client = standIn({ scan: (lane, request) => lane !== "genomics" ? {}
+        : request === 1 ? reply(first, 1, 0)
+        : request === 2 ? reply([answer("web_search_tool_result", "s2"), answer("web_fetch_tool_result", "f1")], 2, 1) : {} });
+      await run(client, github(), ["--report-only"]);
+      const uses = client.calls.filter((c: any) => c.kind === "stream" && String(c.params.messages[0].content).includes("Lane: genomics.")).map((c: any) => c.params.tools.map((t: any) => t.max_uses));
+      expect(uses).toEqual([[8, 2], [8, 2], [7, 2]]);
     });
     it("still reads a reported count of zero as zero", async () => {
       const client = standIn({ scan: (lane, request) => request === 1 ? { stop_reason: "pause_turn", usage: { input_tokens: 1, output_tokens: 1, server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 } } } : {} });

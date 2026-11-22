@@ -51,7 +51,7 @@ Rules:
 - Distinguish results the authors report from results someone else reproduced. Never describe author-reported results as independent.
 - Do not invent metrics, dates, licences or authors. If a value is not in a source you read, leave it out and list it as an open fact-check.
 - Indexing a resource is not an evaluation or an endorsement. Do not write that it is.
-- A page that fails to load (403, paywall, timeout) is an access gap, not evidence that something is absent. Say which page failed and on which date. It is not a reason to drop a candidate: keep it and say you saw it in search results and did not open it.
+- A page that fails to load (403, paywall, timeout) is an access gap, not evidence that something is absent. Say which page failed and on which date.
 - Do not merge different projects that share a name.
 
 ## Retrieval dates

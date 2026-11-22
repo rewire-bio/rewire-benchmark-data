@@ -53,6 +53,8 @@ export function toolActivity(content: unknown, cap?: number): Record<string, any
 export function queriesOf(activity: Record<string, any>[]): string[];
 export function callCounts(activity: Record<string, any>[] | undefined): { direct_searches: number; code_searches: number; direct_fetches: number; code_fetches: number };
 export const DIRECT_ONLY: string[];
+export function rejectedDirectOnly(e: unknown): string[];
+export function pendingDirect(content: unknown): { searches: number; fetches: number };
 export function triageLane(candidates: Candidate[], opts: { isKnown: (candidate: Candidate) => { where: string; reason: string } | null; seen: Map<string, string> }): { fresh: Candidate[]; dropped: LaneDrop[] };
 export function laneReport(lane: { name: string; focus?: string }): LaneReport;
 export function laneCounts(report: LaneReport): { searches: number; fetches: number; direct_searches: number; code_searches: number; direct_fetches: number; code_fetches: number; output_tokens: number; raw: number; known: number; remembered: number; other: number; to_judge: number };

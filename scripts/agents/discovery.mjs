@@ -808,8 +808,10 @@ const WEB_TOOLS = ['web_search', 'web_fetch'];
  *
  * Each search or fetch call also gets `call`: "direct" when the model called the tool itself, or
  * "code" when code the model wrote made the call. The API marks a call made from code with a
- * `caller` block that names the code execution run; a direct call has `caller.type` "direct" or
- * no `caller` at all. The caller type is kept as `caller` when the block has one.
+ * `caller` block that names the code execution run (web search page: "each nested
+ * `server_tool_use` and `web_search_tool_result` pair carries a `caller` field identifying the
+ * code execution call that made it"); a direct call has `caller.type` "direct" or no `caller`
+ * at all. The caller type is kept as `caller` when the block has one.
  */
 export function toolActivity(content, cap = 4000) {
   const cut = (text) => {
@@ -867,6 +869,17 @@ export function callCounts(activity) {
     direct_fetches: count('web_fetch', 'direct'),
     code_fetches: count('web_fetch', 'code'),
   };
+}
+
+/**
+ * The direct search and fetch calls a reply holds without their result. A reply that pauses on
+ * such a call reports its use in the next reply, which then holds the result and not the call.
+ */
+export function pendingDirect(content) {
+  const blocks = Array.isArray(content) ? content : [];
+  const answered = new Set(blocks.map((b) => b?.tool_use_id).filter(Boolean));
+  const open = callCounts(toolActivity(blocks.filter((b) => b?.type === 'server_tool_use' && !answered.has(b.id))));
+  return { searches: open.direct_searches, fetches: open.direct_fetches };
 }
 
 /** The queries in a lane's tool activity: those given to the search tool, then those found in code. */
@@ -993,6 +1006,18 @@ export function writeLaneReports(out, reports, { mode, runDate, redact = (t) => 
 export const DIRECT_ONLY = ['direct'];
 
 /**
+ * The web tools a 400 says do not take `allowed_callers`, or none when the error is about
+ * something else. A message that names one tool, or its place in `tools`, gives that tool; one
+ * that names only the field gives both.
+ */
+export function rejectedDirectOnly(e) {
+  const text = String(e?.message ?? '');
+  if (e?.status !== 400 || !text.includes('allowed_callers')) return [];
+  const named = WEB_TOOLS.filter((tool, i) => text.includes(tool) || text.includes(`tools.${i}.`) || text.includes(`tools[${i}]`));
+  return named.length ? named : [...WEB_TOOLS];
+}
+
+/**
  * One research call with the server web tools, resuming pause_turn up to the cap. Returns the
  * notes, or null on a refusal, when the cap is reached, or when the reply was cut off at
  * max_tokens. With `partial`, a call that reaches the cap returns the text written so far, and
@@ -1008,17 +1033,25 @@ export const DIRECT_ONLY = ['direct'];
  * code prints: on 22 November 2026 two lanes lost every search result that way. With direct
  * calls each result comes back into the conversation as the API returned it.
  *
+ * Should the API answer 400 and name `allowed_callers`, the request is sent once more without
+ * the field on the tool it rejected, and so are the later resumes of this call. The log says so
+ * and the request row in the lane file names the tools (`allowed_callers_dropped`). Searches
+ * can then run from code again, which the lane line shows, but the scan is not lost to a
+ * rejected field. Any other error, and a second 400, fails the lane as before.
+ *
  * The search and fetch allowances are for the whole call. On a resume the API counts the direct
  * calls of earlier requests against max_uses, and does not count calls made from code. So a
  * resume is given the allowance less the uses that were not seen as direct calls in the reply:
  * calls from code, and uses the reply reported without a tool block. Taking direct calls off
- * as well would count them twice. A resume keeps at least one use, because the tool cannot be
+ * as well would count them twice. A direct call the reply before paused on is not taken off
+ * either: its use is reported one reply late, without its block (pendingDirect). A resume keeps at least one use, because the tool cannot be
  * removed from a conversation that already holds its results.
  *
  * The counts come from usage.server_tool_use. A response that does not report it is counted as
  * having used everything the request allowed, in the cost estimate and, less the direct calls
  * seen in the reply, in the allowance, so a missing field cannot hide searches from either
- * dollar check.
+ * dollar check. With d direct calls in such a reply the resume gets max(1, d) uses, and the API
+ * has already counted d, so no further call is possible: this errs low.
  *
  * A resumed reply holds only what was written after the pause, so the notes are the text of
  * every request joined in order. `trace`, when given, receives one row per request (stop
@@ -1031,27 +1064,43 @@ async function researchTurn(client, usage, { model, system, prompt, searches, fe
   // Uses the API will not count against max_uses on a resume: see the note above.
   let searched = 0;
   let fetched = 0;
+  // Direct calls the reply before held without a result; this reply reports their use.
+  let pending = { searches: 0, fetches: 0 };
+  // Tools the API refused `allowed_callers` on. Empty unless a request came back 400 for it.
+  const dropped = [];
   for (let turn = 0; turn <= LIMITS.maxContinuations; turn++) {
     const allowed = { web_search_requests: Math.max(1, searches - searched), web_fetch_requests: Math.max(1, fetches - fetched) };
-    const message = await client.beta.messages.stream({
+    const directOnly = (tool) => (dropped.includes(tool) ? {} : { allowed_callers: DIRECT_ONLY });
+    const request = () => client.beta.messages.stream({
       model,
       ...fallback,
       max_tokens: LIMITS.researchMaxTokens,
       system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
       output_config: { effort: 'medium' },
       tools: [
-        { type: 'web_search_20260318', name: 'web_search', allowed_callers: DIRECT_ONLY, max_uses: allowed.web_search_requests },
-        { type: 'web_fetch_20260209', name: 'web_fetch', allowed_callers: DIRECT_ONLY, max_uses: allowed.web_fetch_requests, max_content_tokens: LIMITS.fetchContentTokens },
+        { type: 'web_search_20260318', name: 'web_search', ...directOnly('web_search'), max_uses: allowed.web_search_requests },
+        { type: 'web_fetch_20260209', name: 'web_fetch', ...directOnly('web_fetch'), max_uses: allowed.web_fetch_requests, max_content_tokens: LIMITS.fetchContentTokens },
       ],
       messages,
     }).finalMessage();
+    let message;
+    try {
+      message = await request();
+    } catch (e) {
+      const rejected = rejectedDirectOnly(e).filter((tool) => !dropped.includes(tool));
+      if (!rejected.length) throw e;
+      dropped.push(...rejected);
+      log(`the API rejected allowed_callers on ${rejected.join(' and ')} (${errorText(e)}); sent again without it, so those calls can run from code`);
+      message = await request();
+    }
     const used = message.usage?.server_tool_use ?? allowed;
     if (!message.usage?.server_tool_use) log('the response did not report its tool use; counted as the full allowance');
     usage.add(message.model ?? model, message.usage ?? {}, allowed);
     const activity = toolActivity(message.content);
     const direct = callCounts(activity);
-    searched += Math.max(0, (used.web_search_requests ?? 0) - direct.direct_searches);
-    fetched += Math.max(0, (used.web_fetch_requests ?? 0) - direct.direct_fetches);
+    searched += Math.max(0, (used.web_search_requests ?? 0) - direct.direct_searches - pending.searches);
+    fetched += Math.max(0, (used.web_fetch_requests ?? 0) - direct.direct_fetches - pending.fetches);
+    pending = pendingDirect(message.content);
     if (trace) {
       trace.requests.push({
         stop_reason: message.stop_reason ?? null,
@@ -1061,6 +1110,7 @@ async function researchTurn(client, usage, { model, system, prompt, searches, fe
         web_fetch_requests: used.web_fetch_requests ?? 0,
         tool_use_reported: Boolean(message.usage?.server_tool_use),
         text_characters: textOf(message).length,
+        ...(dropped.length ? { allowed_callers_dropped: [...dropped] } : {}),
       });
       trace.activity.push(...activity);
     }
