@@ -726,9 +726,49 @@ export function revisionAmends(revision) {
   return (revision?.fields ?? []).filter((f) => f.action === 'amend').map((f) => ({ id: String(f.id), field: String(f.field), before: clean(f.before).slice(0, 600), after: clean(f.after).slice(0, 600), passage: clean(f.passage).slice(0, 1000), source_url: clean(f.source_url) }));
 }
 
-async function modelReview(client, usage, { system, records, changed = [], storeUrls = new Map(), extraUrls, texts = [], runDate, log, revision = null }) {
+/** A store record as a revision copied it from the store, for the review prompt. */
+const storeRecordOf = (s, fallback = {}) => ({ id: String(s?.id ?? fallback.id ?? ''), kind: clean(s?.kind ?? fallback.kind), name: clean(s?.name ?? fallback.name).slice(0, 300), description: clean(s?.description).slice(0, 1000), addresses: (s?.addresses ?? []).map((u) => clean(u)).slice(0, 12) });
+
+/**
+ * The store records a revision ruled distinct from a new record, for the review prompt: each with
+ * the store record's own name, description and addresses as the intake script read them from the
+ * store, so the reviewer judges the ruling against the record and not against the revision's
+ * account of it.
+ */
+export function revisionRulings(revision) {
+  return (revision?.fields ?? []).filter((f) => f.action === 'rule').flatMap((f) => (f.rulings ?? []).filter((x) => x.ruling === 'distinct').map((x) => ({ id: String(f.id), store_record: storeRecordOf(x.store_record, { id: x.id, kind: x.kind, name: x.label }), ground: clean(x.ground), addresses_in_common: (x.shared ?? []).map((k) => clean(k)) })));
+}
+
+/**
+ * The records a revision removed from the batch as the same resource as a store record, for the
+ * review prompt. The removed record is not among the records under review, so the reviewer is
+ * told where to report a removal it does not agree with (report_on, a record still in the batch).
+ */
+export function revisionCloses(revision) {
+  return (revision?.fields ?? []).filter((f) => f.action === 'close').map((f) => ({
+    removed_record: { id: String(f.id), kind: clean(f.closed_record?.kind), name: clean(f.closed_record?.name).slice(0, 300), description: clean(f.closed_record?.description).slice(0, 1000) },
+    store_record: storeRecordOf(f.store_record, { id: f.same_as }),
+    addresses_in_common: (f.shared ?? []).map((k) => clean(k)),
+    moved_links: (revision?.derived ?? []).filter((d) => d.field === 'links').flatMap((d) => (d.moved ?? []).filter((m) => m.from === f.id).map((m) => ({ id: String(d.id), relation: clean(m.relation), now_to: String(m.to) }))),
+    report_on: String(f.report_on ?? ''),
+  }));
+}
+
+/** The lines of the review prompt that hand the model what a revision claims: cited passages, new wordings, rulings and removals. */
+export function revisionPromptLines(revision) {
   const cited = revisionCites(revision);
   const amended = revisionAmends(revision);
+  const ruled = revisionRulings(revision);
+  const closed = revisionCloses(revision);
+  return [
+    ...(cited.length ? ['The intake agent revised this batch after an earlier review. For these fields it kept the value and quoted a passage as support. Each quote is its claim, not evidence: find the passage in the source yourself, and judge whether it states the value (JSON):', JSON.stringify(cited, null, 2), ''] : []),
+    ...(amended.length ? ['The intake agent revised this batch after an earlier review. For these fields it replaced the value (before) with a run of words copied from a passage of the source (after). The script checked only that the words are in the page. Find the passage in the source yourself, and judge whether the new value, read by itself, says what the source says: fail the field when words left out before or after it change its meaning (JSON):', JSON.stringify(amended, null, 2), ''] : []),
+    ...(ruled.length ? ['The intake agent revised this batch after an earlier review and ruled these store records distinct from a new record (id). Each ruling is its claim. The store record is given as the store holds it. The script compared only the addresses the two records give, so one resource cited at two addresses is not seen. Judge each ruling from the two records and the sources, and fail duplicates of the new record when the store record is the same resource (JSON):', JSON.stringify(ruled, null, 2), ''] : []),
+    ...(closed.length ? ['The intake agent revised this batch after an earlier review and removed these records from it as the same resource as a store record. A removed record is no longer among the records below. Judge each removal from the two records and the sources. When the removed record is a different resource from the store record, fail the duplicates field of the record named in report_on and say which removed record should have stayed (JSON):', JSON.stringify(closed, null, 2), ''] : []),
+  ];
+}
+
+async function modelReview(client, usage, { system, records, changed = [], storeUrls = new Map(), extraUrls, texts = [], runDate, log, revision = null }) {
   const withText = new Set(texts.filter((t) => t.text).map((t) => t.url));
   const input = reviewInput(records, changed, storeUrls);
   const paths = unique(changed.flatMap((r) => (r.change?.fields ?? []).map((f) => f.path)));
@@ -748,8 +788,7 @@ async function modelReview(client, usage, { system, records, changed = [], store
       'Records (JSON):',
       JSON.stringify(input, null, 2),
       '',
-      ...(cited.length ? ['The intake agent revised this batch after an earlier review. For these fields it kept the value and quoted a passage as support. Each quote is its claim, not evidence: find the passage in the source yourself, and judge whether it states the value (JSON):', JSON.stringify(cited, null, 2), ''] : []),
-      ...(amended.length ? ['The intake agent revised this batch after an earlier review. For these fields it reworded the value (before, after) and quoted a passage as support. Each quote is its claim, not evidence: find the passage in the source yourself, and judge whether the source states the new value, all of it (JSON):', JSON.stringify(amended, null, 2), ''] : []),
+      ...revisionPromptLines(revision),
       'For a changed record (changed_record: true), judge every entry of changed_fields by its path: is the new value what a source states for this exact entity, and does the change keep what the source does not contradict? Give the path as the field name.',
       'For every record and every field listed for it (and source_ids), write the verdict (pass, fail or unverifiable), the problem if any, and the URL and location that decide it. Check source attribution for each cited source. For links, judge each relation: does a source state it, at the locator given or elsewhere? For duplicates, judge each ruling: is the store record named a different resource (distinct) as ruled? A record with any link or ruling you cannot confirm fails that field. List any page that failed to load.',
     ].join('\n'),
