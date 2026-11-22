@@ -51,9 +51,11 @@ export interface LaneDrop { name: string; category: "known" | "remembered" | "ot
 export interface LaneReport { lane: string; focus?: string; status: string; requests: Record<string, any>[]; activity?: Record<string, any>[]; notes?: string; raw_candidates: Candidate[] | null; dropped: LaneDrop[]; to_judge: string[] }
 export function toolActivity(content: unknown, cap?: number): Record<string, any>[];
 export function queriesOf(activity: Record<string, any>[]): string[];
+export function callCounts(activity: Record<string, any>[] | undefined): { direct_searches: number; code_searches: number; direct_fetches: number; code_fetches: number };
+export const DIRECT_ONLY: string[];
 export function triageLane(candidates: Candidate[], opts: { isKnown: (candidate: Candidate) => { where: string; reason: string } | null; seen: Map<string, string> }): { fresh: Candidate[]; dropped: LaneDrop[] };
 export function laneReport(lane: { name: string; focus?: string }): LaneReport;
-export function laneCounts(report: LaneReport): { searches: number; fetches: number; output_tokens: number; raw: number; known: number; remembered: number; other: number; to_judge: number };
+export function laneCounts(report: LaneReport): { searches: number; fetches: number; direct_searches: number; code_searches: number; direct_fetches: number; code_fetches: number; output_tokens: number; raw: number; known: number; remembered: number; other: number; to_judge: number };
 export function scanEnding(requests: Record<string, any>[]): string;
 export function laneLine(report: LaneReport): string;
 export function redactor(env?: Record<string, string | undefined>): (text: unknown) => string;

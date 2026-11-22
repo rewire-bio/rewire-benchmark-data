@@ -8,7 +8,7 @@ Agents that run from GitHub Actions and call the Claude API. They are paid from 
 
 What it does:
 
-1. Haiku 5.5 searches the web for AI-for-biology models, methods, benchmarks and datasets that the database does not hold yet (web search and web fetch server tools). It makes one call for each of three lanes: genomics, proteins, and cells and other biology. Set the repository variable `DISCOVERY_SCAN_MODEL` to `claude-sonnet-5-5` to scan with Sonnet instead.
+1. Haiku 5.5 searches the web for AI-for-biology models, methods, benchmarks and datasets that the database does not hold yet (web search and web fetch server tools, direct calls only: see "Direct tool calls" below). It makes one call for each of three lanes: genomics, proteins, and cells and other biology. Set the repository variable `DISCOVERY_SCAN_MODEL` to `claude-sonnet-5-5` to scan with Sonnet instead.
 2. Haiku 5.5 turns each lane's notes into a candidate list (the "raw candidates"). The script drops candidates whose name is already in an issue title or the record store, then those the judge rejected in the last 30 days, then those triage calls out of scope or weak.
 3. Sonnet 5.5 checks each remaining candidate against its primary sources (up to six a run, taken from the lanes in turn). It is given the records and requests whose name differs only by a version or size. Haiku 5.5 turns those notes into fixed fields. Notes that end with SKIP are never filed, whatever the fixed fields say, and notes cut off at the output limit are dropped.
 4. The script deduplicates again, on names, aliases, DOIs, arXiv IDs and GitHub or Hugging Face repositories, against:
@@ -50,11 +50,13 @@ Every run, in every mode, writes its working to the run artifact (`discovery-<ru
 
 The job log and the summary carry one line per lane:
 
-`scan genomics: 8 searches, 5 raw candidates, 2 dropped as known, 1 dropped as remembered, 1 dropped for another reason, 1 to judge`
+`scan genomics: 8 searches (8 direct), 5 raw candidates, 2 dropped as known, 1 dropped as remembered, 1 dropped for another reason, 1 to judge`
+
+The first number is the searches the API reported. The number in brackets is the search calls the model made itself, counted from the tool blocks of the reply. The two should be equal. `(0 direct)` means every search ran from code the model wrote, which is the failure of 22 November 2026 (see "Direct tool calls"). A refused search is a call and is not a reported search, so the bracket can be one higher. The bracket is left out when the reply held no search call at all, as for a lane that never ran.
 
 The four counts after "raw candidates" add up to it. "Known" means an issue or the record store holds the name. "Remembered" means the judge rejected it in the lookback period. "Another reason" is a candidate with no name, one triage calls out of scope, or a repeat of another lane. A lane that stops before it has a candidate list prints why instead: the scan budget, a refusal or empty reply with its stop reason, a failed call, or a structuring reply that could not be used. A lane whose scan was cut at `max_tokens`, or stopped at the `pause_turn` cap, still has notes and a candidate list, but the notes may lack candidates the scan had not written yet. Its line ends with that in brackets, and its status in the file and the table says the same.
 
-The queries come from the tool blocks of the reply. This tool version can run searches from code, so a query may appear only inside a code block; the file keeps the code (cut at 4,000 characters) and the query strings found in it: a string given to `query` or `web_search(`, and each string in a list assigned to a name such as `queries` (not a name that holds "result", and only a list of plain strings). A query built at run time is not found, so read `tool_activity[].code` when `queries` is short or empty. The search and fetch counts are the ones the API reports, not a count of blocks.
+The queries come from the tool blocks of the reply. Each search and fetch call in `tool_activity` has `call`: `direct`, or `code` when code the model wrote made the call (the API marks those with a `caller` block; its type is kept as `caller`). `counts` holds the totals: `direct_searches`, `code_searches`, `direct_fetches`, `code_fetches`. The requests forbid calls from code, so a `code` entry means the restriction did not hold. Should that happen, a query may appear only inside a code block; the file keeps the code (cut at 4,000 characters) and the query strings found in it: a string given to `query` or `web_search(`, and each string in a list assigned to a name such as `queries` (not a name that holds "result", and only a list of plain strings). A query built at run time is not found, so read `tool_activity[].code` when `queries` is short or empty. The search and fetch counts are the ones the API reports, not a count of blocks.
 
 The page text a fetch returns and the encrypted search content are not copied. What code printed is kept, up to 4,000 characters for each block, and that can hold search result text or page text when the scan ran its searches from code. All of it is public web content and model output. The request, its headers and the environment are never written, and the value of each token the run holds is replaced should it ever appear in the text. If the lane files cannot be written, the run says so in a warning and ends as it would have without them.
 
@@ -76,6 +78,16 @@ What to read in the first run that has lane files:
 4. `<lane>-notes.md` against `raw_candidates`: whether the notes name resources that the candidate list lacks (the structuring call lost them), or name none (the scan found none, or left them out as already requested).
 
 One defect was fixed with the lane files. It was found by reading the code, and nothing ties it to any of the four empty lanes. A reply resumed after `pause_turn` holds only the text written after the pause, and the script used to keep only that last part, so a lane or a judge call that paused could lose its earlier notes. It now joins the parts. The lanes most likely to have paused on 21 November are the two that made the fetches, and they returned their candidates. The lane files record each request's stop reason, so a resumed lane is visible from now on.
+
+### Direct tool calls
+
+Every scan and judge request sets `allowed_callers: ["direct"]` on the search tool (`web_search_20260318`) and the fetch tool (`web_fetch_20260209`). Without it these tool versions run from code the model writes (dynamic filtering): the model calls the tool inside a script and reads only what the script prints. On 22 November 2026 (run 45075580168) every lane ran its 8 searches in one script. One script printed the first 200 characters of each result, one crashed while printing, and a second batch was refused at the search limit. Two lanes ended with no usable candidate.
+
+The API documentation gives the setting. Web search tool: "To call web search directly, without dynamic filtering, set `allowed_callers: ["direct"]`." Server tools: "This restricts the tool to direct calls only, bypassing the internal code execution step." With direct calls each result comes back into the conversation as the API returned it, and a search past the limit returns a `max_uses_exceeded` error to the model instead of ending a script.
+
+The scan prompt also says to search one query at a time, to read each result before the next query, never to run a query twice, and to keep two searches for the best leads.
+
+A fetch can fail on a page that a search found. Both bioRxiv fetches of 22 November returned `url_not_accessible`, which the documentation defines as "Failed to fetch content (HTTP error)". The URLs were the versioned ones from the search results, unchanged, so the fetch tool's rule that a URL must have appeared earlier in the conversation was met (that failure has its own code, `url_not_in_prior_context`). The script has no fix for a site that refuses the fetch tool. The prompt tells the scan to keep such a candidate and say that the page was seen in search results and not opened.
 
 ### Rejected candidates
 
@@ -134,7 +146,7 @@ The scan budget is about $0.35 a run. Search fees are nearly all of it. Measured
 | 19 November | 10 | 110,000, in the higher price band | $0.124 |
 | 20 November | 10 | 85,000 | $0.105 |
 
-Tokens were $0.005 to $0.02 of each. Three lanes of 8 searches are 24 searches, so expect $0.24 in search fees and $0.27 to $0.30 in all. With one extra search for each of the two resumes of each lane, the search fees can reach $0.30. Each lane holds 8 searches, not 24, so its prompt should stay under 100,000 tokens.
+Tokens were $0.005 to $0.02 of each. Three lanes of 8 searches are 24 searches, so expect $0.24 in search fees and $0.27 to $0.30 in all. With one extra search for each of the two resumes of each lane, the search fees can reach $0.30. That extra search applies when a resumed lane has used its allowance in ways the API does not count on a resume (calls from code, or use the response did not report). Direct calls are counted by the API across the resumes of a turn, so a resume is given the allowance less only the other uses, and the API holds the lane to 8. Each lane holds 8 searches, not 24, so its prompt should stay under 100,000 tokens.
 
 Worst case, from the limits, if nothing is cached. A research call can make 3 requests, and each request holds every page fetched so far.
 
@@ -157,6 +169,9 @@ A Sonnet 5.5 request about biology can be refused (refusal category `bio`). Judg
 
 - A candidate that matches an existing rewire.it article issue or a record in the store is skipped whole. The old automation filed the missing half of the pair and linked the existing one; this version does not.
 - The scan and triage calls have run against the API (18 to 20 November 2026). The judge call, the filing path and the lane prompts have not: no candidate has reached the judge yet. Run `report-only` once after a prompt change and read the skipped reasons.
+- Direct tool calls (`allowed_callers`) have not run against the API yet. Read the lane lines of the next run: each should say `8 searches (8 direct)` or fewer of both. The shape of the `caller` block on a search made from code is taken from the documentation for client tools and has not been seen in a reply.
+- With direct calls the full text of every search result enters the prompt. The token cost of a lane is not measured in this mode; compare `requests[].input_tokens` in the next run with the 100,000 tokens in "Limits and cost".
+- On a resume the script relies on the documented rule that the API counts earlier direct calls in the turn against `max_uses`. That has not been observed. If the API did not count them, a lane resumed twice could make up to 24 searches; the cost checks read the reported use and would still stop the next lane.
 - The search count across `pause_turn` resumes relies on `usage.server_tool_use` in each response. It has not been observed on a resumed scan. When the field is missing the script counts the full allowance, so a resumed call then gets one search and one fetch.
 - A candidate whose name or alias is a common word in some issue title ("Atlas", "Evo", "State", "Cell") is dropped as known. The summary lists it under Skipped with the issue it matched, so it can be filed by hand. Title matching was left strict for the first live runs.
 - The rejected-candidate cache has not run in Actions yet. The script side is tested; the restore and save steps first run on the first scheduled or manual run after #339.

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   AREAS, GENOMIC_AREAS, LABELS, LIMITS, PRICES, PROTEIN_AREAS, SCAN_LANES, Usage, ageInDays, clean, dataLabels, findDuplicate,
   findRejected, githubClient, identifiersOf, keyOf, knownTitles, main, matchForm, nearMatches, parseBlogIndex, planFiling,
-  laneLine, queriesOf, readRejected, readStoreNames, redactor, renderArticleIssue, renderDataIssue, renderSummary, scanEnding, scanPrompt, spellForm, tierOf,
+  callCounts, DIRECT_ONLY, laneLine, queriesOf, readRejected, readStoreNames, redactor, renderArticleIssue, renderDataIssue, renderSummary, scanEnding, scanPrompt, spellForm, tierOf,
   toolActivity, triageLane, verdictOf,
 } from "../scripts/agents/discovery.mjs";
 
@@ -192,6 +192,11 @@ describe("lane files and lane lines", () => {
       { name: "(no name)", category: "other", reason: "the candidate has no name" },
     ]);
     expect(genomics.to_judge).toEqual(["GenoNova fixture", "VariantBench fixture"]);
+    // Two searches and the fetch were direct calls; code made the third search.
+    expect(genomics.counts).toMatchObject({ direct_searches: 2, code_searches: 1, direct_fetches: 1, code_fetches: 0 });
+    expect(genomics.tool_activity.filter((a: any) => a.call).map((a: any) => [a.name, a.call, a.caller])).toEqual([
+      ["web_search", "direct", undefined], ["web_search", "code", "code_execution_20260120"], ["web_search", "direct", undefined], ["web_fetch", "direct", undefined],
+    ]);
     expect(genomics.counts).toMatchObject({ searches: 3, fetches: 1, raw: 5, known: 1, remembered: 0, other: 2, to_judge: 2 });
     expect(readFileSync(join(out, "scan", "genomics-notes.md"), "utf8")).toContain("VariantBench fixture, a benchmark of variant effect predictors");
     // The page text a fetch returns and encrypted search content are never copied.
@@ -202,8 +207,8 @@ describe("lane files and lane lines", () => {
 
     expect(lane(out, "proteins").dropped.map((d: any) => [d.name, d.category])).toEqual([["MIMOSA", "known"], ["Enchant-3", "known"], ["GenoNova", "other"]]);
     expect(lines.filter((l) => l.startsWith("scan "))).toEqual([
-      "scan genomics: 3 searches, 5 raw candidates, 1 dropped as known, 0 dropped as remembered, 2 dropped for another reason, 2 to judge",
-      "scan proteins: 2 searches, 3 raw candidates, 2 dropped as known, 0 dropped as remembered, 1 dropped for another reason, 0 to judge",
+      "scan genomics: 3 searches (2 direct), 5 raw candidates, 1 dropped as known, 0 dropped as remembered, 2 dropped for another reason, 2 to judge",
+      "scan proteins: 2 searches (1 direct), 3 raw candidates, 2 dropped as known, 0 dropped as remembered, 1 dropped for another reason, 0 to judge",
       "scan cells and other biology: 8 searches, 0 raw candidates, 0 dropped as known, 0 dropped as remembered, 0 dropped for another reason, 0 to judge",
     ]);
     for (const report of lanes!) {
@@ -234,6 +239,33 @@ describe("lane files and lane lines", () => {
     expect(activity[2].code).toMatch(/\[cut from 50\d\d characters\]$/);
     expect(queriesOf(activity)).toEqual(["arXiv q-bio.GN DNA language model", "RNA structure benchmark"]);
     expect(toolActivity(undefined)).toEqual([]);
+  });
+
+  it("marks each search and fetch call as direct or made from code, and counts them for the lane line", () => {
+    const code = { type: "code_execution_20260120", tool_id: "srvtoolu_c" };
+    const activity = toolActivity([
+      { type: "server_tool_use", id: "srvtoolu_a", name: "web_search", input: { query: "one" } },
+      { type: "web_search_tool_result", tool_use_id: "srvtoolu_a", content: [] },
+      { type: "server_tool_use", id: "srvtoolu_b", name: "web_search", input: { query: "two" }, caller: { type: "direct" } },
+      { type: "server_tool_use", id: "srvtoolu_c", name: "code_execution", input: { code: "await web_search({'query': q})" } },
+      { type: "server_tool_use", id: "srvtoolu_d", name: "web_search", input: { query: "three" }, caller: code },
+      { type: "web_search_tool_result", tool_use_id: "srvtoolu_d", caller: code, content: [] },
+      { type: "server_tool_use", id: "srvtoolu_e", name: "web_fetch", input: { url: "https://example.org/a" }, caller: code },
+      { type: "server_tool_use", id: "srvtoolu_f", name: "web_fetch", input: { url: "https://example.org/b" } },
+    ]);
+    // Only the calls are marked: not the results, and not the code call itself.
+    expect(activity.map((a: any) => a.call)).toEqual(["direct", undefined, "direct", undefined, "code", undefined, "code", "direct"]);
+    expect(activity.map((a: any) => a.caller)).toEqual([undefined, undefined, "direct", undefined, "code_execution_20260120", undefined, "code_execution_20260120", undefined]);
+    expect(callCounts(activity)).toEqual({ direct_searches: 2, code_searches: 1, direct_fetches: 1, code_fetches: 1 });
+    expect(callCounts(undefined)).toEqual({ direct_searches: 0, code_searches: 0, direct_fetches: 0, code_fetches: 0 });
+
+    const report = (calls: any[]) => ({ lane: "genomics", status: "finished", requests: [{ web_search_requests: 8 }], activity: toolActivity(calls), raw_candidates: [], dropped: [], to_judge: [] });
+    const direct = Array.from({ length: 8 }, (_, i) => ({ type: "server_tool_use", name: "web_search", input: { query: `q${i}` } }));
+    expect(laneLine(report(direct))).toMatch(/^scan genomics: 8 searches \(8 direct\), 0 raw candidates, /);
+    // The run of 22 November 2026: every search made from code.
+    expect(laneLine(report(direct.map((c) => ({ ...c, caller: code }))))).toMatch(/^scan genomics: 8 searches \(0 direct\), /);
+    // A reply with no search call in it gives no count.
+    expect(laneLine(report([]))).toMatch(/^scan genomics: 8 searches, /);
   });
 
   it("sorts each dropped candidate into known, remembered or another reason", () => {
@@ -881,6 +913,44 @@ describe("guards on the live path", () => {
     });
   });
 
+  describe("direct tool calls", () => {
+    it("restricts search and fetch to direct calls on every scan and judge request, resumes included", async () => {
+      const client = standIn({
+        candidates: [scanCandidate("AlderFold"), scanCandidate("BirchFold")],
+        scan: (lane, request) => request === 1 ? { stop_reason: "pause_turn" } : {},
+        judge: (name) => name === "AlderFold" ? { stop_reason: "pause_turn" } : {},
+      });
+      await run(client, github(), ["--report-only"]);
+      const requests = client.calls.filter((c) => c.kind === "stream").map((c) => c.params);
+      const of = (match: string) => requests.filter((r) => String(r.messages[0].content).includes(match));
+      // Each lane is resumed once, AlderFold up to the cap, BirchFold not at all.
+      expect(of("Lane: ")).toHaveLength(6);
+      expect(of("Name: AlderFold")).toHaveLength(1 + LIMITS.maxContinuations);
+      expect(of("Name: BirchFold")).toHaveLength(1);
+      expect(requests).toHaveLength(10);
+      expect(DIRECT_ONLY).toEqual(["direct"]);
+      for (const request of requests) {
+        expect(request.tools.map((t: any) => [t.type, t.name, t.allowed_callers])).toEqual([
+          ["web_search_20260318", "web_search", ["direct"]],
+          ["web_fetch_20260209", "web_fetch", ["direct"]],
+        ]);
+        // No code execution tool is declared, so nothing in the request offers a code path.
+        expect(JSON.stringify(request.tools)).not.toContain("code_execution");
+      }
+    });
+    it("tells the scan to search directly, one query at a time, and to keep a candidate whose fetch failed", () => {
+      const prompt = scanPrompt({ lane: SCAN_LANES[0], runDate: "2026-11-22", lookbackDays: 30, titles: [] });
+      expect(prompt).toContain("Call the search tool yourself, one query at a time, and read each result before you write the next query.");
+      expect(prompt).toContain("Do not write code to search or fetch.");
+      expect(prompt).toContain("Never run a query twice.");
+      expect(prompt).toContain("Keep two searches for following up your best leads.");
+      expect(prompt).toContain("Fetch a URL exactly as a search result gave it.");
+      expect(prompt).toContain("A fetch that fails is not a reason to drop a candidate");
+      const system = readFileSync("agents/discovery.md", "utf8");
+      expect(system).toContain("Call the search and fetch tools yourself");
+    });
+  });
+
   describe("judge replies that are not a verdict", () => {
     it("does not file a candidate whose judge call stopped at the resume cap", async () => {
       const client = standIn({ candidates: [scanCandidate("AlderFold"), scanCandidate("BirchFold")], judge: (name) => name === "AlderFold" ? { stop_reason: "pause_turn" } : {} });
@@ -933,6 +1003,24 @@ describe("guards on the live path", () => {
       // Three lanes of 8 + 1 + 1 searches, and one judge call of 3 + 1 + 1.
       expect(usage!.byModel["claude-haiku-5-5"].webSearches).toBe(30);
       expect(usage!.byModel["claude-sonnet-5-5"].webSearches).toBe(5);
+    });
+    it("does not take direct calls off a resume's allowance, because the API counts them itself", async () => {
+      const search = (n: number, caller?: any) => ({ type: "server_tool_use", id: `srvtoolu_${n}`, name: "web_search", input: { query: `q${n}` }, ...(caller ? { caller } : {}) });
+      const fetched = { type: "server_tool_use", id: "srvtoolu_f", name: "web_fetch", input: { url: "https://example.org/a" } };
+      const paused = (content: any[], searches: number, fetches: number) => ({ stop_reason: "pause_turn", content: [...content, { type: "text", text: "scan notes so far" }], usage: { input_tokens: 1, output_tokens: 1, server_tool_use: { web_search_requests: searches, web_fetch_requests: fetches } } });
+      const uses = (client: any) => client.calls.filter((c: any) => c.kind === "stream" && String(c.params.messages[0].content).includes("Lane: genomics.")).map((c: any) => c.params.tools.map((t: any) => t.max_uses));
+      // Three direct searches and one direct fetch in each paused reply: the allowance stays whole.
+      const direct = standIn({ scan: (lane, request) => lane === "genomics" && request < 3 ? paused([search(1), search(2), search(3), fetched], 3, 1) : {} });
+      await run(direct, github(), ["--report-only"]);
+      expect(uses(direct)).toEqual([[8, 2], [8, 2], [8, 2]]);
+      // One of the three searches came from code: only that one is taken off.
+      const mixed = standIn({ scan: (lane, request) => lane === "genomics" && request === 1 ? paused([search(1), search(2), search(3, { type: "code_execution_20260120", tool_id: "srvtoolu_c" })], 3, 0) : {} });
+      await run(mixed, github(), ["--report-only"]);
+      expect(uses(mixed)).toEqual([[8, 2], [7, 2]]);
+      // A refused direct call is in the reply and not in the reported use: nothing goes below zero.
+      const refused = standIn({ scan: (lane, request) => lane === "genomics" && request === 1 ? paused([search(1), search(2)], 1, 0) : {} });
+      await run(refused, github(), ["--report-only"]);
+      expect(uses(refused)).toEqual([[8, 2], [8, 2]]);
     });
     it("still reads a reported count of zero as zero", async () => {
       const client = standIn({ scan: (lane, request) => request === 1 ? { stop_reason: "pause_turn", usage: { input_tokens: 1, output_tokens: 1, server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 } } } : {} });
@@ -1186,7 +1274,7 @@ describe("guards on the live path", () => {
         ] } : {},
       });
       await run(client, github(), ["--state", state, "--out", out], { now: new Date("2026-11-22T08:00:00Z"), env: { ANTHROPIC_API_KEY: key }, deps: { log: (m: string) => lines.push(m) } });
-      expect(lines).toContain("scan genomics: 1 searches, 3 raw candidates, 1 dropped as known, 1 dropped as remembered, 0 dropped for another reason, 1 to judge");
+      expect(lines).toContain("scan genomics: 1 searches (1 direct), 3 raw candidates, 1 dropped as known, 1 dropped as remembered, 0 dropped for another reason, 1 to judge");
       const genomics = JSON.parse(readFileSync(join(out, "scan", "genomics.json"), "utf8"));
       expect(genomics.dropped.map((d: any) => [d.name, d.category])).toEqual([["AlderFold", "remembered"], ["Bacformer", "known"]]);
       expect(genomics.queries).toEqual(["bioRxiv protein structure [redacted]"]);

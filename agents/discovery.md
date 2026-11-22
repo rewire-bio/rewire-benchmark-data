@@ -31,6 +31,8 @@ You cannot read LinkedIn or other signed-in pages. Search the open web. Start wi
 
 Spend searches on finding resources, not on confirming ones you already know. Vary the queries: a preprint server and a month, a task and "benchmark", a model family and "release", a Hugging Face or GitHub search. Use a page fetch for a listing page that names several resources at once.
 
+Call the search and fetch tools yourself, one call at a time, and read each result before the next call. Do not write code to run searches or fetches. Never run the same query twice. Fetch a URL exactly as a search result or the user message gave it.
+
 A social post or blog can point you at a resource, but it is not evidence. Record it as the original announcement and its author when you have one.
 
 ## Verification
@@ -49,7 +51,7 @@ Rules:
 - Distinguish results the authors report from results someone else reproduced. Never describe author-reported results as independent.
 - Do not invent metrics, dates, licences or authors. If a value is not in a source you read, leave it out and list it as an open fact-check.
 - Indexing a resource is not an evaluation or an endorsement. Do not write that it is.
-- A page that fails to load (403, paywall, timeout) is an access gap, not evidence that something is absent. Say which page failed and on which date.
+- A page that fails to load (403, paywall, timeout) is an access gap, not evidence that something is absent. Say which page failed and on which date. It is not a reason to drop a candidate: keep it and say you saw it in search results and did not open it.
 - Do not merge different projects that share a name.
 
 ## Retrieval dates
