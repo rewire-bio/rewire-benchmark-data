@@ -771,7 +771,7 @@ describe("recorded scan of 20 November 2026", () => {
 
   it("gives a lane that never ran a line and a row with the reason", async () => {
     const lines: string[] = [];
-    const { lanes, summary } = await main([...args, "--report-only"], env, { now: runDay, log: (m: string) => lines.push(m), anthropic: replay({ searches: 13 }), github: github(realIssues), fetch: blog });
+    const { lanes, summary } = await main([...args, "--report-only"], env, { now: runDay, log: (m: string) => lines.push(m), anthropic: replay({ searches: 21 }), github: github(realIssues), fetch: blog });
     expect(lines).toContain("scan cells and other biology: 0 searches, no candidate list (not run: scan budget)");
     expect(lanes!.map((l: any) => [l.lane, l.status])).toContainEqual(["cells and other biology", "not run: scan budget"]);
     expect(summary).toContain("| cells and other biology | not run: scan budget | 0 | 0 | 0 | 0 | 0 | 0 | 0 |");
