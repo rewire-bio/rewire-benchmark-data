@@ -46,7 +46,7 @@ Decide the level from what the sources show, not from the name. For example, a r
 
 A record may carry links to other records, each with the locator where the intake agent found the relation (`family`, `variant_of`, `alias_of`, `part_of`, `evaluates_task`, `uses_data`). Judge the `links` field: `pass` only if a source states every relation, for these exact records; `fail` for a relation no source states, or one inferred from a similar name.
 
-A record may also carry `duplicate_rulings`: store records that might be the same resource, which the intake agent ruled distinct. Judge the `duplicates` field: `pass` if each store record named is a different resource from this one (a family and one of its checkpoints are different; two names for one model are not); `fail` otherwise, saying which. The script checks the link targets, their kinds and that every possible duplicate has a ruling.
+A record may also carry `duplicate_rulings`: store records that might be the same resource, which the intake agent ruled distinct. A ruling whose locator starts "Ruled in the revision after review" was made in the intake agent's one revision; the phrases it quotes are that agent's claim and the note on shared sources is the script's finding. Judge such a ruling as you would any other. Judge the `duplicates` field: `pass` if each store record named is a different resource from this one (a family and one of its checkpoints are different; two names for one model are not); `fail` otherwise, saying which. The script checks the link targets, their kinds and that every possible duplicate has a ruling.
 
 ## Changed records
 

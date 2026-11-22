@@ -261,8 +261,8 @@ describe("what a revision may change", () => {
   it("does not settle a field the reply leaves out, an area the record lacks, the last area, or a dropped entity_level", () => {
     const reasons = (problem: any, revisions: any[]) => applyRevision(batch, [problem], { revisions }, texts).unresolved.map((u) => u.reason);
     const answer = (field: string, values: string[]) => [{ id: ID, field, action: "drop", values, passage: "", source_url: "", reason: "" }];
-    expect(reasons(areasProblem, [])).toEqual(["the revision gave neither a value to drop nor a passage"]);
-    expect(reasons(areasProblem, [{ ...answer("areas", [])[0], action: "none" }])).toEqual(["the revision gave neither a value to drop nor a passage"]);
+    expect(reasons(areasProblem, [])).toEqual(["the revision gave no value to drop, no passage and no new wording"]);
+    expect(reasons(areasProblem, [{ ...answer("areas", [])[0], action: "none" }])).toEqual(["the revision gave no value to drop, no passage and no new wording"]);
     expect(reasons(areasProblem, answer("areas", ["dna-genomes"]))).toEqual(["the revision named no area of the record to drop"]);
     expect(reasons(areasProblem, answer("areas", ["molecular-interactions", "proteins-complexes"]))).toEqual(["dropping these areas would leave the record without an area"]);
     expect(reasons({ ...areasProblem, field: "entity_level" }, answer("entity_level", []))).toEqual(["entity_level cannot be dropped"]);

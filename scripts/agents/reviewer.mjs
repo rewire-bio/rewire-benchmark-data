@@ -721,8 +721,14 @@ export function revisionCites(revision) {
   return (revision?.fields ?? []).filter((f) => f.action === 'cite').map((f) => ({ id: String(f.id), field: String(f.field), passage: clean(f.passage).slice(0, 1000), source_url: clean(f.source_url) }));
 }
 
+/** The fields a revision reworded on a quoted passage, for the review prompt. */
+export function revisionAmends(revision) {
+  return (revision?.fields ?? []).filter((f) => f.action === 'amend').map((f) => ({ id: String(f.id), field: String(f.field), before: clean(f.before).slice(0, 600), after: clean(f.after).slice(0, 600), passage: clean(f.passage).slice(0, 1000), source_url: clean(f.source_url) }));
+}
+
 async function modelReview(client, usage, { system, records, changed = [], storeUrls = new Map(), extraUrls, texts = [], runDate, log, revision = null }) {
   const cited = revisionCites(revision);
+  const amended = revisionAmends(revision);
   const withText = new Set(texts.filter((t) => t.text).map((t) => t.url));
   const input = reviewInput(records, changed, storeUrls);
   const paths = unique(changed.flatMap((r) => (r.change?.fields ?? []).map((f) => f.path)));
@@ -743,6 +749,7 @@ async function modelReview(client, usage, { system, records, changed = [], store
       JSON.stringify(input, null, 2),
       '',
       ...(cited.length ? ['The intake agent revised this batch after an earlier review. For these fields it kept the value and quoted a passage as support. Each quote is its claim, not evidence: find the passage in the source yourself, and judge whether it states the value (JSON):', JSON.stringify(cited, null, 2), ''] : []),
+      ...(amended.length ? ['The intake agent revised this batch after an earlier review. For these fields it reworded the value (before, after) and quoted a passage as support. Each quote is its claim, not evidence: find the passage in the source yourself, and judge whether the source states the new value, all of it (JSON):', JSON.stringify(amended, null, 2), ''] : []),
       'For a changed record (changed_record: true), judge every entry of changed_fields by its path: is the new value what a source states for this exact entity, and does the change keep what the source does not contradict? Give the path as the field name.',
       'For every record and every field listed for it (and source_ids), write the verdict (pass, fail or unverifiable), the problem if any, and the URL and location that decide it. Check source attribution for each cited source. For links, judge each relation: does a source state it, at the locator given or elsewhere? For duplicates, judge each ruling: is the store record named a different resource (distinct) as ruled? A record with any link or ruling you cannot confirm fails that field. List any page that failed to load.',
     ].join('\n'),
