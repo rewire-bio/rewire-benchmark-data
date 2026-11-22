@@ -9,7 +9,7 @@ Agents that run from GitHub Actions and call the Claude API. They are paid from 
 What it does:
 
 1. Haiku 5.5 searches the web for AI-for-biology models, methods, benchmarks and datasets that the database does not hold yet (web search and web fetch server tools). It makes one call for each of three lanes: genomics, proteins, and cells and other biology. Set the repository variable `DISCOVERY_SCAN_MODEL` to `claude-sonnet-5-5` to scan with Sonnet instead.
-2. Haiku 5.5 turns each lane's notes into a candidate list. The script drops candidates whose name is already in an issue title or the record store, then those the judge rejected in the last 30 days, then those triage calls out of scope or weak.
+2. Haiku 5.5 turns each lane's notes into a candidate list (the "raw candidates"). The script drops candidates whose name is already in an issue title or the record store, then those the judge rejected in the last 30 days, then those triage calls out of scope or weak.
 3. Sonnet 5.5 checks each remaining candidate against its primary sources (up to six a run, taken from the lanes in turn). It is given the records and requests whose name differs only by a version or size. Haiku 5.5 turns those notes into fixed fields. Notes that end with SKIP are never filed, whatever the fixed fields say, and notes cut off at the output limit are dropped.
 4. The script deduplicates again, on names, aliases, DOIs, arXiv IDs and GitHub or Hugging Face repositories, against:
    - every open and closed issue in this repository, and in rewire.it when it has a token;
@@ -40,6 +40,42 @@ A name of four characters or more is also compared as a spelling: without spaces
 A different version or a size is not a match: "BioEmu-3", "ESM3" and "ESM-2 650M" go to the judge. The judge is told which records and requests have the same name without its version or size, and to skip the candidate when it is one of them under another spelling, or only a size, checkpoint or minor release of it. The judge is not told that the database lacks the resource. It is told what the script compared.
 
 The script stops before any model call when it reads no name from `data/entities/`. A store that had moved, or a checkout without it, would otherwise make every stored resource look new.
+
+### What each run records
+
+Every run, in every mode, writes its working to the run artifact (`discovery-<run id>`, kept 30 days) beside `plan.json` and `usage.json`. Under `scan/` there are two files for each lane:
+
+- `<lane>.json`: the search queries, each request's stop reason, tokens and reported searches and fetches, the tool calls and the URLs and titles they returned, the lane notes, the candidate list as the structuring call returned it before any filter, each dropped candidate with its category and reason, and the names that passed the filters (`to_judge`). The judge cap of six a run and the run cost check come after, so not every name in `to_judge` is judged; the Skipped list in the summary names the ones left for the next run.
+- `<lane>-notes.md`: the lane notes alone, as the scan wrote them.
+
+The job log and the summary carry one line per lane:
+
+`scan genomics: 8 searches, 5 raw candidates, 2 dropped as known, 1 dropped as remembered, 1 dropped for another reason, 1 to judge`
+
+The four counts after "raw candidates" add up to it. "Known" means an issue or the record store holds the name. "Remembered" means the judge rejected it in the lookback period. "Another reason" is a candidate with no name, one triage calls out of scope, or a repeat of another lane. A lane that stops before it has a candidate list prints why instead: the scan budget, a refusal or empty reply with its stop reason, a failed call, or a structuring reply that could not be used. A lane whose scan was cut at `max_tokens`, or stopped at the `pause_turn` cap, still has notes and a candidate list, but the notes may lack candidates the scan had not written yet. Its line ends with that in brackets, and its status in the file and the table says the same.
+
+The queries come from the tool blocks of the reply. This tool version can run searches from code, so a query may appear only inside a code block; the file keeps the code (cut at 4,000 characters) and the query strings found in it: a string given to `query` or `web_search(`, and each string in a list assigned to a name such as `queries` (not a name that holds "result", and only a list of plain strings). A query built at run time is not found, so read `tool_activity[].code` when `queries` is short or empty. The search and fetch counts are the ones the API reports, not a count of blocks.
+
+The page text a fetch returns and the encrypted search content are not copied. What code printed is kept, up to 4,000 characters for each block, and that can hold search result text or page text when the scan ran its searches from code. All of it is public web content and model output. The request, its headers and the environment are never written, and the value of each token the run holds is replaced should it ever appear in the text. If the lane files cannot be written, the run says so in a warning and ends as it would have without them.
+
+A dry run has no scan. It reads `tests/agents-discovery-fixtures/scan.json`, which is written by hand and is not a recorded reply (no reply with tool blocks has been kept yet), runs the same triage on it and writes the same files, so the format is checked on every pull request.
+
+Why this exists. The scheduled run of 22 November 2026 (45041276604) made 24 searches and reported "0 candidates" in all three lanes, and the genomics lane had reported the same the day before (44921835807). That count was taken before any filter in the script, so no skip list, remembered rejection or ordering rule dropped anything: the candidate lists came back empty. The artifact held only `plan.json` and `usage.json`, so nothing showed whether the searches found nothing, the notes named nothing, or the structuring call lost what the notes named. The cause is not known. The first run with lane files is the evidence for it.
+
+What the two runs do show:
+
+- The four empty lanes were short. Genomics took 20 seconds on 21 November; the lanes of 22 November took 20, 11 and 20 seconds, with 24 searches (8 each), 1 page fetch of 6 allowed, and 5,620 output tokens in the whole run. The two lanes that found candidates on 21 November took 45 and 43 seconds. That day's usage has one scan request with 8 searches and no fetch, and the other 15 searches and all 6 scan fetches in requests whose prompt passed 100,000 tokens, which fits genomics being the short request and the two longer lanes making the fetches.
+- `scripts/agents/discovery.mjs` and `agents/discovery.md` were the same on both days. The prompt was not. On 22 November the "Already requested" list held the four issues filed the day before (#347 to #350), and the restored state file added a "Checked in an earlier run and not filed" block if the judge rejected a candidate on 21 November. The kept files do not show whether it did: the script writes the state file on every live run, also with an empty list, and 275 B is the size of the cache archive. The scan is told not to list those names and not to write about them, and a 30 day lookback finds much the same items each day. That fits proteins and cells going from 3 and 4 candidates to 0. It is not confirmed, and it does not explain genomics, which was empty on both days.
+- On 21 November the scan returned 7 candidates. Six went to the judge and four were filed. The seventh was over the judge cap, and a candidate that is judged but neither filed nor rejected is not remembered either. So at least one candidate of 21 November was in neither list on 22 November, and the scan did not return it. The names are not in the log or the artifact. The step summary on the page of run 44921835807 lists them under Skipped, with the outcome of each judged candidate; it was not read for this change.
+
+What to read in the first run that has lane files:
+
+1. `requests[].stop_reason`, `input_tokens` and `output_tokens` for each lane: whether a lane paused, was cut, or ended after a few hundred tokens, and how much the searches returned. The two lanes that found candidates on 21 November each read more than 100,000 prompt tokens; the three lanes of 22 November read about 102,000 between them.
+2. `queries`, and `tool_activity[].code` when `queries` is short: what the genomics lane searched for.
+3. `tool_activity[].results` and `tool_activity[].error`: whether searches failed or came back empty, and whether the result URLs are preprint servers and model hubs (bioRxiv, arXiv, Hugging Face, GitHub) or news sites.
+4. `<lane>-notes.md` against `raw_candidates`: whether the notes name resources that the candidate list lacks (the structuring call lost them), or name none (the scan found none, or left them out as already requested).
+
+One defect was fixed with the lane files. It was found by reading the code, and nothing ties it to any of the four empty lanes. A reply resumed after `pause_turn` holds only the text written after the pause, and the script used to keep only that last part, so a lane or a judge call that paused could lose its earlier notes. It now joins the parts. The lanes most likely to have paused on 21 November are the two that made the fetches, and they returned their candidates. The lane files record each request's stop reason, so a resumed lane is visible from now on.
 
 ### Rejected candidates
 
