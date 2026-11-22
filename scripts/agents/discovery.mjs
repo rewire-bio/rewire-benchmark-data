@@ -45,8 +45,8 @@ export const FIXTURES = 'tests/agents-discovery-fixtures';
 // each candidate against its primary sources. DISCOVERY_SCAN_MODEL overrides the scan model.
 export const MODELS = { scan: 'claude-haiku-5-5', judge: 'claude-sonnet-5-5', triage: 'claude-haiku-5-5' };
 // Worst case per research call is (1 + maxContinuations) requests, each holding every page
-// fetched so far. researchTurn counts searches and fetches across resumes, so the allowances
-// below hold for the whole call. docs/agents.md derives the cost bounds from these numbers.
+// fetched so far. researchTurn counts the uses made from code across resumes, and the API counts
+// the direct ones, so the allowances below hold for the whole call. docs/agents.md derives the cost bounds from these numbers.
 //
 // Scan budget: about $0.35 a run. Search fees are nearly all of it ($0.01 each); the three
 // scheduled runs of 18 to 20 November 2026 cost $0.10 to $0.12 for 9 or 10 searches, of which
@@ -1016,8 +1016,9 @@ export const DIRECT_ONLY = ['direct'];
  * removed from a conversation that already holds its results.
  *
  * The counts come from usage.server_tool_use. A response that does not report it is counted as
- * having used everything the request allowed, in the allowance and in the cost estimate, so a
- * missing field cannot hide searches from either dollar check.
+ * having used everything the request allowed, in the cost estimate and, less the direct calls
+ * seen in the reply, in the allowance, so a missing field cannot hide searches from either
+ * dollar check.
  *
  * A resumed reply holds only what was written after the pause, so the notes are the text of
  * every request joined in order. `trace`, when given, receives one row per request (stop
