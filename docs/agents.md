@@ -131,7 +131,7 @@ Limits are in `LIMITS` in the script:
 - 6 candidates judged a run and 4 issue pairs filed a day;
 - a 30-minute job timeout.
 
-No further scan lane starts when the scan would pass $0.35, and no further candidate is judged once the run's estimated cost passes $1. The first lane rotates by day, so a lane that the budget check skips one day runs first on another.
+No further scan lane starts when the scan would pass $0.55, and no further candidate is judged once the run's estimated cost passes $1. The first lane rotates by day, so a lane that the budget check skips one day runs first on another.
 
 Prices used for the estimate (Claude pricing page, 17 November 2026):
 
@@ -140,7 +140,7 @@ Prices used for the estimate (Claude pricing page, 17 November 2026):
 - Web search: $10 per 1,000 searches.
 - Web fetch: tokens only.
 
-The scan budget is about $0.35 a run. Search fees are nearly all of it. Measured on the scheduled runs of 18 to 20 November 2026, one scan call with 9 or 10 searches and one fetch:
+The scan budget is about $0.55 a run. It was $0.35 until 22 November 2026. With direct tool calls the search results enter the prompt, and the report-only run of that day (45082742536) spent about $0.14 a lane, so the third lane was not run under the old budget. Before that change search fees were nearly all of it. Measured on the scheduled runs of 18 to 20 November 2026, one scan call with 9 or 10 searches and one fetch:
 
 | Run | Searches | Prompt tokens (mostly cache reads) | Cost |
 | --- | --- | --- | --- |
@@ -157,7 +157,7 @@ Worst case, from the limits, if nothing is cached. A research call can make 3 re
 | Scan, per lane (Haiku) | 3 requests of up to about 110,000 tokens, at the higher band | 30,000 | 10 | about $0.34 |
 | Judge, per candidate (Sonnet) | 3 requests of up to about 82,000 tokens | 30,000 | 5 | about $0.84 |
 
-A lane starts only while the scan has spent $0.25 or less, so the uncached worst case for the scan is about $0.59. Judging stops after the $1 mark, so a run can reach about $1.84 and a month about $55.
+A lane starts only while the scan has spent $0.40 or less, so the uncached worst case for the scan is about $0.74. Judging stops after the $1 mark, so a run can reach about $1.84 and a month about $55.
 
 Two things are outside that figure. A judge request that Sonnet refuses is run again on a fallback model, and a model missing from the price table is estimated at Opus prices, twice Sonnet's, so one judge call can cost about $1.65 and a run about $2.65. The SDK retries a failed request up to three times; a retried request that was billed is not in the estimate.
 

@@ -733,12 +733,12 @@ describe("recorded scan of 20 November 2026", () => {
   });
 
   it("does not start a lane that would take the scan past its budget", async () => {
-    // 13 searches a lane is $0.13: after two lanes a third would pass $0.35.
-    const client = replay({ searches: 13 });
+    // 21 searches a lane is $0.21: after two lanes a third would pass $0.55.
+    const client = replay({ searches: 21 });
     const { summary, usage } = await main([...args, "--report-only"], env, { now: runDay, log: quiet, anthropic: client, github: github(realIssues), fetch: blog });
-    expect(summary).toContain('Scan lane "cells and other biology" was not run: the scan would have passed $0.35.');
+    expect(summary).toContain('Scan lane "cells and other biology" was not run: the scan would have passed $0.55.');
     expect(client.calls.filter((c) => c.kind === "stream" && String(c.params.messages[0].content).includes("Find AI-for-biology"))).toHaveLength(2);
-    expect(usage!.byModel["claude-haiku-5-5"].webSearches).toBe(26);
+    expect(usage!.byModel["claude-haiku-5-5"].webSearches).toBe(42);
   });
 
   it("uses the notes written so far when a lane stops at the resume cap, and gives each resume what is left", async () => {
