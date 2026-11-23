@@ -16,6 +16,9 @@
 // --dry-run   reads candidates, issues, store names and articles from fixtures; no model
 //             call, no network, no write. CI runs it through tests/agents-discovery.test.ts.
 // --report-only  calls the models and reads GitHub, but prints the issues instead of filing.
+// --out       a folder for the planned issues, usage.json, and one file per scan lane under
+//             scan/: the searches made, the lane notes as written, the candidate list before
+//             any filter, and each dropped candidate with its reason. Every mode writes them.
 // --state     a JSON file of candidates the judge rejected. They are not judged again until
 //             the lookback period has passed. The workflow keeps the file in the Actions cache.
 //
@@ -42,10 +45,10 @@ export const FIXTURES = 'tests/agents-discovery-fixtures';
 // each candidate against its primary sources. DISCOVERY_SCAN_MODEL overrides the scan model.
 export const MODELS = { scan: 'claude-haiku-5-5', judge: 'claude-sonnet-5-5', triage: 'claude-haiku-5-5' };
 // Worst case per research call is (1 + maxContinuations) requests, each holding every page
-// fetched so far. researchTurn counts searches and fetches across resumes, so the allowances
-// below hold for the whole call. docs/agents.md derives the cost bounds from these numbers.
+// fetched so far. researchTurn counts the uses made from code across resumes, and the API counts
+// the direct ones, so the allowances below hold for the whole call. docs/agents.md derives the cost bounds from these numbers.
 //
-// Scan budget: about $0.35 a run. Search fees are nearly all of it ($0.01 each); the three
+// Scan budget: about $0.55 a run. Before direct tool calls, search fees were nearly all of it ($0.01 each); the three
 // scheduled runs of 18 to 20 November 2026 cost $0.10 to $0.12 for 9 or 10 searches, of which
 // tokens were about $0.01. Three lanes of 8 searches are 24 searches, about $0.24 to $0.30.
 export const LIMITS = {
@@ -58,8 +61,8 @@ export const LIMITS = {
   scanSearches: 8, // per scan lane
   scanFetches: 2, // per scan lane
   scanCandidates: 6, // per scan lane
-  maxScanUsd: 0.35, // no further lane starts when the scan would pass this
-  scanLaneUsd: 0.1, // measured cost of one lane, used for that check
+  maxScanUsd: 0.55, // no further lane starts when the scan would pass this
+  scanLaneUsd: 0.15, // measured cost of one lane with direct search results (22 Nov 2026), used for that check
   knownTitles: 60, // request titles shown to the scan so it does not return them
   judgeSearches: 3,
   judgeFetches: 4,
@@ -601,12 +604,28 @@ export class Usage {
   }
 }
 
-export function renderSummary({ mode, runDate, usage, filed, skipped, notes = [] }) {
+export function renderSummary({ mode, runDate, usage, filed, skipped, notes = [], lanes = [] }) {
+  const laneRows = lanes.map((report) => {
+    const n = laneCounts(report);
+    // The status can carry the text of an API error. A bar or a line break would split the row.
+    const status = clean(report.status).replace(/\s+/g, ' ').replace(/\|/g, '\\|');
+    return `| ${report.lane} | ${status} | ${n.searches} | ${n.fetches} | ${n.raw} | ${n.known} | ${n.remembered} | ${n.other} | ${n.to_judge} |`;
+  });
   return [
     `## Discovery scan, ${runDate} (${mode})`,
     '',
     ...notes.map((n) => `- ${n}`),
     notes.length ? '' : null,
+    ...(laneRows.length ? [
+      '### Scan lanes',
+      '',
+      '| Lane | Status | Searches | Fetches | Raw candidates | Dropped as known | Dropped as remembered | Dropped for another reason | To judge |',
+      '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+      ...laneRows,
+      '',
+      'The queries, the notes and each dropped candidate are in the run artifact, under scan/.',
+      '',
+    ] : []),
     '### Filed',
     '',
     filed.length
@@ -759,6 +778,246 @@ function textOf(message) {
 }
 
 /**
+ * Search queries written as string literals in code the model ran (best effort): a string given
+ * to `query` or `web_search(`, and each string in a list assigned to a name that holds "quer" or
+ * "search" (`queries = [...]`), but not one that holds "result", and only when the
+ * list holds nothing but strings. A query built at run time is not found; the code itself is kept.
+ */
+function queriesInCode(code) {
+  const text = String(code);
+  const literal = /(["'`])((?:(?!\1)[^\n\\]|\\.)+)\1/g;
+  const found = [];
+  for (const m of text.matchAll(/(?:query["']?\s*[:=]?\s*|web_search\(\s*)(["'`])((?:(?!\1)[^\n])+)\1/g)) found.push({ at: m.index, query: m[2] });
+  for (const list of text.matchAll(/\b(\w*(?:quer|search)\w*)\s*(?::[^=\n]*)?=\s*\[([^\]]*)\]/gi)) {
+    // Only a plain list of strings: anything left once the strings are taken out is code.
+    if (/result/i.test(list[1]) || list[2].replace(literal, '').replace(/#[^\n]*/g, '').replace(/[\s,]/g, '')) continue;
+    for (const m of list[2].matchAll(literal)) found.push({ at: list.index + m.index, query: m[2] });
+  }
+  return [...new Set(found.sort((a, b) => a.at - b.at).map((f) => f.query))];
+}
+
+const WEB_TOOLS = ['web_search', 'web_fetch'];
+
+/**
+ * What the server tools did in one reply, for the lane files: each tool call with its query,
+ * URL or code, and each result with the URLs and titles it returned or its error code. It reads
+ * the blocks by their fields and not by an exact type, because the block types differ between
+ * tool versions. The page text a fetch returns and encrypted fields are never copied. What code
+ * printed (stdout, stderr) is kept up to the cap, and that can hold search result text or page
+ * text when the model ran its searches from code. Every string is cut at the cap.
+ *
+ * Each search or fetch call also gets `call`: "direct" when the model called the tool itself, or
+ * "code" when code the model wrote made the call. The API marks a call made from code with a
+ * `caller` block that names the code execution run (web search page: "each nested
+ * `server_tool_use` and `web_search_tool_result` pair carries a `caller` field identifying the
+ * code execution call that made it"); a direct call has `caller.type` "direct" or no `caller`
+ * at all. The caller type is kept as `caller` when the block has one.
+ */
+export function toolActivity(content, cap = 4000) {
+  const cut = (text) => {
+    const t = String(text ?? '');
+    return t.length > cap ? `${t.slice(0, cap)} [cut from ${t.length} characters]` : t;
+  };
+  const hits = (list) => list.filter((r) => r && typeof r === 'object' && (r.url || r.title))
+    .map((r) => ({ url: cut(r.url), title: cut(r.title), ...(r.page_age ? { page_age: String(r.page_age) } : {}) }));
+  const out = [];
+  for (const block of Array.isArray(content) ? content : []) {
+    if (!block || ['text', 'thinking', 'redacted_thinking'].includes(block.type)) continue;
+    const entry = { type: String(block.type) };
+    if (block.name) entry.name = String(block.name);
+    const input = block.input;
+    if (WEB_TOOLS.includes(block.name) && input && typeof input === 'object') {
+      const caller = typeof block.caller?.type === 'string' ? block.caller.type : '';
+      entry.call = !caller || caller === 'direct' ? 'direct' : 'code';
+      if (caller) entry.caller = cut(caller);
+    }
+    if (input && typeof input === 'object') {
+      if (typeof input.query === 'string') entry.query = cut(input.query);
+      if (typeof input.url === 'string') entry.url = cut(input.url);
+      const code = [input.code, input.command].find((c) => typeof c === 'string');
+      if (code) {
+        entry.code = cut(code);
+        const queries = queriesInCode(code);
+        if (queries.length) entry.queries_in_code = queries.map(cut);
+      }
+    }
+    const result = block.content;
+    if (Array.isArray(result)) entry.results = hits(result);
+    else if (result && typeof result === 'object') {
+      if (result.error_code) entry.error = String(result.error_code);
+      if (typeof result.url === 'string') entry.url = cut(result.url);
+      if (typeof result.content?.title === 'string') entry.title = cut(result.content.title);
+      if (Array.isArray(result.content)) entry.results = hits(result.content);
+      if (typeof result.stdout === 'string' && result.stdout) entry.stdout = cut(result.stdout);
+      if (typeof result.stderr === 'string' && result.stderr) entry.stderr = cut(result.stderr);
+      if (result.return_code !== undefined) entry.return_code = result.return_code;
+    }
+    out.push(entry);
+  }
+  return out;
+}
+
+/**
+ * How many search and fetch calls in a tool activity list were direct and how many came from
+ * code. These count calls, a refused call included, so they can differ from the billed numbers.
+ */
+export function callCounts(activity) {
+  const count = (name, call) => (activity ?? []).filter((a) => a.name === name && a.call === call).length;
+  return {
+    direct_searches: count('web_search', 'direct'),
+    code_searches: count('web_search', 'code'),
+    direct_fetches: count('web_fetch', 'direct'),
+    code_fetches: count('web_fetch', 'code'),
+  };
+}
+
+/**
+ * The direct search and fetch calls a reply holds without their result. A reply that pauses on
+ * such a call reports its use in the next reply, which then holds the result and not the call.
+ */
+export function pendingDirect(content) {
+  const blocks = Array.isArray(content) ? content : [];
+  const answered = new Set(blocks.map((b) => b?.tool_use_id).filter(Boolean));
+  const open = callCounts(toolActivity(blocks.filter((b) => b?.type === 'server_tool_use' && !answered.has(b.id))));
+  return { searches: open.direct_searches, fetches: open.direct_fetches };
+}
+
+/** The queries in a lane's tool activity: those given to the search tool, then those found in code. */
+export function queriesOf(activity) {
+  return [...new Set(activity.flatMap((a) => [...(a.query ? [a.query] : []), ...(a.queries_in_code ?? [])]))];
+}
+
+/**
+ * Triage of one lane's candidate list. Returns the candidates to judge and every dropped one
+ * with a category and a reason: `known` (an issue or the record store holds it), `remembered`
+ * (the judge rejected it in the lookback period), `other` (no name, out of scope, or a repeat
+ * of another lane). `seen` carries the names accepted so far across lanes.
+ */
+export function triageLane(candidates, { isKnown, seen }) {
+  const fresh = [];
+  const dropped = [];
+  for (const c of candidates ?? []) {
+    if (!c?.name) {
+      dropped.push({ name: '(no name)', category: 'other', reason: 'the candidate has no name' });
+      continue;
+    }
+    const dup = isKnown(c);
+    if (dup?.where === 'rejected') {
+      dropped.push({ name: c.name, category: 'remembered', reason: `not judged again: ${dup.reason}` });
+      continue;
+    }
+    if (dup) {
+      dropped.push({ name: c.name, category: 'known', reason: `already known, not judged: ${dup.reason}` });
+      continue;
+    }
+    if (!c.in_scope) {
+      dropped.push({ name: c.name, category: 'other', reason: `triage: ${clean(c.reason)}` });
+      continue;
+    }
+    const forms = [c.name, ...(c.aliases ?? [])].map(matchForm).filter(longEnough);
+    const other = forms.map((n) => seen.get(n)).find(Boolean);
+    if (other) {
+      dropped.push({ name: c.name, category: 'other', reason: `repeats ${other} from another scan lane` });
+      continue;
+    }
+    for (const n of forms) seen.set(n, c.name);
+    fresh.push(c);
+  }
+  return { fresh, dropped };
+}
+
+/** An empty lane report. liveCandidates and the dry run fill it; main writes it to --out. */
+export function laneReport(lane) {
+  return { lane: lane.name, focus: lane.focus ?? '', status: 'not started', requests: [], activity: [], notes: '', raw_candidates: null, dropped: [], to_judge: [] };
+}
+
+/**
+ * The numbers of one lane. Searches and fetches are what the API reported, summed over resumes.
+ * The direct and code counts are the calls seen in the reply (callCounts).
+ */
+export function laneCounts(report) {
+  const sum = (key) => report.requests.reduce((n, r) => n + (r[key] ?? 0), 0);
+  const drops = (category) => report.dropped.filter((d) => d.category === category).length;
+  return {
+    searches: sum('web_search_requests'),
+    fetches: sum('web_fetch_requests'),
+    ...callCounts(report.activity),
+    output_tokens: sum('output_tokens'),
+    raw: report.raw_candidates?.length ?? 0,
+    known: drops('known'),
+    remembered: drops('remembered'),
+    other: drops('other'),
+    to_judge: report.to_judge.length,
+  };
+}
+
+/**
+ * How a scan that returned notes ended. A reply cut at max_tokens, or a lane stopped at the
+ * pause_turn cap, still gives notes, but they may lack candidates the scan had not written yet.
+ */
+export function scanEnding(requests) {
+  const last = requests.at(-1)?.stop_reason;
+  if (last === 'max_tokens') return 'finished; the notes were cut at max_tokens and may be incomplete';
+  if (last === 'pause_turn') return 'finished; the scan stopped at the pause_turn cap and the notes may be incomplete';
+  return 'finished';
+}
+
+/**
+ * The line each lane prints. The four counts after "raw candidates" add up to it. "To judge" is
+ * what passed the filters; the judge cap and the run cost check come after. A lane whose notes
+ * may be incomplete says so at the end of its line. The count in brackets is the search calls
+ * the model made directly: it should equal the searches, and 0 means they ran from code. It is
+ * left out when the reply held no search call at all, as for a lane that never ran.
+ */
+export function laneLine(report) {
+  const n = laneCounts(report);
+  const searches = `${n.searches} searches${n.direct_searches + n.code_searches ? ` (${n.direct_searches} direct)` : ''}`;
+  if (report.raw_candidates === null) return `scan ${report.lane}: ${searches}, no candidate list (${report.status})`;
+  const ending = ['finished', 'read from fixtures'].includes(report.status) ? '' : ` (${report.status})`;
+  return `scan ${report.lane}: ${searches}, ${n.raw} raw candidates, ${n.known} dropped as known, ${n.remembered} dropped as remembered, ${n.other} dropped for another reason, ${n.to_judge} to judge${ending}`;
+}
+
+/**
+ * Replaces the values of the run's secrets, should one ever appear in text written to --out. It
+ * also replaces each value as JSON writes it, because the lane file is redacted after it is
+ * made into JSON, where a quote or a backslash in a value is escaped.
+ */
+export function redactor(env = {}) {
+  const values = ['ANTHROPIC_API_KEY', 'GH_TOKEN', 'GITHUB_TOKEN', 'ARTICLE_TOKEN'].map((k) => env[k]).filter((v) => typeof v === 'string' && v.length >= 8);
+  const secrets = [...new Set(values.flatMap((v) => [v, JSON.stringify(v).slice(1, -1)]))];
+  return (text) => secrets.reduce((t, secret) => t.split(secret).join('[redacted]'), String(text));
+}
+
+/** Writes scan/<lane>.json and scan/<lane>-notes.md for each lane. */
+export function writeLaneReports(out, reports, { mode, runDate, redact = (t) => t }) {
+  if (!reports.length) return;
+  const dir = join(out, 'scan');
+  mkdirSync(dir, { recursive: true });
+  for (const report of reports) {
+    const slug = keyOf(report.lane);
+    const { activity, notes, ...rest } = report;
+    const body = { ...rest, mode, run_date: runDate, counts: laneCounts(report), queries: queriesOf(activity), notes, tool_activity: activity };
+    writeFileSync(join(dir, `${slug}.json`), `${redact(JSON.stringify(body, null, 2))}\n`);
+    writeFileSync(join(dir, `${slug}-notes.md`), `${redact(notes) || `(no notes: ${report.status})`}\n`);
+  }
+}
+
+/** The search and fetch tools may only be called by the model itself, never from code it writes. */
+export const DIRECT_ONLY = ['direct'];
+
+/**
+ * The web tools a 400 says do not take `allowed_callers`, or none when the error is about
+ * something else. A message that names one tool, or its place in `tools`, gives that tool; one
+ * that names only the field gives both.
+ */
+export function rejectedDirectOnly(e) {
+  const text = String(e?.message ?? '');
+  if (e?.status !== 400 || !text.includes('allowed_callers')) return [];
+  const named = WEB_TOOLS.filter((tool, i) => text.includes(tool) || text.includes(`tools.${i}.`) || text.includes(`tools[${i}]`));
+  return named.length ? named : [...WEB_TOOLS];
+}
+
+/**
  * One research call with the server web tools, resuming pause_turn up to the cap. Returns the
  * notes, or null on a refusal, when the cap is reached, or when the reply was cut off at
  * max_tokens. With `partial`, a call that reaches the cap returns the text written so far, and
@@ -769,40 +1028,92 @@ function textOf(message) {
  * request on a model the API picks, billed at that model's prices (usage.add reads
  * message.model). Haiku 5.5 has no server-side fallback.
  *
- * The search and fetch allowances are for the whole call. This tool version runs searches from
- * code execution, and the API does not count those against max_uses after a resume, so each
- * resume is given only what is left. A resume keeps at least one use, because the tool cannot
- * be removed from a conversation that already holds its results.
+ * Both tools carry `allowed_callers: ["direct"]` on every request. These tool versions otherwise
+ * run from code the model writes (dynamic filtering), and the model then reads only what that
+ * code prints: on 22 November 2026 two lanes lost every search result that way. With direct
+ * calls each result comes back into the conversation as the API returned it.
+ *
+ * Should the API answer 400 and name `allowed_callers`, the request is sent once more without
+ * the field on the tool it rejected, and so are the later resumes of this call. The log says so
+ * and the request row in the lane file names the tools (`allowed_callers_dropped`). Searches
+ * can then run from code again, which the lane line shows, but the scan is not lost to a
+ * rejected field. Any other error, and a second 400, fails the lane as before.
+ *
+ * The search and fetch allowances are for the whole call. On a resume the API counts the direct
+ * calls of earlier requests against max_uses, and does not count calls made from code. So a
+ * resume is given the allowance less the uses that were not seen as direct calls in the reply:
+ * calls from code, and uses the reply reported without a tool block. Taking direct calls off
+ * as well would count them twice. A direct call the reply before paused on is not taken off
+ * either: its use is reported one reply late, without its block (pendingDirect). A resume keeps at least one use, because the tool cannot be
+ * removed from a conversation that already holds its results.
  *
  * The counts come from usage.server_tool_use. A response that does not report it is counted as
- * having used everything the request allowed, in the allowance and in the cost estimate, so a
- * missing field cannot hide searches from either dollar check.
+ * having used everything the request allowed, in the cost estimate and, less the direct calls
+ * seen in the reply, in the allowance, so a missing field cannot hide searches from either
+ * dollar check. With d direct calls in such a reply the resume gets max(1, d) uses, and the API
+ * has already counted d, so no further call is possible: this errs low.
+ *
+ * A resumed reply holds only what was written after the pause, so the notes are the text of
+ * every request joined in order. `trace`, when given, receives one row per request (stop
+ * reason, tokens, tool use) and the tool blocks of each reply, for the lane files.
  */
-async function researchTurn(client, usage, { model, system, prompt, searches, fetches, log, partial = false }) {
+async function researchTurn(client, usage, { model, system, prompt, searches, fetches, log, partial = false, trace = null }) {
   const messages = [{ role: 'user', content: prompt }];
   const fallback = model.startsWith('claude-haiku') ? {} : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' };
   const written = [];
+  // Uses the API will not count against max_uses on a resume: see the note above.
   let searched = 0;
   let fetched = 0;
+  // Direct calls the reply before held without a result; this reply reports their use.
+  let pending = { searches: 0, fetches: 0 };
+  // Tools the API refused `allowed_callers` on. Empty unless a request came back 400 for it.
+  const dropped = [];
   for (let turn = 0; turn <= LIMITS.maxContinuations; turn++) {
     const allowed = { web_search_requests: Math.max(1, searches - searched), web_fetch_requests: Math.max(1, fetches - fetched) };
-    const message = await client.beta.messages.stream({
+    const directOnly = (tool) => (dropped.includes(tool) ? {} : { allowed_callers: DIRECT_ONLY });
+    const request = () => client.beta.messages.stream({
       model,
       ...fallback,
       max_tokens: LIMITS.researchMaxTokens,
       system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
       output_config: { effort: 'medium' },
       tools: [
-        { type: 'web_search_20260318', name: 'web_search', max_uses: allowed.web_search_requests },
-        { type: 'web_fetch_20260209', name: 'web_fetch', max_uses: allowed.web_fetch_requests, max_content_tokens: LIMITS.fetchContentTokens },
+        { type: 'web_search_20260318', name: 'web_search', ...directOnly('web_search'), max_uses: allowed.web_search_requests },
+        { type: 'web_fetch_20260209', name: 'web_fetch', ...directOnly('web_fetch'), max_uses: allowed.web_fetch_requests, max_content_tokens: LIMITS.fetchContentTokens },
       ],
       messages,
     }).finalMessage();
+    let message;
+    try {
+      message = await request();
+    } catch (e) {
+      const rejected = rejectedDirectOnly(e).filter((tool) => !dropped.includes(tool));
+      if (!rejected.length) throw e;
+      dropped.push(...rejected);
+      log(`the API rejected allowed_callers on ${rejected.join(' and ')} (${errorText(e)}); sent again without it, so those calls can run from code`);
+      message = await request();
+    }
     const used = message.usage?.server_tool_use ?? allowed;
     if (!message.usage?.server_tool_use) log('the response did not report its tool use; counted as the full allowance');
     usage.add(message.model ?? model, message.usage ?? {}, allowed);
-    searched += used.web_search_requests ?? 0;
-    fetched += used.web_fetch_requests ?? 0;
+    const activity = toolActivity(message.content);
+    const direct = callCounts(activity);
+    searched += Math.max(0, (used.web_search_requests ?? 0) - direct.direct_searches - pending.searches);
+    fetched += Math.max(0, (used.web_fetch_requests ?? 0) - direct.direct_fetches - pending.fetches);
+    pending = pendingDirect(message.content);
+    if (trace) {
+      trace.requests.push({
+        stop_reason: message.stop_reason ?? null,
+        input_tokens: (message.usage?.input_tokens ?? 0) + (message.usage?.cache_creation_input_tokens ?? 0) + (message.usage?.cache_read_input_tokens ?? 0),
+        output_tokens: message.usage?.output_tokens ?? 0,
+        web_search_requests: used.web_search_requests ?? 0,
+        web_fetch_requests: used.web_fetch_requests ?? 0,
+        tool_use_reported: Boolean(message.usage?.server_tool_use),
+        text_characters: textOf(message).length,
+        ...(dropped.length ? { allowed_callers_dropped: [...dropped] } : {}),
+      });
+      trace.activity.push(...activity);
+    }
     if (message.stop_reason === 'refusal') {
       log(`refused (${message.stop_details?.category ?? 'no category'})`);
       return null;
@@ -811,8 +1122,8 @@ async function researchTurn(client, usage, { model, system, prompt, searches, fe
       log('cut off at max_tokens');
       return null;
     }
-    if (message.stop_reason !== 'pause_turn') return textOf(message);
     written.push(textOf(message));
+    if (message.stop_reason !== 'pause_turn') return written.filter(Boolean).join('\n\n');
     messages.push({ role: 'assistant', content: message.content });
   }
   log('stopped after the pause_turn cap');
@@ -875,6 +1186,8 @@ export function scanPrompt({ lane, runDate, lookbackDays, titles, rejected = [] 
     `Look first for resources released or first announced in the last ${lookbackDays} days (since ${since}). An older resource is also a candidate when it is substantive and something public happened to it in that period: a new version, a journal paper for an earlier preprint, a first release of code or weights, a new benchmark round, or new use as a baseline. Give each candidate's release date when a source states it. Never leave a candidate out for its age alone.`,
     '',
     `You have ${LIMITS.scanSearches} web searches and ${LIMITS.scanFetches} page fetches. Make each query different, and do not search for a name in the list below.`,
+    'Call the search tool yourself, one query at a time, and read each result before you write the next query. Do not write code to search or fetch. Never run a query twice. Keep two searches for following up your best leads.',
+    'Fetch a URL exactly as a search result gave it. A fetch that fails is not a reason to drop a candidate: keep it, name the page that failed, and say you saw it in search results and did not open it.',
     `Valid areas: ${AREAS.join(', ')}.`,
     '',
     'Already requested. These are issue titles. Do not list a resource they name as a candidate, under any spelling or version, and do not write about it in your notes:',
@@ -893,7 +1206,7 @@ export function scanPrompt({ lane, runDate, lookbackDays, titles, rejected = [] 
  * A candidate the script already knows never reaches the judge, whatever the scan wrote about
  * it: the prompt asks the scan not to return known names, and this check enforces it.
  */
-async function liveCandidates(client, usage, { scanModel, system, runDate, lookbackDays, titles, rejectedNames = [], isKnown, near = () => [], checked = '', onReject = () => {}, skipped, judged, notes, log }) {
+async function liveCandidates(client, usage, { scanModel, system, runDate, lookbackDays, titles, rejectedNames = [], isKnown, near = () => [], checked = '', onReject = () => {}, skipped, judged, notes, log, laneReports = [] }) {
   // Scan and triage, one lane at a time. The first lane rotates by day, so a lane the budget
   // check skips one day runs first on another.
   const first = Math.floor(Date.parse(`${runDate}T00:00:00Z`) / 86_400_000) % SCAN_LANES.length;
@@ -903,8 +1216,16 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
   let echoed = 0;
   let rejectedBefore = 0;
   for (const lane of lanes) {
+    const report = laneReport(lane);
+    laneReports.push(report);
+    // A lane that stops early still prints its line and keeps what it has for the lane file.
+    const stop = (status, note) => {
+      report.status = status;
+      notes.push(note);
+      log(laneLine(report));
+    };
     if (usage.total() + LIMITS.scanLaneUsd > LIMITS.maxScanUsd) {
-      notes.push(`Scan lane "${lane.name}" was not run: the scan would have passed $${LIMITS.maxScanUsd}.`);
+      stop('not run: scan budget', `Scan lane "${lane.name}" was not run: the scan would have passed $${LIMITS.maxScanUsd}.`);
       continue;
     }
     let triaged;
@@ -915,60 +1236,46 @@ async function liveCandidates(client, usage, { scanModel, system, runDate, lookb
         searches: LIMITS.scanSearches,
         fetches: LIMITS.scanFetches,
         partial: true,
+        trace: report,
         log: (m) => log(`scan ${lane.name}: ${m}`),
         prompt: scanPrompt({ lane, runDate, lookbackDays, titles, rejected: rejectedNames }),
       });
       if (!scanNotes) {
-        notes.push(`Scan lane "${lane.name}" was refused or did not finish.`);
+        stop(`no notes; the last request stopped with ${report.requests.at(-1)?.stop_reason ?? 'no reply'}`, `Scan lane "${lane.name}" was refused or did not finish.`);
         continue;
       }
+      report.notes = scanNotes;
       triaged = await structure(client, usage, {
         instruction: 'Extract every candidate from these scan notes. Keep URLs exactly as written. Set released to the release date the notes give, as YYYY-MM-DD or YYYY-MM, or leave it empty. Set in_scope false only for a candidate the notes call out of scope or weak. Do not set in_scope false because of a release date, and do not set it false because the notes call the candidate a duplicate or already known: a script checks that.',
         notes: scanNotes,
         schema: SCAN_SCHEMA,
       });
     } catch (e) {
-      notes.push(`Scan lane "${lane.name}" failed (${errorText(e)}).`);
+      stop(`failed: ${errorText(e)}`, `Scan lane "${lane.name}" failed (${errorText(e)}).`);
       continue;
     }
     if (!triaged) {
-      notes.push(`Scan lane "${lane.name}": triage returned no usable candidate list.`);
+      stop('the structuring call returned no usable candidate list', `Scan lane "${lane.name}": triage returned no usable candidate list.`);
       continue;
     }
-    const fresh = [];
-    for (const c of triaged.candidates ?? []) {
-      if (!c?.name) continue;
-      const dup = isKnown(c);
-      if (dup?.where === 'rejected') {
-        rejectedBefore += 1;
-        skipped.push({ name: c.name, reason: `not judged again: ${dup.reason}` });
-        continue;
-      }
-      if (dup) {
-        echoed += 1;
-        skipped.push({ name: c.name, reason: `already known, not judged: ${dup.reason}` });
-        continue;
-      }
-      if (!c.in_scope) {
-        skipped.push({ name: c.name, reason: `triage: ${clean(c.reason)}` });
-        continue;
-      }
-      const forms = [c.name, ...(c.aliases ?? [])].map(matchForm).filter(longEnough);
-      const other = forms.map((n) => seen.get(n)).find(Boolean);
-      if (other) {
-        skipped.push({ name: c.name, reason: `repeats ${other} from another scan lane` });
-        continue;
-      }
-      for (const n of forms) seen.set(n, c.name);
-      fresh.push(c);
+    report.status = scanEnding(report.requests);
+    report.raw_candidates = triaged.candidates ?? [];
+    const { fresh, dropped } = triageLane(report.raw_candidates, { isKnown, seen });
+    report.dropped = dropped;
+    for (const d of dropped) {
+      if (d.category === 'remembered') rejectedBefore += 1;
+      if (d.category === 'known') echoed += 1;
+      if (d.name !== '(no name)') skipped.push({ name: d.name, reason: d.reason });
     }
     // Inside the lookback first, then undated, then older. A stable sort keeps the scan's order within each group.
     const rank = (c) => {
       const age = ageInDays(c.released, runDate);
       return age === null ? 1 : age <= lookbackDays ? 0 : 2;
     };
-    byLane.push(fresh.map((c, i) => ({ c, i })).sort((a, b) => rank(a.c) - rank(b.c) || a.i - b.i).map((x) => x.c));
-    log(`scan ${lane.name}: ${triaged.candidates?.length ?? 0} candidates, ${fresh.length} to judge`);
+    const ordered = fresh.map((c, i) => ({ c, i })).sort((a, b) => rank(a.c) - rank(b.c) || a.i - b.i).map((x) => x.c);
+    report.to_judge = ordered.map((c) => c.name);
+    byLane.push(ordered);
+    log(laneLine(report));
   }
   if (!byLane.length) {
     notes.push('No scan lane finished; nothing was judged.');
@@ -1145,12 +1452,29 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
 
   const skipped = [];
   const filed = [];
+  const laneReports = [];
+  const isKnown = (c) => findDuplicate({ ...c, sources: [] }, { issues, storeNames }) ?? findRejected(c, rejected, runDate, args.lookbackDays);
   // Whatever happens below, the summary with token usage is written.
   try {
     // Candidates.
     let candidates = [];
     if (args.dryRun) {
       candidates = readJson(join(fixtures, 'judgements.json'));
+      // The dry run has no scan. When the fixtures hold lane replies (scan.json), it runs the
+      // same triage on them and writes the same lane files, so the format is checked in CI.
+      // The planned issues still come from judgements.json alone.
+      const scanFile = join(fixtures, 'scan.json');
+      if (existsSync(scanFile)) {
+        const seen = new Map();
+        for (const [name, recorded] of Object.entries(readJson(scanFile).lanes ?? {})) {
+          const report = { ...laneReport(SCAN_LANES.find((l) => l.name === name) ?? { name }), status: 'read from fixtures', requests: recorded.requests ?? [], activity: toolActivity(recorded.content), notes: recorded.notes ?? '', raw_candidates: recorded.candidates ?? [] };
+          const { fresh, dropped } = triageLane(report.raw_candidates, { isKnown, seen });
+          report.dropped = dropped;
+          report.to_judge = fresh.map((c) => c.name);
+          laneReports.push(report);
+          log(laneLine(report));
+        }
+      }
     } else {
       let client = deps.anthropic;
       if (!client) {
@@ -1166,7 +1490,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         titles: knownTitles(issues, repo),
         rejectedNames: rejected.slice(-LIMITS.knownTitles).map((r) => r.name),
         // Names only before judging: a scan URL may be a dependency, not the candidate's own source.
-        isKnown: (c) => findDuplicate({ ...c, sources: [] }, { issues, storeNames }) ?? findRejected(c, rejected, runDate, args.lookbackDays),
+        isKnown,
         near: (c) => nearMatches(c, { issues, storeNames }),
         checked: `${issues.length} issue titles and ${storeNames.size} record-store names`,
         // Remembered under the scan's names and the judge's, because the next scan may return either.
@@ -1180,6 +1504,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         judged: candidates,
         notes,
         log,
+        laneReports,
       });
     }
 
@@ -1222,7 +1547,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
       filed.push(entry);
     }
   } finally {
-    const summary = renderSummary({ mode, runDate, usage, filed, skipped, notes });
+    const summary = renderSummary({ mode, runDate, usage, filed, skipped, notes, lanes: laneReports });
     emit(summary);
     if (statePath) {
       mkdirSync(dirname(statePath), { recursive: true });
@@ -1236,10 +1561,17 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         if (p.article) writeFileSync(join(args.out, `${i + 1}-article.md`), `# ${p.article.title}\n\nLabels: ${p.article.labels.join(', ')}\n\n${p.article.body}\n`);
       }
       writeFileSync(join(args.out, 'usage.json'), `${JSON.stringify({ byModel: usage.byModel, estimatedUsd: usage.total() }, null, 2)}\n`);
+      // The lane files are a record of the run. A failure to write them must not replace the
+      // error that ended the run, or fail a run that filed its issues.
+      try {
+        writeLaneReports(args.out, laneReports, { mode, runDate, redact: redactor(env) });
+      } catch (e) {
+        log(`::warning::The lane files could not be written (${errorText(e)}).`);
+      }
     }
     log(`Estimated cost of this run: $${usage.total().toFixed(4)}`);
   }
-  return { summary: renderSummary({ mode, runDate, usage, filed, skipped, notes }), planned: filed, skipped, usage };
+  return { summary: renderSummary({ mode, runDate, usage, filed, skipped, notes, lanes: laneReports }), planned: filed, skipped, usage, lanes: laneReports };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

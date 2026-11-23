@@ -1,0 +1,284 @@
+{
+  "about": "Lane replies for the dry run, written for the tests. They are not recorded API replies. The content blocks follow the documented shapes of the server tools (server_tool_use, web_search_tool_result, web_fetch_tool_result, and a code call with its result); the shapes of web_search_20260318 have not been checked against a real reply. MIMOSA, Enchant v3 and Bacformer are in the fixture issues and store; the other names are invented.",
+  "lanes": {
+    "genomics": {
+      "requests": [
+        {
+          "stop_reason": "end_turn",
+          "input_tokens": 9000,
+          "output_tokens": 900,
+          "web_search_requests": 3,
+          "web_fetch_requests": 1,
+          "tool_use_reported": true,
+          "text_characters": 260
+        }
+      ],
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": ""
+        },
+        {
+          "type": "server_tool_use",
+          "id": "srvtoolu_1",
+          "name": "web_search",
+          "input": {
+            "query": "bioRxiv genomic language model November 2026"
+          }
+        },
+        {
+          "type": "web_search_tool_result",
+          "tool_use_id": "srvtoolu_1",
+          "content": [
+            {
+              "type": "web_search_result",
+              "url": "https://www.biorxiv.org/content/10.1101/2026.11.10.700001v1",
+              "title": "GenoNova fixture: a genomic language model",
+              "page_age": "November 10, 2026",
+              "encrypted_content": "EqgfCioIARgBIiQ3YTAwMjY1"
+            },
+            {
+              "type": "web_search_result",
+              "url": "https://example.org/news/ai-biology-roundup",
+              "title": "AI in biology this week",
+              "encrypted_content": "EqgfCioIARgBIiQ3YTAwMjY2"
+            }
+          ]
+        },
+        {
+          "type": "server_tool_use",
+          "id": "srvtoolu_2",
+          "name": "code_execution",
+          "input": {
+            "code": "hits = web_search(query=\"variant effect prediction benchmark 2026\")\nprint([h['title'] for h in hits if 'benchmark' in h['title'].lower()])"
+          }
+        },
+        {
+          "type": "server_tool_use",
+          "id": "srvtoolu_2a",
+          "name": "web_search",
+          "input": {
+            "query": "variant effect prediction benchmark 2026"
+          },
+          "caller": {
+            "type": "code_execution_20260120",
+            "tool_id": "srvtoolu_2"
+          }
+        },
+        {
+          "type": "web_search_tool_result",
+          "tool_use_id": "srvtoolu_2a",
+          "caller": {
+            "type": "code_execution_20260120",
+            "tool_id": "srvtoolu_2"
+          },
+          "content": [
+            {
+              "type": "web_search_result",
+              "url": "https://example.org/variantbench-fixture",
+              "title": "VariantBench fixture: a benchmark of variant effect predictors",
+              "encrypted_content": "EqgfCioIARgBIiQ3YTAwMjY4"
+            }
+          ]
+        },
+        {
+          "type": "code_execution_tool_result",
+          "tool_use_id": "srvtoolu_2",
+          "content": {
+            "type": "code_execution_result",
+            "stdout": "['VariantBench fixture: a benchmark of variant effect predictors']\n",
+            "stderr": "",
+            "return_code": 0
+          }
+        },
+        {
+          "type": "server_tool_use",
+          "id": "srvtoolu_3",
+          "name": "web_search",
+          "input": {
+            "query": "site:huggingface.co RNA foundation model"
+          }
+        },
+        {
+          "type": "web_search_tool_result",
+          "tool_use_id": "srvtoolu_3",
+          "content": {
+            "type": "web_search_tool_result_error",
+            "error_code": "max_uses_exceeded"
+          }
+        },
+        {
+          "type": "server_tool_use",
+          "id": "srvtoolu_4",
+          "name": "web_fetch",
+          "input": {
+            "url": "https://www.biorxiv.org/content/10.1101/2026.11.10.700001v1"
+          }
+        },
+        {
+          "type": "web_fetch_tool_result",
+          "tool_use_id": "srvtoolu_4",
+          "content": {
+            "type": "web_fetch_result",
+            "url": "https://www.biorxiv.org/content/10.1101/2026.11.10.700001v1",
+            "content": {
+              "type": "document",
+              "title": "GenoNova fixture: a genomic language model",
+              "source": {
+                "type": "text",
+                "data": "Full page text that must not be copied into the lane file."
+              }
+            }
+          }
+        },
+        {
+          "type": "text",
+          "text": "Lane notes, genomics."
+        }
+      ],
+      "notes": "Lane notes, genomics. GenoNova fixture, a genomic language model, released 2026-11-10, https://www.biorxiv.org/content/10.1101/2026.11.10.700001v1. VariantBench fixture, a benchmark of variant effect predictors, no date stated. Bacformer, not sure whether the database holds it. PipeWrap fixture, a workflow wrapper, out of scope.",
+      "candidates": [
+        {
+          "name": "GenoNova fixture",
+          "aliases": [],
+          "kind": "model",
+          "released": "2026-11-10",
+          "summary": "A genomic language model.",
+          "urls": [
+            "https://www.biorxiv.org/content/10.1101/2026.11.10.700001v1"
+          ],
+          "in_scope": true,
+          "reason": ""
+        },
+        {
+          "name": "VariantBench fixture",
+          "aliases": [],
+          "kind": "benchmark",
+          "released": "",
+          "summary": "A benchmark of variant effect predictors.",
+          "urls": [],
+          "in_scope": true,
+          "reason": ""
+        },
+        {
+          "name": "Bacformer",
+          "aliases": [],
+          "kind": "model",
+          "released": "",
+          "summary": "A bacterial genome model.",
+          "urls": [],
+          "in_scope": true,
+          "reason": "not sure whether the database holds it"
+        },
+        {
+          "name": "PipeWrap fixture",
+          "aliases": [],
+          "kind": "method",
+          "released": "",
+          "summary": "A workflow wrapper.",
+          "urls": [],
+          "in_scope": false,
+          "reason": "workflow wrapper with no model"
+        },
+        {
+          "name": "",
+          "aliases": [],
+          "kind": "model",
+          "released": "",
+          "summary": "",
+          "urls": [],
+          "in_scope": true,
+          "reason": ""
+        }
+      ]
+    },
+    "proteins": {
+      "requests": [
+        {
+          "stop_reason": "end_turn",
+          "input_tokens": 7000,
+          "output_tokens": 400,
+          "web_search_requests": 2,
+          "web_fetch_requests": 0,
+          "tool_use_reported": true,
+          "text_characters": 150
+        }
+      ],
+      "content": [
+        {
+          "type": "server_tool_use",
+          "id": "srvtoolu_5",
+          "name": "web_search",
+          "input": {
+            "query": "antibody design model preprint 2026"
+          }
+        },
+        {
+          "type": "web_search_tool_result",
+          "tool_use_id": "srvtoolu_5",
+          "content": [
+            {
+              "type": "web_search_result",
+              "url": "https://arxiv.org/abs/2609.01234",
+              "title": "MIMOSA: interaction-template-guided antibody generation",
+              "encrypted_content": "EqgfCioIARgBIiQ3YTAwMjY3"
+            }
+          ]
+        }
+      ],
+      "notes": "Lane notes, proteins. MIMOSA is in the request list. Enchant-3, a molecular property model. GenoNova, which also scores protein variants.",
+      "candidates": [
+        {
+          "name": "MIMOSA",
+          "aliases": [],
+          "kind": "method",
+          "released": "2026-09",
+          "summary": "Antibody generation.",
+          "urls": [
+            "https://arxiv.org/abs/2609.01234"
+          ],
+          "in_scope": true,
+          "reason": ""
+        },
+        {
+          "name": "Enchant-3",
+          "aliases": [],
+          "kind": "model",
+          "released": "",
+          "summary": "Molecular property prediction.",
+          "urls": [],
+          "in_scope": true,
+          "reason": ""
+        },
+        {
+          "name": "GenoNova",
+          "aliases": [
+            "GenoNova fixture"
+          ],
+          "kind": "model",
+          "released": "2026-11-10",
+          "summary": "Also scores protein variants.",
+          "urls": [],
+          "in_scope": true,
+          "reason": ""
+        }
+      ]
+    },
+    "cells and other biology": {
+      "requests": [
+        {
+          "stop_reason": "end_turn",
+          "input_tokens": 6000,
+          "output_tokens": 120,
+          "web_search_requests": 8,
+          "web_fetch_requests": 0,
+          "tool_use_reported": true,
+          "text_characters": 60
+        }
+      ],
+      "content": [],
+      "notes": "Lane notes, cells and other biology. Nothing in scope beyond the request list.",
+      "candidates": []
+    }
+  }
+}

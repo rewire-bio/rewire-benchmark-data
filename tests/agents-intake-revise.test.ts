@@ -12,6 +12,7 @@ import {
   applyRevision,
   batchLines,
   HUMAN_LABEL,
+  LIMITS,
   main,
   parseReviewVerdict,
   planRevision,
@@ -39,6 +40,23 @@ const readme = batch.find((r) => r.kind === "source" && /README/.test(r.attribut
 const texts = new Map(batch.filter((r) => r.kind === "source").map((r) => [r.id, { url: r.attributes.url, text: json("fetches.json")[r.attributes.url].text }]));
 const areasProblem = { id: ID, field: "areas", verdict: "fail", note: "proteins-complexes is not supported." };
 const env = { ANTHROPIC_API_KEY: "k", GITHUB_REPOSITORY: "rewire-bio/rewire-benchmark-data" };
+// The commit of main the job checked out, and the commit the pull request shares with main.
+const BASE = "a".repeat(40);
+const MERGE_BASE = "b".repeat(40);
+const HEAD = fixture.pull.head_sha;
+const STORE = "data/entities data/provenance";
+const sha256 = (text: string) => createHash("sha256").update(text).digest("hex");
+/** The store lines records add writes for a batch, as git diff shows them: each record and its provenance line. */
+const storeDiff = (records: any[] = batch) => ["+++ b/data/entities/benchmarks.jsonl", ...records.flatMap((r) => {
+  const line = JSON.stringify(r);
+  return [`+${line}`, `+${JSON.stringify({ id: r.id, sha256: sha256(line), added_in: BATCH_DIR, added_by: "records:add", changed_by: [] })}`];
+})].join("\n");
+/** The git commands that put the batch folder on main and read the pull request's store lines. */
+const onBase = ["git rev-parse HEAD", `git fetch --quiet --depth 1 origin ${HEAD} ${MERGE_BASE}`, `git checkout --quiet --force --detach ${BASE}`, `git reset --quiet --hard ${BASE}`, "git clean -fdq -- data", `git checkout --quiet ${HEAD} -- ${BATCH_DIR}`, `git diff --unified=0 --no-color ${MERGE_BASE} ${HEAD} -- ${STORE}`];
+const storeChecks = [`npx tsx scripts/agents/intake-check.ts ${BATCH_DIR}/batch.jsonl`, `npm run -s records -- add ${BATCH_DIR}/batch.jsonl ${BATCH_DIR}`, "npm run -s records -- check"];
+/** The first batch added again on main and compared with the lines the pull request held. */
+const readded = [...storeChecks, `git add -- ${BATCH_DIR} ${STORE}`, `git diff --cached --unified=0 --no-color ${BASE} -- ${STORE}`];
+const LEASE_PUSH = `git push --force-with-lease=refs/heads/intake/issue-283:${HEAD} origin HEAD:refs/heads/intake/issue-283`;
 // Every folder a test makes under the system temp folder is removed when the file is done.
 const roots: string[] = [];
 const tempRoot = () => {
@@ -243,8 +261,8 @@ describe("what a revision may change", () => {
   it("does not settle a field the reply leaves out, an area the record lacks, the last area, or a dropped entity_level", () => {
     const reasons = (problem: any, revisions: any[]) => applyRevision(batch, [problem], { revisions }, texts).unresolved.map((u) => u.reason);
     const answer = (field: string, values: string[]) => [{ id: ID, field, action: "drop", values, passage: "", source_url: "", reason: "" }];
-    expect(reasons(areasProblem, [])).toEqual(["the revision gave neither a value to drop nor a passage"]);
-    expect(reasons(areasProblem, [{ ...answer("areas", [])[0], action: "none" }])).toEqual(["the revision gave neither a value to drop nor a passage"]);
+    expect(reasons(areasProblem, [])).toEqual(["the revision gave no value to drop, no passage and no new wording"]);
+    expect(reasons(areasProblem, [{ ...answer("areas", [])[0], action: "none" }])).toEqual(["the revision gave no value to drop, no passage and no new wording"]);
     expect(reasons(areasProblem, answer("areas", ["dna-genomes"]))).toEqual(["the revision named no area of the record to drop"]);
     expect(reasons(areasProblem, answer("areas", ["molecular-interactions", "proteins-complexes"]))).toEqual(["dropping these areas would leave the record without an area"]);
     expect(reasons({ ...areasProblem, field: "entity_level" }, answer("entity_level", []))).toEqual(["entity_level cannot be dropped"]);
@@ -288,7 +306,7 @@ function fakeKg({ exportFails = false, refuse = "", rewrite = (r: any) => r } = 
   return kgApi(client, { config: { iri_base: "https://benchmarks.rewire.it/id/", kinds: { benchmark: "rb:Benchmark", source: "rb:Source" } }, stats: { calls: {}, ms: 0, release: "fake", statements: 5 } as any });
 }
 
-/** A checkout of the pull request head: the batch folder as the first run wrote it. */
+/** A checkout of main with the pull request's batch folder on it, as the first run wrote it (the git commands are fakes). */
 function rootWithBatch(edit: (name: string, text: string) => string = (_n, t) => t) {
   const root = tempRoot();
   fs.mkdirSync(path.join(root, BATCH_DIR), { recursive: true });
@@ -297,7 +315,7 @@ function rootWithBatch(edit: (name: string, text: string) => string = (_n, t) =>
 }
 const readBatch = (root: string, name: string) => fs.readFileSync(path.join(root, BATCH_DIR, name), "utf8");
 
-function fakes({ pull = {} as Record<string, unknown>, reviews = fixture.reviews as any[], files = fixture.files as any[], researchTokens = 4000, fail = "", pages = {} as Record<string, string> } = {}) {
+function fakes({ pull = {} as Record<string, unknown>, reviews = fixture.reviews as any[], files = fixture.files as any[], researchTokens = 4000, fail = "", pages = {} as Record<string, string>, oldDiff = storeDiff(), newDiff = storeDiff(), pushOutput = "" } = {}) {
   const calls: string[] = [];
   const log: string[] = [];
   const prompts: string[] = [];
@@ -318,6 +336,10 @@ function fakes({ pull = {} as Record<string, unknown>, reviews = fixture.reviews
     pull: async () => ({ ...fixture.pull, ...pull }),
     pullFiles: async () => files,
     reviews: async () => reviews,
+    compare: async (_r: string, base: string, head: string) => {
+      log.push(`compare ${base}...${head}`);
+      return { merge_base: MERGE_BASE };
+    },
     updatePull: async (_r: string, _n: number, patch: { body: string }) => {
       log.push(`body ${patch.body.includes(`<!-- ${REVISION_MARKER}: `) ? "with marker" : "without marker"}`);
     },
@@ -333,13 +355,16 @@ function fakes({ pull = {} as Record<string, unknown>, reviews = fixture.reviews
   const run = (cmd: string, args: string[]) => {
     const line = [cmd, ...args].join(" ");
     log.push(line);
-    if (fail && line.startsWith(fail)) return { ok: false, output: `${fail}: refused` };
-    return { ok: true, output: line === "git rev-parse HEAD" ? `${fixture.pull.head_sha}\n` : "ok" };
+    if (fail && line.startsWith(fail)) return { ok: false, output: pushOutput || `${fail}: refused` };
+    if (line === "git rev-parse HEAD") return { ok: true, output: `${BASE}\n` };
+    if (line.startsWith("git diff --cached")) return { ok: true, output: newDiff };
+    if (line.startsWith("git diff")) return { ok: true, output: oldDiff };
+    return { ok: true, output: "ok" };
   };
   return { calls, log, prompts, tools, deps: { anthropic, github, fetch: fetchImpl, run, now, log: quiet, kg: fakeKg() as ReturnType<typeof fakeKg> | null } };
 }
 const commandsOf = (log: string[]) => log.filter((l) => /^(git|npm|npx) /.test(l));
-const writesOf = (log: string[]) => log.filter((l) => /^(body|label|comment) /.test(l) || /^git (add|commit|push)/.test(l));
+const writesOf = (log: string[]) => log.filter((l) => /^(body|label|comment) /.test(l) || /^git (commit|push)/.test(l));
 
 describe("dry run", () => {
   it("writes the revised batch folder from the fixtures and calls nothing", async () => {
@@ -373,7 +398,7 @@ describe("dry run", () => {
 });
 
 describe("a live revision, with fakes", () => {
-  it("makes one Sonnet call and one Haiku call, runs the store checks on the restored store, marks the pull request and pushes", async () => {
+  it("makes one Sonnet call and one Haiku call, builds both commits on main, marks the pull request and pushes with a lease", async () => {
     const f = fakes();
     const root = rootWithBatch();
     const r = await main(["--revise", "--pr", "338", "--root", root], env, f.deps);
@@ -386,24 +411,45 @@ describe("a live revision, with fakes", () => {
     expect(f.prompts[0]).toContain('"field": "areas"');
     expect(f.prompts[0]).not.toContain('"field": "task"');
     expect(commandsOf(f.log)).toEqual([
-      "git rev-parse HEAD",
-      ...fixture.files.filter((x: any) => /^data\/(entities|provenance)\//.test(x.filename)).map((x: any) => `git checkout HEAD~1 -- ${x.filename}`),
-      `npx tsx scripts/agents/intake-check.ts ${BATCH_DIR}/batch.jsonl`,
-      `npm run -s records -- add ${BATCH_DIR}/batch.jsonl ${BATCH_DIR}`,
-      "npm run -s records -- check",
-      `git add -- ${BATCH_DIR} data/entities data/provenance`,
+      // main as checked out, with nothing of the pull request but its batch folder.
+      ...onBase,
+      // The first batch on main: the first commit, with the pull request's title.
+      ...readded,
+      expect.stringMatching(/^git commit -q -m Add CycPepNet from #283 -m The batch folder of #338 as the pull request held it at /),
+      // The store as main has it again, then the revised batch: the second commit.
+      `git restore --source ${BASE} --staged --worktree -- ${STORE}`,
+      ...storeChecks,
+      `git add -- ${BATCH_DIR} ${STORE}`,
       expect.stringMatching(/^git commit -m Revise CycPepNet from #283 after review -m One revision after the reviewer agent requested changes on #338: areas \(drop\)\./),
-      "git push origin HEAD:refs/heads/intake/issue-283",
+      LEASE_PUSH,
     ]);
-    // Marked before the push, never force-pushed, never labelled.
-    expect(writesOf(f.log).slice(2)).toEqual(["body with marker", "git push origin HEAD:refs/heads/intake/issue-283", expect.stringMatching(/^comment The intake agent revised this pull request after the review\./)]);
-    expect(f.log.join("\n")).not.toMatch(/--force|--delete|label /);
+    // The common commit is asked of GitHub for main as checked out and the head the review was of.
+    expect(f.log).toContain(`compare ${BASE}...${HEAD}`);
+    // Marked before the push, pushed only with a lease on the reviewed head, never labelled.
+    expect(writesOf(f.log).slice(2)).toEqual(["body with marker", LEASE_PUSH, expect.stringMatching(/^comment The intake agent revised this pull request after the review\./)]);
+    expect(f.log.join("\n")).not.toMatch(/push (--force|-f) |--delete|HEAD~1|label /);
     // Through the draft overlay: its export is the batch, and the receipt has its diff.
     const receipt = JSON.parse(readBatch(root, "kg.json"));
     expect(receipt.failures).toEqual([]);
     expect(receipt.summary.added.map((a: any) => a.id)).toEqual(batch.map((x) => x.id));
     expect(receipt.kg.release).toBe("fake");
     expect(r.records.find((x: any) => x.id === ID).facets.areas).toEqual(["molecular-interactions"]);
+  });
+
+  it("waits and tries its model call again on a 429, like the first run", async () => {
+    const f = fakes();
+    const sleeps: number[] = [];
+    const stream = f.deps.anthropic.beta.messages.stream;
+    let refused = false;
+    f.deps.anthropic.beta.messages.stream = (req: any) => {
+      if (refused) return stream(req);
+      refused = true;
+      return { finalMessage: async () => { throw Object.assign(new Error('429 {"type":"error","error":{"type":"rate_limit_error","message":"Number of concurrent connections has exceeded your rate limit."}}'), { status: 429 }); } };
+    };
+    const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, { ...f.deps, sleep: async (ms: number) => void sleeps.push(ms) });
+    expect(r.outcome).toBe("revised");
+    expect(sleeps).toEqual([LIMITS.apiRetryBaseSeconds * 1000]);
+    expect(f.calls).toEqual(["research claude-sonnet-5-5", "structure claude-haiku-5-5"]);
   });
 
   it("labels the pull request and calls no model when it was already revised", async () => {
@@ -445,6 +491,8 @@ describe("a live revision, with fakes", () => {
       [{ pull: { head_repo: "" } }, "skipped: the head intake/issue-283 is not an intake branch of this repository"],
       [{ pull: { head_repo: undefined } }, "skipped: the head intake/issue-283 is not an intake branch of this repository"],
       [{ pull: { state: "closed" } }, "skipped: the pull request is not open"],
+      // The checkout is main, and the revised branch is built on it.
+      [{ pull: { base_ref: "release-1" } }, "skipped: its base branch is release-1, not main"],
       [{ pull: { labels: [HUMAN_LABEL] } }, "skipped: the pull request is already labelled needs-tim"],
     ];
     for (const [options, outcome] of cases) {
@@ -517,8 +565,9 @@ describe("a live revision, with fakes", () => {
     // 15 more sources of full length: 16 pages of 40,000 characters in one prompt.
     const extra = Array.from({ length: 15 }, (_, i) => ({ ...readme, id: `intake-283-20261121-source-extra-${i}`, attributes: { ...readme.attributes, url: `https://example.org/page-${i}` } }));
     const pages = Object.fromEntries(extra.map((s) => [s.attributes.url, "word ".repeat(10_000)]));
-    const widen = (name: string, text: string) => (name === "batch.jsonl" ? batchLines([...batch.map((r) => (r.id === ID ? { ...r, source_ids: [...r.source_ids, ...extra.map((s) => s.id)] } : r)), ...extra]) : text);
-    const f = fakes({ pages });
+    const wide = [...batch.map((r) => (r.id === ID ? { ...r, source_ids: [...r.source_ids, ...extra.map((s) => s.id)] } : r)), ...extra];
+    const widen = (name: string, text: string) => (name === "batch.jsonl" ? batchLines(wide) : text);
+    const f = fakes({ pages, oldDiff: storeDiff(wide), newDiff: storeDiff(wide) });
     const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch(widen)], env, f.deps);
     expect(r.outcome).toMatch(/^needs-tim: the revision call could cost up to \$\d+\.\d\d for 19 sources, over the \$1\.5 cost cap, so it was not made$/);
     expect(f.calls).toEqual([]);
@@ -546,7 +595,8 @@ describe("a live revision, with fakes", () => {
     f.deps.kg = fakeKg({ refuse: ID });
     const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
     expect(r.outcome).toContain(`needs-tim: the knowledge-graph draft overlay did not accept the revised records: ${ID} (the KG draft checks found problems`);
-    expect(commandsOf(f.log).some((l) => /^(npm|npx) |^git (add|commit|push)/.test(l))).toBe(false);
+    // The first batch was checked on main before the model call; the revised one never reaches the store.
+    expect(commandsOf(f.log)).toEqual([...onBase, ...readded]);
   });
 
   it("hands over a pull request without exactly one intake batch file", async () => {
@@ -568,21 +618,80 @@ describe("a live revision, with fakes", () => {
     expect(writesOf(f.log)).toEqual([`label ${HUMAN_LABEL}`, expect.stringMatching(/^comment /)]);
   });
 
-  it("stops before the store checks when a store file cannot be put back as it was", async () => {
-    const f = fakes({ fail: "git checkout HEAD~1" });
+  it("stops before the revised batch is added when the store cannot be put back as main has it", async () => {
+    const f = fakes({ fail: "git restore" });
     const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
     expect(r.outcome).toBe("failed: restore the store");
-    expect(commandsOf(f.log)).toEqual(["git rev-parse HEAD", "git checkout HEAD~1 -- data/entities/benchmarks.jsonl"]);
+    expect(commandsOf(f.log).at(-1)).toBe(`git restore --source ${BASE} --staged --worktree -- ${STORE}`);
+    expect(commandsOf(f.log).filter((l) => l.includes("records -- add"))).toHaveLength(1);
     expect(f.log.slice(-2)).toEqual([`label ${HUMAN_LABEL}`, expect.stringMatching(/^comment /)]);
   });
 
-  it("removes a store file the pull request added, instead of looking for it in the parent commit", async () => {
-    const added = { filename: "data/provenance/records/f.jsonl", status: "added" };
-    const f = fakes({ files: [...fixture.files, added] });
+  it("makes no model call when the first batch no longer passes the store checks on main", async () => {
+    const f = fakes({ fail: "npm run -s records -- add" });
+    const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
+    expect(r.outcome).toBe("failed: records add");
+    expect(f.calls).toEqual([]);
+    expect(f.log.slice(-2)).toEqual([`label ${HUMAN_LABEL}`, expect.stringMatching(/^comment The intake agent did not revise this pull request: `records add` failed on the batch added to the base branch as it is now/)]);
+  });
+
+  it("hands over, with no model call, a pull request whose store lines are not its batch", async () => {
+    // A store line edited by hand on the branch: the provenance digest no longer fits the record line.
+    const edited = storeDiff().replace('"name":"CycPepNet"', '"name":"CycPepNet (edited)"');
+    expect(edited).not.toBe(storeDiff());
+    const f = fakes({ oldDiff: edited });
+    const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
+    expect(r.outcome).toBe("failed: rebuild");
+    expect(f.calls).toEqual([]);
+    expect(commandsOf(f.log)).toEqual(onBase);
+    expect(f.log.at(-1)).toMatch(/^comment The intake agent did not revise this pull request: the store lines the pull request adds are not its batch as records add writes it: the provenance of /);
+  });
+
+  it("hands over when main's records CLI writes other store lines for the batch than the pull request held", async () => {
+    const f = fakes({ newDiff: storeDiff().replace('"added_by":"records:add"', '"added_by":"records:add-v2"') });
+    const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
+    expect(r.outcome).toBe("failed: store lines");
+    expect(f.calls).toEqual([]);
+    expect(writesOf(f.log).filter((l) => l.startsWith("git"))).toEqual([]);
+  });
+
+  it("puts the store back from main as checked out, never from a parent commit, also when nothing is committed", async () => {
+    const f = fakes();
     const r = await main(["--revise", "--pr", "338", "--report-only", "--root", rootWithBatch()], env, f.deps);
     expect(r.outcome).toBe("ready: revision not pushed in this mode");
-    expect(commandsOf(f.log)).toContain(`git rm -q -f -- ${added.filename}`);
-    expect(commandsOf(f.log)).not.toContain(`git checkout HEAD~1 -- ${added.filename}`);
+    expect(commandsOf(f.log)).toContain(`git restore --source ${BASE} --staged --worktree -- ${STORE}`);
+    expect(commandsOf(f.log).join("\n")).not.toMatch(/HEAD~1|git commit|git push/);
+  });
+
+  it("drops the marker again and labels nothing when the branch moved during the revision", async () => {
+    const f = fakes({ fail: "git push", pushOutput: " ! [rejected]        HEAD -> intake/issue-283 (stale info)\nerror: failed to push some refs" });
+    const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
+    expect(r.outcome).toBe("skipped: the branch moved while the revision ran, so nothing was pushed");
+    expect(writesOf(f.log).slice(-3)).toEqual(["body with marker", LEASE_PUSH, "body without marker"]);
+    expect(r.pushed).toBe(false);
+  });
+
+  it("fails the run, and leaves the pull request unmarked and unlabelled, when GitHub refuses the push over a workflow file main changed", async () => {
+    // The token's limit, not a fault of the pull request: a later run with another token can revise it.
+    const f = fakes({ fail: "git push", pushOutput: " ! [remote rejected] HEAD -> intake/issue-283 (refusing to allow a GitHub App to create or update workflow `.github/workflows/intake.yml` without `workflows` permission)" });
+    const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
+    expect(r.outcome).toBe("failed: git push refused over a workflow file");
+    expect(writesOf(f.log).slice(-3)).toEqual(["body with marker", LEASE_PUSH, "body without marker"]);
+    expect(f.log.join("\n")).not.toMatch(/label |comment /);
+    expect(r.pushed).toBe(false);
+  });
+
+  it("labels the pull request when a refused push leaves the marker on the description", async () => {
+    const f = fakes({ fail: "git push", pushOutput: "(stale info)" });
+    const update = f.deps.github.updatePull;
+    let n = 0;
+    f.deps.github.updatePull = async (r: string, number: number, patch: { body: string }) => {
+      if (++n === 2) throw new Error("PATCH /pulls/338: 502");
+      return update(r, number, patch);
+    };
+    const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
+    expect(r.outcome).toBe("failed: git push");
+    expect(f.log.slice(-2)).toEqual([`label ${HUMAN_LABEL}`, expect.stringMatching(/the revision marker could not be taken off the description again/)]);
   });
 
   it("does nothing without an API key", async () => {
@@ -615,7 +724,7 @@ describe("a live revision, with fakes", () => {
     f.deps.anthropic.messages.create = async () => ({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify({ revisions: [{ ...reply.revisions[0], action: "none", values: [] }] }) }], usage: { input_tokens: 1, output_tokens: 1 } });
     const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
     expect(r.outcome).toContain("needs-tim: the revision could not settle every failed field: areas of");
-    expect(commandsOf(f.log)).toEqual([]);
+    expect(commandsOf(f.log)).toEqual([...onBase, ...readded]);
   });
 
   it("fails the run and labels the pull request when a store check or the push fails", async () => {
@@ -629,11 +738,22 @@ describe("a live revision, with fakes", () => {
     }
   });
 
-  it("refuses to run when the working tree is not the pull request head", async () => {
+  it("refuses to run when the working tree is the pull request head, not main", async () => {
     const f = fakes();
-    f.deps.run = (cmd: string, args: string[]) => ({ ok: true, output: cmd === "git" && args[0] === "rev-parse" ? "1".repeat(40) : "ok" });
+    f.deps.run = (cmd: string, args: string[]) => ({ ok: true, output: cmd === "git" && args[0] === "rev-parse" ? HEAD : "ok" });
     const r = await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps);
     expect(r.outcome).toBe("failed: checkout");
+    expect(f.calls).toEqual([]);
+  });
+
+  it("refuses to run when GitHub names no common commit, or the batch folder cannot be taken from the head", async () => {
+    const none = fakes();
+    none.deps.github.compare = async () => ({ merge_base: "" });
+    expect((await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, none.deps)).outcome).toBe("failed: checkout");
+    expect(commandsOf(none.log)).toEqual(["git rev-parse HEAD"]);
+    const f = fakes({ fail: `git checkout --quiet ${HEAD}` });
+    expect((await main(["--revise", "--pr", "338", "--root", rootWithBatch()], env, f.deps)).outcome).toBe("failed: checkout");
+    expect(f.calls).toEqual([]);
   });
 
   it("never revises live without the store checks", async () => {
@@ -733,7 +853,7 @@ describe("the comments", () => {
 // file, so a guard cannot be taken out of the job without a test failing.
 describe("the revise job in intake.yml", () => {
   const workflow = fs.readFileSync(".github/workflows/intake.yml", "utf8");
-  const job = workflow.slice(workflow.indexOf("\n  revise:\n"));
+  const job = workflow.slice(workflow.indexOf("\n  revise:\n"), workflow.indexOf("\n  refresh:\n"));
   const step = (name: string) => {
     const at = job.indexOf(`      - name: ${name}\n`);
     expect(at, name).toBeGreaterThan(-1);
@@ -748,6 +868,7 @@ describe("the revise job in intake.yml", () => {
     expect(workflow).toMatch(/\n  pull_request_review:\n    types: \[submitted\]\n/);
     const intake = workflow.slice(workflow.indexOf("\n  intake:\n"), workflow.indexOf("\n  revise:\n"));
     expect(intake).toMatch(/\n    if: github\.event_name != 'pull_request_review' && !inputs\.revise_pr && /);
+    expect(intake).toContain("&& github.event_name != 'push' && !inputs.refresh_pr && (");
     expect(condition.startsWith("(github.event_name == 'workflow_dispatch' && inputs.revise_pr != '') || (github.event_name == 'pull_request_review' && ")).toBe(true);
     expect(condition.endsWith(")")).toBe(true);
     expect(condition.match(/\|\|/g)).toHaveLength(1);
@@ -793,12 +914,15 @@ describe("the revise job in intake.yml", () => {
     expect(step("Commit as the bot")).toContain("        if: steps.app.outputs.token != ''\n");
   });
 
-  it("runs the agent from the default branch, and the pull request's tools only when it changes nothing but data", () => {
-    expect(job).toContain("          ref: ${{ github.event.repository.default_branch }}\n          path: agent\n          persist-credentials: false\n");
-    expect(step("Install the store tools of the pull request")).toContain("        if: steps.files.outputs.data_only == 'true' && env.MODE != 'dry-run'\n");
+  it("checks out the default branch only, so the agent, the records CLI and the store are main's and the branch is built on it", () => {
+    expect(job.match(/- uses: actions\/checkout@v4\n/g)).toHaveLength(1);
+    expect(job).toContain("      - uses: actions/checkout@v4\n        with:\n          ref: ${{ github.event.repository.default_branch }}\n          token: ${{ steps.app.outputs.token || github.token }}\n");
+    // Nothing of the pull request is checked out by the job: no pull ref, no parent commit.
+    expect(job).not.toMatch(/refs\/pull|fetch-depth|path: agent|agent\/scripts/);
     const run = step("Revise the batch");
-    expect(run).toContain('node agent/scripts/agents/intake.mjs --revise $args --out "$RUNNER_TEMP/intake-out"');
-    expect(run).toContain('report-only) args="--report-only --pr $PR --root ." ;;');
-    expect(run).toContain('live) args="--pr $PR --root ." ;;');
+    expect(run).toContain('node scripts/agents/intake.mjs --revise $args --out "$RUNNER_TEMP/intake-out"');
+    expect(run).toContain('report-only) args="--report-only --pr $PR" ;;');
+    expect(run).toContain('live) args="--pr $PR" ;;');
+    expect(run).not.toContain("--root .");
   });
 });

@@ -5,7 +5,8 @@ import { describe, expect, it } from "vitest";
 import {
   AREAS, GENOMIC_AREAS, LABELS, LIMITS, PRICES, PROTEIN_AREAS, SCAN_LANES, Usage, ageInDays, clean, dataLabels, findDuplicate,
   findRejected, githubClient, identifiersOf, keyOf, knownTitles, main, matchForm, nearMatches, parseBlogIndex, planFiling,
-  readRejected, readStoreNames, renderArticleIssue, renderDataIssue, scanPrompt, spellForm, tierOf, verdictOf,
+  callCounts, DIRECT_ONLY, laneLine, pendingDirect, rejectedDirectOnly, queriesOf, readRejected, readStoreNames, redactor, renderArticleIssue, renderDataIssue, renderSummary, scanEnding, scanPrompt, spellForm, tierOf,
+  toolActivity, triageLane, verdictOf,
 } from "../scripts/agents/discovery.mjs";
 
 // The discovery scan (#254). Everything here runs without an API key or network: the dry run
@@ -160,7 +161,172 @@ describe("dry run", () => {
   it("writes the planned issues to --out for inspection", async () => {
     const out = mkdtempSync(join(tmpdir(), "discovery-"));
     await dryRun(["--out", out]);
-    expect(readdirSync(out).sort()).toEqual(["1-data.md", "2-data.md", "3-data.md", "4-data.md", "5-data.md", "plan.json", "usage.json"]);
+    expect(readdirSync(out).sort()).toEqual(["1-data.md", "2-data.md", "3-data.md", "4-data.md", "5-data.md", "plan.json", "scan", "usage.json"]);
+  });
+});
+
+// What each run records about its scan lanes. The dry run reads tests/agents-discovery-fixtures/scan.json,
+// which is written for these tests and is not a recorded API reply.
+describe("lane files and lane lines", () => {
+  const lane = (out: string, name: string) => JSON.parse(readFileSync(join(out, "scan", `${name}.json`), "utf8"));
+
+  it("writes, for each lane of a dry run, the queries, the notes, the raw candidates and each drop with its reason", async () => {
+    const out = mkdtempSync(join(tmpdir(), "discovery-"));
+    const lines: string[] = [];
+    const { planned, lanes } = await main(["--dry-run", "--fixtures", FIXTURES, "--max-pairs", "10", "--out", out], {}, { now, log: (m: string) => lines.push(m) });
+    expect(readdirSync(join(out, "scan")).sort()).toEqual([
+      "cells-and-other-biology-notes.md", "cells-and-other-biology.json", "genomics-notes.md", "genomics.json", "proteins-notes.md", "proteins.json",
+    ]);
+    const genomics = lane(out, "genomics");
+    // One query was given to the search tool, one was inside code, one search returned an error.
+    expect(genomics.queries).toEqual(["bioRxiv genomic language model November 2026", "variant effect prediction benchmark 2026", "site:huggingface.co RNA foundation model"]);
+    expect(genomics.tool_activity.find((a: any) => a.results)?.results.map((r: any) => r.url)).toEqual(["https://www.biorxiv.org/content/10.1101/2026.11.10.700001v1", "https://example.org/news/ai-biology-roundup"]);
+    expect(genomics.tool_activity.find((a: any) => a.error)?.error).toBe("max_uses_exceeded");
+    expect(genomics.tool_activity.find((a: any) => a.stdout)?.stdout).toContain("VariantBench fixture");
+    expect(genomics.requests).toEqual([{ stop_reason: "end_turn", input_tokens: 9000, output_tokens: 900, web_search_requests: 3, web_fetch_requests: 1, tool_use_reported: true, text_characters: 260 }]);
+    // The candidate list is kept as it came back, before any filter.
+    expect(genomics.raw_candidates.map((c: any) => c.name)).toEqual(["GenoNova fixture", "VariantBench fixture", "Bacformer", "PipeWrap fixture", ""]);
+    expect(genomics.dropped).toEqual([
+      { name: "Bacformer", category: "known", reason: 'already known, not judged: "bacformer" matches store record bacformer-20261115-model-bacformer' },
+      { name: "PipeWrap fixture", category: "other", reason: "triage: workflow wrapper with no model" },
+      { name: "(no name)", category: "other", reason: "the candidate has no name" },
+    ]);
+    expect(genomics.to_judge).toEqual(["GenoNova fixture", "VariantBench fixture"]);
+    // Two searches and the fetch were direct calls; code made the third search.
+    expect(genomics.counts).toMatchObject({ direct_searches: 2, code_searches: 1, direct_fetches: 1, code_fetches: 0 });
+    expect(genomics.tool_activity.filter((a: any) => a.call).map((a: any) => [a.name, a.call, a.caller])).toEqual([
+      ["web_search", "direct", undefined], ["web_search", "code", "code_execution_20260120"], ["web_search", "direct", undefined], ["web_fetch", "direct", undefined],
+    ]);
+    expect(genomics.counts).toMatchObject({ searches: 3, fetches: 1, raw: 5, known: 1, remembered: 0, other: 2, to_judge: 2 });
+    expect(readFileSync(join(out, "scan", "genomics-notes.md"), "utf8")).toContain("VariantBench fixture, a benchmark of variant effect predictors");
+    // The page text a fetch returns and encrypted search content are never copied.
+    const written = readdirSync(join(out, "scan")).map((f) => readFileSync(join(out, "scan", f), "utf8")).join("\n");
+    expect(written).not.toContain("Full page text");
+    expect(written).not.toContain("EqgfCioIARgB");
+    expect(written).not.toContain("encrypted_content");
+
+    expect(lane(out, "proteins").dropped.map((d: any) => [d.name, d.category])).toEqual([["MIMOSA", "known"], ["Enchant-3", "known"], ["GenoNova", "other"]]);
+    expect(lines.filter((l) => l.startsWith("scan "))).toEqual([
+      "scan genomics: 3 searches (2 direct), 5 raw candidates, 1 dropped as known, 0 dropped as remembered, 2 dropped for another reason, 2 to judge",
+      "scan proteins: 2 searches (1 direct), 3 raw candidates, 2 dropped as known, 0 dropped as remembered, 1 dropped for another reason, 0 to judge",
+      "scan cells and other biology: 8 searches, 0 raw candidates, 0 dropped as known, 0 dropped as remembered, 0 dropped for another reason, 0 to judge",
+    ]);
+    for (const report of lanes!) {
+      const n = lane(out, report.lane.replace(/ /g, "-")).counts;
+      expect(n.known + n.remembered + n.other + n.to_judge).toBe(n.raw);
+    }
+    // The lane files do not change what a dry run plans.
+    expect(planned).toHaveLength(5);
+  });
+
+  it("puts the lane table in the summary", async () => {
+    const { summary } = await dryRun();
+    expect(summary).toContain("### Scan lanes");
+    expect(summary).toContain("| genomics | read from fixtures | 3 | 1 | 5 | 1 | 0 | 2 | 2 |");
+    expect(summary).toContain("| cells and other biology | read from fixtures | 8 | 0 | 0 | 0 | 0 | 0 | 0 |");
+  });
+
+  it("reads tool blocks by their fields, so a block type it has not seen is still recorded", () => {
+    const activity = toolActivity([
+      { type: "text", text: "notes" },
+      { type: "some_future_tool_use", name: "web_search", input: { query: "arXiv q-bio.GN DNA language model" } },
+      { type: "some_future_tool_result", content: { results_blob: "x", content: [{ url: "https://arxiv.org/abs/2611.00001", title: "A DNA model", encrypted_content: "secret" }] } },
+      { type: "server_tool_use", name: "bash_code_execution", input: { command: "search --query 'RNA structure benchmark'\n" + "#".repeat(5000) } },
+      null,
+    ]);
+    expect(activity.map((a: any) => a.type)).toEqual(["some_future_tool_use", "some_future_tool_result", "server_tool_use"]);
+    expect(activity[1].results).toEqual([{ url: "https://arxiv.org/abs/2611.00001", title: "A DNA model" }]);
+    expect(activity[2].code).toMatch(/\[cut from 50\d\d characters\]$/);
+    expect(queriesOf(activity)).toEqual(["arXiv q-bio.GN DNA language model", "RNA structure benchmark"]);
+    expect(toolActivity(undefined)).toEqual([]);
+  });
+
+  it("marks each search and fetch call as direct or made from code, and counts them for the lane line", () => {
+    const code = { type: "code_execution_20260120", tool_id: "srvtoolu_c" };
+    const activity = toolActivity([
+      { type: "server_tool_use", id: "srvtoolu_a", name: "web_search", input: { query: "one" } },
+      { type: "web_search_tool_result", tool_use_id: "srvtoolu_a", content: [] },
+      { type: "server_tool_use", id: "srvtoolu_b", name: "web_search", input: { query: "two" }, caller: { type: "direct" } },
+      { type: "server_tool_use", id: "srvtoolu_c", name: "code_execution", input: { code: "await web_search({'query': q})" } },
+      { type: "server_tool_use", id: "srvtoolu_d", name: "web_search", input: { query: "three" }, caller: code },
+      { type: "web_search_tool_result", tool_use_id: "srvtoolu_d", caller: code, content: [] },
+      { type: "server_tool_use", id: "srvtoolu_e", name: "web_fetch", input: { url: "https://example.org/a" }, caller: code },
+      { type: "server_tool_use", id: "srvtoolu_f", name: "web_fetch", input: { url: "https://example.org/b" } },
+    ]);
+    // Only the calls are marked: not the results, and not the code call itself.
+    expect(activity.map((a: any) => a.call)).toEqual(["direct", undefined, "direct", undefined, "code", undefined, "code", "direct"]);
+    expect(activity.map((a: any) => a.caller)).toEqual([undefined, undefined, "direct", undefined, "code_execution_20260120", undefined, "code_execution_20260120", undefined]);
+    expect(callCounts(activity)).toEqual({ direct_searches: 2, code_searches: 1, direct_fetches: 1, code_fetches: 1 });
+    expect(callCounts(undefined)).toEqual({ direct_searches: 0, code_searches: 0, direct_fetches: 0, code_fetches: 0 });
+
+    const report = (calls: any[]) => ({ lane: "genomics", status: "finished", requests: [{ web_search_requests: 8 }], activity: toolActivity(calls), raw_candidates: [], dropped: [], to_judge: [] });
+    const direct = Array.from({ length: 8 }, (_, i) => ({ type: "server_tool_use", name: "web_search", input: { query: `q${i}` } }));
+    expect(laneLine(report(direct))).toMatch(/^scan genomics: 8 searches \(8 direct\), 0 raw candidates, /);
+    // The run of 22 November 2026: every search made from code.
+    expect(laneLine(report(direct.map((c) => ({ ...c, caller: code }))))).toMatch(/^scan genomics: 8 searches \(0 direct\), /);
+    // A reply with no search call in it gives no count.
+    expect(laneLine(report([]))).toMatch(/^scan genomics: 8 searches, /);
+  });
+
+  it("sorts each dropped candidate into known, remembered or another reason", () => {
+    const candidate = (name: string, extra: any = {}) => ({ name, aliases: [], in_scope: true, reason: "", ...extra });
+    const isKnown = (c: any) => c.name === "Held" ? { where: "store", reason: "in the store" } : c.name === "Rejected" ? { where: "rejected", reason: "rejected before" } : null;
+    const seen = new Map([["earlier", "Earlier"]]);
+    const { fresh, dropped } = triageLane([candidate("Held"), candidate("Rejected"), candidate("Weak", { in_scope: false, reason: "a wrapper" }), candidate("Earlier"), candidate("New"), {}], { isKnown, seen });
+    expect(fresh.map((c: any) => c.name)).toEqual(["New"]);
+    expect(dropped.map((d: any) => [d.name, d.category])).toEqual([["Held", "known"], ["Rejected", "remembered"], ["Weak", "other"], ["Earlier", "other"], ["(no name)", "other"]]);
+    expect(laneLine({ lane: "genomics", status: "no notes; the last request stopped with refusal", requests: [{ web_search_requests: 2 }], raw_candidates: null, dropped: [], to_judge: [] }))
+      .toBe("scan genomics: 2 searches, no candidate list (no notes; the last request stopped with refusal)");
+  });
+
+  it("finds the queries in a list that code loops over, in the order written", () => {
+    const code = [
+      "import asyncio",
+      "queries = [",
+      '    "bioRxiv DNA language model 2026",',
+      "    'arXiv q-bio.GN variant effect benchmark',",
+      "]",
+      "results = await asyncio.gather(*[web_search(q) for q in queries])",
+      'extra = web_search("site:huggingface.co RNA foundation model")',
+      'labels = ["not a query"]',
+      'search_results = [r["title"] for r in results]',
+      'titles_of_queries = [r["url"] for r in results]',
+    ].join("\n");
+    const activity = toolActivity([{ type: "server_tool_use", name: "code_execution", input: { code } }]);
+    expect(queriesOf(activity)).toEqual(["bioRxiv DNA language model 2026", "arXiv q-bio.GN variant effect benchmark", "site:huggingface.co RNA foundation model"]);
+    // A list under a typed name, and a query built at run time, which is not found.
+    expect(queriesOf(toolActivity([{ type: "server_tool_use", name: "code_execution", input: { code: 'search_terms: list[str] = ["genomic benchmark preprint"]\nweb_search(prefix + name)' } }]))).toEqual(["genomic benchmark preprint"]);
+  });
+
+  it("cuts what code printed at 4,000 characters, and keeps it: it can hold result text", () => {
+    const [entry] = toolActivity([{ type: "code_execution_tool_result", content: { type: "code_execution_result", stdout: `Result title\n${"x".repeat(5000)}`, stderr: "e".repeat(4500), return_code: 0 } }]);
+    expect(entry.stdout).toMatch(/^Result title\nx{3987} \[cut from 5013 characters\]$/);
+    expect(entry.stderr).toMatch(/^e{4000} \[cut from 4500 characters\]$/);
+  });
+
+  it("says at the end of a lane line when the notes may be incomplete", () => {
+    const report = (stop: string) => ({ lane: "genomics", status: scanEnding([{ stop_reason: "pause_turn" }, { stop_reason: stop }]), requests: [{ web_search_requests: 8 }], raw_candidates: [], dropped: [], to_judge: [] });
+    expect(laneLine(report("end_turn"))).toBe("scan genomics: 8 searches, 0 raw candidates, 0 dropped as known, 0 dropped as remembered, 0 dropped for another reason, 0 to judge");
+    expect(laneLine(report("max_tokens"))).toBe("scan genomics: 8 searches, 0 raw candidates, 0 dropped as known, 0 dropped as remembered, 0 dropped for another reason, 0 to judge (finished; the notes were cut at max_tokens and may be incomplete)");
+    expect(laneLine(report("pause_turn"))).toContain("0 to judge (finished; the scan stopped at the pause_turn cap and the notes may be incomplete)");
+  });
+
+  it("keeps a bar or a line break in a lane status inside its table cell", () => {
+    const summary = renderSummary({ mode: "live", runDate: "2026-11-22", usage: new Usage(), filed: [], skipped: [], lanes: [{ lane: "genomics", status: "failed: 500 upstream said a|b\nsecond line", requests: [], raw_candidates: null, dropped: [], to_judge: [] }] });
+    expect(summary).toContain("| genomics | failed: 500 upstream said a\\|b second line | 0 | 0 | 0 | 0 | 0 | 0 | 0 |");
+  });
+
+  it("replaces a token as JSON writes it, when the value holds a quote or a backslash", () => {
+    const token = 'tok"en\\with-escapes-0123';
+    const redact = redactor({ GITHUB_TOKEN: token });
+    expect(redact(JSON.stringify({ notes: `before ${token} after` }))).toBe('{"notes":"before [redacted] after"}');
+    expect(redact(`plain ${token}`)).toBe("plain [redacted]");
+  });
+
+  it("replaces the value of a token and leaves short values and other text alone", () => {
+    const redact = redactor({ ANTHROPIC_API_KEY: "sk-ant-fixture-0123456789", GH_TOKEN: "ghs_fixture0123456789", ARTICLE_TOKEN: "t" });
+    expect(redact("key sk-ant-fixture-0123456789 and token ghs_fixture0123456789, not this")).toBe("key [redacted] and token [redacted], not this");
+    expect(redactor({})("unchanged")).toBe("unchanged");
   });
 });
 
@@ -496,6 +662,11 @@ describe("recorded scan of 20 November 2026", () => {
     };
   }
 
+  const LANE_LINES = [
+    "scan genomics: 8 searches, 4 raw candidates, 2 dropped as known, 0 dropped as remembered, 0 dropped for another reason, 2 to judge",
+    "scan proteins: 8 searches, 4 raw candidates, 2 dropped as known, 0 dropped as remembered, 1 dropped for another reason, 1 to judge",
+    "scan cells and other biology: 8 searches, 3 raw candidates, 1 dropped as known, 0 dropped as remembered, 1 dropped for another reason, 1 to judge",
+  ];
   const judgedNames = (client: ReturnType<typeof replay>) => client.calls.filter((c) => c.kind === "stream")
     .map((c) => /Name: (.*)/.exec(String(c.params.messages[0].content))?.[1]).filter(Boolean);
 
@@ -562,12 +733,12 @@ describe("recorded scan of 20 November 2026", () => {
   });
 
   it("does not start a lane that would take the scan past its budget", async () => {
-    // 13 searches a lane is $0.13: after two lanes a third would pass $0.35.
-    const client = replay({ searches: 13 });
+    // 21 searches a lane is $0.21: after two lanes a third would pass $0.55.
+    const client = replay({ searches: 21 });
     const { summary, usage } = await main([...args, "--report-only"], env, { now: runDay, log: quiet, anthropic: client, github: github(realIssues), fetch: blog });
-    expect(summary).toContain('Scan lane "cells and other biology" was not run: the scan would have passed $0.35.');
+    expect(summary).toContain('Scan lane "cells and other biology" was not run: the scan would have passed $0.55.');
     expect(client.calls.filter((c) => c.kind === "stream" && String(c.params.messages[0].content).includes("Find AI-for-biology"))).toHaveLength(2);
-    expect(usage!.byModel["claude-haiku-5-5"].webSearches).toBe(26);
+    expect(usage!.byModel["claude-haiku-5-5"].webSearches).toBe(42);
   });
 
   it("uses the notes written so far when a lane stops at the resume cap, and gives each resume what is left", async () => {
@@ -577,6 +748,33 @@ describe("recorded scan of 20 November 2026", () => {
     expect(genomics.map((c) => c.params.tools[0].max_uses)).toEqual([8, 5, 2]);
     expect(planned.map((p) => p.name)).toContain("GenoNova fixture");
     expect(skipped!.find((s) => s.name === "Bacformer")?.reason).toContain("already known, not judged");
+    const lines: string[] = [];
+    await main([...args, "--report-only"], env, { now: runDay, log: (m: string) => lines.push(m), anthropic: replay({ searches: 3, pauseForever: "genomics" }), github: github(realIssues), fetch: blog });
+    expect(lines).toContain("scan genomics: stopped after the pause_turn cap");
+    expect(lines.find((l) => l.startsWith("scan genomics: 9 searches"))).toMatch(/2 to judge \(finished; the scan stopped at the pause_turn cap and the notes may be incomplete\)$/);
+  });
+
+  it("prints one line per lane and keeps the lane's working for the run artifact", async () => {
+    const out = mkdtempSync(join(tmpdir(), "discovery-"));
+    const lines: string[] = [];
+    const { lanes } = await main([...args, "--report-only", "--out", out], env, { now: runDay, log: (m: string) => lines.push(m), anthropic: replay(), github: github(realIssues), fetch: blog });
+    expect(lines.filter((l) => l.startsWith("scan "))).toEqual(LANE_LINES);
+    expect(lanes!.map((l: any) => l.status)).toEqual(["finished", "finished", "finished"]);
+    const genomics = JSON.parse(readFileSync(join(out, "scan", "genomics.json"), "utf8"));
+    expect(genomics.mode).toBe("report only");
+    expect(genomics.notes).toBe(recordedScan.genomics.notes);
+    expect(genomics.raw_candidates).toEqual(recordedScan.genomics.candidates);
+    expect(genomics.requests).toEqual([{ stop_reason: "end_turn", input_tokens: 2000, output_tokens: 500, web_search_requests: 8, web_fetch_requests: 0, tool_use_reported: true, text_characters: recordedScan.genomics.notes.length }]);
+    expect(genomics.dropped.map((d: any) => [d.name, d.category])).toEqual([["Ladon", "known"], ["Bacformer", "known"]]);
+    expect(genomics.to_judge).toEqual(["GenoNova fixture", "SpliceAtlas fixture"]);
+  });
+
+  it("gives a lane that never ran a line and a row with the reason", async () => {
+    const lines: string[] = [];
+    const { lanes, summary } = await main([...args, "--report-only"], env, { now: runDay, log: (m: string) => lines.push(m), anthropic: replay({ searches: 21 }), github: github(realIssues), fetch: blog });
+    expect(lines).toContain("scan cells and other biology: 0 searches, no candidate list (not run: scan budget)");
+    expect(lanes!.map((l: any) => [l.lane, l.status])).toContainEqual(["cells and other biology", "not run: scan budget"]);
+    expect(summary).toContain("| cells and other biology | not run: scan budget | 0 | 0 | 0 | 0 | 0 | 0 | 0 |");
   });
 
   it("rotates the first lane by day", async () => {
@@ -715,6 +913,117 @@ describe("guards on the live path", () => {
     });
   });
 
+  describe("direct tool calls", () => {
+    it("restricts search and fetch to direct calls on every scan and judge request, resumes included", async () => {
+      const client = standIn({
+        candidates: [scanCandidate("AlderFold"), scanCandidate("BirchFold")],
+        scan: (lane, request) => request === 1 ? { stop_reason: "pause_turn" } : {},
+        judge: (name) => name === "AlderFold" ? { stop_reason: "pause_turn" } : {},
+      });
+      await run(client, github(), ["--report-only"]);
+      const requests = client.calls.filter((c) => c.kind === "stream").map((c) => c.params);
+      const of = (match: string) => requests.filter((r) => String(r.messages[0].content).includes(match));
+      // Each lane is resumed once, AlderFold up to the cap, BirchFold not at all.
+      expect(of("Lane: ")).toHaveLength(6);
+      expect(of("Name: AlderFold")).toHaveLength(1 + LIMITS.maxContinuations);
+      expect(of("Name: BirchFold")).toHaveLength(1);
+      expect(requests).toHaveLength(10);
+      expect(DIRECT_ONLY).toEqual(["direct"]);
+      for (const request of requests) {
+        expect(request.tools.map((t: any) => [t.type, t.name, t.allowed_callers])).toEqual([
+          ["web_search_20260318", "web_search", ["direct"]],
+          ["web_fetch_20260209", "web_fetch", ["direct"]],
+        ]);
+        // No code execution tool is declared, so nothing in the request offers a code path.
+        expect(JSON.stringify(request.tools)).not.toContain("code_execution");
+      }
+    });
+    it("tells the scan to search directly, one query at a time, and to keep a candidate whose fetch failed", () => {
+      const prompt = scanPrompt({ lane: SCAN_LANES[0], runDate: "2026-11-22", lookbackDays: 30, titles: [] });
+      expect(prompt).toContain("Call the search tool yourself, one query at a time, and read each result before you write the next query.");
+      expect(prompt).toContain("Do not write code to search or fetch.");
+      expect(prompt).toContain("Never run a query twice.");
+      expect(prompt).toContain("Keep two searches for following up your best leads.");
+      expect(prompt).toContain("Fetch a URL exactly as a search result gave it.");
+      expect(prompt).toContain("A fetch that fails is not a reason to drop a candidate");
+      const system = readFileSync("agents/discovery.md", "utf8");
+      expect(system).toContain("Call the search and fetch tools yourself");
+    });
+    it("keeps the advice on failed fetches out of the system prompt, which the judge also reads", () => {
+      // To the judge "keep the candidate" would mean FILE. Only the scan prompt says it.
+      const system = readFileSync("agents/discovery.md", "utf8");
+      expect(system).not.toContain("not a reason to drop a candidate");
+      expect(system).not.toMatch(/keep it and say/i);
+      expect(system).toContain("- A page that fails to load (403, paywall, timeout) is an access gap, not evidence that something is absent. Say which page failed and on which date.\n");
+    });
+
+    describe("when the API rejects allowed_callers", () => {
+      const invalid = (message: string, status = 400) => Object.assign(new Error(message), { status });
+      const fieldOf = (tool: any) => "allowed_callers" in tool;
+      const ofLane = (client: any, lane: string) => client.calls.filter((c: any) => c.kind === "stream" && String(c.params.messages[0].content).includes(`Lane: ${lane}.`)).map((c: any) => c.params.tools.map(fieldOf));
+
+      it("reads which tools a 400 names, and nothing from any other error", () => {
+        expect(rejectedDirectOnly(invalid('400 {"type":"error","error":{"type":"invalid_request_error","message":"tools.1.web_fetch_20260209.allowed_callers: Extra inputs are not permitted"}}'))).toEqual(["web_fetch"]);
+        expect(rejectedDirectOnly(invalid("tools.0.allowed_callers: unexpected value"))).toEqual(["web_search"]);
+        expect(rejectedDirectOnly(invalid("allowed_callers is not supported"))).toEqual(["web_search", "web_fetch"]);
+        expect(rejectedDirectOnly(invalid("max_uses: must be positive for web_fetch"))).toEqual([]);
+        expect(rejectedDirectOnly(invalid("allowed_callers: overloaded", 529))).toEqual([]);
+        expect(rejectedDirectOnly(new Error("allowed_callers"))).toEqual([]);
+        expect(rejectedDirectOnly(undefined)).toEqual([]);
+      });
+      it("sends the request once more without the field on the tool the 400 names, and keeps it off for the resumes", async () => {
+        const out = mkdtempSync(join(tmpdir(), "discovery-"));
+        const lines: string[] = [];
+        const client: any = standIn({
+          candidates: [scanCandidate("AlderFold")],
+          scan: (lane, request) => {
+            if (fieldOf(client.calls.at(-1).params.tools[1])) throw invalid('400 {"type":"error","error":{"type":"invalid_request_error","message":"tools.1.web_fetch_20260209.allowed_callers: Extra inputs are not permitted"}}');
+            return lane === "genomics" && request === 2 ? { stop_reason: "pause_turn" } : {};
+          },
+        });
+        const { lanes } = await run(client, github(), ["--report-only", "--out", out], { deps: { log: (m: string) => lines.push(m) } });
+        // Rejected, sent again without the field on fetch, then one resume that never sends it.
+        expect(ofLane(client, "genomics")).toEqual([[true, true], [true, false], [true, false]]);
+        // Each call starts with the field: a later lane asks again.
+        expect(ofLane(client, "proteins")).toEqual([[true, true], [true, false]]);
+        expect(lanes!.map((l: any) => l.status)).toEqual(["finished", "finished", "finished"]);
+        expect(lines.filter((l) => l.includes("rejected allowed_callers"))).toHaveLength(3);
+        expect(lines).toContain('scan genomics: the API rejected allowed_callers on web_fetch (400 400 {"type":"error","error":{"type":"invalid_request_error","message":"tools.1.web_fetch_20260209.allowed_callers: Extra inputs are not permitted"}}); sent again without it, so those calls can run from code');
+        const genomics = JSON.parse(readFileSync(join(out, "scan", "genomics.json"), "utf8"));
+        expect(genomics.requests.map((r: any) => r.allowed_callers_dropped)).toEqual([["web_fetch"], ["web_fetch"]]);
+        // The judge still sends the field on both tools, and its row would say if it had not.
+        const judge = client.calls.find((c: any) => c.kind === "stream" && String(c.params.messages[0].content).includes("Name: AlderFold"))!.params;
+        expect(judge.tools.map(fieldOf)).toEqual([true, true]);
+      });
+      it("drops the field from both tools when the 400 names neither", async () => {
+        const client: any = standIn({ scan: () => { if (client.calls.at(-1).params.tools.some(fieldOf)) throw invalid("allowed_callers: Extra inputs are not permitted"); return {}; } });
+        const { lanes } = await run(client, github(), ["--report-only"]);
+        expect(ofLane(client, "genomics")).toEqual([[true, true], [false, false]]);
+        expect(lanes!.map((l: any) => l.status)).toEqual(["finished", "finished", "finished"]);
+      });
+      it("leaves the row as it was when nothing is rejected", async () => {
+        const out = mkdtempSync(join(tmpdir(), "discovery-"));
+        await run(standIn(), github(), ["--report-only", "--out", out]);
+        expect(JSON.parse(readFileSync(join(out, "scan", "genomics.json"), "utf8")).requests.every((r: any) => !("allowed_callers_dropped" in r))).toBe(true);
+      });
+      it("does not send again after a 400 about something else, or after a second 400", async () => {
+        const other: any = standIn({ scan: () => { throw invalid("max_uses: Input should be greater than 0"); } });
+        const first = await run(other, github(), ["--report-only"]);
+        expect(ofLane(other, "genomics")).toEqual([[true, true]]);
+        expect(first.lanes!.map((l: any) => l.status)).toEqual(Array(3).fill("failed: 400 max_uses: Input should be greater than 0"));
+        expect(first.summary).toContain("No scan lane finished; nothing was judged.");
+        const twice: any = standIn({ scan: () => { throw invalid("tools.0.allowed_callers: Extra inputs are not permitted"); } });
+        const second = await run(twice, github(), ["--report-only"]);
+        expect(ofLane(twice, "genomics")).toEqual([[true, true], [false, true]]);
+        expect(second.lanes!.map((l: any) => l.status)).toEqual(Array(3).fill("failed: 400 tools.0.allowed_callers: Extra inputs are not permitted"));
+        // A resume that is rejected for a tool the field is already off: no further request.
+        const later: any = standIn({ scan: (lane, request) => { if (request !== 2) throw invalid("tools.0.allowed_callers: Extra inputs are not permitted"); return { stop_reason: "pause_turn" }; } });
+        await run(later, github(), ["--report-only"]);
+        expect(ofLane(later, "genomics")).toEqual([[true, true], [false, true], [false, true]]);
+      });
+    });
+  });
+
   describe("judge replies that are not a verdict", () => {
     it("does not file a candidate whose judge call stopped at the resume cap", async () => {
       const client = standIn({ candidates: [scanCandidate("AlderFold"), scanCandidate("BirchFold")], judge: (name) => name === "AlderFold" ? { stop_reason: "pause_turn" } : {} });
@@ -767,6 +1076,48 @@ describe("guards on the live path", () => {
       // Three lanes of 8 + 1 + 1 searches, and one judge call of 3 + 1 + 1.
       expect(usage!.byModel["claude-haiku-5-5"].webSearches).toBe(30);
       expect(usage!.byModel["claude-sonnet-5-5"].webSearches).toBe(5);
+    });
+    it("does not take direct calls off a resume's allowance, because the API counts them itself", async () => {
+      const search = (n: number, caller?: any) => ({ type: "server_tool_use", id: `srvtoolu_${n}`, name: "web_search", input: { query: `q${n}` }, ...(caller ? { caller } : {}) });
+      const fetched = { type: "server_tool_use", id: "srvtoolu_f", name: "web_fetch", input: { url: "https://example.org/a" } };
+      const paused = (content: any[], searches: number, fetches: number) => ({ stop_reason: "pause_turn", content: [...content, { type: "text", text: "scan notes so far" }], usage: { input_tokens: 1, output_tokens: 1, server_tool_use: { web_search_requests: searches, web_fetch_requests: fetches } } });
+      const uses = (client: any) => client.calls.filter((c: any) => c.kind === "stream" && String(c.params.messages[0].content).includes("Lane: genomics.")).map((c: any) => c.params.tools.map((t: any) => t.max_uses));
+      // Three direct searches and one direct fetch in each paused reply: the allowance stays whole.
+      const direct = standIn({ scan: (lane, request) => lane === "genomics" && request < 3 ? paused([search(1), search(2), search(3), fetched], 3, 1) : {} });
+      await run(direct, github(), ["--report-only"]);
+      expect(uses(direct)).toEqual([[8, 2], [8, 2], [8, 2]]);
+      // One of the three searches came from code: only that one is taken off.
+      const mixed = standIn({ scan: (lane, request) => lane === "genomics" && request === 1 ? paused([search(1), search(2), search(3, { type: "code_execution_20260120", tool_id: "srvtoolu_c" })], 3, 0) : {} });
+      await run(mixed, github(), ["--report-only"]);
+      expect(uses(mixed)).toEqual([[8, 2], [7, 2]]);
+      // A refused direct call is in the reply and not in the reported use: nothing goes below zero.
+      const refused = standIn({ scan: (lane, request) => lane === "genomics" && request === 1 ? paused([search(1), search(2)], 1, 0) : {} });
+      await run(refused, github(), ["--report-only"]);
+      expect(uses(refused)).toEqual([[8, 2], [8, 2]]);
+      // The same for a refused direct fetch: the surplus does not hide a later fetch that has no block.
+      const done = (id: string) => ({ type: "web_fetch_tool_result", tool_use_id: id, content: { type: "web_fetch_tool_error", error_code: "max_uses_exceeded" } });
+      const fetches = standIn({ scan: (lane, request) => lane === "genomics" && request === 1 ? paused([{ ...fetched, id: "srvtoolu_g" }, done("srvtoolu_g"), fetched, done("srvtoolu_f"), search(1, { type: "code_execution_20260120", tool_id: "srvtoolu_c" })], 1, 1) : lane === "genomics" && request === 2 ? paused([], 0, 1) : {} });
+      await run(fetches, github(), ["--report-only"]);
+      expect(uses(fetches)).toEqual([[8, 2], [7, 2], [7, 1]]);
+    });
+    it("does not take off a direct call whose use is reported one reply late", async () => {
+      const call = (name: string, id: string, input: any) => ({ type: "server_tool_use", id, name, input });
+      const answer = (type: string, id: string) => ({ type, tool_use_id: id, content: [] });
+      const reply = (content: any[], searches: number, fetches: number, stop = "pause_turn") => ({ stop_reason: stop, content: [...content, { type: "text", text: "scan notes so far" }], usage: { input_tokens: 1, output_tokens: 1, server_tool_use: { web_search_requests: searches, web_fetch_requests: fetches } } });
+      const first = [call("web_search", "s1", { query: "q1" }), answer("web_search_tool_result", "s1"), call("web_search", "s2", { query: "q2" }), call("web_fetch", "f1", { url: "https://example.org/a" })];
+      expect(pendingDirect(first)).toEqual({ searches: 1, fetches: 1 });
+      expect(pendingDirect([...first, answer("web_search_tool_result", "s2"), answer("web_fetch_tool_result", "f1")])).toEqual({ searches: 0, fetches: 0 });
+      expect(pendingDirect([{ ...first[2], caller: { type: "code_execution_20260120", tool_id: "c1" } }])).toEqual({ searches: 0, fetches: 0 });
+      expect(pendingDirect(undefined)).toEqual({ searches: 0, fetches: 0 });
+      // The first reply pauses on a search and a fetch that have not run. The second holds their
+      // results and reports their use, with no call block, and one more search with no block at
+      // all. Only that last one is taken off.
+      const client = standIn({ scan: (lane, request) => lane !== "genomics" ? {}
+        : request === 1 ? reply(first, 1, 0)
+        : request === 2 ? reply([answer("web_search_tool_result", "s2"), answer("web_fetch_tool_result", "f1")], 2, 1) : {} });
+      await run(client, github(), ["--report-only"]);
+      const uses = client.calls.filter((c: any) => c.kind === "stream" && String(c.params.messages[0].content).includes("Lane: genomics.")).map((c: any) => c.params.tools.map((t: any) => t.max_uses));
+      expect(uses).toEqual([[8, 2], [8, 2], [7, 2]]);
     });
     it("still reads a reported count of zero as zero", async () => {
       const client = standIn({ scan: (lane, request) => request === 1 ? { stop_reason: "pause_turn", usage: { input_tokens: 1, output_tokens: 1, server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 } } } : {} });
@@ -907,6 +1258,127 @@ describe("guards on the live path", () => {
       const { skipped } = await run(client, data, [], { env: { ARTICLE_TOKEN: "t" }, deps: { articleGithub: articles } });
       expect(client.judgedNames()).toEqual(["BirchFold"]);
       expect(skipped!.find((s) => s.name === "AlderFold")?.reason).toBe('already known, not judged: "alderfold" is in the title of rewire-bio/rewire.it#77');
+    });
+  });
+
+  describe("a reply resumed after pause_turn", () => {
+    const text = (t: string) => [{ type: "text", text: t }];
+    const structuredNotes = (client: ReturnType<typeof standIn>, marker: string) => String(client.calls.find((c) => c.kind === "create" && String(c.params.messages[0].content).includes(marker))?.params.messages[0].content);
+
+    it("keeps the scan notes written before the pause", async () => {
+      // The resumed reply holds only what was written after the pause.
+      const client = standIn({
+        candidates: [scanCandidate("AlderFold")],
+        scan: (lane, request) => lane !== "genomics" ? {} : request === 1
+          ? { stop_reason: "pause_turn", content: text("scan notes genomics, first part: AlderFold, a structure model.") }
+          : { content: text("Second part: nothing further.") },
+      });
+      const { lanes } = await run(client, github(), ["--report-only"]);
+      const notes = structuredNotes(client, "first part");
+      expect(notes).toContain("scan notes genomics, first part: AlderFold, a structure model.\n\nSecond part: nothing further.");
+      expect(client.judgedNames()).toEqual(["AlderFold"]);
+      const genomics = lanes!.find((l: any) => l.lane === "genomics")!;
+      expect(genomics.requests.map((r: any) => r.stop_reason)).toEqual(["pause_turn", "end_turn"]);
+      expect(genomics.notes).toContain("first part");
+    });
+    it("keeps the judge notes written before the pause, and still reads the verdict at the end", async () => {
+      const requests: Record<string, number> = {};
+      const client = standIn({
+        candidates: [scanCandidate("AlderFold")],
+        judge: (name) => (requests[name] = (requests[name] ?? 0) + 1) === 1
+          ? { stop_reason: "pause_turn", content: text(`notes for ${name}\nSources opened: the preprint.`) }
+          : { content: text("The weights are new.\nFILE") },
+      });
+      const data = github();
+      await run(client, data);
+      expect(structuredNotes(client, "Sources opened")).toContain("Sources opened: the preprint.\n\nThe weights are new.\nFILE");
+      expect(data.created).toHaveLength(1);
+    });
+    it("reads the verdict the judge ends with, not a SKIP it wrote before the pause", async () => {
+      const requests: Record<string, number> = {};
+      const client = standIn({
+        candidates: [scanCandidate("AlderFold")],
+        judge: (name) => (requests[name] = (requests[name] ?? 0) + 1) === 1
+          ? { stop_reason: "pause_turn", content: text(`notes for ${name}\nI will end with FILE or SKIP.\nFirst reading: SKIP, it looks like a checkpoint.`) }
+          : { content: text("The preprint shows a new architecture.\nFILE") },
+      });
+      const data = github();
+      await run(client, data);
+      expect(data.created).toHaveLength(1);
+    });
+    it("records why a lane has no notes", async () => {
+      const lines: string[] = [];
+      const client = standIn({ scan: (lane) => lane === "genomics" ? { stop_reason: "refusal", stop_details: { category: "bio" }, content: [] } : {} });
+      const { lanes, summary } = await run(client, github(), ["--report-only"], { deps: { log: (m: string) => lines.push(m) } });
+      expect(lines).toContain("scan genomics: 1 searches, no candidate list (no notes; the last request stopped with refusal)");
+      expect(lanes!.find((l: any) => l.lane === "genomics")!.requests).toHaveLength(1);
+      expect(summary).toContain("| genomics | no notes; the last request stopped with refusal | 1 | 1 | 0 | 0 | 0 | 0 | 0 |");
+      expect(summary).toContain('Scan lane "genomics" was refused or did not finish.');
+    });
+  });
+
+  describe("what a live run writes to --out", () => {
+    it("marks a lane whose scan was cut at max_tokens, in its line, its file and the summary", async () => {
+      const out = mkdtempSync(join(tmpdir(), "discovery-"));
+      const lines: string[] = [];
+      const client = standIn({ candidates: [scanCandidate("AlderFold")], scan: (lane) => lane === "genomics" ? { stop_reason: "max_tokens" } : {} });
+      const { summary } = await run(client, github(), ["--report-only", "--out", out], { deps: { log: (m: string) => lines.push(m) } });
+      const status = "finished; the notes were cut at max_tokens and may be incomplete";
+      expect(lines).toContain(`scan genomics: 1 searches, 1 raw candidates, 0 dropped as known, 0 dropped as remembered, 0 dropped for another reason, 1 to judge (${status})`);
+      expect(lines).toContain("scan proteins: 1 searches, 0 raw candidates, 0 dropped as known, 0 dropped as remembered, 0 dropped for another reason, 0 to judge");
+      expect(JSON.parse(readFileSync(join(out, "scan", "genomics.json"), "utf8")).status).toBe(status);
+      expect(summary).toContain(`| genomics | ${status} | 1 | 1 | 1 | 0 | 0 | 0 | 1 |`);
+      // The candidates in cut notes are still judged.
+      expect(client.judgedNames()).toEqual(["AlderFold"]);
+    });
+    it("lists a candidate with no name in the lane file and not among the skipped names", async () => {
+      const out = mkdtempSync(join(tmpdir(), "discovery-"));
+      const client = standIn({ candidates: [scanCandidate(""), scanCandidate("Bacformer"), scanCandidate("AlderFold")] });
+      const { skipped, summary } = await run(client, github(), ["--report-only", "--out", out]);
+      expect(JSON.parse(readFileSync(join(out, "scan", "genomics.json"), "utf8")).dropped.map((d: any) => d.name)).toEqual(["(no name)", "Bacformer"]);
+      expect(skipped!.map((s) => s.name)).toEqual(["Bacformer"]);
+      expect(summary).not.toContain("- (no name)");
+    });
+    it("finishes the run and says so when the lane files cannot be written", async () => {
+      const out = mkdtempSync(join(tmpdir(), "discovery-"));
+      writeFileSync(join(out, "scan"), "a file where the folder should be");
+      const lines: string[] = [];
+      const data = github();
+      const { planned } = await run(standIn({ candidates: [scanCandidate("AlderFold")] }), data, ["--out", out], { deps: { log: (m: string) => lines.push(m) } });
+      expect(planned.map((p) => p.name)).toEqual(["AlderFold"]);
+      expect(data.created).toHaveLength(1);
+      expect(existsSync(join(out, "usage.json"))).toBe(true);
+      expect(lines.find((l) => l.startsWith("::warning::The lane files could not be written"))).toBeTruthy();
+    });
+    it("keeps the error that ended a run when the lane files cannot be written either", async () => {
+      const out = mkdtempSync(join(tmpdir(), "discovery-"));
+      writeFileSync(join(out, "scan"), "a file where the folder should be");
+      const data = { ...github(), async createIssue() { throw new Error("GitHub is down"); } };
+      await expect(run(standIn({ candidates: [scanCandidate("AlderFold")] }), data, ["--out", out])).rejects.toThrow("GitHub is down");
+    });
+    it("counts a remembered rejection apart from a known name, and keeps tokens out of the lane files", async () => {
+      const state = join(mkdtempSync(join(tmpdir(), "discovery-")), "state", "rejected.json");
+      await run(standIn({ candidates: [scanCandidate("AlderFold")], decision: "skip" }), github(), ["--state", state]);
+      const out = mkdtempSync(join(tmpdir(), "discovery-"));
+      const key = "sk-ant-fixture-0123456789";
+      const lines: string[] = [];
+      const client = standIn({
+        candidates: [scanCandidate("AlderFold"), scanCandidate("Bacformer"), scanCandidate("CedarFold")],
+        scan: (lane) => lane === "genomics" ? { content: [
+          { type: "server_tool_use", id: "s1", name: "web_search", input: { query: `bioRxiv protein structure ${key}` } },
+          { type: "web_search_tool_result", tool_use_id: "s1", content: [{ type: "web_search_result", url: "https://www.biorxiv.org/content/10.1101/2026.11.01.800001v1", title: "CedarFold" }] },
+          { type: "text", text: `scan notes genomics ${key}` },
+        ] } : {},
+      });
+      await run(client, github(), ["--state", state, "--out", out], { now: new Date("2026-11-22T08:00:00Z"), env: { ANTHROPIC_API_KEY: key }, deps: { log: (m: string) => lines.push(m) } });
+      expect(lines).toContain("scan genomics: 1 searches (1 direct), 3 raw candidates, 1 dropped as known, 1 dropped as remembered, 0 dropped for another reason, 1 to judge");
+      const genomics = JSON.parse(readFileSync(join(out, "scan", "genomics.json"), "utf8"));
+      expect(genomics.dropped.map((d: any) => [d.name, d.category])).toEqual([["AlderFold", "remembered"], ["Bacformer", "known"]]);
+      expect(genomics.queries).toEqual(["bioRxiv protein structure [redacted]"]);
+      for (const file of readdirSync(join(out, "scan"))) expect(readFileSync(join(out, "scan", file), "utf8")).not.toContain(key);
+      expect(readFileSync(join(out, "scan", "genomics-notes.md"), "utf8")).toBe("scan notes genomics [redacted]\n");
+      // A lane that found nothing still has its files.
+      expect(JSON.parse(readFileSync(join(out, "scan", "proteins.json"), "utf8")).counts).toMatchObject({ raw: 0, to_judge: 0 });
     });
   });
 });

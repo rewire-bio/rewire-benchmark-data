@@ -6,15 +6,19 @@
  * Nothing here writes a record, reads the network or calls a model. The report is a TSV under
  * maintenance/reports/, one row per finding, and the counts it prints are the deliverable.
  * data/omics/checks-baseline.json pins each rule's count and tests/checks-baseline.test.ts
- * fails when a later run raises one.
+ * compares a run with it.
  *
- * That failure is a backlog ratchet, not a correctness failure. Every check is report severity:
- * nothing here gates `records -- add`, and a finding is a lead to read, not a wrong value. The
- * ratchet bites on growth, so an evidence pull request may leave the existing backlog alone but
- * may not add to it. When it fires, the failure names the check and rule that rose and by how
- * much, and gives the two ways forward: fix the new findings (they are rows of the TSV under the
- * named rule), or raise the baseline in the same pull request with a dated review in
- * docs/reviews/. ratchetRemedy below is the wording, and the baseline file's `note` carries it.
+ * The comparison is report only since 23 November 2026 (issue #272): the test prints each
+ * count beside its baseline and passes when counts rise. defaultRatchetMode below is the switch,
+ * and CHECKS_RATCHET=blocking overrides it for one run. Every check is report severity: nothing
+ * here gates `records -- add`, and a finding is a lead to read, not a wrong value.
+ *
+ * In blocking mode the test fails when a run raises a count. That failure is a backlog ratchet,
+ * not a correctness failure: an evidence pull request may leave the existing backlog alone but
+ * may not add to it. The failure names the check and rule that rose and by how much, and gives
+ * the two ways forward: fix the new findings (they are rows of the TSV under the named rule), or
+ * raise the baseline in the same pull request with a dated review in docs/reviews/.
+ * ratchetRemedy below is that wording.
  *
  * The store is read with readKind, which returns the stored JSON as it is. loadRecords would
  * validate it against the schema, five validators and the provenance hashes, which is a
@@ -128,7 +132,7 @@ export type Baseline = {
   checks: Record<string, { title: string; findings: number; rules: Record<string, number>; context?: Record<string, number> }>;
 };
 
-/** Every count a later run must not exceed: each rule, each check total, and the grand total. */
+/** Every count the baseline pins: each rule, each check total, and the grand total. */
 export function ratchetCounts(source: Baseline | RunResult): Record<string, number> {
   const counts: Record<string, number> = {};
   const entries = "checks" in source
@@ -144,8 +148,9 @@ export function ratchetCounts(source: Baseline | RunResult): Record<string, numb
   return counts;
 }
 
-/** Why a count may not rise and what to do when one has. The baseline file's `note` carries the
- * same words, the ratchet test fails with them, and `checks -- report` prints them. */
+/** Blocking mode only: why a count may not rise and what to do when one has. The ratchet test
+ * fails with these words when CHECKS_RATCHET is blocking. The committed baseline file's `note`
+ * still carries them from the first run, and is out of date while the ratchet is report only. */
 export const ratchetRemedy =
   "Every check is report severity: nothing here gates records -- add, and a finding is a lead to read, not a wrong value. " +
   "tests/checks-baseline.test.ts fails when a run raises any count above the number pinned in data/omics/checks-baseline.json, " +
@@ -156,9 +161,37 @@ export const ratchetRemedy =
   "rerun npm run checks -- baseline and add a dated review in docs/reviews/ saying which rule rose, by how much, and why the " +
   "new findings stand.";
 
-/** The baseline file's `note`. Written by `checks -- baseline`, so the file and this string match. */
-export const ratchetNote =
-  "Counts of every deterministic check in scripts/omics/checks/, pinned from the first run. " + ratchetRemedy;
+export type RatchetMode = "report" | "blocking";
+
+/** The one switch for the ratchet (issue #272, decided 23 November 2026).
+ *
+ * "report": tests/checks-baseline.test.ts prints every count beside its baseline and passes when
+ * counts rise. "blocking": the same test fails when any count rises above its baseline.
+ *
+ * It is report only because the blocking ratchet failed 13 of 14 pull requests that added results
+ * and nobody had measured how often a finding is a real error. To block again, change this
+ * constant to "blocking", or set CHECKS_RATCHET=blocking in the environment of the test run. */
+export const defaultRatchetMode: RatchetMode = "report";
+
+/** The mode in force: CHECKS_RATCHET when it is set, defaultRatchetMode otherwise. */
+export function ratchetMode(env: Record<string, string | undefined> = process.env): RatchetMode {
+  const asked = env.CHECKS_RATCHET;
+  if (asked === undefined || asked === "") return defaultRatchetMode;
+  if (asked === "report" || asked === "blocking") return asked;
+  throw new Error(`CHECKS_RATCHET must be "report" or "blocking", not "${asked}".`);
+}
+
+/** What a report-only run says after its table. */
+export const reportOnlyNotice =
+  "Report only since 23 November 2026 (issue #272): a count above its baseline does not fail the test. Every check is " +
+  "report severity, and a finding is a lead to read, not a wrong value. npm run checks -- report writes one row per " +
+  "finding to maintenance/reports/checks-<date>.tsv. To block again, set defaultRatchetMode to \"blocking\" in " +
+  "scripts/omics/checks/cli.ts or run with CHECKS_RATCHET=blocking.";
+
+/** The baseline file's `note`, as `checks -- baseline` writes it in each mode. */
+export const ratchetNote = (mode: RatchetMode): string =>
+  "Counts of every deterministic check in scripts/omics/checks/, pinned from the first run. " +
+  (mode === "blocking" ? ratchetRemedy : reportOnlyNotice);
 
 export type RatchetRise = { key: string; count: number; baseline: number; rise: number };
 
@@ -191,6 +224,72 @@ export function ratchetFailure(baseline: Baseline, run: RunResult): string {
   };
   const lines = grown.map((rise) => `  ${name(rise.key)}: ${rise.count}, baseline ${rise.baseline}, up ${rise.rise}`);
   return [`Check counts rose above ${baselineFile}:`, ...lines, "", ratchetRemedy].join("\n");
+}
+
+export type RatchetRow = { key: string; baseline: number | null; count: number | null; difference: number | null };
+
+/** Every count beside its baseline: each check total, each rule under it, then the grand total.
+ * A count only one side names has null on the other and no difference. */
+export function ratchetRows(baseline: Baseline, run: RunResult): RatchetRow[] {
+  const want = ratchetCounts(baseline);
+  const got = ratchetCounts(run);
+  const keys = [...Object.keys(got), ...Object.keys(want).filter((key) => !(key in got))];
+  const rank = (key: string) => (key === "total" ? 1 : 0);
+  return keys
+    .map((key, at) => ({ key, at }))
+    .sort((a, b) => rank(a.key) - rank(b.key) || a.at - b.at)
+    .map(({ key }) => {
+      const pinned = want[key] ?? null;
+      const count = got[key] ?? null;
+      return { key, baseline: pinned, count, difference: pinned === null || count === null ? null : count - pinned };
+    });
+}
+
+const signed = (n: number | null): string => (n === null ? "" : n > 0 ? `+${n}` : String(n));
+const cell = (n: number | null): string => (n === null ? "" : String(n));
+
+/** The rows as a table: aligned plain text for a job log, or Markdown for a step summary. */
+export function ratchetTable(rows: RatchetRow[], format: "text" | "markdown" = "text"): string {
+  const head = ["count", "baseline", "current", "difference"];
+  const body = rows.map((row) => [row.key, cell(row.baseline), cell(row.count), signed(row.difference)]);
+  if (format === "markdown")
+    return ["| Count | Baseline | Current | Difference |", "| --- | ---: | ---: | ---: |", ...body.map((line) => `| ${line.join(" | ")} |`)].join("\n");
+  const widths = head.map((title, column) => Math.max(title.length, ...body.map((line) => line[column].length)));
+  const line = (cells: string[]) => cells.map((text, column) => (column ? text.padStart(widths[column]) : text.padEnd(widths[column]))).join("  ").trimEnd();
+  return [line(head), ...body.map(line)].join("\n");
+}
+
+export type RatchetVerdict = { mode: RatchetMode; rose: number; blocks: boolean; message: string; summary: string };
+
+/** The comparison in one mode. `blocks` is what the ratchet test asserts on: true only when the
+ * mode is blocking and a count rose. `message` is for the job log and the assertion, `summary`
+ * is the same report as Markdown for the GitHub step summary. */
+export function ratchetVerdict(baseline: Baseline, run: RunResult, mode: RatchetMode = ratchetMode()): RatchetVerdict {
+  const rows = ratchetRows(baseline, run);
+  const rose = rows.filter((row) => (row.difference ?? 0) > 0).length;
+  const blocks = mode === "blocking" && rose > 0;
+  const headline = rose
+    ? `${rose} ${rose === 1 ? "count" : "counts"} above ${baselineFile} (ratchet mode: ${mode}).`
+    : `No count above ${baselineFile} (ratchet mode: ${mode}).`;
+  const closing = blocks ? ratchetFailure(baseline, run) : mode === "report" ? reportOnlyNotice : "";
+  const parts = (table: string) => [headline, "", table, ...(closing ? ["", closing] : [])].join("\n");
+  return {
+    mode,
+    rose,
+    blocks,
+    message: parts(ratchetTable(rows, "text")),
+    summary: ["### Deterministic checks against the baseline", "", parts(ratchetTable(rows, "markdown")), ""].join("\n"),
+  };
+}
+
+/** Print the verdict to the log and, on GitHub Actions, append it to the step summary. */
+export function publishVerdict(
+  verdict: RatchetVerdict,
+  env: Record<string, string | undefined> = process.env,
+  log: (text: string) => void = console.log,
+): void {
+  log(verdict.message);
+  if (env.GITHUB_STEP_SUMMARY) fs.appendFileSync(env.GITHUB_STEP_SUMMARY, verdict.summary + "\n");
 }
 
 const storeCounts = (input: CheckInput): Record<string, number> => ({
@@ -241,7 +340,7 @@ if (process.argv[1]?.endsWith(path.join("checks", "cli.ts"))) {
   if (command === "baseline") {
     const commit = argValue(args, "--commit") ?? "";
     const baseline: Baseline = {
-      note: ratchetNote,
+      note: ratchetNote(ratchetMode()),
       notes: [
         "The commit is the HEAD the pack was written against. The checks themselves were not committed when this file was written, so the run was from the working tree at that commit. Rerun npm run checks -- baseline --commit <sha> after committing: the run is deterministic, so only this field changes.",
         "The sentences below carry the numbers of the first run. Re-pinning this file after a count changes means rewriting them in scripts/omics/checks/cli.ts first, or they describe a run that no longer exists.",
@@ -264,13 +363,11 @@ if (process.argv[1]?.endsWith(path.join("checks", "cli.ts"))) {
     console.log(`Wrote ${baselineFile}.`);
   } else if (fs.existsSync(baselineFile)) {
     const baseline = JSON.parse(fs.readFileSync(baselineFile, "utf8")) as Baseline;
-    const failure = ratchetFailure(baseline, run);
-    const want = ratchetCounts(baseline);
-    const got = ratchetCounts(run);
-    const shrunk = Object.entries(got).filter(([key, n]) => want[key] !== undefined && n < want[key]);
-    if (failure) console.log(`\n${failure}`);
-    else if (shrunk.length) console.log(`\nBelow ${baselineFile} on ${shrunk.length} counts; lower the baseline in the same PR.`);
-    else console.log(`\nCounts equal ${baselineFile}.`);
+    const verdict = ratchetVerdict(baseline, run);
+    const shrunk = ratchetRows(baseline, run).filter((row) => (row.difference ?? 0) < 0);
+    console.log(`\n${verdict.message}`);
+    if (!verdict.rose && shrunk.length) console.log(`\nBelow ${baselineFile} on ${shrunk.length} counts; lower the baseline in the same PR.`);
+    else if (!verdict.rose) console.log(`\nCounts equal ${baselineFile}.`);
   } else {
     console.log(`\nNo ${baselineFile} yet; run npm run checks -- baseline to write one.`);
   }

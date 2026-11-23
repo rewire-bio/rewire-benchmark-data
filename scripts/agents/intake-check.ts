@@ -1,7 +1,7 @@
 /** Checks the intake agent runs on its batch before records -- add (#255). Exits 1 and lists the
  * problems when a record would fail a check that records -- add does not make:
- *   - normalizeAttributes would rewrite it (check C13 in scripts/omics/checks, which CI ratchets
- *     at zero), for example a review carrying `date` beside `reviewed_at`;
+ *   - normalizeAttributes would rewrite it (check C13 in scripts/omics/checks, and the case
+ *     tests/attributes.test.ts fails CI on), for example a review carrying `date` beside `reviewed_at`;
  *   - its depth tier differs from the rule in docs/tiers.md;
  *   - it is an evaluation, result or claim (intake adds entities only until #274);
  *   - the release would refuse it (validateSnapshot, the check tests/release-validation.test.ts
