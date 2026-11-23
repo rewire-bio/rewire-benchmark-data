@@ -12,8 +12,10 @@
  * CI and the reviewers were each checking their own batch against its sources.
  *
  * The migration has since run, so the expected count today is zero and zero is the baseline.
- * A zero here is the point: the ratchet turns this check into the refusal the review asked
- * for, one PR behind rather than one CI run behind, without touching records -- add.
+ * A zero here is the point: in blocking mode the ratchet turns this check into the refusal the
+ * review asked for, one PR behind rather than one CI run behind, without touching records -- add.
+ * The ratchet is report only since 23 November 2026 (issue #272), so a rise here is printed in
+ * the baseline table and does not fail CI.
  *
  * The whole store is loaded, not just the results, because normalizeAttributes resolves a
  * result's parent evaluation through the links of every record.
