@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "note": "Written by the intake agent when it revised this batch after a review by the reviewer agent. One revision per pull request. A cited passage, a new wording and a ruling on a possible duplicate are the intake agent's claims; the reviewer checks each against the source and the store.",
+  "pull": 354,
+  "review": {
+    "id": 6008105703,
+    "commit": "18c09f08b0275c5ffbea98be38fef4ad0aac20d8",
+    "verdict_from": "marker"
+  },
+  "revised_at": "2026-11-22T22:24:30Z",
+  "model": "claude-sonnet-5-5",
+  "fields": [
+    {
+      "id": "intake-349-20261121-dataset-kinase-inhibitor-datasets",
+      "field": "duplicates",
+      "verdict": "fail",
+      "problem": "possible duplicate perturbpfn-20261115-data-sciplex-hdac-3x4 (\"Sci-Plex HDAC-inhibitor subset, 3 cell lines by 4 drugs (GIM preprocessing)\") in the store has no ruling in kg.json; possible duplicate tgtval-20261009-data-carnevale2022-tcell (\"Carnevale et al. 2022 screen, T-cell resistance to tumour-microenvironment inhibitory signals\") in the store has no ruling in kg.json",
+      "action": "rule",
+      "rulings": [
+        {
+          "id": "perturbpfn-20261115-data-sciplex-hdac-3x4",
+          "label": "Sci-Plex HDAC-inhibitor subset, 3 cell lines by 4 drugs (GIM preprocessing)",
+          "kind": "dataset_subset",
+          "ruling": "distinct",
+          "ground": "different_resource",
+          "new_quote": "Deep mutational scanning fitness tables",
+          "store_quote": "single-cell profiles of A549, K562 and MCF7 cells",
+          "shared": [],
+          "locator": "Ruled in the revision after review: a different resource. New record: \"Deep mutational scanning fitness tables\". Store record perturbpfn-20261115-data-sciplex-hdac-3x4 (dataset_subset): \"single-cell profiles of A549, K562 and MCF7 cells\". The script compared the source URLs, DOIs and repository addresses the two records give and found none in common; it cannot see one resource cited at two unrelated addresses. The new record holds kinase deep mutational scanning data, while the store record holds Sci-Plex single-cell drug-response profiles. The two records share no address: the new record is the fraser-lab GitHub repository and the store record is arxiv.org/pdf/2607.23447v1.",
+          "store_record": {
+            "id": "perturbpfn-20261115-data-sciplex-hdac-3x4",
+            "kind": "dataset_subset",
+            "name": "Sci-Plex HDAC-inhibitor subset, 3 cell lines by 4 drugs (GIM preprocessing)",
+            "description": "Sci-Plex single-cell profiles of A549, K562 and MCF7 cells treated with belinostat, dacinostat, givinostat or quisinostat 2HCl at several doses, plus controls, preprocessed as in the GIM benchmark.",
+            "addresses": [
+              "https://arxiv.org/pdf/2607.23447v1"
+            ]
+          }
+        },
+        {
+          "id": "tgtval-20261009-data-carnevale2022-tcell",
+          "label": "Carnevale et al. 2022 screen, T-cell resistance to tumour-microenvironment inhibitory signals",
+          "kind": "dataset",
+          "ruling": "distinct",
+          "ground": "different_resource",
+          "new_quote": "Deep mutational scanning fitness tables",
+          "store_quote": "Perturbation screen identifying genes",
+          "shared": [],
+          "locator": "Ruled in the revision after review: a different resource. New record: \"Deep mutational scanning fitness tables\". Store record tgtval-20261009-data-carnevale2022-tcell (dataset): \"Perturbation screen identifying genes\". The script compared the source URLs, DOIs and repository addresses the two records give and found none in common; it cannot see one resource cited at two unrelated addresses. The new record holds kinase variant fitness measurements under inhibitors, while the store record is a T-cell gene perturbation screen. The two records share no address: the store record's addresses are arxiv.org/abs/2405.17631v3 and aclanthology.org/2025.findings-emnlp.838/.",
+          "store_record": {
+            "id": "tgtval-20261009-data-carnevale2022-tcell",
+            "kind": "dataset",
+            "name": "Carnevale et al. 2022 screen, T-cell resistance to tumour-microenvironment inhibitory signals",
+            "description": "Perturbation screen identifying genes that render T cells resistant to inhibitory signals.",
+            "addresses": [
+              "https://arxiv.org/abs/2405.17631v3",
+              "https://aclanthology.org/2025.findings-emnlp.838/"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "intake-349-20261121-benchmark-met-kinase-dms-benchmark",
+      "field": "links",
+      "verdict": "fail",
+      "problem": "The record has one uses_data link to Kinase_Inhibitor_Datasets. The README never states that the benchmark uses a separate dataset; it describes a single repository whose MET tables are part of the benchmark. The locator itself calls the link weak and justifies it only by the other record being kept as a distinct entry, which is an inference, not a source statement. Both records point at the same repository, so the relation is not stated for these two records as distinct entities. Evidence: https://github.com/fraser-lab/Kinase_Inhibitor_Datasets README (single repository describing the MET ...",
+      "action": "drop",
+      "dropped": [
+        "uses_data intake-349-20261121-dataset-kinase-inhibitor-datasets"
+      ],
+      "before": [
+        "uses_data intake-349-20261121-dataset-kinase-inhibitor-datasets"
+      ],
+      "after": []
+    }
+  ],
+  "derived": [],
+  "run_url": "https://github.com/rewire-bio/rewire-benchmark-data/actions/runs/45077311486"
+}

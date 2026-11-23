@@ -47,7 +47,7 @@ import { createInterface } from 'node:readline';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { AREAS, DEFAULT_REPO, Usage, clean, normalise, tierOf } from './discovery.mjs';
-import { ENTITY_LEVELS, LINK_RELATIONS, fetchSource, linkAllowed, needsRuling, sourceBlocks } from './intake.mjs';
+import { ENTITY_LEVELS, LINK_RELATIONS, REVIEWER_LOGIN, fetchSource, linkAllowed, needsRuling, sourceBlocks } from './intake.mjs';
 import { fieldDiff, startKg } from './kg.mjs';
 import { createHash } from 'node:crypto';
 
@@ -62,6 +62,8 @@ export const VERDICT_MARKER = 'reviewer-verdict';
 const VERDICT_MARKER_MAX = 30000;
 /** The intake agent's receipt of its one revision after a review, in the batch folder. */
 const REVISION_FILE = 'revision.json';
+/** Fewest characters of a source passage quoted against a value an earlier review passed. */
+const MIN_CONTRADICTION_CHARS = 20;
 
 // Sonnet judges; Haiku only turns its notes into the fixed verdict shape.
 export const MODELS = { review: 'claude-sonnet-5-5', structure: 'claude-haiku-5-5' };
@@ -419,14 +421,80 @@ export function worktreePull(run) {
 
 // ---------- Verdicts ----------
 
+/** A row's value as the table holds it: the field's value, then what a revision's removals add to it. */
+const rowValue = (r, field, extra) => (field === 'depth_tier' ? String(r.attributes?.depth_tier ?? '') : [fieldValue(r, field), ...extra.filter((x) => x.id === r.id && x.field === field).map((x) => x.value)].filter(Boolean).join('; '));
+const rowSources = (r) => (r.source_ids ?? []).join(', ');
+const folded = (text) => String(text ?? '').replace(/\s+/g, ' ').trim();
+
+/**
+ * What a pass is a pass of: a short digest of the field, its whole value and the sources the
+ * record cites. The verdict marker lists it for every passed field, so a later review can tell
+ * whether a value it is shown is the one an earlier review passed.
+ */
+export function rowDigest({ field, value, sources }) {
+  return sha256(JSON.stringify([field, value ?? '', sources ?? ''])).slice(0, 16);
+}
+
+/** Rows whose pass a later review may carry over: the fields the model judges on a new record. */
+const carriesOver = (row) => ENTITY_KINDS.includes(row.kind) && REVIEWED_FIELDS.includes(row.field);
+
+/**
+ * The passes of the latest review the reviewer agent posted on a pull request, from its verdict
+ * marker: { head_sha, passed: Map("<id> <field>" -> digest) }. null when that review lists none
+ * (a review posted before the marker held them, or one whose marker was cut for length), so
+ * nothing is carried over from a review older than the latest. Only reviews by the two apps the
+ * reviewer posts as are read, and only a marker on the last line: a review of theirs without one
+ * gives null too.
+ */
+export function earlierPasses(reviews, logins = [BOT_LOGIN, REVIEWER_LOGIN]) {
+  for (const r of [...(reviews ?? [])].reverse()) {
+    if (!logins.includes(r.user)) continue;
+    const m = new RegExp(`(?:^|\\n)<!-- ${VERDICT_MARKER}: (\\{[^\\n]*\\}) -->\\s*$`).exec(String(r.body ?? ''));
+    // The latest review by the reviewer agent decides, also when its marker cannot be read (text
+    // after it, as in a review GitHub made the agent post as a comment): never an older one.
+    if (!m) return null;
+    let v;
+    try {
+      v = JSON.parse(m[1]);
+    } catch {
+      return null;
+    }
+    if (!isObject(v.passed)) return null;
+    const passed = new Map();
+    for (const [id, fields] of Object.entries(v.passed)) if (isObject(fields)) for (const [field, digest] of Object.entries(fields)) if (typeof digest === 'string') passed.set(`${id} ${field}`, digest);
+    return passed.size ? { head_sha: String(v.head_sha ?? r.commit_id ?? ''), passed } : null;
+  }
+  return null;
+}
+
+/** Whether an earlier review passed this field with the value and sources the record has now. */
+const passedBefore = (scope, r, field, extra) => Boolean(scope) && field !== 'depth_tier' && scope.passed.get(`${r.id} ${field}`) === rowDigest({ field, value: rowValue(r, field, extra), sources: rowSources(r) });
+
+/** The fields of the records under review that an earlier review passed and that have not changed: [{ id, field }]. */
+export function carriedFields(records, extra = [], scope = null) {
+  if (!scope) return [];
+  return records.filter((r) => ENTITY_KINDS.includes(r.kind)).flatMap((r) => unique([...fieldsOf(r), ...extra.filter((x) => x.id === r.id).map((x) => x.field)]).filter((field) => passedBefore(scope, r, field, extra)).map((field) => ({ id: r.id, field })));
+}
+
+/** How a carried-over row starts, and how a new failure on such a field does: main and the tests read both. */
+export const CARRIED_NOTE = 'Carried over:';
+export const NEW_FAILURE_NOTE = 'New failure:';
+
 /**
  * Merge the model's verdicts with the mechanical problems into one row per record and field. A
  * field the model did not return is `unverifiable`. A mechanical problem makes its field `fail`.
  * `extra` adds a field to a record that does not have it ([{ id, field, value }]): the place a
  * removal made by a revision is judged (closeRows), so a verdict on it is kept and a missing one
  * is `unverifiable`.
+ *
+ * `scope` is set for a batch the intake agent revised, when the latest earlier review lists its
+ * passes: { head_sha, passed, pages: Map(source id -> page text) }. A field that review passed,
+ * whose value and sources are the same now, keeps the pass whatever the model says of it this
+ * time, with one exception: the model fails it and quotes a source passage (`contradiction`) that
+ * the script finds, letter for letter, in the page text of a source the record cites. That row is
+ * a fail and says it is a new failure. A mechanical problem is never carried over.
  */
-export function buildTable(records, review, mechanical, extra = []) {
+export function buildTable(records, review, mechanical, extra = [], scope = null) {
   const byId = new Map((review?.records ?? []).map((r) => [r.id, r]));
   const rows = [];
   for (const r of records.filter((x) => ENTITY_KINDS.includes(x.kind))) {
@@ -443,6 +511,18 @@ export function buildTable(records, review, mechanical, extra = []) {
       } else if (mech.length) {
         verdict = 'fail';
         note = [...mech, v && v.verdict !== 'pass' ? clean(v.problem) : ''].filter(Boolean).join('; ');
+      } else if (passedBefore(scope, r, field, extra)) {
+        const head = String(scope.head_sha ?? '').slice(0, 7) || 'an earlier commit';
+        const quote = v?.verdict === 'fail' ? folded(v.contradiction) : '';
+        const found = quote.length >= MIN_CONTRADICTION_CHARS && (r.source_ids ?? []).some((id) => folded(scope.pages?.get(id)).includes(quote));
+        if (found) {
+          verdict = 'fail';
+          note = clean(`${NEW_FAILURE_NOTE} the review of ${head} passed this value and it has not changed since, but a source passage contradicts it. ${[v.problem, `Source passage: "${quote}"`, v.evidence].filter(Boolean).join(' Evidence: ')}`);
+        } else {
+          verdict = 'pass';
+          const objection = v && v.verdict !== 'pass' ? clean(v.problem) : '';
+          note = `${CARRIED_NOTE} the review of ${head} passed this value, and the value and the record's sources are the same now.${objection ? ` This review objects, but quotes no passage of a cited source that contradicts the value, so it is not a failure: ${objection}` : ''}`;
+        }
       } else if (!v) {
         verdict = 'unverifiable';
         note = 'the review did not return a verdict for this field';
@@ -450,7 +530,7 @@ export function buildTable(records, review, mechanical, extra = []) {
         verdict = ['pass', 'fail', 'unverifiable'].includes(v.verdict) ? v.verdict : 'unverifiable';
         note = clean(verdict === 'pass' ? v.evidence : [v.problem, v.evidence].filter(Boolean).join(' Evidence: '));
       }
-      rows.push({ id: r.id, kind: r.kind, field, value: field === 'depth_tier' ? String(r.attributes?.depth_tier ?? '') : [fieldValue(r, field), ...extra.filter((x) => x.id === r.id && x.field === field).map((x) => x.value)].filter(Boolean).join('; '), sources: (r.source_ids ?? []).join(', '), verdict, note });
+      rows.push({ id: r.id, kind: r.kind, field, value: rowValue(r, field, extra), sources: rowSources(r), verdict, note });
     }
   }
   return rows;
@@ -515,21 +595,26 @@ export function headline(rows, verdict, blocker = '') {
  */
 export function verdictMarker({ rows, verdict, blocker = '', headSha = null }) {
   const failed = rows.filter((r) => r.verdict !== 'pass');
-  const build = (max, keep = failed.length) => {
+  // Every passed field a later review may carry over, by record: field -> digest of what passed.
+  const passes = {};
+  for (const r of rows.filter((x) => x.verdict === 'pass' && carriesOver(x))) (passes[r.id] ??= {})[r.field] = rowDigest(r);
+  const build = (max, keep = failed.length, withPasses = true) => {
     const problems = failed.slice(0, keep).map((r) => ({ id: r.id, field: r.field, verdict: r.verdict, note: max ? cell(r.note, max) : '' }));
     // Nothing in the JSON may end the comment or start a tag.
-    const json = JSON.stringify({ version: 1, head_sha: headSha, verdict, blocker, problems, ...(keep < failed.length ? { truncated: failed.length - keep } : {}) }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/--/g, '-\\u002d');
+    const json = JSON.stringify({ version: 1, head_sha: headSha, verdict, blocker, problems, ...(keep < failed.length ? { truncated: failed.length - keep } : {}), ...(withPasses && Object.keys(passes).length ? { passed: passes } : {}) }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/--/g, '-\\u002d');
     return `<!-- ${VERDICT_MARKER}: ${json} -->`;
   };
   // At most VERDICT_MARKER_MAX characters, so the review keeps most of GitHub's 65,536: shorter
-  // notes first, then no notes, then fewer rows with the number left out (`truncated`).
+  // notes first, then no notes, then no passes (the next review then judges every field in full),
+  // then fewer rows with the number left out (`truncated`).
   for (const max of [600, 150, 0]) {
     const marker = build(max);
     if (marker.length <= VERDICT_MARKER_MAX) return marker;
   }
+  if (build(0, failed.length, false).length <= VERDICT_MARKER_MAX) return build(0, failed.length, false);
   let keep = failed.length;
-  while (keep > 0 && build(0, keep).length > VERDICT_MARKER_MAX) keep = Math.floor(keep / 2);
-  return build(0, keep);
+  while (keep > 0 && build(0, keep, false).length > VERDICT_MARKER_MAX) keep = Math.floor(keep / 2);
+  return build(0, keep, false);
 }
 
 export function renderReview({ records, rows, verdict, sourceNotes, notes = [], usage, runUrl, mode, blocker = '', headSha = null }) {
@@ -593,6 +678,16 @@ export function githubClient(token, fetchImpl = fetch) {
       }
       return out;
     },
+    /** Every review on the pull request, oldest first: who posted it, of which commit, and its body. */
+    async reviews(repo, n) {
+      const out = [];
+      for (let page = 1; page < 30; page++) {
+        const batch = await call('GET', `/repos/${repo}/pulls/${n}/reviews?per_page=100&page=${page}`);
+        out.push(...batch.map((r) => ({ id: r.id, user: r.user?.login, state: r.state, commit_id: r.commit_id, body: r.body })));
+        if (batch.length < 100) break;
+      }
+      return out;
+    },
     async checkRuns(repo, sha) {
       return (await call('GET', `/repos/${repo}/commits/${sha}/check-runs?per_page=100`)).check_runs.map((c) => ({ name: c.name, status: c.status, conclusion: c.conclusion }));
     },
@@ -633,12 +728,13 @@ export const REVIEW_SCHEMA = {
             items: {
               type: 'object',
               additionalProperties: false,
-              required: ['field', 'verdict', 'problem', 'evidence'],
+              required: ['field', 'verdict', 'problem', 'evidence', 'contradiction'],
               properties: {
                 field: { type: 'string', enum: REVIEWED_FIELDS },
                 verdict: { type: 'string', enum: ['pass', 'fail', 'unverifiable'] },
                 problem: { type: 'string', description: 'What is wrong and what the source says instead; empty on pass' },
                 evidence: { type: 'string', description: 'Source URL and location that decides the verdict' },
+                contradiction: { type: 'string', description: 'Only for a fail on a field the notes say an earlier review passed: the source passage that contradicts the value, copied letter for letter. Empty otherwise' },
               },
             },
           },
@@ -782,7 +878,21 @@ export function revisionPromptLines(revision) {
   ];
 }
 
-async function modelReview(client, usage, { system, records, changed = [], storeUrls = new Map(), extraUrls, texts = [], runDate, log, revision = null }) {
+/**
+ * The lines of the review prompt that scope a review after a revision: the fields an earlier
+ * review passed and that have not changed since, which keep their pass unless a source passage
+ * contradicts the value.
+ */
+export function scopePromptLines(carried, headSha = '') {
+  if (!carried.length) return [];
+  return [
+    `An earlier review by the reviewer agent${headSha ? ` (of commit ${String(headSha).slice(0, 7)})` : ''} passed the fields listed here, and their values and the records' sources are the same now. Do not judge them from the start again. Give each one pass, unless a passage of a source the record cites contradicts the value: says something the value cannot be true with. Then give fail, say what the passage contradicts, and copy the passage letter for letter (at least ${MIN_CONTRADICTION_CHARS} characters, from the page text above) as the contradiction. The script looks for that passage in the page; without it the earlier pass stands. A value the source supports less fully than you would like, or does not state in so many words, is not a contradiction: say so in your notes if you wish, and pass the field. Judge every other field in full (JSON):`,
+    JSON.stringify(carried),
+    '',
+  ];
+}
+
+async function modelReview(client, usage, { system, records, changed = [], storeUrls = new Map(), extraUrls, texts = [], runDate, log, revision = null, carried = [], carriedFrom = '' }) {
   const withText = new Set(texts.filter((t) => t.text).map((t) => t.url));
   const input = reviewInput(records, changed, storeUrls);
   const paths = unique(changed.flatMap((r) => (r.change?.fields ?? []).map((f) => f.path)));
@@ -803,6 +913,7 @@ async function modelReview(client, usage, { system, records, changed = [], store
       JSON.stringify(input, null, 2),
       '',
       ...revisionPromptLines(revision),
+      ...scopePromptLines(carried, carriedFrom),
       'For a changed record (changed_record: true), judge every entry of changed_fields by its path: is the new value what a source states for this exact entity, and does the change keep what the source does not contradict? Give the path as the field name.',
       'For every record and every field listed for it (and source_ids), write the verdict (pass, fail or unverifiable), the problem if any, and the URL and location that decide it. Check source attribution for each cited source. For links, judge each relation: does a source state it, at the locator given or elsewhere? For duplicates, judge each ruling: is the store record named a different resource (distinct) as ruled? A record with any link or ruling you cannot confirm fails that field. List any page that failed to load.',
     ].join('\n'),
@@ -842,7 +953,7 @@ async function modelReview(client, usage, { system, records, changed = [], store
     model: MODELS.structure,
     max_tokens: LIMITS.maxTokens,
     output_config: { effort: 'low', format: { type: 'json_schema', schema: reviewSchema(paths) } },
-    messages: [{ role: 'user', content: `Turn these review notes into the schema, one entry per record ID and field the notes judge; for a changed record the field is the changed path (such as /attributes/access). Copy each verdict exactly; do not soften a fail. Record IDs: ${input.map((r) => r.id).join(', ')}.\n\n<notes>\n${notes}\n</notes>` }],
+    messages: [{ role: 'user', content: `Turn these review notes into the schema, one entry per record ID and field the notes judge; for a changed record the field is the changed path (such as /attributes/access). Copy each verdict exactly; do not soften a fail. Leave contradiction empty, except where the notes fail a field an earlier review passed and quote a source passage against it: then copy that passage exactly. Record IDs: ${input.map((r) => r.id).join(', ')}.\n\n<notes>\n${notes}\n</notes>` }],
   });
   usage.add(MODELS.structure, structured.usage);
   if (structured.stop_reason !== 'end_turn') return { error: 'could not structure the review notes', notes };
@@ -953,7 +1064,21 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
     // revision.json beside the batch: the intake agent revised it once after an earlier review.
     const revisionFile = args.dryRun ? '' : batches.map((f) => join(args.root, dirname(f), REVISION_FILE)).find((f) => existsSync(f));
     const revision = revisionFile ? readJson(revisionFile) : null;
-    if (revision) notes.push(`The intake agent revised this batch once after an earlier review (${REVISION_FILE} in the batch folder). This review judges the revised records in full, and the intake agent does not revise again.`);
+    // A revised batch is reviewed in scope: a field the latest earlier review passed, with the
+    // same value and sources now, keeps its pass unless a source passage contradicts it.
+    const extra = closeRows(revision, records);
+    let scope = null;
+    if (revision && gh?.reviews) {
+      try {
+        scope = earlierPasses(await gh.reviews(repo, pull.number));
+      } catch (e) {
+        notes.push(`The earlier reviews could not be read (${clean(String(e?.message ?? e)).slice(0, 200)}), so no verdict is carried over.`);
+      }
+    }
+    const carried = carriedFields(records, extra, scope);
+    if (!carried.length) scope = null;
+    if (revision && scope) notes.push(`The intake agent revised this batch once after an earlier review (${REVISION_FILE} in the batch folder), and does not revise again. ${carried.length} fields that the review of ${scope.head_sha.slice(0, 7)} passed have the same value and sources now and keep that verdict, unless this review quotes a source passage that contradicts one. Every other field is judged in full.`);
+    else if (revision) notes.push(`The intake agent revised this batch once after an earlier review (${REVISION_FILE} in the batch folder). This review judges the revised records in full, and the intake agent does not revise again.`);
 
     // 2. Mechanical checks against the store, without the records under review, and possible
     // duplicates from the intake's overlay diff and the reviewer's own search of the graph.
@@ -1013,7 +1138,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 3, timeout: 10 * 60 * 1000 });
       }
       const system = readFileSync(join(ROOT, PROMPT_PATH), 'utf8');
-      const result = await modelReview(client, usage, { system, records, changed, storeUrls: store.sourceUrls, extraUrls: [], texts, runDate, log, revision });
+      const result = await modelReview(client, usage, { system, records, changed, storeUrls: store.sourceUrls, extraUrls: [], texts, runDate, log, revision, carried, carriedFrom: scope?.head_sha ?? '' });
       if (result.notes) state.notes = result.notes;
       if (result.error) {
         notes.push(`The model review failed: ${result.error}. Every field it would have judged is unverifiable.`);
@@ -1023,11 +1148,15 @@ export async function main(argv = process.argv.slice(2), env = process.env, deps
         if (review.unopened?.length) notes.push(`The reviewer could not open: ${review.unopened.map((u) => clean(u)).join('; ')}`);
       }
     }
+    // The page text of each new source, by record id: where a quoted contradiction is looked for.
+    if (scope) scope.pages = new Map(records.filter((r) => r.kind === 'source').map((s) => [s.id, texts.find((t) => t.url === s.attributes?.url)?.text ?? '']));
     state.rows = [
-      ...buildTable(records, review, mechanical, closeRows(revision, records)),
+      ...buildTable(records, review, mechanical, extra, scope),
       ...changeRows(changed, review, changeMechanical),
       ...storeDiffRows(tie, { lines: [...diff.records.values()].reduce((n, e) => n + e.added.length + e.removed.length, 0) }),
     ];
+    const overruled = state.rows.filter((r) => r.note.startsWith(CARRIED_NOTE) && r.note.includes('This review objects'));
+    if (overruled.length) notes.push(`This review objected to ${overruled.length} carried-over fields without quoting a source passage that contradicts them, so they pass (${overruled.map((r) => `\`${r.id}\` ${r.field}`).join(', ')}). The objections are in the table.`);
     state.verdict = overallVerdict(state.rows);
     const rendered = { records: [...records, ...changed], rows: state.rows, verdict: state.verdict, sourceNotes, notes, usage, runUrl, mode: args.mode, headSha: pull.head_sha ?? null };
     // Every field passes, but a failed duplicate check leaves the store unchecked: the review says
