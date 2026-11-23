@@ -61,12 +61,12 @@ export type Check = {
   id: string;
   title: string;
   /** Every rule this check can raise, in report order. A rule with no findings still gets a
-   * baseline line of 0, so a rule that starts firing is caught by the ratchet. */
+   * baseline line of 0, so a rule that starts firing shows in the baseline comparison. */
   rules: readonly string[];
   run(input: CheckInput): Finding[];
   /** Counts that describe the run rather than the findings: how many groups were formed, how
    * many records a rule could not be applied to. They are written to the baseline and shown in
-   * the report. The ratchet does not test them, because a bigger store raises them honestly. */
+   * the report. The baseline comparison leaves them out, because a bigger store raises them honestly. */
   context?(input: CheckInput, findings: Finding[]): Record<string, number>;
 };
 
