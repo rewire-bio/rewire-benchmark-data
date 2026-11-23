@@ -15,7 +15,8 @@
  * A zero here is the point: in blocking mode the ratchet turns this check into the refusal the
  * review asked for, one PR behind rather than one CI run behind, without touching records -- add.
  * The ratchet is report only since 23 November 2026 (issue #272), so a rise here is printed in
- * the baseline table and does not fail CI.
+ * the baseline table and does not fail that test. tests/attributes.test.ts still fails CI on a
+ * record normalizeAttributes would rewrite.
  *
  * The whole store is loaded, not just the results, because normalizeAttributes resolves a
  * result's parent evaluation through the links of every record.

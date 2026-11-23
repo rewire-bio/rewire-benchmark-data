@@ -59,10 +59,11 @@ describe("deterministic checks", () => {
     expect(Object.keys(ratchetCounts(run)).sort()).toEqual(Object.keys(ratchetCounts(baseline)).sort());
   });
 
-  it("is report only unless CHECKS_RATCHET says blocking", () => {
-    expect(defaultRatchetMode).toBe("report");
-    expect(ratchetMode({})).toBe("report");
-    expect(ratchetMode({ CHECKS_RATCHET: "" })).toBe("report");
+  // defaultRatchetMode is not pinned here: changing it is how blocking is turned back on.
+  it("takes the mode from CHECKS_RATCHET, and from defaultRatchetMode without it", () => {
+    expect(["report", "blocking"]).toContain(defaultRatchetMode);
+    expect(ratchetMode({})).toBe(defaultRatchetMode);
+    expect(ratchetMode({ CHECKS_RATCHET: "" })).toBe(defaultRatchetMode);
     expect(ratchetMode({ CHECKS_RATCHET: "report" })).toBe("report");
     expect(ratchetMode({ CHECKS_RATCHET: "blocking" })).toBe("blocking");
     expect(() => ratchetMode({ CHECKS_RATCHET: "on" })).toThrow('CHECKS_RATCHET must be "report" or "blocking"');
