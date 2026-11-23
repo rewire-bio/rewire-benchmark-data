@@ -128,6 +128,10 @@ describe("the passes a review lists", () => {
     expect(earlierPasses([{ user: REVIEWER_LOGIN, body: firstBody }, { user: "someone", body: "looks fine" }])).not.toBeNull();
     // A marker quoted earlier in a body is not the verdict.
     expect(earlierPasses([{ user: REVIEWER_LOGIN, body: `${firstBody}\n\nmore text` }])).toBeNull();
+    // The latest review by the agent decides even when its marker cannot be read, as in a review
+    // GitHub made it post as a comment with a line after the marker: an older pass is not revived.
+    expect(earlierPasses([{ user: REVIEWER_LOGIN, body: firstBody }, { user: BOT_LOGIN, body: `${secondReview.body}\n\n(Posted as a comment: GitHub refused REQUEST_CHANGES from this identity.)` }])).toBeNull();
+    expect(earlierPasses([{ user: REVIEWER_LOGIN, body: firstBody }, { user: REVIEWER_LOGIN, body: "" }])).toBeNull();
     // The real reviews were posted before the marker listed passes: nothing carries over from them,
     // and nothing from an older review when the latest lists none.
     expect(earlierPasses(fixture.reviews)).toBeNull();

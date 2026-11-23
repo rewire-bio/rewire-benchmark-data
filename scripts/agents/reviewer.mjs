@@ -443,13 +443,16 @@ const carriesOver = (row) => ENTITY_KINDS.includes(row.kind) && REVIEWED_FIELDS.
  * marker: { head_sha, passed: Map("<id> <field>" -> digest) }. null when that review lists none
  * (a review posted before the marker held them, or one whose marker was cut for length), so
  * nothing is carried over from a review older than the latest. Only reviews by the two apps the
- * reviewer posts as are read, and only a marker on the last line.
+ * reviewer posts as are read, and only a marker on the last line: a review of theirs without one
+ * gives null too.
  */
 export function earlierPasses(reviews, logins = [BOT_LOGIN, REVIEWER_LOGIN]) {
   for (const r of [...(reviews ?? [])].reverse()) {
     if (!logins.includes(r.user)) continue;
     const m = new RegExp(`(?:^|\\n)<!-- ${VERDICT_MARKER}: (\\{[^\\n]*\\}) -->\\s*$`).exec(String(r.body ?? ''));
-    if (!m) continue;
+    // The latest review by the reviewer agent decides, also when its marker cannot be read (text
+    // after it, as in a review GitHub made the agent post as a comment): never an older one.
+    if (!m) return null;
     let v;
     try {
       v = JSON.parse(m[1]);
