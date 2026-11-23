@@ -240,6 +240,8 @@ export async function labelEvaluate(root: string, options: { spans: string; out:
   // ----------------------------------------------------------------------------- the oracle pass
   // The known-right id through the real checks, with the best quote the caption can supply. This
   // measures the checks and the layer. It chooses no id.
+  // Since 2026-11-23 no check reads the confidence, so the `high` column equals the `medium`
+  // one. Both are kept so the file has the columns the 2026-11-19 report was written against.
   const oracle = [["source", "table_id", "truth", "quote_kind", "medium", "high", "refusal"].join("\t")];
   const counts = { single: 0, medium_ok: 0, high_ok: 0, name_in_caption: 0 };
   const oracleRefusals: Record<string, number> = {};

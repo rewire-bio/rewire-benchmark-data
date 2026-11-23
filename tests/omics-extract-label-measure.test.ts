@@ -16,10 +16,14 @@ import {
   planQuestions,
   readHeldout,
   rate,
+  recallTable,
+  rescoreAnswers,
   scoreOutcome,
+  shortlistRecall,
   type HeldoutRow,
 } from "../scripts/omics/extract/label-measure";
-import type { LabelOutcome, LabelTable, LabelTransport, Shortlist } from "../shared/omics/extract/label/index";
+import { buildShortlistIndex } from "../shared/omics/extract/label/index";
+import type { AssessmentRecord, LabelOutcome, LabelTable, LabelTransport, Shortlist } from "../shared/omics/extract/label/index";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const folders: string[] = [];
@@ -85,6 +89,7 @@ const outcome = (id: string, over: Partial<LabelOutcome>): LabelOutcome => ({
   reason: null,
   detail: "",
   checks: [],
+  measured: null,
   ...over,
 });
 
@@ -239,4 +244,95 @@ it("writes only under the report directory it was given", () => {
 it("runs the one stage that asks, and nothing that promotes a candidate into the store", () => {
   for (const promoter of ["labelsByCandidate", "batch.jsonl", "data/entities", "data/evidence", "data/provenance"])
     expect({ promoter, present: source.includes(promoter) }).toEqual({ promoter, present: false });
+});
+
+it("re-counts a paid-for run with the confidence rule removed, changing only the rows that rule refused", () => {
+  const header = ["pass", "source", "table_id", "truth_count", "scored_answer", "answered", "outcome", "score", "confidence", "refusal", "shortlist_size", "shortlist_holds_truth", "quote"];
+  const line = (pass: string, count: number, scored: string, answered: string, score: string, refusal: string, holds = "1") =>
+    [pass, "source-one", "t", String(count), scored, answered, score === "refused" ? "refused" : "labelled", score, "high", refusal, "3", holds, '""'].join("\t");
+  const file = temporaryFile([
+    header.join("\t"),
+    line("both_rules", 1, "right", "right", "correct", ""),
+    // Refused by the rule and right: a correct label once the rule is gone.
+    line("both_rules", 1, "right", "right", "refused", "confidence_unjustified"),
+    // Refused by another check: stays refused.
+    line("both_rules", 1, "right", "right", "refused", "quote_unresolved"),
+    // Refused by the rule and naming another record: a wrong label once the rule is gone.
+    line("lexical_only", 1, "right", "other", "refused", "confidence_unjustified", "0"),
+    // Refused by the rule on a table with several assessments: no label can be right there.
+    line("lexical_only", 3, "none", "one-of-them", "refused", "confidence_unjustified"),
+    line("lexical_only", 3, "none", "", "abstained", ""),
+  ].join("\n"));
+
+  const [warm, cold] = rescoreAnswers(file);
+  expect(warm).toMatchObject({
+    pass: "both_rules", asked: 3, single_assessment_tables: 3, single_assessment_tables_with_truth_on_shortlist: 3,
+    before: { correct: 1, wrong: 0, abstained: 0, refused: 2 },
+    after: { correct: 2, wrong: 0, abstained: 0, refused: 1 },
+    refused_by_the_rule: 1, refused_by_the_rule_and_right: 1,
+  });
+  expect(cold).toMatchObject({
+    pass: "lexical_only", asked: 3, single_assessment_tables: 1, single_assessment_tables_with_truth_on_shortlist: 0,
+    before: { correct: 0, wrong: 0, abstained: 1, refused: 2 },
+    after: { correct: 0, wrong: 2, abstained: 1, refused: 0 },
+    refused_by_the_rule: 2, refused_by_the_rule_and_right: 0,
+  });
+});
+
+it("re-counts the first live run to the figures the pull request states", () => {
+  const [warm, cold] = rescoreAnswers(path.join(root, "maintenance/reports/label-measurement-2026-11-20-answers.tsv"));
+  expect(warm).toMatchObject({
+    asked: 109, single_assessment_tables: 66,
+    before: { correct: 15, wrong: 2, abstained: 75, refused: 17 },
+    after: { correct: 31, wrong: 2, abstained: 75, refused: 1 },
+    refused_by_the_rule: 16, refused_by_the_rule_and_right: 16,
+  });
+  expect(cold).toMatchObject({
+    asked: 43, single_assessment_tables: 19, single_assessment_tables_with_truth_on_shortlist: 7,
+    before: { correct: 0, wrong: 5, abstained: 32, refused: 6 },
+    after: { correct: 5, wrong: 6, abstained: 32, refused: 0 },
+    refused_by_the_rule: 6, refused_by_the_rule_and_right: 5,
+  });
+});
+
+it("counts shortlist recall for both methods at each size, with citations kept and stripped", () => {
+  const records: AssessmentRecord[] = [
+    // Named in words the caption prints: both methods reach it.
+    { id: "printed", kind: "protocol", name: "Results benchmark", source_ids: ["source-one"] },
+    // Named in other words and described in the caption's: only the search reaches it.
+    { id: "described", kind: "protocol", name: "Held out split", description: "Results on the benchmark, by AUROC.", source_ids: ["source-one"] },
+    // Nothing the caption prints: only its citation reaches it.
+    { id: "cited", kind: "protocol", name: "Quite unrelated", source_ids: ["source-one"] },
+  ];
+  const indexes = {
+    both_rules: buildShortlistIndex(records, []),
+    lexical_only: buildShortlistIndex(records.map((record) => ({ ...record, source_ids: [] })), []),
+  };
+  const rows = [
+    heldoutRow("t1", { truth_ids: ["printed"], scored_answer: "printed" }),
+    heldoutRow("t2", { truth_ids: ["described"], scored_answer: "described" }),
+    heldoutRow("t3", { truth_ids: ["cited"], scored_answer: "cited" }),
+    heldoutRow("t4", { truth_count: 2, truth_ids: ["printed", "cited"], scored_answer: "none" }),
+    heldoutRow("gone"),
+  ];
+  const recall = shortlistRecall({ rows, tableOf: (row) => (row.table_id === "gone" ? null : table(row.table_id)), indexes, sizes: [10] });
+  const of = (pass: string, method: string) => recall.find((row) => row.pass === pass && row.method === method);
+
+  expect(recall).toHaveLength(PASSES.length * 2);
+  // A row whose table was not rebuilt is left out of the denominator, not counted as a miss.
+  expect(of("both_rules", "lexical")).toMatchObject({ tables: 4, holds_truth: 4, single_tables: 3, single_holds_truth: 3, empty: 0 });
+  expect(of("both_rules", "search")).toMatchObject({ tables: 4, holds_truth: 4, single_tables: 3, single_holds_truth: 3 });
+  expect(of("lexical_only", "lexical")).toMatchObject({ tables: 4, holds_truth: 2, single_tables: 3, single_holds_truth: 1 });
+  expect(of("lexical_only", "search")).toMatchObject({ tables: 4, holds_truth: 3, single_tables: 3, single_holds_truth: 2 });
+  expect(recallTable(recall)).toHaveLength(2 + recall.length);
+});
+
+it("measures recall and re-counts without a transport, a key or a write", () => {
+  for (const name of ["shortlistRecall", "labelRecall", "rescoreAnswers"]) {
+    const body = source.slice(source.indexOf(`export function ${name}(`));
+    const end = body.indexOf("\n}\n");
+    const text = body.slice(0, end);
+    for (const banned of ["liveTransport", "transport", "writeFileSync", "writeCache", "process.env"])
+      expect({ name, banned, present: text.includes(banned) }).toEqual({ name, banned, present: false });
+  }
 });

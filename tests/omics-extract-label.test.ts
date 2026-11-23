@@ -29,6 +29,7 @@ import {
   SHORTLIST_MAX,
   answerJsonSchema,
   answerSchema,
+  buildSearchIndex,
   buildShortlistIndex,
   cacheKey,
   checkAnswer,
@@ -42,6 +43,7 @@ import {
   recordedTransport,
   renderQuestion,
   requestDigest,
+  searchRanked,
   shortlistFor,
   tablesOf,
   type AssessmentRecord,
@@ -222,9 +224,94 @@ describe("the pre-filter", () => {
     );
   });
 
+  it("is unchanged where no method or cap is named", () => {
+    const { candidates } = extract();
+    const table = tableAbout(candidates, "Variant effect");
+    const index = buildShortlistIndex(records, []);
+    const plain = shortlistFor(index, table);
+    // The recorded answers are keyed on these ids, so the default must not move.
+    expect(JSON.stringify(shortlistFor(index, table, { method: "lexical", max: SHORTLIST_MAX }))).toBe(JSON.stringify(plain));
+    expect(plain.ids).toEqual(["clinvar-runtime", "clinvar-variant-effect"]);
+    expect(plain.entries.map((entry) => Object.keys(entry))).toEqual([
+      ["id", "kind", "name", "why", "name_word_share"],
+      ["id", "kind", "name", "why", "name_word_share"],
+    ]);
+  });
+
+  it("takes a cap other than the default", () => {
+    const { candidates } = extract();
+    const table = tableAbout(candidates, "Variant effect");
+    const index = buildShortlistIndex(records, []);
+    expect(shortlistFor(index, table, { max: 1 })).toMatchObject({ ids: ["clinvar-variant-effect"], held_back: 1 });
+    expect(() => shortlistFor(index, table, { max: 0 })).toThrow(/positive whole number/);
+  });
+
   it("drops the words that would match everything and keeps the ones that carry meaning", () => {
     expect(contentWords("Table 3. The accuracy of a benchmark")).toEqual(["accuracy", "benchmark"]);
     expect(contentWords("SupTable8_Tool_performance")).toEqual(["suptable8", "tool", "performance"]);
+  });
+});
+
+/** The second word rule, behind a flag: a ranked keyword search over names, aliases and
+ * descriptions. */
+describe("the keyword search shortlist", () => {
+  const described: AssessmentRecord[] = [
+    { id: "pathogenicity", kind: "protocol", name: "Missense pathogenicity classification", description: "Separating pathogenic from benign ClinVar variants by AUROC." },
+    { id: "esm", kind: "benchmark", name: "ESM-2 zero-shot", attributes: { reported_name: "Evolutionary scale" } },
+    { id: "speed", kind: "task", name: "Throughput", description: "Wall clock seconds per thousand variants." },
+    { id: "unrelated", kind: "benchmark", name: "Protein folding", description: "Structure accuracy for CASP targets." },
+    { id: "a-model", kind: "model", name: "ClinVar variant model" },
+  ];
+
+  it("ranks a name match above a description match, and matches stems, prefixes and squashed names", () => {
+    const index = buildSearchIndex([
+      { id: "by-name", name: "Variant effects" },
+      { id: "by-description", name: "Something else", description: "A long sentence that happens to mention a variant among many other words." },
+      { id: "squashed", name: "ESM-2" },
+      { id: "prefixed", name: "Classification" },
+      { id: "silent", name: "Nothing in common" },
+    ]);
+    expect(searchRanked(index, "variant effect").map((hit) => hit.id)).toEqual(["by-name", "by-description"]);
+    expect(searchRanked(index, "results for ESM2").map((hit) => hit.id)).toEqual(["squashed"]);
+    expect(searchRanked(index, "class").map((hit) => hit.id)).toEqual(["prefixed"]);
+    expect(searchRanked(index, "zebra")).toEqual([]);
+  });
+
+  it("reaches a record whose name the caption does not print, through its description", () => {
+    const { candidates } = extract();
+    const table = tableAbout(candidates, "Variant effect");
+    const index = buildShortlistIndex(described, []);
+    // The exact word rule needs half the name's words and the caption prints none of them.
+    expect(shortlistFor(index, table).ids).not.toContain("pathogenicity");
+    const shortlist = shortlistFor(index, table, { method: "search" });
+    expect(shortlist.ids).toContain("pathogenicity");
+    // A record sharing no word with the caption or the headings is not offered. There is no
+    // stop word list here, so one sharing only "on" would be, at the bottom of the ranking.
+    expect(shortlist.ids).not.toContain("unrelated");
+    // A model is not of a result-carrying kind and is never searched.
+    expect(shortlist.ids).not.toContain("a-model");
+    const entry = shortlist.entries.find((held) => held.id === "pathogenicity");
+    expect(entry?.why).toEqual(["keyword_search"]);
+    expect(entry?.search_score).toBeGreaterThan(0);
+    expect([...shortlist.ids].sort()).toEqual(shortlist.ids);
+  });
+
+  it("keeps the records that cite the source ahead of the search, and holds to the cap", () => {
+    const { candidates } = extract();
+    const table = tableAbout(candidates, "Variant effect");
+    const cited: AssessmentRecord = { id: "cited-only", kind: "protocol", name: "Nothing the caption prints", source_ids: ["fixture-source"] };
+    const shortlist = shortlistFor(buildShortlistIndex([...described, cited], []), table, { method: "search", max: 2 });
+    expect(shortlist.ids).toHaveLength(2);
+    expect(shortlist.ids).toContain("cited-only");
+    expect(shortlist.entries.find((held) => held.id === "cited-only")?.why).toEqual(["cites_this_source"]);
+    expect(shortlist.held_back).toBeGreaterThan(0);
+  });
+
+  it("gives the same bytes on a second run", () => {
+    const { candidates } = extract();
+    const table = tableAbout(candidates, "Variant effect");
+    const once = () => JSON.stringify(shortlistFor(buildShortlistIndex(described, []), table, { method: "search", max: 10 }));
+    expect(once()).toBe(once());
   });
 });
 
@@ -299,15 +386,31 @@ describe("the acceptance checks", () => {
     expect(checked).toMatchObject({ outcome: "refused", reason: "quote_unresolved" });
   });
 
-  it("refuses a high confidence the quote does not justify", () => {
+  // The rule that refused this was removed on 2026-11-23 (issue 362): on the first live run it
+  // refused 22 answers and 21 of them named the right record. It is measured and decides nothing.
+  it("labels a high confidence whose quote does not name the record, and says the removed rule would have refused it", () => {
     const checked = run({
       answer: { record_id: "clinvar-variant-effect", quote: "Table 2.", confidence: "high", reason: "." },
     });
-    expect(checked).toMatchObject({ outcome: "refused", reason: "confidence_unjustified" });
+    expect(checked).toMatchObject({
+      outcome: "labelled",
+      record_id: "clinvar-variant-effect",
+      measured: { quote_names_record: false, confidence_rule_would_refuse: true },
+    });
+    // No entry in the pass or fail list speaks for the removed rule, so nothing reads as a failed check.
+    expect(checked.checks.map((check) => check.check)).not.toContain("confidence_justified");
+    expect(checked.checks.every((check) => check.passed)).toBe(true);
   });
 
-  it("accepts the same quote at a confidence it does justify", () => {
-    expect(run({ answer: { record_id: "clinvar-variant-effect", quote: "Table 2.", confidence: "medium", reason: "." } }).outcome).toBe("labelled");
+  it("measures the removed rule as not firing where the confidence is not high or the quote names the record", () => {
+    expect(run({ answer: { record_id: "clinvar-variant-effect", quote: "Table 2.", confidence: "medium", reason: "." } })).toMatchObject({
+      outcome: "labelled",
+      measured: { quote_names_record: false, confidence_rule_would_refuse: false },
+    });
+    expect(run({})).toMatchObject({
+      outcome: "labelled",
+      measured: { quote_names_record: true, confidence_rule_would_refuse: false },
+    });
   });
 
   it("takes an explicit none as an answer, not a failure", () => {

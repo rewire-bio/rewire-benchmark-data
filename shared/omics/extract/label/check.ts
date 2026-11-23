@@ -15,7 +15,13 @@
  *   kind_carries_results     that record is a benchmark, a task or a protocol
  *   quote_in_caption         the quoted words are in the caption the question printed
  *   quote_resolves_to_span   those words are at one place in the source's own text layer
- *   confidence_justified     a high confidence quotes words that name the record
+ *
+ * One rule used to follow these and no longer decides anything. `confidence_justified` refused
+ * a high confidence whose quote did not contain the record's printed name. On the first live
+ * run (2026-11-20, 152 questions) it refused 22 answers and 21 of them named the right record,
+ * so it was removed from the acceptance path on 2026-11-23 (issue 362). `quoteNamesRecord` is
+ * still computed for every label and reported under `measured`, so a report can say how often
+ * the removed rule would have fired. It refuses nothing.
  *
  * Refusal is cheap and is meant to be common. An unlabelled table costs coverage, which is
  * work left to do and is visible as work. A wrongly labelled one corrupts the graph and reads
@@ -53,8 +59,6 @@ export const labelRefusals = [
   "quote_not_in_caption",
   /** The quoted words do not resolve to one span in the source's own layer. */
   "quote_unresolved",
-  /** A high confidence whose quote does not name the record. */
-  "confidence_unjustified",
 ] as const;
 export type LabelRefusal = (typeof labelRefusals)[number];
 
@@ -66,8 +70,18 @@ export interface CheckResult {
   detail: string;
 }
 
+/** What was measured about a label and decides nothing. Kept apart from `checks`, where a
+ * failed entry means an answer was dropped. */
+export interface LabelMeasured {
+  /** Whether the quoted words contain one of the record's printed names. */
+  quote_names_record: boolean;
+  /** Whether the removed `confidence_justified` rule would have refused this label: a high
+   * confidence whose quote does not name the record. */
+  confidence_rule_would_refuse: boolean;
+}
+
 export type Checked =
-  | { outcome: "labelled"; record_id: string; span: Span; checks: CheckResult[] }
+  | { outcome: "labelled"; record_id: string; span: Span; checks: CheckResult[]; measured: LabelMeasured }
   /** The stage said it could not tell. Not a refusal: a stated answer with no label. */
   | { outcome: "abstained"; checks: CheckResult[] }
   | { outcome: "refused"; reason: LabelRefusal; detail: string; checks: CheckResult[] };
@@ -88,7 +102,9 @@ export const quoteInCaption = (quote: string, caption: string): boolean => {
   return wanted !== "" && collapse(caption).includes(wanted);
 };
 
-/** Whether the quoted words name the record, which is what a high confidence claims. */
+/** Whether the quoted words name the record, which is what a high confidence claims.
+ *
+ * A measurement, not a check. Nothing is refused on it. */
 export function quoteNamesRecord(quote: string, names: string[]): boolean {
   const said = normaliseLabel(quote);
   return names.some((name) => name !== "" && said.includes(name));
@@ -107,7 +123,7 @@ export interface CheckInput {
   index: LayerIndex;
   /** The record the id names, or null where the store holds none. */
   record: { id: string; kind: string } | null;
-  /** That record's printed names, normalised, for the confidence check. */
+  /** That record's printed names, normalised, for the `quoteNamesRecord` measurement. */
   names: string[];
 }
 
@@ -150,9 +166,11 @@ export function checkAnswer(input: CheckInput): Checked {
   if (!record("quote_resolves_to_span", resolved.ok, resolved.ok ? resolved.span.exact : resolved.reason))
     return refuse("quote_unresolved", `the quoted text does not resolve in layer ${input.index.layer_sha256.slice(0, 12)}: ${(resolved as { reason: string; detail: string }).reason}, ${(resolved as { detail: string }).detail}`);
 
-  const justified = input.answer.confidence !== "high" || quoteNamesRecord(input.answer.quote, input.names);
-  if (!record("confidence_justified", justified, input.answer.confidence))
-    return refuse("confidence_unjustified", `a high confidence whose quote does not name ${input.answer.record_id}`);
+  const named = quoteNamesRecord(input.answer.quote, input.names);
+  const measured: LabelMeasured = {
+    quote_names_record: named,
+    confidence_rule_would_refuse: input.answer.confidence === "high" && !named,
+  };
 
-  return { outcome: "labelled", record_id: input.answer.record_id, span: (resolved as { span: Span }).span, checks };
+  return { outcome: "labelled", record_id: input.answer.record_id, span: (resolved as { span: Span }).span, checks, measured };
 }
