@@ -20,15 +20,14 @@ describe("variant interpretation use-case links (2026-11-23)", () => {
     }
   });
 
-  it("excludes concerned and non-configuration evaluations from active mappings", () => {
+  it("excludes concerned and non-configuration evaluations and activates GREGoR recall", () => {
     const snv200 = inputs.mappings.find((m) => m.id === "use-case-mapping-20261123-rewire-local-20261121-rdv2-protocol-snv-200-main")!;
     expect(snv200.evaluation_ids).toHaveLength(16);
     expect(snv200.evaluation_ids).not.toContain("rewire-local-20261121-rdv2-evaluation-rule-avi-snv-200");
 
-    const evee = inputs.mappings.find((m) => m.id === "use-case-mapping-20261123-gfm-guide-20261014-protocol-evee-deconfounded-snv-auroc")!;
-    expect(evee.evaluation_ids).toHaveLength(6);
-    expect(evee.evaluation_ids).not.toContain("gfm-guide-20261014-eval-evee-deconfounded-ntv3-cosine");
-    expect(evee.evaluation_ids).not.toContain("gfm-guide-20261014-eval-evee-deconfounded-alphamissense");
+    const gregor = inputs.mappings.find((m) => m.id === "use-case-mapping-20261123-ag-atlas-20261019-protocol-gregor-recall-top50")!;
+    expect(gregor.lifecycle).toBe("active");
+    expect(gregor.evaluation_ids).toHaveLength(4);
 
     const gpnmsa = inputs.mappings.find((m) => m.id === "use-case-mapping-20261123-gfm-guides-20261014-gpnmsa-protocol-ablation-clinvar-auroc")!;
     expect(gpnmsa.evaluation_ids).toHaveLength(15);
@@ -36,7 +35,7 @@ describe("variant interpretation use-case links (2026-11-23)", () => {
     expect(gpnmsa.evaluation_ids).not.toContain("gfm-guides-20261014-gpnmsa-eval-ablation-phylop-phastcons-combined-clinvar");
   });
 
-  it("leaves disputed #163 Brixi strata, unreviewed alphagenome-2026 splicing, and method/model-only traitgym-20261116 protocols unlinked", () => {
+  it("leaves disputed #163 Brixi strata, unreviewed alphagenome-2026 splicing, EVEE deconfounded, and method/model-only traitgym-20261116 protocols unlinked", () => {
     const linked = new Set(inputs.mappings.map((m) => m.protocol_id));
     for (const excluded of [
       "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-non-snv",
@@ -45,6 +44,7 @@ describe("variant interpretation use-case links (2026-11-23)", () => {
       "gfm-guides-20261014-evo2-brixi2026-protocol-splicevardb-intronic-snv",
       "alphagenome-2026-t3-protocol-1",
       "alphagenome-2026-t4-protocol-7",
+      "gfm-guide-20261014-protocol-evee-deconfounded-snv-auroc",
       "traitgym-20261116-protocol-mendelian-matched-feature-global-auprc",
       "traitgym-20261116-protocol-mendelian-per-trait-best-of-zero-shot-and-linear-probing",
     ]) {

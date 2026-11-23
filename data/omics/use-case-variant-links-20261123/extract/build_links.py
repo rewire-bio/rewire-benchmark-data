@@ -123,6 +123,19 @@ LINKS = [
         [],
         {},
     ),
+    (
+        "use-case-rare-disease-candidate-ranking",
+        "ag-atlas-20261019-protocol-gregor-recall-top50",
+        "recall",
+        "proxy",
+        "Recall of causal variants in the top 50 ranked variants per solved rare-disease GREGoR patient genome (AlphaGenome Atlas Fig. 3A and Fig. S9A)",
+        "Proxy patient-genome rare-disease variant ranking benchmark comparing AlphaGenome AVI and CADD v1.7 across solved GREGoR cases with and without allele-frequency filtering.",
+        [
+            "Sequence-based variant scoring only without HPO phenotype integration (such as Exomiser or patient phenotyping workflows).",
+        ],
+        [],
+        {},
+    ),
     # 2. BRCA1 / BRCA2 germline interpretation (evo2ops PR #345 + Evo 2 Brixi 2026 BRCA1/BRCA2 SNV strata)
     (
         "use-case-brca1-brca2-germline-interpretation",
@@ -297,22 +310,6 @@ LINKS = [
     ),
     (
         "use-case-missense-pp3-bp4-calibrated-evidence",
-        "gfm-guide-20261014-protocol-evee-deconfounded-snv-auroc",
-        "auroc",
-        "proxy",
-        "Deconfounded ClinVar SNV pathogenicity AUROC across EVEE linear probes and zero-shot baselines (Pearce et al. 2026 Figure 1c)",
-        "Proxy: measures gene-deconfounded ClinVar rank discrimination (AUROC) for foundation model probes and comparators without ClinGen PP3/BP4 calibrated cutoffs. Excludes the concerned NTv3 and AlphaMissense-Overall evaluations.",
-        [
-            "Proxy evidence only: no calibrated PP3/BP4 score intervals and preprint (bioRxiv v4).",
-            "Excludes gfm-guide-20261014-eval-evee-deconfounded-ntv3-cosine and gfm-guide-20261014-eval-evee-deconfounded-alphamissense (scoped concerns on evee-v4).",
-        ],
-        [
-            "EVEE supervised probes are trained on ClinVar variants under gene-holdout; does not yield standalone zero-shot evidence thresholds.",
-        ],
-        {},
-    ),
-    (
-        "use-case-missense-pp3-bp4-calibrated-evidence",
         "ag-atlas-20261019-protocol-clinvar-snv-by-consequence-auprc",
         "auprc",
         "proxy",
@@ -428,34 +425,22 @@ def scoped_concern_targets(records: dict) -> set[str]:
 
 def build(root: Path):
     records, raw_lines, prov = load_store(root)
-
-    # Compute the scoped concerns update on evee-v4 first so our eligibility filter sees it
-    evee_id = "gfm-guide-20261014-source-evee-v4"
-    evee_orig = json.loads(raw_lines[evee_id])
-    evee_orig["attributes"]["evidence_concerns"][0]["applies_to"] = [
-        "gfm-guide-20261014-eval-evee-deconfounded-ntv3-cosine"
-    ]
-    evee_orig["attributes"]["evidence_concerns"][1]["applies_to"] = [
-        "gfm-guide-20261014-eval-evee-deconfounded-alphamissense"
-    ]
-    records_after_scope = dict(records)
-    records_after_scope[evee_id] = evee_orig
-    scoped = scoped_concern_targets(records_after_scope)
+    scoped = scoped_concern_targets(records)
 
     whole_concerned = set()
-    for r in records_after_scope.values():
+    for r in records.values():
         if r["kind"] == "source":
             for item in r["attributes"].get("evidence_concerns") or []:
                 if isinstance(item, str) or (isinstance(item, dict) and not item.get("applies_to")):
                     whole_concerned.add(r["id"])
 
     def clean_source(sid: str) -> bool:
-        s = records_after_scope.get(sid)
+        s = records.get(sid)
         return bool(s and s["kind"] == "source" and s["status"] in ("source_checked", "reproduced") and sid not in whole_concerned)
 
     evals_by_proto = {}
     results_by_eval = {}
-    for r in records_after_scope.values():
+    for r in records.values():
         if r["kind"] == "evaluation":
             for l in r["links"]:
                 if l["relation"] == "assessment":
@@ -469,7 +454,7 @@ def build(root: Path):
     uc_additions = {}
 
     for uc_id, proto_id, hmetric, relevance, endpoint, rationale, constraints, extra_limits, meta in LINKS:
-        proto = records_after_scope[proto_id]
+        proto = records[proto_id]
         assert proto["status"] == "source_checked", proto_id
         assert all(clean_source(s) for s in proto["source_ids"]), (proto_id, proto["source_ids"])
 
@@ -478,10 +463,10 @@ def build(root: Path):
             if e["status"] not in ("source_checked", "reproduced"):
                 continue
             cfgs = [
-                records_after_scope.get(l["target_id"])
+                records.get(l["target_id"])
                 for l in e["links"]
                 if l["relation"] == "system"
-                and records_after_scope.get(l["target_id"], {}).get("kind") == "configuration"
+                and records.get(l["target_id"], {}).get("kind") == "configuration"
             ]
             if not cfgs or any(
                 c["status"] not in ("source_checked", "reproduced")
@@ -489,7 +474,7 @@ def build(root: Path):
                 for c in cfgs
             ):
                 continue
-            dts = [records_after_scope.get(l["target_id"]) for l in e["links"] if l["relation"] == "data"]
+            dts = [records.get(l["target_id"]) for l in e["links"] if l["relation"] == "data"]
             if any(
                 not d
                 or d["kind"] not in ("dataset", "dataset_subset")
@@ -502,7 +487,7 @@ def build(root: Path):
             if not rows or any(any(not clean_source(s) for s in (r["source_ids"] + e["source_ids"])) for r in rows):
                 continue
             assessments = [
-                records_after_scope.get(l["target_id"])
+                records.get(l["target_id"])
                 for l in e["links"]
                 if l["relation"] == "assessment"
             ]
@@ -555,14 +540,7 @@ def build(root: Path):
         uc_additions.setdefault(uc_id, []).append(proto_id)
 
     changes = []
-    # First change: gfm-guide-20261014-source-evee-v4 scoped concerns
-    evee_base = hashlib.sha256(raw_lines[evee_id].encode("utf-8")).hexdigest()
-    assert prov[evee_id]["sha256"] == evee_base
-    evee_line = json.dumps(evee_orig, ensure_ascii=False, separators=(",", ":"))
-    evee_sha = hashlib.sha256(evee_line.encode("utf-8")).hexdigest()
-    changes.append({"id": evee_id, "base_sha256": evee_base, "sha256": evee_sha, "record": evee_orig})
-
-    # Subsequent changes: append assessed_by links to the 4 use_cases
+    # Append assessed_by links to the 4 use_cases
     for uc_id, proto_ids in uc_additions.items():
         uc = json.loads(raw_lines[uc_id])
         base_sha = hashlib.sha256(raw_lines[uc_id].encode("utf-8")).hexdigest()
