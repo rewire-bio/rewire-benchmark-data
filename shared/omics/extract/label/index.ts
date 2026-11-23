@@ -25,9 +25,9 @@
  */
 import { readAnswer, type Answer } from "./answer";
 import { cacheKey, labelCache, type CacheEntry, type LabelCache } from "./cache";
-import { checkAnswer, type CheckResult, type LabelRefusal } from "./check";
+import { checkAnswer, type CheckResult, type LabelMeasured, type LabelRefusal } from "./check";
 import { renderQuestion, type Prompt } from "./prompt";
-import { shortlistFor, type Shortlist, type ShortlistIndex } from "./shortlist";
+import { shortlistFor, SHORTLIST_MAX, type Shortlist, type ShortlistIndex, type ShortlistOptions } from "./shortlist";
 import type { LabelTable } from "./table";
 import {
   DEFAULT_EFFORT,
@@ -45,6 +45,7 @@ export * from "./answer";
 export * from "./cache";
 export * from "./check";
 export * from "./prompt";
+export * from "./search";
 export * from "./shortlist";
 export * from "./table";
 export * from "./transport";
@@ -77,6 +78,8 @@ export interface LabelOutcome {
   reason: LabelRefusal | null;
   detail: string;
   checks: CheckResult[];
+  /** What was measured about a label and decided nothing, or null where there is no label. */
+  measured: LabelMeasured | null;
 }
 
 /** The receipt ADR 0002 decision 12 requires, and the sentence it requires it not to overclaim
@@ -105,6 +108,9 @@ export interface LabelReceipt {
   refusals_by_reason: Record<string, number>;
   /** The pre-filter, measured over the tables this run saw. */
   shortlist: {
+    /** Which rule offered records by their words, and the cap, because both change what was asked. */
+    method: string;
+    cap: number;
     considered: number;
     /** Tables the filter offered nothing for, which can never be labelled. */
     empty: number;
@@ -140,6 +146,8 @@ export interface LabelRun {
   transport: LabelTransport;
   prompt: Prompt;
   cache?: LabelCache;
+  /** The shortlist method and cap. Left out, the shortlist is the exact word rule at fifteen. */
+  shortlist?: ShortlistOptions;
   model?: string;
   effort?: string;
   maxTokens?: number;
@@ -163,7 +171,7 @@ export async function labelTables(run: LabelRun): Promise<{ outcomes: LabelOutco
   let fromCache = 0;
 
   for (const table of run.tables) {
-    const shortlist = shortlistFor(run.shortlistIndex, table);
+    const shortlist = shortlistFor(run.shortlistIndex, table, run.shortlist);
     const base = {
       table_id: table.table_id,
       source_id: table.source_id,
@@ -178,6 +186,7 @@ export async function labelTables(run: LabelRun): Promise<{ outcomes: LabelOutco
       record_id: null,
       span: null,
       checks: [] as CheckResult[],
+      measured: null,
     };
     const stop = (reason: LabelRefusal, detail: string): LabelOutcome => ({ ...base, outcome: "refused", reason, detail });
 
@@ -276,6 +285,7 @@ export async function labelTables(run: LabelRun): Promise<{ outcomes: LabelOutco
       reason: checked.outcome === "refused" ? checked.reason : null,
       detail: checked.outcome === "refused" ? checked.detail : read.answer.reason,
       checks: checked.checks,
+      measured: checked.outcome === "labelled" ? checked.measured : null,
     });
   }
 
@@ -302,6 +312,8 @@ export async function labelTables(run: LabelRun): Promise<{ outcomes: LabelOutco
       candidates_labelled: labelsByCandidate(outcomes).size,
       refusals_by_reason: refusals,
       shortlist: {
+        method: run.shortlist?.method ?? "lexical",
+        cap: run.shortlist?.max ?? SHORTLIST_MAX,
         considered: run.shortlistIndex.considered,
         empty: sizes.filter((size) => size === 0).length,
         min: sizes.length ? Math.min(...sizes) : 0,

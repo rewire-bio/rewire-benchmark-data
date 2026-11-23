@@ -27,8 +27,18 @@
  * shortlist built by a rule nobody can restate is a shortlist nobody can check. The cost is
  * that a record named in words the table does not print is missed, and that cost is measured
  * rather than hidden.
+ *
+ * A second word rule sits behind a flag, to be measured against the first:
+ *
+ *   keyword_search      a ranked keyword search over each record's name, aliases and
+ *                       description, in `search.ts`. A caller asks for it with
+ *                       `{ method: "search" }`. It takes the place of `name_in_table` and
+ *                       leaves `cites_this_source` as it is. It does stem and it does match
+ *                       prefixes, which is the trade the paragraph above declines, and that is
+ *                       why it is measured before it is anything else. The default is unchanged.
  */
 import { normaliseLabel } from "../../spans/table";
+import { buildSearchIndex, searchScores, type SearchIndex } from "./search";
 import { assessmentKinds as kinds } from "../decide";
 
 /** Record kinds a table caption may be naming. Taken from `shared/omics/extract/decide.ts`,
@@ -42,6 +52,8 @@ export interface AssessmentRecord {
   id: string;
   kind: string;
   name?: string;
+  /** Read by the keyword search only. The exact word rule never reads it. */
+  description?: string;
   source_ids?: string[];
   links?: { relation: string; target_id: string }[];
   attributes?: Record<string, unknown>;
@@ -81,16 +93,29 @@ export const SHORTLIST_MAX = 15;
  * count so that a long name is not easier to match than a short one. */
 export const NAME_WORD_SHARE = 0.5;
 
+/** The rules that can offer a record by its words. `lexical` is `name_in_table` and is the
+ * default. `search` is the keyword search, behind a flag. */
+export const SHORTLIST_METHODS = ["lexical", "search"] as const;
+export type ShortlistMethod = (typeof SHORTLIST_METHODS)[number];
+
+export interface ShortlistOptions {
+  method?: ShortlistMethod;
+  /** How many records the shortlist may hold. `SHORTLIST_MAX` where left out. */
+  max?: number;
+}
+
 export interface ShortlistEntry {
   id: string;
   kind: string;
   name: string;
   /** Which rules put it here. Both is the strongest and is the common case for a source the
    * store already holds records for. */
-  why: ("cites_this_source" | "name_in_table")[];
+  why: ("cites_this_source" | "name_in_table" | "keyword_search")[];
   /** The share of the record's content words the table prints, 0 where the lexical rule did
    * not admit it. */
   name_word_share: number;
+  /** The keyword search score. Present only on a shortlist built with the search method. */
+  search_score?: number;
 }
 
 export interface Shortlist {
@@ -184,6 +209,36 @@ export function tableWords(table: { anchor_text: string; column_headers: string[
   return new Set([table.anchor_text, ...table.column_headers].flatMap(contentWords));
 }
 
+/** The keyword index over the same records, built the first time a search shortlist is asked
+ * for and held against the shortlist index, so a run that never searches never builds it. */
+const searchIndexes = new WeakMap<ShortlistIndex, SearchIndex>();
+export function searchIndexOf(index: ShortlistIndex): SearchIndex {
+  let held = searchIndexes.get(index);
+  if (!held) {
+    held = buildSearchIndex(
+      [...index.records.values()].map((record) => {
+        // `reported_name` is the only alias field a record of these kinds can carry.
+        const reported = record.attributes?.reported_name;
+        return {
+          id: record.id,
+          name: record.name,
+          aliases: typeof reported === "string" ? [reported] : [],
+          description: record.description,
+        };
+      }),
+    );
+    searchIndexes.set(index, held);
+  }
+  return held;
+}
+
+/** The text a table is searched with: its caption or label, then its column headings. The
+ * same words `tableWords` reads, in the order the document prints them. */
+export const tableQuery = (table: { anchor_text: string; column_headers: string[] }): string =>
+  [table.anchor_text, ...table.column_headers].join(" ");
+
+const byId = (a: { id: string }, b: { id: string }) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+
 /**
  * The shortlist for one table.
  *
@@ -193,7 +248,11 @@ export function tableWords(table: { anchor_text: string; column_headers: string[
 export function shortlistFor(
   index: ShortlistIndex,
   table: { source_id: string; anchor_text: string; column_headers: string[] },
+  options: ShortlistOptions = {},
 ): Shortlist {
+  const max = options.max ?? SHORTLIST_MAX;
+  if (!Number.isInteger(max) || max <= 0) throw new Error(`A shortlist cap must be a positive whole number, got ${max}`);
+  if ((options.method ?? "lexical") === "search") return searchShortlist(index, table, max);
   const words = tableWords(table);
   const cites = new Set<string>();
   const sources = [table.source_id, ...(index.companions.get(table.source_id) ?? [])];
@@ -230,7 +289,45 @@ export function shortlistFor(
     if (b.name_word_share !== a.name_word_share) return b.name_word_share - a.name_word_share;
     return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
   });
-  const kept = ranked.slice(0, SHORTLIST_MAX).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const kept = ranked.slice(0, max).sort(byId);
+
+  return {
+    ids: kept.map((entry) => entry.id),
+    entries: kept,
+    considered: index.considered,
+    held_back: Math.max(0, ranked.length - kept.length),
+  };
+}
+
+/** The shortlist for one table under the keyword search: the records the store says cite the
+ * source, as before, and the best matches of the search in place of the exact word rule. */
+function searchShortlist(
+  index: ShortlistIndex,
+  table: { source_id: string; anchor_text: string; column_headers: string[] },
+  max: number,
+): Shortlist {
+  const cites = new Set<string>();
+  const sources = [table.source_id, ...(index.companions.get(table.source_id) ?? [])];
+  for (const source of sources) for (const id of index.bySource.get(source) ?? []) cites.add(id);
+  const scores = searchScores(searchIndexOf(index), tableQuery(table));
+
+  const all = [...new Set([...cites, ...scores.keys()])].map((id) => {
+    const record = index.records.get(id);
+    const why: ShortlistEntry["why"] = [];
+    if (cites.has(id)) why.push("cites_this_source");
+    if (scores.has(id)) why.push("keyword_search");
+    return { id, kind: record?.kind ?? "", name: record?.name ?? "", why, name_word_share: 0, search_score: scores.get(id) ?? 0 };
+  });
+
+  // Rank for the cap only, as the exact word rule does: the store's own citation first, then
+  // the search score, then the id.
+  const ranked = [...all].sort((a, b) => {
+    const cited = Number(b.why.includes("cites_this_source")) - Number(a.why.includes("cites_this_source"));
+    if (cited !== 0) return cited;
+    if (b.search_score !== a.search_score) return b.search_score - a.search_score;
+    return byId(a, b);
+  });
+  const kept = ranked.slice(0, max).sort(byId);
 
   return {
     ids: kept.map((entry) => entry.id),

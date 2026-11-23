@@ -2,18 +2,55 @@ name: Label stage measurement
 # Started by hand only. This is the one job in this repository that spends money
 # outside the runner, so nothing schedules it, no push starts it and no pull
 # request can reach it.
+#
+# Three modes, and the default spends nothing.
+#   plan    reports what a run would ask and the shortlist recall of both methods. Asks nothing.
+#   replay  scores the answers an earlier run paid for, read back from a committed cache. A
+#           question the cache does not hold is counted as a transport failure and is not asked.
+#           The API key is not given to this mode.
+#   live    asks. The only mode that is given the API key.
+#
+# The cost cap. A live run asks at most max_questions questions, and max_questions may not be
+# more than 250. Each reply is capped at 2,000 tokens. The first full run asked 147 questions
+# for 295,898 input and 20,758 output tokens, about GBP 6, so 250 questions at the same size is
+# about 503,000 input tokens and about GBP 10. A shortlist of 30 in place of 15 makes each
+# question larger, so check the plan before raising shortlist_max on a live run.
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: plan asks nothing. replay scores a committed cache and asks nothing. live asks and spends.
+        type: choice
+        options: [plan, replay, live]
+        required: true
+        default: plan
       max_questions:
         description: >-
-          The ceiling on how many questions this run may ask. It binds before the first call:
-          the questions are planned and truncated to this number while the transport is still
-          untouched. The frozen set makes 152 askable in all, 109 under both pre-filter rules
-          and 43 under the lexical rule alone. A question is a prompt of 2,907 bytes plus a
-          rendered question with a median of 1,233 characters, and the reply is four short fields.
+          Live mode only. The ceiling on how many questions this run may ask, at most 250. It
+          binds before the first call: the questions are planned and truncated to this number
+          while the transport is still untouched. The frozen set makes 152 askable in all with
+          the default shortlist, 109 under both pre-filter rules and 43 under the lexical rule
+          alone. A question is a prompt of 2,907 bytes plus a rendered question with a median of
+          1,233 characters, and the reply is four short fields.
         required: true
         default: "20"
+      shortlist_method:
+        description: Which rule offers records by their words. lexical is the default the stage ships with.
+        type: choice
+        options: [lexical, search]
+        required: true
+        default: lexical
+      shortlist_max:
+        description: How many records a shortlist may hold. The stage ships with 15.
+        required: true
+        default: "15"
+      cache:
+        description: >-
+          A committed cache of earlier answers. Replay mode scores it. Live mode reads it first,
+          so a question it already answers is not paid for twice. Write none to ask everything
+          again on a live run.
+        required: false
+        default: maintenance/reports/label-measure-cache-2026-11-20.json
       heldout:
         description: The frozen held-out set to score against, written before any answer existed.
         required: true
@@ -49,10 +86,9 @@ jobs:
           R2_BUCKET: ${{ secrets.R2_BUCKET }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           missing=0
-          for name in R2_ACCOUNT_ID R2_BUCKET R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY ANTHROPIC_API_KEY; do
+          for name in R2_ACCOUNT_ID R2_BUCKET R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY; do
             if [ -z "${!name}" ]; then
               echo "::error::$name is not set on this repository, so this job cannot run."
               missing=1
@@ -60,14 +96,36 @@ jobs:
           done
           [ "$missing" = 0 ] || exit 1
 
-      - name: Check the cap is a positive whole number before anything is planned
+      # Checked apart from the others so that the key is named in the environment of a live
+      # run only. A plan or a replay never holds it.
+      - name: Require the API key, on a live run only
+        if: inputs.mode == 'live'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          [ -n "$ANTHROPIC_API_KEY" ] || { echo "::error::ANTHROPIC_API_KEY is not set on this repository, so a live run cannot ask."; exit 1; }
+
+      - name: Check the caps are whole numbers in range before anything is planned
         env:
           MAX_QUESTIONS: ${{ inputs.max_questions }}
+          SHORTLIST_MAX: ${{ inputs.shortlist_max }}
+          MODE: ${{ inputs.mode }}
+          CACHE: ${{ inputs.cache }}
         run: |
-          case "$MAX_QUESTIONS" in
-            ''|*[!0-9]*) echo "::error::max_questions must be a positive whole number, got '$MAX_QUESTIONS'"; exit 1 ;;
-          esac
-          [ "$MAX_QUESTIONS" -gt 0 ] || { echo "::error::max_questions must be greater than zero"; exit 1; }
+          for name in MAX_QUESTIONS SHORTLIST_MAX; do
+            case "${!name}" in
+              ''|*[!0-9]*) echo "::error::$name must be a positive whole number, got '${!name}'"; exit 1 ;;
+            esac
+            [ "${!name}" -gt 0 ] || { echo "::error::$name must be greater than zero"; exit 1; }
+          done
+          # The hard ceiling on spend. Nothing below can ask more than this.
+          [ "$MAX_QUESTIONS" -le 250 ] || { echo "::error::max_questions may not be more than 250, got $MAX_QUESTIONS"; exit 1; }
+          [ "$SHORTLIST_MAX" -le 30 ] || { echo "::error::shortlist_max may not be more than 30, got $SHORTLIST_MAX"; exit 1; }
+          if [ "$CACHE" = none ]; then CACHE=""; fi
+          if [ "$MODE" = replay ]; then
+            [ -n "$CACHE" ] && [ -f "$CACHE" ] || { echo "::error::replay needs a committed cache, and '$CACHE' is not in this checkout"; exit 1; }
+          fi
+          if [ -n "$CACHE" ] && [ ! -f "$CACHE" ]; then echo "::error::'$CACHE' is not in this checkout"; exit 1; fi
 
       - uses: actions/setup-node@v4
         with:
@@ -112,37 +170,110 @@ jobs:
         env:
           HELDOUT: ${{ inputs.heldout }}
           MAX_QUESTIONS: ${{ inputs.max_questions }}
-        run: npm run -s extract -- label-measure --heldout "$HELDOUT" --plan --max-questions "$MAX_QUESTIONS" | tee plan.json
+          SHORTLIST_METHOD: ${{ inputs.shortlist_method }}
+          SHORTLIST_MAX: ${{ inputs.shortlist_max }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          # The question cap bounds a live run only. A plan or a replay asks nothing, so it
+          # plans every askable question, up to the same hard ceiling.
+          if [ "$MODE" != live ]; then MAX_QUESTIONS=250; fi
+          npm run -s extract -- label-measure --heldout "$HELDOUT" --plan --max-questions "$MAX_QUESTIONS" \
+            --shortlist-method "$SHORTLIST_METHOD" --shortlist-max "$SHORTLIST_MAX" | tee plan.json
 
-      - name: Ask the label stage and write the report
-        id: measure
+      # Both methods at sizes 10 and 30, over the rebuilt tables, column headings included.
+      # Part of the plan, so it costs nothing and every mode reports it.
+      - name: Shortlist recall, both methods
+        run: |
+          node -e '
+            const plan = JSON.parse(require("fs").readFileSync("plan.json", "utf8"));
+            const pct = (count, total) => total === 0 ? "0 of 0" : `${count} of ${total}, ${((100 * count) / total).toFixed(1)} percent`;
+            const lines = [
+              "## Shortlist recall, both methods",
+              "",
+              "| Citations | Method | Size | Holds a truth record, all tables | Holds the one right record, single-assessment tables | Empty shortlists |",
+              "| --- | --- | --- | --- | --- | --- |",
+              ...plan.shortlist_recall.map((row) => `| ${row.pass === "both_rules" ? "kept" : "stripped"} | ${row.method} | ${row.size} | ${pct(row.holds_truth, row.tables)} | ${pct(row.single_holds_truth, row.single_tables)} | ${row.empty} of ${row.tables} |`),
+              "",
+              `This run would ask ${plan.questions_planned} questions with the ${plan.shortlist.method} shortlist at ${plan.shortlist.max}.`,
+            ];
+            console.log(lines.join("\n"));
+            require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join("\n")}\n`);
+          '
+
+      # No key in this step. The transport is an empty recording, so an answer comes from the
+      # committed cache or does not come at all, and a miss is a counted transport failure.
+      - name: Score the committed cache, asking nothing
+        if: inputs.mode == 'replay'
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           HELDOUT: ${{ inputs.heldout }}
-          MAX_QUESTIONS: ${{ inputs.max_questions }}
+          SHORTLIST_METHOD: ${{ inputs.shortlist_method }}
+          SHORTLIST_MAX: ${{ inputs.shortlist_max }}
+          CACHE: ${{ inputs.cache }}
           REPORT_DATE: ${{ inputs.report_date }}
         run: |
           date_arg=""
           if [ -n "$REPORT_DATE" ]; then date_arg="--date $REPORT_DATE"; fi
+          echo '{}' > "$RUNNER_TEMP/no-replies.json"
+          # shellcheck disable=SC2086
+          npm run -s extract -- label-measure \
+            --heldout "$HELDOUT" \
+            --max-questions 250 \
+            --shortlist-method "$SHORTLIST_METHOD" --shortlist-max "$SHORTLIST_MAX" \
+            --cache "$CACHE" --replies "$RUNNER_TEMP/no-replies.json" \
+            --out maintenance/reports $date_arg
+
+      # The one step that is given the key.
+      - name: Ask the label stage and write the report
+        id: measure
+        if: inputs.mode == 'live'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          HELDOUT: ${{ inputs.heldout }}
+          MAX_QUESTIONS: ${{ inputs.max_questions }}
+          SHORTLIST_METHOD: ${{ inputs.shortlist_method }}
+          SHORTLIST_MAX: ${{ inputs.shortlist_max }}
+          CACHE: ${{ inputs.cache }}
+          REPORT_DATE: ${{ inputs.report_date }}
+        run: |
+          date_arg=""
+          if [ -n "$REPORT_DATE" ]; then date_arg="--date $REPORT_DATE"; fi
+          cache_arg=""
+          if [ -n "$CACHE" ] && [ "$CACHE" != none ]; then cache_arg="--cache $CACHE"; fi
           # shellcheck disable=SC2086
           npm run -s extract -- label-measure \
             --heldout "$HELDOUT" \
             --max-questions "$MAX_QUESTIONS" \
-            --out maintenance/reports $date_arg
+            --shortlist-method "$SHORTLIST_METHOD" --shortlist-max "$SHORTLIST_MAX" \
+            --out maintenance/reports $cache_arg $date_arg
 
       - name: State what it asked and what it cost
+        if: inputs.mode != 'plan'
+        env:
+          REPORT_DATE: ${{ inputs.report_date }}
         run: |
-          report=$(ls -t maintenance/reports/label-measurement-*.json | head -1)
+          # Named by date, not picked by age: an earlier run's report is committed beside it.
+          report="maintenance/reports/label-measurement-${REPORT_DATE:-$(date -u +%F)}.json"
           echo "report: $report"
           node -e '
             const summary = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
             const cost = summary.cost;
+            const row = (pass) => {
+              const held = summary.by_pass[pass];
+              const single = held.asked - held.multi_assessment_tables_asked;
+              return `| ${pass} | ${held.asked} | ${single} | ${held.correct} | ${held.wrong} | ${held.abstained} | ${held.refused} | ${held.removed_rule_would_refuse.labels} (${held.removed_rule_would_refuse.correct} correct) |`;
+            };
             const lines = [
               "## Label stage measurement",
               "",
+              "| Pass | Asked | Single-assessment tables | Correct | Wrong | Abstained | Refused | Labels the removed confidence rule would have refused |",
+              "| --- | --- | --- | --- | --- | --- | --- | --- |",
+              ...Object.keys(summary.by_pass).map(row),
+              "",
               "| Item | Value |",
               "| --- | --- |",
+              `| Questions planned and scored | ${cost.questions_planned} |`,
               `| Questions asked | ${cost.questions_asked} |`,
+              `| Answers read back from the cache, not asked again | ${cost.answers_read_back_from_the_cache} |`,
               `| Cap | ${cost.cap} |`,
               `| Askable questions the cap left unasked | ${cost.questions_not_asked_because_of_the_cap} |`,
               `| Input tokens | ${cost.input_tokens} |`,

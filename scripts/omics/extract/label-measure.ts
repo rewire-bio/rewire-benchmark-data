@@ -35,6 +35,13 @@
  * and nothing that writes one, and `readManifest` from the archive and nothing
  * that writes a row. `tests/omics-extract-label-measure.test.ts` asserts both
  * against this file's own text, so the claim is checked rather than stated.
+ *
+ * Three things here ask nothing and cost nothing. `shortlistRecall` counts how
+ * often each shortlist method holds the right record, at more than one size.
+ * `labelRecall` runs it, and can run it from the frozen file's captions alone
+ * where the archived layers are not to hand. `rescoreAnswers` reads the answers
+ * of a run already paid for and says what removing the `confidence_justified`
+ * rule changes, which is exact because that rule was the last check.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -51,11 +58,16 @@ import {
   DEFAULT_MODEL,
   readCache,
   writeCache,
+  type CacheEntry,
   type LabelOutcome,
   type LabelTable,
   type LabelTransport,
   type Shortlist,
   type ShortlistIndex,
+  type ShortlistMethod,
+  type ShortlistOptions,
+  SHORTLIST_MAX,
+  SHORTLIST_METHODS,
 } from "../../../shared/omics/extract/label/index";
 import { layerText, layersForSource } from "../../../shared/omics/layers/index";
 import { indexLayer, type LayerIndex } from "../../../shared/omics/spans/offsets";
@@ -250,6 +262,76 @@ export function scoreOutcome(row: HeldoutRow, outcome: LabelOutcome): Score {
 export const rate = (count: number, total: number): string =>
   total === 0 ? `0 of 0` : `${count} of ${total}, ${((100 * count) / total).toFixed(1)} percent`;
 
+/** The shortlist sizes recall is reported at, for both methods. */
+export const RECALL_SIZES = [10, 30] as const;
+
+export interface RecallRow {
+  pass: Pass;
+  method: ShortlistMethod;
+  size: number;
+  /** Tables measured. */
+  tables: number;
+  /** Tables whose shortlist holds at least one truth record. */
+  holds_truth: number;
+  /** Tables the method offered nothing for, so no question would be asked. */
+  empty: number;
+  /** Tables reporting exactly one assessment, where one label can be right. */
+  single_tables: number;
+  /** Of those, the tables whose shortlist holds that one record. */
+  single_holds_truth: number;
+  single_empty: number;
+}
+
+/**
+ * How often each shortlist method holds the right record, at each size.
+ *
+ * Asks nothing. `both_rules` keeps the store's citations and `lexical_only`
+ * strips them, exactly as the two passes of a run do, and the method under test
+ * takes the place of the word rule in each.
+ */
+export function shortlistRecall(input: {
+  rows: HeldoutRow[];
+  tableOf: (row: HeldoutRow) => { source_id: string; anchor_text: string; column_headers: string[] } | null;
+  indexes: Record<Pass, ShortlistIndex>;
+  sizes?: readonly number[];
+}): RecallRow[] {
+  const out: RecallRow[] = [];
+  for (const pass of PASSES)
+    for (const method of SHORTLIST_METHODS)
+      for (const size of input.sizes ?? RECALL_SIZES) {
+        const row: RecallRow = { pass, method, size, tables: 0, holds_truth: 0, empty: 0, single_tables: 0, single_holds_truth: 0, single_empty: 0 };
+        for (const held of input.rows) {
+          const table = input.tableOf(held);
+          if (!table) continue;
+          const ids = shortlistFor(input.indexes[pass], table, { method, max: size }).ids;
+          const hit = held.truth_ids.some((id) => ids.includes(id));
+          row.tables += 1;
+          if (ids.length === 0) row.empty += 1;
+          if (hit) row.holds_truth += 1;
+          if (held.truth_count === 1) {
+            row.single_tables += 1;
+            if (ids.length === 0) row.single_empty += 1;
+            if (ids.includes(held.scored_answer)) row.single_holds_truth += 1;
+          }
+        }
+        out.push(row);
+      }
+  return out;
+}
+
+const RECALL_HEADER = [
+  "| Citations | Method | Size | Holds a truth record, all tables | Holds the one right record, single-assessment tables | Empty shortlists |",
+  "| --- | --- | --- | --- | --- | --- |",
+];
+/** The recall rows as a table. One line per pass, method and size, with every denominator. */
+export function recallTable(rows: RecallRow[]): string[] {
+  return [
+    ...RECALL_HEADER,
+    ...rows.map((row) =>
+      `| ${row.pass === "both_rules" ? "kept" : "stripped"} | ${row.method} | ${row.size} | ${rate(row.holds_truth, row.tables)} | ${rate(row.single_holds_truth, row.single_tables)} | ${row.empty} of ${row.tables} |`),
+  ];
+}
+
 export interface PassResult {
   pass: Pass;
   title: string;
@@ -265,6 +347,10 @@ export interface PassResult {
   abstained_on_multi_assessment_tables: number;
   multi_assessment_tables_asked: number;
   refused_by_reason: Record<string, number>;
+  /** Labels the removed `confidence_justified` rule would have refused: a high
+   * confidence whose quote does not contain the record's printed name. Measured,
+   * and no longer acted on. */
+  removed_rule_would_refuse: { labels: number; correct: number; wrong: number };
   tokens: { input: number; output: number };
 }
 
@@ -273,6 +359,13 @@ export interface MeasureOptions {
   out: string;
   date: string;
   maxQuestions: number;
+  /** Which rule offers records by their words. `lexical` where left out. */
+  shortlistMethod?: ShortlistMethod;
+  /** How many records a shortlist may hold. Fifteen where left out. */
+  shortlistMax?: number;
+  /** A cache from an earlier run to read answers back from. The run still writes
+   * its own cache under `out`, and never writes this file. */
+  cacheFrom?: string;
   model?: string;
   effort?: string;
   /** Injected for a test, and by `--replies`. The default asks for real and
@@ -289,20 +382,13 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
   const model = options.model ?? DEFAULT_MODEL;
   const effort = options.effort ?? DEFAULT_EFFORT;
 
-  const kinds = new Set<string>([...systemKinds, ...assessmentKinds]);
-  const named = [...kinds].sort().flatMap((kind) => readKind(kind)) as {
-    id: string; kind: string; name?: string; source_ids?: string[]; links?: { relation: string; target_id: string }[];
-  }[];
-  const sourceRecords = readKind("source") as { id: string; name?: string; attributes?: Record<string, unknown> }[];
-  const titleOf = new Map(sourceRecords.map((record) => [record.id, record.name ?? String((record.attributes ?? {}).title ?? record.id)]));
-
-  // The two indexes, exactly as label-evaluate builds them. The lexical one is
-  // the same records with the store's citations removed, which is what a source
-  // nobody has extracted looks like to the filter.
-  const indexes: Record<Pass, ShortlistIndex> = {
-    both_rules: buildShortlistIndex(named, sourceRecords as { id: string; links?: { relation: string; target_id: string }[] }[]),
-    lexical_only: buildShortlistIndex(named.map((record) => ({ ...record, source_ids: [] })), []),
+  const shortlistOptions: ShortlistOptions = {
+    method: options.shortlistMethod ?? "lexical",
+    max: options.shortlistMax ?? SHORTLIST_MAX,
   };
+
+  const { named, sourceRecords, indexes } = readStore();
+  const titleOf = new Map(sourceRecords.map((record) => [record.id, record.name ?? String((record.attributes ?? {}).title ?? record.id)]));
 
   // Rebuild the tables of every source the frozen set names, and join on
   // table_id, which is a digest of the source, the layer and the anchor.
@@ -330,7 +416,7 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
   const plan = planQuestions({
     rows,
     tableOf: (row) => tableById.get(row.table_id) ?? null,
-    shortlistOf: (pass, table) => shortlistFor(indexes[pass], table),
+    shortlistOf: (pass, table) => shortlistFor(indexes[pass], table, shortlistOptions),
     haveLayer: (table) => layerIndex(table.source_id, table.layer_sha256) !== null,
     cap: options.maxQuestions,
   });
@@ -342,7 +428,7 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
       const table = tableById.get(row.table_id);
       if (!table) continue;
       tables += 1;
-      const ids = shortlistFor(indexes[pass], table).ids;
+      const ids = shortlistFor(indexes[pass], table, shortlistOptions).ids;
       if (ids.length === 0) empty += 1;
       else if (row.truth_ids.some((id) => ids.includes(id))) holds += 1;
       else lacks += 1;
@@ -350,16 +436,21 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
     return { tables, holds_truth: holds, lacks_truth: lacks, empty, miss: lacks + empty };
   };
 
+  // Both methods at both sizes, whatever this run asks with. Asks nothing.
+  const recall = shortlistRecall({ rows, tableOf: (row) => tableById.get(row.table_id) ?? null, indexes });
+
   if (options.planOnly) {
     const planned = {
       generated: options.date,
       heldout: path.basename(options.heldout),
       asked_nothing: true,
       model, effort,
+      shortlist: shortlistOptions,
       cap: plan.cap,
       questions_planned: plan.questions.length,
       not_asked_because_of_the_cap: plan.not_asked_cap,
       by_pass: Object.fromEntries(PASSES.map((pass) => [pass, { ...plan.by_pass[pass], shortlist: shortlistOf(pass) }])),
+      shortlist_recall: recall,
       sources_that_would_not_rebuild: sourceFailures,
     };
     console.log(JSON.stringify(planned, null, 2));
@@ -374,6 +465,17 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
   // otherwise match the cache as well.
   const cacheFile = path.join(options.out, `label-measure-cache-${options.date}.json`);
   const cache = readCache(cacheFile);
+  // Answers an earlier run paid for, read back where the question is the same
+  // one: same layer, extent, prompt, shortlist and model. The file is read and
+  // never written.
+  let seeded = 0;
+  if (options.cacheFrom) {
+    for (const [key, entry] of Object.entries(JSON.parse(fs.readFileSync(options.cacheFrom, "utf8")) as Record<string, CacheEntry>)) {
+      cache.set(key, entry);
+      seeded += 1;
+    }
+    log(`read ${seeded} earlier answers from ${options.cacheFrom}`);
+  }
   const prompt = loadPrompt(root);
   const guard = cappedTransport(options.transport ?? liveTransport(), plan.cap);
 
@@ -395,6 +497,7 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
       transport: guard.transport,
       prompt,
       cache,
+      shortlist: shortlistOptions,
       model,
       effort,
     });
@@ -410,6 +513,7 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
       abstained_on_multi_assessment_tables: 0,
       multi_assessment_tables_asked: 0,
       refused_by_reason: receipt.refusals_by_reason,
+      removed_rule_would_refuse: { labels: 0, correct: 0, wrong: 0 },
       tokens: receipt.tokens,
     };
     for (const outcome of outcomes) {
@@ -417,6 +521,10 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
       if (!question) continue;
       const score = scoreOutcome(question.row, outcome);
       result[score] += 1;
+      if (outcome.measured?.confidence_rule_would_refuse && (score === "correct" || score === "wrong")) {
+        result.removed_rule_would_refuse.labels += 1;
+        result.removed_rule_would_refuse[score] += 1;
+      }
       if (question.row.truth_count !== 1) {
         result.multi_assessment_tables_asked += 1;
         if (score === "abstained") result.abstained_on_multi_assessment_tables += 1;
@@ -449,15 +557,16 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
 
   const answers = [[
     "pass", "source", "table_id", "truth_count", "scored_answer", "answered", "outcome", "score",
-    "confidence", "refusal", "shortlist_size", "shortlist_holds_truth", "quote",
+    "confidence", "refusal", "shortlist_size", "shortlist_holds_truth", "quote", "removed_rule_would_refuse",
   ].join("\t")];
   for (const { question, outcome, score } of scored) {
-    const ids = shortlistFor(indexes[question.pass], question.table).ids;
+    const ids = shortlistFor(indexes[question.pass], question.table, shortlistOptions).ids;
     answers.push([
       question.pass, question.row.source, question.row.table_id, String(question.row.truth_count), question.row.scored_answer,
       outcome.answer?.record_id ?? "", outcome.outcome, score, outcome.answer?.confidence ?? "", outcome.reason ?? "",
       String(ids.length), question.row.truth_ids.some((id) => ids.includes(id)) ? "1" : "0",
       JSON.stringify((outcome.answer?.quote ?? "").slice(0, 160)),
+      outcome.measured ? (outcome.measured.confidence_rule_would_refuse ? "1" : "0") : "",
     ].join("\t"));
   }
   fs.writeFileSync(`${prefix}-answers.tsv`, `${answers.join("\n")}\n`);
@@ -470,10 +579,16 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
     tables_built_over_those_sources: tableById.size,
     sources_that_would_not_rebuild: sourceFailures,
     model, effort,
+    shortlist: shortlistOptions,
     prompt: { id: prompt.id, path: prompt.path, sha256: prompt.sha256 },
     cost: {
       cap: plan.cap,
       questions_asked: asked,
+      // A question whose answer an earlier run or the other pass already holds
+      // is planned and scored, and is not asked again. This is why the
+      // questions asked can be fewer than the questions planned.
+      questions_planned: plan.questions.length,
+      answers_read_back_from_the_cache: plan.questions.length - asked,
       questions_not_asked_because_of_the_cap: plan.not_asked_cap,
       input_tokens: tokens.input,
       output_tokens: tokens.output,
@@ -482,6 +597,7 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
     // No combined object, on purpose. The two rules bound different things and
     // a reader who wants one number has to pick a rule and carry its name.
     by_pass: Object.fromEntries(results.map((result) => [result.pass, result])),
+    shortlist_recall: recall,
   };
   fs.writeFileSync(`${prefix}.json`, `${JSON.stringify(summary, null, 2)}\n`);
   fs.writeFileSync(`${prefix}.md`, report(summary, results, options));
@@ -496,7 +612,11 @@ export async function labelMeasure(root: string, options: MeasureOptions): Promi
 /** The prose report. Each rule gets its own section with its own denominators,
  * and no sentence anywhere puts the two rules' numbers in one row. */
 function report(summary: Record<string, unknown>, results: PassResult[], options: MeasureOptions): string {
-  const cost = summary.cost as { cap: number; questions_asked: number; questions_not_asked_because_of_the_cap: number; input_tokens: number; output_tokens: number; transport_failures: number };
+  const cost = summary.cost as {
+    cap: number; questions_asked: number; questions_planned: number; answers_read_back_from_the_cache: number;
+    questions_not_asked_because_of_the_cap: number; input_tokens: number; output_tokens: number; transport_failures: number;
+  };
+  const shortlist = summary.shortlist as ShortlistOptions;
   const lines: string[] = [];
   lines.push(`# Label stage: measured answers, ${options.date}`, "");
   lines.push(
@@ -519,7 +639,10 @@ function report(summary: Record<string, unknown>, results: PassResult[], options
   );
   lines.push("## What it cost", "");
   lines.push("| Item | Value |", "| --- | --- |");
+  lines.push(`| Questions planned and scored | ${cost.questions_planned} |`);
   lines.push(`| Questions asked | ${cost.questions_asked} |`);
+  lines.push(`| Answers read back from the cache, not asked again | ${cost.answers_read_back_from_the_cache} |`);
+  lines.push(`| Shortlist method and cap | \`${shortlist.method}\`, ${shortlist.max} |`);
   lines.push(`| Cap this run was given | ${cost.cap} |`);
   lines.push(`| Askable questions the cap left unasked | ${cost.questions_not_asked_because_of_the_cap} |`);
   lines.push(`| Input tokens | ${cost.input_tokens} |`);
@@ -532,7 +655,7 @@ function report(summary: Record<string, unknown>, results: PassResult[], options
   for (const result of results) {
     lines.push(`## ${result.title}`, "");
     lines.push(
-      `Rule: \`${result.pass === "both_rules" ? "cites_this_source or name_in_table" : "name_in_table"}\`.`,
+      `Rule: \`${[result.pass === "both_rules" ? "cites_this_source" : "", shortlist.method === "search" ? "keyword_search" : "name_in_table"].filter(Boolean).join(" or ")}\`, at most ${shortlist.max} records.`,
       "",
     );
     lines.push("### Does the shortlist hold the right answer at all", "");
@@ -565,12 +688,36 @@ function report(summary: Record<string, unknown>, results: PassResult[], options
       for (const [reason, count] of refusals) lines.push(`| \`${reason}\` | ${count} |`);
       lines.push("");
     }
+    const single = result.asked - result.multi_assessment_tables_asked;
+    lines.push(
+      `Only a table reporting one assessment can earn a correct label, and ${single} of the ${result.asked} asked are such tables.`,
+      `Against that denominator the correct rate is ${rate(result.correct, single)}.`,
+      "",
+    );
+    const removed = result.removed_rule_would_refuse;
+    lines.push(
+      "The `confidence_justified` rule was removed from the acceptance path on 2026-11-23 (issue 362). It refused a",
+      "high confidence whose quote does not contain the record's printed name. It is still measured:",
+      `it would have refused ${removed.labels} of the labels counted above, ${removed.correct} of them correct and ${removed.wrong} wrong.`,
+      "",
+    );
     lines.push(
       `Questions this rule could have asked but the cap did not reach: ${result.plan.askable - result.asked} of ${result.plan.askable}.`,
       "",
     );
   }
 
+  lines.push("## Shortlist recall, both methods", "");
+  lines.push(
+    "Whether the shortlist holds the right record, for the exact word rule (`lexical`) and the keyword",
+    "search over names, aliases and descriptions (`search`), at two sizes. Nothing was asked to measure",
+    "this. With citations kept, records that cite the source are on the shortlist under either method.",
+    "With citations stripped the word method stands alone. That is not the same as a new paper: each",
+    "paper's own records are still in the store, with names and descriptions written from that paper.",
+    "",
+    ...recallTable(summary.shortlist_recall as RecallRow[]),
+    "",
+  );
   lines.push("## What this run could not do", "");
   lines.push(
     "It wrote a report. It holds no path to the record store: every file it wrote is under the",
@@ -580,6 +727,105 @@ function report(summary: Record<string, unknown>, results: PassResult[], options
     "",
   );
   return `${lines.join("\n")}\n`;
+}
+
+/** The store's records, read once, and the two shortlist indexes built from them. */
+function readStore() {
+  const kinds = new Set<string>([...systemKinds, ...assessmentKinds]);
+  const named = [...kinds].sort().flatMap((kind) => readKind(kind)) as {
+    id: string; kind: string; name?: string; description?: string; source_ids?: string[]; links?: { relation: string; target_id: string }[];
+  }[];
+  const sourceRecords = readKind("source") as { id: string; name?: string; attributes?: Record<string, unknown>; links?: { relation: string; target_id: string }[] }[];
+  // The two indexes, exactly as label-evaluate builds them. The lexical one is
+  // the same records with the store's citations removed, which is what a source
+  // nobody has extracted looks like to the filter.
+  const indexes: Record<Pass, ShortlistIndex> = {
+    both_rules: buildShortlistIndex(named, sourceRecords),
+    lexical_only: buildShortlistIndex(named.map((record) => ({ ...record, source_ids: [] })), []),
+  };
+  return { named, sourceRecords, indexes };
+}
+
+/**
+ * Shortlist recall for both methods, from the frozen file's captions alone.
+ *
+ * The frozen file holds the first 120 characters of each caption and no column
+ * headings, so this is a lower bound on what the stage sees, and it needs no
+ * archived layer. `label-measure --plan` reports the same table over the
+ * rebuilt tables, headings included, and that is the figure to quote.
+ */
+export function labelRecall(options: { heldout: string }): { basis: string; rows: RecallRow[] } {
+  const rows = readHeldout(options.heldout);
+  const { indexes } = readStore();
+  const recall = shortlistRecall({
+    rows,
+    tableOf: (row) => ({ source_id: row.source, anchor_text: JSON.parse(row.caption) as string, column_headers: [] }),
+    indexes,
+    sizes: [10, 15, 30],
+  });
+  return { basis: "the first 120 characters of each caption in the frozen file, no column headings", rows: recall };
+}
+
+/** One pass of a run's answers, counted as it was scored and as it scores with
+ * the `confidence_justified` rule removed. */
+export interface Rescore {
+  pass: string;
+  asked: number;
+  single_assessment_tables: number;
+  single_assessment_tables_with_truth_on_shortlist: number;
+  before: Record<Score, number>;
+  after: Record<Score, number>;
+  refused_by_the_rule: number;
+  refused_by_the_rule_and_right: number;
+}
+
+/**
+ * What removing `confidence_justified` does to a run already paid for.
+ *
+ * Reads the answers file a run wrote. A row refused as `confidence_unjustified`
+ * had passed every other check, because that rule ran last, so with the rule
+ * gone it is a label on the id it named and is scored like any other label. No
+ * other row changes. Nothing is asked.
+ */
+export function rescoreAnswers(file: string): Rescore[] {
+  const lines = fs.readFileSync(file, "utf8").split("\n").filter((line) => line.trim() !== "");
+  const header = lines[0].split("\t");
+  const at = (name: string): number => {
+    const index = header.indexOf(name);
+    if (index < 0) throw new Error(`${file} has no ${name} column, so it is not an answers file label-measure wrote.`);
+    return index;
+  };
+  const columns = {
+    pass: at("pass"), count: at("truth_count"), scored: at("scored_answer"), answered: at("answered"),
+    score: at("score"), refusal: at("refusal"), holds: at("shortlist_holds_truth"),
+  };
+  const zero = (): Record<Score, number> => ({ correct: 0, wrong: 0, abstained: 0, refused: 0 });
+  const byPass = new Map<string, Rescore>();
+  for (const line of lines.slice(1)) {
+    const cells = line.split("\t");
+    const pass = cells[columns.pass];
+    const held = byPass.get(pass) ?? {
+      pass, asked: 0, single_assessment_tables: 0, single_assessment_tables_with_truth_on_shortlist: 0,
+      before: zero(), after: zero(), refused_by_the_rule: 0, refused_by_the_rule_and_right: 0,
+    };
+    byPass.set(pass, held);
+    const single = cells[columns.count] === "1";
+    const before = cells[columns.score] as Score;
+    let after = before;
+    if (cells[columns.refusal] === "confidence_unjustified") {
+      after = single && cells[columns.answered] === cells[columns.scored] ? "correct" : "wrong";
+      held.refused_by_the_rule += 1;
+      if (after === "correct") held.refused_by_the_rule_and_right += 1;
+    }
+    held.asked += 1;
+    if (single) {
+      held.single_assessment_tables += 1;
+      if (cells[columns.holds] === "1") held.single_assessment_tables_with_truth_on_shortlist += 1;
+    }
+    held.before[before] += 1;
+    held.after[after] += 1;
+  }
+  return [...byPass.values()];
 }
 
 /** A transport that answers from a recording, for a rerun that opens no socket.

@@ -19,6 +19,13 @@
  *                                       the one command in the repository that spends money, and
  *                                       --plan reports what it would ask without asking.
  *
+ * And two that read and print, asking nothing and writing nothing:
+ *
+ *   npm run extract -- label-rescore    the answers of a run already paid for, counted again with
+ *                                       the confidence rule removed.
+ *   npm run extract -- label-recall     how often each shortlist method holds the right record,
+ *                                       from the frozen file's captions alone.
+ *
  * This writes files and never writes the store. ADR 0002 decision 6: candidates are files,
  * never records, because `publicRecords` blocks only `excluded` and `disputed` and a
  * candidate-ish status would be exported to the published bundle. A candidate that is not a
@@ -42,6 +49,9 @@ import type { Candidate } from "../../../shared/omics/extract/index";
 import {
   DEFAULT_EFFORT,
   DEFAULT_MODEL,
+  SHORTLIST_MAX,
+  SHORTLIST_METHODS,
+  type ShortlistMethod,
   buildShortlistIndex,
   labelTables,
   loadPrompt,
@@ -60,6 +70,10 @@ const usage = [
   "Usage: npm run extract -- <source id> [--batch <name>] [--date <YYYY-MM-DD>] [--out <dir>] [--json]",
   "                        [--label] [--model <id>] [--effort <level>] [--replies <file>]",
   "       npm run extract -- label-measure --heldout <tsv> --max-questions <n> [--plan] [--out <dir>]",
+  "                                        [--shortlist-method lexical|search] [--shortlist-max <n>]",
+  "                                        [--cache <json>] [--replies <json>]",
+  "       npm run extract -- label-rescore --answers <tsv>",
+  "       npm run extract -- label-recall --heldout <tsv> [--json]",
   "                        [--replies <file>] [--model <id>] [--effort <level>] [--date <YYYY-MM-DD>]",
 ].join("\n");
 
@@ -225,6 +239,28 @@ async function main(argv: string[]): Promise<void> {
   // The measurement is a third command for the same reason: it reads the whole store, writes a
   // dated report and extracts nothing. It is the only command here that can spend money, and the
   // cap is a required argument rather than a default somebody can forget.
+  // Two readings that ask nothing. `label-rescore` re-counts the answers of a run already paid
+  // for with the confidence rule removed. `label-recall` counts how often each shortlist method
+  // holds the right record, from the frozen file's captions alone.
+  if (argv[0] === "label-rescore" || argv[0] === "label-recall") {
+    const rest = argv.slice(1);
+    const value = (flag: string): string => {
+      const at = rest.indexOf(flag);
+      return at >= 0 ? (rest[at + 1] ?? "") : "";
+    };
+    const { rescoreAnswers, labelRecall, recallTable } = await import("./label-measure");
+    if (argv[0] === "label-rescore") {
+      if (!value("--answers")) throw new Error("label-rescore needs --answers <tsv>, the answers file a label-measure run wrote.");
+      console.log(JSON.stringify(rescoreAnswers(value("--answers")), null, 2));
+      return;
+    }
+    if (!value("--heldout")) throw new Error("label-recall needs --heldout <tsv>, the frozen held-out set.");
+    const recall = labelRecall({ heldout: value("--heldout") });
+    if (rest.includes("--json")) console.log(JSON.stringify(recall, null, 2));
+    else console.log([`Basis: ${recall.basis}.`, "", ...recallTable(recall.rows)].join("\n"));
+    return;
+  }
+
   if (argv[0] === "label-measure") {
     const rest = argv.slice(1);
     const value = (flag: string, fallback: string): string => {
@@ -243,6 +279,12 @@ async function main(argv: string[]): Promise<void> {
     // answers nothing, so every question becomes a transport failure and the
     // report says so rather than inventing a rate.
     const replies = value("--replies", "");
+    const method = value("--shortlist-method", "lexical");
+    if (!(SHORTLIST_METHODS as readonly string[]).includes(method))
+      throw new Error(`--shortlist-method is one of ${SHORTLIST_METHODS.join(", ")}, got ${method}`);
+    const shortlistMax = Number(value("--shortlist-max", String(SHORTLIST_MAX)));
+    if (!Number.isInteger(shortlistMax) || shortlistMax <= 0)
+      throw new Error("--shortlist-max is a positive whole number.");
     const { labelMeasure, recordedTransport: recorded } = await import("./label-measure");
     await labelMeasure(".", {
       heldout,
@@ -250,6 +292,9 @@ async function main(argv: string[]): Promise<void> {
       out: value("--out", "maintenance/reports"),
       date: value("--date", new Date().toISOString().slice(0, 10)),
       maxQuestions: planOnly ? Number(value("--max-questions", String(Number.MAX_SAFE_INTEGER))) : cap,
+      shortlistMethod: method as ShortlistMethod,
+      shortlistMax,
+      cacheFrom: value("--cache", "") || undefined,
       model: value("--model", DEFAULT_MODEL),
       effort: value("--effort", DEFAULT_EFFORT),
       planOnly,
