@@ -47,7 +47,8 @@ on:
       cache:
         description: >-
           A committed cache of earlier answers. Replay mode scores it. Live mode reads it first,
-          so a question it already answers is not paid for twice; clear it to ask everything again.
+          so a question it already answers is not paid for twice. Write none to ask everything
+          again on a live run.
         required: false
         default: maintenance/reports/label-measure-cache-2026-11-20.json
       heldout:
@@ -120,6 +121,7 @@ jobs:
           # The hard ceiling on spend. Nothing below can ask more than this.
           [ "$MAX_QUESTIONS" -le 250 ] || { echo "::error::max_questions may not be more than 250, got $MAX_QUESTIONS"; exit 1; }
           [ "$SHORTLIST_MAX" -le 30 ] || { echo "::error::shortlist_max may not be more than 30, got $SHORTLIST_MAX"; exit 1; }
+          if [ "$CACHE" = none ]; then CACHE=""; fi
           if [ "$MODE" = replay ]; then
             [ -n "$CACHE" ] && [ -f "$CACHE" ] || { echo "::error::replay needs a committed cache, and '$CACHE' is not in this checkout"; exit 1; }
           fi
@@ -170,7 +172,11 @@ jobs:
           MAX_QUESTIONS: ${{ inputs.max_questions }}
           SHORTLIST_METHOD: ${{ inputs.shortlist_method }}
           SHORTLIST_MAX: ${{ inputs.shortlist_max }}
+          MODE: ${{ inputs.mode }}
         run: |
+          # The question cap bounds a live run only. A plan or a replay asks nothing, so it
+          # plans every askable question, up to the same hard ceiling.
+          if [ "$MODE" != live ]; then MAX_QUESTIONS=250; fi
           npm run -s extract -- label-measure --heldout "$HELDOUT" --plan --max-questions "$MAX_QUESTIONS" \
             --shortlist-method "$SHORTLIST_METHOD" --shortlist-max "$SHORTLIST_MAX" | tee plan.json
 
@@ -232,7 +238,7 @@ jobs:
           date_arg=""
           if [ -n "$REPORT_DATE" ]; then date_arg="--date $REPORT_DATE"; fi
           cache_arg=""
-          if [ -n "$CACHE" ]; then cache_arg="--cache $CACHE"; fi
+          if [ -n "$CACHE" ] && [ "$CACHE" != none ]; then cache_arg="--cache $CACHE"; fi
           # shellcheck disable=SC2086
           npm run -s extract -- label-measure \
             --heldout "$HELDOUT" \
