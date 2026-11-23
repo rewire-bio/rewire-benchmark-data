@@ -49,3 +49,9 @@ Each proposed field and whether the verification pass confirmed it. An empty kep
 | claude-haiku-5-5 | 10394 | 4003 | 40131 | 8352 | 0 | 3 | $0.0061 |
 | claude-sonnet-5-5 | 3152 | 4452 | 25842 | 2512 | 0 | 0 | $0.0451 |
 | Total | | | | | | | $0.0513 |
+
+## Revision after review
+
+The reviewer agent requested changes (https://github.com/rewire-bio/rewire-benchmark-data/pull/376#pullrequestreview-6028784381). The intake agent revised the batch once; it changes only the fields the review did not pass, and it does not revise again.
+
+- `intake-372-20261123-benchmark-where-single-cell-foundation-models-help-a-public-data-bench` duplicates: ruled distinct from `discovery-benchmark-virtual-cell-challenge-2026` ("Virtual Cell Challenge 2026"). Ruled in the revision after review: a different resource. New record: "gene regulatory network inference". Store record discovery-benchmark-virtual-cell-challenge-2026 (benchmark): "unseen cellular contexts". The script compared the source URLs, DOIs and repository addresses the two records give and found none in common; it cannot see one resource cited at two unrelated addresses. The new record is a public-data benchmark of single-cell foundation models and baselines covering cell-type annotation, in silico perturbation and gene regulatory network inference, while the store record is the Virt
