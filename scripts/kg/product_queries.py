@@ -357,6 +357,52 @@ PROVENANCE = f"""SELECT ?step ?record ?name ?locator ?url ?doi ?retrieved ?sha25
   }}
 }} ORDER BY DESC(?step) ?date ?record"""
 
+# All reviewed results for a model, method, pipeline or configuration, across protocols and
+# configurations. Outer FILTER(isIRI(?result)) drops rdflib's empty group row when zero results match.
+RESULTS_FOR_MODEL = f"""SELECT ?configuration ?name ?protocol ?protocolName ?metric ?metricQualifier ?value ?unit ?direction
+       ?result ?evaluation ?origin ?independent ?reviewStatus ?receipt ?useCases ?openFindings WHERE {{
+  {{ SELECT ?configuration ?name ?protocol ?protocolName ?metric ?metricQualifier ?value ?unit ?direction
+            ?result ?evaluation ?origin ?independent ?reviewStatus ?receipt
+            (GROUP_CONCAT(DISTINCT STR(?useCase); separator=" ") AS ?useCases)
+            (GROUP_CONCAT(DISTINCT STR(?finding); separator=" ") AS ?openFindings) WHERE {{
+    {{ BIND($model AS ?configuration) }} UNION {{ ?configuration {PARENT} $model }}
+    ?evaluation rb:testedSystem ?configuration ; rb:testedOn ?protocol .
+    {checked("?evaluation")}
+    ?result rb:evaluation ?evaluation ; rb:metric ?metric ; {MLS_VALUE} ?value .
+    {checked("?result")}
+    ?configuration rdfs:label ?label .
+    OPTIONAL {{ ?configuration rb:reportedName ?reported }}
+    BIND(COALESCE(?reported, ?label) AS ?name)
+    OPTIONAL {{ ?protocol rdfs:label ?protocolName }}
+    OPTIONAL {{ ?result rb:metricQualifier ?metricQualifier }}
+    OPTIONAL {{ ?result rb:unit ?unit }}
+    OPTIONAL {{ ?result rb:metricDirection ?direction }}
+    OPTIONAL {{ ?evaluation rb:origin ?origin }}
+    BIND(COALESCE(?origin = <{ORIGIN}independent_paper>, false) AS ?independent)
+    OPTIONAL {{
+      {{ SELECT ?result (IRI(MIN(STR(?receiptSource))) AS ?receipt) WHERE {{
+        ?result rb:evaluation ?eS .
+        {{ ?result {SOURCE} ?receiptSource }} UNION {{ ?eS {SOURCE} ?receiptSource }}
+        GRAPH {RELEASE_GRAPH} {{ ?owner rb:runReceipt ?receiptSource }}
+      }} GROUP BY ?result }}
+    }}
+    BIND(COALESCE(IF(isIRI(?receipt), "reproduced", "source_checked"), "source_checked") AS ?reviewStatus)
+    OPTIONAL {{
+      GRAPH {RELEASE_GRAPH} {{ ?j rb:servedEvaluation ?evaluation . }}
+      ?j rb:subject ?useCase .
+    }}
+    OPTIONAL {{
+      GRAPH {DERIVED_GRAPH} {{
+        {{ ?finding rb:outlierResult ?result }} UNION {{ ?finding rb:consensusResult ?result }} UNION {{ ?finding rb:partyResult ?result }}
+        ?finding rb:reviewState ?state .
+        FILTER(?state NOT IN ({SETTLED}))
+      }}
+    }}
+  }} GROUP BY ?configuration ?name ?protocol ?protocolName ?metric ?metricQualifier ?value ?unit ?direction
+             ?result ?evaluation ?origin ?independent ?reviewStatus ?receipt }}
+  FILTER(isIRI(?result))
+}} ORDER BY ?protocol ?metric ?metricQualifier ?configuration ?result"""
+
 
 # Bundle format: rdf-kg-mcp docs/bundle-format.md, "Named queries". No parameter is used in a
 # SELECT list or in BOUND(); an optional one appears only as FILTER(COALESCE(?x = $p, true)).
@@ -420,6 +466,21 @@ QUERIES = [
         "params": [
             {"name": "subject", "type": "iri", "required": True,
              "description": "A benchmark, protocol, task or model record, e.g. id:rewire-mfass-v2."},
+        ],
+    },
+    {
+        "name": "results_for_model",
+        "title": "Reviewed results for a model, method, pipeline or configuration",
+        "description": "Every reviewed result across all configurations and protocols for a model, "
+        "method, pipeline or configuration record. Pass the parent model or method IRI to inspect all of "
+        "its configurations together, or a specific configuration IRI. Returns the configuration, protocol, "
+        "metric, qualifier, numeric value, unit, direction, result and evaluation IRIs, origin, review "
+        "status, run receipt (if executed and served), served use cases (space-separated IRIs) and "
+        "unsettled discrepancies (space-separated IRIs). Excludes superseded and unreviewed records.",
+        "sparql": RESULTS_FOR_MODEL,
+        "params": [
+            {"name": "model", "type": "iri", "required": True,
+             "description": "A model, method, pipeline or configuration record, e.g. id:esm2-t33-650m-ur50d."},
         ],
     },
     {

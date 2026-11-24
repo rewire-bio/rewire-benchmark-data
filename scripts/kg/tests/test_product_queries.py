@@ -401,6 +401,30 @@ class RecipeAndProvenanceTest(unittest.TestCase):
         for name in ("use-case", "e1-b", "config-a", "paper", "j1", "no-such-record"):
             self.assertEqual(self.fixture.run("provenance", result=ID[name]), [], name)
 
+    def test_results_for_model_spans_configurations_receipts_and_open_findings(self) -> None:
+        rows = self.fixture.run("results_for_model", model=ID["model-a"])
+        result_ids = {local(r["result"]) for r in rows}
+        self.assertEqual(result_ids, {"r1-a-1", "r1-a-2", "r1-a-acc", "r2-a", "r3-1", "r3-1-b"})
+        [r1] = [r for r in rows if local(r["result"]) == "r1-a-1"]
+        self.assertEqual(local(r1["configuration"]), "config-a")
+        self.assertEqual(str(r1["reviewStatus"]), "source_checked")
+        self.assertEqual(str(r1["openFindings"]).strip(), f"{build.ID}discrepancy-open")
+        self.assertEqual(str(r1["useCases"]).strip(), f"{build.ID}use-case")
+
+        rows_b = self.fixture.run("results_for_model", model=ID["model-b"])
+        # r1-b-old is superseded and excluded; e1-b carries receipt so reviewStatus is reproduced.
+        self.assertEqual({local(r["result"]) for r in rows_b}, {"r1-b", "r1-d-1", "r1-d-2"})
+        [rb] = [r for r in rows_b if local(r["result"]) == "r1-b"]
+        self.assertEqual(str(rb["reviewStatus"]), "reproduced")
+        self.assertEqual(local(rb["receipt"]), "receipt")
+        self.assertEqual(str(rb["openFindings"]).strip(), "")
+
+    def test_results_for_model_accepts_configuration_and_ignores_non_systems(self) -> None:
+        rows_cfg = self.fixture.run("results_for_model", model=ID["config-c"])
+        self.assertEqual({local(r["result"]) for r in rows_cfg}, {"r1-c"})
+        for non_model in ("use-case", "p1", "no-such-record"):
+            self.assertEqual(self.fixture.run("results_for_model", model=ID[non_model]), [], non_model)
+
 
 class ReleaseGraphTest(unittest.TestCase):
     def artifact(self, **changes) -> dict:
@@ -475,7 +499,7 @@ class ReleaseGraphTest(unittest.TestCase):
 
 class QueryFormatTest(unittest.TestCase):
     def test_no_composite_score_and_no_parameter_in_a_select_list(self) -> None:
-        self.assertEqual(list(QUERIES), ["rank_for_use_case", "gaps", "recipe_for", "provenance"])
+        self.assertEqual(list(QUERIES), ["rank_for_use_case", "gaps", "recipe_for", "results_for_model", "provenance"])
         for query in product_queries.QUERIES:
             self.assertIn(query, build.NAMED_QUERIES)
         columns = QUERIES["rank_for_use_case"]["sparql"].split("WHERE", 1)[0]

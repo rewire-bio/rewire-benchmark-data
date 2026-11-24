@@ -71,15 +71,16 @@ The asserted graph holds every public record, including relevance judgements the
 
 Nothing in this graph is inferred, and no record's status, value or links change. The build fails if `use-cases.json` is missing for a release, is for another release, or names a judgement, evaluation, use case or method the asserted graph does not have. A bundle built before a release is cut (`release_id` `unreleased`) has run receipts only, so the ranking and gap queries return nothing useful on it.
 
-## Named queries for ranking, gaps, recipes and provenance
+## Named queries for ranking, gaps, recipes, model results and provenance
 
-`scripts/kg/product_queries.py` adds four named queries to the manifest. They answer the main product questions without hand-written SPARQL.
+`scripts/kg/product_queries.py` adds five named queries to the manifest. They answer the main product questions without hand-written SPARQL.
 
 | Query | Parameters | Returns |
 | --- | --- | --- |
 | `rank_for_use_case` | `use_case` (IRI) | The rows of the use case's board: configurations ranked on one comparison, one column and one metric, with the result and evaluation each value is read from, its tool, origin, whether the origin is an independent study, review status, run receipt, coverage and open discrepancies |
 | `gaps` | `use_case` (IRI, optional), `tier` (integer, optional), `level` (string, optional) | Use cases with no directly relevant served judgement, one study or no independent evaluation; and, per protocol a use case is assessed by, no served evidence, one study or no independent evaluation |
 | `recipe_for` | `subject` (IRI) | Records with run recipes (the record, what it contains and what contains it), the recipes as stored, and the run receipts on executed full-protocol instructions |
+| `results_for_model` | `model` (IRI) | Every reviewed result across all configurations and protocols for a model, method, pipeline or configuration, with origin, review status, run receipt, served use cases and unsettled discrepancies |
 | `provenance` | `result` (IRI) | The sources a result cites with the locator, URL, DOI, retrieval date and artifact hash; the review of the result and its evaluation; and claims about the result |
 
 `rank_for_use_case` follows the website's board rules (rewire-database `lib/use-case-comparisons.ts` and `lib/use-case-ranking.ts`):
