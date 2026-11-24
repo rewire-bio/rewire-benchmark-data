@@ -17,7 +17,24 @@ describe("ClinGen PP3/BP4 CPU calibration batch", () => {
     expect(stored.filter((record) => record.kind === "configuration")).toHaveLength(9);
     expect(evaluations).toHaveLength(27);
     expect(claims).toHaveLength(3);
-    expect(stored.every((record) => record.status === "source_checked")).toBe(true);
+    const af001ReproducedIds = new Set(
+      evaluations
+        .filter((record) => record.id.endsWith("-post-2023-12-af001") && record.id !== `${prefix}-evaluation-evee-post-2023-12-af001`)
+        .map((record) => record.id),
+    );
+    expect(af001ReproducedIds.size).toBe(8);
+    const reproduced = stored.filter((record) => record.status === "reproduced");
+    const nonReproduced = stored.filter((record) => record.status !== "reproduced");
+    expect(reproduced).toHaveLength(128);
+    expect(
+      reproduced.every(
+        (record) =>
+          (record.kind === "evaluation" && af001ReproducedIds.has(record.id)) ||
+          (record.kind === "result" &&
+            af001ReproducedIds.has(record.links.find((link) => link.relation === "evaluation")?.target_id ?? "")),
+      ),
+    ).toBe(true);
+    expect(nonReproduced.every((record) => record.status === "source_checked")).toBe(true);
   });
 
   it("scopes the EVEE ClinVar leakage concern strictly to the three EVEE evaluations", () => {
