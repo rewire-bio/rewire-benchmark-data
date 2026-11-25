@@ -542,7 +542,7 @@ def build(kg_dir: Path, use_cases: Path | None = None) -> dict:
         raise BuildError(str(error)) from error
     print(f"Release graph: {release_counts['served_evaluations']} served evaluations of "
           f"{release_counts['served_judgements']} judgements, {release_counts['served_baselines']} baseline methods, "
-          f"{release_counts['run_receipts']} run receipts", file=sys.stderr)
+          f"{release_counts['served_anchors']} protocol anchors, {release_counts['run_receipts']} run receipts", file=sys.stderr)
 
     (kg_dir / "inferred.nq").write_text(nquads(inferred, GRAPHS["inferred"]), "utf-8")
     (kg_dir / "release.nq").write_text(nquads(release, GRAPHS["release"]), "utf-8")
@@ -589,8 +589,10 @@ def build(kg_dir: Path, use_cases: Path | None = None) -> dict:
             "result is wrong.",
             "release": "What the release serves, copied from its use-case file: the evaluations behind each active "
             "direct or proxy relevance judgement (rb:servedEvaluation), each use case's reviewed baseline methods "
-            "(rb:servedBaseline), and the sources of run receipts on executed full-protocol run recipes "
-            "(rb:runReceipt). A judgement in the asserted graph with no served evaluation is withheld.",
+            "(rb:servedBaseline), each protocol's reviewed floor, conventional baseline and ceiling anchors "
+            "(rb:servedNullBaseline, rb:servedConventionalBaseline, rb:servedExperimentalCeiling), and the sources of "
+            "run receipts on executed full-protocol run recipes (rb:runReceipt). A judgement in the asserted graph "
+            "with no served evaluation is withheld.",
         },
         "files": dict(sorted(files.items())),
         "prefixes": {

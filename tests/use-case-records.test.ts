@@ -79,6 +79,40 @@ describe("use cases as records", () => {
     expect(claimPins(new Map(store.map((r) => [r.id, r])), onProtocol)).toBeUndefined();
   });
 
+  it("derives and withholds reviewed protocol anchor claims across mappings", () => {
+    const inputs = derive(store);
+    const utr = inputs.mappings.find((m) => m.id === "use-case-mapping-utr-translation-baselines-designed-v1")!;
+    expect(utr.null_baseline?.claim_id).toBe("anchor-mrnabench-designed-mrl-v1-null-baseline");
+    expect(utr.null_baseline?.numeric_value).toBe("2.3655294722554605");
+    expect(utr.conventional_baseline?.claim_id).toBe("anchor-mrnabench-designed-mrl-v1-conventional-baseline");
+    expect(utr.conventional_baseline?.numeric_value).toBe("1.914439715839851");
+    const ross = inputs.mappings.find((m) => m.id === "uc-leadopt-20261022-judgement-ross-experimental-survey")!;
+    expect(ross.experimental_ceiling?.claim_id).toBe("anchor-ross-experimental-survey-ceiling-kendall-tau");
+    expect(ross.experimental_ceiling?.numeric_value).toBe("0.71");
+    // Changing a pinned anchor result withholds the anchor cleanly.
+    const changedResult = edit("rewire-local-20260920-result-mrnabench-train-mean-mse", (r) => ({
+      ...r, attributes: { ...r.attributes, numeric_value: "9.99" },
+    }));
+    const changedMapping = derive(changedResult).mappings.find((m) => m.id === "use-case-mapping-utr-translation-baselines-designed-v1")!;
+    expect(changedMapping.null_baseline).toBeUndefined();
+    expect(changedMapping.conventional_baseline?.claim_id).toBe("anchor-mrnabench-designed-mrl-v1-conventional-baseline");
+    // Disputing a cited anchor source withholds the ceiling anchor without dropping the protocol itself.
+    const disputedSource = edit("uc-leadopt-20261022-source-ross2023", (r) => ({
+      ...r, attributes: { ...r.attributes, evidence_concerns: [{ message: "test", applies_to: ["anchor-ross-experimental-survey-ceiling-kendall-tau"] }] },
+    }));
+    expect(derive(disputedSource).mappings.find((m) => m.id === "uc-leadopt-20261022-judgement-ross-experimental-survey")!.experimental_ceiling).toBeUndefined();
+    // Anchor pins cover all three ANCHOR_FIELDS.
+    for (const anchorId of [
+      "anchor-mrnabench-designed-mrl-v1-null-baseline",
+      "anchor-mrnabench-designed-mrl-v1-conventional-baseline",
+      "anchor-ross-experimental-survey-ceiling-kendall-tau",
+    ]) {
+      const claim = store.find((r) => r.id === anchorId)!;
+      const computed = claimPins(new Map(store.map((r) => [r.id, r])), claim);
+      expect(useCaseHash(computed)).toBe(useCaseHash(claim.attributes.pins as JudgementPin[]));
+    }
+  });
+
   it("withholds a judgement when a pinned field changes meaning", () => {
     const m = mapping(edit(protocolId, (r) => ({ ...r, attributes: { ...r.attributes, protocol: "A different matching rule" } })));
     expect(m.lifecycle).toBe("needs_review");

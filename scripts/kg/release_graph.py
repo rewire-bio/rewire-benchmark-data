@@ -8,11 +8,14 @@ field, so a query over the records alone cannot reproduce it. This module copies
 release's use-cases.json into a graph of its own, so that a query and the website read the same
 evidence:
 
-  <judgement> rb:servedEvaluation <evaluation>   an active direct or proxy judgement and each
-                                                 evaluation the release serves for it
-  <use case>  rb:servedBaseline   <method>       the use case's reviewed baseline methods
-  <record>    rb:runReceipt       <source>       the source of a run receipt on an executed,
-                                                 full-protocol run-recipe instruction of the record
+  <judgement> rb:servedEvaluation          <evaluation>   an active direct or proxy judgement and each
+                                                           evaluation the release serves for it
+  <use case>  rb:servedBaseline            <method>       the use case's reviewed baseline methods
+  <protocol>  rb:servedNullBaseline        <claim>        the protocol's reviewed null-baseline claim
+  <protocol>  rb:servedConventionalBaseline <claim>       the protocol's reviewed conventional-baseline claim
+  <protocol>  rb:servedExperimentalCeiling <claim>        the protocol's reviewed experimental-ceiling claim
+  <record>    rb:runReceipt                <source>       the source of a run receipt on an executed,
+                                                           full-protocol run-recipe instruction of the record
 
 Nothing here is inferred and no record's status, value or links are changed. A bundle built
 without a release (release_id "unreleased") has run receipts only.
@@ -27,7 +30,12 @@ from rdflib import RDF, URIRef
 
 RB = rdflib.Namespace("https://benchmarks.rewire.it/vocab#")
 ID = "https://benchmarks.rewire.it/id/"
-PREDICATES = {RB.servedEvaluation, RB.servedBaseline, RB.runReceipt}
+ANCHOR_PREDICATES = {
+    "null_baseline": RB.servedNullBaseline,
+    "conventional_baseline": RB.servedConventionalBaseline,
+    "experimental_ceiling": RB.servedExperimentalCeiling,
+}
+PREDICATES = {RB.servedEvaluation, RB.servedBaseline, *ANCHOR_PREDICATES.values(), RB.runReceipt}
 
 
 class ReleaseGraphError(Exception):
@@ -76,6 +84,21 @@ def served(asserted: rdflib.Graph, artifact: dict, release_id: str) -> set[tuple
             evaluation = URIRef(ID + evaluation_id)
             if known(evaluation, RB.Evaluation, "evaluation"):
                 triples.add((judgement, RB.servedEvaluation, evaluation))
+        protocol_id = mapping.get("protocol_id")
+        for field, predicate in ANCHOR_PREDICATES.items():
+            anchor = mapping.get(field)
+            if not anchor or not protocol_id:
+                continue
+            protocol = URIRef(ID + protocol_id)
+            claim = URIRef(ID + anchor["claim_id"])
+            if not (known(protocol, RB.Protocol, "protocol") and known(claim, RB.Claim, f"{field} claim")):
+                continue
+            if (claim, RB.subject, protocol) not in asserted:
+                problems.append(f"anchor claim {anchor['claim_id']} is not about protocol {protocol_id}")
+            for ref_id in [*anchor.get("method_ids", []), *anchor.get("evaluation_ids", []), *anchor.get("result_ids", [])]:
+                if (URIRef(ID + ref_id), RDF.type, None) not in asserted:
+                    problems.append(f"anchor {anchor['claim_id']} reference {ref_id} is not in the asserted graph")
+            triples.add((protocol, predicate, claim))
     for use_case in artifact.get("use_cases", []):
         node = URIRef(ID + use_case["id"])
         method_ids = (use_case.get("baseline") or {}).get("method_ids", [])
@@ -98,10 +121,12 @@ def release_triples(asserted: rdflib.Graph, artifact: dict | None, release_id: s
     receipts = run_receipts(asserted)
     use_cases = served(asserted, artifact, release_id) if artifact is not None else set()
     evaluations = {(s, o) for s, p, o in use_cases if p == RB.servedEvaluation}
+    anchor_predicates = set(ANCHOR_PREDICATES.values())
     return receipts | use_cases, {
         "use_cases": artifact is not None,
         "served_judgements": len({s for s, _ in evaluations}),
         "served_evaluations": len(evaluations),
         "served_baselines": sum(p == RB.servedBaseline for _, p, _ in use_cases),
+        "served_anchors": sum(p in anchor_predicates for _, p, _ in use_cases),
         "run_receipts": len(receipts),
     }
