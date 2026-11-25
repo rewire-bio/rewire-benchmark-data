@@ -201,3 +201,76 @@ describe("a data input checked record by record", () => {
     expect(readFigures(root, "reports/figures.json").inputs).toEqual(was);
   });
 });
+
+describe("span input projection for source and result records", () => {
+  const resultRow = {
+    id: "res-1",
+    kind: "result",
+    status: "source_checked",
+    source_ids: ["src-1"],
+    attributes: {
+      source_locator: "Table 1, row A",
+      printed_value: "0.85",
+      metric_direction: "unknown",
+    },
+  };
+  const sourceRow = {
+    id: "src-1",
+    kind: "source",
+    status: "source_checked",
+    links: [] as { relation: string; target_id: string }[],
+    attributes: { url: "https://example.org" },
+  };
+
+  function store(results: Record<string, unknown>[], sources: Record<string, unknown>[]): string {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "figures-span-"));
+    const byId = (a: Record<string, unknown>, b: Record<string, unknown>) => (String(a.id) < String(b.id) ? -1 : 1);
+    fs.writeFileSync(path.join(dir, "results.jsonl"), results.slice().sort(byId).map((r) => `${JSON.stringify(r)}\n`).join(""));
+    fs.writeFileSync(path.join(dir, "sources.jsonl"), sources.slice().sort(byId).map((s) => `${JSON.stringify(s)}\n`).join(""));
+    return dir;
+  }
+
+  const INPUTS = ["results.jsonl", "sources.jsonl"];
+  const baseline = inputFiles(store([resultRow], [sourceRow]), INPUTS);
+
+  it("ignores non-span field edits such as status, metric_direction and source links", () => {
+    const editedResult = {
+      ...resultRow,
+      status: "reproduced",
+      attributes: { ...resultRow.attributes, metric_direction: "higher" },
+    };
+    const editedSource = {
+      ...sourceRow,
+      status: "superseded",
+      links: [{ relation: "supersedes", target_id: "src-0" }],
+    };
+    expect(changedInputs(baseline, inputFiles(store([editedResult], [editedSource]), INPUTS))).toEqual([]);
+  });
+
+  it("fails naming the record when printed_value, source_locator or source_ids change or a record is removed", () => {
+    const changedLocator = {
+      ...resultRow,
+      attributes: { ...resultRow.attributes, source_locator: "Table 2, row B" },
+    };
+    expect(changedInputs(baseline, inputFiles(store([changedLocator], [sourceRow]), INPUTS))).toEqual([
+      { path: "results.jsonl", was: "1 records measured", now: "1 measured record changed: res-1" },
+    ]);
+
+    const changedPrinted = {
+      ...resultRow,
+      attributes: { ...resultRow.attributes, printed_value: "0.90" },
+    };
+    expect(changedInputs(baseline, inputFiles(store([changedPrinted], [sourceRow]), INPUTS))).toEqual([
+      { path: "results.jsonl", was: "1 records measured", now: "1 measured record changed: res-1" },
+    ]);
+
+    const changedSource = { ...resultRow, source_ids: ["src-2"] };
+    expect(changedInputs(baseline, inputFiles(store([changedSource], [sourceRow]), INPUTS))).toEqual([
+      { path: "results.jsonl", was: "1 records measured", now: "1 measured record changed: res-1" },
+    ]);
+
+    expect(changedInputs(baseline, inputFiles(store([resultRow], []), INPUTS))).toEqual([
+      { path: "sources.jsonl", was: "1 records measured", now: "1 measured record is gone: src-1" },
+    ]);
+  });
+});
