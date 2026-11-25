@@ -33,8 +33,6 @@ import { countByRule, tsvHeader, tsvRow, type Check, type CheckInput, type Findi
 import { unitForMetric } from "./unit_for_metric";
 import { directionDefault } from "./direction_default";
 import { printedVsNumeric } from "./printed_vs_numeric";
-import { qualifierShape } from "./qualifier_shape";
-import { columnCoherence } from "./column_coherence";
 import { duplicateArtifact } from "./duplicate_artifact";
 import { normaliseOrRefuse } from "./normalise_or_refuse";
 
@@ -42,8 +40,6 @@ export const checks: Check[] = [
   unitForMetric,
   directionDefault,
   printedVsNumeric,
-  qualifierShape,
-  columnCoherence,
   duplicateArtifact,
   normaliseOrRefuse,
 ];
@@ -161,36 +157,41 @@ export const ratchetRemedy =
   "rerun npm run checks -- baseline and add a dated review in docs/reviews/ saying which rule rose, by how much, and why the " +
   "new findings stand.";
 
-export type RatchetMode = "report" | "blocking";
+export type RatchetMode = "selective" | "report" | "blocking";
 
-/** The one switch for the ratchet (issue #272, decided 23 November 2026).
- *
- * "report": tests/checks-baseline.test.ts prints every count beside its baseline and passes when
- * counts rise. "blocking": the same test fails when any count rises above its baseline.
- *
- * It is report only because the blocking ratchet failed 13 of 14 pull requests that added results
- * and nobody had measured how often a finding is a real error. To block again, change this
- * constant to "blocking", or set CHECKS_RATCHET=blocking in the environment of the test run. */
-export const defaultRatchetMode: RatchetMode = "report";
+/** Blocking rules in selective mode (issue #380): clean invariants pinned at zero whose
+ * findings indicate duplicate sources, omitted metric directions, unknown metrics, or
+ * non-normalised attributes. */
+export const blockingRatchetKeys = new Set([
+  "C2.unknown-where-declared",
+  "C2.metric-not-a-concept",
+  "C9",
+  "C9.same-artifact-and-url",
+  "C13",
+  "C13.would-be-rewritten",
+]);
+
+/** The default ratchet mode (issue #380): block on C2 omission/concept checks, C9, and C13,
+ * while reporting C1.unit-scope-note, C2.opposite, and C3.* advisories. */
+export const defaultRatchetMode: RatchetMode = "selective";
 
 /** The mode in force: CHECKS_RATCHET when it is set, defaultRatchetMode otherwise. */
 export function ratchetMode(env: Record<string, string | undefined> = process.env): RatchetMode {
   const asked = env.CHECKS_RATCHET;
   if (asked === undefined || asked === "") return defaultRatchetMode;
-  if (asked === "report" || asked === "blocking") return asked;
-  throw new Error(`CHECKS_RATCHET must be "report" or "blocking", not "${asked}".`);
+  if (asked === "selective" || asked === "report" || asked === "blocking") return asked;
+  throw new Error(`CHECKS_RATCHET must be "selective", "report", or "blocking", not "${asked}".`);
 }
 
-/** What a report-only run says after its table. */
+/** What a report-only or selective advisory run says after its table. */
 export const reportOnlyNotice =
-  "Report only since 23 November 2026 (issue #272): a count above its baseline does not fail the test. Every check is " +
-  "report severity, and a finding is a lead to read, not a wrong value. npm run checks -- report writes one row per " +
-  "finding to maintenance/reports/checks-<date>.tsv. To block again, set defaultRatchetMode to \"blocking\" in " +
-  "scripts/omics/checks/cli.ts or run with CHECKS_RATCHET=blocking.";
+  "Advisory counts (C1, C2.opposite, C3) do not fail the test in selective/report mode (issues #272, #380); " +
+  "npm run checks -- report writes one row per finding to maintenance/reports/checks-<date>.tsv. " +
+  "Set CHECKS_RATCHET=blocking to gate on every rule.";
 
 /** The baseline file's `note`, as `checks -- baseline` writes it in each mode. */
 export const ratchetNote = (mode: RatchetMode): string =>
-  "Counts of every deterministic check in scripts/omics/checks/, pinned from the first run. " +
+  "Counts of every deterministic check in scripts/omics/checks/, pinned after cleanup (#380). " +
   (mode === "blocking" ? ratchetRemedy : reportOnlyNotice);
 
 export type RatchetRise = { key: string; count: number; baseline: number; rise: number };
@@ -211,8 +212,8 @@ export function aboveBaseline(baseline: Baseline, run: RunResult): string[] {
 
 /** The whole failure a maintainer should see: which check and rule rose, by how much, and the two
  * ways forward. Empty when nothing grew. */
-export function ratchetFailure(baseline: Baseline, run: RunResult): string {
-  const grown = risesAboveBaseline(baseline, run);
+export function ratchetFailure(baseline: Baseline, run: RunResult, keys?: Set<string>): string {
+  const grown = risesAboveBaseline(baseline, run).filter((rise) => !keys || keys.has(rise.key));
   if (!grown.length) return "";
   const name = (key: string): string => {
     if (key === "total") return "total findings";
@@ -267,11 +268,16 @@ export type RatchetVerdict = { mode: RatchetMode; rose: number; blocks: boolean;
 export function ratchetVerdict(baseline: Baseline, run: RunResult, mode: RatchetMode = ratchetMode()): RatchetVerdict {
   const rows = ratchetRows(baseline, run);
   const rose = rows.filter((row) => (row.difference ?? 0) > 0).length;
-  const blocks = mode === "blocking" && rose > 0;
+  const blockingKeys = mode === "selective" ? blockingRatchetKeys : undefined;
+  const blocks = mode === "blocking"
+    ? rose > 0
+    : mode === "selective"
+      ? rows.some((row) => (row.difference ?? 0) > 0 && blockingRatchetKeys.has(row.key))
+      : false;
   const headline = rose
     ? `${rose} ${rose === 1 ? "count" : "counts"} above ${baselineFile} (ratchet mode: ${mode}).`
     : `No count above ${baselineFile} (ratchet mode: ${mode}).`;
-  const closing = blocks ? ratchetFailure(baseline, run) : mode === "report" ? reportOnlyNotice : "";
+  const closing = blocks ? ratchetFailure(baseline, run, blockingKeys) : mode !== "blocking" ? reportOnlyNotice : "";
   const parts = (table: string) => [headline, "", table, ...(closing ? ["", closing] : [])].join("\n");
   return {
     mode,
@@ -342,13 +348,13 @@ if (process.argv[1]?.endsWith(path.join("checks", "cli.ts"))) {
     const baseline: Baseline = {
       note: ratchetNote(ratchetMode()),
       notes: [
-        "The commit is the HEAD the pack was written against. The checks themselves were not committed when this file was written, so the run was from the working tree at that commit. Rerun npm run checks -- baseline --commit <sha> after committing: the run is deterministic, so only this field changes.",
-        "The sentences below carry the numbers of the first run. Re-pinning this file after a count changes means rewriting them in scripts/omics/checks/cli.ts first, or they describe a run that no longer exists.",
-        "C1 minority-unit, C2 and C4 reproduce the figures the design predicted exactly: 5,093 over 43 metrics; 1,256 splitting 58, 206 and 992; 338 splitting high 171, no 161 and max 6. C1 unit-scope-note is new work and is measured here for the first time.",
-        "C3: the prototype figure of 170 did not reproduce and was not inherited, and nor did the two other figures in circulation (1,640 from a strict check, 603 from a naive half-up check). parseCell measures 3,436 findings over 51,892 results holding both values, and the split is the deliverable: 1,784 printed values parseCell cannot read, 1,473 where the printed value is the numeric value rounded, 167 where the stored number is the second number of a two-number cell, 6 off by a factor of 100 and 6 disagreeing outright. The last two rules, 12 records, are one source printing numbers with a dot thousands separator and a comma decimal.",
-        "C5: neither prototype grouping was inherited (676 of 2,446 columns and 19,374 results by one, 362 of 530 tables and 32,141 results by the other). This implementation groups by source, table or figure anchor and column, which column_coherence.ts states and argues for: 146 of 2,092 columns, holding 2,436 of the 34,688 results that could be placed in a column.",
-        "C9: this implementation reports 187 groups where the design carried 171. The difference is the grouping, not the store, and duplicate_artifact.ts says why.",
-        "C13: zero is the expected count. The 2,574 records of docs/reviews/2026-11-16-attribute-normalisation.md were migrated before this check existed; the ratchet is what keeps the count at zero.",
+        "Re-pinned for issue #380 after retiring high-noise rules, widening parseCell, merging 187 duplicate source groups, backfilling 147 omitted metric directions, removing the default direction from cohens-d, and fixing 61 CACHE 3 compound-count directions.",
+        "C1 keeps only unit-scope-note (advisory); minority-unit is retired.",
+        "C2 drops asserted-where-none. C2.unknown-where-declared and C2.metric-not-a-concept stand at 0 and block in default selective mode; C2.opposite captures legitimate domain reversals and remains advisory.",
+        "C3 drops numeric-is-the-second-number, adds null-numeric-value (386), honours declared numeric_representation and printed_value_basis, checks bracketed second numbers before rounding, and runs against widened parseCell.",
+        "C4 and C5 are retired.",
+        "C9 ignores superseded/excluded sources and supersedes-linked components, stands at 0 after merging all 187 duplicate groups, and blocks in default selective mode.",
+        "C13 stands at 0 and blocks in default selective mode.",
       ],
       commit,
       run_date: date,

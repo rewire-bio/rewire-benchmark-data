@@ -58,24 +58,43 @@ function roundsTo(value: number, printed: string): boolean {
   return same(rounded, Number(printed));
 }
 
+function applyDeclaredNumberFormat(printed: string, record: { attributes: Record<string, unknown> }): string {
+  const rep = record.attributes.numeric_representation;
+  if (typeof rep !== "string") return printed;
+  // Records like demidov2024 declare '.' as thousands separator and ',' as decimal separator.
+  if (/'\.'/.test(rep) && /thousands/i.test(rep) && /','/.test(rep) && /decimal/i.test(rep)) {
+    return printed.replace(/\./g, "").replace(/,/g, ".");
+  }
+  return printed;
+}
+
 export const printedVsNumeric: Check = {
   id: "C3",
   title: "printed value against numeric value",
-  rules: ["differs", "numeric-is-the-second-number", "printed-is-rounded", "rescaled-by-100", "unparseable-printed", "numeric-not-a-number"],
+  rules: ["differs", "printed-is-rounded", "rescaled-by-100", "unparseable-printed", "numeric-not-a-number", "null-numeric-value"],
   run({ results }: CheckInput): Finding[] {
     const findings: Finding[] = [];
     for (const record of results) {
       const printed = text(record, "printed_value");
-      const numeric = text(record, "numeric_value");
       const unit = text(record, "unit");
-      if (printed === undefined || numeric === undefined) continue;
-      // Which fields the triage will want to split the queue by: a display-rounded workbook
-      // cell and a declared printed_value_basis are the two innocent explanations.
+      const hasBasis = Boolean(text(record, "printed_value_basis"));
       const context = [
-        record.attributes.printed_value_basis !== undefined ? "has printed_value_basis" : "",
+        hasBasis ? "has printed_value_basis" : "",
         record.attributes.workbook_number_format !== undefined ? "has workbook_number_format" : "",
       ].filter(Boolean).join("; ");
       const suffix = context ? `; ${context}` : "";
+      if (record.attributes.numeric_value === null) {
+        findings.push({
+          check: "C3",
+          rule: "null-numeric-value",
+          severity: "report",
+          subject: record.id,
+          detail: `numeric_value is null; printed_value ${JSON.stringify(printed ?? null)} (unit ${unit ?? "none"})${suffix}`,
+        });
+        continue;
+      }
+      const numeric = text(record, "numeric_value");
+      if (printed === undefined || numeric === undefined) continue;
       const want = Number(numeric);
       if (!Number.isFinite(want)) {
         findings.push({
@@ -89,8 +108,9 @@ export const printedVsNumeric: Check = {
       }
       let value: string | null;
       let spread: string | null = null;
+      const prepared = applyDeclaredNumberFormat(printed, record);
       try {
-        const cell = parseCell(printed, unit === "percent" ? { unit: "percent" } : {});
+        const cell = parseCell(prepared, unit ? { unit } : {});
         value = cell.value;
         spread = cell.sd;
       } catch (error) {
@@ -116,13 +136,21 @@ export const printedVsNumeric: Check = {
       }
       const got = Number(value);
       if (same(got, want)) continue;
-      const rule = same(got * 100, want) || same(got / 100, want)
-        ? "rescaled-by-100"
-        : roundsTo(want, value)
-          ? "printed-is-rounded"
-          : spread !== null && same(Number(spread), want)
-            ? "numeric-is-the-second-number"
-            : "differs";
+      // Cells like "7 (6.5%)" or "28 (2)" report a count beside a bracketed secondary value;
+      // accept when numeric_value matches that bracketed second number, checked before rounding.
+      if (spread !== null && same(Number(spread), want)) continue;
+      if (roundsTo(want, value)) {
+        if (hasBasis) continue;
+        findings.push({
+          check: "C3",
+          rule: "printed-is-rounded",
+          severity: "report",
+          subject: record.id,
+          detail: `printed_value ${JSON.stringify(printed)} reads as ${got}; numeric_value is ${numeric} (unit ${unit ?? "none"})${suffix}`,
+        });
+        continue;
+      }
+      const rule = same(got * 100, want) || same(got / 100, want) ? "rescaled-by-100" : "differs";
       findings.push({
         check: "C3",
         rule,
@@ -135,13 +163,13 @@ export const printedVsNumeric: Check = {
   },
   context({ results }: CheckInput): Record<string, number> {
     let compared = 0;
-    let noNumeric = 0;
+    let nullNumeric = 0;
     for (const record of results) {
       const printed = text(record, "printed_value");
       const numeric = text(record, "numeric_value");
-      if (printed !== undefined && numeric !== undefined) compared += 1;
-      else noNumeric += 1;
+      if (record.attributes.numeric_value === null) nullNumeric += 1;
+      else if (printed !== undefined && numeric !== undefined) compared += 1;
     }
-    return { results_with_both_values: compared, results_skipped: noNumeric };
+    return { results_with_both_values: compared, results_skipped: nullNumeric };
   },
 };

@@ -21,7 +21,7 @@
  * concept still carries a scope note. If a note is edited, the entry here has to be reread
  * against it; nothing in the code can do that reading.
  */
-import type { Check, CheckInput, Finding, Rec } from "./finding";
+import type { Check, CheckInput, Finding } from "./finding";
 import { text } from "./finding";
 
 /** Transcribed from the three skos:scopeNote values in data/vocab/unit.ttl, 2026-11-17.
@@ -65,50 +65,16 @@ const scopeNoteRules: { note: string; unit: string; metrics: string[]; reason: s
   },
 ];
 
-type UnitCount = { unit: string; n: number };
-
-/** The majority unit of each metric, where one exists. */
-function majorityUnits(results: Rec[]): Map<string, UnitCount> {
-  const byMetric = new Map<string, Map<string, number>>();
-  for (const record of results) {
-    const metric = text(record, "metric");
-    const unit = text(record, "unit");
-    if (!metric || !unit) continue;
-    const units = byMetric.get(metric) ?? new Map<string, number>();
-    units.set(unit, (units.get(unit) ?? 0) + 1);
-    byMetric.set(metric, units);
-  }
-  const majority = new Map<string, UnitCount>();
-  for (const [metric, units] of byMetric) {
-    if (units.size < 2) continue;
-    const sorted = [...units].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
-    const [unit, n] = sorted[0];
-    const rest = sorted.slice(1).reduce((total, [, count]) => total + count, 0);
-    if (rest && rest <= n) majority.set(metric, { unit, n });
-  }
-  return majority;
-}
-
 export const unitForMetric: Check = {
   id: "C1",
   title: "unit for metric",
-  rules: ["minority-unit", "unit-scope-note"],
+  rules: ["unit-scope-note"],
   run({ results, units }: CheckInput): Finding[] {
     const findings: Finding[] = [];
-    const majority = majorityUnits(results);
     for (const record of results) {
       const metric = text(record, "metric");
       const unit = text(record, "unit");
       if (!metric || !unit) continue;
-      const convention = majority.get(metric);
-      if (convention && unit !== convention.unit)
-        findings.push({
-          check: "C1",
-          rule: "minority-unit",
-          severity: "report",
-          subject: record.id,
-          detail: `metric ${metric} unit ${unit}; the majority unit for this metric is ${convention.unit} (${convention.n} results)`,
-        });
       for (const rule of scopeNoteRules) {
         if (unit !== rule.unit || !rule.metrics.includes(metric)) continue;
         if (!units.get(rule.note)?.scopeNote) continue;
@@ -123,17 +89,11 @@ export const unitForMetric: Check = {
     }
     return findings;
   },
-  context({ results }: CheckInput, findings: Finding[]): Record<string, number> {
-    const metricOf = new Map(results.map((record) => [record.id, text(record, "metric")]));
-    const metrics = new Set<string>();
-    for (const finding of findings) {
-      if (finding.rule !== "minority-unit") continue;
-      const metric = metricOf.get(finding.subject);
-      if (metric) metrics.add(metric);
-    }
+  context({ results, units }: CheckInput, findings: Finding[]): Record<string, number> {
     return {
-      metrics_with_a_minority_unit: metrics.size,
-      metrics_with_a_majority_unit: majorityUnits(results).size,
+      results_with_unit_and_metric: results.filter((record) => text(record, "metric") && text(record, "unit")).length,
+      unit_concepts_with_scope_note: [...units.values()].filter((u) => u.scopeNote).length,
+      scope_note_findings: findings.length,
     };
   },
 };

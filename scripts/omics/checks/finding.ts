@@ -15,7 +15,7 @@
 export type Severity = "report";
 
 export type Finding = {
-  /** The check that raised it: C1, C2, C3, C4, C5, C9 or C13. */
+  /** The check that raised it: C1, C2, C3, C9 or C13. */
   check: string;
   /** The rule inside the check. Baselines and the ratchet are per rule, not per check. */
   rule: string;
