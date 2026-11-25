@@ -8,7 +8,7 @@
  *                                                          reviewed change of form, never of meaning
  * Each changed claim is recorded in its provenance (data/provenance/records/). */
 import fs from "node:fs";
-import { claimPins, useCaseHash, type JudgementPin } from "../../shared/omics/use-cases";
+import { ANCHOR_FIELDS, claimPins, useCaseHash, type JudgementPin } from "../../shared/omics/use-cases";
 import type { CatalogueRecord } from "../../shared/omics/catalogue-query";
 import { readKind, recordChanges, writeKind } from "./records";
 
@@ -25,11 +25,14 @@ const records = new Map(kinds.flatMap(read).map((r) => [r.id, r]));
 const claims = read("claim");
 const reviewed = (c: CatalogueRecord) => ["source_checked", "reproduced"].includes(c.status);
 const pinnable = (c: CatalogueRecord) => typeof c.attributes.field === "string"
-  && (c.attributes.field.startsWith("links:assessed_by:") || c.attributes.field === "summary" || c.attributes.field === "baseline");
+  && (c.attributes.field.startsWith("links:assessed_by:")
+    || c.attributes.field === "summary"
+    || c.attributes.field === "baseline"
+    || (ANCHOR_FIELDS as readonly string[]).includes(c.attributes.field));
 
 for (const id of named) {
   const claim = records.get(id);
-  if (!claim || claim.kind !== "claim" || !pinnable(claim)) { console.error(`${id} is not a judgement, summary or baseline claim.`); process.exit(1); }
+  if (!claim || claim.kind !== "claim" || !pinnable(claim)) { console.error(`${id} is not a judgement, summary, baseline or protocol anchor claim.`); process.exit(1); }
   if (!reviewed(claim)) { console.error(`${id} is ${claim.status}; review it before pinning.`); process.exit(1); }
 }
 

@@ -451,8 +451,41 @@ class ReleaseGraphTest(unittest.TestCase):
             (ID.p1, RB.runReceipt, ID.receipt),
         })
         self.assertEqual(counts, {"use_cases": True, "served_judgements": 1, "served_evaluations": 2,
-                                  "served_baselines": 1, "run_receipts": 1})
+                                  "served_baselines": 1, "served_anchors": 0, "run_receipts": 1})
         self.assertLessEqual({p for _, p, _ in triples}, release_graph.PREDICATES)
+
+    def test_protocol_anchors_are_served_and_validated(self) -> None:
+        asserted = rdflib.Graph()
+        for triple in Fixture().asserted:
+            asserted.add(triple)
+        for claim_id, pred in (
+            ("c-null", RB.servedNullBaseline),
+            ("c-conv", RB.servedConventionalBaseline),
+            ("c-ceil", RB.servedExperimentalCeiling),
+        ):
+            record(asserted, claim_id, RB.Claim, subject=ID.p1, source=[ID.paper])
+        artifact = self.artifact()
+        artifact["mappings"][0] = {
+            **artifact["mappings"][0],
+            "protocol_id": "p1",
+            "null_baseline": {"claim_id": "c-null", "evaluation_ids": ["e1-a"], "result_ids": ["r1-a-1"]},
+            "conventional_baseline": {"claim_id": "c-conv", "method_ids": ["baseline-method"]},
+            "experimental_ceiling": {"claim_id": "c-ceil", "evaluation_ids": ["e1-b"], "result_ids": ["r1-b"]},
+        }
+        triples, counts = release_graph.release_triples(asserted, artifact, "2026-01-01-000000000000")
+        self.assertIn((ID.p1, RB.servedNullBaseline, ID["c-null"]), triples)
+        self.assertIn((ID.p1, RB.servedConventionalBaseline, ID["c-conv"]), triples)
+        self.assertIn((ID.p1, RB.servedExperimentalCeiling, ID["c-ceil"]), triples)
+        self.assertEqual(counts["served_anchors"], 3)
+        broken = self.artifact()
+        broken["mappings"][0] = {
+            **broken["mappings"][0],
+            "protocol_id": "p1",
+            "null_baseline": {"claim_id": "c-wrong"},
+        }
+        record(asserted, "c-wrong", RB.Claim, subject=ID.p2, source=[ID.paper])
+        with self.assertRaisesRegex(release_graph.ReleaseGraphError, "is not about protocol p1"):
+            release_graph.release_triples(asserted, broken, "2026-01-01-000000000000")
 
     def test_a_bundle_without_a_release_has_run_receipts_only(self) -> None:
         triples, counts = release_graph.release_triples(Fixture().asserted, None, "unreleased")
