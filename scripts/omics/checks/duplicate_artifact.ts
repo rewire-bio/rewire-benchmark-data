@@ -21,6 +21,29 @@
 import type { Check, CheckInput, Finding, Rec } from "./finding";
 import { text } from "./finding";
 
+function isSupersedesConnected(records: Rec[]): boolean {
+  const ids = new Set(records.map((r) => r.id));
+  const adj = new Map<string, Set<string>>();
+  for (const id of ids) adj.set(id, new Set());
+  for (const r of records) {
+    for (const link of r.links ?? []) {
+      if (link.relation === "supersedes" && ids.has(link.target_id)) {
+        adj.get(r.id)!.add(link.target_id);
+        adj.get(link.target_id)!.add(r.id);
+      }
+    }
+  }
+  const seen = new Set<string>();
+  const stack = [records[0].id];
+  while (stack.length) {
+    const cur = stack.pop()!;
+    if (seen.has(cur)) continue;
+    seen.add(cur);
+    for (const next of adj.get(cur) ?? []) stack.push(next);
+  }
+  return seen.size === ids.size;
+}
+
 export const duplicateArtifact: Check = {
   id: "C9",
   title: "duplicate artifact",
@@ -28,6 +51,7 @@ export const duplicateArtifact: Check = {
   run({ sources }: CheckInput): Finding[] {
     const groups = new Map<string, Rec[]>();
     for (const record of sources) {
+      if (record.status === "superseded" || record.status === "excluded") continue;
       const sha = text(record, "artifact_sha256");
       const url = text(record, "url");
       if (!sha || !url) continue;
@@ -37,6 +61,7 @@ export const duplicateArtifact: Check = {
     const findings: Finding[] = [];
     for (const [key, records] of groups) {
       if (records.length < 2) continue;
+      if (isSupersedesConnected(records)) continue;
       const ids = records.map((record) => record.id).sort();
       const statuses = records.map((record) => `${record.id} (${record.status ?? "no status"})`).sort();
       findings.push({

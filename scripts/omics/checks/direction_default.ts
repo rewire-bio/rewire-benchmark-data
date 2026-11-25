@@ -28,7 +28,7 @@ import { text } from "./finding";
 export const directionDefault: Check = {
   id: "C2",
   title: "direction against the metric default",
-  rules: ["opposite", "unknown-where-declared", "asserted-where-none", "metric-not-a-concept"],
+  rules: ["opposite", "unknown-where-declared", "metric-not-a-concept"],
   run({ results, metrics }: CheckInput): Finding[] {
     const findings: Finding[] = [];
     for (const record of results) {
@@ -47,16 +47,8 @@ export const directionDefault: Check = {
         continue;
       }
       const declared = concept.defaultDirection;
-      if (declared === null) {
-        if (direction !== "unknown")
-          findings.push({
-            check: "C2",
-            rule: "asserted-where-none",
-            severity: "report",
-            subject: record.id,
-            detail: `metric ${metric} declares no default direction; the result asserts ${direction}`,
-          });
-      } else if (direction === "unknown") {
+      if (declared === null) continue;
+      if (direction === "unknown") {
         findings.push({
           check: "C2",
           rule: "unknown-where-declared",

@@ -168,19 +168,62 @@ const asciiDigits = (value: string) =>
 function numberFrom(text: string): string | null {
   const clean = asciiDigits(text)
     .replace(/[−‐-―]/g, "-")
+    .replace(/(\d)·(\d)/g, "$1.$2")
     .replace(/[,\s]/g, "")
     .replace(/[↑↓*†‡]/g, "");
-  const sci = /^(-?\d*\.?\d+)×10\^?\{?(-?\d+)\}?$/.exec(clean);
+  const sci = /^([+-]?\d*\.?\d+)×10\^?\{?(-?\d+)\}?$/.exec(clean);
   // Parse as one decimal literal rather than multiplying: 9 * 10 ** -4 is
   // 0.0009000000000000001 in binary floating point, and that noise would be
   // published as the paper's reported spread.
   if (sci) {
-    const value = Number(`${sci[1]}e${sci[2]}`);
+    const mantissa = sci[1].replace(/^\+/, "");
+    const value = Number(`${mantissa}e${sci[2]}`);
     return Number.isFinite(value) ? String(value) : null;
   }
-  const plain = /^(-?\d*\.?\d+(?:[eE][-+]?\d+)?)$/.exec(clean);
+  const plain = /^([+-]?\d*\.?\d+(?:[eE][-+]?\d+)?)$/.exec(clean);
   if (!plain) return null;
-  return Number.isFinite(Number(plain[1])) ? plain[1] : null;
+  return Number.isFinite(Number(plain[1])) ? plain[1].replace(/^\+/, "") : null;
+}
+
+const UNIT_SUFFIXES: Record<string, RegExp> = {
+  angstrom: /\s*(?:Å|angstroms?)$/i,
+  nanomolar: /\s*nM$/,
+  micromolar: /\s*[μµu]M$/,
+  millisecond: /\s*(?:(?:GPU|CPU)\s+)?ms$/i,
+  second: /\s*(?:(?:GPU|CPU)\s+)?(?:sec(?:onds?)?|s)$/i,
+  minute: /\s*(?:(?:GPU|CPU)\s+)?(?:minutes?|min|m)$/i,
+  hour: /\s*(?:(?:GPU|CPU)\s+)?(?:hours?|hr|h)$/i,
+  unitless: /\s*(?:×|-fold)$/i,
+};
+
+function normaliseDurationOrUnit(text: string, unit?: string): string {
+  const s = asciiDigits(text).trim();
+  if (unit === "minute") {
+    const hm = /^(\d+)\s*h\s+(\d+)\s*m$/i.exec(s);
+    if (hm) return String(Number(hm[1]) * 60 + Number(hm[2]));
+    const ho = /^(\d*\.?\d+)\s*h$/i.exec(s);
+    if (ho) return String(Number(ho[1]) * 60);
+  }
+  if (unit === "second") {
+    const hms = /^(\d+):(\d{2}):(\d{2})$/.exec(s);
+    if (hms) return String(Number(hms[1]) * 3600 + Number(hms[2]) * 60 + Number(hms[3]));
+    const ms = /^(\d+)\s*m\s+(\d+)\s*s$/i.exec(s);
+    if (ms) return String(Number(ms[1]) * 60 + Number(ms[2]));
+  }
+  const suffix = unit ? UNIT_SUFFIXES[unit] : undefined;
+  return suffix ? s.replace(suffix, "").trim() : text;
+}
+
+function splitBounds(raw: string): [string, string] | null {
+  const comma = raw.indexOf(",");
+  if (comma > 0) return [raw.slice(0, comma), raw.slice(comma + 1)];
+  for (const sep of [" to ", " – ", " - ", "–"]) {
+    const idx = raw.indexOf(sep);
+    if (idx > 0) return [raw.slice(0, idx), raw.slice(idx + sep.length)];
+  }
+  // Hyphen between digits/percent when not immediately preceded by a space/delimiter (handles "13.64-13.96" and "-3.1--1.2").
+  const m = /^(.+?[\d%])\s*-\s*([+-]?[\d.]+%?)$/.exec(raw);
+  return m ? [m[1], m[2]] : null;
 }
 
 /**
@@ -202,19 +245,39 @@ export function parseCell(
     .replace(/\s+/g, " ")
     .trim();
   if (isMissingCell(stripped)) return { printed, value: null, sd: null };
-  const spread = /^([^±(]+?)\s*(?:±|\()\s*([^)]+?)\)?$/.exec(stripped);
-  const head = spread ? spread[1] : stripped;
-  const tail = spread ? spread[2] : null;
   // Keep the paper's percentage scale. Only the caller that explicitly labels
   // this column "percent" may strip the percent sign; do not silently turn a
   // percent into a fraction or a generic score.
-  const numeric = (part: string) =>
-    numberFrom(options.unit === "percent" ? part.replace(/%\s*$/, "") : part);
+  const numeric = (part: string, allowPercent = false) =>
+    numberFrom(options.unit === "percent" || allowPercent ? part.replace(/%\s*$/, "") : part);
+
+  // Point estimate followed by a bracketed interval: e.g. "13.8 (13.64-13.96)",
+  // "8.2 (7.53-8.89)%", "64.3 {58.9–69.5}", "+52.1 [36.8, 69.1]".
+  const withoutOuterPct = options.unit === "percent" ? stripped.replace(/([)\]}])\s*%$/, "$1") : stripped;
+  const intervalMatch = /^(.+?)\s*(?:\(([^()]+)\)|\{([^{}]+)\}|\[([^\[\]]+)\])$/.exec(withoutOuterPct);
+  if (intervalMatch) {
+    const headRaw = normaliseDurationOrUnit(intervalMatch[1], options.unit);
+    const body = intervalMatch[2] ?? intervalMatch[3] ?? intervalMatch[4];
+    const bounds = splitBounds(body);
+    if (bounds) {
+      const headVal = numeric(headRaw);
+      const lowVal = numeric(bounds[0]);
+      const highVal = numeric(bounds[1]);
+      if (headVal !== null && lowVal !== null && highVal !== null) {
+        return { printed: stripped, value: headVal, sd: null };
+      }
+    }
+  }
+
+  const spread = /^([^±(]+?)\s*(?:±|\()\s*([^)]+?)\)?$/.exec(stripped);
+  const inParens = Boolean(spread && stripped.includes("(") && !spread[1].includes("±"));
+  const head = spread ? spread[1] : normaliseDurationOrUnit(stripped, options.unit);
+  const rawTail = spread ? spread[2].replace(/^±\s*/, "") : null;
   const value = numeric(head);
   if (value === null)
     throw new Error(`Unrecognised numeric cell: ${JSON.stringify(printed)}`);
-  const sd = tail ? numeric(tail) : null;
-  if (tail && (sd === null || Number(sd) < 0))
+  const sd = rawTail ? numeric(rawTail, inParens) : null;
+  if (rawTail && (sd === null || Number(sd) < 0))
     throw new Error(`Unrecognised uncertainty in cell: ${JSON.stringify(printed)}`);
   return { printed: stripped, value, sd };
 }

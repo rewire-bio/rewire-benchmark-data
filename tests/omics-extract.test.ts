@@ -213,6 +213,20 @@ describe("table reading", () => {
       printed: "4 0.05% ± 1.06", value: "40.05", sd: "1.06",
     });
     expect(parseCell("100.00%", { unit: "percent" }).value).toBe("100.00");
+    expect(parseCell("83·0%", { unit: "percent" }).value).toBe("83.0");
+  });
+
+  it("reads plus signs, (± y) uncertainties, intervals, and explicit unit suffixes", () => {
+    expect(parseCell("+2.780")).toMatchObject({ value: "2.780", sd: null });
+    expect(parseCell("0.492 (± 0.008)")).toMatchObject({ value: "0.492", sd: "0.008" });
+    expect(parseCell("13.8 (13.64-13.96)")).toMatchObject({ value: "13.8", sd: null });
+    expect(parseCell("8.2 (7.53-8.89)%", { unit: "percent" })).toMatchObject({ value: "8.2", sd: null });
+    expect(parseCell("64.3 {58.9–69.5}")).toMatchObject({ value: "64.3", sd: null });
+    expect(parseCell("+52.1 [36.8, 69.1]")).toMatchObject({ value: "52.1", sd: null });
+    expect(parseCell("7 (6.5%)", { unit: "percent" })).toMatchObject({ value: "7", sd: "6.5" });
+    expect(parseCell("5.92 Å", { unit: "angstrom" }).value).toBe("5.92");
+    expect(parseCell("2h 30m", { unit: "minute" }).value).toBe("150");
+    expect(parseCell("4:20:00", { unit: "second" }).value).toBe("15600");
   });
 
   it("reads a number, its spread and an empty cell", () => {
