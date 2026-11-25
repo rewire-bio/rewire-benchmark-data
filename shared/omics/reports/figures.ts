@@ -102,27 +102,52 @@ export const recordsFileFor = (figuresFile: string): string => figuresFile.repla
  * an edited record to collide with its own former content, and nothing is adversarial. */
 const KEY_DIGEST = 12;
 
-/** Every record of a JSONL input as it stands, in file order, or null for a code input.
+/** The fields of a JSONL row that span resolution reads (scripts/omics/spans/cli.ts):
+ * sources contribute only their ID, results contribute ID, source_ids, source_locator and
+ * printed_value, and layer registry rows are hashed verbatim. Unrelated edits (such as status,
+ * metric_direction or review fields) do not change span resolution and must not trigger drift. */
+export function spanInputContent(line: string, parsed: Record<string, unknown>): string {
+  if (parsed.kind === "source") return JSON.stringify({ id: parsed.id });
+  if (parsed.kind === "result") {
+    const attrs =
+      parsed.attributes && typeof parsed.attributes === "object"
+        ? (parsed.attributes as Record<string, unknown>)
+        : {};
+    return JSON.stringify({
+      id: parsed.id,
+      source_ids: Array.isArray(parsed.source_ids) ? parsed.source_ids : [],
+      locator: typeof attrs.source_locator === "string" ? attrs.source_locator : "",
+      printed_value: typeof attrs.printed_value === "string" ? attrs.printed_value : "",
+    });
+  }
+  return line;
+}
+
+/** Every record of a JSONL text as it stands, in file order.
  *
  * Keys repeat only in a file the store would already refuse, so a repeat is numbered rather
  * than dropped: two records that are byte for byte the same are two records, and a check that
  * silently counted them as one could be made to pass by deleting one of them. */
-function recordsOf(file: string): MeasuredRecord[] | null {
-  if (!file.endsWith(".jsonl")) return null;
-  const text = fs.readFileSync(file, "utf8");
+export function recordsOfText(text: string): MeasuredRecord[] {
   if (text.length === 0) return [];
   const seen = new Map<string, number>();
   return text
     .replace(/\n$/, "")
     .split("\n")
     .map((line) => {
-      const sha256 = createHash("sha256").update(line).digest("hex").slice(0, KEY_DIGEST);
-      const id = (JSON.parse(line) as { id?: unknown }).id;
+      const parsed = JSON.parse(line) as Record<string, unknown>;
+      const sha256 = createHash("sha256").update(spanInputContent(line, parsed)).digest("hex").slice(0, KEY_DIGEST);
+      const id = parsed.id;
       const key = typeof id === "string" && id !== "" ? id : sha256;
       const before = seen.get(key) ?? 0;
       seen.set(key, before + 1);
       return { key: before === 0 ? key : `${key}#${before + 1}`, sha256 };
     });
+}
+
+function recordsOf(file: string): MeasuredRecord[] | null {
+  if (!file.endsWith(".jsonl")) return null;
+  return recordsOfText(fs.readFileSync(file, "utf8"));
 }
 
 /** Every input file with its digest, sorted by path. */
