@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { judgeJobs, logExcerpt, outcomeOf, plan, readState, sourceOf, staleness, timedOutByAnnotations } from "../scripts/ops/pipeline-alert.mjs";
 
 // The workflows whose failures open the pipeline-broken issue in this repository.
-const WATCHED = ["release.yml", "data.yml", "discovery.yml", "intake.yml", "intake-queue.yml", "reviewer.yml", "watcher.yml", "digest.yml"];
+const WATCHED = ["release.yml", "kg-release.yml", "data.yml", "discovery.yml", "intake.yml", "intake-queue.yml", "reviewer.yml", "watcher.yml", "digest.yml"];
 // Watched by name before their workflow file is merged. Once the file exists, add it to WATCHED.
 const AWAITED = ["Monthly entity sweep"];
 // Workflows whose runs on the intake agent's pull requests count, and the branch prefix the

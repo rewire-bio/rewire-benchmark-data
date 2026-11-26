@@ -18,6 +18,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      full_build:
+        description: Build the knowledge graph even if only descriptive content changed
+        type: boolean
+        default: false
 permissions:
   contents: write
   actions: write
@@ -67,15 +72,46 @@ jobs:
       - run: npm ci
       - name: Build a candidate release dated now
         id: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FULL_BUILD: ${{ inputs.full_build }}
         run: |
           previous=$(node scripts/release/next.mjs prepare)
           # Release files are not committed. The previous release's come from its assets
           # (or Git at its tag, for releases cut before that); pending and withheld compare them.
           npm run release:fetch -- "$previous"
-          # Release, then the knowledge graph and its inference, then the prepared file with
-          # the inferred discrepancies, then the website package.
-          npm run build:release
+          npm run omics:release
+          candidate=$(node -p "require('./public/omics/manifest.json').release_id")
+          # The graph's inference and discrepancy rules take about 15 of this build's 21 minutes.
+          # When everything changed since the last bundle is descriptive content they cannot see
+          # (scripts/release/content-only.py), the prepared file serves that bundle's
+          # discrepancies under this release's id and no bundle is built here. kg-release.yml
+          # builds the bundle for the newest release every night and fails if its discrepancies
+          # differ from the ones reused.
+          bundle=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName,createdAt --jq '[.[] | select(.tagName | startswith("kg/"))] | sort_by(.createdAt) | last | .tagName | ltrimstr("kg/")')
+          reused=false
+          if [ -n "$bundle" ] && [ "${FULL_BUILD:-false}" != true ]; then
+            bundle_sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/kg/$bundle" --jq .sha)
+            if git cat-file -e "$bundle_sha^{commit}" && python3 scripts/release/content-only.py "$bundle_sha"; then
+              mkdir -p public/kg "$RUNNER_TEMP/bundle"
+              gh release download "kg/$bundle" --repo "$GITHUB_REPOSITORY" --pattern discrepancies.json --dir "$RUNNER_TEMP/bundle"
+              sed "s/$bundle/$candidate/g" "$RUNNER_TEMP/bundle/discrepancies.json" > public/kg/discrepancies.json
+              reused=true
+              echo "Reusing the discrepancies of kg/$bundle for $candidate"
+            fi
+          fi
+          if [ "$reused" != true ]; then
+            npm run kg:bundle
+            npm run kg:verify
+          fi
+          # The prepared file with the discrepancies, then the website package.
+          npm run serving -- --require-discrepancies
+          npm run validate:benchmark-literature
+          npm run export:benchmark-literature
+          npm run refresh -- export
+          node scripts/package-website.mjs --current-only
           next=$(node scripts/release/next.mjs latest)
+          echo "reused=$reused" >> "$GITHUB_OUTPUT"
           echo "previous=$previous" >> "$GITHUB_OUTPUT"
           echo "next=$next" >> "$GITHUB_OUTPUT"
           echo "Previous release $previous; candidate $next"
@@ -159,7 +195,7 @@ jobs:
           RELEASE_TARGET_SHA: ${{ steps.commit.outputs.sha }}
         run: npm run serving:publish
       - name: Publish the knowledge-graph bundle (never replaces an existing asset)
-        if: steps.pending.outputs.release == 'true'
+        if: steps.pending.outputs.release == 'true' && steps.candidate.outputs.reused != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TARGET_SHA: ${{ steps.commit.outputs.sha }}
@@ -182,7 +218,14 @@ jobs:
         if: steps.pending.outputs.release == 'true'
         env:
           RELEASE: ${{ steps.candidate.outputs.next }}
-        run: node scripts/release/commit.mjs verify "${{ steps.commit.outputs.sha }}" "serving/$RELEASE" "kg/$RELEASE"
+          REUSED: ${{ steps.candidate.outputs.reused }}
+        run: |
+          # A release that reused the last bundle's discrepancies has no bundle of its own yet.
+          if [ "$REUSED" = true ]; then
+            node scripts/release/commit.mjs verify "${{ steps.commit.outputs.sha }}" "serving/$RELEASE"
+          else
+            node scripts/release/commit.mjs verify "${{ steps.commit.outputs.sha }}" "serving/$RELEASE" "kg/$RELEASE"
+          fi
       - name: Ask the website to adopt it
         if: steps.pending.outputs.release == 'true'
         env:
