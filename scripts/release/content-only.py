@@ -16,7 +16,8 @@ import json
 import subprocess
 import sys
 
-ALLOWED_PREFIXES = ("data/provenance/", "data/omics/", "docs/", "website/")
+# kb/ is the rebuilt core (docs/rebuild.md): nothing on the release path reads it yet.
+ALLOWED_PREFIXES = ("data/provenance/", "data/omics/", "docs/", "website/", "kb/")
 MODELS = "data/entities/models.jsonl"
 SOURCES = "data/entities/sources.jsonl"
 DESCRIPTIVE = ("profile", "run_guide")

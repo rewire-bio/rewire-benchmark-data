@@ -4,6 +4,8 @@ This is the plain description of how a fact gets from a paper or a repository in
 benchmark database, onto the website and into the knowledge graph. Read this first. The other
 documents in this folder go into detail on one part each.
 
+The system is being rebuilt to one design. [rebuild.md](rebuild.md) has that design, the plan and the state of each step; this page describes how things work today.
+
 The numbers on this page were measured on 26 November 2026. The current ones are in
 [scorecard.md](scorecard.md).
 
