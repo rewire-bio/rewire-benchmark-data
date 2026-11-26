@@ -148,6 +148,22 @@ Nothing else from the resolver's unmapped list is ruled on here.
 `http://www.elsevier.com/open-access/userlicense/1.0/` and the rest stay unmapped, so
 `npm run licence:resolve` keeps exiting non-zero. That is the intended signal, not a defect.
 
+## When a source is fetched and stored
+
+Every source record is fetched and stored by the `Archive upload` workflow, which runs every night
+and whenever a merge to `main` changes `data/entities/sources.jsonl`. It fetches each source not
+yet held, uploads the bytes to the bucket, and commits the manifest rows and fetch receipts. A
+source it cannot get is recorded with the reason and counted in the run summary.
+
+Batch tools and agents also fetch sources while they work, and commit only the files whose licence
+allows publication. They are not the archive. Before 26 November 2026 nothing fetched a source
+that an agent's batch had added without committed bytes, so 607 sources added that day had a hash
+and an address and no stored copy until the workflow gained its fetch step.
+
+A page whose content changes between fetches (a rendered model card, a listing) will be stored as
+it was served to the workflow, which may differ from the copy the record's hash was taken from.
+The receipt records both hashes.
+
 ## What is public today
 
 195 objects are published as release assets of this repository, on the sixteen tags
