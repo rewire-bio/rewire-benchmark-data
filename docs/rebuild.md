@@ -150,21 +150,33 @@ grounding that does not exist yet:
 So the next two tables to fill are the checkpoint of each system and the subset of each
 observation.
 
-### With grounding
+### With grounding, then a review of it
 
-An agent then named the exact system and the subset for each of the 472 results in the ClinVar and
-BRCA1 settings, from the record fields only. The wide spreads went away. What is left are 13 cases
-where two studies report different values for the same exact system on the same subset:
+An agent named the exact system and the subset for each of the 472 results in the ClinVar and
+BRCA1 settings, from the record fields only. The wide spreads went away, leaving 13 cases where
+two studies report different values for the same exact system on the same subset.
 
-| System | Subset | Study values (AUROC) |
+A second agent then checked every line without seeing the first agent's rules. It found 48 of 472
+wrong (10.2%): 23 system keys, 19 subsets, 6 adaptations. The largest group was one study whose
+results are for the variants that all 19 compared methods could score, which had been labelled as
+the whole set. With the corrections applied, 12 differences remain, and the review gave each a
+verdict (`kb/curation/difference_reviews.jsonl`):
+
+| Verdict | Count | Example |
 | --- | --- | --- |
-| PhyloGPN | ClinVar 5' UTR | 0.601 (Lu et al. 2025) and 0.94 (PhyloGPN paper) |
-| GPN-MSA | ClinVar 5' UTR | 0.728 and 0.95, same two sources |
-| PhyloGPN | ClinVar missense | 0.799 and 0.84, same two sources |
-| Evo 2 7B | BRCA1, all SNVs | 0.904 (Evo 2 paper) and 0.875 (Rewire's run) |
-| ESM-1b 650M | ClinVar missense | 0.892 (Brandes et al.) and 0.919 (Lu et al. 2025) |
+| Lead worth raising | 3 | PhyloGPN on ClinVar missense: 0.799 (Lu et al. 2025) against 0.84 (PhyloGPN paper), on 50,820 variants, while GPN-MSA agrees between the same two studies |
+| Artefact | 8 | Six gaps where the same precomputed GPN-MSA score file gives different values, which shows the variant sets differ, not the model |
+| Unresolved | 1 | Evo 2 7B on BRCA1 coding variants: the two studies may define coding differently |
 
-These are leads to investigate, not findings. The query is `SELECT * FROM grounded_difference_v`.
+The method that separated them is worth keeping: a system that uses the same fixed scores in both
+studies is a control. If the control differs, the cohorts differ and nothing can be said about the
+other models. If the control agrees and another model does not, the difference is in how that
+model was run.
+
+Two lessons for grounding at scale. A single agent's grounding is not good enough to publish: one
+line in ten was wrong, so the verifier pass is required, as it is for page content. And a
+difference is not a disagreement until someone has looked for a control. The queries are
+`SELECT * FROM grounded_lead_v` and, for new ones, `... WHERE verdict = 'not reviewed'`.
 
 ## Plan
 
@@ -172,7 +184,7 @@ These are leads to investigate, not findings. The query is `SELECT * FROM ground
 | --- | --- | --- | --- |
 | 1 | Inventory of the current store | Every kind, attribute and link is listed with counts | Done |
 | 2 | Migration as a repeatable function of the store | Every record reads back equal; runs in CI on every pull request | Done. The `kb` job runs it in 35 seconds |
-| 3 | One slice end to end: ClinVar and BRCA1 | Checkpoints and subsets as fields; a board with no mixed rows; the pilot's 16 disagreements returned by a query | Grounding done for all 472 results in the slice (`kb/curation/grounding.jsonl`): 110 exact systems, every subset named, 141 results whose source does not state a version. `grounded_difference_v` returns 13 differences between studies for the same exact system, subset and metric; 23 other shared cells agree within rounding. Not yet verified by a second agent. Three of the pilot's 16 disagreements are not returned: orderings that reverse between studies need a pair view over grounded cells, and the CADD gap on BRCA1 is left out because the source does not state the CADD version in a consistent way. Open: 175 results sit in the missense setting but are other variant classes and need their own settings; five supervised rows sit in label-free settings (`kb/curation/notes/clinvar-brca1-grounding.md`) |
+| 3 | One slice end to end: ClinVar and BRCA1 | Checkpoints and subsets as fields; a board with no mixed rows; the pilot's 16 disagreements returned by a query | Done for differences: 472 results grounded, checked by a second agent (48 corrected), 12 differences returned by `grounded_lead_v` with a verdict each: 3 leads, 8 artefacts, 1 unresolved. Not done: a view of model pairs that studies order differently over grounded results, and new settings for the 175 results in the missense setting that are other variant classes |
 | 4 | Grounding at scale | Every Tier 1 system has a checkpoint; every Tier 1 protocol is in a setting or marked as standing alone | Not started |
 | 5 | The seam: the new core writes today's serving file | The website's own tests and data checks pass on it; sample pages render the same text | Part done. The release now finds its discrepancies from `kb.sqlite` (`kb/discrepancies.py`, byte-identical to the graph's file for release 2026-11-26-36acdf5e0cfa: 216 findings, same IDs). The records in the serving file still come from the old release builder |
 | 6 | New writers | A batch of model pages, a batch of results and a correction each go in through the new core | Not started |
