@@ -1,0 +1,718 @@
+{
+ "record_id": "hyinv-20261106-model-proteinzero-v2",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "ziwenwang28/ProteinZero README.md at commit 83dfba87",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/ziwenwang28/ProteinZero/83dfba873ffd313a23d8250d72652584e3504543/README.md",
+   "url": "https://github.com/ziwenwang28/ProteinZero",
+   "version": "git commit 83dfba873ffd313a23d8250d72652584e3504543",
+   "media_type": "text/markdown",
+   "sha256": "929ffe8a2ff80896965ea0004ea052bf26345b3f1fc89a1aecfd7c8e6e391e0f",
+   "retrieved_at": "2026-11-26T20:50:37Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "v2-readme",
+   "name": "ziwenwang28/ProteinZero ProteinZero-V2/README.md at commit 83dfba87",
+   "description": "README of the ProteinZero V2 checkpoint directory, pinned to a commit.",
+   "file": "artifacts/v2-readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/ziwenwang28/ProteinZero/83dfba873ffd313a23d8250d72652584e3504543/ProteinZero-V2/README.md",
+   "url": "https://github.com/ziwenwang28/ProteinZero/tree/main/ProteinZero-V2",
+   "version": "git commit 83dfba873ffd313a23d8250d72652584e3504543",
+   "media_type": "text/markdown",
+   "sha256": "2dc0d7d31e68d8e81292a028918b29f318b7fd0a655bddab68753ac4249b40ea",
+   "retrieved_at": "2026-11-26T20:50:58Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "install",
+   "name": "ziwenwang28/ProteinZero INSTALL.md at commit 83dfba87",
+   "description": "Installation, data preparation and training usage document, pinned to a commit.",
+   "file": "artifacts/install.md",
+   "artifact_url": "https://raw.githubusercontent.com/ziwenwang28/ProteinZero/83dfba873ffd313a23d8250d72652584e3504543/INSTALL.md",
+   "url": "https://github.com/ziwenwang28/ProteinZero",
+   "version": "git commit 83dfba873ffd313a23d8250d72652584e3504543",
+   "media_type": "text/markdown",
+   "sha256": "9abb228d4ee678a2baaf5449643f1118fdbc6d1ab99d8bd2f82fae10a8c60cb1",
+   "retrieved_at": "2026-11-26T20:50:50Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "ziwenwang28/ProteinZero LICENSE at commit 83dfba87",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license",
+   "artifact_url": "https://raw.githubusercontent.com/ziwenwang28/ProteinZero/83dfba873ffd313a23d8250d72652584e3504543/LICENSE",
+   "url": "https://github.com/ziwenwang28/ProteinZero",
+   "version": "git commit 83dfba873ffd313a23d8250d72652584e3504543",
+   "media_type": "text/plain",
+   "sha256": "7e57d0c55c2fd956c6ffb7e1a598c81221b18334ace2fe2986409af08aad9d2e",
+   "retrieved_at": "2026-11-26T20:51:07Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "paper-v1",
+   "name": "arXiv 2506.07459 abstract page (Wang et al., ProteinZero, TMLR camera-ready)",
+   "description": "arXiv abstract page of the ProteinZero (V1) paper. There is no ProteinZero V2 paper yet.",
+   "file": "artifacts/paper-abstract.html",
+   "artifact_url": "https://arxiv.org/abs/2506.07459",
+   "url": "https://arxiv.org/abs/2506.07459",
+   "version": "arXiv 2506.07459, latest version as served on 2026-11-26",
+   "media_type": "text/html",
+   "sha256": "5266a3c261061b91f609089ae7c17000a4782376d55177f056265c35678176d7",
+   "retrieved_at": "2026-11-26T20:50:31Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "ProteinZero V2 designs amino acid sequences for a protein backbone that you supply. It starts from ProteinMPNN and improves it with online reinforcement learning: the model generates sequences, those sequences are folded by ESMFold and scored for structural agreement and predicted stability, and the reward is used to update the model. Two teaser checkpoints are released, for structures of up to about 100 residues.",
+  "summary_source_ids": [
+   "@v2-readme",
+   "@readme"
+  ],
+  "summary_source_locator": "ProteinZero-V2/README.md: intro; README: ProteinZero",
+  "summary_quotes": [
+   {
+    "source": "@v2-readme",
+    "text": "ProteinZero V2 teaser checkpoints for structure-conditioned protein sequence design. The checkpoints use ProteinMPNN as the base model."
+   },
+   {
+    "source": "@v2-readme",
+    "text": "Reward signals combine structural feedback from ESMFold with the fast ΔΔG score introduced in ProteinZero V1."
+   },
+   {
+    "source": "@readme",
+    "text": "ProteinZero is an online reinforcement learning framework that enables protein generative models to continuously improve by learning from their own outputs."
+   },
+   {
+    "source": "@v2-readme",
+    "text": "These checkpoints are intended for structures of up to 100 residues."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The base model is ProteinMPNN, loaded with 128-dimensional node and edge features, three encoder and three decoder layers and 48 neighbours per residue. Reinforcement learning then trains it against rewards rather than a single supervised target: the V2 README names structural feedback from ESMFold and the fast change in folding free energy introduced in V1. V1 used GRPO; the V2 checkpoints were trained with PARPO, an algorithm the authors describe as aimed at exploring Pareto frontiers in multi-objective optimisation, and whose formulation is not yet published.",
+    "source_ids": [
+     "@v2-readme",
+     "@readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: intro, Checkpoints; README: ProteinZero, ProteinZero V2",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "k_neighbors=48"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "hidden_dim=128, num_encoder_layers=3, num_decoder_layers=3"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "Reward signals combine structural feedback from ESMFold with the fast ΔΔG\nscore introduced in ProteinZero V1."
+     },
+     {
+      "source": "@v2-readme",
+      "text": "The checkpoints were trained with PARPO, a general-purpose reinforcement\nlearning algorithm for multi-objective and multi-turn optimization."
+     },
+     {
+      "source": "@readme",
+      "text": "It is designed specifically to target the exploration of Pareto frontiers in multi-objective optimization"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "A complete formulation and derivation will be presented in the forthcoming ProteinZero V2 paper."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "Two V2 checkpoints are released, differing only in which structure predictor gave the reward: proteinzero_v2_esmfold1.pt (ESMFold1) and proteinzero_v2_esmfold2.pt (ESMFold2). A result must name which of the two was used, the sampling temperature and the seed, since generation samples. They are described as teaser checkpoints, with full checkpoints and a paper to follow, so results may not be reproducible against later releases. The earlier ProteinZero V1 is a different model, built on InstructPLM.",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Checkpoints, Arguments, Planned releases",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "The two checkpoints were trained with different structural feedback models, as listed above."
+     },
+     {
+      "source": "@v2-readme",
+      "text": "Random seed for sequence generation. Default: `0`."
+     },
+     {
+      "source": "@v2-readme",
+      "text": "**Full checkpoints** with detailed analysis will be released in a forthcoming"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "ProteinZero V1 was built on InstructPLM"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Inverse folding model: it designs an amino acid sequence for a given protein backbone. ProteinZero V2 is a ProteinMPNN model further trained by online reinforcement learning.",
+    "status": "source_checked",
+    "source_ids": [
+     "@v2-readme",
+     "@readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: intro; README: ProteinZero",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "ProteinZero V2 teaser checkpoints for structure-conditioned protein sequence design. The checkpoints use ProteinMPNN as the base model."
+     },
+     {
+      "source": "@readme",
+      "text": "ProteinZero is an online reinforcement learning framework that enables protein generative models to continuously improve by learning from their own outputs."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "ProteinMPNN. The V2 README gives the constructor arguments to load the checkpoints: ca_only=False, num_letters=21, node_features=128, edge_features=128, hidden_dim=128, num_encoder_layers=3, num_decoder_layers=3, augment_eps=0.0, dropout=0.0, k_neighbors=48. The released files are plain ProteinMPNN state dictionaries.",
+    "status": "source_checked",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Checkpoints",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "The checkpoints are plain ProteinMPNN state dictionaries."
+     },
+     {
+      "source": "@v2-readme",
+      "text": "ca_only=False, num_letters=21, node_features=128, edge_features=128, hidden_dim=128, num_encoder_layers=3, num_decoder_layers=3, augment_eps=0.0, dropout=0.0, k_neighbors=48"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A directory of backbone PDB files, read non-recursively in filename order, with a sampling temperature and a number of sequences per backbone.",
+    "status": "source_checked",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Sequence generation, Arguments",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "Directory containing input PDB files. Files are read non-recursively in filename order. Required."
+     },
+     {
+      "source": "@v2-readme",
+      "text": "ProteinMPNN sampling temperature. Suggested values span `0.1`–`0.3`."
+     },
+     {
+      "source": "@v2-readme",
+      "text": "Number of sequences generated per backbone. Default: `8`."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "A tab-separated file with the columns structure_id, sample_id and sequence; one row per generated sequence. Chains of a multichain structure are separated by a slash. Nothing is folded or scored.",
+    "status": "source_checked",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Sequence generation",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "The output is a tab-separated file with three columns:"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "structure_id\tsample_id\tsequence"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "For multichain structures, chain sequences are separated by `/`."
+     },
+     {
+      "source": "@v2-readme",
+      "text": "The script generates sequences only. Folding, scoring, and evaluation are left to the user."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported. The V2 README gives the ProteinMPNN constructor arguments (hidden_dim 128, three encoder and three decoder layers, k_neighbors 48) but no parameter count, and the counts in INSTALL.md belong to the V1 InstructPLM pipeline.",
+    "status": "unreported",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Checkpoints"
+   },
+   {
+    "label": "Training data",
+    "value": "Not reported for the V2 checkpoints. The repository's training documentation describes the V1 pipeline, which trains an InstructPLM-based model on the released CATH 4.3 chain-level dataset; the V2 README does not say what its checkpoints were trained on.",
+    "status": "unreported",
+    "source_ids": [
+     "@v2-readme",
+     "@install"
+    ],
+    "source_locator": "ProteinZero-V2/README.md; INSTALL.md: Training usage"
+   },
+   {
+    "label": "Known versions",
+    "value": "Two teaser checkpoints in the repository: ProteinZero-V2/checkpoints/proteinzero_v2_esmfold1.pt (structural feedback from ESMFold1) and proteinzero_v2_esmfold2.pt (ESMFold2). The README says full checkpoints will follow. ProteinZero V1, built on InstructPLM, is the published version.",
+    "status": "source_checked",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Checkpoints, Planned releases",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "`checkpoints/proteinzero_v2_esmfold1.pt` | ESMFold1"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "`checkpoints/proteinzero_v2_esmfold2.pt` | ESMFold2"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "**Full checkpoints** with detailed analysis will be released in a forthcoming"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "ProteinZero V1 was built on InstructPLM, whose architecture constrains the sequence length it can process."
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported. The sources do not date the training data or the training run of the V2 checkpoints.",
+    "status": "unreported",
+    "source_ids": [
+     "@v2-readme",
+     "@install"
+    ],
+    "source_locator": "ProteinZero-V2/README.md; INSTALL.md"
+   },
+   {
+    "label": "Context limits",
+    "value": "100 residues as the intended range: the V2 README says the checkpoints are intended for structures of up to 100 residues and that behaviour beyond that has not been characterised. The base model itself has no length constraint of the kind V1 had.",
+    "status": "source_checked",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: intro",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "These checkpoints are intended for structures of up to 100 residues. Behavior beyond this range has not been characterized."
+     },
+     {
+      "source": "@v2-readme",
+      "text": "ProteinZero V2 uses ProteinMPNN as the base model, which removes that constraint."
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "MIT. The checkpoints are files inside the repository, which carries an MIT LICENSE; no separate weights licence is stated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@v2-readme"
+    ],
+    "source_locator": "LICENSE; ProteinZero-V2/README.md: Checkpoints",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "This directory contains the ProteinZero V2 teaser checkpoints"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, per the repository LICENSE file (Copyright (c) 2026 Ziwen Wang).",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2026 Ziwen Wang"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code and V2 checkpoints: https://github.com/ziwenwang28/ProteinZero (directory ProteinZero-V2). Training dataset: https://huggingface.co/datasets/ZiwenWang28/cath43-chain-level. No Hugging Face model repository for the V2 weights was found.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@v2-readme"
+    ],
+    "source_locator": "README: Repository contents; ProteinZero-V2/README.md: Sequence generation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "[ZiwenWang28/cath43-chain-level](https://huggingface.co/datasets/ZiwenWang28/cath43-chain-level)"
+     },
+     {
+      "source": "@readme",
+      "text": "`ProteinZero-V2/`             | ProteinZero V2 teaser checkpoints and sequence generation script"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "--checkpoint /path/to/ProteinZero/ProteinZero-V2/checkpoints/proteinzero_v2_esmfold1.pt"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Generation needs only PyTorch, NumPy and the bundled ProteinMPNN code; ESMFold, OpenFold, fair-esm and TM-align are needed for training, not for designing sequences.",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Dependencies",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "`generate.py` requires Python 3.10 or later, PyTorch, NumPy, and the ProteinMPNN implementation included in this repository."
+     },
+     {
+      "source": "@v2-readme",
+      "text": "ESMFold, OpenFold, fair-esm, and TM-align are not required for sequence generation with these checkpoints."
+     }
+    ]
+   },
+   {
+    "text": "Runs on CPU as well as GPU: the device argument accepts cpu.",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Arguments",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "Execution device: `auto`, `cpu`, `cuda`, or `cuda:N`. Default: `auto`."
+     }
+    ]
+   },
+   {
+    "text": "The checkpoints are plain ProteinMPNN state dictionaries that load with strict=True, so they drop into an existing ProteinMPNN setup.",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Checkpoints",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "load with `strict=True`. Weights only; no optimizer or training state."
+     }
+    ]
+   },
+   {
+    "text": "Code and checkpoints are in one MIT licensed repository, and the checkpoints load into a standard ProteinMPNN with strict=True.",
+    "source_ids": [
+     "@license",
+     "@v2-readme"
+    ],
+    "source_locator": "LICENSE; ProteinZero-V2/README.md: Checkpoints",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "load with `strict=True`"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Intended for structures of up to 100 residues; behaviour on longer backbones has not been characterised by the authors.",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: intro",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "These checkpoints are intended for structures of up to 100 residues. Behavior beyond this range has not been characterized."
+     }
+    ]
+   },
+   {
+    "text": "These are teaser checkpoints and the V2 method is unpublished: the PARPO algorithm and the detailed analysis are promised in a forthcoming paper.",
+    "source_ids": [
+     "@v2-readme",
+     "@readme"
+    ],
+    "source_locator": "README: ProteinZero V2; ProteinZero-V2/README.md: Planned releases",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "ProteinZero V2 is a paper currently in the final stages of"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "**Full checkpoints** with detailed analysis will be released in a forthcoming"
+     }
+    ]
+   },
+   {
+    "text": "The script only writes sequences. Folding and any assessment of whether a design is good are left to the user.",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Sequence generation",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "The script generates sequences only. Folding, scoring, and evaluation are left to the user."
+     }
+    ]
+   },
+   {
+    "text": "Retraining is not covered for V2: the repository's INSTALL.md documents the V1 GRPO pipeline on InstructPLM, which needs eight GPUs, a 13.1 GB base model, an 8.45 GB ESMFold cache, OpenFold built from source and TM-align.",
+    "source_ids": [
+     "@install",
+     "@v2-readme"
+    ],
+    "source_locator": "INSTALL.md: Components not included, Training usage; ProteinZero-V2/README.md",
+    "quotes": [
+     {
+      "source": "@install",
+      "text": "eight GPUs;"
+     },
+     {
+      "source": "@install",
+      "text": "The combined download size is 8,449,776,731 bytes (approximately 8.45 GB)."
+     },
+     {
+      "source": "@install",
+      "text": "ESMFold requires OpenFold, which is not distributed through PyPI."
+     },
+     {
+      "source": "@install",
+      "text": "Download only these three shards"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "A complete formulation and derivation will be presented in the forthcoming ProteinZero V2 paper."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "ProteinZero V2 workflow",
+   "steps": [
+    "Backbone PDB files",
+    "ProteinMPNN graph encoder and decoder, trained with reinforcement learning",
+    "Sampled sequences at a chosen temperature",
+    "Tab-separated file: structure_id, sample_id, sequence"
+   ],
+   "caption": "Design-time path as the V2 README describes it. The ESMFold and ddG rewards act during training, not at design time.",
+   "source_ids": [
+    "@v2-readme"
+   ],
+   "source_locator": "ProteinZero-V2/README.md: Sequence generation, Checkpoints",
+   "quotes": [
+    {
+     "source": "@v2-readme",
+     "text": "Directory containing input PDB files."
+    },
+    {
+     "source": "@v2-readme",
+     "text": "The checkpoints are plain ProteinMPNN state dictionaries."
+    },
+    {
+     "source": "@v2-readme",
+     "text": "structure_id\tsample_id\tsequence"
+    },
+    {
+     "source": "@v2-readme",
+     "text": "Reward signals combine structural feedback from ESMFold with the fast ΔΔG score introduced in ProteinZero V1."
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "There is no ProteinZero V2 paper yet, so the method and any results for these checkpoints are not documented beyond the directory README. Only the V1 arXiv abstract was read.",
+   "No parameter count is given for the V2 checkpoints.",
+   "The V2 README does not say which training split, how many steps or which reward weights produced these checkpoints.",
+   "generate.py itself was not read, only its documented interface.",
+   "No release date is stated for the checkpoints.",
+   "The repository's INSTALL.md covers the V1 training pipeline; nothing documents how the V2 checkpoints were trained, on what data, or for how long."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the repository README, ProteinZero-V2/README.md, INSTALL.md and LICENSE at commit 83dfba87, and the arXiv 2506.07459 abstract page of the ProteinZero V1 paper, each fetched on 2026-11-26. The ProteinZero-V2 directory listing was read through the GitHub API. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Clone the repository at a pinned commit and generate eight sequences per backbone with a ProteinZero V2 teaser checkpoint.",
+  "prerequisites": [
+   "Python 3.10 or later, PyTorch and NumPy. The bundled ProteinMPNN code comes with the repository.",
+   "A directory of backbone PDB files, each of at most about 100 residues.",
+   "A CPU is enough; the device argument accepts cpu, cuda or auto.",
+   "Code and checkpoints are MIT licensed."
+  ],
+  "steps": [
+   {
+    "title": "Get the code and checkpoints",
+    "shell": "git clone https://github.com/ziwenwang28/ProteinZero.git\ncd ProteinZero\ngit checkout --detach 83dfba873ffd313a23d8250d72652584e3504543",
+    "explanation": "The repository holds the V2 teaser checkpoints, so no separate weights download is needed. The clone and checkout lines are added to pin the commit this page was written from; the sources give no clone command.",
+    "source_ids": [
+     "@readme",
+     "@v2-readme"
+    ],
+    "source_locator": "README: Repository contents; ProteinZero-V2/README.md: Checkpoints",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`ProteinZero-V2/`             | ProteinZero V2 teaser checkpoints and sequence generation script"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "`checkpoints/proteinzero_v2_esmfold1.pt` | ESMFold1"
+     }
+    ]
+   },
+   {
+    "title": "Install the two dependencies",
+    "shell": "python -m pip install torch numpy",
+    "explanation": "The install line given in the V2 README for sequence generation.",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Dependencies",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "python -m pip install torch numpy"
+     }
+    ]
+   },
+   {
+    "title": "Generate sequences for your backbones",
+    "shell": "python /path/to/ProteinZero/ProteinZero-V2/generate.py \\\n  --checkpoint /path/to/ProteinZero/ProteinZero-V2/checkpoints/proteinzero_v2_esmfold1.pt \\\n  --pdb_dir /path/to/backbones \\\n  --output /path/to/generated_sequences.tsv \\\n  --num_seqs 8 \\\n  --temperature 0.1 \\\n  --device auto \\\n  --seed 0 \\\n  --overwrite",
+    "explanation": "The command as the V2 README prints it. Replace the three paths with your own; --pdb_dir must hold the backbone PDB files. Use proteinzero_v2_esmfold2.pt for the checkpoint trained with ESMFold2 feedback.",
+    "source_ids": [
+     "@v2-readme"
+    ],
+    "source_locator": "ProteinZero-V2/README.md: Sequence generation",
+    "quotes": [
+     {
+      "source": "@v2-readme",
+      "text": "--checkpoint /path/to/ProteinZero/ProteinZero-V2/checkpoints/proteinzero_v2_esmfold1.pt"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "--num_seqs 8"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "--temperature 0.1"
+     },
+     {
+      "source": "@v2-readme",
+      "text": "Replace the paths below with those of\nyour own installation."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "The file given to --output: a tab-separated file with columns structure_id, sample_id and sequence, eight rows per input backbone at the default --num_seqs."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "Nothing is folded or scored; assessing the designs is left to the user.",
+   "The INSTALL.md training procedure is the V1 GRPO pipeline on InstructPLM, not a recipe for retraining V2; it needs eight GPUs, OpenFold built from source and TM-align."
+  ],
+  "source_ids": [
+   "@v2-readme",
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "proteinzero_v2_esmfold1.pt",
+   "parameters": null,
+   "context_length": 100,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://github.com/ziwenwang28/ProteinZero",
+   "weights_url": "https://github.com/ziwenwang28/ProteinZero/tree/main/ProteinZero-V2/checkpoints",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@v2-readme",
+     "text": "These checkpoints are intended for structures of up to 100 residues."
+    },
+    {
+     "source": "@v2-readme",
+     "text": "`checkpoints/proteinzero_v2_esmfold1.pt` | ESMFold1"
+    },
+    {
+     "source": "@license",
+     "text": "MIT License"
+    }
+   ]
+  },
+  {
+   "checkpoint": "proteinzero_v2_esmfold2.pt",
+   "parameters": null,
+   "context_length": 100,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://github.com/ziwenwang28/ProteinZero",
+   "weights_url": "https://github.com/ziwenwang28/ProteinZero/tree/main/ProteinZero-V2/checkpoints",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@v2-readme",
+     "text": "These checkpoints are intended for structures of up to 100 residues."
+    },
+    {
+     "source": "@v2-readme",
+     "text": "`checkpoints/proteinzero_v2_esmfold2.pt` | ESMFold2"
+    },
+    {
+     "source": "@license",
+     "text": "MIT License"
+    }
+   ]
+  }
+ ],
+ "notes": "The existing HyInv source (hyinv-20261106-source-report) cites ProteinZero only as arXiv 2506.07459 in its reference list; the repository URL came from that arXiv abstract page, which names it. The HyInv report PDF cannot be quoted by the checker and was not kept as a saved source. The report evaluates two variants it calls ProteinZero V2 (ESM1) and ProteinZero V2 (ESM2); these look like the two released checkpoints, which differ in the ESMFold version used for the reward, but the mapping is inferred and stated by neither side. ProteinZero V1 (arXiv 2506.07459, TMLR) is a separate model built on InstructPLM and may be a separate record. No V2 paper exists yet."
+}

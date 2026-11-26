@@ -1,0 +1,814 @@
+{
+ "record_id": "uc20260930-model-carp",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "microsoft/protein-sequence-models README.md at commit af695772",
+   "description": "Official repository README, pinned to a commit. It covers CARP and the other models in the repository.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/microsoft/protein-sequence-models/af695772c4a1c056d930c95ec7e6428aa042f5cd/README.md",
+   "url": "https://github.com/microsoft/protein-sequence-models",
+   "version": "git commit af695772c4a1c056d930c95ec7e6428aa042f5cd",
+   "media_type": "text/markdown",
+   "sha256": "8e277de5982c8c9d0f83d6db387b754703b008238c00983d2af5a1bb43c38899",
+   "retrieved_at": "2026-11-26T20:53:11Z",
+   "store_bytes": false
+  },
+  {
+   "key": "license",
+   "name": "microsoft/protein-sequence-models LICENSE at commit af695772",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license",
+   "artifact_url": "https://raw.githubusercontent.com/microsoft/protein-sequence-models/af695772c4a1c056d930c95ec7e6428aa042f5cd/LICENSE",
+   "url": "https://github.com/microsoft/protein-sequence-models",
+   "version": "git commit af695772c4a1c056d930c95ec7e6428aa042f5cd",
+   "media_type": "text/plain",
+   "sha256": "3d8597289d4a868d3db0fe926de517ab16face0295ab0dae29c29483ac0c1608",
+   "retrieved_at": "2026-11-26T20:53:19Z",
+   "store_bytes": false
+  },
+  {
+   "key": "pretrained",
+   "name": "microsoft/protein-sequence-models sequence_models/pretrained.py at commit af695772",
+   "description": "Loader module that downloads the checkpoints and builds the model, pinned to a commit.",
+   "file": "artifacts/pretrained.py",
+   "artifact_url": "https://raw.githubusercontent.com/microsoft/protein-sequence-models/af695772c4a1c056d930c95ec7e6428aa042f5cd/sequence_models/pretrained.py",
+   "url": "https://github.com/microsoft/protein-sequence-models",
+   "version": "git commit af695772c4a1c056d930c95ec7e6428aa042f5cd",
+   "media_type": "text/x-python",
+   "sha256": "159ede4622a006a8efd126a382f5d39817732b8f7639427c98e5cc7293270640",
+   "retrieved_at": "2026-11-26T20:53:20Z",
+   "store_bytes": false
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 6564798 metadata, as served on 2026-11-26",
+   "description": "Zenodo API response for the deposit that holds the CARP checkpoints: files, sizes, licence and publication date.",
+   "file": "artifacts/zenodo.json",
+   "artifact_url": "https://zenodo.org/api/records/6564798",
+   "url": "https://doi.org/10.5281/zenodo.6564798",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "4c62339cda5c2a9204922d2a1e14e3ea851285ccfa2f292b614a1b721baf4886",
+   "retrieved_at": "2026-11-26T20:53:26Z",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Europe PMC record 38428432 (Yang et al. 2024, Cell Systems)",
+   "description": "Europe PMC metadata and abstract of the CARP paper.",
+   "file": "artifacts/paper-europepmc.json",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID%3A38428432+AND+SRC%3AMED&format=json&resultType=core",
+   "url": "https://doi.org/10.1016/j.cels.2024.01.008",
+   "version": "As served on 2026-11-26",
+   "media_type": "application/json",
+   "sha256": "891f2f9740ae2549467ff41922fa08b257e17e52fa131567fe3398597f697794",
+   "retrieved_at": "2026-11-26T20:53:26Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "CARP is a family of protein language models built from convolutions rather than attention. Each model reads an amino acid sequence and was pretrained to fill in masked residues, on the March 2020 release of UniRef50. It returns a representation for every residue, plus per-residue logits that can be used to score sequences. Because it is a convolutional network, cost grows linearly with length rather than quadratically.",
+  "summary_source_ids": [
+   "@readme",
+   "@paper"
+  ],
+  "summary_source_locator": "README: Convolutional autoencoding representations of proteins (CARP); abstract",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "We make available pretrained CNN protein sequence masked language models of various sizes. All of these have a ByteNet encoder architecture and are pretrained on the March 2020 release of UniRef50 using the same masked language modeling task as in BERT and ESM-1b."
+   },
+   {
+    "source": "@readme",
+    "text": "rep = model(x)  # (n, max_len, d_model)"
+   },
+   {
+    "source": "@paper",
+    "text": "convolutional neural network (CNN) architectures, which scale linearly with sequence length, could be as effective as transformers in protein language models"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Each CARP model is a ByteNet encoder: stacked convolutional layers with growing dilation, so a residue's representation takes in a widening window of neighbours without attention. Pretraining masks residues and asks the model to predict them, as in BERT and ESM-1b. The loader reads the width, depth, kernel size and dilation factor from the checkpoint and builds a ByteNetLM over the protein alphabet, then wraps it so padding is masked. Forward returns per-residue representations; with repr_layers and logits you also get intermediate layers and the vocabulary logits.",
+    "source_ids": [
+     "@readme",
+     "@pretrained",
+     "@paper"
+    ],
+    "source_locator": "README: CARP; ByteNet; pretrained.py load_carp and class CARP",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All of these have a ByteNet encoder architecture and are pretrained on the March 2020 release of UniRef50 using the same masked language modeling task as in BERT and ESM-1b."
+     },
+     {
+      "source": "@readme",
+      "text": "r = ??? # used to calculate dilation factor"
+     },
+     {
+      "source": "@pretrained",
+      "text": "\"\"\"Wrapper that takes care of input masking.\"\"\""
+     },
+     {
+      "source": "@readme",
+      "text": "CARP also supports computing representations from arbitrary layers and the final logits."
+     },
+     {
+      "source": "@paper",
+      "text": "emphasizes the importance of disentangling pretraining task and model architecture"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "Four sizes are released and are chosen by name in load_model_and_alphabet: carp_600k, carp_38M, carp_76M and carp_640M. The loader fetches each from one Zenodo deposit, so a result should name the checkpoint and that deposit (record 6564798, dated 2022-03-18). The same loader also serves MIF, MIF-ST and BiGCARP from other deposits; MIF-ST pulls carp_640M in as its sequence model, so a MIF-ST result is not a CARP result.",
+    "source_ids": [
+     "@readme",
+     "@pretrained",
+     "@zenodo"
+    ],
+    "source_locator": "README: Loading pretrained models; pretrained.py load_model_and_alphabet; Zenodo record",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "model, collater = load_model_and_alphabet('carp_640M')"
+     },
+     {
+      "source": "@pretrained",
+      "text": "url = CARP_URL + '%s.pt?download=1' %model_name"
+     },
+     {
+      "source": "@pretrained",
+      "text": "url = CARP_URL + '%s.pt?download=1' % 'carp_640M'"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"publication_date\": \"2022-03-18\""
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Convolutional protein sequence language model, pretrained with masked language modelling. A family of four sizes.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Convolutional autoencoding representations of proteins (CARP); abstract",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We make available pretrained CNN protein sequence masked language models of various sizes."
+     },
+     {
+      "source": "@paper",
+      "text": "convolutional neural network (CNN) architectures, which scale linearly with sequence length"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "ByteNet encoder: stacked dilated convolutional layers. The loader builds a ByteNetLM with the embedding size, model width, layer count, kernel size and dilation factor stored in each checkpoint, with final layer normalisation and no causal masking.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@pretrained"
+    ],
+    "source_locator": "README: CARP; ByteNet; sequence_models/pretrained.py load_carp",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All of these have a ByteNet encoder architecture"
+     },
+     {
+      "source": "@readme",
+      "text": "ByteNet uses stacked\nconvolutional encoder and decoder layers to preserve temporal resolution of \nsequential data."
+     },
+     {
+      "source": "@pretrained",
+      "text": "model = ByteNetLM(n_tokens, d_embedding, d_model, n_layers, kernel_size, r, dropout=0.0,"
+     },
+     {
+      "source": "@pretrained",
+      "text": "final_ln=True, slim=slim, n_frozen_embs=n_frozen)"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Amino acid sequences as strings, batched by the collater that is returned with the model. The bulk script takes a FASTA file.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: CARP; Compute embeddings in bulk from FASTA",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "seqs = [['MDREQ'], ['MGTRRLLP']]"
+     },
+     {
+      "source": "@readme",
+      "text": "x = collater(seqs)[0]  # (n, max_len)"
+     },
+     {
+      "source": "@readme",
+      "text": "We provide a script that efficiently extracts embeddings in bulk from a FASTA file."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Per-residue representations of shape (n, max_len, d_model), representations from chosen layers, and the final logits. The bulk script can also save mean-pooled embeddings and the average log probability per sequence.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: CARP; Compute embeddings in bulk from FASTA",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "rep = model(x)  # (n, max_len, d_model)"
+     },
+     {
+      "source": "@readme",
+      "text": "rep = model(x, repr_layers=[0, 2, 32], logits=True)"
+     },
+     {
+      "source": "@readme",
+      "text": "`logp` computes the average log probability per sequence and stores it in a csv"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "600k, 38M, 76M and 640M, as the four checkpoint names give them: carp_600k, carp_38M, carp_76M and carp_640M. No exact counts are stated in the sources read. The checkpoint files are 2,491,251 bytes (600k), 151,618,419 (38M), 303,066,803 (76M) and 2,572,014,451 (640M).",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@zenodo"
+    ],
+    "source_locator": "README: Loading pretrained models; Zenodo record files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "- `carp_600k`"
+     },
+     {
+      "source": "@readme",
+      "text": "- `carp_640M`"
+     },
+     {
+      "source": "@zenodo",
+      "text": "carp_640M.pt\", \"size\": 2572014451"
+     },
+     {
+      "source": "@zenodo",
+      "text": "carp_38M.pt\", \"size\": 151618419"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "The March 2020 release of UniRef50, with the same masked language modelling task as BERT and ESM-1b. The Zenodo deposit also holds the uniref50 archive used.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@zenodo"
+    ],
+    "source_locator": "README: CARP; Zenodo record files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pretrained on the March 2020 release of UniRef50 using the same masked language modeling task as in BERT and ESM-1b"
+     },
+     {
+      "source": "@zenodo",
+      "text": "uniref50.tar.gz"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Four CARP checkpoints, loaded by name: carp_600k, carp_38M, carp_76M and carp_640M. The same repository also holds MIF, MIF-ST and three BiGCARP models, which are different models.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Loading pretrained models",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "- `carp_600k`\n- `carp_38M`\n- `carp_76M`\n- `carp_640M`"
+     },
+     {
+      "source": "@readme",
+      "text": "- `mif`\n- `mifst`\n- `bigcarp_esm1bfinetune`"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "The pretraining data is the March 2020 release of UniRef50, so nothing later is in it. The date of the training run is not stated; the Zenodo deposit is dated 2022-03-18.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@zenodo"
+    ],
+    "source_locator": "README: CARP; Zenodo record publication_date",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pretrained on the March 2020 release of UniRef50"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"publication_date\": \"2022-03-18\""
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "No fixed limit is stated. The paper's point is that a CNN scales linearly with sequence length and keeps performance on sequences longer than the transformer models allow.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "CNNs are competitive with, and occasionally superior to, transformers across downstream applications while maintaining strong performance on sequences longer than those allowed in the current state-of-the-art transformer models"
+     },
+     {
+      "source": "@paper",
+      "text": "which scale linearly with sequence length"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "bsd-license, as the Zenodo record for the checkpoints declares (Zenodo's identifier for a BSD licence; the record does not say which BSD variant).",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record metadata, license",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"bsd-license\"}"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "A Microsoft BSD-style licence in the repository's LICENSE file: redistribution in source and binary form is permitted if the copyright notice and conditions are retained, with no warranty. GitHub does not recognise it as a standard identifier.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2022\nMicrosoft [All rights reserved]."
+     },
+     {
+      "source": "@license",
+      "text": "Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/microsoft/protein-sequence-models, installable as pip install sequence-models. Weights: downloaded automatically from https://zenodo.org/record/6564798/files/ by load_model_and_alphabet (the record read here), or by hand from the Zenodo link in the README, which points at the concept DOI 10.5281/zenodo.6368483. No login or agreement is needed.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@pretrained",
+     "@zenodo"
+    ],
+    "source_locator": "README: Installation, CARP; pretrained.py CARP_URL; Zenodo record",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "$ pip install sequence-models"
+     },
+     {
+      "source": "@pretrained",
+      "text": "CARP_URL = 'https://zenodo.org/record/6564798/files/'"
+     },
+     {
+      "source": "@readme",
+      "text": "You can also download the weights manually from [Zenodo]"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"doi\": \"10.5281/zenodo.6564798\""
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Cost grows linearly with sequence length, so long proteins are cheaper than with a transformer of the same size, and the authors report performance on sequences longer than transformer models allow.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "which scale linearly with sequence length"
+     },
+     {
+      "source": "@paper",
+      "text": "while maintaining strong performance on sequences longer than those allowed in the current state-of-the-art transformer models"
+     }
+    ]
+   },
+   {
+    "text": "Four sizes from 600k to 640M, all loaded by one function call that downloads the weights.",
+    "source_ids": [
+     "@readme",
+     "@pretrained"
+    ],
+    "source_locator": "README: Loading pretrained models; pretrained.py",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "model, collater = load_model_and_alphabet('carp_640M')"
+     },
+     {
+      "source": "@pretrained",
+      "text": "model_data = torch.hub.load_state_dict_from_url(url, progress=False, map_location=\"cpu\")"
+     }
+    ]
+   },
+   {
+    "text": "A bulk extraction script runs over a FASTA file, picks layers, and pools per-token embeddings or writes average log probabilities; it uses a GPU if one is found and the CPU otherwise.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Compute embeddings in bulk from FASTA",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "A cuda device is optional and will be auto-detected."
+     },
+     {
+      "source": "@readme",
+      "text": "The default is to use a batchsize of 1 and `cpu` if cuda is not detected or `cuda:0` if cuda is detected."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Only a single sequence is used: no alignment and no structure. For scoring mutations the README offers only embeddings and average log probabilities, not a mutation scoring script.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: CARP; Compute embeddings in bulk from FASTA",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "seqs = [['MDREQ'], ['MGTRRLLP']]"
+     },
+     {
+      "source": "@readme",
+      "text": "`logp` computes the average log probability per sequence and stores it in a csv"
+     }
+    ]
+   },
+   {
+    "text": "The repository holds several unrelated models (MIF, MIF-ST, BiGCARP, trRosetta, a GNN decoder), so the installed package is larger than CARP and the README must be read with care.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Loading pretrained models; Masked Inverse Folding; BiGCARP",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Masked Inverse Folding (MIF) and Masked Inverse Folding with Sequence Transfer (MIF-ST)"
+     },
+     {
+      "source": "@readme",
+      "text": "Biosynthetic gene cluster CARP (BiGCARP)"
+     },
+     {
+      "source": "@readme",
+      "text": "* trRosetta"
+     }
+    ]
+   },
+   {
+    "text": "Tested only with older PyTorch versions (1.9.0, 1.11.0 and 1.12), and the README gives no pinned environment beyond that.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Loading pretrained models",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Models require PyTorch. We tested on `v1.9.0`, `v1.11.0`,and `1.12`."
+     }
+    ]
+   },
+   {
+    "text": "The code licence is a custom Microsoft BSD-style text rather than a standard identifier, and the weights carry Zenodo's generic bsd-license label, so licence review is not a one-line matter.",
+    "source_ids": [
+     "@license",
+     "@zenodo"
+    ],
+    "source_locator": "LICENSE; Zenodo record metadata",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Microsoft [All rights reserved]."
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"bsd-license\"}"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "CARP workflow",
+   "steps": [
+    "Amino acid sequences",
+    "Collater: pad and tokenise to (n, max_len)",
+    "ByteNet dilated convolution stack",
+    "Per-residue representations (n, max_len, d_model), optional logits",
+    "Mean embeddings or average log probability per sequence"
+   ],
+   "caption": "The path the README shows, from a batch of sequences to embeddings or sequence scores.",
+   "source_ids": [
+    "@readme"
+   ],
+   "source_locator": "README: CARP; Compute embeddings in bulk from FASTA",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "x = collater(seqs)[0]  # (n, max_len)"
+    },
+    {
+     "source": "@readme",
+     "text": "rep = model(x)  # (n, max_len, d_model)"
+    },
+    {
+     "source": "@readme",
+     "text": "`mean` includes the embeddings averaged over the full sequence, per layer"
+    },
+    {
+     "source": "@readme",
+     "text": "All of these have a ByteNet encoder architecture"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Only the Europe PMC abstract was read; the paper is not open access, so layer counts, widths, exact parameter counts, training compute and benchmark results are not taken from it.",
+   "No exact parameter counts are published in the sources read, only the names 600k, 38M, 76M and 640M.",
+   "Memory needs are not stated; only that the extraction script uses a GPU when one is present.",
+   "The repository has no model card and no per-checkpoint documentation."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the repository README, LICENSE and sequence_models/pretrained.py at commit af695772, the Zenodo API record 6564798 that holds the checkpoints, and the Europe PMC abstract record 38428432, each fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the package, load a CARP checkpoint, and get per-residue representations for two short sequences.",
+  "prerequisites": [
+   "PyTorch. The README says it was tested on 1.9.0, 1.11.0 and 1.12, and that pandas, scipy and wget may also be needed in a clean conda environment.",
+   "Internet access: the loader downloads the checkpoint from Zenodo on first use (2,572,014,451 bytes for carp_640M, 151,618,419 for carp_38M).",
+   "No GPU is required for the snippet; the bulk script uses one if present."
+  ],
+  "steps": [
+   {
+    "title": "Install",
+    "shell": "pip install sequence-models",
+    "explanation": "The released package. The README also offers pip install git+https://github.com/microsoft/protein-sequence-models.git for the current main branch; that form cannot be pinned to a commit without changing the command.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "$ pip install sequence-models"
+     }
+    ]
+   },
+   {
+    "title": "Load a checkpoint and encode two sequences",
+    "shell": "python - <<'PY'\nfrom sequence_models.pretrained import load_model_and_alphabet\n\nmodel, collater = load_model_and_alphabet('carp_640M')\n\nseqs = [['MDREQ'], ['MGTRRLLP']]\nx = collater(seqs)[0]  # (n, max_len)\nrep = model(x)  # (n, max_len, d_model)\nprint(rep.shape)\nPY",
+    "explanation": "The two README snippets joined in a shell heredoc, with a print added. The first call downloads carp_640M from Zenodo. Use carp_600k, carp_38M or carp_76M for a smaller model.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Loading pretrained models; CARP",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "from sequence_models.pretrained import load_model_and_alphabet"
+     },
+     {
+      "source": "@readme",
+      "text": "model, collater = load_model_and_alphabet('carp_640M')"
+     },
+     {
+      "source": "@readme",
+      "text": "seqs = [['MDREQ'], ['MGTRRLLP']]"
+     },
+     {
+      "source": "@readme",
+      "text": "rep = model(x)  # (n, max_len, d_model)"
+     }
+    ]
+   },
+   {
+    "title": "Get the repository for the bulk script",
+    "shell": "git clone https://github.com/microsoft/protein-sequence-models.git\ncd protein-sequence-models\ngit checkout --detach af695772c4a1c056d930c95ec7e6428aa042f5cd",
+    "explanation": "Needed only for the next step: scripts/extract.py and the example FASTA ship with the repository, not with the pip package. The README gives no clone command; these lines pin the commit this page was written from.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation; Compute embeddings in bulk from FASTA",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "$ pip install git+https://github.com/microsoft/protein-sequence-models.git  # bleeding edge, current repo main branch"
+     },
+     {
+      "source": "@readme",
+      "text": "We provide a script that efficiently extracts embeddings in bulk from a FASTA file."
+     }
+    ]
+   },
+   {
+    "title": "Extract embeddings for a FASTA file",
+    "shell": "python scripts/extract.py carp_640M examples/some_proteins.fasta \\\n    examples/results/some_proteins_emb_carp_640M/ \\\n    --repr_layers 0 32 33 logits --include mean per_tok",
+    "explanation": "The README's bulk command, run from a clone of the repository (the script and the example FASTA are in it, not in the pip package). It writes one .pt file per extracted embedding.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Compute embeddings in bulk from FASTA",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "$ python scripts/extract.py carp_640M examples/some_proteins.fasta \\\n    examples/results/some_proteins_emb_carp_640M/ \\\n    --repr_layers 0 32 33 logits --include mean per_tok"
+     },
+     {
+      "source": "@readme",
+      "text": "now contains one `.pt` file per extracted embedding; use `torch.load()` to load them."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Step 2 prints the shape of the representation tensor, (n, max_len, d_model).",
+   "Step 3 writes one .pt file per extracted embedding into the output directory, loadable with torch.load(), and a csv if logp is requested."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "Step 3 clones the repository because scripts/extract.py and the example FASTA are not in the pip package; the README gives no clone command.",
+   "The README gives no example of scoring mutations, only embeddings and average log probabilities."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "carp_600k",
+   "parameters": 600000,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "custom-bsd-style",
+   "weights_licence": "BSD",
+   "code_url": "https://github.com/microsoft/protein-sequence-models",
+   "weights_url": "https://zenodo.org/record/6564798/files/carp_600k.pt",
+   "gated": false,
+   "released": "2022-03-18",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "- `carp_600k`"
+    },
+    {
+     "source": "@zenodo",
+     "text": "carp_600k.pt\", \"size\": 2491251"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2022-03-18\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"license\": {\"id\": \"bsd-license\"}"
+    }
+   ]
+  },
+  {
+   "checkpoint": "carp_38M",
+   "parameters": 38000000,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "custom-bsd-style",
+   "weights_licence": "BSD",
+   "code_url": "https://github.com/microsoft/protein-sequence-models",
+   "weights_url": "https://zenodo.org/record/6564798/files/carp_38M.pt",
+   "gated": false,
+   "released": "2022-03-18",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "- `carp_38M`"
+    },
+    {
+     "source": "@zenodo",
+     "text": "carp_38M.pt\", \"size\": 151618419"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2022-03-18\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"license\": {\"id\": \"bsd-license\"}"
+    }
+   ]
+  },
+  {
+   "checkpoint": "carp_76M",
+   "parameters": 76000000,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "custom-bsd-style",
+   "weights_licence": "BSD",
+   "code_url": "https://github.com/microsoft/protein-sequence-models",
+   "weights_url": "https://zenodo.org/record/6564798/files/carp_76M.pt",
+   "gated": false,
+   "released": "2022-03-18",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "- `carp_76M`"
+    },
+    {
+     "source": "@zenodo",
+     "text": "carp_76M.pt\", \"size\": 303066803"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2022-03-18\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"license\": {\"id\": \"bsd-license\"}"
+    }
+   ]
+  },
+  {
+   "checkpoint": "carp_640M",
+   "parameters": 640000000,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "custom-bsd-style",
+   "weights_licence": "BSD",
+   "code_url": "https://github.com/microsoft/protein-sequence-models",
+   "weights_url": "https://zenodo.org/record/6564798/files/carp_640M.pt",
+   "gated": false,
+   "released": "2022-03-18",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "- `carp_640M`"
+    },
+    {
+     "source": "@zenodo",
+     "text": "carp_640M.pt\", \"size\": 2572014451"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2022-03-18\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"license\": {\"id\": \"bsd-license\"}"
+    }
+   ]
+  }
+ ],
+ "notes": "The parameter values in structured are taken from the checkpoint names (carp_600k, carp_38M, carp_76M, carp_640M); no source read states an exact count, so they are the developers' rounded figures and should be treated as such. released is the date the host records for the weights (the Zenodo deposit's publication_date), the same rule used for the other models in this batch. Two Zenodo identifiers appear: the loader downloads from record 6564798, which is what was read, while the README links the concept DOI 10.5281/zenodo.6368483. The repository hosts MIF, MIF-ST and BiGCARP as well; only CARP is described here. Neither the Cell Systems paper nor the bioRxiv preprint (PPR496447) is open access, so only abstracts were available and no parameter counts could be sourced."
+}
