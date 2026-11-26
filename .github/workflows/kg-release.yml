@@ -94,9 +94,21 @@ jobs:
             echo "::error::The discrepancies release $RELEASE serves differ from the ones its graph derives."
             exit 1
           fi
+      - name: Token for the rewire-bot app
+        id: app
+        if: steps.release.outputs.build == 'true'
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REWIRE_BOT_APP_ID }}
+          private-key: ${{ secrets.REWIRE_BOT_PRIVATE_KEY }}
+          permission-contents: write
       - name: Publish it (never replaces an existing asset)
         if: steps.release.outputs.build == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          APP_TOKEN: ${{ steps.app.outputs.token }}
           RELEASE_TARGET_SHA: ${{ steps.release.outputs.sha }}
-        run: npm run kg:publish
+        # The workflow's own token is refused (HTTP 403) when the release commit's workflow
+        # files differ from main's, which is the usual case for a bundle built later. Publishing
+        # never replaces an asset, so try again as rewire-bot.
+        run: npm run kg:publish || GH_TOKEN="$APP_TOKEN" npm run kg:publish
