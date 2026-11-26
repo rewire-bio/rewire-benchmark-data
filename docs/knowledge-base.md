@@ -150,14 +150,14 @@ flowchart TD
   (`scripts/ops/changed-records.py`). Anything that touches code, the vocabulary or the workflows
   validates the whole store.
 - **Release.** Every merge to `main` starts a release build. Releases run one at a time.
-- **The fast path.** The graph's inference and the disagreement rules take most of a release
-  build. They cannot see a model description, so when a release changes only profiles, run guides
-  and new sources (`scripts/release/content-only.py` decides), it reuses the last published
-  disagreement results.
+- **Disagreements without the graph.** The graph's inference and its disagreement rules took
+  about 15 minutes of every release build. A release now loads the store into one database
+  (`kb/migrate.py`) and finds the disagreements from it (`kb/discrepancies.py`) in about 15
+  seconds. The output is the same file, byte for byte.
 - **The nightly graph.** `kg-release.yml` runs at 01:37 UTC. It builds the knowledge graph bundle
   for the newest release if that release has none, and fails if its disagreement results differ
   from the ones the website is serving. So the graph is at most a day behind the website, and a
-  mistake in the fast path is caught within a day.
+  difference between the database's answer and the graph's is caught within a day.
 - **The website.** It copies the release, runs its own tests against it and deploys. A pipeline
   alert opens an issue if any step fails.
 

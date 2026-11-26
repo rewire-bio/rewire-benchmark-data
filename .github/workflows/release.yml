@@ -82,25 +82,19 @@ jobs:
           npm run release:fetch -- "$previous"
           npm run omics:release
           candidate=$(node -p "require('./public/omics/manifest.json').release_id")
-          # The graph's inference and discrepancy rules take about 15 of this build's 21 minutes.
-          # When everything changed since the last bundle is descriptive content they cannot see
-          # (scripts/release/content-only.py), the prepared file serves that bundle's
-          # discrepancies under this release's id and no bundle is built here. kg-release.yml
-          # builds the bundle for the newest release every night and fails if its discrepancies
-          # differ from the ones reused.
-          bundle=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName,createdAt --jq '[.[] | select(.tagName | startswith("kg/"))] | sort_by(.createdAt) | last | .tagName | ltrimstr("kg/")')
+          # Discrepancies come from the rebuilt core (docs/rebuild.md): the store is loaded into one
+          # database and kb/discrepancies.py applies the rules to it, in about 15 seconds. It
+          # writes the file scripts/kg/contradictions.py writes from the graph, byte for byte.
+          # No graph bundle is built here. kg-release.yml builds one for the newest release every
+          # night and fails if its discrepancies differ from the ones served. A manual run with
+          # full_build builds the bundle here instead, as every release did before.
           reused=false
-          if [ -n "$bundle" ] && [ "${FULL_BUILD:-false}" != true ]; then
-            bundle_sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/kg/$bundle" --jq .sha)
-            if git cat-file -e "$bundle_sha^{commit}" && python3 scripts/release/content-only.py "$bundle_sha"; then
-              mkdir -p public/kg "$RUNNER_TEMP/bundle"
-              gh release download "kg/$bundle" --repo "$GITHUB_REPOSITORY" --pattern discrepancies.json --dir "$RUNNER_TEMP/bundle"
-              sed "s/$bundle/$candidate/g" "$RUNNER_TEMP/bundle/discrepancies.json" > public/kg/discrepancies.json
-              reused=true
-              echo "Reusing the discrepancies of kg/$bundle for $candidate"
-            fi
-          fi
-          if [ "$reused" != true ]; then
+          if [ "${FULL_BUILD:-false}" != true ]; then
+            mkdir -p public/kg
+            python3 kb/migrate.py --out "$RUNNER_TEMP/kb.sqlite"
+            python3 kb/discrepancies.py --db "$RUNNER_TEMP/kb.sqlite" --release "$candidate" --out public/kg/discrepancies.json
+            reused=true
+          else
             npm run kg:bundle
             npm run kg:verify
           fi
@@ -200,7 +194,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TARGET_SHA: ${{ steps.commit.outputs.sha }}
           REUSED: ${{ steps.candidate.outputs.reused }}
-        # A release that reused the last bundle's discrepancies built no bundle; kg-release.yml
+        # A release whose discrepancies came from the database built no bundle; kg-release.yml
         # builds and publishes it that night.
         run: |
           if [ "$REUSED" = true ]; then echo "No bundle was built for this release."; else npm run kg:publish; fi
@@ -222,7 +216,7 @@ jobs:
         if: steps.pending.outputs.release == 'true'
         env:
           RELEASE: ${{ steps.candidate.outputs.next }}
-          # Empty when the release reused the last bundle's discrepancies: it has no bundle of its own yet.
+          # Empty when the discrepancies came from the database: the release has no bundle of its own yet.
           KG_TAG: ${{ steps.candidate.outputs.reused != 'true' && format('kg/{0}', steps.candidate.outputs.next) || '' }}
         run: node scripts/release/commit.mjs verify "${{ steps.commit.outputs.sha }}" "serving/$RELEASE" $KG_TAG
       - name: Ask the website to adopt it

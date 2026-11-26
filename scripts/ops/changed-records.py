@@ -12,8 +12,8 @@ import subprocess
 import sys
 
 RECORDS = ("data/entities/", "data/evidence/")
-# kb/ is the rebuilt core (docs/rebuild.md). It reads the store and never writes it, and has its own job.
-HARMLESS = ("data/provenance/", "data/omics/", "docs/", "kb/")
+# kb/curation/ holds settings and grounding (docs/rebuild.md). The programs in kb/ decide what a release serves, so a change to them takes the full checks.
+HARMLESS = ("data/provenance/", "data/omics/", "docs/", "kb/curation/")
 FULL = ("data/omics/release-config.json",)
 ID = re.compile(r'^[+-]\{"id":"([^"]+)"')
 

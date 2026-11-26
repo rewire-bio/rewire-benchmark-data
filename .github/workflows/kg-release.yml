@@ -76,10 +76,10 @@ jobs:
         run: |
           npm run kg:bundle
           npm run kg:verify
-      # A release that reused an earlier bundle's discrepancies records their hash in its serving
-      # receipt. A different hash here means scripts/release/content-only.py let through a change
-      # the discrepancy rules can see: the site is serving stale discrepancies until the next
-      # full release, and that script needs the case added.
+      # A release finds its discrepancies from the database (kb/discrepancies.py) and records their
+      # hash in its serving receipt. The graph build here finds them from the graph. A different
+      # hash means the two programs disagree: one of them has a bug, and the website is serving
+      # the database's answer until it is fixed.
       - name: Check the discrepancies are the ones the release serves
         if: steps.release.outputs.build == 'true'
         env:

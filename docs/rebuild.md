@@ -109,10 +109,11 @@ The first slice is in `kb/`.
 | --- | --- |
 | `kb/inventory.py`, `kb/INVENTORY.md` | Every record kind, attribute, link and status in the current store, with counts. Nothing is dropped by the migration without appearing here |
 | `kb/migrate.py` | Builds `kb/build/kb.sqlite` from the current store. `--check` reads every record back and compares it with the original |
-| `kb/curation/` | The new information the old store has no place for: `settings.jsonl`, `protocol_settings.jsonl`, `checkpoints.jsonl`, `leads.jsonl` |
+| `kb/curation/` | The new information the old store has no place for: `settings.jsonl`, `protocol_settings.jsonl`, `grounding.jsonl` (exact system and subset per result), `checkpoints.jsonl`, `leads.jsonl`. `notes/` holds the brief the grounding agent worked from and what it found |
 | `kb/curate.py` | Loads the curation files and creates the comparison views |
 | `kb/board.py` | Estimates a leaderboard for each use case from within-study comparisons (Bradley-Terry), with each row labelled by how many studies it rests on |
 | `kb/report.py` | For one source: what it measured, which of its numbers another study also reports, and which pairs of models it orders differently |
+| `kb/discrepancies.py` | Finds disagreements between studies from `kb.sqlite` and writes `discrepancies.json`, with the same IDs and fields as `scripts/kg/contradictions.py` but without the graph or OWL inference (8 seconds instead of about 15 minutes) |
 | `kb/tools/import_pilot.py` | One-off: filled the curation files from the comparison settings pilot and the structured checkpoint facts |
 
 Measured on 26 November 2026:
@@ -148,15 +149,31 @@ grounding that does not exist yet:
 So the next two tables to fill are the checkpoint of each system and the subset of each
 observation.
 
+### With grounding
+
+An agent then named the exact system and the subset for each of the 472 results in the ClinVar and
+BRCA1 settings, from the record fields only. The wide spreads went away. What is left are 13 cases
+where two studies report different values for the same exact system on the same subset:
+
+| System | Subset | Study values (AUROC) |
+| --- | --- | --- |
+| PhyloGPN | ClinVar 5' UTR | 0.601 (Lu et al. 2025) and 0.94 (PhyloGPN paper) |
+| GPN-MSA | ClinVar 5' UTR | 0.728 and 0.95, same two sources |
+| PhyloGPN | ClinVar missense | 0.799 and 0.84, same two sources |
+| Evo 2 7B | BRCA1, all SNVs | 0.904 (Evo 2 paper) and 0.875 (Rewire's run) |
+| ESM-1b 650M | ClinVar missense | 0.892 (Brandes et al.) and 0.919 (Lu et al. 2025) |
+
+These are leads to investigate, not findings. The query is `SELECT * FROM grounded_difference_v`.
+
 ## Plan
 
 | Step | What | Done when | State |
 | --- | --- | --- | --- |
 | 1 | Inventory of the current store | Every kind, attribute and link is listed with counts | Done |
 | 2 | Migration as a repeatable function of the store | Every record reads back equal; runs in CI on every pull request | Done. The `kb` job runs it in 35 seconds |
-| 3 | One slice end to end: ClinVar and BRCA1 | Checkpoints and subsets as fields; a board with no mixed rows; the pilot's 16 disagreements returned by a query | Settings loaded; checkpoint and subset grounding not started |
+| 3 | One slice end to end: ClinVar and BRCA1 | Checkpoints and subsets as fields; a board with no mixed rows; the pilot's 16 disagreements returned by a query | Grounding done for all 472 results in the slice (`kb/curation/grounding.jsonl`): 110 exact systems, every subset named, 141 results whose source does not state a version. `grounded_difference_v` returns 13 differences between studies for the same exact system, subset and metric; 23 other shared cells agree within rounding. Not yet verified by a second agent. Three of the pilot's 16 disagreements are not returned: orderings that reverse between studies need a pair view over grounded cells, and the CADD gap on BRCA1 is left out because the source does not state the CADD version in a consistent way. Open: 175 results sit in the missense setting but are other variant classes and need their own settings; five supervised rows sit in label-free settings (`kb/curation/notes/clinvar-brca1-grounding.md`) |
 | 4 | Grounding at scale | Every Tier 1 system has a checkpoint; every Tier 1 protocol is in a setting or marked as standing alone | Not started |
-| 5 | The seam: the new core writes today's serving file | The website's own tests and data checks pass on it; sample pages render the same text | Not started |
+| 5 | The seam: the new core writes today's serving file | The website's own tests and data checks pass on it; sample pages render the same text | Part done. The release now finds its discrepancies from `kb.sqlite` (`kb/discrepancies.py`, byte-identical to the graph's file for release 2026-11-26-36acdf5e0cfa: 216 findings, same IDs). The records in the serving file still come from the old release builder |
 | 6 | New writers | A batch of model pages, a batch of results and a correction each go in through the new core | Not started |
 | 7 | New outputs | Use case boards built by query; a "what this paper changes" report for one new paper | First version of both: `kb/board.py` ranks all 31 use cases in 2 seconds, `kb/report.py` reports on one source in 2 seconds. Both compare at the model, not the checkpoint, until step 3 is done. Neither is on the website yet |
 | 8 | Nightly graph from the new core | The named queries the gap scanner and the plugin use return the same answers | Not started |
@@ -174,7 +191,7 @@ Three numbers, measured before and after.
 | --- | --- | --- |
 | Time to add one paper's results, from the paper to the live site | Not possible by agent; hours by hand | Under one hour, by agent, with verification |
 | Model, test and metric combinations measured by two or more studies | 79 | At least ten times that |
-| Merge to live | 41 minutes for a full release; 14 for a content-only one | Under 10 minutes for any change |
+| Merge to live | 41 minutes for a full release; 14 for a content-only one | Under 10 minutes for any change. Since 26 November every release finds its discrepancies from the database, and the site's 25-minute live check no longer holds the publish queue; to be measured on the next releases |
 
 If these do not move, the rebuild has failed and the existing system should be kept.
 
