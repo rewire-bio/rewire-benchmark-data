@@ -14,11 +14,11 @@ Each paper's evaluation was recorded as its own protocol and its own dataset, so
 
 One agent per cluster read an export of the cluster's protocols with their descriptions, datasets, sources and up to 400 results each, and proposed *settings*: one test that different papers could run and get comparable numbers on. Each protocol in a setting is graded `same`, `near` (same data and metric, a stated difference) or `related` (same benchmark family, not comparable number for number). The agent then listed every case where the same model has different values from two sources, or two sources order a pair of models oppositely. `BRIEF.md` is the instruction it worked from. It used no network and only the export.
 
-| Cluster | Protocols read | Settings | Protocols linked | same / near / related | Unassigned | Disagreements |
+| Cluster | Protocols read | Settings | Protocols linked | Links graded same / near / related | Unassigned | Disagreements |
 | --- | --- | --- | --- | --- | --- | --- |
-| proteingym | 24 | 6 | 5 | 13 / 0 / 0 | 11 | 4 |
-| clinvar-missense | 105 | 9 | 40 | 6 / 12 / 30 | 57 | 16 |
-| splicing | 87 | 6 | 16 | 6 / 1 / 13 | 67 | 0 |
+| proteingym | 16 | 6 | 5 | 13 / 0 / 0 | 11 | 4 |
+| clinvar-missense | 97 | 9 | 40 | 6 / 12 / 30 | 57 | 16 |
+| splicing | 83 | 6 | 16 | 6 / 1 / 13 | 67 | 0 |
 
 ## What it found
 
