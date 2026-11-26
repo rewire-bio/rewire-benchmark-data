@@ -150,6 +150,7 @@ flowchart TD
   (`scripts/ops/changed-records.py`). Anything that touches code, the vocabulary or the workflows
   validates the whole store.
 - **Release.** Every merge to `main` starts a release build. Releases run one at a time.
+- **Checks on `main`.** A merge that changes only records, batch folders and documents is checked on `main` the way its pull request was, against the commit before it, in about 3 minutes. Anything else gets the whole store and every test. The whole store is also checked every night at 00:47 UTC.
 - **Disagreements without the graph.** The graph's inference and its disagreement rules took
   about 15 minutes of every release build. A release now loads the store into one database
   (`kb/migrate.py`) and finds the disagreements from it (`kb/discrepancies.py`) in about 15

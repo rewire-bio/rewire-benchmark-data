@@ -5,6 +5,10 @@ on:
   merge_group:
   push:
     branches: [main]
+  # Every night the whole store is checked whatever changed, as the backstop for the scoped
+  # checks that merges of records alone get.
+  schedule:
+    - cron: "47 0 * * *"
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,11 +42,17 @@ jobs:
         id: scope
         env:
           BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+        # A merge to main that changes only records, batch folders and documents is checked the
+        # way its pull request was: against the commit before it. Each such commit is then
+        # checked on top of a checked one, and the nightly run checks the whole store.
         run: |
           full=true
           if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
             git fetch --quiet --depth=1 origin "$BASE_REF"
             if python3 scripts/ops/changed-records.py "origin/$BASE_REF" > "$RUNNER_TEMP/changed-ids.txt"; then full=false; fi
+          elif [ "$GITHUB_EVENT_NAME" = push ] && [ -n "$BEFORE" ] && [ "$BEFORE" != 0000000000000000000000000000000000000000 ]; then
+            if git fetch --quiet --depth=1 origin "$BEFORE" && python3 scripts/ops/changed-records.py "$BEFORE" > "$RUNNER_TEMP/changed-ids.txt"; then full=false; fi
           fi
           echo "full=$full" >> "$GITHUB_OUTPUT"
           echo "Whole-store checks: $full"
@@ -100,7 +110,7 @@ jobs:
         if: startsWith(matrix.task, 'tests-')
         env:
           SHARD: ${{ matrix.task }}
-          SCRIPT: ${{ github.event_name == 'pull_request' && 'test:fast' || 'test' }}
+          SCRIPT: ${{ (github.event_name == 'pull_request' || steps.scope.outputs.full != 'true') && 'test:fast' || 'test' }}
         run: npm run "$SCRIPT" -- --shard="${SHARD#tests-}/6"
 
   # The rebuilt core (docs/rebuild.md): load the whole store into one database, read every record

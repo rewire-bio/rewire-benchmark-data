@@ -72,6 +72,8 @@ Git keeps each release's receipt (`data/omics/releases/<id>.json`) and the curre
 
 ### If publishing fails
 
+The release workflow now handles this itself. The publish step tries again as rewire-bot when the workflow's own token is refused, and every run starts by publishing an earlier release that was committed and not published, from the files the failed run kept. The steps below are for when that also fails, for example because the kept files have expired.
+
 The release workflow pushes the release commit before it publishes, and the release files are not in Git, so a failed publish leaves `main` naming a release whose files exist nowhere public. The next release run then stops at `release:fetch` ("is neither a release asset nor in Git"), and the website is not asked to adopt it. Publish it by hand from the release commit:
 
 ```sh
