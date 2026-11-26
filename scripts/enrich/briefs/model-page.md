@@ -20,7 +20,7 @@ Two finished examples, as merged pull requests in rewire-bio/rewire-benchmark-da
 and 399 (GPN-MSA). Read the build script of 399 for the level of detail and the tone:
 `gh api repos/rewire-bio/rewire-benchmark-data/contents/data/omics/model-pages-20261126-gpn-msa/build.py --jq .content | base64 -d`
 
-A finished spec in this exact format, to copy the shape from: `data/omics/model-pages-20261126-batch1/specs/caduceus.json`.
+A finished spec in this exact format, to copy the shape from: `data/omics/model-pages-20261126-batch1/specs/caduceus.json` in rewire-bio/rewire-benchmark-data.
 
 ## What to fetch
 
@@ -133,6 +133,26 @@ Rules for the fields:
 - 2 to 4 strengths and 2 to 4 limitations. A limitation is something a user needs to know before choosing the
   model (context length, licence, needs an alignment, no weights, GPU only, deprecated by its authors).
   Do not write benchmark claims as strengths unless you say whose claim it is.
+
+## Structured facts
+
+Beside the prose facts, add a top-level `"structured"` list to `spec.json`, one entry per released checkpoint
+(or one entry for the family when no checkpoint is released). These will be loaded into a queryable table, so
+each value must be a plain number or identifier, or null when the sources do not give it:
+
+```json
+"structured": [
+  {"checkpoint": "name as the developers write it", "parameters": 7725312, "context_length": 131072,
+   "context_unit": "bases", "code_licence": "Apache-2.0", "weights_licence": "Apache-2.0",
+   "code_url": "https://github.com/...", "weights_url": "https://huggingface.co/...", "gated": false,
+   "released": "2024-03-05", "quotes": [{"source": "@hf-api", "text": "verbatim passage for the numbers"}]}
+]
+```
+
+`parameters` is an integer count (7.7M is 7700000; use the exact count when a source gives one). `context_unit`
+is one of `bases`, `tokens`, `residues`, `codons`. Licences are SPDX identifiers where one exists, otherwise a
+short name such as `custom-noncommercial`, or null when none is stated. `released` is a date a source states,
+or null. Every non-null number needs a passage in `quotes`.
 
 ## Style
 
