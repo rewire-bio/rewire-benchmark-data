@@ -1,0 +1,75 @@
+# 
+# Relative paths (based on the current working directory) to the 
+# configuration files for the dictionary and UniSpec23 model, 
+# checkpoints for trained models, dictionary usage criteria, training 
+# modifications, and trained ion statistics.
+# modified on 2024-9-2 by QD
+#
+dic_config: saved_models/unispec23/dic.yaml
+model_config: saved_models/unispec23/model_config.yaml
+model_ckpt: saved_models/unispec23/ckpt_epoch16_0.9263
+criteria: saved_models/unispec23/criteria.txt
+mod_path: saved_models/unispec23/modifications.txt
+stats_txt: saved_models/unispec23/ion_stats_train.txt
+enable_gpu: True
+search_empty_pos: True
+#
+# 1. dsets provides the full or relative path to the AI ​​experiment 
+# 	datasets used for model evaluation (validation/testing).
+# 2. The following datasets can be obtained from your UniSpec Zenoda download 
+#	folder "UniSpec-Datasets", see readme4UniSpecDatasets.txt.
+#
+dsets:
+   valuniq: 
+      msp: path/to/ValidUniq2022418_202333.msp
+#   testcomm:
+#      msp: path/to/TestCom2022418_202336.msp
+#   test:
+#      msp: path/to/TestUniq202277_202312.msp
+#
+# dsetspred provides the full or relative path to the AI ​​prediction 
+# dataset based on the corresponding dsets.
+dsetspred:
+#   valuniqpred:
+#      msp: path/to/UniSpecPred_valuniq.msp
+#
+#   testcommpred:
+#      msp: path/to/UniSpecPred_testcom.msp
+#
+#   testuniqpred:
+#      msp: path/to/UniSpecPred_testuniq.msp
+#
+# two modes: 
+# 1. write_msp: write a msp file from a provided dataset or 
+# 	from a text file containing spectrum labels of your interest.
+# 2. calc_cs: calculate cosine scores between experimental and predicted datasets.
+#
+mode: write_msp
+# The write_msp option allows you to write the predicted msp from 'dsets' or from a txt file containing 
+# 	spectrum labels
+write_msp:
+   # Three label types:
+   # 1. label_type: 'noev' 
+   #	Input file has space separated format: seq charge mod_string nce  
+   # 2. label_type: 'complete' 
+   #	Input file has newline separated list of complete labels: 
+   #	{seq}/{charge}_{mods}_{ev}eV_NCE{nce}
+   # 3. Leave 'label_type' blank if you want to write the msp in 'dsets'
+   label_type: 
+   label_path: 'path/to/labels/your_labels.txt'
+   dset: valuniq
+   comments_path: 'path/to/comments/your_comments.txt'
+   cecorr: 0
+   print_every: 2000
+   outfn: "temp/pred_validUniq2022418_202333.msp"
+#
+# calc_cs for calculating cosine scores between experimental and predicted datasets.
+# For this option, place your files in both dsets and dsetpred.
+#
+calc_cs:
+   predset: valuniqpred
+   rawset: valuniq
+   map_path:
+   closest_match: False
+   CSkwargs:
+   outfn: "temp/valuniq_cs.tsv"

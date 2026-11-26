@@ -1,0 +1,386 @@
+
+<!DOCTYPE article
+  PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD with MathML3 v1.4 20241031//EN" "JATS-archivearticle1-4-mathml3.dtd">
+<article xml:lang="EN" article-type="brief-report" dtd-version="1.4"><processing-meta base-tagset="archiving" mathml-version="3.0" table-model="xhtml" tagset-family="jats"><restricted-by>pmc</restricted-by></processing-meta><front><journal-meta><journal-id journal-id-type="nlm-ta">J Proteome Res</journal-id><journal-id journal-id-type="iso-abbrev">J Proteome Res</journal-id><journal-id journal-id-type="pmc-domain-id">822</journal-id><journal-id journal-id-type="pmc-domain">acssd</journal-id><journal-id journal-id-type="nlm-id">101128775</journal-id><journal-id journal-id-type="publisher-id">pr</journal-id><journal-title-group><journal-title>Journal of Proteome Research</journal-title></journal-title-group><issn pub-type="ppub">1535-3893</issn><issn pub-type="epub">1535-3907</issn><?publisher_abbrev acs?><custom-meta-group><custom-meta><meta-name>pmc-is-collection-domain</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-collection-title</meta-name><meta-value>ACS AuthorChoice</meta-value></custom-meta></custom-meta-group></journal-meta><article-meta><article-id pub-id-type="pmcid">PMC9087333</article-id><article-id pub-id-type="pmcid-ver">PMC9087333.1</article-id><article-id pub-id-type="pmcaid">9087333</article-id><article-id pub-id-type="pmcaiid">9087333</article-id><article-id pub-id-type="pmid">35413196</article-id><article-id pub-id-type="doi">10.1021/acs.jproteome.1c00870</article-id><article-version article-version-type="pmc-version">1</article-version><article-categories><subj-group><subject>Technical Note</subject></subj-group></article-categories><title-group><article-title>Prosit Transformer:
+A transformer for Prediction of
+MS2 Spectrum Intensities</article-title></title-group><contrib-group><contrib contrib-type="author" id="ath1"><name name-style="western"><surname>Ekvall</surname><given-names initials="M">Markus</given-names></name><xref rid="aff1" ref-type="aff">†</xref></contrib><contrib contrib-type="author" id="ath2"><name name-style="western"><surname>Truong</surname><given-names initials="P">Patrick</given-names></name><xref rid="aff1" ref-type="aff">†</xref></contrib><contrib contrib-type="author" id="ath3"><contrib-id contrib-id-type="orcid" authenticated="true">https://orcid.org/0000-0001-6440-9794</contrib-id><name name-style="western"><surname>Gabriel</surname><given-names initials="W">Wassim</given-names></name><xref rid="aff2" ref-type="aff">‡</xref></contrib><contrib contrib-type="author" id="ath4"><contrib-id contrib-id-type="orcid" authenticated="true">https://orcid.org/0000-0002-9224-3258</contrib-id><name name-style="western"><surname>Wilhelm</surname><given-names initials="M">Mathias</given-names></name><xref rid="aff2" ref-type="aff">‡</xref></contrib><contrib contrib-type="author" corresp="yes" id="ath5"><contrib-id contrib-id-type="orcid" authenticated="true">https://orcid.org/0000-0001-5689-9797</contrib-id><name name-style="western"><surname>Käll</surname><given-names initials="L">Lukas</given-names></name><xref rid="cor1" ref-type="other">*</xref><xref rid="aff1" ref-type="aff">†</xref></contrib><aff id="aff1"><label>†</label>Science
+for Life Laboratory, School of Engineering Sciences in Chemistry,
+Biotechnology and Health, <institution>Royal Institute
+of Technology—KTH</institution>, Box 1031, SE-17121 Solna, <country>Sweden</country></aff><aff id="aff2"><label>‡</label>Computational
+Mass Spectrometry, <institution>Technical University
+of Munich (TUM)</institution>, D-85354 Freising, <country>Germany</country></aff></contrib-group><author-notes><corresp id="cor1"><label>*</label>Email: <email>lukas.kall@scilifelab.se</email>.</corresp></author-notes><pub-date pub-type="epub"><day>12</day><month>04</month><year>2022</year></pub-date><pub-date pub-type="ppub"><day>06</day><month>05</month><year>2022</year></pub-date><volume>21</volume><issue>5</issue><issue-id pub-id-type="pmc-issue-id">407409</issue-id><fpage>1359</fpage><lpage>1364</lpage><history><date date-type="received"><day>15</day><month>11</month><year>2021</year></date></history><pub-history><event event-type="pmc-release"><date><day>10</day><month>05</month><year>2022</year></date></event><event event-type="pmc-live"><date><day>11</day><month>05</month><year>2022</year></date></event><event event-type="pmc-last-change"><date iso-8601-date="2024-04-02 16:25:26.700"><day>02</day><month>04</month><year>2024</year></date></event></pub-history><permissions><copyright-statement>© 2022 The Authors. Published by American Chemical Society</copyright-statement><copyright-year>2022</copyright-year><copyright-holder>The Authors</copyright-holder><license><ali:license_ref xmlns:ali="http://www.niso.org/schemas/ali/1.0/" specific-use="textmining" content-type="ccbylicense">https://creativecommons.org/licenses/by/4.0/</ali:license_ref><license-p>Permits the broadest form of re-use including for commercial purposes, provided that author attribution and integrity are maintained (<ext-link xmlns:xlink="http://www.w3.org/1999/xlink" ext-link-type="uri" xlink:href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</ext-link>).</license-p></license></permissions><self-uri xmlns:xlink="http://www.w3.org/1999/xlink" content-type="pmc-pdf" xlink:href="pr1c00870.pdf"><?pdf-name pr1c00870.pdf?><?pdf-size 1389278?><?pdf-md5 988356032572d5fbf2ce158c4aba5873?><?pdf-image-server-status NEVER_LOAD?><?pdf-cloudpmc-urn urn:app:bd59/9087333/988356032572/pr1c00870.pdf?></self-uri><abstract><p content-type="toc-graphic"><graphic xmlns:xlink="http://www.w3.org/1999/xlink" id="ab-tgr1" position="float" orientation="portrait" xlink:href="pr1c00870_0005.jpg"><?image-name pr1c00870_0005.jpg?><?image-size 37549?><?image-md5 df0e57a0c0a8b2328aa52c25fe078b77?><?image-image-server-status LOAD_COMPLETED?><?image-original-height 338?><?image-original-width 996?><?image-scaled-height 225?><?image-scaled-width 664?><?image-cloudpmc-urn urn:cdn:blobs/bd59/9087333/df0e57a0c0a8/pr1c00870_0005.jpg?><?thumb-name pr1c00870_0005.gif?><?thumb-size 7265?><?thumb-md5 af8df9e2fbd872dec843564617d500f7?><?thumb-image-server-status NEVER_LOAD?><?thumb-scaled-height 68?><?thumb-scaled-width 200?><?thumb-cloudpmc-urn urn:cdn:blobs/bd59/9087333/af8df9e2fbd8/pr1c00870_0005.gif?></graphic></p><p>Machine learning
+has been an integral part of interpreting data
+from mass spectrometry (MS)-based proteomics for a long time. Relatively
+recently, a machine-learning structure appeared successful in other
+areas of bioinformatics, Transformers. Furthermore, the implementation
+of Transformers within bioinformatics has become relatively convenient
+due to transfer learning, i.e., adapting a network trained for other
+tasks to new functionality. Transfer learning makes these relatively
+large networks more accessible as it generally requires less data,
+and the training time improves substantially. We implemented a Transformer
+based on the pretrained model TAPE to predict MS2 intensities. TAPE
+is a general model trained to predict missing residues from protein
+sequences. Despite being trained for a different task, we could modify
+its behavior by adding a prediction head at the end of the TAPE model
+and fine-tune it using the spectrum intensity from the training set
+to the well-known predictor Prosit. We demonstrate that the predictor,
+which we call Prosit Transformer, outperforms the recurrent neural-network-based
+predictor Prosit, increasing the median angular similarity on its
+hold-out set from 0.908 to 0.929. We believe that Transformers will
+significantly increase prediction accuracy for other types of predictions
+within MS-based proteomics.</p></abstract><kwd-group><kwd>Machine Learning</kwd><kwd>Proteomics</kwd><kwd>MS2 Spectra</kwd><kwd>Transformers</kwd></kwd-group><funding-group><award-group><funding-source><institution-wrap><institution>Stiftelsen fÃ¶rÂ Strategisk Forskning</institution><institution-id institution-id-type="doi">10.13039/501100001729</institution-id></institution-wrap></funding-source><award-id>BD15-0043</award-id></award-group></funding-group><custom-meta-group><custom-meta><meta-name>pmc-status-qastatus</meta-name><meta-value>0</meta-value></custom-meta><custom-meta><meta-name>pmc-status-live</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-status-embargo</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-status-released</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-open-access</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-olf</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-manuscript</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-legally-suppressed</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-has-pdf</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-has-supplement</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-pdf-only</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-suppress-copyright</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-is-real-version</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-is-scanned-article</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-preprint</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-in-epmc</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-license-ref</meta-name><meta-value>CC BY</meta-value></custom-meta><custom-meta><meta-name>document-id-old-9</meta-name><meta-value>pr1c00870</meta-value></custom-meta><custom-meta><meta-name>document-id-new-14</meta-name><meta-value>pr1c00870</meta-value></custom-meta><custom-meta><meta-name>ccc-price</meta-name><meta-value/></custom-meta></custom-meta-group></article-meta></front><body><sec id="sec1"><title>Introduction</title><p>Just as in many other areas involving
+the analysis of large and
+complex data sets, different types of machine learning are tremendously
+helpful for the modern analysis of mass spectrometry (MS)-based proteomics
+data.<sup><xref ref-type="bibr" rid="ref1">1</xref>,<xref ref-type="bibr" rid="ref2">2</xref></sup> For example, we nowadays can use machine
+learning to predict tryptic digestion,<sup><xref ref-type="bibr" rid="ref3">3</xref></sup> chromatographic retention time,<sup><xref ref-type="bibr" rid="ref4">4</xref>−<xref ref-type="bibr" rid="ref6">6</xref></sup> collisional cross section,<sup><xref ref-type="bibr" rid="ref7">7</xref></sup> the accuracy of peptide–spectrum matches,<sup><xref ref-type="bibr" rid="ref8">8</xref></sup> and the accuracy of transitions in DIA data<sup><xref ref-type="bibr" rid="ref9">9</xref></sup> are tasks that utilize machine learning.</p><p>One task that has gained traction in the last couple of years is
+predicting MS2 spectra from peptide sequences.<sup><xref ref-type="bibr" rid="ref10">10</xref>,<xref ref-type="bibr" rid="ref11">11</xref></sup> Such predictors can predict relative intensities of a given peptide
+sequence’s <italic toggle="yes">b</italic>- and <italic toggle="yes">y</italic>-ions.
+Together with the <italic toggle="yes">m</italic>/<italic toggle="yes">z</italic> values of
+the ions, which one can derive from first principles, one can subsequently
+form a full MS2 spectrum. MS2 spectrum prediction has in a short time
+established itself as a means to rescore peptide spectrum matches,<sup><xref ref-type="bibr" rid="ref12">12</xref></sup> increasing the sensitivity in large search spaces,<sup><xref ref-type="bibr" rid="ref13">13</xref></sup> and target–decoy strategies for DIA interpretation.<sup><xref ref-type="bibr" rid="ref14">14</xref></sup></p><p>Many types of frameworks are available
+for training a predictor,
+such as support vector machines and recurrent neural networks (RNNs)
+used within MS-based proteomics. However, in the last couple of years,
+a structure first in natural language processing<sup><xref ref-type="bibr" rid="ref15">15</xref></sup> known as Transformers<sup><xref ref-type="bibr" rid="ref16">16</xref></sup> has
+successfully been employed within bioinformatics, e.g., structure
+prediction,<sup><xref ref-type="bibr" rid="ref17">17</xref>,<xref ref-type="bibr" rid="ref18">18</xref></sup> gene expression prediction,<sup><xref ref-type="bibr" rid="ref19">19</xref></sup> and even within MS-based proteomics, e.g., peptide
+detection problem,<sup><xref ref-type="bibr" rid="ref20">20</xref></sup> DIA library generation
+for the phosphoproteome,<sup><xref ref-type="bibr" rid="ref21">21</xref></sup> and de novo
+interpretation of MS2 spectra.<sup><xref ref-type="bibr" rid="ref22">22</xref></sup></p><p>Transformers are, like RNNs, designed to handle sequential input
+data and do so through attention mechanisms, i.e., mechanisms that
+enhance the essential parts of the input sequence for its output.
+However, unlike RNNs, the Transformers do not use recurrence, thus
+enabling a significant speed-up by parallelizing their training. The
+encoder–decoder structure is the basis of the Transformers,
+where both the encoder and decoder adopt the multiheaded attention
+mechanism.<sup><xref ref-type="bibr" rid="ref16">16</xref></sup></p><p>Notably, the task assessing
+protein embedding (TAPE) model<sup><xref ref-type="bibr" rid="ref17">17</xref></sup> is exciting;
+a Transformer-based autoencoder
+of protein sequences is formed by withholding one amino acid at a
+time in a large set of protein sequences and subsequently predicting
+which is the missing amino acid. One can subsequently employ the model
+for higher-level tasks by plugging them into some extra layers of
+neurons in a process known as transfer learning.<sup><xref ref-type="bibr" rid="ref17">17</xref>,<xref ref-type="bibr" rid="ref18">18</xref></sup></p><p>Here, we argue that Transformers can greatly aid MS-based
+proteomics.
+We demonstrate that TAPE’s BERT submodel can predict MS2 spectrum
+intensities from peptide sequences. We are using the training and
+test sets of the popular Prosit<sup><xref ref-type="bibr" rid="ref11">11</xref></sup> predictor
+and demonstrate that the transformer-based predictor, which we named
+Prosit Transformer, drastically outperforms the old implementation
+of Prosit.</p></sec><sec id="sec2"><title>Methods</title><sec id="sec2.1"><title>Data</title><p>We downloaded the Prosit training
+data from <uri xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://figshare.com/projects/Prosit/35582">https://figshare.com/projects/Prosit/35582</uri>. This set is composed of spectra from PXD004732, PXD010595, and
+PXD021013.<sup><xref ref-type="bibr" rid="ref11">11</xref>,<xref ref-type="bibr" rid="ref13">13</xref></sup> The Prosit data had to be converted
+from HDF5 to LMDB to be compatible with the TAPE framework. The LMDB
+data files used during training and validation are accessible at <uri xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://figshare.com/articles/dataset/LMDB_data_Tape_Input_Files/16688905">https://figshare.com/articles/dataset/LMDB_data_Tape_Input_Files/16688905</uri>.</p></sec><sec id="sec2.2"><title>Architecture</title><p>The TAPE model consists of 12 768
+hidden unit attention layers, with the attention dropout (DropHead)
+rate<sup><xref ref-type="bibr" rid="ref23">23</xref></sup> and regular dropout rate set to
+0.1. We downloaded weights for the pretrained model that has been
+trained on the raw protein sequences in the protein families database
+(Pfam) to predict the amino acid at each protein position given the
+previous amino acids and the following amino acids.<sup><xref ref-type="bibr" rid="ref17">17</xref></sup> The Prosit-specific transformer has the same parameter
+but consists of nine attention layers. The metadata layer is a multilayer
+perceptron (MLP) with two layers of size 512 units followed by a dropout
+rate of 0.1 each. The final prediction layer has the same structure,
+except for no dropout after the final layer. The activation function
+is ReLU, except for the prediction layer where the first layer uses
+a ReLU6,<sup><xref ref-type="bibr" rid="ref24">24</xref></sup> i.e., a max(0,min(6,<italic toggle="yes">x</italic>)) function as an activation function, and the final layer
+uses a linear layer.</p></sec><sec id="sec2.3"><title>Metrics</title><p>We measure angular distance<disp-formula id="d33e297"><graphic xmlns:xlink="http://www.w3.org/1999/xlink" position="anchor" orientation="portrait" xlink:href="pr1c00870_m001.jpg"><?image-name pr1c00870_m001.jpg?><?image-size 2419?><?image-md5 49ebc29de2e19d265872c9b525bae9f3?><?image-image-server-status NEVER_LOAD?><?image-original-height 37?><?image-original-width 153?><?image-scaled-height 37?><?image-scaled-width 153?><?image-cloudpmc-urn urn:cdn:blobs/bd59/9087333/49ebc29de2e1/pr1c00870_m001.jpg?><?thumb-name pr1c00870_m001.gif?><?thumb-size 964?><?thumb-md5 cfd1005d6b5754bd783eca2a5c6a5a2d?><?thumb-image-server-status NEVER_LOAD?><?thumb-scaled-height 37?><?thumb-scaled-width 153?><?thumb-cloudpmc-urn urn:cdn:blobs/bd59/9087333/cfd1005d6b57/pr1c00870_m001.gif?></graphic></disp-formula>and angular similarity, <italic toggle="yes">s</italic><sub><italic toggle="yes">AB</italic></sub> = 1<italic toggle="yes">d</italic><sub><italic toggle="yes">AB</italic></sub> as measures of accuracy of the predicted
+intensities.
+Here, <italic toggle="yes">A</italic> is the vector of predicted intensities, and <italic toggle="yes">B</italic> is the vector of observed intensities for the ion series
+included in the prediction. However, we introduced a few extra steps
+during training to avoid undefined behavior. First, to avoid undefined
+values using angular similarity during training, we had to clip the
+inputs to cos<sup>–1</sup> with −(1 – ϵ)
+and (1 – ϵ) to avoid undefined values. This implementation
+was necessary since some predictions were too similar to their target
+after training, resulting in an undefined loss. However, there was
+no clipping during the evaluation, so it will not affect the final
+result. Lastly, we also had to introduce a small ϵ in the denominator
+in the cosine similarity, i.e., max(∥<italic toggle="yes">A</italic>∥·∥<italic toggle="yes">B</italic>∥, ϵ), to ensure no undefined behavior during
+training. The sum of all <italic toggle="yes">d</italic><sub><italic toggle="yes">AB</italic></sub> for all peptides in the test set was used as a loss function
+for the training of the networks.</p><p>We calculated the FDR = FP/(FP
++ TP) and FNR = FN/(FN + TP) for each predicted spectrum to measure
+the number of erroneous peak predictions. Here, FP is the number of
+peaks predicted in excess to be present in a spectrum that was absent
+in the observed spectrum; FN is the number of peaks deficiently predicted
+to be absent in a spectrum that was present in the observed spectrum,
+and TP is the number of peaks accurately predicted to be present in
+a spectrum that was present in the observed spectrum.</p></sec><sec id="sec2.4"><title>Postprocessing
+of Predicted Intensities</title><p>We use the
+same postprocessing on the predicted spectrum used in Prosit<sup><xref ref-type="bibr" rid="ref11">11</xref></sup> for the final result. To clarify, we set ions
+with a predicted negative intensity to zero, i.e., a negative intensity
+indicates an absent peak. Furthermore, we set all ion’s intensity
+that is not obtainable for any given peptide due to too low a charge
+state or too low peptide length to −1. However, we exclude
+such peaks for similarity measurements.</p></sec><sec id="sec2.5"><title>Hardware</title><p>The model
+was trained on the Berzelius SuperPOD,
+a GPU cluster consisting of 60 NVIDIA DGX A100 systems, linked on
+a 200 Gbit/s NVIDIA Mellanox InfiniBand HDR network.</p></sec></sec><sec id="sec3"><title>Results</title><p>We set out to test whether Transformers are a technology fit for
+spectrum intensity predictions, i.e., to predict the intensities of
+the most commonly observed ion series (<italic toggle="yes">b</italic><sup>+</sup>, <italic toggle="yes">b</italic><sup>2+</sup>, <italic toggle="yes">b</italic><sup>3+</sup>, <italic toggle="yes">y</italic><sup>+</sup>, <italic toggle="yes">y</italic><sup>2+</sup>, and <italic toggle="yes">y</italic><sup>3+</sup>) of product ion spectra from
+peptide fragmentation. The length of the peptides ranged between 7
+and 30 amino acids long. We used the train/test data and the preprocessing
+coming with the Prosit predictor as a testbed. Prosit’s scripts
+calculating the intensity vectors, adopting metadata, and calculating
+predictions’ angular similarity have been found to be robust
+after years of use. We also found it straightforward to set up a benchmark,
+as we could reuse the Prosit test sets just out of the box. We will
+refer to the traditional Prosit predictor as Prosit RNN from hereon
+to avoid confusion.</p><sec id="sec3.1"><title>Model</title><p>We set out to use the setup
+previously used for
+training and testing the Prosit model but with a transformer. We used
+the pretrained TAPE model<sup><xref ref-type="bibr" rid="ref17">17</xref></sup> and retrofitted
+it with a Prosit-specific decoder and some additional application-specific
+code (see <xref rid="fig1" ref-type="fig">Figure <xref rid="fig1" ref-type="fig">1</xref></xref>).
+The TAPE model will encode the peptide into a 512-dimensional embedding.
+Furthermore, just as for the original RNN-based Prosit model, we used
+layers for handling metadata consisting of the charge state of the
+spectrum and its collision energy (CE). The charge states range from
+one to six, represented as six-dimensional one-hot encoding. Hence,
+the metadata layer has seven input nodes to account for the charge
+state and CE. The metalayer transforms the metadata into a 512-dimensional
+vector that is subsequently combined with the encoded peptide by element-wise
+multiplication. Then a Prosit-specific Transformer will decode this
+combined embedding. Lastly, a two-layered multilayer perception (MLP)
+follows the decoding layer, serving as a prediction layer to predict
+the spectrum intensity. The MLP used activation by a hinge loss function
+constrained between 0 and 6 (a <italic toggle="yes">RELU6</italic> function) to
+activate the two final layers to avoid a so-called gradient explosion.
+For the training, the objective function was to minimize the sum of
+the angular distances between the observed and predicted spectrum
+intensity vectors.</p><fig id="fig1" position="float" orientation="portrait"><label>Figure 1</label><caption><p>Architecture of the Prosit Transformer. The model depends
+on a
+pretrained encoder from the TAPE project and uses the TAPE design
+for a Prosit-specific decoder. However, our model implements many
+of the design features of Prosit RNN, i.e., layers handling metadata
+and final intensity prediction.</p></caption><graphic xmlns:xlink="http://www.w3.org/1999/xlink" id="gr1" position="float" orientation="portrait" xlink:href="pr1c00870_0001.jpg"><?image-name pr1c00870_0001.jpg?><?image-size 111224?><?image-md5 a968827b105609cc18efe9b35466c3f4?><?image-image-server-status LOAD_COMPLETED?><?image-original-height 875?><?image-original-width 709?><?image-scaled-height 875?><?image-scaled-width 709?><?image-cloudpmc-urn urn:cdn:blobs/bd59/9087333/a968827b1056/pr1c00870_0001.jpg?><?thumb-name pr1c00870_0001.gif?><?thumb-size 9307?><?thumb-md5 e13d5a1553b308962c76826c09cc3f7d?><?thumb-image-server-status NEVER_LOAD?><?thumb-scaled-height 123?><?thumb-scaled-width 100?><?thumb-cloudpmc-urn urn:cdn:blobs/bd59/9087333/e13d5a1553b3/pr1c00870_0001.gif?></graphic></fig></sec><sec id="sec3.2"><title>Training of the Model</title><p>During the training, we used
+a batch size of 1024, a learning rate of 0.0001, gradient accumulation
+step of 1, and a linear learning rate schedular with 10000 warmup
+steps. The training proceeded until no further improvement over 10
+epochs.</p><p>To better predict present and absent peaks, we introduced
+a hyperparameter, δ, setting an artificial offset of the intensities
+of absent peaks to δ<sub>p</sub> = δ/|number of considered
+peaks|. This hyperparameter adds an extra penalty if the model predicts
+intensities for absent peaks. By varying the size of δ, we can
+control the model’s propensity to predict peaks as absent and,
+by such means, tune the model’s false positive and false negative
+predictions. We measured the false discovery rate (FDR) and the false
+negative rate (FNR) of each spectrum and then plotted the average
+angular similarity, the FDR, and the FNR for different choices of
+δ. We selected δ = 0.34 for the final training (see <xref rid="fig2" ref-type="fig">Figure <xref rid="fig2" ref-type="fig">2</xref></xref>).</p><fig id="fig2" position="float" orientation="portrait"><label>Figure 2</label><caption><p>Effect of adjusting the
+hyperparameter δ on predicting the
+absence/presence of individual MS2 peaks. To obtain better prediction
+accuracy of present and absent MS2 peaks, we adjusted the intensities
+of absent peaks from zero to δ. We measured the false discovery
+rate (FDR) and the false negative rate (FNR) of each spectrum and
+then plotted the average angular similarity, the FDR, and the FNR
+for different choices of δ. We selected δ = 0.34 for the
+final training. The predicted spectra were not postprocessed for the
+measurements in this figure (see <xref rid="sec2" ref-type="other">Methods</xref>).</p></caption><graphic xmlns:xlink="http://www.w3.org/1999/xlink" id="gr2" position="float" orientation="portrait" xlink:href="pr1c00870_0002.jpg"><?image-name pr1c00870_0002.jpg?><?image-size 71774?><?image-md5 1004cab5e045c427973a559911679396?><?image-image-server-status NEVER_LOAD?><?image-original-height 489?><?image-original-width 800?><?image-scaled-height 489?><?image-scaled-width 800?><?image-cloudpmc-urn urn:cdn:blobs/bd59/9087333/1004cab5e045/pr1c00870_0002.jpg?><?thumb-name pr1c00870_0002.gif?><?thumb-size 8099?><?thumb-md5 c6d6a3c56786bf2cbe293203f77a2ffe?><?thumb-image-server-status NEVER_LOAD?><?thumb-scaled-height 79?><?thumb-scaled-width 130?><?thumb-cloudpmc-urn urn:cdn:blobs/bd59/9087333/c6d6a3c56786/pr1c00870_0002.gif?></graphic></fig></sec><sec id="sec3.3"><title>Comparison of Performance to Regular Prosit</title><p>To test
+the performance of our final Prosit Transformer, we investigated its
+performance on the same held-out test set as used when initially training
+Prosit RNN. We calculated the so-called angular similarity between
+the predicted and observed intensities for both predictors. Overall,
+we see that the predictions from Prosit Transformer have an angular
+similarity higher than that of Prosit RNN and are hence more accurate
+(<xref rid="fig3" ref-type="fig">Figure <xref rid="fig3" ref-type="fig">3</xref></xref>A). The Prosit
+Transformer increased the median angular similarity from Prosit RNN’s
+0.908 to 0.929. We also see that Prosit Transformer obtained an angular
+similarity higher than that of Prosit RNN in 75.7% of the spectra,
+whereas the opposite was true in 24.3% of the spectra. The same pattern
+was also true when dividing the PSMs based on their peptide’s
+lengths (<xref rid="fig3" ref-type="fig">Figure <xref rid="fig3" ref-type="fig">3</xref></xref>B).
+We also wanted to compare the predictors’ ability to predict
+present and absent (zero intensity) fragment peaks. Our choice of
+hyperparameter δ for Prosit Transformer resulted in a lower
+fraction of observed absent peaks among the predicted nonzero intensity
+peaks (<xref rid="fig3" ref-type="fig">Figure <xref rid="fig3" ref-type="fig">3</xref></xref>C) while
+observing a higher fraction of predicted absent peaks among the observed
+nonzero intensity peaks (<xref rid="fig3" ref-type="fig">Figure <xref rid="fig3" ref-type="fig">3</xref></xref>D) for Prosit Transformer compared to Prosit RNN.</p><fig id="fig3" position="float" orientation="portrait"><label>Figure 3</label><caption><p>Comparison
+of the accuracy of Prosit Transformer and Prosit RNN.
+(A) We made separate histograms and smoothed them with a kernel density
+estimator to observe the distribution of angular similarity for the
+spectra predicted with Prosit Transformer and Prosit RNN. (B) Same
+angular similarity was also stratified by the length of peptides.
+We also measured the (C) false discovery rate, i.e., the fraction
+of observed absent peaks among the predicted nonzero intensity peaks
+for each spectrum, and (D) false negative rate, i.e., the fraction
+of predicted absent peaks among the observed nonzero intensity peaks.</p></caption><graphic xmlns:xlink="http://www.w3.org/1999/xlink" id="gr3" position="float" orientation="portrait" xlink:href="pr1c00870_0003.jpg"><?image-name pr1c00870_0003.jpg?><?image-size 79618?><?image-md5 e8403339f29f351dd2b982a2046caa88?><?image-image-server-status LOAD_COMPLETED?><?image-original-height 998?><?image-original-width 1661?><?image-scaled-height 399?><?image-scaled-width 664?><?image-cloudpmc-urn urn:cdn:blobs/bd59/9087333/e8403339f29f/pr1c00870_0003.jpg?><?thumb-name pr1c00870_0003.gif?><?thumb-size 9532?><?thumb-md5 9fb856acbb005db0267b8ecd7b2f17f3?><?thumb-image-server-status NEVER_LOAD?><?thumb-scaled-height 80?><?thumb-scaled-width 133?><?thumb-cloudpmc-urn urn:cdn:blobs/bd59/9087333/9fb856acbb00/pr1c00870_0003.gif?></graphic></fig></sec><sec id="sec3.4"><title>Comparison of a Transformer to an Extended
+RNN for Prediction
+of Spectra</title><p>We set out to eliminate other explanations for
+Prosit Transformer’s elevated performance than the Transformers
+themselves. A notable difference between Prosit RNN and Prosit Transformer
+is their difference in size. Prosit RNN contains 3 million parameters,
+while Prosit Transformer contains 164 million parameters, which gives
+the Transformer an unfair advantage. Hence, we stacked long short-term
+memory layers to create RNN models of similar size to the ones of
+the Transformers. This extended RNN gave a median angular similarity
+of 0.892 compared to Prosit Transformer’s 0.929. Further, Prosit
+Transformer also outperformed the extended RNNs encoder in combination
+with Prosit Transformer’s decoder (median angular similarity
+of 0.927), as well as Prosit Transformer’s encoder in combination
+with Prosit RNN’s decoder (median angular similarity of 0.915).
+See <xref rid="tbl1" ref-type="other">Table <xref rid="tbl1" ref-type="other">1</xref></xref> for an
+overview of the permutations of encoder decode architectures and their
+sizes.</p><table-wrap id="tbl1" position="float" orientation="portrait"><label>Table 1</label><caption><title>Extended RNN Model’s Size and
+Performance<xref rid="tbl1-fn1" ref-type="table-fn">a</xref></title></caption><table frame="hsides" rules="groups" border="0"><colgroup span="1"><col align="left" span="1"/><col align="left" span="1"/><col align="char" char="." span="1"/><col align="char" char="." span="1"/><col align="left" span="1"/><col align="char" char="." span="1"/><col align="char" char="." span="1"/><col align="left" span="1"/><col align="char" char="." span="1"/></colgroup><thead><tr><th style="border:none;" align="center" colspan="1" rowspan="1">architecture for encoder–decoder</th><th style="border:none;" align="center" colspan="1" rowspan="1">encoder size</th><th style="border:none;" align="center" char="." colspan="1" rowspan="1">encoder
+layers</th><th style="border:none;" align="center" char="." colspan="1" rowspan="1">encoder units</th><th style="border:none;" align="center" colspan="1" rowspan="1">decoder size</th><th style="border:none;" align="center" char="." colspan="1" rowspan="1">decoder layers</th><th style="border:none;" align="center" char="." colspan="1" rowspan="1">decoder units</th><th style="border:none;" align="center" colspan="1" rowspan="1">total
+size</th><th style="border:none;" align="center" char="." colspan="1" rowspan="1">median angular similarity</th></tr></thead><tbody><tr><td style="border:none;" align="left" colspan="1" rowspan="1">Transformer–Transformer</td><td style="border:none;" align="left" colspan="1" rowspan="1">85M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">12</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">768</td><td style="border:none;" align="left" colspan="1" rowspan="1">64M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">9</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">768</td><td style="border:none;" align="left" colspan="1" rowspan="1">164M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">0.929</td></tr><tr><td style="padding-left: 2em;" align="left" colspan="1" rowspan="1">RNN–RNN</td><td style="border:none;" align="left" colspan="1" rowspan="1">77M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">5</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">1028</td><td style="border:none;" align="left" colspan="1" rowspan="1">93M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">5</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">2056</td><td style="border:none;" align="left" colspan="1" rowspan="1">178M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">0.892</td></tr><tr><td style="border:none;" align="left" colspan="1" rowspan="1">Transformer–RNN</td><td style="border:none;" align="left" colspan="1" rowspan="1">64M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">9</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">768</td><td style="border:none;" align="left" colspan="1" rowspan="1">94M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">10</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">768</td><td style="border:none;" align="left" colspan="1" rowspan="1">172M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">0.9156</td></tr><tr><td style="padding-left: 2em;" align="left" colspan="1" rowspan="1">RNN–Transformer</td><td style="border:none;" align="left" colspan="1" rowspan="1">53M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">6</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">768</td><td style="border:none;" align="left" colspan="1" rowspan="1">113M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">6</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">768</td><td style="border:none;" align="left" colspan="1" rowspan="1">173M</td><td style="border:none;" align="char" char="." colspan="1" rowspan="1">0.927</td></tr></tbody></table><table-wrap-foot><fn id="tbl1-fn1"><label>a</label><p>We trained and
+tested different
+permutations of expanded RNNs and Transformers of comparable size
+and compared their prediction accuracy.</p></fn></table-wrap-foot></table-wrap><p>When training the RNN models, the learning rate had
+to be decreased
+from 0.0001 to 0.00008 to get the model to learn. Everything else
+was the same as for the Transformer–Transformer model. We also
+had to switch the gated recurrent unit of the Prosit RNN to an LSTM
+to use the TAPE framework, leading to minor differences between the
+extended Prosit RNN and Prosit RNN.</p><p>Surprisingly, the extended
+RNN–RNN model got worse results
+than regular Prosit. The decrease could be due to that increase from
+3 to 178 M parameters, leading to overfitting, requiring more data
+to justify such a massive model for the type of architecture. However,
+a performance increase was observed in all cases when adding a Transformer
+to the architecture. The most significant increase in performance
+appeared when implementing the Transformer as a decoder, i.e., after
+the peptide has been encoded and combined with the metadata, and not
+in the peptide’s encoding, although this improves the results,
+as well.</p><p>At first, the conclusion that the Transformer–Transformer
+model performed best might seem to contradict the results of others.
+Particularly, DeepPhospho<sup><xref ref-type="bibr" rid="ref21">21</xref></sup> reports a better
+performance for their LSTM–Transformer model than for their
+Transformer–Transformer model. However, it is worth noting
+that the circumstances were different; their LSTM decoder was larger
+than their Transformer decoder (34 M vs 6 M parameters).<sup><xref ref-type="bibr" rid="ref21">21</xref></sup> One would expect that the Transformer’s
+performance would increase with a larger model, whereas the LSTM would
+not benefit as much (perhaps even getting worse) with a larger model.</p></sec><sec id="sec3.5"><title>Time Comparison of Spectrum Prediction</title><p>The Prosit Transformer
+was quicker to train than the full RNN model (approximately 3 versus
+6 GPU days). However, all of the models in <xref rid="tbl1" ref-type="other">Table <xref rid="tbl1" ref-type="other">1</xref></xref>, were slower than the original Prosit RNN
+due to their increased size. To demonstrate this, both regular Prosit
+and Prosit Transformer were timed for predicting 1000, 10000, and
+100000 spectra; see <xref rid="tbl2" ref-type="other">Table <xref rid="tbl2" ref-type="other">2</xref></xref>. Prosit Transformer requires roughly 40 times more time,
+so there is a trade-off between accuracy and time requirements for
+the transformer’s predictions when increasing model size.</p><table-wrap id="tbl2" position="float" orientation="portrait"><label>Table 2</label><caption><title>Larger Transformer Model Needs More
+Time to Predict Spectra<xref rid="tbl2-fn1" ref-type="table-fn">a</xref></title></caption><table frame="hsides" rules="groups" border="0"><colgroup span="1"><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/></colgroup><thead><tr><th style="border:none;" align="center" colspan="1" rowspan="1">number of predicted spectra</th><th style="border:none;" align="center" colspan="1" rowspan="1">1k</th><th style="border:none;" align="center" colspan="1" rowspan="1">10k</th><th style="border:none;" align="center" colspan="1" rowspan="1">100k</th></tr></thead><tbody><tr><td style="border:none;" align="left" colspan="1" rowspan="1">Prosit RNN</td><td style="border:none;" align="left" colspan="1" rowspan="1">0.05 s</td><td style="border:none;" align="left" colspan="1" rowspan="1">0.5 s</td><td style="border:none;" align="left" colspan="1" rowspan="1">4.7 s</td></tr><tr><td style="border:none;" align="left" colspan="1" rowspan="1">Prosit Transformer</td><td style="border:none;" align="left" colspan="1" rowspan="1">2 s</td><td style="border:none;" align="left" colspan="1" rowspan="1">18 s</td><td style="border:none;" align="left" colspan="1" rowspan="1">180 s</td></tr></tbody></table><table-wrap-foot><fn id="tbl2-fn1"><label>a</label><p>We measured
+the required time
+to predict spectra from peptides for both Prosit RNN and Prosit Transformer.</p></fn></table-wrap-foot></table-wrap></sec><sec id="sec3.6"><title>Prosit Transformer’s
+Ability to Model Collision Energy</title><p>We also wanted to test
+that the improved ability of Prosit Transformer
+to predict MS2 intensities did not affect the predictor’s ability
+to model CE’s influence on predicted spectra. We hence isolated
+batches of spectra with CE = {0.2, 0.25, 0.3, 0.35, 0.4} and measured
+the median angular similarity when predicting the spectra for a range
+of different collision energies (<xref rid="fig4" ref-type="fig">Figure <xref rid="fig4" ref-type="fig">4</xref></xref>). The highest angular similarity was found
+between the observed and predicted spectra when setting CE to the
+set’s actual specified value.</p><fig id="fig4" position="float" orientation="portrait"><label>Figure 4</label><caption><p>Mean spectral angle as a function of the
+collision energy for spectra
+acquired with different CEs.</p></caption><graphic xmlns:xlink="http://www.w3.org/1999/xlink" id="gr4" position="float" orientation="portrait" xlink:href="pr1c00870_0004.jpg"><?image-name pr1c00870_0004.jpg?><?image-size 67819?><?image-md5 64ef9514e41cde28541ceefacbf6aeb5?><?image-image-server-status LOAD_COMPLETED?><?image-original-height 616?><?image-original-width 1000?><?image-scaled-height 410?><?image-scaled-width 666?><?image-cloudpmc-urn urn:cdn:blobs/bd59/9087333/64ef9514e41c/pr1c00870_0004.jpg?><?thumb-name pr1c00870_0004.gif?><?thumb-size 8157?><?thumb-md5 98e7eae5fcf03cb406982c156c5acfe6?><?thumb-image-server-status NEVER_LOAD?><?thumb-scaled-height 79?><?thumb-scaled-width 129?><?thumb-cloudpmc-urn urn:cdn:blobs/bd59/9087333/98e7eae5fcf0/pr1c00870_0004.gif?></graphic></fig></sec></sec><sec id="sec4"><title>Discussion</title><p>Here, we have used a Transformer trained to predict
+a protein sequence
+and transferred its functionality into predicting intensities of the <italic toggle="yes">b</italic>- and <italic toggle="yes">y</italic>-ions of MS2 spectra. The resulting
+predictor’s performance outperformed a predictor built by a
+classical recurrent neural network. This type of structure can likely
+improve other types of peptide property prediction.</p><p>One interesting
+finding was that the most significant improvement
+was when using Transformers as a decoder when comparing different
+combinations of RNNs and Transformers as decoders and encoders. A
+possible interpretation of this result is that Transformer architecture
+better utilizes the metadata, i.e., the collision energy and charge
+state information. A future direction of the project could be to investigate
+the source of the improved accuracy by examining the effects of removing
+this information from the different decoders.</p><p>Here, we made
+use of the framework provided by the original Prosit
+project. It was essential to access the scripts and data sets provided
+and hardened by the previous team of algorithm designers. In general,
+it is of utmost importance to keep this type of resource easy to access.
+If we want to attract the attention of the machine learning community,
+which often wants a precise problem formulation and does not like
+to get into the details of how to generate data sets from scratch,
+we need to help them.</p></sec></body><back><notes notes-type="funding-statement" id="notes1"><p>This work has
+been supported by a grant from the Swedish Foundation for Strategic
+Research (BD15-0043) and European Union’s Horizon 2020 Program
+under Grant Agreement 823839 (H2020-INFRAIA-2018-1; EPIC-XS).</p></notes><notes notes-type="COI-statement" id="NOTES-d7e775-autogenerated"><p>The authors declare
+no
+competing financial interest.</p></notes><ack><title>Acknowledgments</title><p>Vital
+parts of this manuscript were conceived during
+the Dagstuhl Seminar 21271 on Computational Proteomics, July 2021.
+The training of the Prosit Transformer model was enabled by the supercomputing
+resource Berzelius provided by National Supercomputer Centre at Linköping
+University and the Knut and Alice Wallenberg foundation.</p></ack><ref-list><title>References</title><ref id="ref1"><mixed-citation publication-type="journal" id="cit1"><name name-style="western"><surname>Mann</surname><given-names>M.</given-names></name>; <name name-style="western"><surname>Kumar</surname><given-names>C.</given-names></name>; <name name-style="western"><surname>Zeng</surname><given-names>W.-F.</given-names></name>; <name name-style="western"><surname>Strauss</surname><given-names>M. T.</given-names></name>
+<article-title>Artificial intelligence
+for proteomics and biomarker discovery</article-title>. <source>Cell
+Systems</source>
+<year>2021</year>, <volume>12</volume> (<issue>8</issue>), <fpage>759</fpage>–<lpage>770</lpage>. <pub-id pub-id-type="doi">10.1016/j.cels.2021.06.006</pub-id>.<pub-id pub-id-type="pmid">34411543</pub-id></mixed-citation></ref><ref id="ref2"><mixed-citation publication-type="journal" id="cit2"><name name-style="western"><surname>Meyer</surname><given-names>J. G.</given-names></name>
+<article-title>Deep learning
+neural network tools for proteomics</article-title>. <source>Cell Reports
+Methods</source>
+<year>2021</year>, <volume>1</volume>, <fpage>100003</fpage><pub-id pub-id-type="doi">10.1016/j.crmeth.2021.100003</pub-id>.<pub-id pub-id-type="pmid">35475237</pub-id><pub-id pub-id-type="pmcid">PMC9017218</pub-id></mixed-citation></ref><ref id="ref3"><mixed-citation publication-type="journal" id="cit3"><name name-style="western"><surname>Yang</surname><given-names>J.</given-names></name>; <name name-style="western"><surname>Gao</surname><given-names>Z.</given-names></name>; <name name-style="western"><surname>Ren</surname><given-names>X.</given-names></name>; <name name-style="western"><surname>Sheng</surname><given-names>J.</given-names></name>; <name name-style="western"><surname>Xu</surname><given-names>P.</given-names></name>; <name name-style="western"><surname>Chang</surname><given-names>C.</given-names></name>; <name name-style="western"><surname>Fu</surname><given-names>Y.</given-names></name>
+<article-title>DeepDigest:
+Prediction of protein proteolytic digestion with deep
+learning</article-title>. <source>Anal. Chem.</source>
+<year>2021</year>, <volume>93</volume> (<issue>15</issue>), <fpage>6094</fpage>–<lpage>6103</lpage>. <pub-id pub-id-type="doi">10.1021/acs.analchem.0c04704</pub-id>.<pub-id pub-id-type="pmid">33826301</pub-id></mixed-citation></ref><ref id="ref4"><mixed-citation publication-type="journal" id="cit4"><name name-style="western"><surname>Moruz</surname><given-names>L.</given-names></name>; <name name-style="western"><surname>Tomazela</surname><given-names>D.</given-names></name>; <name name-style="western"><surname>Kall</surname><given-names>L.</given-names></name>
+<article-title>Training,
+selection, and robust calibration
+of retention time models for targeted proteomics</article-title>. <source>J. Proteome Res.</source>
+<year>2010</year>, <volume>9</volume> (<issue>10</issue>), <fpage>5209</fpage>–<lpage>5216</lpage>. <pub-id pub-id-type="doi">10.1021/pr1005058</pub-id>.<pub-id pub-id-type="pmid">20735070</pub-id></mixed-citation></ref><ref id="ref5"><mixed-citation publication-type="journal" id="cit5"><name name-style="western"><surname>Ma</surname><given-names>C.</given-names></name>; <name name-style="western"><surname>Ren</surname><given-names>Y.</given-names></name>; <name name-style="western"><surname>Yang</surname><given-names>J.</given-names></name>; <name name-style="western"><surname>Ren</surname><given-names>Z.</given-names></name>; <name name-style="western"><surname>Yang</surname><given-names>H.</given-names></name>; <name name-style="western"><surname>Liu</surname><given-names>S.</given-names></name>
+<article-title>Improved peptide
+retention time prediction in liquid chromatography through deep learning</article-title>. <source>Anal. Chem.</source>
+<year>2018</year>, <volume>90</volume> (<issue>18</issue>), <fpage>10881</fpage>–<lpage>10888</lpage>. <pub-id pub-id-type="doi">10.1021/acs.analchem.8b02386</pub-id>.<pub-id pub-id-type="pmid">30114359</pub-id></mixed-citation></ref><ref id="ref6"><mixed-citation publication-type="journal" id="cit6"><name name-style="western"><surname>Bouwmeester</surname><given-names>R.</given-names></name>; <name name-style="western"><surname>Gabriels</surname><given-names>R.</given-names></name>; <name name-style="western"><surname>Hulstaert</surname><given-names>N.</given-names></name>; <name name-style="western"><surname>Martens</surname><given-names>L.</given-names></name>; <name name-style="western"><surname>Degroeve</surname><given-names>S.</given-names></name>
+<article-title>DeepLC can
+predict retention times for peptides that carry as-yet unseen modifications</article-title>. <source>Nat. Methods</source>
+<year>2021</year>, <volume>18</volume>, <fpage>1363</fpage>–<lpage>1369</lpage>. <pub-id pub-id-type="doi">10.1038/s41592-021-01301-5</pub-id>.<pub-id pub-id-type="pmid">34711972</pub-id></mixed-citation></ref><ref id="ref7"><mixed-citation publication-type="journal" id="cit7"><name name-style="western"><surname>Meier</surname><given-names>F.</given-names></name>; <name name-style="western"><surname>Kohler</surname><given-names>N. D.</given-names></name>; <name name-style="western"><surname>Brunner</surname><given-names>A.-D.</given-names></name>; <name name-style="western"><surname>Wanka</surname><given-names>J.-M. H.</given-names></name>; <name name-style="western"><surname>Voytik</surname><given-names>E.</given-names></name>; <name name-style="western"><surname>Strauss</surname><given-names>M. T.</given-names></name>; <name name-style="western"><surname>Theis</surname><given-names>F. J.</given-names></name>; <name name-style="western"><surname>Mann</surname><given-names>M.</given-names></name>
+<article-title>Deep learning
+the collisional
+cross sections of the peptide universe from a million experimental
+values</article-title>. <source>Nat. Commun.</source>
+<year>2021</year>, <volume>12</volume> (<issue>1</issue>), <fpage>1185</fpage><pub-id pub-id-type="doi">10.1038/s41467-021-21352-8</pub-id>.<pub-id pub-id-type="pmid">33608539</pub-id><pub-id pub-id-type="pmcid">PMC7896072</pub-id></mixed-citation></ref><ref id="ref8"><mixed-citation publication-type="journal" id="cit8"><name name-style="western"><surname>Kall</surname><given-names>L.</given-names></name>; <name name-style="western"><surname>Canterbury</surname><given-names>J. D</given-names></name>; <name name-style="western"><surname>Weston</surname><given-names>J.</given-names></name>; <name name-style="western"><surname>Noble</surname><given-names>W. S.</given-names></name>; <name name-style="western"><surname>MacCoss</surname><given-names>M. J</given-names></name>
+<article-title>Semi-supervised
+learning for peptide identification from shotgun proteomics datasets</article-title>. <source>Nat. Methods</source>
+<year>2007</year>, <volume>4</volume> (<issue>11</issue>), <fpage>923</fpage>–<lpage>925</lpage>. <pub-id pub-id-type="doi">10.1038/nmeth1113</pub-id>.<pub-id pub-id-type="pmid">17952086</pub-id></mixed-citation></ref><ref id="ref9"><mixed-citation publication-type="journal" id="cit9"><name name-style="western"><surname>Demichev</surname><given-names>V.</given-names></name>; <name name-style="western"><surname>Messner</surname><given-names>C. B.</given-names></name>; <name name-style="western"><surname>Vernardis</surname><given-names>S. I.</given-names></name>; <name name-style="western"><surname>Lilley</surname><given-names>K. S.</given-names></name>; <name name-style="western"><surname>Ralser</surname><given-names>M.</given-names></name>
+<article-title>DIA-NN: neural
+networks and interference correction enable deep proteome coverage
+in high throughput</article-title>. <source>Nat. Methods</source>
+<year>2020</year>, <volume>17</volume> (<issue>1</issue>), <fpage>41</fpage>–<lpage>44</lpage>. <pub-id pub-id-type="doi">10.1038/s41592-019-0638-x</pub-id>.<pub-id pub-id-type="pmid">31768060</pub-id><pub-id pub-id-type="pmcid">PMC6949130</pub-id></mixed-citation></ref><ref id="ref10"><mixed-citation publication-type="journal" id="cit10"><name name-style="western"><surname>Degroeve</surname><given-names>S.</given-names></name>; <name name-style="western"><surname>Maddelein</surname><given-names>D.</given-names></name>; <name name-style="western"><surname>Martens</surname><given-names>L.</given-names></name>
+<article-title>MS2PIP prediction server: compute
+and visualize MS2 peak intensity predictions for CID and HCD fragmentation</article-title>. <source>Nucleic Acids Res.</source>
+<year>2015</year>, <volume>43</volume> (<issue>W1</issue>), <fpage>W326</fpage>–<lpage>W330</lpage>. <pub-id pub-id-type="doi">10.1093/nar/gkv542</pub-id>.<pub-id pub-id-type="pmid">25990723</pub-id><pub-id pub-id-type="pmcid">PMC4489309</pub-id></mixed-citation></ref><ref id="ref11"><mixed-citation publication-type="journal" id="cit11"><name name-style="western"><surname>Gessulat</surname><given-names>S.</given-names></name>; <name name-style="western"><surname>Schmidt</surname><given-names>T.</given-names></name>; <name name-style="western"><surname>Zolg</surname><given-names>D. P.</given-names></name>; <name name-style="western"><surname>Samaras</surname><given-names>P.</given-names></name>; <name name-style="western"><surname>Schnatbaum</surname><given-names>K.</given-names></name>; <name name-style="western"><surname>Zerweck</surname><given-names>J.</given-names></name>; <name name-style="western"><surname>Knaute</surname><given-names>T.</given-names></name>; <name name-style="western"><surname>Rechenberger</surname><given-names>J.</given-names></name>; <name name-style="western"><surname>Delanghe</surname><given-names>B.</given-names></name>; <name name-style="western"><surname>Huhmer</surname><given-names>A.</given-names></name>; <name name-style="western"><surname>Reimer</surname><given-names>U.</given-names></name>; <name name-style="western"><surname>Ehrlich</surname><given-names>H.-C.</given-names></name>; <name name-style="western"><surname>Aiche</surname><given-names>S.</given-names></name>; <name name-style="western"><surname>Kuster</surname><given-names>B.</given-names></name>; <name name-style="western"><surname>Wilhelm</surname><given-names>M.</given-names></name>
+<article-title>Prosit: proteome-wide
+prediction of peptide tandem mass spectra by deep learning</article-title>. <source>Nat. Methods</source>
+<year>2019</year>, <volume>16</volume> (<issue>6</issue>), <fpage>509</fpage>–<lpage>518</lpage>. <pub-id pub-id-type="doi">10.1038/s41592-019-0426-7</pub-id>.<pub-id pub-id-type="pmid">31133760</pub-id></mixed-citation></ref><ref id="ref12"><mixed-citation publication-type="journal" id="cit12"><name name-style="western"><surname>Silva</surname><given-names>A. S. C.</given-names></name>; <name name-style="western"><surname>Bouwmeester</surname><given-names>R.</given-names></name>; <name name-style="western"><surname>Martens</surname><given-names>L.</given-names></name>; <name name-style="western"><surname>Degroeve</surname><given-names>S.</given-names></name>
+<article-title>Accurate peptide
+fragmentation
+predictions allow data driven approaches to replace and improve upon
+proteomics search engine scoring functions</article-title>. <source>Bioinformatics</source>
+<year>2019</year>, <volume>35</volume> (<issue>24</issue>), <fpage>5243</fpage>–<lpage>5248</lpage>. <pub-id pub-id-type="doi">10.1093/bioinformatics/btz383</pub-id>.<pub-id pub-id-type="pmid">31077310</pub-id></mixed-citation></ref><ref id="ref13"><mixed-citation publication-type="journal" id="cit13"><name name-style="western"><surname>Wilhelm</surname><given-names>M.</given-names></name>; <name name-style="western"><surname>Zolg</surname><given-names>D. P.</given-names></name>; <name name-style="western"><surname>Graber</surname><given-names>M.</given-names></name>; <name name-style="western"><surname>Gessulat</surname><given-names>S.</given-names></name>; <name name-style="western"><surname>Schmidt</surname><given-names>T.</given-names></name>; <name name-style="western"><surname>Schnatbaum</surname><given-names>K.</given-names></name>; <name name-style="western"><surname>Schwencke-Westphal</surname><given-names>C.</given-names></name>; <name name-style="western"><surname>Seifert</surname><given-names>P.</given-names></name>; <name name-style="western"><surname>de Andrade
+Kratzig</surname><given-names>N.</given-names></name>; <name name-style="western"><surname>Zerweck</surname><given-names>J.</given-names></name>; et al. <article-title>Deep learning boosts
+sensitivity of mass spectrometry-based immunopeptidomics</article-title>. <source>Nat. Commun.</source>
+<year>2021</year>, <volume>12</volume> (<issue>1</issue>), <fpage>3346</fpage><pub-id pub-id-type="doi">10.1038/s41467-021-23713-9</pub-id>.<pub-id pub-id-type="pmid">34099720</pub-id><pub-id pub-id-type="pmcid">PMC8184761</pub-id></mixed-citation></ref><ref id="ref14"><mixed-citation publication-type="journal" id="cit14"><name name-style="western"><surname>Searle</surname><given-names>B. C.</given-names></name>; <name name-style="western"><surname>Swearingen</surname><given-names>K. E.</given-names></name>; <name name-style="western"><surname>Barnes</surname><given-names>C. A.</given-names></name>; <name name-style="western"><surname>Schmidt</surname><given-names>T.</given-names></name>; <name name-style="western"><surname>Gessulat</surname><given-names>S.</given-names></name>; <name name-style="western"><surname>Kuster</surname><given-names>B.</given-names></name>; <name name-style="western"><surname>Wilhelm</surname><given-names>M.</given-names></name>
+<article-title>Generating high quality
+libraries
+for DIA MS with empirically corrected peptide predictions</article-title>. <source>Nat. Commun.</source>
+<year>2020</year>, <volume>11</volume> (<issue>1</issue>), <fpage>1548</fpage><pub-id pub-id-type="doi">10.1038/s41467-020-15346-1</pub-id>.<pub-id pub-id-type="pmid">32214105</pub-id><pub-id pub-id-type="pmcid">PMC7096433</pub-id></mixed-citation></ref><ref id="ref15"><mixed-citation publication-type="book" id="cit15"><person-group person-group-type="allauthors"><name name-style="western"><surname>Devlin</surname><given-names>J.</given-names></name>; <name name-style="western"><surname>Chang</surname><given-names>M.-W.</given-names></name>; <name name-style="western"><surname>Lee</surname><given-names>K.</given-names></name>; <name name-style="western"><surname>Toutanova</surname><given-names>K.</given-names></name></person-group><article-title>BERT: Pre-training of deep bidirectional
+transformers for language understanding</article-title>. <source>arXiv</source><year>2018</year>; <uri xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://arxiv.org/abs/1810.04805">https://arxiv.org/abs/1810.04805</uri>.</mixed-citation></ref><ref id="ref16"><mixed-citation publication-type="journal" id="cit16"><person-group person-group-type="allauthors"><name name-style="western"><surname>Vaswani</surname><given-names>A.</given-names></name>; <name name-style="western"><surname>Shazeer</surname><given-names>N.</given-names></name>; <name name-style="western"><surname>Parmar</surname><given-names>N.</given-names></name>; <name name-style="western"><surname>Uszkoreit</surname><given-names>J.</given-names></name>; <name name-style="western"><surname>Jones</surname><given-names>L.</given-names></name>; <name name-style="western"><surname>Gomez</surname><given-names>A. N.</given-names></name>; <name name-style="western"><surname>Kaiser</surname><given-names>Ł.</given-names></name>; <name name-style="western"><surname>Polosukhin</surname><given-names>I.</given-names></name></person-group><article-title>Attention is all you need</article-title>. <source>NIPS</source>, <fpage>5998</fpage>–<lpage>6008</lpage>, <year>2017</year>; <uri xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</uri>.</mixed-citation></ref><ref id="ref17"><mixed-citation publication-type="journal" id="cit17"><name name-style="western"><surname>Rao</surname><given-names>R.</given-names></name>; <name name-style="western"><surname>Bhattacharya</surname><given-names>N.</given-names></name>; <name name-style="western"><surname>Thomas</surname><given-names>N.</given-names></name>; <name name-style="western"><surname>Duan</surname><given-names>Y.</given-names></name>; <name name-style="western"><surname>Chen</surname><given-names>X.</given-names></name>; <name name-style="western"><surname>Canny</surname><given-names>J.</given-names></name>; <name name-style="western"><surname>Abbeel</surname><given-names>P.</given-names></name>; <name name-style="western"><surname>Yun</surname><given-names>S S.</given-names></name>
+<article-title>Evaluating protein
+transfer learning with TAPE</article-title>. <source>Adv. Neural Inf.
+Process. Syst.</source>
+<year>2019</year>, <volume>32</volume>, <fpage>9689</fpage>–<lpage>9701</lpage>.<pub-id pub-id-type="pmid">33390682</pub-id><pub-id pub-id-type="pmcid">PMC7774645</pub-id></mixed-citation></ref><ref id="ref18"><mixed-citation publication-type="journal" id="cit18"><name name-style="western"><surname>Bepler</surname><given-names>T.</given-names></name>; <name name-style="western"><surname>Berger</surname><given-names>B.</given-names></name>
+<article-title>Learning the protein language: Evolution, structure,
+and function</article-title>. <source>Cell Systems</source>
+<year>2021</year>, <volume>12</volume> (<issue>6</issue>), <fpage>654</fpage>–<lpage>669.e3</lpage>. <pub-id pub-id-type="doi">10.1016/j.cels.2021.05.017</pub-id>.<pub-id pub-id-type="pmid">34139171</pub-id><pub-id pub-id-type="pmcid">PMC8238390</pub-id></mixed-citation></ref><ref id="ref19"><mixed-citation publication-type="journal" id="cit19"><name name-style="western"><surname>Avsec</surname><given-names>Z.</given-names></name>; <name name-style="western"><surname>Agarwal</surname><given-names>V.</given-names></name>; <name name-style="western"><surname>Visentin</surname><given-names>D.</given-names></name>; <name name-style="western"><surname>Ledsam</surname><given-names>J. R.</given-names></name>; <name name-style="western"><surname>Grabska-Barwinska</surname><given-names>A.</given-names></name>; <name name-style="western"><surname>Taylor</surname><given-names>K. R.</given-names></name>; <name name-style="western"><surname>Assael</surname><given-names>Y.</given-names></name>; <name name-style="western"><surname>Jumper</surname><given-names>J.</given-names></name>; <name name-style="western"><surname>Kohli</surname><given-names>P.</given-names></name>; <name name-style="western"><surname>Kelley</surname><given-names>D. R.</given-names></name>
+<article-title>Effective gene expression
+prediction from sequence
+by integrating long-range interactions</article-title>. <source>Nat.
+Methods</source>
+<year>2021</year>, <volume>18</volume>, <fpage>1196</fpage>–<lpage>1203</lpage>. <pub-id pub-id-type="doi">10.1038/s41592-021-01252-x</pub-id>.<pub-id pub-id-type="pmid">34608324</pub-id><pub-id pub-id-type="pmcid">PMC8490152</pub-id></mixed-citation></ref><ref id="ref20"><mixed-citation publication-type="journal" id="cit20"><name name-style="western"><surname>Cheng</surname><given-names>H.</given-names></name>; <name name-style="western"><surname>Rao</surname><given-names>B.</given-names></name>; <name name-style="western"><surname>Liu</surname><given-names>L.</given-names></name>; <name name-style="western"><surname>Cui</surname><given-names>L.</given-names></name>; <name name-style="western"><surname>Xiao</surname><given-names>G.</given-names></name>; <name name-style="western"><surname>Su</surname><given-names>R.</given-names></name>; <name name-style="western"><surname>Wei</surname><given-names>L.</given-names></name>
+<article-title>PepFormer: End-to-End transformer-based siamese network to predict
+and enhance peptide detectability based on sequence only</article-title>. <source>Anal. Chem.</source>
+<year>2021</year>, <volume>93</volume> (<issue>16</issue>), <fpage>6481</fpage>–<lpage>6490</lpage>. <pub-id pub-id-type="doi">10.1021/acs.analchem.1c00354</pub-id>.<pub-id pub-id-type="pmid">33843206</pub-id></mixed-citation></ref><ref id="ref21"><mixed-citation publication-type="journal" id="cit21"><name name-style="western"><surname>Lou</surname><given-names>R.</given-names></name>; <name name-style="western"><surname>Liu</surname><given-names>W.</given-names></name>; <name name-style="western"><surname>Li</surname><given-names>R.</given-names></name>; <name name-style="western"><surname>Li</surname><given-names>S.</given-names></name>; <name name-style="western"><surname>He</surname><given-names>X.</given-names></name>; <name name-style="western"><surname>Shui</surname><given-names>W.</given-names></name>
+<article-title>DeepPhospho
+accelerates dia phosphoproteome profiling through in silico library
+generation</article-title>. <source>Nat. Commun.</source>
+<year>2021</year>, <volume>12</volume> (<issue>1</issue>), <fpage>6685</fpage><pub-id pub-id-type="doi">10.1038/s41467-021-26979-1</pub-id>.<pub-id pub-id-type="pmid">34795227</pub-id><pub-id pub-id-type="pmcid">PMC8602247</pub-id></mixed-citation></ref><ref id="ref22"><mixed-citation publication-type="journal" id="cit22"><person-group person-group-type="allauthors"><name name-style="western"><surname>Yilmaz</surname><given-names>M.</given-names></name>; <name name-style="western"><surname>Fondrie</surname><given-names>W. E.</given-names></name>; <name name-style="western"><surname>Bittremieux</surname><given-names>W.</given-names></name>; <name name-style="western"><surname>Oh</surname><given-names>S.</given-names></name>; <name name-style="western"><surname>Noble</surname><given-names>W. S.</given-names></name></person-group><article-title>De novo mass spectrometry peptide
+sequencing with a transformer model</article-title>. <source>bioRxiv</source><year>2022</year>; <uri xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.biorxiv.org/content/10.1101/2022.02.07.479481v1">https://www.biorxiv.org/content/10.1101/2022.02.07.479481v1</uri>.</mixed-citation></ref><ref id="ref23"><mixed-citation publication-type="journal" id="cit23"><person-group person-group-type="allauthors"><name name-style="western"><surname>Zhou</surname><given-names>W.</given-names></name>; <name name-style="western"><surname>Ge</surname><given-names>T.</given-names></name>; <name name-style="western"><surname>Xu</surname><given-names>K.</given-names></name>; <name name-style="western"><surname>Wei</surname><given-names>F.</given-names></name>; <name name-style="western"><surname>Zhou</surname><given-names>M.</given-names></name></person-group><article-title>Scheduled Drophead: A regularization
+method for transformer
+models</article-title>. <source>arXiv</source><year>2020</year>; <uri xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://arxiv.org/abs/2004.13342">https://arxiv.org/abs/2004.13342</uri>.</mixed-citation></ref><ref id="ref24"><mixed-citation publication-type="journal" id="cit24"><person-group person-group-type="allauthors"><name name-style="western"><surname>Howard</surname><given-names>A. G.</given-names></name>; <name name-style="western"><surname>Zhu</surname><given-names>M.</given-names></name>; <name name-style="western"><surname>Chen</surname><given-names>B.</given-names></name>; <name name-style="western"><surname>Kalenichenko</surname><given-names>D.</given-names></name>; <name name-style="western"><surname>Wang</surname><given-names>W.</given-names></name>; <name name-style="western"><surname>Weyand</surname><given-names>T.</given-names></name>; <name name-style="western"><surname>Andreetto</surname><given-names>M.</given-names></name>; <name name-style="western"><surname>Hartwig</surname><given-names>A.</given-names></name></person-group><article-title>Mobilenets: Efficient
+convolutional
+neural networks for mobile vision applications</article-title>. <source>arXiv</source><year>2017</year>; <uri xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://arxiv.org/abs/1704.04861">https://arxiv.org/abs/1704.04861</uri>.</mixed-citation></ref></ref-list></back></article>

@@ -1,0 +1,715 @@
+{
+ "record_id": "lit-otheromics-20261011-pepspecbench-model-prosit-transformer",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "ekvall93/PrositTransformer README.md at commit 36d788f5",
+   "description": "Repository README of the first author's implementation, pinned to a commit. The repository has no licence file, so the bytes are hashed and not committed.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/ekvall93/PrositTransformer/36d788f5c304fa67ceef57d1249c9878bb8c0a5d/README.md",
+   "url": "https://github.com/ekvall93/PrositTransformer",
+   "version": "git commit 36d788f5c304fa67ceef57d1249c9878bb8c0a5d",
+   "media_type": "text/markdown",
+   "sha256": "41893667401bddfa90100350097f2fda2376b632c7f9f57316c87fb6edf3ec35",
+   "retrieved_at": "2026-11-26T22:06:25Z",
+   "store_bytes": false
+  },
+  {
+   "key": "paper",
+   "name": "Ekvall et al. 2022, Prosit Transformer: A transformer for Prediction of MS2 Spectrum Intensities, Journal of Proteome Research 21(5):1359-1364, Europe PMC full text PMC9087333",
+   "description": "Open-access full text of the Prosit Transformer paper (CC BY 4.0) from Europe PMC.",
+   "file": "artifacts/paper.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9087333/fullTextXML",
+   "url": "https://doi.org/10.1021/acs.jproteome.1c00870",
+   "version": "PMC9087333, as served on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "83053ba92fe3c0b7cd082fea7a6e9d1a3dda8ae48ba0527712de716f7a162f26",
+   "retrieved_at": "2026-11-26T22:06:51Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "pepspecbench",
+   "name": "PepSpecBench arXiv 2605.01945v1 HTML full text (Yang et al. 2026)",
+   "description": "The benchmark paper that evaluated this model, fetched so its statements about the model can be quoted. Under the arXiv perpetual non-exclusive licence, so the bytes are hashed and not committed.",
+   "file": "artifacts/pepspecbench.html",
+   "artifact_url": "https://arxiv.org/html/2605.01945v1",
+   "url": "https://arxiv.org/abs/2605.01945v1",
+   "version": "arXiv 2605.01945v1, as served on 2026-11-26",
+   "media_type": "text/html",
+   "sha256": "88593c0ae3f0066461468b989cabfe3b4c6a7976d39639cae5066dd12f6dcce1",
+   "retrieved_at": "2026-11-26T21:54:45Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "Prosit Transformer predicts MS2 fragment intensities for a peptide using a transformer instead of the recurrent network of the original Prosit. It takes a peptide sequence with its precursor charge and collision energy and predicts the intensities of the six common ion series (singly, doubly and triply charged b and y ions). It is built by putting a prediction head on TAPE, a transformer trained on protein sequences, and fine-tuning it on the Prosit training data.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "paper: abstract, Architecture, Results",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We implemented a Transformer based on the pretrained model TAPE to predict MS2 intensities."
+   },
+   {
+    "source": "@paper",
+    "text": "we could modify its behavior by adding a prediction head at the end of the TAPE model and fine-tune it using the spectrum intensity from the training set to the well-known predictor Prosit"
+   },
+   {
+    "source": "@paper",
+    "text": "we used layers for handling metadata consisting of the charge state of the spectrum and its collision energy (CE). The charge states range from one to six, represented as six-dimensional one-hot encoding."
+   },
+   {
+    "source": "@paper",
+    "text": "to predict the intensities of the most commonly observed ion series"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "TAPE is a transformer autoencoder trained on Pfam protein sequences to fill in a missing residue. It has 12 attention layers of 768 hidden units and encodes the peptide into a 512-dimensional embedding. A Prosit-specific transformer with the same settings but nine attention layers decodes the combined embedding. A separate metadata layer, a two-layer perceptron of width 512, takes seven inputs: a six-dimensional one-hot charge state and the collision energy. Its output is combined with the peptide embedding before the decoder, and a two-layer prediction layer follows the decoder. Predicted negative intensities are set to zero, and ions that cannot exist for a peptide, because the charge or the length is too low, are set to -1 and excluded from similarity measurements.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Architecture, Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The TAPE model consists of 12 768 hidden unit attention layers, with the attention dropout (DropHead) rate"
+     },
+     {
+      "source": "@paper",
+      "text": "The Prosit-specific transformer has the same parameter but consists of nine attention layers. The metadata layer is a multilayer perceptron (MLP) with two layers of size 512 units followed by a dropout rate of 0.1 each."
+     },
+     {
+      "source": "@paper",
+      "text": "The TAPE model will encode the peptide into a 512-dimensional embedding."
+     },
+     {
+      "source": "@paper",
+      "text": "we used layers for handling metadata consisting of the charge state of the spectrum and its collision energy (CE). The charge states range from one to six, represented as six-dimensional one-hot encoding."
+     },
+     {
+      "source": "@paper",
+      "text": "Hence, the metadata layer has seven input nodes to account for the charge state and CE."
+     },
+     {
+      "source": "@paper",
+      "text": "we set ions with a predicted negative intensity to zero, i.e., a negative intensity indicates an absent peak"
+     },
+     {
+      "source": "@paper",
+      "text": "Then a Prosit-specific Transformer will decode this combined embedding. Lastly, a two-layered multilayer perception (MLP) follows the decoding layer, serving as a prediction layer to predict the spectrum intensity."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The code is in the first author's repository, which has no licence file and no release. It installs with pip install -e . and uses the TAPE training command, and the README's notes say that downloading trained models is still a to-do, so no weights are published there. The training data are the Prosit HDF5 files from figshare, converted to LMDB; the paper says the converted LMDB files were deposited on figshare as well. A result therefore has to state which model the author trained and with which config file; the repository's example config is config/prositTransformer.json. This page read the repository at commit 36d788f5.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Model conversion, Training, Data; paper: Data",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "#TODO: make it possible to download models"
+     },
+     {
+      "source": "@readme",
+      "text": "We have an example config file at config/prositTransformer.json"
+     },
+     {
+      "source": "@readme",
+      "text": "bash downloadProsithdf5.sh"
+     },
+     {
+      "source": "@paper",
+      "text": "We downloaded the Prosit training data from"
+     },
+     {
+      "source": "@paper",
+      "text": "The LMDB data files used during training and validation are accessible at"
+     }
+    ]
+   },
+   {
+    "title": "How the benchmark used it",
+    "body": "PepSpecBench describes Prosit Transformer as a transformer of about 86M parameters and groups it with the sequence-centric models that predict b and y ion intensities by cleavage position and fragment charge. The paper itself states 164 million parameters. All six baselines were retrained on the benchmark data under backbone-disjoint splits, so the benchmark's figure describes its own retrained model.",
+    "source_ids": [
+     "@pepspecbench",
+     "@paper"
+    ],
+    "source_locator": "PepSpecBench Section 3.2; paper: Results",
+    "quotes": [
+     {
+      "source": "@pepspecbench",
+      "text": "86M params), and AlphaPeptDeep"
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "predict b/y-ion intensities indexed by cleavage position and fragment charge"
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "All baselines are retrained on the benchmark data under the Backbone-Disjoint splits described above."
+     },
+     {
+      "source": "@paper",
+      "text": "Prosit RNN contains 3 million parameters, while Prosit Transformer contains 164 million parameters, which gives the Transformer an unfair advantage."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Transformer predicting MS2 fragment intensities for peptides.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We implemented a Transformer based on the pretrained model TAPE to predict MS2 intensities."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "TAPE BERT encoder of 12 attention layers with 768 hidden units, giving a 512-dimensional peptide embedding, then a Prosit-specific transformer decoder of nine attention layers, a two-layer metadata perceptron of width 512 and a two-layer prediction head.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Architecture",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The TAPE model consists of 12 768 hidden unit attention layers, with the attention dropout (DropHead) rate"
+     },
+     {
+      "source": "@paper",
+      "text": "The Prosit-specific transformer has the same parameter but consists of nine attention layers. The metadata layer is a multilayer perceptron (MLP) with two layers of size 512 units followed by a dropout rate of 0.1 each."
+     },
+     {
+      "source": "@paper",
+      "text": "The TAPE model will encode the peptide into a 512-dimensional embedding."
+     },
+     {
+      "source": "@paper",
+      "text": "Then a Prosit-specific Transformer will decode this combined embedding. Lastly, a two-layered multilayer perception (MLP) follows the decoding layer, serving as a prediction layer to predict the spectrum intensity."
+     },
+     {
+      "source": "@paper",
+      "text": "We demonstrate that TAPE’s BERT submodel can predict MS2 spectrum intensities from peptide sequences."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Peptide sequence with precursor charge (one to six, one-hot) and collision energy. Training and prediction read Prosit HDF5 files converted to LMDB.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: Architecture; README: Data, Prediction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we used layers for handling metadata consisting of the charge state of the spectrum and its collision energy (CE). The charge states range from one to six, represented as six-dimensional one-hot encoding."
+     },
+     {
+      "source": "@readme",
+      "text": "Then convert files to LMDB"
+     },
+     {
+      "source": "@readme",
+      "text": "--prosit_hdf5_path /path/to/prosit/file_test.hdf5"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Intensities of the six common ion series (singly, doubly and triply charged b and y ions), written to a result HDF5 file. Negative predictions are set to zero and impossible ions to -1.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: Results, Methods; README: Prediction, Generate Prosit report",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "to predict the intensities of the most commonly observed ion series"
+     },
+     {
+      "source": "@paper",
+      "text": "we set ions with a predicted negative intensity to zero, i.e., a negative intensity indicates an absent peak"
+     },
+     {
+      "source": "@readme",
+      "text": "--tf_hdf5 /path/to/predict_result/tfResult.hdf5"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "164 million, as the paper states, against 3 million for the recurrent Prosit. PepSpecBench quotes about 86M for the model it retrained.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@pepspecbench"
+    ],
+    "source_locator": "paper: Results; PepSpecBench Section 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Prosit RNN contains 3 million parameters, while Prosit Transformer contains 164 million parameters, which gives the Transformer an unfair advantage."
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "86M params), and AlphaPeptDeep"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "The Prosit training data from figshare project 35582, made of spectra from PXD004732, PXD010595 and PXD021013, with peptides of 7 to 30 residues. TAPE itself was pretrained on Pfam protein sequences.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Data, Architecture, Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We downloaded the Prosit training data from"
+     },
+     {
+      "source": "@paper",
+      "text": "This set is composed of spectra from PXD004732, PXD010595, and PXD021013."
+     },
+     {
+      "source": "@paper",
+      "text": "The length of the peptides ranged between 7 and 30 amino acids long."
+     },
+     {
+      "source": "@paper",
+      "text": "trained on the raw protein sequences in the protein families database (Pfam)"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One model described in the paper. No checkpoint is published: the README says making models downloadable is still a to-do, and the repository has no release.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model conversion, Generate Prosit report",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "#TODO: make it possible to download models"
+     },
+     {
+      "source": "@readme",
+      "text": "#TODO: Make it possible to download our final prediction file"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported as a date. The training spectra come from the three PRIDE datasets the Prosit data are built from.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Data",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This set is composed of spectra from PXD004732, PXD010595, and PXD021013."
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "7 to 30 residues: the length range of the peptides in the training and test data. Charge states run from one to six.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Results, Architecture",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The length of the peptides ranged between 7 and 30 amino acids long."
+     },
+     {
+      "source": "@paper",
+      "text": "we used layers for handling metadata consisting of the charge state of the spectrum and its collision energy (CE). The charge states range from one to six, represented as six-dimensional one-hot encoding."
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "No weights are released, so there is no weights licence. The README lists downloadable models as a to-do.",
+    "status": "unavailable",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model conversion"
+   },
+   {
+    "label": "Code licence",
+    "value": "Not stated: the repository has no licence file and the README gives no licence text.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README"
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/ekvall93/PrositTransformer. Training data: https://figshare.com/projects/Prosit/35582 as HDF5, with the converted LMDB files on figshare as the paper states. No trained weights are published in the sources read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: Data; README: Data, Model conversion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We downloaded the Prosit training data from"
+     },
+     {
+      "source": "@paper",
+      "text": "The LMDB data files used during training and validation are accessible at"
+     },
+     {
+      "source": "@readme",
+      "text": "#TODO: make it possible to download models"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "It reuses a transformer already trained on protein sequences, so the authors say less data and much less training time are needed than training from scratch.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Transfer learning makes these relatively large networks more accessible as it generally requires less data, and the training time improves substantially."
+     },
+     {
+      "source": "@paper",
+      "text": "We implemented a Transformer based on the pretrained model TAPE to predict MS2 intensities."
+     }
+    ]
+   },
+   {
+    "text": "The authors report a higher median angular similarity than the recurrent Prosit on the same hold-out set, 0.929 against 0.908, and they also compared against a size-matched recurrent model; these are their numbers.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: abstract, Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "increasing the median angular similarity on its hold-out set from 0.908 to 0.929"
+     },
+     {
+      "source": "@paper",
+      "text": "This extended RNN gave a median angular similarity of 0.892 compared to Prosit Transformer’s"
+     }
+    ]
+   },
+   {
+    "text": "It reuses the Prosit data and evaluation scripts, so results can be compared with the original Prosit directly.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We used the train/test data and the preprocessing coming with the Prosit predictor as a testbed."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "No trained model is published: the README lists downloading models as a to-do, so the model has to be trained before it can be used.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model conversion",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "#TODO: make it possible to download models"
+     }
+    ]
+   },
+   {
+    "text": "The model is large, 164 million parameters by the paper's own count, and it was trained on a GPU cluster of 60 NVIDIA DGX A100 systems.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Results, Hardware",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Prosit RNN contains 3 million parameters, while Prosit Transformer contains 164 million parameters, which gives the Transformer an unfair advantage."
+     },
+     {
+      "source": "@paper",
+      "text": "The model was trained on the Berzelius SuperPOD, a GPU cluster consisting of 60 NVIDIA DGX A100 systems"
+     }
+    ]
+   },
+   {
+    "text": "Data preparation is heavy: the Prosit HDF5 files must be converted to LMDB, which the README says takes about 20 hours for the training data.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Data",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The conversion takes a long time (~20h for training data)"
+     }
+    ]
+   },
+   {
+    "text": "The repository has no licence file, and training needs NVIDIA Apex installed separately.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Everything that is required will be install except for Nvidia Apex."
+     },
+     {
+      "source": "@readme",
+      "text": "However, only training requires Nvidia Apex"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Prosit Transformer workflow",
+   "steps": [
+    "Peptide sequence",
+    "TAPE transformer encoder (12 attention layers)",
+    "Metadata layer (charge one-hot and collision energy)",
+    "Combine embeddings",
+    "Prosit-specific transformer decoder (nine attention layers)",
+    "Prediction head",
+    "Intensities of b and y ions at charges 1 to 3"
+   ],
+   "caption": "The peptide goes through the transformer encoder while charge and collision energy go through a small perceptron; the two are combined, decoded by a Prosit-specific transformer and passed to the prediction head.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "paper: Architecture, Results",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The Prosit-specific transformer has the same parameter but consists of nine attention layers. The metadata layer is a multilayer perceptron (MLP) with two layers of size 512 units followed by a dropout rate of 0.1 each."
+    },
+    {
+     "source": "@paper",
+     "text": "The TAPE model will encode the peptide into a 512-dimensional embedding."
+    },
+    {
+     "source": "@paper",
+     "text": "we used layers for handling metadata consisting of the charge state of the spectrum and its collision energy (CE). The charge states range from one to six, represented as six-dimensional one-hot encoding."
+    },
+    {
+     "source": "@paper",
+     "text": "to predict the intensities of the most commonly observed ion series"
+    },
+    {
+     "source": "@paper",
+     "text": "The TAPE model consists of 12 768 hidden unit attention layers"
+    },
+    {
+     "source": "@paper",
+     "text": "Then a Prosit-specific Transformer will decode this combined embedding. Lastly, a two-layered multilayer perception (MLP) follows the decoding layer, serving as a prediction layer to predict the spectrum intensity."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No released checkpoint, so nothing can be run without training the model first.",
+   "No licence is stated for the code.",
+   "The repository is the first author's and has no release or tag; the paper does not name a repository in the text read, so the match rests on the author name.",
+   "The sources give no inference time or GPU memory figure, only the training cluster."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: ekvall93/PrositTransformer README.md at commit 36d788f5c304fa67ceef57d1249c9878bb8c0a5d; the paper full text from Europe PMC (PMC9087333); the PepSpecBench HTML (arXiv 2605.01945v1) for its statements about this model. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the repository, convert the Prosit data to LMDB and train the model, since no trained weights are published.",
+  "prerequisites": [
+   "Python with pip, and NVIDIA Apex installed separately for training.",
+   "A CUDA GPU: the training command uses fp16 and the paper trained on A100 systems.",
+   "Disk space and time for the data conversion, which the README says takes about 20 hours for the training data.",
+   "No pretrained weights: the README lists downloadable models as a to-do."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/ekvall93/PrositTransformer\ncd PrositTransformer\ngit checkout --detach 36d788f5c304fa67ceef57d1249c9878bb8c0a5d",
+    "explanation": "Clones the repository and pins it to the commit read for this page. The clone and checkout lines are added by Rewire.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install -e ."
+     }
+    ]
+   },
+   {
+    "title": "Install",
+    "shell": "pip install -e .",
+    "explanation": "The README's install command. It says everything required is installed except NVIDIA Apex, which only training needs.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install -e ."
+     },
+     {
+      "source": "@readme",
+      "text": "Everything that is required will be install except for Nvidia Apex."
+     }
+    ]
+   },
+   {
+    "title": "Download and convert the data",
+    "shell": "bash downloadProsithdf5.sh\nprosit2tape \\\n--prosit_hdf5_path /path/to/file.hdf5 \\\n--out_dir /path/to/data \\\n--split test",
+    "explanation": "Downloads the Prosit HDF5 files and converts one split to the LMDB format the TAPE framework reads. The same command is run per split.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Data",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "bash downloadProsithdf5.sh"
+     },
+     {
+      "source": "@readme",
+      "text": "prosit2tape \\\n--prosit_hdf5_path /path/to/file.hdf5 \\\n--out_dir /path/to/data \\\n--split test"
+     }
+    ]
+   },
+   {
+    "title": "Train the model",
+    "shell": "tape-train \\\n    transformer \\\n    prosit_fragmentation \\\n  --fp16 \\\n  --data_dir /path/to/data \\\n  --output_dir /path/to/result \\\n  --log_dir /path/to/log \\\n  --exp_name NAME \\\n  --model_config_file config/prositTransformer.json",
+    "explanation": "The README's training command with its placeholder hyperparameter flags (batch size, learning rate, warmup steps, gradient accumulation, patience, epochs) left out by Rewire and the example config file from the repository filled in for the config path.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Training",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "tape-train \\\n    transformer \\\n    prosit_fragmentation \\"
+     },
+     {
+      "source": "@readme",
+      "text": "  --fp16 \\\n  --data_dir /path/to/data \\"
+     },
+     {
+      "source": "@readme",
+      "text": "We have an example config file at config/prositTransformer.json"
+     }
+    ]
+   },
+   {
+    "title": "Predict with the trained model",
+    "shell": "predictTorch \\\n--model /path/to/torch_model \\\n--lmdb /path/to/lmdb_data \\\n--split test \\\n--out_dir /path/to/predict_result\n--prosit_hdf5_path /path/to/prosit/file_test.hdf5",
+    "explanation": "The README's prediction command, taking the model trained in the previous step. It writes a result HDF5 file. The README also gives predictTF for a converted TensorFlow model.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Prediction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "predictTorch \\\n--model /path/to/torch_model \\\n--lmdb /path/to/lmdb_data \\\n--split test \\\n--out_dir /path/to/predict_result\n--prosit_hdf5_path /path/to/prosit/file_test.hdf5"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A trained model in the output directory and, after the prediction step, a result HDF5 file of predicted intensities (torchResult.hdf5 or tfResult.hdf5) that the repository's validate and report scripts read."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "There is no shortcut: no trained model is published, so the training step cannot be skipped.",
+   "The README's training command uses placeholder values for batch size, learning rate, warmup steps, gradient accumulation, patience and epochs, which it does not fill in.",
+   "The LMDB download is marked as a to-do in the README, so the conversion is the only documented route."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "Prosit Transformer (paper model, not released)",
+   "parameters": 164000000,
+   "context_length": 30,
+   "context_unit": "residues",
+   "code_licence": null,
+   "weights_licence": null,
+   "code_url": "https://github.com/ekvall93/PrositTransformer",
+   "weights_url": null,
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Prosit RNN contains 3 million parameters, while Prosit Transformer contains 164 million parameters, which gives the Transformer an unfair advantage."
+    },
+    {
+     "source": "@paper",
+     "text": "The length of the peptides ranged between 7 and 30 amino acids long."
+    },
+    {
+     "source": "@readme",
+     "text": "#TODO: make it possible to download models"
+    }
+   ]
+  }
+ ],
+ "notes": "No trained weights are published: the repository README lists downloadable models as a to-do, so the run guide has to train the model. The repository is the first author's (ekvall93) and has no licence file; the paper read does not name a repository in the text fetched, so the match rests on the author name and the matching command names, which a reviewer may want to confirm. The record's description gives about 86M parameters, which is PepSpecBench's figure for the model it retrained; the paper states 164 million, which is what structured records. context_length of 30 residues is the top of the training data length range."
+}

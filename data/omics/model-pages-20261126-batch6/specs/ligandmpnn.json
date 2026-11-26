@@ -1,0 +1,811 @@
+{
+ "record_id": "hyinv-20261106-model-ligandmpnn",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "dauparas/LigandMPNN README.md at commit 26ec57ac",
+   "description": "Official repository README, pinned to a commit. It documents LigandMPNN and the other MPNN models the package serves.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/dauparas/LigandMPNN/26ec57ac976ade5379920dbd43c7f97a91cf82de/README.md",
+   "url": "https://github.com/dauparas/LigandMPNN",
+   "version": "git commit 26ec57ac976ade5379920dbd43c7f97a91cf82de",
+   "media_type": "text/markdown",
+   "sha256": "52d37fc1b25fc5a8d421bfcaf7cdf8cfe61cafcb5100af88f3723cc9b20a4272",
+   "retrieved_at": "2026-11-26T23:05:00Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "dauparas/LigandMPNN LICENSE at commit 26ec57ac",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/dauparas/LigandMPNN/26ec57ac976ade5379920dbd43c7f97a91cf82de/LICENSE",
+   "url": "https://github.com/dauparas/LigandMPNN",
+   "version": "git commit 26ec57ac976ade5379920dbd43c7f97a91cf82de",
+   "media_type": "text/plain",
+   "sha256": "8af7ba31868e08e8949e20ce2ef3c0b1d0ef78c9358c91563a60a9fe3b36c9ea",
+   "retrieved_at": "2026-11-26T23:05:05Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "get-params",
+   "name": "dauparas/LigandMPNN get_model_params.sh at commit 26ec57ac",
+   "description": "Script that downloads the model parameters, which names every published checkpoint and its URL.",
+   "file": "artifacts/get_model_params.sh",
+   "artifact_url": "https://raw.githubusercontent.com/dauparas/LigandMPNN/26ec57ac976ade5379920dbd43c7f97a91cf82de/get_model_params.sh",
+   "url": "https://github.com/dauparas/LigandMPNN",
+   "version": "git commit 26ec57ac976ade5379920dbd43c7f97a91cf82de",
+   "media_type": "text/x-shellscript",
+   "sha256": "67a9cd88a41c0b0d711a80110dcd4f68540730ea099e92de6be68bd2fa1e3537",
+   "retrieved_at": "2026-11-26T23:06:00Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "requirements",
+   "name": "dauparas/LigandMPNN requirements.txt at commit 26ec57ac",
+   "description": "Pinned Python dependencies of the inference package.",
+   "file": "artifacts/requirements.txt",
+   "artifact_url": "https://raw.githubusercontent.com/dauparas/LigandMPNN/26ec57ac976ade5379920dbd43c7f97a91cf82de/requirements.txt",
+   "url": "https://github.com/dauparas/LigandMPNN",
+   "version": "git commit 26ec57ac976ade5379920dbd43c7f97a91cf82de",
+   "media_type": "text/plain",
+   "sha256": "25caec9f63caec7a545217e7fe3110280d9f881a718e2c89d102545356cf3fbb",
+   "retrieved_at": "2026-11-26T23:06:05Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Europe PMC record PPR778570 (Dauparas et al. 2023, LigandMPNN preprint)",
+   "description": "Europe PMC metadata and abstract of the LigandMPNN preprint.",
+   "file": "artifacts/paper-europepmc.json",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI%3A%2210.1101%2F2023.12.22.573103%22&format=json&resultType=core",
+   "url": "https://doi.org/10.1101/2023.12.22.573103",
+   "version": "As served on 2026-11-26",
+   "media_type": "application/json",
+   "sha256": "37f3a23b5897e268493a019a1589a690b197d99b849dca75ff1091e1eeefc664",
+   "retrieved_at": "2026-11-26T23:08:00Z",
+   "store_bytes": false
+  },
+  {
+   "key": "report",
+   "name": "HyInv Technical Report (Hyra Team), text layer, at commit 0dcc533c",
+   "description": "Third-party report that evaluated LigandMPNN as an inverse folding baseline. The report is a PDF; the source saved and quoted is its text layer, extracted with pdftotext -layout, and the PDF is kept beside it as artifacts/report.pdf.",
+   "file": "artifacts/report.txt",
+   "artifact_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hyra-results/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv/HyInv_Technical_Report.pdf",
+   "url": "https://github.com/Tencent-Hunyuan/Hyra-results/blob/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv/HyInv_Technical_Report.pdf",
+   "version": "git commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a",
+   "media_type": "text/plain",
+   "sha256": "52ae9552b72266481b8c7190796f0bf2c93e4f8e84453c76b749b702edc50f52",
+   "retrieved_at": "2026-11-26T22:30:00Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "LigandMPNN designs amino acid sequences for a protein backbone that is given to it, and unlike earlier methods of its kind it also reads the non-protein atoms around that backbone: small molecules, nucleotides and metals. The input is a PDB file, the output a set of designed sequences with per-sequence confidence figures, and optionally packed side chain conformations so binding interactions can be inspected. The published package also serves ProteinMPNN, SolubleMPNN and two membrane-labelled models from the same code.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper abstract; README.md: first paragraph, Available models",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "we describe a deep learning-based protein sequence design method called LigandMPNN that explicitly models all non-protein components of biomolecular systems"
+   },
+   {
+    "source": "@paper",
+    "text": "LigandMPNN generates not only sequences but also sidechain conformations to allow detailed evaluation of binding interactions."
+   },
+   {
+    "source": "@readme",
+    "text": "This package provides inference code for [LigandMPNN](https://www.biorxiv.org/content/10.1101/2023.12.22.573103v1) & [ProteinMPNN](https://www.science.org/doi/10.1126/science.add2187) models."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Design is autoregressive over the backbone graph, in the manner of ProteinMPNN, with the ligand atoms added as context. The LigandMPNN checkpoints are built with 32 neighbour edges and 25 context atoms per residue, which is what the names ligandmpnn_v_32_005_25 and the like record. The atom context can be switched off with a flag, which the README offers as a way to see how much the ligand atoms move the amino acid probabilities, and side chain context can be switched on. A separate side chain packing checkpoint produces the side chain conformations.",
+    "source_ids": [
+     "@readme",
+     "@get-params"
+    ],
+    "source_locator": "README.md: Available models, examples 21 and 22, Side chain packing model; get_model_params.sh comments",
+    "quotes": [
+     {
+      "source": "@get-params",
+      "text": "#LigandMPNN with num_edges=32; atom_context_num=25"
+     },
+     {
+      "source": "@readme",
+      "text": "--checkpoint_ligand_mpnn \"./model_params/ligandmpnn_v_32_005_25.pt\" #noised with 0.05A Gaussian noise"
+     },
+     {
+      "source": "@readme",
+      "text": "Setting `--ligand_mpnn_use_atom_context 0` will mask all ligand atoms. This can be used to assess how much ligand atoms affect AA probabilities."
+     },
+     {
+      "source": "@readme",
+      "text": "--ligand_mpnn_use_side_chain_context 1 \\"
+     },
+     {
+      "source": "@readme",
+      "text": "--checkpoint_path_sc \"./model_params/ligandmpnn_sc_v_32_002_16.pt\""
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "Four LigandMPNN checkpoints are published, differing in the Gaussian coordinate noise used in training: 0.05, 0.10, 0.20 and 0.30 Angstrom. The same download script also fetches four ProteinMPNN checkpoints, four SolubleMPNN checkpoints, two membrane-labelled models and the side chain packing model, all from files.ipd.uw.edu. A result must name the checkpoint, the model type, the sampling temperature and the seed, since the README is explicit that no seed means a random seed and that running again gives different results. The default model type of run.py is ProteinMPNN, not LigandMPNN.",
+    "source_ids": [
+     "@readme",
+     "@get-params"
+    ],
+    "source_locator": "README.md: Available models, examples 1, 2 and 3; get_model_params.sh",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--checkpoint_ligand_mpnn \"./model_params/ligandmpnn_v_32_030_25.pt\" #noised with 0.30A Gaussian noise"
+     },
+     {
+      "source": "@readme",
+      "text": "Default settings will run ProteinMPNN."
+     },
+     {
+      "source": "@readme",
+      "text": "`--seed` Not selecting a seed will run with a random seed. Running this multiple times will give different results."
+     },
+     {
+      "source": "@readme",
+      "text": "`--temperature 0.05` Change sampling temperature (higher temperature gives more sequence diversity)."
+     },
+     {
+      "source": "@get-params",
+      "text": "wget -q https://files.ipd.uw.edu/pub/ligandmpnn/proteinmpnn_v_48_002.pt -O $1\"/proteinmpnn_v_48_002.pt\""
+     }
+    ]
+   },
+   {
+    "title": "What is reported about it",
+    "body": "The preprint reports native backbone sequence recovery for residues that touch other molecules: 63.3 per cent against 50.4 per cent for Rosetta and 50.5 per cent for ProteinMPNN near small molecules, 50.5 against 35.2 and 34.0 near nucleotides, and 77.5 against 36.0 and 40.6 near metals. Separately, the HyInv report used LigandMPNN as one of ten published baselines on backbone-only inverse folding panels, where it is the strongest of the ten by average scTM (0.8555), and the smallest gap to HyInv (0.018 on average). These are their authors' figures, not Rewire's.",
+    "source_ids": [
+     "@paper",
+     "@report"
+    ],
+    "source_locator": "Paper abstract; HyInv report Section 5.2, Table 6 and Table 7",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "LigandMPNN significantly outperforms Rosetta and ProteinMPNN on native backbone sequence recovery for residues interacting with small molecules (63.3% vs. 50.4% & 50.5%), nucleotides (50.5% vs. 35.2% & 34.0%), and metals (77.5% vs. 36.0% & 40.6%)."
+     },
+     {
+      "source": "@report",
+      "text": "LigandMPNN                                   0.8233               0.8406   0.8893   0.9116         0.8290   0.8537     0.8555"
+     },
+     {
+      "source": "@report",
+      "text": "LigandMPNN      +0.017*   +0.015*   +0.009*   +0.009    +0.032*    +0.018"
+     },
+     {
+      "source": "@report",
+      "text": "LigandMPNN is run on backbone coordinates only."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Inverse folding model: designs sequences for a given backbone, conditioned on the surrounding non-protein atoms, with optional side chain packing.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper abstract; README.md: Available models",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a deep learning-based protein sequence design method called LigandMPNN that explicitly models all non-protein components of biomolecular systems"
+     },
+     {
+      "source": "@readme",
+      "text": "- Side chain packing model"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Message-passing network over the backbone graph with autoregressive decoding, as in ProteinMPNN, extended with ligand atom context: 32 neighbour edges and 25 context atoms in the released checkpoints.",
+    "status": "source_checked",
+    "source_ids": [
+     "@get-params",
+     "@readme"
+    ],
+    "source_locator": "get_model_params.sh comments; README.md: first paragraph, scoring section",
+    "quotes": [
+     {
+      "source": "@get-params",
+      "text": "#LigandMPNN with num_edges=32; atom_context_num=25"
+     },
+     {
+      "source": "@readme",
+      "text": "Get probabilities/scores for backbone-sequence pairs using autoregressive probabilities: p(AA_1|backbone), p(AA_2|backbone, AA_1) etc."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A PDB file, parsed with ProDy so residue indices, chain letters and insertion codes are kept. Options can fix residues, choose which to redesign, and bias amino acids by residue index such as A23 or B42D.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Running the code, Main differences compared with ProteinMPNN",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Input PDBs are parsed using [Prody](https://pypi.org/project/ProDy/) preserving protein residue indices, chain letters, and insertion codes."
+     },
+     {
+      "source": "@readme",
+      "text": "Adding bias, fixing residues, and selecting residues to be redesigned now can be done using residue indices directly, e.g. A23 (means chain A residue with index 23), B42D (chain B, residue 42, insertion code D)."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "FASTA and PDB files of designed sequences, with overall_confidence and ligand_confidence per sequence, and sequence recovery over the redesigned residues. The side chain model writes packed side chains; a scoring mode writes probabilities per position.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Main differences compared with ProteinMPNN; scoring section",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The script outputs .fasta and .pdb files."
+     },
+     {
+      "source": "@readme",
+      "text": "Model writes to fasta files: `overall_confidence`, `ligand_confidence` which reflect the average confidence/probability (with T=1.0) over the redesigned residues"
+     },
+     {
+      "source": "@readme",
+      "text": "out_dict[\"mean_of_probs\"] - averaged over batch_size*number_of_batches probabilities, [protein_length, 21]"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported. The checkpoint names give the graph size and context size (32 edges, 25 atoms) and the training noise, but no parameter count appears in the files read.",
+    "status": "unreported",
+    "source_ids": [
+     "@get-params",
+     "@readme"
+    ],
+    "source_locator": "get_model_params.sh; README.md: Available models"
+   },
+   {
+    "label": "Training data",
+    "value": "Not reported in the files read. The README says only that SolubleMPNN was trained on soluble proteins alone, and the checkpoint names record the Gaussian coordinate noise used in training.",
+    "status": "unextracted",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Available models, example 25"
+   },
+   {
+    "label": "Known versions",
+    "value": "Four LigandMPNN checkpoints, at 0.05, 0.10, 0.20 and 0.30 Angstrom training noise, plus the side chain packing checkpoint ligandmpnn_sc_v_32_002_16. The same package serves four ProteinMPNN, four SolubleMPNN and two membrane-labelled checkpoints.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@get-params"
+    ],
+    "source_locator": "README.md: Available models; get_model_params.sh",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--checkpoint_ligand_mpnn \"./model_params/ligandmpnn_v_32_010_25.pt\" #noised with 0.10A Gaussian noise"
+     },
+     {
+      "source": "@readme",
+      "text": "--checkpoint_ligand_mpnn \"./model_params/ligandmpnn_v_32_020_25.pt\" #noised with 0.20A Gaussian noise"
+     },
+     {
+      "source": "@readme",
+      "text": "--checkpoint_path_sc \"./model_params/ligandmpnn_sc_v_32_002_16.pt\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported. The preprint was first published on 23 December 2023; no data cutoff is stated.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Europe PMC firstPublicationDate; README.md"
+   },
+   {
+    "label": "Context limits",
+    "value": "Not reported as a residue limit. The only size settings in the README are the batch size and the number of batches of designs.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: example 8 --number_of_batches"
+   },
+   {
+    "label": "Weights licence",
+    "value": "MIT: the README states that the code and the model parameters are both available under the MIT licence.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README.md: first paragraph; LICENSE",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The code and model parameters are available under the MIT license."
+     },
+     {
+      "source": "@license",
+      "text": "MIT License\n\nCopyright (c) 2024 Justas Dauparas"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, as the repository LICENSE states, copyright 2024 Justas Dauparas. Side chain packing uses helper functions from OpenFold, which the README names as third party code.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE; README.md: first paragraphs",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License\n\nCopyright (c) 2024 Justas Dauparas"
+     },
+     {
+      "source": "@readme",
+      "text": "Third party code: side chain packing uses helper functions from [Openfold](https://github.com/aqlaboratory/openfold)."
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Public. Code at https://github.com/dauparas/LigandMPNN; parameters from https://files.ipd.uw.edu/pub/ligandmpnn/ through get_model_params.sh. No gate or registration is mentioned.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@get-params"
+    ],
+    "source_locator": "README.md: Running the code, Model parameters; get_model_params.sh",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/dauparas/LigandMPNN.git"
+     },
+     {
+      "source": "@readme",
+      "text": "bash get_model_params.sh \"./model_params\""
+     },
+     {
+      "source": "@get-params",
+      "text": "wget -q https://files.ipd.uw.edu/pub/ligandmpnn/proteinmpnn_v_48_002.pt -O $1\"/proteinmpnn_v_48_002.pt\""
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "It reads the non-protein atoms around the backbone, so small molecules, nucleotides and metals are part of the design context rather than ignored.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "current state-of-the-art deep learning-based sequence design methods are unable to model non-protein atoms and molecules"
+     },
+     {
+      "source": "@paper",
+      "text": "We present a deep learning-based protein sequence design method that allows explicit modeling of small molecule, nucleotide, metal, and other atomic contexts."
+     }
+    ]
+   },
+   {
+    "text": "Code and model parameters are both MIT, which permits commercial use.",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README.md: first paragraph; LICENSE",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The code and model parameters are available under the MIT license."
+     },
+     {
+      "source": "@license",
+      "text": "MIT License"
+     }
+    ]
+   },
+   {
+    "text": "One package serves LigandMPNN, ProteinMPNN, SolubleMPNN and two membrane-labelled models, selected by a flag, so comparisons use the same code path.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Available models",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "To run the model of your choice specify `--model_type` and optionally the model checkpoint path."
+     },
+     {
+      "source": "@readme",
+      "text": "Run SolubleMPNN (ProteinMPNN-like model with only soluble proteins in the training dataset)."
+     }
+    ]
+   },
+   {
+    "text": "It is the strongest of the ten baselines in a third party's backbone-only comparison, with an average scTM of 0.8555 and the smallest gap to that project's own model.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "HyInv report Table 6 and Table 7",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "LigandMPNN                                   0.8233               0.8406   0.8893   0.9116         0.8290   0.8537     0.8555"
+     },
+     {
+      "source": "@report",
+      "text": "LigandMPNN      +0.017*   +0.015*   +0.009*   +0.009    +0.032*    +0.018"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Output is not deterministic unless a seed is set: the README says that without a seed each run differs.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: example 3 --seed",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`--seed` Not selecting a seed will run with a random seed. Running this multiple times will give different results."
+     }
+    ]
+   },
+   {
+    "text": "The default run is ProteinMPNN, so LigandMPNN must be selected explicitly with --model_type, which makes it easy to report the wrong model.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: example 1 default; example 19",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Default settings will run ProteinMPNN."
+     },
+     {
+      "source": "@readme",
+      "text": "--model_type \"ligand_mpnn\" \\"
+     }
+    ]
+   },
+   {
+    "text": "No parameter count, training data description or length limit is published in the files read, so the model's size and training set cannot be stated.",
+    "source_ids": [
+     "@readme",
+     "@get-params"
+    ],
+    "source_locator": "README.md; get_model_params.sh",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "### Available models"
+     },
+     {
+      "source": "@get-params",
+      "text": "#make new directory for model parameters"
+     }
+    ]
+   },
+   {
+    "text": "The dependency list is pinned to CUDA 12 wheels and torch 2.2.1, so the environment is fixed to one version of the stack.",
+    "source_ids": [
+     "@requirements",
+     "@readme"
+    ],
+    "source_locator": "requirements.txt; README.md: Dependencies",
+    "quotes": [
+     {
+      "source": "@requirements",
+      "text": "torch==2.2.1"
+     },
+     {
+      "source": "@requirements",
+      "text": "nvidia-cudnn-cu12==8.9.2.26"
+     },
+     {
+      "source": "@readme",
+      "text": "conda create -n ligandmpnn_env python=3.11"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "LigandMPNN design workflow",
+   "steps": [
+    "PDB file with protein and non-protein atoms",
+    "ProDy parsing, residue indices kept",
+    "Message passing over the backbone with ligand atom context",
+    "Autoregressive decoding at a chosen temperature and seed",
+    "Designed sequences as FASTA and PDB, with confidence figures"
+   ],
+   "caption": "The ligand atoms around the backbone enter the design; the atom context can be masked to see how much they matter.",
+   "source_ids": [
+    "@readme",
+    "@get-params"
+   ],
+   "source_locator": "README.md: Running the code, Main differences, examples 2, 3 and 21; get_model_params.sh",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "Input PDBs are parsed using [Prody](https://pypi.org/project/ProDy/) preserving protein residue indices, chain letters, and insertion codes."
+    },
+    {
+     "source": "@get-params",
+     "text": "#LigandMPNN with num_edges=32; atom_context_num=25"
+    },
+    {
+     "source": "@readme",
+     "text": "`--temperature 0.05` Change sampling temperature (higher temperature gives more sequence diversity)."
+    },
+    {
+     "source": "@readme",
+     "text": "The script outputs .fasta and .pdb files."
+    },
+    {
+     "source": "@readme",
+     "text": "Setting `--ligand_mpnn_use_atom_context 0` will mask all ligand atoms."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count and no training data description: the preprint's methods were not read, only the Europe PMC abstract.",
+   "No maximum chain length or residue count is stated.",
+   "The training noise levels are given in the checkpoint names but the files read do not say which checkpoint to prefer for which task.",
+   "Side chain packing is documented as a checkpoint and a flag, but the packing model's own details are not described in the files read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: README.md, LICENSE, get_model_params.sh and requirements.txt of dauparas/LigandMPNN at commit 26ec57ac976ade5379920dbd43c7f97a91cf82de; the Europe PMC record for preprint PPR778570; the text layer of the HyInv Technical Report PDF at commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a, extracted locally with pdftotext -layout. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Clone the package, download the parameters and design sequences for one PDB file with LigandMPNN.",
+  "prerequisites": [
+   "Python 3.11 in a conda environment, with the pinned requirements (torch 2.2.1, ProDy 2.4.1, numpy 1.23.5).",
+   "wget, which the parameter download script uses.",
+   "A PDB file. The repository ships examples under inputs/.",
+   "Code and model parameters are MIT."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit and download the parameters",
+    "shell": "git clone https://github.com/dauparas/LigandMPNN.git\ncd LigandMPNN\ngit checkout --detach 26ec57ac976ade5379920dbd43c7f97a91cf82de\nbash get_model_params.sh \"./model_params\"",
+    "explanation": "The clone and the parameter download are the README's own first lines. Rewire added the detached checkout so the later commands match the files read at this commit.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Running the code; Model parameters",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/dauparas/LigandMPNN.git\ncd LigandMPNN\nbash get_model_params.sh \"./model_params\""
+     }
+    ]
+   },
+   {
+    "title": "Create the environment",
+    "shell": "conda create -n ligandmpnn_env python=3.11\nconda activate ligandmpnn_env\npip3 install -r requirements.txt",
+    "explanation": "Copied from the README's Dependencies section. Rewire added the conda activate line, which the README leaves out between the create and the pip install.",
+    "source_ids": [
+     "@readme",
+     "@requirements"
+    ],
+    "source_locator": "README.md: Dependencies; requirements.txt",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -n ligandmpnn_env python=3.11\npip3 install -r requirements.txt"
+     },
+     {
+      "source": "@requirements",
+      "text": "ProDy==2.4.1"
+     }
+    ]
+   },
+   {
+    "title": "Design sequences with LigandMPNN",
+    "shell": "python run.py \\\n        --model_type \"ligand_mpnn\" \\\n        --seed 111 \\\n        --pdb_path \"./inputs/1BC8.pdb\" \\\n        --out_folder \"./outputs/ligandmpnn_default\"",
+    "explanation": "Copied from the README's example 19, unchanged. Without --model_type the same script runs ProteinMPNN instead.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: example 19 --model_type ligand_mpnn",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python run.py \\\n        --model_type \"ligand_mpnn\" \\\n        --seed 111 \\\n        --pdb_path \"./inputs/1BC8.pdb\" \\\n        --out_folder \"./outputs/ligandmpnn_default\""
+     }
+    ]
+   },
+   {
+    "title": "Pick a particular checkpoint",
+    "shell": "python run.py \\\n        --checkpoint_ligand_mpnn \"./model_params/ligandmpnn_v_32_005_25.pt\" \\\n        --model_type \"ligand_mpnn\" \\\n        --seed 111 \\\n        --pdb_path \"./inputs/1BC8.pdb\" \\\n        --out_folder \"./outputs/ligandmpnn_v_32_005_25\"",
+    "explanation": "Copied from the README's example 20, which selects the 0.05 Angstrom noise checkpoint.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: example 20 --checkpoint_ligand_mpnn",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python run.py \\\n        --checkpoint_ligand_mpnn \"./model_params/ligandmpnn_v_32_005_25.pt\" \\\n        --model_type \"ligand_mpnn\" \\\n        --seed 111 \\\n        --pdb_path \"./inputs/1BC8.pdb\" \\\n        --out_folder \"./outputs/ligandmpnn_v_32_005_25\""
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "FASTA and PDB files of designed sequences in the output folder, the PDB form recommended because it keeps chain letters and residue indices.",
+   "overall_confidence and ligand_confidence for each designed sequence, and sequence recovery over the redesigned residues."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The conda activate line was added by Rewire; everything else in the commands comes from the README.",
+   "Without --seed the output changes from run to run.",
+   "Side chain packing, fixing or biasing residues, and the scoring modes each need further flags that the README documents and this guide does not cover."
+  ],
+  "source_ids": [
+   "@readme",
+   "@requirements",
+   "@get-params"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "ligandmpnn_v_32_005_25",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://github.com/dauparas/LigandMPNN",
+   "weights_url": "https://files.ipd.uw.edu/pub/ligandmpnn/ligandmpnn_v_32_005_25.pt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "--checkpoint_ligand_mpnn \"./model_params/ligandmpnn_v_32_005_25.pt\" #noised with 0.05A Gaussian noise"
+    },
+    {
+     "source": "@readme",
+     "text": "The code and model parameters are available under the MIT license."
+    },
+    {
+     "source": "@get-params",
+     "text": "#LigandMPNN with num_edges=32; atom_context_num=25"
+    }
+   ]
+  },
+  {
+   "checkpoint": "ligandmpnn_v_32_010_25",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://github.com/dauparas/LigandMPNN",
+   "weights_url": "https://files.ipd.uw.edu/pub/ligandmpnn/ligandmpnn_v_32_010_25.pt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "--checkpoint_ligand_mpnn \"./model_params/ligandmpnn_v_32_010_25.pt\" #noised with 0.10A Gaussian noise"
+    },
+    {
+     "source": "@readme",
+     "text": "The code and model parameters are available under the MIT license."
+    }
+   ]
+  },
+  {
+   "checkpoint": "ligandmpnn_v_32_020_25",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://github.com/dauparas/LigandMPNN",
+   "weights_url": "https://files.ipd.uw.edu/pub/ligandmpnn/ligandmpnn_v_32_020_25.pt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "--checkpoint_ligand_mpnn \"./model_params/ligandmpnn_v_32_020_25.pt\" #noised with 0.20A Gaussian noise"
+    },
+    {
+     "source": "@readme",
+     "text": "The code and model parameters are available under the MIT license."
+    }
+   ]
+  },
+  {
+   "checkpoint": "ligandmpnn_v_32_030_25",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://github.com/dauparas/LigandMPNN",
+   "weights_url": "https://files.ipd.uw.edu/pub/ligandmpnn/ligandmpnn_v_32_030_25.pt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "--checkpoint_ligand_mpnn \"./model_params/ligandmpnn_v_32_030_25.pt\" #noised with 0.30A Gaussian noise"
+    },
+    {
+     "source": "@readme",
+     "text": "The code and model parameters are available under the MIT license."
+    }
+   ]
+  },
+  {
+   "checkpoint": "ligandmpnn_sc_v_32_002_16 (side chain packing)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://github.com/dauparas/LigandMPNN",
+   "weights_url": "https://files.ipd.uw.edu/pub/ligandmpnn/ligandmpnn_sc_v_32_002_16.pt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "--checkpoint_path_sc \"./model_params/ligandmpnn_sc_v_32_002_16.pt\""
+    },
+    {
+     "source": "@readme",
+     "text": "The code and model parameters are available under the MIT license."
+    }
+   ]
+  }
+ ],
+ "notes": "Points for a reviewer. No parameter count, training set or length limit is published in the repository, so those facts are marked unreported or unextracted; the preprint's methods were not read, only the Europe PMC abstract, and the preprint carries no licence in Europe PMC. The weights_url values in the structured rows are the files.ipd.uw.edu URLs that get_model_params.sh fetches, for example https://files.ipd.uw.edu/pub/ligandmpnn/ligandmpnn_v_32_005_25.pt. This record overlaps a ProteinMPNN record: the same package and the same download script serve ProteinMPNN, SolubleMPNN and two membrane-labelled checkpoints, and the HyInv report evaluates ProteinMPNN separately. The HyInv figures are that project's own evaluation, on backbone coordinates only, so they do not test the ligand context that is this model's purpose. Quotes from the HyInv report come from a pdftotext text layer, so line breaks inside them follow the PDF layout."
+}

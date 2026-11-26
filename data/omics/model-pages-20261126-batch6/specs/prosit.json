@@ -1,0 +1,730 @@
+{
+ "record_id": "lit-otheromics-20261011-pepspecbench-model-prosit",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "kusterlab/prosit README.md at commit 6de9fea8",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/kusterlab/prosit/6de9fea8711e2a9d1d79e8eac01aad571962d611/README.md",
+   "url": "https://github.com/kusterlab/prosit",
+   "version": "git commit 6de9fea8711e2a9d1d79e8eac01aad571962d611",
+   "media_type": "text/markdown",
+   "sha256": "b903abacf30cbd7fe2589a5da132f860428a4b6267cdcb355ecc226c9a46f90b",
+   "retrieved_at": "2026-11-26T22:04:41Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "kusterlab/prosit LICENSE at commit 6de9fea8",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/kusterlab/prosit/6de9fea8711e2a9d1d79e8eac01aad571962d611/LICENSE",
+   "url": "https://github.com/kusterlab/prosit",
+   "version": "git commit 6de9fea8711e2a9d1d79e8eac01aad571962d611",
+   "media_type": "text/plain",
+   "sha256": "725c75260fe7fa4b5585cd5755d241e82e9ea5ca1433495aceaf30d632d8856d",
+   "retrieved_at": "2026-11-26T22:04:44Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "constants",
+   "name": "kusterlab/prosit prosit/constants.py at commit 6de9fea8",
+   "description": "Constants of the official implementation: alphabet, charges, ion types and sequence limits.",
+   "file": "artifacts/constants.py.txt",
+   "artifact_url": "https://raw.githubusercontent.com/kusterlab/prosit/6de9fea8711e2a9d1d79e8eac01aad571962d611/prosit/constants.py",
+   "url": "https://github.com/kusterlab/prosit",
+   "version": "git commit 6de9fea8711e2a9d1d79e8eac01aad571962d611",
+   "media_type": "text/plain",
+   "sha256": "b94a654149cb6011dd749364a06aeb82e1e0bc4e7e80a7711f0aaa1133649087",
+   "retrieved_at": "2026-11-26T22:04:50Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "pepspecbench",
+   "name": "PepSpecBench arXiv 2605.01945v1 HTML full text (Yang et al. 2026)",
+   "description": "The benchmark paper that evaluated this model, fetched so its statements about the model can be quoted. Under the arXiv perpetual non-exclusive licence, so the bytes are hashed and not committed.",
+   "file": "artifacts/pepspecbench.html",
+   "artifact_url": "https://arxiv.org/html/2605.01945v1",
+   "url": "https://arxiv.org/abs/2605.01945v1",
+   "version": "arXiv 2605.01945v1, as served on 2026-11-26",
+   "media_type": "text/html",
+   "sha256": "88593c0ae3f0066461468b989cabfe3b4c6a7976d39639cae5066dd12f6dcce1",
+   "retrieved_at": "2026-11-26T21:54:45Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "Prosit is a neural network that predicts the MS2 fragment intensities and the indexed retention time (iRT) of a peptide. The input is a list of peptide sequence, precursor charge and collision energy; the output is a predicted spectrum, written as a MaxQuant style msms.txt, an msp library or a generic text file. It is used to build spectral libraries and to rescore peptide-spectrum matches. The original implementation runs as a server in a Docker container and needs a CUDA GPU.",
+  "summary_source_ids": [
+   "@readme"
+  ],
+  "summary_source_locator": "README: Prosit, Usage, Using Prosit on your data, Hardware",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "Prosit is a deep neural network to predict iRT values and MS2 spectra for given peptide sequences."
+   },
+   {
+    "source": "@readme",
+    "text": "Send any list of (Peptide, Precursor charge, Collision energy) in the format of `/example/peptidelist.csv` to a running instance of the Prosit server."
+   },
+   {
+    "source": "@readme",
+    "text": "Currently two output formats are supported: a MaxQuant style `msms.txt` not including the iRT value and a generic text file (that works with Spectronaut)"
+   },
+   {
+    "source": "@readme",
+    "text": "- a [GPU with CUDA support](https://developer.nvidia.com/cuda-gpus)"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Two models are loaded side by side: one for fragment intensities and one for iRT. A peptide is encoded over an alphabet of the 20 common amino acids plus oxidised methionine, so 21 symbols, with cysteine always treated as carbamidomethylated. The intensity model covers y and b ions up to fragment charge 3, with no loss, water loss and ammonia loss variants, for up to 29 cleavage positions. Prediction runs behind an HTTP server: a posted peptide list is converted to numpy arrays, both models predict, and the result is written in the requested output format.",
+    "source_ids": [
+     "@constants",
+     "@readme"
+    ],
+    "source_locator": "prosit/constants.py; README: Model, Pseudo-code, Using Prosit on your data",
+    "quotes": [
+     {
+      "source": "@constants",
+      "text": "\"M(ox)\": 21,"
+     },
+     {
+      "source": "@constants",
+      "text": "MAX_FRAG_CHARGE = 3"
+     },
+     {
+      "source": "@constants",
+      "text": "MAX_SEQUENCE = 30"
+     },
+     {
+      "source": "@constants",
+      "text": "MAX_ION = MAX_SEQUENCE - 1"
+     },
+     {
+      "source": "@constants",
+      "text": "ION_TYPES = [\"y\", \"b\"]"
+     },
+     {
+      "source": "@constants",
+      "text": "NLOSSES = [\"\", \"H2O\", \"NH3\"]"
+     },
+     {
+      "source": "@readme",
+      "text": "* transform peptide list to model input format (numpy arrays)\n    * predict fragment intensity and iRT with the loaded models for the given peptides"
+     },
+     {
+      "source": "@readme",
+      "text": "Each C is treated as Cysteine with carbamidomethylation (fixed modification in MaxQuant)."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "This repository is marked deprecated by its authors. The README points training code to dlomix, the current models to Koina, and spectral library generation and rescoring to Oktoberfest and the Prosit website. The pretrained HCD fragmentation and iRT models are on figshare, as directories holding model.yml, config.yml and weights files named weights_{epoch}_{loss}.hdf5. A result should say which model directory was used and from where, because the repository itself holds no weights; this page read the repository at commit 6de9fea8.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: warning box, Model",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| This repo is deprecated! It does not contain the latest updates regarding Prosit! |"
+     },
+     {
+      "source": "@readme",
+      "text": "| The latest models can be found & accessed on [Koina](https://koina.proteomicsdb.org/)! |"
+     },
+     {
+      "source": "@readme",
+      "text": "You can download pre-trained models for HCD fragmentation prediction and iRT prediction on https://figshare.com/projects/Prosit/35582."
+     },
+     {
+      "source": "@readme",
+      "text": "- weights file(s) - that follow the template `weights_{epoch}_{loss}.hdf5`"
+     }
+    ]
+   },
+   {
+    "title": "How the benchmark used it",
+    "body": "PepSpecBench describes Prosit as a GRU encoder-decoder of about 2.5M parameters and groups it with the sequence-centric models that predict b and y ion intensities indexed by cleavage position and fragment charge. All six baselines were retrained on the benchmark data under backbone-disjoint splits, so that figure and those results describe the benchmark's retrained model rather than the figshare checkpoints.",
+    "source_ids": [
+     "@pepspecbench"
+    ],
+    "source_locator": "PepSpecBench Section 3.2",
+    "quotes": [
+     {
+      "source": "@pepspecbench",
+      "text": "(GRU encoder–decoder,"
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "2.5M params), Prosit Transformer"
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "predict b/y-ion intensities indexed by cleavage position and fragment charge"
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "All baselines are retrained on the benchmark data under the Backbone-Disjoint splits described above."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Neural network predicting MS2 fragment intensities and indexed retention time for peptides.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Prosit",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Prosit is a deep neural network to predict iRT values and MS2 spectra for given peptide sequences."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Not described in the repository sources read, which hold the serving code and constants, not the model definition. PepSpecBench calls it a GRU encoder-decoder.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@pepspecbench"
+    ],
+    "source_locator": "README: Model; PepSpecBench Section 3.2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "- model.yml - a saved keras model"
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "(GRU encoder–decoder,"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A CSV list of peptide sequence, precursor charge and collision energy. Amino acids U, O and X are not supported, the only modification is M(ox) and every cysteine is treated as carbamidomethylated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@constants"
+    ],
+    "source_locator": "README: Using Prosit on your data; prosit/constants.py",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Send any list of (Peptide, Precursor charge, Collision energy) in the format of `/example/peptidelist.csv` to a running instance of the Prosit server."
+     },
+     {
+      "source": "@readme",
+      "text": "Please note: Sequences with amino acid U, O, or X are not supported. Modifications except \"M(ox)\" are not supported."
+     },
+     {
+      "source": "@constants",
+      "text": "\"M(ox)\": 21,"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Predicted fragment intensities and iRT, served in three formats: generic text (for Spectronaut), msp and a MaxQuant style msms.txt, which does not carry the iRT value.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage, Example",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Currently two output formats are supported: a MaxQuant style `msms.txt` not including the iRT value and a generic text file (that works with Spectronaut)"
+     },
+     {
+      "source": "@readme",
+      "text": "curl -F \"peptides=@examples/peptidelist.csv\" http://127.0.0.1:5000/predict/msp"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported in the repository sources read. PepSpecBench quotes about 2.5M parameters for the model it retrained.",
+    "status": "source_checked",
+    "source_ids": [
+     "@pepspecbench",
+     "@readme"
+    ],
+    "source_locator": "PepSpecBench Section 3.2; README: Model",
+    "quotes": [
+     {
+      "source": "@pepspecbench",
+      "text": "2.5M params), Prosit Transformer"
+     },
+     {
+      "source": "@readme",
+      "text": "- model.yml - a saved keras model"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Not stated in the repository sources read. The pretrained models offered are for HCD fragmentation and iRT prediction, and the training code has moved to dlomix.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model, warning box",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You can download pre-trained models for HCD fragmentation prediction and iRT prediction on https://figshare.com/projects/Prosit/35582."
+     },
+     {
+      "source": "@readme",
+      "text": "| Code related to model training can be found at [dlomix](https://github.com/wilhelm-lab/dlomix/tree/develop/dlomix)! |"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Two pretrained model directories on figshare, one for HCD fragmentation and one for iRT; newer models are served through Koina. This repository is deprecated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: warning box, Model",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You can download pre-trained models for HCD fragmentation prediction and iRT prediction on https://figshare.com/projects/Prosit/35582."
+     },
+     {
+      "source": "@readme",
+      "text": "| The latest models can be found & accessed on [Koina](https://koina.proteomicsdb.org/)! |"
+     },
+     {
+      "source": "@readme",
+      "text": "| This repo is deprecated! It does not contain the latest updates regarding Prosit! |"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported. The repository sources read give no training dates.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README"
+   },
+   {
+    "label": "Context limits",
+    "value": "30 residues is the maximum sequence length in the implementation constants, giving 29 fragment positions, with precursor charges 1 to 6 and fragment charge up to 3.",
+    "status": "source_checked",
+    "source_ids": [
+     "@constants"
+    ],
+    "source_locator": "prosit/constants.py",
+    "quotes": [
+     {
+      "source": "@constants",
+      "text": "MAX_SEQUENCE = 30"
+     },
+     {
+      "source": "@constants",
+      "text": "MAX_ION = MAX_SEQUENCE - 1"
+     },
+     {
+      "source": "@constants",
+      "text": "CHARGES = [1, 2, 3, 4, 5, 6]"
+     },
+     {
+      "source": "@constants",
+      "text": "MAX_FRAG_CHARGE = 3"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated. The weights are downloaded from figshare and no licence for them appears in the sources read; the repository code is Apache-2.0.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README: Model; LICENSE"
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0 (repository LICENSE file). Contributions need a contributor licence agreement, as the README's CLA assistant badge shows.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE; README: Prosit",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Apache License"
+     },
+     {
+      "source": "@license",
+      "text": "Version 2.0, January 2004"
+     },
+     {
+      "source": "@readme",
+      "text": "[![CLA assistant](https://cla-assistant.io/readme/badge/kusterlab/prosit)](https://cla-assistant.io/kusterlab/prosit)"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/kusterlab/prosit (deprecated). Weights: https://figshare.com/projects/Prosit/35582. Hosted use: https://www.proteomicsdb.org/prosit/ and Koina at https://koina.proteomicsdb.org/, with Oktoberfest for libraries and rescoring.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Prosit, Model, warning box",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You can use it at [proteomicsdb.org/prosit/](http://www.proteomicsdb.org/prosit/) without installation."
+     },
+     {
+      "source": "@readme",
+      "text": "You can download pre-trained models for HCD fragmentation prediction and iRT prediction on https://figshare.com/projects/Prosit/35582."
+     },
+     {
+      "source": "@readme",
+      "text": "| More functionality (spectral-library generation & rescoring) is available with [Oktoberfest](https://github.com/wilhelm-lab/oktoberfest)! |"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "It predicts retention time as well as fragment intensities, so rescoring features that need both come from one tool.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Prosit, Pseudo-code",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Prosit is a deep neural network to predict iRT values and MS2 spectra for given peptide sequences."
+     },
+     {
+      "source": "@readme",
+      "text": "* predict fragment intensity and iRT with the loaded models for the given peptides"
+     }
+    ]
+   },
+   {
+    "text": "It can be used without installing anything, through the Prosit website, and newer models are served through Koina.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Prosit, warning box",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You can use it at [proteomicsdb.org/prosit/](http://www.proteomicsdb.org/prosit/) without installation."
+     },
+     {
+      "source": "@readme",
+      "text": "| The latest models can be found & accessed on [Koina](https://koina.proteomicsdb.org/)! |"
+     }
+    ]
+   },
+   {
+    "text": "The server offers three output formats, including a MaxQuant style msms.txt and a generic file that works with Spectronaut, so predictions feed existing pipelines.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage, Example",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Currently two output formats are supported: a MaxQuant style `msms.txt` not including the iRT value and a generic text file (that works with Spectronaut)"
+     },
+     {
+      "source": "@readme",
+      "text": "curl -F \"peptides=@examples/peptidelist.csv\" http://127.0.0.1:5000/predict/generic"
+     }
+    ]
+   },
+   {
+    "text": "The repository ships an example peptide list and the expected output files, so an install can be checked against them.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Example",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Expected output files (.generic, .msp and .msms) can be found in `examples/`."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The authors mark this repository deprecated and point to dlomix for training, Koina for the current models and Oktoberfest for libraries and rescoring.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: warning box",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| This repo is deprecated! It does not contain the latest updates regarding Prosit! |"
+     },
+     {
+      "source": "@readme",
+      "text": "| Code related to model training can be found at [dlomix](https://github.com/wilhelm-lab/dlomix/tree/develop/dlomix)! |"
+     }
+    ]
+   },
+   {
+    "text": "A CUDA GPU is required, and the documented install pins old versions: Docker 17.05.0-ce, nvidia-docker 2.0.3, CUDA 8.0 and CUDNN 6, tested on Ubuntu 16.04.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Hardware, Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "- a [GPU with CUDA support](https://developer.nvidia.com/cuda-gpus)"
+     },
+     {
+      "source": "@readme",
+      "text": "Prosit was tested on Ubuntu 16.04, CUDA 8.0, CUDNN 6 with Nvidia Tesla K40c and Titan Xp graphic cards with the dependencies above."
+     }
+    ]
+   },
+   {
+    "text": "Scope is narrow: peptides of at most 30 residues, no U, O or X, and no modification other than oxidised methionine, with cysteine fixed as carbamidomethylated.",
+    "source_ids": [
+     "@readme",
+     "@constants"
+    ],
+    "source_locator": "README: Using Prosit on your data; prosit/constants.py",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Please note: Sequences with amino acid U, O, or X are not supported. Modifications except \"M(ox)\" are not supported."
+     },
+     {
+      "source": "@constants",
+      "text": "MAX_SEQUENCE = 30"
+     }
+    ]
+   },
+   {
+    "text": "The repository holds no weights: a model directory has to be downloaded from figshare and passed to the server, and no licence is stated for those files.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model, Usage",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Prosit assumes your models are in directories that look like this:"
+     },
+     {
+      "source": "@readme",
+      "text": "You can download pre-trained models for HCD fragmentation prediction and iRT prediction on https://figshare.com/projects/Prosit/35582."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Prosit workflow",
+   "steps": [
+    "Peptide list (sequence, charge, collision energy)",
+    "Encode to numpy arrays",
+    "Intensity model and iRT model",
+    "Predicted fragment intensities and iRT",
+    "Generic, msp or msms output file"
+   ],
+   "caption": "A posted peptide list is encoded, passed through the two loaded models, and returned in the requested output format.",
+   "source_ids": [
+    "@readme"
+   ],
+   "source_locator": "README: Pseudo-code, Usage",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "* transform peptide list to model input format (numpy arrays)\n    * predict fragment intensity and iRT with the loaded models for the given peptides"
+    },
+    {
+     "source": "@readme",
+     "text": "    * transform prediction to the requested output format and return response"
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "The paper (Nature Methods 2019, doi 10.1038/s41592-019-0426-7) was not read: it is not open access and Europe PMC has no record of it, so the architecture, training data and published accuracy are not on this page. This is why coverage is limited.",
+   "No parameter count from the model's own sources.",
+   "The repository is deprecated, so this page describes the original implementation, not the models now served by Koina or trained with dlomix.",
+   "No licence is stated for the figshare model files."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: kusterlab/prosit README.md, LICENSE and prosit/constants.py at commit 6de9fea8711e2a9d1d79e8eac01aad571962d611, and the PepSpecBench HTML (arXiv 2605.01945v1) for its statements about this model. The Nature Methods paper is not open access and was not read. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Start the Prosit server from the repository with a downloaded model directory and predict spectra for the example peptide list.",
+  "prerequisites": [
+   "A CUDA GPU, as the README's hardware section requires.",
+   "Docker 17.05.0-ce, nvidia-docker 2.0.3 with CUDA 8.0 and CUDNN 6 or later, and make 4.1.",
+   "A fragmentation model directory and an iRT model directory, downloaded by hand from https://figshare.com/projects/Prosit/35582.",
+   "About 3GB of download for the Docker container, which the README says takes about 5 minutes in their tests."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/kusterlab/prosit\ncd prosit\ngit checkout --detach 6de9fea8711e2a9d1d79e8eac01aad571962d611",
+    "explanation": "Clones the official repository and pins it to the commit read for this page. The clone and checkout lines are added by Rewire. Note the README marks this repository deprecated.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: warning box, Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| This repo is deprecated! It does not contain the latest updates regarding Prosit! |"
+     },
+     {
+      "source": "@readme",
+      "text": "- [make 4.1](https://www.gnu.org/software/make/)"
+     }
+    ]
+   },
+   {
+    "title": "Start the server with a model",
+    "shell": "make server MODEL_SPECTRA=/path/to/fragmentation_model/ MODEL_IRT=/path/to/irt_model/",
+    "explanation": "The README's usage command. It builds and runs the container, loads the two model directories and serves on port 5000. Each model directory holds model.yml, config.yml and a weights file.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage, Model",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "make server MODEL_SPECTRA=/path/to/fragmentation_model/ MODEL_IRT=/path/to/irt_model/"
+     },
+     {
+      "source": "@readme",
+      "text": "In the example GPU device 0 is used for computation. The default PORT is 5000."
+     },
+     {
+      "source": "@readme",
+      "text": "- weights file(s) - that follow the template `weights_{epoch}_{loss}.hdf5`"
+     }
+    ]
+   },
+   {
+    "title": "Predict the example peptides",
+    "shell": "curl -F \"peptides=@examples/peptidelist.csv\" http://127.0.0.1:5000/predict/generic",
+    "explanation": "Posts the example peptide list that ships with the repository to the running server and asks for the generic output format. The msp and msms endpoints take the same request.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Example",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "curl -F \"peptides=@examples/peptidelist.csv\" http://127.0.0.1:5000/predict/generic"
+     },
+     {
+      "source": "@readme",
+      "text": "The examples take about 4s to run."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A predicted spectral file in the requested format. The README says the expected .generic, .msp and .msms outputs are in the examples folder and that the example takes about 4 s."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The model directories are not in the repository and must be downloaded from figshare by hand.",
+   "The repository is deprecated; for current models the README points to Koina and Oktoberfest, which have their own instructions."
+  ],
+  "source_ids": [
+   "@readme",
+   "@constants"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "HCD fragmentation model (figshare project 35582)",
+   "parameters": null,
+   "context_length": 30,
+   "context_unit": "residues",
+   "code_licence": "Apache-2.0",
+   "weights_licence": null,
+   "code_url": "https://github.com/kusterlab/prosit",
+   "weights_url": "https://figshare.com/projects/Prosit/35582",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@constants",
+     "text": "MAX_SEQUENCE = 30"
+    },
+    {
+     "source": "@readme",
+     "text": "You can download pre-trained models for HCD fragmentation prediction and iRT prediction on https://figshare.com/projects/Prosit/35582."
+    },
+    {
+     "source": "@license",
+     "text": "Apache License"
+    }
+   ]
+  },
+  {
+   "checkpoint": "iRT model (figshare project 35582)",
+   "parameters": null,
+   "context_length": 30,
+   "context_unit": "residues",
+   "code_licence": "Apache-2.0",
+   "weights_licence": null,
+   "code_url": "https://github.com/kusterlab/prosit",
+   "weights_url": "https://figshare.com/projects/Prosit/35582",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@constants",
+     "text": "MAX_SEQUENCE = 30"
+    },
+    {
+     "source": "@readme",
+     "text": "You can download pre-trained models for HCD fragmentation prediction and iRT prediction on https://figshare.com/projects/Prosit/35582."
+    },
+    {
+     "source": "@license",
+     "text": "Apache License"
+    }
+   ]
+  }
+ ],
+ "notes": "The kusterlab/prosit repository is marked deprecated by its authors: training has moved to dlomix, the current models are served by Koina, and library generation and rescoring by Oktoberfest. Those successors were not fetched for this page. The Nature Methods paper is not open access, so coverage is limited and the architecture fact rests on PepSpecBench's description. No weights licence is stated for the figshare model files. The record's description gives about 2.5M parameters, which is PepSpecBench's figure for the model it retrained."
+}

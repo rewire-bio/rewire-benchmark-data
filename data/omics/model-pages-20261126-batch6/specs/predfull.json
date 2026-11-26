@@ -1,0 +1,706 @@
+{
+ "record_id": "lit-otheromics-20261011-pepspecbench-model-predfull",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "lkytal/PredFull README.md at commit fc3641e0",
+   "description": "Official repository README, pinned to a commit. The repository has no licence file; the README says the work is free for academic uses, so the bytes are hashed and not committed.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/lkytal/PredFull/fc3641e0bc511e2947be7e33021ed871140db030/README.md",
+   "url": "https://github.com/lkytal/PredFull",
+   "version": "git commit fc3641e0bc511e2947be7e33021ed871140db030",
+   "media_type": "text/markdown",
+   "sha256": "9df277a2a47d4cd8812b0a103539e384dbe9dc970ef71cb93ad555e4b5bfd0e2",
+   "retrieved_at": "2026-11-26T22:02:41Z",
+   "store_bytes": false
+  },
+  {
+   "key": "script",
+   "name": "lkytal/PredFull predfull.py at commit fc3641e0",
+   "description": "The prediction script named in the README: its hyperparameters and command line options.",
+   "file": "artifacts/predfull.py.txt",
+   "artifact_url": "https://raw.githubusercontent.com/lkytal/PredFull/fc3641e0bc511e2947be7e33021ed871140db030/predfull.py",
+   "url": "https://github.com/lkytal/PredFull",
+   "version": "git commit fc3641e0bc511e2947be7e33021ed871140db030",
+   "media_type": "text/plain",
+   "sha256": "6d30bd5fcb0f0cd9c4f548f1ab5db6c528eacef17b0ef159bf7b4e2f3cd4cef1",
+   "retrieved_at": "2026-11-26T22:03:01Z",
+   "store_bytes": false
+  },
+  {
+   "key": "pepspecbench",
+   "name": "PepSpecBench arXiv 2605.01945v1 HTML full text (Yang et al. 2026)",
+   "description": "The benchmark paper that evaluated this model, fetched so its statements about the model can be quoted. Under the arXiv perpetual non-exclusive licence, so the bytes are hashed and not committed.",
+   "file": "artifacts/pepspecbench.html",
+   "artifact_url": "https://arxiv.org/html/2605.01945v1",
+   "url": "https://arxiv.org/abs/2605.01945v1",
+   "version": "arXiv 2605.01945v1, as served on 2026-11-26",
+   "media_type": "text/html",
+   "sha256": "88593c0ae3f0066461468b989cabfe3b4c6a7976d39639cae5066dd12f6dcce1",
+   "retrieved_at": "2026-11-26T21:54:45Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "PredFull predicts a complete tandem mass spectrum for a peptide, not only the b and y fragment ions. The input is a table of peptides with precursor charge, fragmentation type (HCD or ETD) and normalised collision energy; the output is an MGF file of predicted peaks. The model is a residual convolutional network that predicts intensity in mass bins of 0.1 Th up to m/z 2000.",
+  "summary_source_ids": [
+   "@readme",
+   "@script"
+  ],
+  "summary_source_locator": "README: introduction, Method, Input format, Usage; predfull.py: hyperparameters",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "The first model for predicting complete tandem mass spectra from peptides sequences, using a deep CNN neural network trained on over 2 million experimental spectra."
+   },
+   {
+    "source": "@readme",
+    "text": "Based on the structure of the residual convolutional networks. Current precision (bin size): 0.1 Th."
+   },
+   {
+    "source": "@readme",
+    "text": "The 'Type' must be HCD or ETD (in uppercase). NCE means normalized collision energy, set to 25 as default."
+   },
+   {
+    "source": "@readme",
+    "text": "The prediction will NOT output peaks with M/z > 2000"
+   },
+   {
+    "source": "@readme",
+    "text": "The output file is in MGF format"
+   },
+   {
+    "source": "@script",
+    "text": "precision = 0.1"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "PredFull treats the spectrum as a vector of mass bins rather than a list of named fragment ions. The script sets a bin width of 0.1 Th and a spectrum dimension of 20000 bins, which covers m/z up to 2000. The network is built from residual convolutional blocks, with coordinate channels added to the convolutions so position information is available, and it is trained on over 2 million experimental spectra. Predicted peaks weaker than one thousandth of the strongest peak are dropped as noise.",
+    "source_ids": [
+     "@readme",
+     "@script"
+    ],
+    "source_locator": "README: introduction, Method, Important Notes; predfull.py: hyperparameters and imports",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Based on the structure of the residual convolutional networks. Current precision (bin size): 0.1 Th."
+     },
+     {
+      "source": "@readme",
+      "text": "The first model for predicting complete tandem mass spectra from peptides sequences, using a deep CNN neural network trained on over 2 million experimental spectra."
+     },
+     {
+      "source": "@script",
+      "text": "precision = 0.1"
+     },
+     {
+      "source": "@script",
+      "text": "SPEC_DIMENSION = 20000"
+     },
+     {
+      "source": "@script",
+      "text": "from coord_tf import CoordinateChannel2D, CoordinateChannel1D"
+     },
+     {
+      "source": "@readme",
+      "text": "Predicted peaks that are weaker than STRONGEST_PEAK / 1000 are regarded as noises thus will be omitted from the final output."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "One trained model file is distributed, pm.h5, downloaded from a Google Drive folder linked in the README and placed in the repository folder. The README's update history shows the model changed over time: non-tryptic peptides were supported from May 2020, oxidised methionine from May 2021 and peptides of any length from May 2022. Only one model file is offered, so a result should name the date it was downloaded and the repository commit; this page read the repository at commit fc3641e0. The README also warns the model does not load correctly with TensorFlow earlier than 2.3.0.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: How to use, Update History, Required Packages",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "you should download `pm.h5` from [google drive](https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn?usp=sharing) and place it into this folder."
+     },
+     {
+      "source": "@readme",
+      "text": "* 2022.05.19: Support input peptide of any length"
+     },
+     {
+      "source": "@readme",
+      "text": "* 2021.05.18: Support predicting peptides with oxidized methionine."
+     },
+     {
+      "source": "@readme",
+      "text": "A compatibility bug in Tensorflow made version before 2.3.0 can't load the model correctly."
+     }
+    ]
+   },
+   {
+    "title": "How the benchmark used it",
+    "body": "PepSpecBench describes PredFull as a residual CNN with squeeze-excitation of about 8.2M parameters, and treats it as a full-spectrum model whose output is projected into the benchmark's shared fragment layout. All six baselines were retrained on the benchmark data under backbone-disjoint splits, so that figure and those results describe the benchmark's retrained model, not the released pm.h5 file.",
+    "source_ids": [
+     "@pepspecbench"
+    ],
+    "source_locator": "PepSpecBench Section 3.2",
+    "quotes": [
+     {
+      "source": "@pepspecbench",
+      "text": "(residual CNN with squeeze-excitation,"
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "8.2M params) and UniSpec"
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "All baselines are retrained on the benchmark data under the Backbone-Disjoint splits described above."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Convolutional neural network predicting full peptide tandem mass spectra.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: introduction, Method",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The first model for predicting complete tandem mass spectra from peptides sequences, using a deep CNN neural network trained on over 2 million experimental spectra."
+     },
+     {
+      "source": "@readme",
+      "text": "Based on the structure of the residual convolutional networks. Current precision (bin size): 0.1 Th."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Residual convolutional network with coordinate channels, predicting intensity in 20000 mass bins of 0.1 Th.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@script"
+    ],
+    "source_locator": "README: Method; predfull.py: hyperparameters and imports",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Based on the structure of the residual convolutional networks. Current precision (bin size): 0.1 Th."
+     },
+     {
+      "source": "@script",
+      "text": "SPEC_DIMENSION = 20000"
+     },
+     {
+      "source": "@script",
+      "text": "from coord_tf import CoordinateChannel2D, CoordinateChannel1D"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A TSV file with columns Peptide, Charge, Type (HCD or ETD) and NCE. Cysteine is assumed carbamidomethylated and the only variable modification is oxidised methionine, written M(O).",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Important Notes, Input format",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The required input format is TSV, with the following columns:"
+     },
+     {
+      "source": "@readme",
+      "text": "The 'Type' must be HCD or ETD (in uppercase). NCE means normalized collision energy, set to 25 as default."
+     },
+     {
+      "source": "@readme",
+      "text": "This model assumes a __FIXED__ carbamidomethyl on C"
+     },
+     {
+      "source": "@readme",
+      "text": "To indicate an oxidized methionine, use the format \"M(O)\"."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "An MGF file of predicted spectra: peaks up to m/z 2000, with peaks below one thousandth of the strongest peak dropped.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage, Important Notes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The output file is in MGF format"
+     },
+     {
+      "source": "@readme",
+      "text": "The prediction will NOT output peaks with M/z > 2000"
+     },
+     {
+      "source": "@readme",
+      "text": "Predicted peaks that are weaker than STRONGEST_PEAK / 1000 are regarded as noises thus will be omitted from the final output."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported in the model's own sources. PepSpecBench quotes about 8.2M parameters for the model it retrained.",
+    "status": "source_checked",
+    "source_ids": [
+     "@pepspecbench",
+     "@readme"
+    ],
+    "source_locator": "PepSpecBench Section 3.2; README",
+    "quotes": [
+     {
+      "source": "@pepspecbench",
+      "text": "8.2M params) and UniSpec"
+     },
+     {
+      "source": "@readme",
+      "text": "Based on the structure of the residual convolutional networks. Current precision (bin size): 0.1 Th."
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Over 2 million experimental spectra, as the README states. The test set used in the README's evaluation is sampled from the NIST Human Synthetic Peptide Spectral Library.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: introduction, Performance Evaluation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The first model for predicting complete tandem mass spectra from peptides sequences, using a deep CNN neural network trained on over 2 million experimental spectra."
+     },
+     {
+      "source": "@readme",
+      "text": "contains ground truth spectra (randomly sampled from [NIST Human Synthetic Peptide Spectral Library]"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One model file, pm.h5, on Google Drive. The README's update history dates the changes: first version September 2019, non-tryptic support May 2020, oxidised methionine May 2021, any peptide length May 2022.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: How to use, Update History",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "you should download `pm.h5` from [google drive](https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn?usp=sharing) and place it into this folder."
+     },
+     {
+      "source": "@readme",
+      "text": "* 2019.09.01: First version."
+     },
+     {
+      "source": "@readme",
+      "text": "* 2020.05.25: Support predicting non-tryptic peptides."
+     },
+     {
+      "source": "@readme",
+      "text": "* 2022.05.19: Support input peptide of any length"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported. The README dates the model updates but does not say when the training spectra were collected.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Update History"
+   },
+   {
+    "label": "Context limits",
+    "value": "No length limit is enforced, but the README expects poor performance above 30 residues. Output stops at m/z 2000 and the script caps charge at 30.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@script"
+    ],
+    "source_locator": "README: Important Notes; predfull.py: hyperparameters",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The length of input peptides are __NOT__ limited, however, would expect poor performance with peptides longer than 30"
+     },
+     {
+      "source": "@readme",
+      "text": "The prediction will NOT output peaks with M/z > 2000"
+     },
+     {
+      "source": "@script",
+      "text": "MAX_CHARGE = 30"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated beyond the README line that the work is free for academic uses. The model file is on Google Drive with no licence text in the sources read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: introduction, How to use",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Free for academic uses."
+     },
+     {
+      "source": "@readme",
+      "text": "you should download `pm.h5` from [google drive](https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn?usp=sharing) and place it into this folder."
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Not stated: the repository has no licence file and the only statement is the README line that the work is free for academic uses.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: introduction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Free for academic uses."
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/lkytal/PredFull. Weights: the pm.h5 file in the Google Drive folder linked from the README. An online prediction service is offered at http://predfull.com/.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: introduction, How to use",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "__Visit [http://predfull.com/](http://predfull.com/) to try online prediction__"
+     },
+     {
+      "source": "@readme",
+      "text": "you should download `pm.h5` from [google drive](https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn?usp=sharing) and place it into this folder."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "It predicts the whole spectrum in mass bins rather than only named b and y ions, so peaks other methods leave out can appear.",
+    "source_ids": [
+     "@readme",
+     "@script"
+    ],
+    "source_locator": "README: introduction, Method; predfull.py: hyperparameters",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The first model for predicting complete tandem mass spectra from peptides sequences, using a deep CNN neural network trained on over 2 million experimental spectra."
+     },
+     {
+      "source": "@script",
+      "text": "SPEC_DIMENSION = 20000"
+     }
+    ]
+   },
+   {
+    "text": "Both HCD and ETD fragmentation are accepted, with the collision energy given per peptide.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Input format",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The 'Type' must be HCD or ETD (in uppercase). NCE means normalized collision energy, set to 25 as default."
+     }
+    ]
+   },
+   {
+    "text": "The repository ships an example input, pre-run predictions and a comparison script, with a reference similarity of about 0.789 to check an install against.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Performance Evaluation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python compare_performance.py --real hcd_testingset.mgf --pred example_prediction.mgf"
+     },
+     {
+      "source": "@readme",
+      "text": "You should get around ~0.789 average similarities using these two pre-given MGF files."
+     }
+    ]
+   },
+   {
+    "text": "Training code is included for anyone who wants to rebuild the model.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: How to build & train the model",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "here we provide `train_model.py` of example codes to build and train the model"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Only one variable modification is supported, oxidation on methionine, and cysteine is assumed carbamidomethylated.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Important Notes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The only modification (PTM) supported is **oxidation on Methionine**, otherwise only UNMODIFIED peptides are allowed."
+     },
+     {
+      "source": "@readme",
+      "text": "This model assumes a __FIXED__ carbamidomethyl on C"
+     }
+    ]
+   },
+   {
+    "text": "The authors expect poor performance on peptides longer than 30 residues, and no peaks are predicted above m/z 2000.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Important Notes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The length of input peptides are __NOT__ limited, however, would expect poor performance with peptides longer than 30"
+     },
+     {
+      "source": "@readme",
+      "text": "The prediction will NOT output peaks with M/z > 2000"
+     }
+    ]
+   },
+   {
+    "text": "The licence is only the README line that the work is free for academic uses, with no licence file, which is a constraint for commercial use.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: introduction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Free for academic uses."
+     }
+    ]
+   },
+   {
+    "text": "The weights are not in the repository: pm.h5 has to be fetched from a Google Drive folder, and the model needs TensorFlow 2.3.0 or newer to load at all.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: How to use, Required Packages",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "you should download `pm.h5` from [google drive](https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn?usp=sharing) and place it into this folder."
+     },
+     {
+      "source": "@readme",
+      "text": "__The Tensorflow has to be 2.30 or newer! A compatibility bug in Tensorflow made version before 2.3.0 can't load the model correctly."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "PredFull workflow",
+   "steps": [
+    "TSV of peptide, charge, fragmentation type and NCE",
+    "Encode peptide and metadata",
+    "Residual convolutional network",
+    "Intensities in 20000 bins of 0.1 Th",
+    "MGF file of predicted peaks up to m/z 2000"
+   ],
+   "caption": "Each row of the input table becomes one predicted spectrum, written as binned peaks in an MGF file.",
+   "source_ids": [
+    "@readme",
+    "@script"
+   ],
+   "source_locator": "README: Input format, Method, Usage; predfull.py: hyperparameters",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "The required input format is TSV, with the following columns:"
+    },
+    {
+     "source": "@readme",
+     "text": "Based on the structure of the residual convolutional networks. Current precision (bin size): 0.1 Th."
+    },
+    {
+     "source": "@script",
+     "text": "SPEC_DIMENSION = 20000"
+    },
+    {
+     "source": "@readme",
+     "text": "The output file is in MGF format"
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "The paper (Analytical Chemistry 2020, doi 10.1021/acs.analchem.9b04867) was not read: Europe PMC returned an error for the full text of PMC8057055 and the article is not open access there. Training details, the exact architecture and the published accuracy are therefore not on this page, which is why coverage is limited.",
+   "No parameter count from the model's own sources.",
+   "The weights file pm.h5 is on Google Drive, so there is no checksum or version to pin.",
+   "No GPU or memory requirement is stated, only the package versions."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: lkytal/PredFull README.md and predfull.py at commit fc3641e0bc511e2947be7e33021ed871140db030, and the PepSpecBench HTML (arXiv 2605.01945v1) for its statements about this model. The Europe PMC request for PMC8057055 returned HTTP 500 and the paper was not read. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Clone PredFull at the pinned commit, add the trained model file, and predict spectra for the example peptide table.",
+  "prerequisites": [
+   "Python 3.7 or newer.",
+   "TensorFlow 2.3.0 or newer: the README says earlier versions cannot load the model.",
+   "Pandas 0.20 or newer, pyteomics and lxml.",
+   "The trained model file pm.h5, downloaded by hand from the Google Drive folder linked in the README and placed in the repository folder."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/lkytal/PredFull\ncd PredFull\ngit checkout --detach fc3641e0bc511e2947be7e33021ed871140db030",
+    "explanation": "Clones the official repository and pins it to the commit read for this page. The clone and checkout lines are added by Rewire.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: How to use",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "__Expect clone this project, you should download `pm.h5` from [google drive](https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn?usp=sharing) and place it into this folder.__"
+     }
+    ]
+   },
+   {
+    "title": "Install the packages",
+    "shell": "pip install \"tensorflow>=2.3.0\" \"pandas>=0.20\" pyteomics lxml",
+    "explanation": "Installs the packages the README's Required Packages section lists, with the version floors it states. The README recommends Anaconda; this uses pip instead, so the command line itself is Rewire's wording of that list.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Required Packages",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "* Python >= 3.7\n* Tensorflow >= 2.3.0\n* Pandas >= 0.20\n* pyteomics\n* lxml"
+     }
+    ]
+   },
+   {
+    "title": "Add the trained model",
+    "shell": "ls pm.h5 example.tsv",
+    "explanation": "The README says to download pm.h5 from the Google Drive folder and place it in the repository folder; that download is manual, so this step only checks that the model file and the example input are present.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: How to use",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "you should download `pm.h5` from [google drive](https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn?usp=sharing) and place it into this folder."
+     },
+     {
+      "source": "@readme",
+      "text": "Check `example.tsv` for examples."
+     }
+    ]
+   },
+   {
+    "title": "Predict spectra",
+    "shell": "python predfull.py --input example.tsv --model pm.h5 --output example_prediction.mgf",
+    "explanation": "The README's usage command. It reads the example peptide table and writes predicted spectra in MGF format.",
+    "source_ids": [
+     "@readme",
+     "@script"
+    ],
+    "source_locator": "README: Usage; predfull.py: arguments",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`python predfull.py --input example.tsv --model pm.h5 --output example_prediction.mgf`"
+     },
+     {
+      "source": "@script",
+      "text": "parser.add_argument(\"--input\", type=str, help=\"input file path\", default=\"example.tsv\")"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "example_prediction.mgf, the predicted spectra for the peptides in example.tsv, with peaks binned at 0.1 Th up to m/z 2000."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The model file download is manual: the README links a Google Drive folder, which cannot be fetched with a plain command.",
+   "The README's comparison step needs hcd_testingset.mgf from the same Google Drive folder and warns that the rows must stay in the same order as example.tsv."
+  ],
+  "source_ids": [
+   "@readme",
+   "@script"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "pm.h5",
+   "parameters": null,
+   "context_length": 30,
+   "context_unit": "residues",
+   "code_licence": null,
+   "weights_licence": null,
+   "code_url": "https://github.com/lkytal/PredFull",
+   "weights_url": "https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "The length of input peptides are __NOT__ limited, however, would expect poor performance with peptides longer than 30"
+    },
+    {
+     "source": "@readme",
+     "text": "you should download `pm.h5` from [google drive](https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn?usp=sharing) and place it into this folder."
+    },
+    {
+     "source": "@readme",
+     "text": "Free for academic uses."
+    }
+   ]
+  }
+ ],
+ "notes": "The paper could not be read: Europe PMC returned HTTP 500 for PMC8057055 and the article is not open access there, so coverage is limited. No licence is stated anywhere in the repository beyond the README line 'Free for academic uses.', so both licence facts carry that wording, the structured licences are null and store_bytes is false for the repository files. context_length of 30 residues is the point above which the README expects poor performance, not a hard limit. The record's description gives about 8.2M parameters, which is PepSpecBench's figure for the model it retrained."
+}

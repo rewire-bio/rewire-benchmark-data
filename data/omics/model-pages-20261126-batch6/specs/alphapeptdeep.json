@@ -1,0 +1,752 @@
+{
+ "record_id": "lit-otheromics-20261011-pepspecbench-model-alphapeptdeep",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "MannLabs/alphapeptdeep README.md at commit 8e9eba6e",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/MannLabs/alphapeptdeep/8e9eba6e25b217cc11cc35d08e63ca6bb7e15f12/README.md",
+   "url": "https://github.com/MannLabs/alphapeptdeep",
+   "version": "git commit 8e9eba6e25b217cc11cc35d08e63ca6bb7e15f12",
+   "media_type": "text/markdown",
+   "sha256": "8d9eea8b96de851788882bcfce42da60242b1ed50589b688021647c61f0a48de",
+   "retrieved_at": "2026-11-26T21:57:22Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "MannLabs/alphapeptdeep LICENSE.txt at commit 8e9eba6e",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/MannLabs/alphapeptdeep/8e9eba6e25b217cc11cc35d08e63ca6bb7e15f12/LICENSE.txt",
+   "url": "https://github.com/MannLabs/alphapeptdeep",
+   "version": "git commit 8e9eba6e25b217cc11cc35d08e63ca6bb7e15f12",
+   "media_type": "text/plain",
+   "sha256": "a327e520c71fc376b93aaeaa0cdc335b7222a7df96cbca310d1ba228c887296e",
+   "retrieved_at": "2026-11-26T21:57:25Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Zeng et al. 2022, AlphaPeptDeep: a modular deep learning framework to predict peptide properties for proteomics, Nature Communications 13:7238, Europe PMC full text PMC9700817",
+   "description": "Open-access full text of the AlphaPeptDeep paper (CC BY 4.0) from Europe PMC.",
+   "file": "artifacts/paper.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9700817/fullTextXML",
+   "url": "https://doi.org/10.1038/s41467-022-34904-3",
+   "version": "PMC9700817, as served on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "2a1d9720730e2409417122a0b2bee36fc236db0ca0f946fc7628301429620bf4",
+   "retrieved_at": "2026-11-26T21:57:29Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "pepspecbench",
+   "name": "PepSpecBench arXiv 2605.01945v1 HTML full text (Yang et al. 2026)",
+   "description": "The benchmark paper that evaluated this model, fetched so its statements about the model can be quoted. Under the arXiv perpetual non-exclusive licence, so the bytes are hashed and not committed.",
+   "file": "artifacts/pepspecbench.html",
+   "artifact_url": "https://arxiv.org/html/2605.01945v1",
+   "url": "https://arxiv.org/abs/2605.01945v1",
+   "version": "arXiv 2605.01945v1, as served on 2026-11-26",
+   "media_type": "text/html",
+   "sha256": "88593c0ae3f0066461468b989cabfe3b4c6a7976d39639cae5066dd12f6dcce1",
+   "retrieved_at": "2026-11-26T21:54:45Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "AlphaPeptDeep (package name peptdeep) is a Python framework for predicting properties of peptides from their sequence. Its built-in pretrained models take a peptide sequence, its modifications, precursor charge, collision energy and instrument type, and predict the MS2 fragment intensities, the retention time and the collision cross section. The usual output is a predicted spectral library, for example built from a FASTA file, for use in peptide identification.",
+  "summary_source_ids": [
+   "@readme",
+   "@paper"
+  ],
+  "summary_source_locator": "README: About; paper: abstract and introduction",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "It contains some built-in models such as retention time (RT), collision\ncross section (CCS), and tandem mass spectrum (MS2) prediction for given\npeptides. With these models, one can easily generate a predicted library\nfrom fasta files."
+   },
+   {
+    "source": "@paper",
+    "text": "Here we introduce AlphaPeptDeep, a modular Python framework built on the PyTorch DL library that learns and predicts the properties of peptides"
+   },
+   {
+    "source": "@paper",
+    "text": "AlphaPeptDeep contains pre-trained models for predicting MS2 intensities, retention time (RT), and collisional cross sections (CCS) of arbitrary peptide sequences or entire proteomes."
+   },
+   {
+    "source": "@paper",
+    "text": "Meta embedding refers to the embedding of meta information such as precursor charge states, collisional energies, instrument types, and other non-sequential inputs."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The MS2 model is built on four transformer layers with a hidden size of 256. For each peptide of length n it outputs intensities for (n-1) cleavage positions and eight fragment types: singly and doubly charged b and y ions and their modification-associated neutral losses. The retention time and collision cross section models are smaller: a CNN layer followed by two bidirectional LSTM layers. Modifications are represented by their chemical composition, so a modification the model has not seen can still be encoded. Training intensities are normalised by the highest matched intensity in each spectrum, so predictions lie between zero and one. The authors stress transfer learning: refining a pretrained model takes minutes and is possible without a GPU.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Fig. 2 caption, MS2 model, Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The MS2 model is built on four transformer layers, and the RT/CCS models consist of a convolutional neural network (CNN) layer followed by two bidirectional long short-term memory (BiLSTM) layers."
+     },
+     {
+      "source": "@paper",
+      "text": "The hidden layer size of transformers is 256. The total number of the model parameters is 3,988,974."
+     },
+     {
+      "source": "@paper",
+      "text": "and 8 refers to eight fragment types"
+     },
+     {
+      "source": "@paper",
+      "text": "All matched b/y fragment intensities in the training and testing datasets were normalized by dividing by the highest matched intensity for each spectrum."
+     },
+     {
+      "source": "@paper",
+      "text": "AlphaPeptDeep represents post-translational modifications in a generic manner, even if only the chemical composition is known."
+     },
+     {
+      "source": "@paper",
+      "text": "Transfer learning from a pre-trained model is feasible within minutes, even without GPU."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The pretrained models are not versioned as separate checkpoints on the page: peptdeep downloads a single pretrained_models.zip from the repository's pre-trained-models release when it is first used, and the settings file names its URL in model_url. The MS2 model has several variants selected by model_type, which can be generic, phos, hla or digly, and separate releases exist for other labels, for example dimethyl-labelled peptides. External model files can be given instead with external_ms2_model, external_rt_model and external_ccs_model. A result should name the peptdeep version and the model type; this page read the repository at commit 8e9eba6e.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: install-models, export-settings, Other pre-trained MS2/RT/CCS models",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "When run for the first time, peptdeep will download and install models\ndefined in ‘model_url’ in the default yaml settings"
+     },
+     {
+      "source": "@readme",
+      "text": "model_url: \"https://github.com/MannLabs/alphapeptdeep/releases/download/pre-trained-models/pretrained_models.zip\""
+     },
+     {
+      "source": "@readme",
+      "text": "  model_type: generic\n  model_choices:\n  - generic\n  - phos\n  - hla # same as generic\n  - digly"
+     },
+     {
+      "source": "@readme",
+      "text": "the MS2/RT/CCS models for Dimethyl-labeled peptides."
+     },
+     {
+      "source": "@readme",
+      "text": "It is also possible to use other models instead of the pretrained_models by providing `model_mgr:external_ms2_model`,"
+     }
+    ]
+   },
+   {
+    "title": "How the benchmark used it",
+    "body": "PepSpecBench describes AlphaPeptDeep as a modular Transformer of about 1.8M parameters and retrained it, with the other five baselines, on the benchmark data under backbone-disjoint splits. That figure and those results therefore describe the benchmark's own retrained model, not the pretrained model shipped with peptdeep, whose MS2 model the paper states has 3,988,974 parameters.",
+    "source_ids": [
+     "@pepspecbench",
+     "@paper"
+    ],
+    "source_locator": "PepSpecBench Section 3.2; paper: MS2 model",
+    "quotes": [
+     {
+      "source": "@pepspecbench",
+      "text": "(modular Transformer,"
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "1.8M params)"
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "All baselines are retrained on the benchmark data under the Backbone-Disjoint splits described above."
+     },
+     {
+      "source": "@paper",
+      "text": "The hidden layer size of transformers is 256. The total number of the model parameters is 3,988,974."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Deep learning framework with pretrained models for peptide MS2 fragment intensity, retention time and collision cross section prediction.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: introduction; README: About",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "AlphaPeptDeep contains pre-trained models for predicting MS2 intensities, retention time (RT), and collisional cross sections (CCS) of arbitrary peptide sequences or entire proteomes."
+     },
+     {
+      "source": "@readme",
+      "text": "It contains some built-in models such as retention time (RT), collision\ncross section (CCS), and tandem mass spectrum (MS2) prediction for given\npeptides."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "MS2 model: four transformer layers, hidden size 256. RT and CCS models: a CNN layer followed by two bidirectional LSTM layers.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Fig. 2 caption, MS2 model, RT model",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The MS2 model is built on four transformer layers, and the RT/CCS models consist of a convolutional neural network (CNN) layer followed by two bidirectional long short-term memory (BiLSTM) layers."
+     },
+     {
+      "source": "@paper",
+      "text": "The hidden layer size of transformers is 256. The total number of the model parameters is 3,988,974."
+     },
+     {
+      "source": "@paper",
+      "text": "a CNN layer followed by two LSTM layers with a hidden layer size of 128"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Peptide sequence and its modifications, plus metadata: precursor charge state, normalised collision energy and instrument type. Libraries can be built from a FASTA file, a sequence table, a peptide table or a precursor table.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: Fig. 1 caption; README: library settings",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Meta embedding refers to the embedding of meta information such as precursor charge states, collisional energies, instrument types, and other non-sequential inputs."
+     },
+     {
+      "source": "@readme",
+      "text": "  infile_type_choices:\n  - fasta\n  - sequence_table\n  - peptide_table # sequence with mods and mod_sites\n  - precursor_table # peptide with charge state"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Predicted b and y fragment intensities between zero and one, with their modification neutral losses, plus normalised retention time and collision cross section; written as a predicted spectral library.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: MS2 model, RT model; README: About, library",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For prediction, negative values will be clipped to zero, hence the predicted values will be between zero and one."
+     },
+     {
+      "source": "@paper",
+      "text": "and 8 refers to eight fragment types"
+     },
+     {
+      "source": "@paper",
+      "text": "resulting in normalized RT values ranging from 0 to 1"
+     },
+     {
+      "source": "@readme",
+      "text": "This command will predict a spectral library for given settings_yaml\nfile"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "3,988,974 for the MS2 model and 708,224 for the RT model, as the paper's Methods state. PepSpecBench quotes about 1.8M parameters for the model it retrained.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@pepspecbench"
+    ],
+    "source_locator": "paper: MS2 model, RT model; PepSpecBench Section 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The hidden layer size of transformers is 256. The total number of the model parameters is 3,988,974."
+     },
+     {
+      "source": "@paper",
+      "text": "The total number of the model parameters is 708,224."
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "1.8M params)"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "About 40 million MS2 spectra from several instruments and collision energies, including ProteomeTools synthetic peptides, and about half a million retention time and collision cross section values. Later training phases added HLA peptides, then phosphorylation and ubiquitylation datasets.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Results, Methods training phases",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We trained and tested the MS2 models with ~40 million spectra from a variety of instruments, collision energies and peptides, and trained the RT and CCS models with about half a million RT and CCS values of peptides"
+     },
+     {
+      "source": "@paper",
+      "text": "including ProteomeTools"
+     },
+     {
+      "source": "@paper",
+      "text": "In training phase 1, we only used tryptic peptides in the training datasets."
+     },
+     {
+      "source": "@paper",
+      "text": "In phase 3, phosphorylation and ubiquitylation datasets were added for training"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One pretrained_models.zip, downloaded from the repository's pre-trained-models release, with model types generic, phos, hla and digly; separate releases exist for other labelling chemistries such as dimethyl.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: install-models, export-settings, Other pre-trained MS2/RT/CCS models",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "model_url: \"https://github.com/MannLabs/alphapeptdeep/releases/download/pre-trained-models/pretrained_models.zip\""
+     },
+     {
+      "source": "@readme",
+      "text": "  model_type: generic\n  model_choices:\n  - generic\n  - phos\n  - hla # same as generic\n  - digly"
+     },
+     {
+      "source": "@readme",
+      "text": "the MS2/RT/CCS models for Dimethyl-labeled peptides."
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported. The paper lists the training datasets in supplementary data but no cutoff date is stated in the sources read.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Results, Table 1"
+   },
+   {
+    "label": "Context limits",
+    "value": "Not reported as a maximum peptide length. The MS2 output scales with the peptide length, and the transfer-learning mini-batch size depends on the peptide length.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: MS2 model, Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "and 8 refers to eight fragment types"
+     },
+     {
+      "source": "@paper",
+      "text": "mini-batch size depends on the peptide length"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Apache-2.0 is the repository licence; the pretrained models are published as a GitHub release of that repository and no separate weights licence is stated in the sources read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE.txt; README: install-models",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Apache License"
+     },
+     {
+      "source": "@readme",
+      "text": "model_url: \"https://github.com/MannLabs/alphapeptdeep/releases/download/pre-trained-models/pretrained_models.zip\""
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0 (repository LICENSE.txt).",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE.txt",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Apache License"
+     },
+     {
+      "source": "@license",
+      "text": "Version 2.0, January 2004"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/MannLabs/alphapeptdeep, also on PyPI as peptdeep and as a Docker image mannlabs/peptdeep. Weights: the pre-trained-models release of the same repository, downloaded automatically on first use. Documentation: https://alphapeptdeep.readthedocs.io.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Installation, Docker installation, install-models; paper: Code availability",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install peptdeep"
+     },
+     {
+      "source": "@readme",
+      "text": "docker run -v $DATA_FOLDER:/app/data -p $PORT:8501 mannlabs/peptdeep:latest"
+     },
+     {
+      "source": "@readme",
+      "text": "When run for the first time, peptdeep will download and install models\ndefined in ‘model_url’ in the default yaml settings"
+     },
+     {
+      "source": "@paper",
+      "text": "The source code of AlphaBase and AlphaPeptDeep are fully opened on GitHub"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Modifications are encoded by chemical composition, so peptides carrying a modification the model was not trained on can still be predicted.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "AlphaPeptDeep represents post-translational modifications in a generic manner, even if only the chemical composition is known."
+     }
+    ]
+   },
+   {
+    "text": "Refining a pretrained model by transfer learning takes minutes and the authors say it works without a GPU.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Transfer learning from a pre-trained model is feasible within minutes, even without GPU."
+     }
+    ]
+   },
+   {
+    "text": "Three ways to run it are documented: a graphical interface, a command line and a Python API, with a Docker image for the interface.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage, Docker installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "There are three ways to use peptdeep:"
+     },
+     {
+      "source": "@readme",
+      "text": "docker run -v $DATA_FOLDER:/app/data -p $PORT:8501 mannlabs/peptdeep:latest"
+     }
+    ]
+   },
+   {
+    "text": "The model is small: the paper states 3,988,974 parameters for the MS2 model and reports fragment intensity prediction 40 times faster than Prosit-Transformer in the authors' own test.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Results, MS2 model",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The hidden layer size of transformers is 256. The total number of the model parameters is 3,988,974."
+     },
+     {
+      "source": "@paper",
+      "text": "fragment intensity prediction of AlphaPeptDeep is 40 times faster than Prosit-Transformer (35 s vs 24 min"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The pretrained MS2 model covers backbone b and y ions and their modification losses only; water and ammonium losses need the user to configure and train the model.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Fig. 2 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the user can easily configure the MS2 model to train and predict water and ammonium losses from backbone fragments as well"
+     }
+    ]
+   },
+   {
+    "text": "The authors say the pretrained model performed much worse on phosphopeptides before PTM training, so modified peptides may need transfer learning on matching data.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For phosphopeptide prediction, performance of the pre-trained model was much worse, with PCC90 values of only around 30%."
+     }
+    ]
+   },
+   {
+    "text": "Fragment intensities depend on how the raw data were centroided, and the authors recommend fine-tuning for dda-PASEF data processed by a different search engine.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "so fine-tuning is highly recommended for dda-PASEF data analyzed by differ"
+     }
+    ]
+   },
+   {
+    "text": "GPU support is not installed by default: the README says to install the GPU build of PyTorch separately.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Enable GPU support",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "To enable GPU, it is use the either the [pip installation](#pip-installation)"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install torch --extra-index-url https://download.pytorch.org/whl/cu116 --upgrade"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "AlphaPeptDeep workflow",
+   "steps": [
+    "Peptide sequence and modifications",
+    "Metadata embedding (charge, collision energy, instrument)",
+    "Four transformer layers (MS2) or CNN plus BiLSTM (RT and CCS)",
+    "Fragment intensities, retention time, collision cross section",
+    "Predicted spectral library"
+   ],
+   "caption": "Sequence and metadata are embedded together, the built-in models predict the peptide properties, and the predictions are assembled into a spectral library.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "paper: Fig. 1 and Fig. 2 captions; README: About, library",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Meta embedding refers to the embedding of meta information such as precursor charge states, collisional energies, instrument types, and other non-sequential inputs."
+    },
+    {
+     "source": "@paper",
+     "text": "The MS2 model is built on four transformer layers, and the RT/CCS models consist of a convolutional neural network (CNN) layer followed by two bidirectional long short-term memory (BiLSTM) layers."
+    },
+    {
+     "source": "@readme",
+     "text": "This command will predict a spectral library for given settings_yaml\nfile"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No single parameter count for the whole framework: the paper gives per-model counts and PepSpecBench gives about 1.8M for its own retrained model.",
+   "No maximum peptide length or charge range is stated in the sources read.",
+   "The pretrained models are published as a release asset rather than versioned checkpoints, so the sources give no per-checkpoint identifiers or dates.",
+   "The sources do not state the GPU memory needed for prediction."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: MannLabs/alphapeptdeep README.md and LICENSE.txt at commit 8e9eba6e25b217cc11cc35d08e63ca6bb7e15f12; the paper full text from Europe PMC (PMC9700817); the PepSpecBench HTML (arXiv 2605.01945v1) for its statements about this model. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install peptdeep, let it download the pretrained models, and predict a spectral library from a settings file.",
+  "prerequisites": [
+   "Python, with Python 3.8 or 3.9 recommended in the README for the pip install.",
+   "A GPU is optional: the README gives a separate command to install the GPU build of PyTorch, and the default settings file sets torch_device to gpu.",
+   "Internet access for the pretrained_models.zip download on first use.",
+   "An input file for the library, for example a FASTA file named in the library section of the settings file."
+  ],
+  "steps": [
+   {
+    "title": "Install peptdeep",
+    "shell": "pip install peptdeep",
+    "explanation": "Installs the package into an existing Python environment, as the README's pip installation section gives it.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Pip installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install peptdeep"
+     }
+    ]
+   },
+   {
+    "title": "Install the pretrained models",
+    "shell": "peptdeep install-models --overwrite True",
+    "explanation": "Downloads and installs the pretrained MS2, RT and CCS models from the repository's pre-trained-models release. The README says this also happens automatically the first time peptdeep is used.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: install-models",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "peptdeep install-models [--model-file url_or_local_model_zip] --overwrite True"
+     },
+     {
+      "source": "@readme",
+      "text": "When run for the first time, peptdeep will download and install models\ndefined in ‘model_url’ in the default yaml settings"
+     }
+    ]
+   },
+   {
+    "title": "Export a settings file",
+    "shell": "peptdeep export-settings /path/to/settings.yaml",
+    "explanation": "Writes the default settings as a template. The README says to edit this file before running other commands: the library section names the input files, and the model_mgr section sets the collision energy, instrument and model type.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: export-settings",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "peptdeep export-settings /path/to/settings.yaml"
+     },
+     {
+      "source": "@readme",
+      "text": "This command will export the default settings into the `settings.yaml`\nas a template, users can edit the yaml file to run other commands."
+     },
+     {
+      "source": "@readme",
+      "text": "  default_nce: 30.0\n  default_instrument: Lumos"
+     }
+    ]
+   },
+   {
+    "title": "Predict a spectral library",
+    "shell": "peptdeep library /path/to/settings.yaml",
+    "explanation": "Predicts a spectral library for the inputs named in the library section of the settings file. The README's command form is 'peptdeep library settings_yaml'.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: library",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "peptdeep library settings_yaml"
+     },
+     {
+      "source": "@readme",
+      "text": "This command will predict a spectral library for given settings_yaml\nfile"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A predicted spectral library for the peptides derived from the input files, with MS2 fragment intensities, retention times and collision cross sections. The output location is set in the library section of the settings file."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The settings file must be edited between steps three and four to name the input files; the README does not give a complete worked settings file.",
+   "The README says the first run of a fresh installation is slow because some functions still need compilation."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "pretrained_models.zip MS2 model (generic)",
+   "parameters": 3988974,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "Apache-2.0",
+   "weights_licence": "Apache-2.0",
+   "code_url": "https://github.com/MannLabs/alphapeptdeep",
+   "weights_url": "https://github.com/MannLabs/alphapeptdeep/releases/tag/pre-trained-models",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The hidden layer size of transformers is 256. The total number of the model parameters is 3,988,974."
+    },
+    {
+     "source": "@license",
+     "text": "Apache License"
+    },
+    {
+     "source": "@readme",
+     "text": "model_url: \"https://github.com/MannLabs/alphapeptdeep/releases/download/pre-trained-models/pretrained_models.zip\""
+    }
+   ]
+  },
+  {
+   "checkpoint": "pretrained_models.zip RT model",
+   "parameters": 708224,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "Apache-2.0",
+   "weights_licence": "Apache-2.0",
+   "code_url": "https://github.com/MannLabs/alphapeptdeep",
+   "weights_url": "https://github.com/MannLabs/alphapeptdeep/releases/tag/pre-trained-models",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The total number of the model parameters is 708,224."
+    },
+    {
+     "source": "@license",
+     "text": "Apache License"
+    }
+   ]
+  }
+ ],
+ "notes": "The record's description gives about 1.8M parameters, which is PepSpecBench's figure for the model it retrained on its own data; the AlphaPeptDeep paper states 3,988,974 parameters for the shipped MS2 model and 708,224 for the RT model. The structured entries use the paper's figures. The weights licence is given as Apache-2.0 because the pretrained models are a release asset of the Apache-2.0 repository; no separate weights licence is stated. The PepSpecBench HTML is kept but not committed, as the arXiv licence is the perpetual non-exclusive one."
+}

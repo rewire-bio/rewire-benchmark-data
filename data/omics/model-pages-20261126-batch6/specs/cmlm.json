@@ -1,0 +1,685 @@
+{
+ "record_id": "hyinv-20261106-model-cmlm",
+ "sources": [
+  {
+   "key": "byprot-readme",
+   "name": "BytedProtein/ByProt README.md at commit dd279dc8",
+   "description": "README of the repository that releases the CMLM checkpoint, pinned to a commit. ByProt is the official implementation of LM-Design and ships CMLM as its non-autoregressive ProteinMPNN baseline.",
+   "file": "artifacts/byprot-readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/BytedProtein/ByProt/dd279dc85f76ee2c28c819b71bf3911b90159f0a/README.md",
+   "url": "https://github.com/BytedProtein/ByProt",
+   "version": "git commit dd279dc85f76ee2c28c819b71bf3911b90159f0a",
+   "media_type": "text/markdown",
+   "sha256": "3413b29e79cc2c4d6137f780c473e69896693cf02bd2b7304f54bcd2166cd1ec",
+   "retrieved_at": "2026-11-26T22:35:00Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "byprot-license",
+   "name": "BytedProtein/ByProt LICENSE at commit dd279dc8",
+   "description": "Licence file of the repository, pinned to a commit.",
+   "file": "artifacts/byprot-license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/BytedProtein/ByProt/dd279dc85f76ee2c28c819b71bf3911b90159f0a/LICENSE",
+   "url": "https://github.com/BytedProtein/ByProt",
+   "version": "git commit dd279dc85f76ee2c28c819b71bf3911b90159f0a",
+   "media_type": "text/plain",
+   "sha256": "2ab8cdb083c589ff9cffd83d1464f8386697b9207061df707b6c96911ef1fe2b",
+   "retrieved_at": "2026-11-26T22:35:05Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 10046338 metadata, as served on 2026-11-26",
+   "description": "Zenodo API response for the deposit that holds the ByProt checkpoints, CMLM among them: files, licence and publication date.",
+   "file": "artifacts/zenodo.json",
+   "artifact_url": "https://zenodo.org/api/records/10046338",
+   "url": "https://doi.org/10.5281/zenodo.10046338",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "6617abd13dd3a9403f056ebd0b2a7c1813e551505cdb17014716cdcb2204ef7d",
+   "retrieved_at": "2026-11-26T22:36:00Z",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "arXiv abstract page for 2302.01649 (Zheng et al. 2023, Structure-informed Language Models Are Protein Designers)",
+   "description": "Abstract page of the paper that released the ByProt checkpoints, including the CMLM baseline.",
+   "file": "artifacts/paper-abstract.html",
+   "artifact_url": "https://arxiv.org/abs/2302.01649",
+   "url": "https://arxiv.org/abs/2302.01649",
+   "version": "As served on 2026-11-26",
+   "media_type": "text/html",
+   "sha256": "10f17cd7b4e0dc7ae07c294d81b4cefe99db98ce511de22388b5141f056d6cd7",
+   "retrieved_at": "2026-11-26T22:40:00Z",
+   "store_bytes": false
+  },
+  {
+   "key": "report",
+   "name": "HyInv Technical Report (Hyra Team), text layer, at commit 0dcc533c",
+   "description": "Third-party report that evaluated CMLM as a baseline. The report is a PDF; the source saved and quoted is its text layer, extracted with pdftotext -layout, and the PDF is kept beside it as artifacts/report.pdf.",
+   "file": "artifacts/report.txt",
+   "artifact_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hyra-results/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv/HyInv_Technical_Report.pdf",
+   "url": "https://github.com/Tencent-Hunyuan/Hyra-results/blob/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv/HyInv_Technical_Report.pdf",
+   "version": "git commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a",
+   "media_type": "text/plain",
+   "sha256": "52ae9552b72266481b8c7190796f0bf2c93e4f8e84453c76b749b702edc50f52",
+   "retrieved_at": "2026-11-26T22:30:00Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "CMLM designs an amino acid sequence for a protein backbone that is given to it (inverse folding). It is the non-autoregressive ProteinMPNN baseline of the ByProt codebase: a ProteinMPNN-style graph encoder and decoder trained by conditional masked language modelling, so at generation time it predicts every position at once from one categorical distribution rather than one residue after another. The released checkpoint is called protein_mpnn_cmlm and was trained on CATH 4.2.",
+  "summary_source_ids": [
+   "@byprot-readme",
+   "@report"
+  ],
+  "summary_source_locator": "ByProt README.md: Example 1: Non-autoregressive (NAR) ProteinMPNN baseline, Pretrained model weights; HyInv report Appendix D.1",
+  "summary_quotes": [
+   {
+    "source": "@byprot-readme",
+    "text": "Training NAR ProteinMPNN with conditional masked language modeling (CMLM)"
+   },
+   {
+    "source": "@byprot-readme",
+    "text": "| `protein_mpnn_cmlm`    | cath_4.2   | [link](https://zenodo.org/records/10046338/files/protein_mpnn_cmlm.zip?download=1)       |"
+   },
+   {
+    "source": "@report",
+    "text": "PiFold, CMLM and LM-Design decode\nall positions in parallel from one categorical distribution"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The model is ProteinMPNN's message-passing encoder and decoder, trained with a conditional masked language modelling objective instead of left-to-right prediction. Generation uses the mask-predict strategy with one decoding iteration by default, so all positions are filled in a single parallel pass. The ByProt defaults make this explicit: max_iter is 1 and the strategy is mask_predict for ProtMPNN-CMLM, against 5 iterations and denoising for LM-Design. Sampling temperature defaults to 0, which makes the output deterministic.",
+    "source_ids": [
+     "@byprot-readme",
+     "@report"
+    ],
+    "source_locator": "ByProt README.md: flags for generation, Example 1: ProteinMPNN-CMLM; HyInv report Appendix D.1 and Table 5",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "| - `max_iter=<int>`                   | maximum decoding iteration (default: `5` for LM-Design, `1` for ProtMPNN-CMLM)                                   |"
+     },
+     {
+      "source": "@byprot-readme",
+      "text": "| - `strategy=[denoise, mask_predict]` | decoding strategy. (default: `denoise` for LM-Design, `mask_predict` for ProtMPNN-CMLM)                          |"
+     },
+     {
+      "source": "@byprot-readme",
+      "text": "| - `temperature=<float>`              | temperature for sampling. set to 0 to disable for deterministic sampling (default: `0`)                          |"
+     },
+     {
+      "source": "@report",
+      "text": "CMLM                                    one parallel pass               0.1   four panels      0.0022       100.0%"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "One checkpoint is released: protein_mpnn_cmlm, trained on CATH 4.2, published in the Zenodo deposit 10046338 of 27 October 2023 alongside the LM-Design checkpoints. A result must name the decoding settings as well as the checkpoint, because the output depends on the number of iterations, the strategy and the temperature. The HyInv report ran it at its published setting, one parallel pass at temperature 0.1, and reports that regenerating the sequences reproduced the released scores to within 0.0022 scTM with all sequences identical.",
+    "source_ids": [
+     "@byprot-readme",
+     "@zenodo",
+     "@report"
+    ],
+    "source_locator": "ByProt README.md: Pretrained model weights; Zenodo files and publication_date; HyInv report Table 5",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"protein_mpnn_cmlm.zip\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"publication_date\": \"2023-10-27\""
+     },
+     {
+      "source": "@report",
+      "text": "CMLM                                    one parallel pass               0.1   four panels      0.0022       100.0%"
+     },
+     {
+      "source": "@report",
+      "text": "All baselines use the released weights."
+     }
+    ]
+   },
+   {
+    "title": "What a third party reports",
+    "body": "The HyInv report used CMLM as one of ten published baselines on inverse folding panels. It states that the parallel decoders, CMLM among them, sample at much lower diversity than its own model and have the lowest scTM, and its table of paired differences puts HyInv ahead of CMLM by 0.048 scTM on average. These are the HyInv authors' figures for their own comparison, not Rewire's, and not the CMLM developers' claims.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "HyInv report Section 5.1 Baselines, Section 5.2 and Table 7",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Parallel decoders (PiFold, CMLM,\nLM-Design, DPLM-2) sample at much lower diversity and have the lowest scTM."
+     },
+     {
+      "source": "@report",
+      "text": "CMLM (Ghazvininejad et al., 2019), LM-Design 650M (Zheng et al.,"
+     },
+     {
+      "source": "@report",
+      "text": "CMLM      +0.031*   +0.049*   +0.019*   +0.049*   +0.086*    +0.048"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Inverse folding model: designs a sequence for a given backbone, trained by conditional masked language modelling and decoding all positions in parallel.",
+    "status": "source_checked",
+    "source_ids": [
+     "@byprot-readme",
+     "@report"
+    ],
+    "source_locator": "ByProt README.md: Structure-based protein sequence design (inverse folding), Example 1; HyInv report Appendix D.1",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "Training NAR ProteinMPNN with conditional masked language modeling (CMLM)"
+     },
+     {
+      "source": "@report",
+      "text": "PiFold, CMLM and LM-Design decode\nall positions in parallel from one categorical distribution"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "ProteinMPNN-style message-passing encoder and decoder, trained non-autoregressively. The repository holds it as protein_mpnn_cmlm with its own encoder, decoder and feature modules.",
+    "status": "source_checked",
+    "source_ids": [
+     "@byprot-readme"
+    ],
+    "source_locator": "ByProt README.md: Example 1: Non-autoregressive (NAR) ProteinMPNN baseline",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "#### Example 1: Non-autoregressive (NAR) ProteinMPNN baseline"
+     },
+     {
+      "source": "@byprot-readme",
+      "text": "exp=fixedbb/protein_mpnn_cmlm"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A protein backbone as a PDB file. The designer reads the structure, then generates.",
+    "status": "source_checked",
+    "source_ids": [
+     "@byprot-readme"
+    ],
+    "source_locator": "ByProt README.md: Example 1: ProteinMPNN-CMLM",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "# 2. load structure from pdb file\npdb_path = \"/root/research/projects/ByProt/data/3uat_variants/3uat_GK.pdb\"\ndesigner.set_structure(pdb_path)"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "One designed amino acid sequence per backbone, with sequence recovery against the native sequence when the metrics step is called.",
+    "status": "source_checked",
+    "source_ids": [
+     "@byprot-readme"
+    ],
+    "source_locator": "ByProt README.md: Example 1: ProteinMPNN-CMLM",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "# 3. generate sequence from the given structure\ndesigner.generate()"
+     },
+     {
+      "source": "@byprot-readme",
+      "text": "## recovery: 0.37158469945355194"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported. The published checkpoint archive is 18,145,476 bytes, which is small beside the 1.6 GB LM-Design archives in the same deposit, but the sources give no parameter count.",
+    "status": "unreported",
+    "source_ids": [
+     "@zenodo",
+     "@byprot-readme"
+    ],
+    "source_locator": "Zenodo files list; ByProt README.md: Pretrained model weights"
+   },
+   {
+    "label": "Training data",
+    "value": "CATH 4.2, in the preprocessed form published with Generative Models for Graph-Based Protein Design (Ingraham et al. 2019), as the checkpoint table's training data column states.",
+    "status": "source_checked",
+    "source_ids": [
+     "@byprot-readme"
+    ],
+    "source_locator": "ByProt README.md: Pretrained model weights; Data",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "| `protein_mpnn_cmlm`    | cath_4.2   | [link](https://zenodo.org/records/10046338/files/protein_mpnn_cmlm.zip?download=1)       |"
+     },
+     {
+      "source": "@byprot-readme",
+      "text": "- CATH 4.2 dataset provided by [Generative Models for Graph-Based Protein Design (Ingraham et al, NeurIPS'19)](https://papers.nips.cc/paper/2019/hash/f3a4ff4839c56a5f460c88cce3666a2b-Abstract.html)"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One released checkpoint, protein_mpnn_cmlm on CATH 4.2. A multichain training configuration exists in the repository but no multichain CMLM checkpoint is published.",
+    "status": "source_checked",
+    "source_ids": [
+     "@byprot-readme",
+     "@zenodo"
+    ],
+    "source_locator": "ByProt README.md: Pretrained model weights; Zenodo files list",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "| `protein_mpnn_cmlm`    | cath_4.2   | [link](https://zenodo.org/records/10046338/files/protein_mpnn_cmlm.zip?download=1)       |"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"protein_mpnn_cmlm.zip\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported as a date. The training data is the CATH 4.2 release and the checkpoint was published on 27 October 2023.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo",
+     "@byprot-readme"
+    ],
+    "source_locator": "Zenodo publication_date; ByProt README.md: Pretrained model weights",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"publication_date\": \"2023-10-27\""
+     },
+     {
+      "source": "@byprot-readme",
+      "text": "| `protein_mpnn_cmlm`    | cath_4.2   | [link](https://zenodo.org/records/10046338/files/protein_mpnn_cmlm.zip?download=1)       |"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "Not reported. No maximum chain length is stated in the files read.",
+    "status": "unreported",
+    "source_ids": [
+     "@byprot-readme"
+    ],
+    "source_locator": "ByProt README.md"
+   },
+   {
+    "label": "Weights licence",
+    "value": "CC BY 4.0, as the Zenodo deposit that holds the checkpoint declares (license id cc-by-4.0).",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo metadata: license",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0, as the ByProt LICENSE file states.",
+    "status": "source_checked",
+    "source_ids": [
+     "@byprot-license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@byprot-license",
+      "text": "Apache License"
+     },
+     {
+      "source": "@byprot-license",
+      "text": "Version 2.0, January 2004"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Public. Code at https://github.com/BytedProtein/ByProt; checkpoint at https://zenodo.org/records/10046338/files/protein_mpnn_cmlm.zip, not gated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@byprot-readme",
+     "@zenodo"
+    ],
+    "source_locator": "ByProt README.md: Pretrained model weights; Zenodo record",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "**Pretrained model weights** ([Zenodo](https://zenodo.org/records/10046338))"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"protein_mpnn_cmlm.zip\""
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Decoding is one parallel pass, so it is fast: the HyInv report measures 439 ms to design 128 sequences for a 402 residue backbone, against 2,907 ms for ProteinMPNN.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "HyInv report Figure 4 timing panel; Table 5",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "CMLM              439 ms"
+     },
+     {
+      "source": "@report",
+      "text": "CMLM                                    one parallel pass               0.1   four panels      0.0022       100.0%"
+     },
+     {
+      "source": "@report",
+      "text": "ProteinMPNN                 2,907 ms"
+     },
+     {
+      "source": "@report",
+      "text": "a Time to design 128 sequences (402 residues)"
+     }
+    ]
+   },
+   {
+    "text": "The checkpoint is small, an 18 MB archive, next to the 1.6 GB archives of the language model designs in the same deposit.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo files list",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"protein_mpnn_cmlm.zip\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"size\": 18145476"
+     }
+    ]
+   },
+   {
+    "text": "Its output is reproducible as published: a third party regenerated the sequences and got identical sequences, with scTM within 0.0022 of the released value.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "HyInv report Table 5 and the note below it",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "CMLM                                    one parallel pass               0.1   four panels      0.0022       100.0%"
+     },
+     {
+      "source": "@report",
+      "text": "a regenerated\ncell is used only where the same procedure reproduces the released score on RecentPDB"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "It is a baseline inside the LM-Design codebase rather than a model with its own repository, documentation or paper: the README presents it as the non-autoregressive ProteinMPNN baseline.",
+    "source_ids": [
+     "@byprot-readme",
+     "@paper"
+    ],
+    "source_locator": "ByProt README.md: Example 1; arXiv abstract page for the LM-Design paper",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "#### Example 1: Non-autoregressive (NAR) ProteinMPNN baseline"
+     },
+     {
+      "source": "@paper",
+      "text": "We present LM-Design, a generic approach to reprogramming sequence-based protein language models"
+     }
+    ]
+   },
+   {
+    "text": "A third party reports that parallel decoders including CMLM sample at much lower diversity and have the lowest scTM of the baselines it compared.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "HyInv report Section 5.2",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Parallel decoders (PiFold, CMLM,\nLM-Design, DPLM-2) sample at much lower diversity and have the lowest scTM."
+     }
+    ]
+   },
+   {
+    "text": "Sequence recovery in the repository's own example is 0.37 for CMLM against 0.76 for LM-Design on the same backbone.",
+    "source_ids": [
+     "@byprot-readme"
+    ],
+    "source_locator": "ByProt README.md: Example 1 and Example 2 outputs",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "## recovery: 0.37158469945355194"
+     },
+     {
+      "source": "@byprot-readme",
+      "text": "## recovery: 0.7595628415300546"
+     }
+    ]
+   },
+   {
+    "text": "The environment is Python 3.7 with an install script, so a current environment may need work.",
+    "source_ids": [
+     "@byprot-readme"
+    ],
+    "source_locator": "ByProt README.md: installation block",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "conda create -n ${env_name} python=3.7 pip"
+     },
+     {
+      "source": "@byprot-readme",
+      "text": "bash install.sh"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "CMLM design workflow",
+   "steps": [
+    "Protein backbone as a PDB file",
+    "ProteinMPNN message-passing encoder",
+    "One parallel mask-predict pass",
+    "Designed amino acid sequence",
+    "Sequence recovery against the native"
+   ],
+   "caption": "All positions are decoded at once from one categorical distribution, with mask_predict and a single iteration by default.",
+   "source_ids": [
+    "@byprot-readme",
+    "@report"
+   ],
+   "source_locator": "ByProt README.md: Example 1: ProteinMPNN-CMLM, flags for generation; HyInv report Appendix D.1",
+   "quotes": [
+    {
+     "source": "@byprot-readme",
+     "text": "designer.set_structure(pdb_path)"
+    },
+    {
+     "source": "@report",
+     "text": "PiFold, CMLM and LM-Design decode\nall positions in parallel from one categorical distribution"
+    },
+    {
+     "source": "@byprot-readme",
+     "text": "| - `strategy=[denoise, mask_predict]` | decoding strategy. (default: `denoise` for LM-Design, `mask_predict` for ProtMPNN-CMLM)                          |"
+    },
+    {
+     "source": "@byprot-readme",
+     "text": "## recovery: 0.37158469945355194"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count, no architecture sizes and no context limit are published for this checkpoint.",
+   "The LM-Design paper was read only as its arXiv abstract, which describes LM-Design and not the CMLM baseline, so nothing here rests on the paper's own account of CMLM.",
+   "The method paper the HyInv report cites for CMLM is Ghazvininejad et al. 2019 on mask-predict decoding in machine translation, which was not read and is not a protein model release.",
+   "No training configuration details (epochs, hardware, masking rate) were read; they are in the repository's config files, not in the README."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: README.md and LICENSE of BytedProtein/ByProt at commit dd279dc85f76ee2c28c819b71bf3911b90159f0a; the Zenodo API response for record 10046338; the arXiv abstract page for 2302.01649; the text layer of the HyInv Technical Report PDF from Tencent-Hunyuan/Hyra-results at commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a, extracted locally with pdftotext -layout. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install ByProt, download the CMLM checkpoint and design a sequence for one PDB backbone.",
+  "prerequisites": [
+   "Conda with Python 3.7, as the repository's installation block sets up.",
+   "A GPU: the designer example sets cuda=True.",
+   "A backbone PDB file. The repository ships examples under data/.",
+   "Code is Apache-2.0; the checkpoint on Zenodo is CC BY 4.0."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/BytedProtein/ByProt.git\ncd ByProt\ngit checkout --detach dd279dc85f76ee2c28c819b71bf3911b90159f0a",
+    "explanation": "The repository is the one the README's checkpoint table belongs to. The clone and the detached checkout were added by Rewire so the later commands match the files read at this commit.",
+    "source_ids": [
+     "@byprot-readme"
+    ],
+    "source_locator": "ByProt README.md: Pretrained model weights",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "**Pretrained model weights** ([Zenodo](https://zenodo.org/records/10046338))"
+     }
+    ]
+   },
+   {
+    "title": "Create the environment",
+    "shell": "env_name=ByProt\n\nconda create -n ${env_name} python=3.7 pip\nconda activate ${env_name}\n\n# automatically install everything else\nbash install.sh",
+    "explanation": "Copied from the README's installation block.",
+    "source_ids": [
+     "@byprot-readme"
+    ],
+    "source_locator": "ByProt README.md: installation block",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "env_name=ByProt\n\nconda create -n ${env_name} python=3.7 pip\nconda activate ${env_name}\n\n# automatically install everything else\nbash install.sh"
+     }
+    ]
+   },
+   {
+    "title": "Download and unpack the CMLM checkpoint",
+    "shell": "mkdir -p run/logs/fixedbb/cath_4.2\ncd run/logs/fixedbb/cath_4.2\ncurl -L -o protein_mpnn_cmlm.zip \"https://zenodo.org/records/10046338/files/protein_mpnn_cmlm.zip?download=1\"\nunzip protein_mpnn_cmlm.zip\ncd -",
+    "explanation": "The URL is the checkpoint link from the README's table. The folder layout follows the README's own example path, run/logs/fixedbb/cath_4.2/protein_mpnn_cmlm. The curl, unzip and mkdir lines were written by Rewire; the sources give a download link but no command.",
+    "source_ids": [
+     "@byprot-readme",
+     "@zenodo"
+    ],
+    "source_locator": "ByProt README.md: Pretrained model weights, Example 1 exp_path; Zenodo files list",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "| `protein_mpnn_cmlm`    | cath_4.2   | [link](https://zenodo.org/records/10046338/files/protein_mpnn_cmlm.zip?download=1)       |"
+     },
+     {
+      "source": "@byprot-readme",
+      "text": "exp_path = \"/root/research/projects/ByProt/run/logs/fixedbb/cath_4.2/protein_mpnn_cmlm\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"protein_mpnn_cmlm.zip\""
+     }
+    ]
+   },
+   {
+    "title": "Design a sequence for one backbone",
+    "shell": "python3 - <<'PY'\nfrom byprot.utils.config import compose_config as Cfg\nfrom byprot.tasks.fixedbb.designer import Designer\n\n# 1. instantialize designer\nexp_path = \"run/logs/fixedbb/cath_4.2/protein_mpnn_cmlm\"\ncfg = Cfg(\n    cuda=True,\n    generator=Cfg(\n        max_iter=1,\n        strategy='mask_predict',\n        temperature=0,\n        eval_sc=False,  \n    )\n)\ndesigner = Designer(experiment_path=exp_path, cfg=cfg)\n\n# 2. load structure from pdb file\npdb_path = \"data/3uat_variants/3uat_GK.pdb\"\ndesigner.set_structure(pdb_path)\n\n# 3. generate sequence from the given structure\ndesigner.generate()\n\n# 4. calculate evaluation metircs\ndesigner.calculate_metrics()\nPY",
+    "explanation": "Copied from the README's Example 1, wrapped by Rewire in a shell heredoc, with the two absolute placeholder paths replaced by paths relative to the clone.",
+    "source_ids": [
+     "@byprot-readme"
+    ],
+    "source_locator": "ByProt README.md: Example 1: ProteinMPNN-CMLM",
+    "quotes": [
+     {
+      "source": "@byprot-readme",
+      "text": "from byprot.utils.config import compose_config as Cfg\nfrom byprot.tasks.fixedbb.designer import Designer"
+     },
+     {
+      "source": "@byprot-readme",
+      "text": "cfg = Cfg(\n    cuda=True,\n    generator=Cfg(\n        max_iter=1,\n        strategy='mask_predict',\n        temperature=0,\n        eval_sc=False,  \n    )\n)\ndesigner = Designer(experiment_path=exp_path, cfg=cfg)"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "The designed sequence for the backbone, printed by the generate and metrics steps.",
+   "A sequence recovery figure against the native sequence; the README's own example prints 0.37158469945355194."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The download step was written by Rewire from the link the README gives; the sources give no download command, and the unpacked folder name must match the experiment path.",
+   "The environment is Python 3.7 and the install goes through the repository's own install.sh, whose contents were not read.",
+   "To score a whole test split rather than one PDB file, the README's generate command needs the preprocessed CATH data, which is downloaded by scripts/download_cath.sh and not covered here."
+  ],
+  "source_ids": [
+   "@byprot-readme",
+   "@zenodo"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "protein_mpnn_cmlm",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/BytedProtein/ByProt",
+   "weights_url": "https://zenodo.org/records/10046338/files/protein_mpnn_cmlm.zip",
+   "gated": false,
+   "released": "2023-10-27",
+   "quotes": [
+    {
+     "source": "@byprot-readme",
+     "text": "| `protein_mpnn_cmlm`    | cath_4.2   | [link](https://zenodo.org/records/10046338/files/protein_mpnn_cmlm.zip?download=1)       |"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2023-10-27\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+    },
+    {
+     "source": "@byprot-license",
+     "text": "Apache License"
+    }
+   ]
+  }
+ ],
+ "notes": "The identity of this record needs a human eye. CMLM is not a model released under its own name: the HyInv report cites Ghazvininejad et al. 2019, a machine translation paper on mask-predict decoding, and the released weights are the protein_mpnn_cmlm checkpoint of the ByProt repository, which is the official implementation of LM-Design and presents CMLM as its non-autoregressive ProteinMPNN baseline. This page is written from ByProt and the Zenodo deposit on that basis. A reviewer should decide whether the record belongs beside the LM-Design record, which shares every source here, and whether it also overlaps a ProteinMPNN record. No parameter count, architecture size or length limit is published for the checkpoint. Quotes from the HyInv report come from a pdftotext text layer, so line breaks inside them follow the PDF layout."
+}
