@@ -254,8 +254,14 @@ describe("release workflow", () => {
 
   it("tags the commit the commit step returned, in every step that publishes", () => {
     const publishing = release.filter(({ block }) => /npm run \S+:publish/.test(block));
-    expect(publishing.map(({ name }) => name)).toEqual([SERVING, KG]);
-    for (const { name, block } of publishing) expect(block, name).toContain(`RELEASE_TARGET_SHA: ${SHA}`);
+    // The first publishes an earlier release that was committed and never published: it tags
+    // that release's own commit, found in the history and verified before anything is published.
+    const RECOVER = "Publish an earlier release that was committed but not published";
+    expect(publishing.map(({ name }) => name)).toEqual([RECOVER, SERVING, KG]);
+    const recover = publishing[0].block;
+    expect(recover.indexOf("commit.mjs verify HEAD")).toBeGreaterThan(-1);
+    expect(recover.indexOf("commit.mjs verify HEAD")).toBeLessThan(recover.indexOf("npm run serving:publish"));
+    for (const { name, block } of publishing.slice(1)) expect(block, name).toContain(`RELEASE_TARGET_SHA: ${SHA}`);
     expect(workflow("release.yml").split("RELEASE_TARGET_SHA:")).toHaveLength(3);
   });
 

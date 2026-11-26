@@ -70,6 +70,31 @@ jobs:
           cache: npm
       - uses: astral-sh/setup-uv@v6
       - run: npm ci
+      # A release whose commit reached main but whose files were never published stops every
+      # later release. The failed run kept its files as an artifact, so publish them from the
+      # release commit here and carry on (docs/release.md, "If publishing fails").
+      - name: Publish an earlier release that was committed but not published
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          named=$(node -p "require('./website/manifest.json').release_id")
+          if gh release view "serving/$named" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then echo "serving/$named is published."; exit 0; fi
+          commit=$(git log --no-merges --format=%H --grep="^Cut release $named" -1 origin/main)
+          run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release.yml --status failure --limit 20 --json databaseId --jq '.[].databaseId' | while read -r id; do
+            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id/artifacts" --jq '.artifacts[] | select(.name == "unpublished-release" and .expired == false) | .id' | grep -q .; then echo "$id"; break; fi
+          done)
+          if [ -z "$commit" ] || [ -z "$run" ]; then echo "::error::$named is not published and its files or commit could not be found; see docs/release.md."; exit 1; fi
+          echo "Publishing $named from commit $commit with the files of run $run"
+          git worktree add --detach "$RUNNER_TEMP/unpublished" "$commit"
+          ln -s "$PWD/node_modules" "$RUNNER_TEMP/unpublished/node_modules"
+          cd "$RUNNER_TEMP/unpublished"
+          node scripts/release/commit.mjs verify HEAD
+          gh run download "$run" --repo "$GITHUB_REPOSITORY" -n unpublished-release
+          grep -q "\"release_id\": *\"$named\"" website/manifest.json
+          RELEASE_TARGET_SHA=$commit npm run serving:publish || GH_TOKEN="$APP_TOKEN" RELEASE_TARGET_SHA=$commit npm run serving:publish
+          cd "$GITHUB_WORKSPACE" && git worktree remove --force "$RUNNER_TEMP/unpublished"
+          GH_TOKEN="${{ secrets.WEBSITE_DISPATCH_TOKEN }}" node scripts/release/dispatch-website.mjs || echo "::warning::Could not ask the website to adopt $named."
       - name: Build a candidate release dated now
         id: candidate
         env:
@@ -187,7 +212,11 @@ jobs:
           # Tag the release commit, the one made on the commit the release was built from;
           # the website reads its revision from the tag.
           RELEASE_TARGET_SHA: ${{ steps.commit.outputs.sha }}
-        run: npm run serving:publish
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+        # The workflow's own token is refused (HTTP 403) when it tags a commit whose workflow
+        # files differ from main's, which happens when a workflow change merges while a release
+        # is being cut. Publishing never replaces an asset, so try again as rewire-bot.
+        run: npm run serving:publish || GH_TOKEN="$APP_TOKEN" npm run serving:publish
       - name: Publish the knowledge-graph bundle (never replaces an existing asset)
         if: steps.pending.outputs.release == 'true'
         env:
