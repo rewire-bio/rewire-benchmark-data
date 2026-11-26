@@ -109,7 +109,7 @@ The first slice is in `kb/`.
 | --- | --- |
 | `kb/inventory.py`, `kb/INVENTORY.md` | Every record kind, attribute, link and status in the current store, with counts. Nothing is dropped by the migration without appearing here |
 | `kb/migrate.py` | Builds `kb/build/kb.sqlite` from the current store. `--check` reads every record back and compares it with the original |
-| `kb/curation/` | The new information the old store has no place for: `settings.jsonl`, `protocol_settings.jsonl`, `checkpoints.jsonl`, `leads.jsonl` |
+| `kb/curation/` | The new information the old store has no place for: `settings.jsonl`, `protocol_settings.jsonl`, `grounding.jsonl` (exact system and subset per result), `checkpoints.jsonl`, `leads.jsonl`. `notes/` holds the brief the grounding agent worked from and what it found |
 | `kb/curate.py` | Loads the curation files and creates the comparison views |
 | `kb/board.py` | Estimates a leaderboard for each use case from within-study comparisons (Bradley-Terry), with each row labelled by how many studies it rests on |
 | `kb/report.py` | For one source: what it measured, which of its numbers another study also reports, and which pairs of models it orders differently |
@@ -148,13 +148,29 @@ grounding that does not exist yet:
 So the next two tables to fill are the checkpoint of each system and the subset of each
 observation.
 
+### With grounding
+
+An agent then named the exact system and the subset for each of the 472 results in the ClinVar and
+BRCA1 settings, from the record fields only. The wide spreads went away. What is left are 13 cases
+where two studies report different values for the same exact system on the same subset:
+
+| System | Subset | Study values (AUROC) |
+| --- | --- | --- |
+| PhyloGPN | ClinVar 5' UTR | 0.601 (Lu et al. 2025) and 0.94 (PhyloGPN paper) |
+| GPN-MSA | ClinVar 5' UTR | 0.728 and 0.95, same two sources |
+| PhyloGPN | ClinVar missense | 0.799 and 0.84, same two sources |
+| Evo 2 7B | BRCA1, all SNVs | 0.904 (Evo 2 paper) and 0.875 (Rewire's run) |
+| ESM-1b 650M | ClinVar missense | 0.892 (Brandes et al.) and 0.919 (Lu et al. 2025) |
+
+These are leads to investigate, not findings. The query is `SELECT * FROM grounded_difference_v`.
+
 ## Plan
 
 | Step | What | Done when | State |
 | --- | --- | --- | --- |
 | 1 | Inventory of the current store | Every kind, attribute and link is listed with counts | Done |
 | 2 | Migration as a repeatable function of the store | Every record reads back equal; runs in CI on every pull request | Done. The `kb` job runs it in 35 seconds |
-| 3 | One slice end to end: ClinVar and BRCA1 | Checkpoints and subsets as fields; a board with no mixed rows; the pilot's 16 disagreements returned by a query | Settings loaded; checkpoint and subset grounding not started |
+| 3 | One slice end to end: ClinVar and BRCA1 | Checkpoints and subsets as fields; a board with no mixed rows; the pilot's 16 disagreements returned by a query | Grounding done for all 472 results in the slice (`kb/curation/grounding.jsonl`): 110 exact systems, every subset named, 141 results whose source does not state a version. `grounded_difference_v` returns 13 differences between studies for the same exact system, subset and metric; 23 other shared cells agree within rounding. Open: 175 results sit in the missense setting but are other variant classes and need their own settings; five supervised rows sit in label-free settings (`kb/curation/notes/clinvar-brca1-grounding.md`) |
 | 4 | Grounding at scale | Every Tier 1 system has a checkpoint; every Tier 1 protocol is in a setting or marked as standing alone | Not started |
 | 5 | The seam: the new core writes today's serving file | The website's own tests and data checks pass on it; sample pages render the same text | Not started |
 | 6 | New writers | A batch of model pages, a batch of results and a correction each go in through the new core | Not started |
