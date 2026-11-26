@@ -18,8 +18,11 @@ The graph the SPARQL queries read is replaced by the same facts taken from the d
   release         What the release serves (scripts/kg/release_graph.py): from the release's
                   use-cases.json, the evaluations behind each active direct or proxy judgement
                   and each use case's baseline methods; from the records, the run receipts.
-                  Without --use-cases nothing is served and only run receipts are known, as in a
-                  bundle built before a release is cut.
+                  The default file is the one `npm run omics:release` writes for the release in
+                  public/omics/manifest.json; a published release has it as the asset
+                  public.omics.releases.<id>.use-cases.json.gz of serving/<id>. Without one
+                  nothing is served and only run receipts are known, as in a bundle built before
+                  a release is cut: rank_for_use_case then returns no rows.
   findings        The unsettled discrepancies each result takes part in, from discrepancies.json
                   (kb/discrepancies.py writes it). Without --discrepancies they are found from the
                   database first, which adds about ten seconds.
@@ -295,8 +298,9 @@ class KB:
 
     def _release(self, path: str | None) -> None:
         """The release graph of scripts/kg/release_graph.py. Entries that name a record the graph
-        does not hold are skipped; release_graph.py refuses the whole file instead."""
+        does not hold are skipped and counted; release_graph.py refuses the whole file instead."""
         self.served: dict[str, set] = defaultdict(set)
+        self.served_of: dict[str, set] = defaultdict(set)
         self.baselines: dict[str, set] = defaultdict(set)
         self.receipts: dict[str, set] = defaultdict(set)
         self.release_id = None
@@ -338,7 +342,6 @@ class KB:
                     self.baselines[uc].add(node(method_id))
                 else:
                     self.skipped += 1
-        self.served_of: dict[str, set] = defaultdict(set)
         for judgement, evaluations in self.served.items():
             for evaluation in evaluations:
                 self.served_of[evaluation].add(judgement)
@@ -779,6 +782,14 @@ QUERIES = {
 }
 
 
+def default_use_cases() -> str | None:
+    manifest = Path("public/omics/manifest.json")
+    if not manifest.exists():
+        return None
+    path = Path("public/omics/releases") / json.loads(manifest.read_text("utf-8"))["release_id"] / "use-cases.json"
+    return str(path) if path.exists() else None
+
+
 def plain(value):
     """A value for JSON: a Decimal as a number when that loses nothing, else as text."""
     if isinstance(value, Decimal):
@@ -793,7 +804,8 @@ def main() -> None:
     parser.add_argument("--list", action="store_true", help="list the queries and their parameters")
     parser.add_argument("--param", action="append", default=[], metavar="NAME=VALUE")
     parser.add_argument("--db", default="kb/build/kb.sqlite")
-    parser.add_argument("--use-cases", help="the release's use-cases.json, which says what the release serves")
+    parser.add_argument("--use-cases", help="the release's use-cases.json, which says what the release serves "
+                        "(default: public/omics/releases/<release in public/omics/manifest.json>/use-cases.json)")
     parser.add_argument("--discrepancies", help="discrepancies.json from kb/discrepancies.py")
     parser.add_argument("--format", choices=("json", "table"), default="json")
     args = parser.parse_args()
@@ -805,6 +817,11 @@ def main() -> None:
     if args.query not in QUERIES:
         parser.error(f"unknown query {args.query}; see --list")
     params = dict(p.split("=", 1) for p in args.param)
+    if args.use_cases is None:
+        args.use_cases = default_use_cases()
+        if args.use_cases is None:
+            print("warning: no use-cases.json given or found, so nothing is served: rank_for_use_case returns no rows "
+                  "and gaps reports no evidence", file=sys.stderr)
     started = time.time()
     kb = KB(args.db, use_cases=args.use_cases, discrepancies=args.discrepancies)
     loaded = time.time()

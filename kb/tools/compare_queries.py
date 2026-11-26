@@ -1,10 +1,21 @@
 """Compare kb/queries.py with the named SPARQL queries of a published graph bundle.
 
-Usage (pyoxigraph is the engine rdf-kg-mcp serves the bundle with):
+The inputs, for a release <id> cut from commit <sha> (for example 2026-11-26-36acdf5e0cfa, 8601f82):
 
-  uvx --with 'pyoxigraph>=0.5.11,<0.6' python3 kb/tools/compare_queries.py \
-      --bundle kb/build/oracle/bundle --db kb/build/oracle.sqlite \
-      --use-cases kb/build/oracle/use-cases.json --discrepancies kb/build/oracle/discrepancies.json
+  gh release download kg/<id> -D kb/build/oracle                 # bundle tarball, discrepancies.json
+  mkdir -p kb/build/oracle/bundle && tar -xzf kb/build/oracle/kg-<id>.tar.gz -C kb/build/oracle/bundle
+  gh release download serving/<id> -D kb/build/oracle -p 'public.omics.releases.<id>.use-cases.json.gz'
+  gunzip -c kb/build/oracle/public.omics.releases.<id>.use-cases.json.gz > kb/build/oracle/use-cases.json
+  mkdir -p kb/build/oracle-store && git archive <sha> data | tar -x -C kb/build/oracle-store
+  (cd kb/build/oracle-store && python3 ../../migrate.py --out ../oracle.sqlite)
+
+Then (pyoxigraph is the engine rdf-kg-mcp serves the bundle with):
+
+  uvx --with 'pyoxigraph>=0.5.11,<0.6' python3 kb/tools/compare_queries.py
+
+First the facts the queries read are compared one by one: the public records, rb:within, the
+release graph, the unsettled findings and every attribute literal the queries use. Then each
+named query is run with many parameter sets.
 
 The bundle's files are bulk-loaded once into an on-disk store next to the bundle (store/), and
 each SPARQL answer is cached as JSON (answers/), so a rerun only repeats the SQLite side. Each
@@ -110,6 +121,11 @@ def sparql_answer(store, manifest, bundle: Path, name: str, params: dict) -> dic
 NUMERIC = {"http://www.w3.org/2001/XMLSchema#" + t for t in ("decimal", "integer", "double", "float", "long", "int")}
 
 
+def number(value: Decimal) -> Decimal:
+    """One form per number, so that 0.90 and 0.9, or -0.0 and 0, compare equal."""
+    return value.normalize() if value != 0 else Decimal(0)
+
+
 def norm_sparql(cell):
     if cell is None:
         return None
@@ -118,7 +134,7 @@ def norm_sparql(cell):
     if "literal" in cell:
         if cell["datatype"] in NUMERIC:
             try:
-                return Decimal(cell["literal"]).normalize()
+                return number(Decimal(cell["literal"]))
             except InvalidOperation:
                 return cell["literal"]
         if cell["datatype"].endswith("#boolean"):
@@ -131,14 +147,63 @@ def norm_sqlite(value):
     if value is None or isinstance(value, bool):
         return value
     if isinstance(value, (int, Decimal)):
-        return Decimal(value).normalize()
+        return number(Decimal(value))
     if isinstance(value, float):
-        return Decimal(repr(value)).normalize()
+        return number(Decimal(repr(value)))
     return value
 
 
 def split_concat(row: dict, columns: set) -> dict:
     return {k: (tuple(sorted(v.split(" "))) if k in columns and isinstance(v, str) and v else v) for k, v in row.items()}
+
+
+LITERALS = {
+    "rb:retrievedAt": "retrieved_at", "rb:reviewDate": "reviewDate", "rb:reviewedAt": "reviewedAt", "rb:date": "date",
+    "mls:hasValue": "numeric_value", "rb:stratumOrder": "stratum_order", "rb:depthTier": "depth_tier", "rb:value": "value",
+    "rb:metricQualifier": "metric_qualifier", "rb:doi": "doi", "schema:url": "url", "schema:version": "version",
+    "rb:reviewedBy": "reviewedBy", "rb:reviewMethod": "reviewMethod", "rb:headlineMetric": "headline_metric",
+    "rb:comparisonGroup": "comparison_group", "rb:reportedName": "reported_name", "rb:claimField": "field",
+    "rb:origin": "origin", "rb:metric": "metric", "rb:unit": "unit", "rb:metricDirection": "metric_direction",
+    "rb:relevance": "relevance", "rb:artifactSha256": "artifact_sha256", "rb:stratumLabel": "stratum_label",
+    "rb:runRecipes": "run_recipes",
+}
+
+
+def check_inputs(store, manifest, kb) -> list[str]:
+    """Compare the facts kb/queries.py loads with the graph's, one predicate at a time."""
+    import pyoxigraph as ox
+    graph = "https://benchmarks.rewire.it/graph/"
+    pairs = lambda sparql: {(r[0].value, cell(r[1])) for r in store.query(sparql, prefixes=manifest["prefixes"], use_default_graph_as_union=True)}
+    cell = lambda t: t.value if isinstance(t, ox.NamedNode) else str(norm_sparql({"literal": t.value, "datatype": t.datatype.value}))
+    flat = lambda facts: {(s, str(o) if not isinstance(o, Decimal) else str(number(o))) for s, os in facts.items() for o in os}
+    record = lambda s: "/" not in s[len(queries.ID):]
+    checks = {
+        "public records": (
+            {(s, o) for s, o in pairs(f"SELECT DISTINCT ?s ?t WHERE {{ GRAPH <{graph}asserted> {{ ?s a ?t }} FILTER(STRSTARTS(STR(?s), STR(id:))) }}") if record(s)},
+            None),
+        "rb:within": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}inferred> {{ ?s rb:within ?o }} }}"), flat(kb.within)),
+        "rb:servedEvaluation": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}release> {{ ?s rb:servedEvaluation ?o }} }}"), flat(kb.served)),
+        "rb:servedBaseline": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}release> {{ ?s rb:servedBaseline ?o }} }}"), flat(kb.baselines)),
+        "rb:runReceipt": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}release> {{ ?s rb:runReceipt ?o }} }}"), flat(kb.receipts)),
+        "unsettled findings": (pairs(f"""SELECT ?r ?f WHERE {{ GRAPH <{graph}derived> {{
+              {{ ?f rb:outlierResult ?r }} UNION {{ ?f rb:consensusResult ?r }} UNION {{ ?f rb:partyResult ?r }}
+              ?f rb:reviewState ?state . FILTER(?state NOT IN (<https://benchmarks.rewire.it/vocab/discrepancy-state/explained>,
+              <https://benchmarks.rewire.it/vocab/discrepancy-state/confirmed-error>, <https://benchmarks.rewire.it/vocab/discrepancy-state/false-positive>)) }} }}"""),
+            flat(kb.findings)),
+    }
+    public = checks["public records"][0]
+    checks["public records"] = ({s for s, _ in public}, set(kb.kind))
+    for predicate, key in LITERALS.items():
+        found = pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}asserted> {{ ?s {predicate} ?o }} }}")
+        checks[predicate] = ({(s, o) for s, o in found if record(s)}, flat(kb.out.get(key, {})))
+    problems = []
+    for name, (theirs, ours) in checks.items():
+        status = "same" if theirs == ours else "DIFFERENT"
+        print(f"{status:9} input {name}: graph {len(theirs)}, sqlite {len(ours)}")
+        if theirs != ours:
+            problems.append(f"{name}: only graph {sorted(theirs - ours, key=str)[:3]}, only sqlite {sorted(ours - theirs, key=str)[:3]}")
+            print(f"    {problems[-1]}")
+    return problems
 
 
 def compare(name: str, params: dict, answer: dict, mine: list[dict]) -> list[str]:
@@ -241,7 +306,7 @@ def main() -> None:
     if args.load_only:
         return
     kb = queries.KB(args.db, use_cases=args.use_cases, discrepancies=args.discrepancies)
-    failures = 0
+    failures = len(check_inputs(store, manifest, kb))
     summary: dict[str, list] = {}
     for name, params in parameter_sets(args.db):
         if args.only and name != args.only:
