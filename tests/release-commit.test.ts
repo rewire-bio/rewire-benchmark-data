@@ -261,7 +261,9 @@ describe("release workflow", () => {
 
   it("checks that commit before publishing, and both tags before the dispatch", () => {
     expect(step(CHECK).trimEnd().endsWith(`run: node scripts/release/commit.mjs verify "${SHA}"`)).toBe(true);
-    expect(step(TAGS)).toContain(`run: node scripts/release/commit.mjs verify "${SHA}" "serving/$RELEASE" "kg/$RELEASE"`);
+    // The bundle's tag is checked only when this release built a bundle (a content-only release reuses the last one's discrepancies).
+    expect(step(TAGS)).toContain(`run: node scripts/release/commit.mjs verify "${SHA}" "serving/$RELEASE" $KG_TAG`);
+    expect(step(TAGS)).toContain("KG_TAG: ${{ steps.candidate.outputs.reused != 'true' && format('kg/{0}', steps.candidate.outputs.next) || '' }}");
     expect(step(TAGS)).toContain("RELEASE: ${{ steps.candidate.outputs.next }}");
     expect(step(ADOPT)).toContain("run: node scripts/release/dispatch-website.mjs");
   });

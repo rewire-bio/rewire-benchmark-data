@@ -195,11 +195,15 @@ jobs:
           RELEASE_TARGET_SHA: ${{ steps.commit.outputs.sha }}
         run: npm run serving:publish
       - name: Publish the knowledge-graph bundle (never replaces an existing asset)
-        if: steps.pending.outputs.release == 'true' && steps.candidate.outputs.reused != 'true'
+        if: steps.pending.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TARGET_SHA: ${{ steps.commit.outputs.sha }}
-        run: npm run kg:publish
+          REUSED: ${{ steps.candidate.outputs.reused }}
+        # A release that reused the last bundle's discrepancies built no bundle; kg-release.yml
+        # builds and publishes it that night.
+        run: |
+          if [ "$REUSED" = true ]; then echo "No bundle was built for this release."; else npm run kg:publish; fi
       # The release files are not in Git, so once the release commit is pushed they exist only on
       # this runner until they are published. If publishing fails, keep them for a manual publish
       # (docs/release.md, "If publishing fails"); the next release run cannot start until it is done.
@@ -218,14 +222,9 @@ jobs:
         if: steps.pending.outputs.release == 'true'
         env:
           RELEASE: ${{ steps.candidate.outputs.next }}
-          REUSED: ${{ steps.candidate.outputs.reused }}
-        run: |
-          # A release that reused the last bundle's discrepancies has no bundle of its own yet.
-          if [ "$REUSED" = true ]; then
-            node scripts/release/commit.mjs verify "${{ steps.commit.outputs.sha }}" "serving/$RELEASE"
-          else
-            node scripts/release/commit.mjs verify "${{ steps.commit.outputs.sha }}" "serving/$RELEASE" "kg/$RELEASE"
-          fi
+          # Empty when the release reused the last bundle's discrepancies: it has no bundle of its own yet.
+          KG_TAG: ${{ steps.candidate.outputs.reused != 'true' && format('kg/{0}', steps.candidate.outputs.next) || '' }}
+        run: node scripts/release/commit.mjs verify "${{ steps.commit.outputs.sha }}" "serving/$RELEASE" $KG_TAG
       - name: Ask the website to adopt it
         if: steps.pending.outputs.release == 'true'
         env:
