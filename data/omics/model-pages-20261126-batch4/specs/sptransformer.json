@@ -1,0 +1,706 @@
+{
+ "record_id": "gfm2-20261011-you2026-model-sptransformer",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "ShenLab-Genomics/SpliceTransformer README.md at commit b67a51da",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/ShenLab-Genomics/SpliceTransformer/b67a51dabf27e2980331cec197e4396513c0b34c/README.md",
+   "url": "https://github.com/ShenLab-Genomics/SpliceTransformer",
+   "version": "git commit b67a51dabf27e2980331cec197e4396513c0b34c",
+   "media_type": "text/markdown",
+   "sha256": "176819360dba96210feb592a8e716349e9f4a147f0c997d28713f5a1f0219db5",
+   "retrieved_at": "2026-11-26T19:14:13Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "ShenLab-Genomics/SpliceTransformer LICENSE at commit b67a51da",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/ShenLab-Genomics/SpliceTransformer/b67a51dabf27e2980331cec197e4396513c0b34c/LICENSE",
+   "url": "https://github.com/ShenLab-Genomics/SpliceTransformer",
+   "version": "git commit b67a51dabf27e2980331cec197e4396513c0b34c",
+   "media_type": "text/plain",
+   "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+   "retrieved_at": "2026-11-26T19:14:13Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "custom-usage",
+   "name": "ShenLab-Genomics/SpliceTransformer custom_usage.py at commit b67a51da",
+   "description": "Example script named in the README for getting raw model outputs, pinned to a commit.",
+   "file": "artifacts/custom_usage.py",
+   "artifact_url": "https://raw.githubusercontent.com/ShenLab-Genomics/SpliceTransformer/b67a51dabf27e2980331cec197e4396513c0b34c/custom_usage.py",
+   "url": "https://github.com/ShenLab-Genomics/SpliceTransformer",
+   "version": "git commit b67a51dabf27e2980331cec197e4396513c0b34c",
+   "media_type": "text/x-python",
+   "sha256": "5b0c4a8928ba246ec5a7ea2a73faa64693d840d0bb99806064c31e038dc43567",
+   "retrieved_at": "2026-11-26T19:14:13Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "You et al. 2024, SpliceTransformer predicts tissue-specific splicing linked to human diseases (Nature Communications), Europe PMC full text PMC11500173",
+   "description": "Full text of the model paper as JATS XML from Europe PMC.",
+   "file": "artifacts/paper-fulltext.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11500173/fullTextXML",
+   "url": "https://doi.org/10.1038/s41467-024-53088-6",
+   "version": "PMC11500173.1 as served on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "ff8b49965c73338aabfa4f2369feb0976ab737067c24a36a70cc9b124cce2337",
+   "retrieved_at": "2026-11-26T19:14:29Z",
+   "licence": "CC BY-NC-ND 4.0",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "SpliceTransformer (SpTransformer) predicts RNA splicing from genomic sequence alone. For each position in a pre-mRNA sequence it gives the probability of being a splice donor, a splice acceptor or neither, and how much the site is used in each of 15 human tissues. Comparing predictions for reference and variant sequence lets it score how a genetic variant changes splicing in each tissue.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Abstract; Results, Tissue-specific prediction of splicing; Fig. 1 caption. README: title paragraph",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "The SpliceTransformer (SpTransformer) is a deep learning tool designed to predict tissue-specific splicing sites from pre-mRNA sequences."
+   },
+   {
+    "source": "@paper",
+    "text": "SpTransformer is a computational model that predicts the probability of each position in a pre-mRNA input sequence being a splice donor, splice acceptor, or neither in all and 15 different tissues simultaneously"
+   },
+   {
+    "source": "@paper",
+    "text": "The SpTransformer model takes an only sequence as input and predicts tissue-specific splicing in 15 human tissues. The model can be used to evaluate genetic variants and predict tissue-specific splicing alterations."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "SpTransformer has two main modules. An encoder of stacked convolutional residual blocks (ResBlocks) reads one-hot encoded sequence; the paper uses two such encoders with identical structure. Their output feeds a Sinkhorn Transformer, an attention variant built for long sequences, with 256 channels, 8 attention heads (two of them local) per layer and eight layers, followed by a multi-layer perceptron. For a 9000 nt input it predicts the central 1000 nt, using 4000 nt of context on each side. The output is an N x 3 matrix for splice site class and an N x 15 matrix for tissue usage. Training ran in two stages: first the two encoders were trained separately, one on GTEx data and one on an extra mammalian dataset, with 12 epochs per stage.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, SpTransformer model structure; Data representation; Model training",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "SpTransformer is a large deep neural network model that consists of two main modules: an encoder module and a transformer module."
+     },
+     {
+      "source": "@paper",
+      "text": "The encoder module incorporates a series of residual networks, known as ResBlock"
+     },
+     {
+      "source": "@paper",
+      "text": "The second component of our model mainly consists of a Sinkhorn Transformer module and a multi-layer perception module."
+     },
+     {
+      "source": "@paper",
+      "text": "The Sinkhorn Transformer module has 256 channels, 8 attention heads (including two local attention heads) per layer, and eight layers of depth."
+     },
+     {
+      "source": "@paper",
+      "text": "Specifically, for an RNA sequence of length 9000 nt, SpTransformer utilized the sequence context to predict splicing sites and their corresponding usage in 15 tissues for the central 1000 nt sequence."
+     },
+     {
+      "source": "@paper",
+      "text": "representing splice site prediction and tissue usage prediction, respectively."
+     },
+     {
+      "source": "@paper",
+      "text": "two stages of training. In the first stage, two convolution-based encoder modules with identical structures were trained separately. One module learned weights from the GTEx training dataset, while the other module learned weights from the excessive training dataset"
+     },
+     {
+      "source": "@paper",
+      "text": "The model was trained for 12 epochs in each stage."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The repository describes one trained model. Its weights are too large for GitHub; Git-LFS access was disabled in November 2024, and the weights are now a single Google Drive download placed in model/weights. The download has no version label, so a result can only name the repository commit (this page read b67a51da) and the date the weights were fetched. The authors note that outputs can differ slightly between GPU types for individual variants. The variant annotation script uses a 95% threshold for tissue specificity unless raw scores are requested, so a result should say which output mode was used.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation; Run software, Custom usage",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "the model weights file is too large to upload to GitHub"
+     },
+     {
+      "source": "@readme",
+      "text": "Update 2024/11/01: Due to high download volumes, we have exceeded our Git-LFS bandwidth limit and have temporarily disabled Git-LFS access."
+     },
+     {
+      "source": "@readme",
+      "text": "Clone the repository from GitHub first, then download the model weights from Google Drive and put them into the `model/weights` folder."
+     },
+     {
+      "source": "@readme",
+      "text": "We have observed that the model's output may exhibit minor discrepancies across different GPU hardware."
+     },
+     {
+      "source": "@readme",
+      "text": "raw_score: - True: Output raw Δtissue usage scores - False: Output tissue specificity prediction. The 95% threshold (as described in the article) is used."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Task-specific deep learning model that predicts splice sites and tissue-specific splicing from genomic sequence.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Methods, SpTransformer model structure",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a deep-learning framework that predicts tissue-specific RNA splicing alterations linked to human diseases based on genomic sequence"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Two convolutional ResBlock encoders followed by a Sinkhorn Transformer (256 channels, 8 heads per layer including two local heads, 8 layers) and a multi-layer perceptron.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, SpTransformer model structure",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "introducing two encoders with convolution structure"
+     },
+     {
+      "source": "@paper",
+      "text": "The Sinkhorn Transformer module has 256 channels, 8 attention heads (including two local attention heads) per layer, and eight layers of depth."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "One-hot encoded pre-mRNA (genomic) sequence of 9000 nt. The annotation script takes variants as VCF or CSV (CHROM POS REF ALT) plus an hg38 or hg19 genome FASTA and a GENCODE annotation file.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@custom-usage"
+    ],
+    "source_locator": "Paper: Data representation. README: Dataset Requirements; Custom usage. custom_usage.py",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "for an RNA sequence of length 9000 nt"
+     },
+     {
+      "source": "@custom-usage",
+      "text": "input_seq = annotator.model.one_hot_encode(input_seq)"
+     },
+     {
+      "source": "@readme",
+      "text": "input_file: A .vcf or .csv file containing variants"
+     },
+     {
+      "source": "@readme",
+      "text": "reference: The reference genome, either `hg38` or `hg19`"
+     },
+     {
+      "source": "@readme",
+      "text": "The SpliceTransformer requires a genome assembly file and a genome annotation database file to locate genes and strands."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Per position: splice site class (donor, acceptor, neither) and usage in 15 tissues. The variant script writes a table of tissue usage change scores or tissue specificity calls.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, SpTransformer model structure. README: Run software",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "representing splice site prediction and tissue usage prediction, respectively."
+     },
+     {
+      "source": "@readme",
+      "text": "The example output should be a `.tsv` table file containing the prediction."
+     },
+     {
+      "source": "@readme",
+      "text": "Output raw Δtissue usage scores"
+     },
+     {
+      "source": "@custom-usage",
+      "text": "tis_names = ['Adipose Tissue', 'Blood', 'Blood Vessel', 'Brain', 'Colon', 'Heart', 'Kidney',"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported. The paper calls it a large deep neural network but the sources read give no parameter count.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods; README, all sections"
+   },
+   {
+    "label": "Training data",
+    "value": "Splicing data from human adult tissues in GTEx, plus an independent mammalian organ transcriptome dataset from human, rhesus macaque, mouse and rat. Training used chromosomes 2, 4, 6, 8, 10 to 22, X and Y; chromosomes 1, 3, 5, 7 and 9 were held out for testing, with paralogs excluded.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Methods, Data collection and labeling",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we compiled splicing data from different sources including human adult tissue data from the GTEx database"
+     },
+     {
+      "source": "@paper",
+      "text": "an independent mammalian organ transcriptome dataset of four species including human, rhesus macaque, mouse, and rat"
+     },
+     {
+      "source": "@paper",
+      "text": "Sequences belonging to chromosomes 1, 3, 5, 7, and 9 were compiled as the testing dataset."
+     },
+     {
+      "source": "@paper",
+      "text": "We excluded gene sequences that have paralogs fr"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One trained model, distributed as a weights file on Google Drive with no version label. The paper also describes ablation variants trained on partial datasets, which are not released.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Installation. Paper: Results, ablation study",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Download the [model weights](https://drive.google.com/file/d/1d8n4vHDSbXqpPc_JFEswLomSUDBgHvno/view?usp=drive_link)"
+     },
+     {
+      "source": "@paper",
+      "text": "SpTransformer trained with all four extra mammalian species datasets demonstrated a clear advantage over the versions trained with partial or no extra datasets"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported. The sources read do not date the GTEx or mammalian data releases used for training.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data collection and labeling"
+   },
+   {
+    "label": "Context limits",
+    "value": "9000 nt input: 4000 nt of context on each side of a 1000 nt target. The attention module takes at most 8192.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data representation; SpTransformer model structure",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "so that each target nucleotide has at least 4000 + 4000 available context information"
+     },
+     {
+      "source": "@paper",
+      "text": "ensure that the input to the attention module does not exceed a length of 8192"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated separately. The weights are a Google Drive download; the README says the project as a whole is under Apache 2.0, but no licence is attached to the weights file itself.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation; License"
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0, per the repository LICENSE file and the paper's code availability statement.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "LICENSE; README: License; Paper: Code availability",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Apache License"
+     },
+     {
+      "source": "@readme",
+      "text": "This project is covered under the Apache 2.0 License."
+     },
+     {
+      "source": "@paper",
+      "text": "is available under an Apache-2.0 license on GitHub at"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/ShenLab-Genomics/SpliceTransformer. Weights: https://drive.google.com/file/d/1d8n4vHDSbXqpPc_JFEswLomSUDBgHvno/view (Git-LFS download disabled). Online server: http://tools.shenlab-genomics.org/tools/SpTransformer.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Installation. Paper: Introduction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/ShenLab-Genomics/SpliceTransformer.git"
+     },
+     {
+      "source": "@readme",
+      "text": "https://drive.google.com/file/d/1d8n4vHDSbXqpPc_JFEswLomSUDBgHvno/view?usp=drive_link"
+     },
+     {
+      "source": "@paper",
+      "text": "SpTransformer is available as an online server at"
+     },
+     {
+      "source": "@paper",
+      "text": "http://tools.shenlab-genomics.org/tools/SpTransformer"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Predicts splice site usage for 15 human tissues at once from sequence alone, with no RNA-seq input needed at prediction time.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Fig. 1 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The SpTransformer model takes an only sequence as input and predicts tissue-specific splicing in 15 human tissues."
+     }
+    ]
+   },
+   {
+    "text": "Ships a ready variant annotation command that takes a VCF and writes a prediction table, with an example input in the repository and a CPU option for small inputs.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Hardware Requirements; Run software",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python sptransformer.py --input data/example/input38.vcf --output data/example/output38.tsv --reference hg38"
+     },
+     {
+      "source": "@readme",
+      "text": "the lightweight example data can also be handled with CPU only"
+     }
+    ]
+   },
+   {
+    "text": "Training adds RNA-seq splicing data from three non-human mammals; the authors report that their ablation shows this improves both splice site and tissue usage prediction.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, ablation study",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "These observations underscore that the inclusion of an extra mammalian dataset enhances both the identification of splice sites and the tissue-specificity prediction."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Weights are only on Google Drive, without a version label or a licence of their own; the Git-LFS route was disabled.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "we have exceeded our Git-LFS bandwidth limit and have temporarily disabled Git-LFS access"
+     }
+    ]
+   },
+   {
+    "text": "Context is 4000 nt each side of the target, so regulatory sequence further away is not seen. The authors chose this length because of GPU memory limits.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, hyperparameter selection",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "practical constraints—such as GPU memory limitations—necessitated a compromise"
+     }
+    ]
+   },
+   {
+    "text": "Supported on Linux only, with an old dependency stack (Python 3.8, PyTorch 1.10); a GPU is recommended. Results for single variants can vary slightly across GPU types.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Requirement; Custom usage",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This package is supported by Linux."
+     },
+     {
+      "source": "@readme",
+      "text": "We recommend running the software on a computer with a GPU."
+     },
+     {
+      "source": "@readme",
+      "text": "There is a small probability that the predicted results for individual mutations may be inconsistent across devices"
+     }
+    ]
+   },
+   {
+    "text": "Covers 15 human tissue classes only, defined by the GTEx-based training labels.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Tissue-specific prediction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the actual usage of splice sites in each of the 15 tissues as measured by RNA-seq in the GTEx database"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "SpTransformer workflow",
+   "steps": [
+    "Variant (VCF or CSV) plus hg38 or hg19 genome",
+    "9000 nt one-hot sequence around the site",
+    "Two convolutional ResBlock encoders",
+    "Sinkhorn Transformer, 8 layers",
+    "Splice class and usage in 15 tissues for central 1000 nt",
+    "Tissue usage change or tissue specificity call"
+   ],
+   "caption": "Data flow as described in the paper's Methods and the README's run instructions.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "Paper: Methods; README: Run software",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "input_file: A .vcf or .csv file containing variants"
+    },
+    {
+     "source": "@paper",
+     "text": "for an RNA sequence of length 9000 nt"
+    },
+    {
+     "source": "@paper",
+     "text": "introducing two encoders with convolution structure"
+    },
+    {
+     "source": "@paper",
+     "text": "and eight layers of depth"
+    },
+    {
+     "source": "@paper",
+     "text": "their corresponding usage in 15 tissues for the central 1000 nt sequence"
+    },
+    {
+     "source": "@readme",
+     "text": "Output tissue specificity prediction"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count is given in the README or paper text read.",
+   "The weights file on Google Drive was not downloaded or inspected, so its size and format are unknown.",
+   "Supplementary information (architecture figure, ablation table) was not read.",
+   "No GPU memory or runtime figures beyond the README's under-5-minute estimate for the example VCF."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the repository README, LICENSE and custom_usage.py at commit b67a51dabf27e2980331cec197e4396513c0b34c and the Europe PMC full text of PMC11500173, fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Clone the repository, build the conda environment, add the weights and reference files, and annotate the example VCF with tissue-specific splicing predictions.",
+  "prerequisites": [
+   "Linux (tested on CentOS 7 and Red Hat 4.8.5). A GPU is recommended; the example data also runs on CPU.",
+   "conda, with Python 3.8 and PyTorch 1.10 as in the README example.",
+   "The weights file from Google Drive, the hg38 genome FASTA and a GENCODE annotation file.",
+   "Code is Apache-2.0. No separate licence is stated for the weights."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/ShenLab-Genomics/SpliceTransformer.git\ncd SpliceTransformer\ngit checkout --detach b67a51dabf27e2980331cec197e4396513c0b34c",
+    "explanation": "The clone command is from the README. The cd and checkout lines are added to pin the commit this page was written from.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation, 1.2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/ShenLab-Genomics/SpliceTransformer.git"
+     }
+    ]
+   },
+   {
+    "title": "Create the environment",
+    "shell": "conda create -n spt-test python==3.8 numpy pandas gffutils tqdm pytorch pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 -c pytorch -c conda-forge -c bioconda\nconda activate spt-test\npip install sinkhorn-transformer pyfaidx pyvcf3 pyensembl",
+    "explanation": "The README's example environment, copied as given.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Software Dependencies",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -n spt-test python==3.8 numpy pandas gffutils tqdm pytorch pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 -c pytorch -c conda-forge -c bioconda"
+     },
+     {
+      "source": "@readme",
+      "text": "conda activate spt-test"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install sinkhorn-transformer pyfaidx pyvcf3 pyensembl"
+     }
+    ]
+   },
+   {
+    "title": "Download the weights",
+    "shell": "# Download the weights from https://drive.google.com/file/d/1d8n4vHDSbXqpPc_JFEswLomSUDBgHvno/view\n# and put them into the model/weights folder.",
+    "explanation": "A manual browser download. The README gives the link and the target folder but no command or file name.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation, 1.2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "download the model weights from Google Drive and put them into the `model/weights` folder"
+     }
+    ]
+   },
+   {
+    "title": "Add the genome and annotation files",
+    "shell": "mkdir -p data/data_package\ncurl -L -o data/data_package/hg38.fa.gz https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz\ngunzip data/data_package/hg38.fa.gz\ncurl -L -o data/data_package/hg38.annotation.gtf.gz https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_44/gencode.v44.annotation.gtf.gz",
+    "explanation": "The URLs, folder and file names are from the README. The mkdir, curl and gunzip commands are added to carry out its instructions.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Dataset Requirements",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "<https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz>"
+     },
+     {
+      "source": "@readme",
+      "text": "The uncompressed file should be placed at `./data/data_package/` and renamed into `hg38.fa`"
+     },
+     {
+      "source": "@readme",
+      "text": "<https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_44/gencode.v44.annotation.gtf.gz>"
+     },
+     {
+      "source": "@readme",
+      "text": "The file should be placed at `./data/data_package/` and renamed into `hg38.annotation.gtf.gz`"
+     }
+    ]
+   },
+   {
+    "title": "Annotate the example variants",
+    "shell": "python sptransformer.py --input data/example/input38.vcf --output data/example/output38.tsv --reference hg38",
+    "explanation": "Scores the example VCF. On the first run the script prints a hint for building a .db file from the .gtf annotation.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Run software, 1. Annotate variants",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python sptransformer.py --input data/example/input38.vcf --output data/example/output38.tsv --reference hg38"
+     },
+     {
+      "source": "@readme",
+      "text": "At the first running of the script, a hint message will be printed to guide users to build .db file for the .gtf files."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "data/example/output38.tsv, a table with the predictions for each variant. The README expects the example to finish in no more than 5 minutes on a normal desktop computer."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The weights download is manual and the file name expected in model/weights is not stated in the README.",
+   "custom_usage.py shows how to get raw per-position model outputs for a sequence instead of a VCF."
+  ],
+  "source_ids": [
+   "@readme",
+   "@custom-usage"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "SpTransformer",
+   "parameters": null,
+   "context_length": 9000,
+   "context_unit": "bases",
+   "code_licence": "Apache-2.0",
+   "weights_licence": null,
+   "code_url": "https://github.com/ShenLab-Genomics/SpliceTransformer",
+   "weights_url": "https://drive.google.com/file/d/1d8n4vHDSbXqpPc_JFEswLomSUDBgHvno/view",
+   "gated": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "for an RNA sequence of length 9000 nt"
+    }
+   ]
+  }
+ ],
+ "notes": "The record's existing source is the You et al. 2026 benchmark, which is a different paper from the model paper (You et al. 2024, Nature Communications) fetched here. The model paper is CC BY-NC-ND 4.0, so its file is hashed and not stored. The weights licence is left as not stated: the README's Apache 2.0 line covers the project but the Google Drive weights carry no licence of their own. The repository also contains model/SpliceAI.py, used for the paper's comparisons."
+}

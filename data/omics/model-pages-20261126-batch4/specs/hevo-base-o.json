@@ -1,0 +1,633 @@
+{
+ "record_id": "intake-250-20261119-model-hevo-base-o",
+ "sources": [
+  {
+   "key": "hf-page",
+   "name": "MulinLab/hEVO-base-o Hugging Face model page, as served on 2026-11-26",
+   "description": "Rendered model card page of the gated hEVO-base-o checkpoint (the raw card file needs approved access; the page shows the card). Card on main at revision ee94e974.",
+   "file": "artifacts/hf-page.html",
+   "artifact_url": "https://huggingface.co/MulinLab/hEVO-base-o",
+   "url": "https://huggingface.co/MulinLab/hEVO-base-o",
+   "version": "Hugging Face main at revision ee94e974f6db67048d7f8b107f1fd7513dd7025a, as served on 2026-11-26",
+   "media_type": "text/html",
+   "sha256": "a1f1ecb83cb96ecd5f05ef0ea8e3d8c1b0925730e32328a855db1a1d5894375d",
+   "retrieved_at": "2026-11-26T19:18:50Z",
+   "store_bytes": false
+  },
+  {
+   "key": "hf-api",
+   "name": "Hugging Face metadata for MulinLab/hEVO-base-o, as served on 2026-11-26",
+   "description": "Hugging Face API response: revision, gating, creation date and safetensors parameter count.",
+   "file": "artifacts/hf-api.json",
+   "artifact_url": "https://huggingface.co/api/models/MulinLab/hEVO-base-o?expand[]=safetensors&expand[]=sha&expand[]=cardData&expand[]=gated&expand[]=createdAt&expand[]=lastModified",
+   "url": "https://huggingface.co/MulinLab/hEVO-base-o",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "eb097be818dfc47dbf5f27a44eb23b99487626362f4f6938f7612d609cd45818",
+   "retrieved_at": "2026-11-26T19:18:50Z",
+   "store_bytes": true
+  },
+  {
+   "key": "readme",
+   "name": "mulinlab/hEVO README.md at commit eac1314c",
+   "description": "Official family repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/mulinlab/hEVO/eac1314c7272e7ca16e2bb1dcb1a4fb2e362bc12/README.md",
+   "url": "https://github.com/mulinlab/hEVO",
+   "version": "git commit eac1314c7272e7ca16e2bb1dcb1a4fb2e362bc12",
+   "media_type": "text/markdown",
+   "sha256": "3520754982d5ecaebedf626b7195b0b680932f6781fdc94454304280175753ec",
+   "retrieved_at": "2026-11-26T19:18:50Z",
+   "store_bytes": false
+  },
+  {
+   "key": "github-repo",
+   "name": "GitHub API metadata for mulinlab/hEVO, as served on 2026-11-26",
+   "description": "GitHub API response for the family repository, including its licence field (null).",
+   "file": "artifacts/github-repo.json",
+   "artifact_url": "https://api.github.com/repos/mulinlab/hEVO",
+   "url": "https://github.com/mulinlab/hEVO",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "3d28229ee474ca95fc8b608be7b67ce828e739a2901ddcb52abf7c9c4e86bc17",
+   "retrieved_at": "2026-11-26T19:19:05Z",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "hEVO-base-o is the smaller of the two public checkpoints of hEvo, a DNA language model family from MulinLab trained on haplotype sequences from human populations. It reads a DNA sequence of up to 1,024 nucleotides and returns one 768-dimensional vector per nucleotide, plus masked-base predictions that can score a single-nucleotide variant as a log-likelihood ratio of the alternative against the reference allele. The -o checkpoints were trained on public 1000 Genomes Project and HGDP data.",
+  "summary_source_ids": [
+   "@hf-page",
+   "@readme"
+  ],
+  "summary_source_locator": "hEVO-base-o card: header, Model overview, Training data and objective; README.md: Overview",
+  "summary_quotes": [
+   {
+    "source": "@hf-page",
+    "text": "is the base checkpoint in the hEvo public-data model family. It is a bidirectional BERT-style masked language model with one token per nucleotide and a maximum context of 1,024 nucleotides."
+   },
+   {
+    "source": "@readme",
+    "text": "uses population-scale haplotype sequence variation to learn DNA representations for variant-effect scoring, regulatory annotation, and population-genetic analysis"
+   },
+   {
+    "source": "@hf-page",
+    "text": "768 hidden units"
+   },
+   {
+    "source": "@hf-page",
+    "text": "Use the final-layer nucleotide representations for downstream analyses, or score a single-nucleotide change from masked-base logits."
+   },
+   {
+    "source": "@readme",
+    "text": "The Hugging Face `-o` models were independently pretrained on public **1000 Genomes Project and HGDP** sequences, without target benchmark-label supervision."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "hEVO-base-o is a bidirectional BERT-style masked language model with 12 transformer layers and hidden size 768, and one token per nucleotide with no boundary tokens. The family README describes two training stages: span-masked representation learning on deduplicated haplotype windows, then calibration of the nucleotide prediction head on variant-centred contexts. To score a single-nucleotide variant, the variant site is masked once and the alternative-allele logit minus the reference-allele logit at that site gives the log-likelihood ratio. The weight file also holds tensors for an optional frequency branch, which is off by default and not built when loading.",
+    "source_ids": [
+     "@hf-page",
+     "@readme"
+    ],
+    "source_locator": "hEVO-base-o card: Model overview, Configuration at a glance, Single-nucleotide variant scoring; README.md: Two stages of learning",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "It is a bidirectional BERT-style masked language model with one token per nucleotide"
+     },
+     {
+      "source": "@hf-page",
+      "text": "12 layers"
+     },
+     {
+      "source": "@hf-page",
+      "text": "the tokenizer adds no boundary tokens"
+     },
+     {
+      "source": "@readme",
+      "text": "Stage I · Deduplicated haplotype windows → span-masked representation learning"
+     },
+     {
+      "source": "@readme",
+      "text": "Stage II · Variant-centred contexts → nucleotide prediction-head calibration"
+     },
+     {
+      "source": "@hf-page",
+      "text": "For a single-nucleotide variant, mask the target position and use that"
+     },
+     {
+      "source": "@hf-page",
+      "text": "The base checkpoint contains optional frequency-branch tensors in its weight file."
+     },
+     {
+      "source": "@hf-page",
+      "text": "that branch is not instantiated or used; Transformers may report those tensors as unused checkpoint keys."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "This checkpoint is the public-data base model of the hEvo family; its sibling is hEVO-large-o. The README says its file hash matches the hEvo-open-base weights evaluated in the authors' benchmarks. The card's example pins revision fa6139047c21d92b58bd8eda49ea2f89a884e33c for the weights and custom code, while the card text is maintained on main. The examples were tested with PyTorch 2.6.0 and Transformers 4.57.1. A result should name hEVO-base-o and the revision used.",
+    "source_ids": [
+     "@hf-page",
+     "@readme"
+    ],
+    "source_locator": "hEVO-base-o card: Checkpoint family, Load once, Evaluation and reproducibility; README.md: Models",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The HF `hEVO-base-o` file hash matches the repository's `hEvo-open-base` weights."
+     },
+     {
+      "source": "@hf-page",
+      "text": "fa6139047c21d92b58bd8eda49ea2f89a884e33c"
+     },
+     {
+      "source": "@hf-page",
+      "text": "The pinned revision identifies the weights and custom code; the model card and artwork are maintained on"
+     },
+     {
+      "source": "@hf-page",
+      "text": "this model repository at the revision used"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "DNA foundation model (masked nucleotide language model), base checkpoint of the hEvo public-data family.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: header, Model overview",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "A haplotype-based DNA foundation model"
+     },
+     {
+      "source": "@hf-page",
+      "text": "is the base checkpoint in the hEvo public-data model family."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Bidirectional BERT-style transformer: 12 layers, hidden size 768, one token per nucleotide. Optional frequency embeddings are disabled by default.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: header, Configuration at a glance",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "It is a bidirectional BERT-style masked language model"
+     },
+     {
+      "source": "@hf-page",
+      "text": "12 layers"
+     },
+     {
+      "source": "@hf-page",
+      "text": "768 hidden units"
+     },
+     {
+      "source": "@hf-page",
+      "text": "The public configuration also defaults to disabled"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A DNA string of 1 to 1,024 characters from A, C, G, T and N. Longer sequences must be split into windows by the user.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: Load once, Input and output",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "Provide a sequence of 1 to 1,024 nucleotides."
+     },
+     {
+      "source": "@hf-page",
+      "text": "DNA must contain only A, C, G, T or N."
+     },
+     {
+      "source": "@hf-page",
+      "text": "Inputs longer than 1,024 nt must be windowed explicitly."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "One 768-dimensional hidden vector per nucleotide from the final layer; masked-LM logits over a 10-token vocabulary; from these, an ALT-minus-REF log-likelihood ratio for a single-nucleotide variant. The card says this is a model preference, not a calibrated probability of pathogenicity.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: Nucleotide embeddings, Single-nucleotide variant scoring",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "for nucleotide embeddings and"
+     },
+     {
+      "source": "@hf-page",
+      "text": "A, C, G, T and N; 10-token vocabulary including special tokens"
+     },
+     {
+      "source": "@hf-page",
+      "text": "This is a model preference score, not a calibrated probability of pathogenicity."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "87,094,932 (shown as 87.1M), from the Hugging Face safetensors metadata; stored in bfloat16.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-api",
+     "@hf-page"
+    ],
+    "source_locator": "Hugging Face API safetensors field; card header",
+    "quotes": [
+     {
+      "source": "@hf-api",
+      "text": "\"safetensors\":{\"parameters\":{\"BF16\":87094932},\"total\":87094932}"
+     },
+     {
+      "source": "@hf-page",
+      "text": "87.1M parameters"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Public 1000 Genomes Project and Human Genome Diversity Project (HGDP) sequence data, self-supervised masked language modelling, with no benchmark label supervision.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: Training data and objective",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "sequence data using self-supervised masked language modeling. The checkpoint provenance records no target benchmark label supervision."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One public checkpoint, MulinLab/hEVO-base-o (local alias hEvo-open-base); example code pins revision fa6139047c21d92b58bd8eda49ea2f89a884e33c. Sibling: hEVO-large-o.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-page",
+     "@readme"
+    ],
+    "source_locator": "hEVO-base-o card: Load once, Provenance; README.md: Models",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "fa6139047c21d92b58bd8eda49ea2f89a884e33c"
+     },
+     {
+      "source": "@readme",
+      "text": "| Base | `hEvo-base` | [`hEvo-open-base` / `hEVO-base-o`](https://huggingface.co/MulinLab/hEVO-base-o) |"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated in the sources read; it may be in provenance.json, config.json or the hEvo manuscript, which are gated or were not found.",
+    "status": "unextracted",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card"
+   },
+   {
+    "label": "Context limits",
+    "value": "1,024 nucleotides, one token per nucleotide.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: header, Model overview",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "1,024-nt context"
+     },
+     {
+      "source": "@hf-page",
+      "text": "a maximum context of 1,024 nucleotides"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not confirmed: the README says the weight licence has not yet been confirmed, and the -o suffix does not grant an open-weights licence.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@hf-page"
+    ],
+    "source_locator": "README.md: Getting started; hEVO-base-o card: Provenance, access and citation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The weight license has not yet been confirmed"
+     },
+     {
+      "source": "@hf-page",
+      "text": "suffix identifies the public-data training variant; it does not grant an open-source or open-weights license."
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "None declared for the family GitHub repository. The custom model code (model.py, data.py) sits in the gated model repository and no licence for it is stated in the sources read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@github-repo",
+     "@hf-page"
+    ],
+    "source_locator": "GitHub API licence field; hEVO-base-o card: Quick start",
+    "quotes": [
+     {
+      "source": "@github-repo",
+      "text": "\"license\":null"
+     },
+     {
+      "source": "@hf-page",
+      "text": "before loading."
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "https://huggingface.co/MulinLab/hEVO-base-o, gated for peer reviewers with manual approval by MulinLab; load with your own read token and trust_remote_code=True. Benchmark code: https://github.com/mulinlab/hEVO.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-page",
+     "@hf-api"
+    ],
+    "source_locator": "hEVO-base-o card: Quick start; Hugging Face API gated field",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "Access is gated for peer reviewers and requires manual approval by MulinLab."
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"gated\":\"manual\""
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Trained on haplotypes from public population cohorts (1000 Genomes and HGDP), so the training sequences carry human population variation.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Overview, Models",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "uses population-scale haplotype sequence variation to learn DNA representations"
+     }
+    ]
+   },
+   {
+    "text": "The smaller of the two public checkpoints, with the same 1,024-nucleotide context and tokenizer as hEVO-large-o.",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: Checkpoint family",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "Both models use a 1,024-nt context and the same nucleotide tokenizer."
+     }
+    ]
+   },
+   {
+    "text": "The card gives pinned-revision example code that runs on CPU or CUDA for embeddings and single-nucleotide variant scoring.",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: Load once",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "It uses float32 and eager attention on CPU or CUDA, with Flash Attention disabled."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Gated for peer reviewers; weights are released only on manual approval.",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: Provenance, access and citation",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "Access is gated for peer reviewers and manually approved by MulinLab."
+     }
+    ]
+   },
+   {
+    "text": "No licence: the weight licence is not confirmed and the GitHub repository declares none.",
+    "source_ids": [
+     "@readme",
+     "@github-repo"
+    ],
+    "source_locator": "README.md: Getting started; GitHub API",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The weight license has not yet been confirmed"
+     },
+     {
+      "source": "@github-repo",
+      "text": "\"license\":null"
+     }
+    ]
+   },
+   {
+    "text": "Context of 1,024 nucleotides; the variant score covers single-nucleotide changes only, not indels.",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: Single-nucleotide variant scoring",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "The example scores one SNV, not an indel or a full-sequence autoregressive likelihood."
+     }
+    ]
+   },
+   {
+    "text": "Loading runs Python code from the model repository (trust_remote_code), which the card asks users to review first.",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: Quick start",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "The model and tokenizer load repository Python code through"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "hEVO-base-o workflow",
+   "steps": [
+    "DNA sequence, 1 to 1,024 nucleotides",
+    "Character tokenizer, one token per base",
+    "12-layer bidirectional transformer",
+    "768-dimensional vector per nucleotide",
+    "Masked-site logits give an ALT-minus-REF log-likelihood ratio"
+   ],
+   "caption": "hEVO-base-o turns a short DNA window into per-base embeddings and, with one site masked, a variant score.",
+   "source_ids": [
+    "@hf-page"
+   ],
+   "source_locator": "hEVO-base-o card: Intended use, Input and output",
+   "quotes": [
+    {
+     "source": "@hf-page",
+     "text": "One position per nucleotide; no boundary tokens"
+    },
+    {
+     "source": "@hf-page",
+     "text": "One hidden vector per input nucleotide"
+    },
+    {
+     "source": "@hf-page",
+     "text": "ALT-minus-REF conditional log-likelihood ratio at a masked site"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No paper or preprint was found or read; the card refers to an hEvo manuscript without a DOI.",
+   "The raw card file, config.json and provenance.json are behind the access gate; the card was read from the rendered Hugging Face page.",
+   "Training cutoff, training compute and hardware needs are not reported in the sources read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read the rendered Hugging Face page of MulinLab/hEVO-base-o (main ee94e974), its Hugging Face API response, README.md of mulinlab/hEVO at commit eac1314c7272e7ca16e2bb1dcb1a4fb2e362bc12 and the GitHub repository metadata, all on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the dependencies, sign in with an approved Hugging Face account, and compute per-nucleotide embeddings for a short DNA sequence.",
+  "prerequisites": [
+   "Approved access to MulinLab/hEVO-base-o on Hugging Face (gated for peer reviewers, manual approval) and your own read token.",
+   "Python with PyTorch 2.6 or later and Transformers 4.57.1; the example runs in float32 on CPU or CUDA.",
+   "Review model.py and data.py in the model repository before loading, because loading uses trust_remote_code=True.",
+   "No licence for the weights has been confirmed by the authors."
+  ],
+  "steps": [
+   {
+    "title": "Install and authenticate",
+    "shell": "python -m pip install \"torch>=2.6\" \"transformers==4.57.1\" safetensors numpy webdataset huggingface_hub\nhf auth login",
+    "explanation": "Installs the tested versions and stores your Hugging Face read token. Request access on the model page first and wait for approval.",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: Install and authenticate",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "safetensors numpy webdataset huggingface_hub hf auth login"
+     },
+     {
+      "source": "@hf-page",
+      "text": "Sign in to Hugging Face, submit an access request on this page, and wait for approval."
+     }
+    ]
+   },
+   {
+    "title": "Load the model and embed a sequence",
+    "shell": "python - <<'EOF'\nimport torch\nfrom transformers import AutoConfig, AutoModelForMaskedLM, AutoTokenizer\n\nREPO = \"MulinLab/hEVO-base-o\"\n# Freeze the checkpoint and its custom code for reproducible inference.\nREVISION = \"fa6139047c21d92b58bd8eda49ea2f89a884e33c\"\ndevice = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")\n\nload_options = dict(revision=REVISION, token=True, trust_remote_code=True)\ntokenizer = AutoTokenizer.from_pretrained(REPO, **load_options)\nconfig = AutoConfig.from_pretrained(\n    REPO,\n    use_frequency_embedding=False,\n    use_flash_attention=False,\n    **load_options,\n)\nassert config.use_frequency_embedding is False\nmodel = AutoModelForMaskedLM.from_pretrained(\n    REPO,\n    config=config,\n    attn_implementation=\"eager\",\n    dtype=torch.float32,\n    **load_options,\n).to(device).eval()\n\ndef encode_dna(sequence):\n    sequence = sequence.strip().upper()\n    if not 0 < len(sequence) <= config.max_position_embeddings:\n        raise ValueError(\"Provide a sequence of 1 to 1,024 nucleotides.\")\n    if set(sequence) - set(\"ACGTN\"):\n        raise ValueError(\"DNA must contain only A, C, G, T or N.\")\n    encoded = tokenizer(sequence, return_tensors=\"pt\", truncation=False)\n    # This custom tokenizer returns 1D tensors for a single sequence.\n    encoded = {\n        key: value.unsqueeze(0) if value.ndim == 1 else value\n        for key, value in encoded.items()\n    }\n    if \"attention_mask\" not in encoded:\n        encoded[\"attention_mask\"] = torch.ones_like(encoded[\"input_ids\"])\n    return {key: value.to(device) for key, value in encoded.items()}\n\nsequence = \"ACGTTGCATGTCGCATGATGCATGAGAGCT\"\ninputs = encode_dna(sequence)\n\nwith torch.inference_mode():\n    outputs = model(**inputs, output_hidden_states=True, return_dict=True)\n    token_embeddings = outputs.hidden_states[-1]  # [batch, length, hidden_size]\n\n    # Optional: summarize the last-layer nucleotide embeddings by mean pooling.\n    keep = inputs[\"attention_mask\"].unsqueeze(-1).to(token_embeddings.dtype)\n    sequence_embedding = (token_embeddings * keep).sum(dim=1) / keep.sum(\n        dim=1\n    ).clamp_min(1)\n\nprint(\"Last-layer token embeddings:\", tuple(token_embeddings.shape))\nprint(\"Mean-pooled sequence embedding:\", tuple(sequence_embedding.shape))\nEOF",
+    "explanation": "The card's shared setup and nucleotide embedding example, joined and wrapped in a shell heredoc. The revision pins the weights and custom code.",
+    "source_ids": [
+     "@hf-page"
+    ],
+    "source_locator": "hEVO-base-o card: Load once, then run either example; Nucleotide embeddings",
+    "quotes": [
+     {
+      "source": "@hf-page",
+      "text": "Freeze the checkpoint and its custom code for reproducible inference."
+     },
+     {
+      "source": "@hf-page",
+      "text": "fa6139047c21d92b58bd8eda49ea2f89a884e33c"
+     },
+     {
+      "source": "@hf-page",
+      "text": "tokenizer = AutoTokenizer.from_pretrained(REPO, **load_options)"
+     },
+     {
+      "source": "@hf-page",
+      "text": "is the final transformer layer"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "The card gives shapes (1, 30, 768) for the nucleotide embeddings and (1, 768) for the mean-pooled vector of the 30-nucleotide example."
+  ],
+  "limitations": [
+   "These commands were read from the model card and have not been executed by Rewire.",
+   "They fail without approved access to the gated repository.",
+   "The card's single-nucleotide variant scoring example is not repeated here; it masks one site and compares ALT and REF logits."
+  ],
+  "source_ids": [
+   "@hf-page"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "hEVO-base-o",
+   "parameters": 87094932,
+   "context_length": 1024,
+   "context_unit": "bases",
+   "code_licence": null,
+   "weights_licence": null,
+   "code_url": "https://github.com/mulinlab/hEVO",
+   "weights_url": "https://huggingface.co/MulinLab/hEVO-base-o",
+   "gated": true,
+   "released": "2026-10-14",
+   "quotes": [
+    {
+     "source": "@hf-api",
+     "text": "\"total\":87094932"
+    },
+    {
+     "source": "@hf-page",
+     "text": "a maximum context of 1,024 nucleotides"
+    },
+    {
+     "source": "@hf-api",
+     "text": "\"createdAt\":\"2026-10-14T16:40:09.000Z\""
+    }
+   ]
+  }
+ ],
+ "notes": "Checkpoint of the hEvo family record (intake-250-20261119-model-hevo). The card was read from the rendered Hugging Face page because the raw file is gated; the page HTML changes between fetches, so the hash is for this copy only. 'released' is the Hugging Face repository creation date. The card's pinned revision fa613904 differs from the current main revision ee94e974; the card says the card and artwork are maintained on main."
+}
