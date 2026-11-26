@@ -17,7 +17,7 @@ One agent per cluster read an export of the cluster's protocols with their descr
 | Cluster | Protocols read | Settings | Protocols linked | same / near / related | Unassigned | Disagreements |
 | --- | --- | --- | --- | --- | --- | --- |
 | proteingym | 24 | 6 | 5 | 13 / 0 / 0 | 11 | 4 |
-| clinvar-missense | 105 | 9 | 40 | 6 / 12 / 30 | 57 | 15 |
+| clinvar-missense | 105 | 9 | 40 | 6 / 12 / 30 | 57 | 16 |
 | splicing | 87 | 6 | 16 | 6 / 1 / 13 | 67 | 0 |
 
 ## What it found
