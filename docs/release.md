@@ -4,7 +4,7 @@ A release is an immutable, content-addressed snapshot of every reviewed record. 
 
 ## Automated releases
 
-`.github/workflows/release.yml` runs after "Benchmark data checks" pass for a push to `main`, and on demand (Actions, "Cut and publish a release"). Evidence PRs leave `release-config.json` alone; the workflow cuts the release. It:
+`.github/workflows/release.yml` starts on a push to `main`, beside "Benchmark data checks", and on demand (Actions, "Cut and publish a release"). It builds while the checks run and commits and publishes nothing until they have passed on the newest pushed commit the release was built from. Evidence PRs leave `release-config.json` alone; the workflow cuts the release. It:
 
 1. Runs `node scripts/release/next.mjs prepare`, which dates a candidate release now and writes into the release config the commit it is built from (`source_revision`) and the release notes.
 2. Fetches the current release's files (`npm run release:fetch -- <id>`), then builds the candidate once with `npm run build:release`: the release, then the knowledge-graph bundle and its inference, then the prepared SQLite file with the inferred discrepancies, then the website package.
