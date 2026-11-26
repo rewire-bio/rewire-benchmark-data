@@ -17,6 +17,26 @@ The website ([benchmarks.rewirebio.io](https://benchmarks.rewirebio.io)) and the
 are both built from these files. Nothing is edited on the website. To change what a page says,
 change a record.
 
+## The stages, and where each stands
+
+Turning papers into a store that can be compared and checked is a known problem with known stages:
+keep the documents, extract what they claim against a fixed schema, tie every name to one
+identifier, merge what is the same, then look for disagreements. This table is the plan the rest
+of the page follows. A stage is in place when it has a schema, a written brief, a mechanical check
+and a measured error rate.
+
+| Stage | What it does | State on 26 November 2026 |
+| --- | --- | --- |
+| 1. Keep the documents | Each source is a record with its address and a hash of the bytes | In place |
+| 2. Extract against a schema | An agent fills fixed fields from the fetched text, with a copied passage behind each value | In place for model descriptions (1.6 percent of statements needed correction). Results were extracted earlier by one-off scripts per paper and by hand; agents do not yet extract results |
+| 3. Tie names to one identifier | "The same model", "the same checkpoint" and "the same test" each resolve to one record | The weak stage. Each paper's test is its own protocol, 20 model names sit on two records, and checkpoints are told apart only by free text |
+| 4. Merge what is the same | Two sources reporting on the same checkpoint and the same test become two observations of one thing | Not possible until stage 3 is done |
+| 5. Find disagreements | Observations of one thing that differ, and pairs ranked oppositely | Rules exist for rankings. They find little because of stage 3 |
+| 6. Report on a new document | What a new paper confirms, contradicts and adds | Not built. New models are added by name only |
+| Inference over the graph | Derive facts no source states | Built early. It is the last thing a store like this needs |
+
+The order of work follows from the table: stage 3 first, because stages 4 to 6 wait on it.
+
 ## The records
 
 | Record | What it is | Example |
