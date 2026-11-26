@@ -1,4 +1,5 @@
-# Put every archived object in the bucket, and record the bucket as its home.
+# Fetch every source that is not yet held, put every archived object in the bucket, and record
+# the bucket as its home. Runs every night and whenever a merge adds sources.
 #
 # Why this runs here rather than on a laptop. R2 is the one home of every object (ADR 0004,
 # determination 5), but the credential is a repository secret and nothing else holds it, so the
@@ -21,6 +22,13 @@
 name: Archive upload
 
 on:
+  # Every new source is fetched and stored the night it lands, and at once when a merge adds
+  # sources. Nothing depends on a laptop having fetched it first.
+  schedule:
+    - cron: "17 2 * * *"
+  push:
+    branches: [main]
+    paths: [data/entities/sources.jsonl]
   workflow_dispatch:
     inputs:
       limit:
@@ -49,7 +57,7 @@ permissions:
 jobs:
   upload:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
         with:
@@ -93,6 +101,14 @@ jobs:
             if (summary.failed.length) console.log(`::warning::${summary.failed.length} objects could not be hydrated from a release.`);
             if (summary.no_remote_copy) console.log(`::warning::${summary.no_remote_copy} objects are in neither the bucket nor a release, so this job cannot reach them.`);
           '
+
+      # A source this run cannot fetch (gone, refused, behind a login) is recorded as failed with
+      # its reason and does not stop the others. `archive status` and the summary count them.
+      - name: Fetch every source that is not yet held
+        if: ${{ !inputs.dry_run }}
+        run: |
+          npm run -s archive -- fetch --concurrency 4 --delay-ms 2500 | tail -40
+          npm run -s archive -- status | tee "$RUNNER_TEMP/status.txt"
 
       - name: Upload to the bucket and mark the manifest
         env:
@@ -139,17 +155,17 @@ jobs:
         run: |
           # Only the manifest moves. The cache is gitignored and nothing else in the tree is
           # touched by an upload, so a diff anywhere else means something unexpected ran.
-          if [ -z "$(git status --porcelain data/archive/objects)" ]; then
+          if [ -z "$(git status --porcelain data/archive/objects data/omics/audits)" ]; then
             echo "No manifest row changed: every object the cache holds was already in the bucket."
             exit 0
           fi
-          unexpected=$(git status --porcelain | grep -v '^ M data/archive/objects/' || true)
+          unexpected=$(git status --porcelain | grep -vE '^ M data/archive/objects/|^\?\? data/omics/audits/[0-9-]+-archive-fetch\.receipts\.jsonl$|^ M data/omics/audits/[0-9-]+-archive-fetch\.receipts\.jsonl$' || true)
           if [ -n "$unexpected" ]; then echo "::error::An upload changed more than the manifest:"; echo "$unexpected"; exit 1; fi
           git config user.name "rewire-release-bot"
           git config user.email "rewire-release-bot@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:$TOKEN@github.com/$GITHUB_REPOSITORY"
-          git add data/archive/objects
-          git commit -m "Record R2 as the home of the uploaded objects [skip ci]"
+          git add data/archive/objects data/omics/audits
+          git commit -m "Record newly fetched sources and R2 as the home of the uploaded objects [skip ci]"
           # A pull request merged while this ran moves main on. Rebase onto it and push again;
           # the manifest is one line per object keyed on a hash, so a rebase conflicts only with
           # another run of this job, which the concurrency group has already excluded.
@@ -190,6 +206,12 @@ jobs:
               echo "### Hydrated from the release assets"
               echo '```json'
               cat "$RUNNER_TEMP/pull.json"
+              echo '```'
+            fi
+            if [ -f "$RUNNER_TEMP/status.txt" ]; then
+              echo "### Sources held after the fetch"
+              echo '```'
+              cat "$RUNNER_TEMP/status.txt"
               echo '```'
             fi
             if [ -f "$RUNNER_TEMP/upload.json" ]; then
