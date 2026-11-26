@@ -1,0 +1,538 @@
+{
+ "record_id": "ladon-20261115-model-ladon",
+ "sources": [
+  {
+   "key": "report-pdf",
+   "name": "Ladon: An RNA Foundation Model for Predicting Patient Outcomes, Zenodo record 24157116 (PDF)",
+   "description": "Technical report by Blank Bio, 47 pages, as deposited on Zenodo. No licence is stated on the record.",
+   "file": "artifacts/ladon-report.pdf",
+   "artifact_url": "https://zenodo.org/api/records/24157116/files/Ladon-An-RNA-Foundation-Model-for-Predicting-Patient-Outcomes.pdf/content",
+   "url": "https://doi.org/10.5281/zenodo.24157116",
+   "version": "Zenodo record 24157116, published 2026-11-12",
+   "media_type": "application/pdf",
+   "sha256": "64edf7c3c956c50a65aa01a0dcaa13f0cfef28ab4373ecfd50c431e67143893c",
+   "retrieved_at": "2026-11-26T17:52:22Z",
+   "store_bytes": false
+  },
+  {
+   "key": "report",
+   "name": "Ladon report, text layer extracted from the Zenodo PDF with pdftotext",
+   "description": "Plain-text extraction (pdftotext, default mode) of the Zenodo PDF, made on 2026-11-26 so that quotes can be checked. Page footers read 'Ladon · Blank Bio · N / 47'. Quotes on this page are taken from this file.",
+   "file": "artifacts/ladon-report.txt",
+   "artifact_url": "https://zenodo.org/api/records/24157116/files/Ladon-An-RNA-Foundation-Model-for-Predicting-Patient-Outcomes.pdf/content",
+   "url": "https://doi.org/10.5281/zenodo.24157116",
+   "version": "Text of Zenodo record 24157116 PDF (sha256 64edf7c3c956c50a65aa01a0dcaa13f0cfef28ab4373ecfd50c431e67143893c)",
+   "media_type": "text/plain",
+   "sha256": "770d54250ba5240a2d47f4de993700f2f6fec276bcae76b03356ea05b28192cb",
+   "retrieved_at": "2026-11-26T17:52:27Z",
+   "store_bytes": false
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo API record 24157116, as served on 2026-11-26",
+   "description": "Zenodo metadata for the Ladon report: title, creators, publication date, resource type and file list. It has no licence field.",
+   "file": "artifacts/zenodo-record.json",
+   "artifact_url": "https://zenodo.org/api/records/24157116",
+   "url": "https://doi.org/10.5281/zenodo.24157116",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "af921bf3ab6fc0d6b0ef113cb8cc0dd817c68f942e32d9ab0c022d2c4027af73",
+   "retrieved_at": "2026-11-26T17:52:11Z",
+   "store_bytes": true
+  },
+  {
+   "key": "gh-org",
+   "name": "GitHub API response for organisation blankbio, as served on 2026-11-26",
+   "description": "GitHub organisation metadata for blankbio, showing the count of public repositories.",
+   "file": "artifacts/gh-org.json",
+   "artifact_url": "https://api.github.com/orgs/blankbio",
+   "url": "https://github.com/blankbio",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "1db2751dfdd1a422266eb487fa5a945f705c919413e0e48ba3a4408601fcbb7a",
+   "retrieved_at": "2026-11-26T17:52:19Z",
+   "store_bytes": true
+  },
+  {
+   "key": "hf-org",
+   "name": "Hugging Face organisation overview for BlankBio, as served on 2026-11-26",
+   "description": "Hugging Face API overview of the BlankBio organisation, showing the count of public models and datasets.",
+   "file": "artifacts/hf-org.json",
+   "artifact_url": "https://huggingface.co/api/organizations/BlankBio/overview",
+   "url": "https://huggingface.co/BlankBio",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "5d1ac1a091f4f698efaaed17afa6c32843a32b266ef2625d64b3dd80eda3dc8f",
+   "retrieved_at": "2026-11-26T17:52:19Z",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "Ladon is a foundation model for bulk RNA sequencing of tumours, built by the company Blank Bio. It learns from millions of RNA-seq profiles by reconstructing masked parts of isoform-level expression, and its embeddings are then used to predict patient survival, recurrence and response to treatment. The developers present it as a way to make RNA-based predictions that still hold in clinical trials and cohorts the model was not fitted on.",
+  "summary_source_ids": [
+   "@report"
+  ],
+  "summary_source_locator": "Report page 1 (abstract); page 2, Introducing Ladon",
+  "summary_quotes": [
+   {
+    "source": "@report",
+    "text": "Blank Bio is excited to release Ladon, a transcriptomic foundation model trained on millions of bulk RNAseq samples."
+   },
+   {
+    "source": "@report",
+    "text": "It is pre-trained with masked token reconstruction on isoform-level sequences"
+   },
+   {
+    "source": "@report",
+    "text": "The labeled data is then used to adapt Ladon to clinical tasks such as predicting survival, recurrence, and treatment response."
+   },
+   {
+    "source": "@report",
+    "text": "An RNA model for patients is therefore only as useful as its accuracy in cohorts it was never fit on."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Ladon is a transformer encoder-decoder of 3 billion parameters. It is pretrained self-supervised, by masked token reconstruction on isoform-level expression profiles, so it can learn from samples without outcome labels. For clinical use the developers then mid-train it with supervision to predict patient and tumour characteristics such as disease stage, age, tumour grade and genomic alterations, together with clinical outcomes. They then discard the prediction heads, freeze the encoder and fit simple outcome models, such as linear Cox survival models, on its embeddings. The report does not describe the layers, tokenisation or training corpus in more detail.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report page 2, Introducing Ladon; page 11, Methods: Ladon representations; page 6; page 28, Methods",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Ladon is a 3-billion-parameter transformer encoder-decoder trained on millions of bulk RNA-seq samples."
+     },
+     {
+      "source": "@report",
+      "text": "Because the objective is selfsupervised, Ladon learns from every sample, not just the small fraction with outcome labels."
+     },
+     {
+      "source": "@report",
+      "text": "We perform supervised mid-training to predict patient and tumor characteristics, including disease stage, age, tumor grade and genomic alterations, alongside other clinical outcomes. We then discard the prediction heads and keep the encoder fixed, fitting downstream outcome predictors on the resulting embeddings."
+     },
+     {
+      "source": "@report",
+      "text": "We fit a linear Cox survival model on Ladon's fixed representations of one cohort and apply it unchanged to the other."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The report describes one model family and several adaptations of it (pretrained encoder, supervised mid-training with survival or response labels), and shows models of several sizes and training steps in its scaling figures, but names no released checkpoint. No weights, code or data release is listed with the report. On 2026-11-26 the GitHub organisation blankbio had 0 public repositories and the Hugging Face organisation BlankBio had 0 models and 0 datasets. Results from Ladon cannot be reproduced independently from public material.",
+    "source_ids": [
+     "@report",
+     "@gh-org",
+     "@hf-org"
+    ],
+    "source_locator": "Report pages 11, 41 to 42 (Figures 20 and 21, Methods: Reconstruction loss); GitHub org API; Hugging Face org overview",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "We trained Ladon models at different parameter counts and measured reconstruction loss at regular intervals throughout training."
+     },
+     {
+      "source": "@report",
+      "text": "We use Ladon after supervised mid-training that includes response labels from academic"
+     },
+     {
+      "source": "@gh-org",
+      "text": "\"public_repos\":0"
+     },
+     {
+      "source": "@hf-org",
+      "text": "\"numModels\":0"
+     },
+     {
+      "source": "@hf-org",
+      "text": "\"numDatasets\":0"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation in the report",
+    "body": "Every result is reported on a setting not used for fitting: a held-out trial, another cohort or another platform. Survival models fitted on TCGA were applied unchanged to CPTAC and the reverse; the developers report Ladon ahead of differential gene expression signatures, BulkRNABERT and BulkFormer, and that adding Ladon to clinical covariates improved survival prediction in all 12 target cohorts. They also report better response prediction for immunotherapy than PD-L1 expression, recovery of isoform usage from gene-level counts (median Pearson r of 0.81 across 3,000 genes in held-out tumours), and cell-composition inference from single-cell references. All of these are the developers' own results in an unreviewed report.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report pages 2 to 3, 5 to 6, 26 to 27",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "We intentionally evaluate every result in this paper in a setting not used to fit it: a held-out clinical trial, another cohort or another measurement platform."
+     },
+     {
+      "source": "@report",
+      "text": "Ladon predicts survival better than differential gene expression (DGE) signatures and two other RNA foundation models (BulkRNABERT and BulkFormer), both within and across cancers"
+     },
+     {
+      "source": "@report",
+      "text": "Yet adding Ladon to these covariates improves survival prediction in all 12 target cohorts"
+     },
+     {
+      "source": "@report",
+      "text": "Finally, we show that Ladon identifies patients who respond to immunotherapy better than PD-L1 expression does."
+     },
+     {
+      "source": "@report",
+      "text": "of 0.81, compared with 0.69, 0.54 and 0.48, respectively"
+     },
+     {
+      "source": "@report",
+      "text": "inferring the cell composition of bulk samples from single-cell references"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Transcriptomic foundation model for bulk RNA-seq, pretrained self-supervised and adapted to clinical outcome prediction.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report page 1; page 2, Introducing Ladon",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "a transcriptomic foundation model trained on millions of bulk RNAseq samples"
+     },
+     {
+      "source": "@report",
+      "text": "Because the objective is selfsupervised"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Transformer encoder-decoder. Layer counts, widths and tokenisation are not given in the report.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report page 2, Introducing Ladon",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "3-billion-parameter transformer encoder-decoder"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Bulk RNA-seq expression at isoform level, which the report calls isoform-level sequences, for pretraining. In the isoform imputation tests the model instead receives gene-level counts scaled per million and imputes isoform splits.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report page 2; page 26, Figure 10 caption; page 28, Methods",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "masked token reconstruction on isoform-level sequences"
+     },
+     {
+      "source": "@report",
+      "text": "Ladon receives one sample's gene counts and imputes the isoform split"
+     },
+     {
+      "source": "@report",
+      "text": "Corrected values are transformed back to the per-million scale Ladon takes as input"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Sample embeddings, used as fixed features for downstream survival, response and tumour-characteristic predictors; and reconstructed (imputed) isoform-level expression.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report page 11, Methods; page 26",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "fitting downstream outcome predictors on the resulting embeddings"
+     },
+     {
+      "source": "@report",
+      "text": "Ladon predicts each gene’s isoform split from gene counts"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "3 billion for the model presented. Smaller sizes appear in the scaling study but their counts are not listed in the text.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report page 2; page 42, Methods: Reconstruction loss",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Ladon is a 3-billion-parameter transformer encoder-decoder"
+     },
+     {
+      "source": "@report",
+      "text": "We trained Ladon models at different parameter counts"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Millions of bulk RNA-seq samples; the corpus, its sources and sample count are not listed. Short-read isoform estimates were used. Supervised mid-training uses disease stage, age, tumour grade, genomic alterations and clinical outcomes; TCGA and CPTAC outcome labels were kept out of the encoder supervision.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report pages 2, 11, 27",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "trained on millions of bulk RNA-seq samples"
+     },
+     {
+      "source": "@report",
+      "text": "Ladon was also trained and evaluated on short-read isoform estimates"
+     },
+     {
+      "source": "@report",
+      "text": "TCGA and CPTAC outcome labels are excluded from Ladon’s encoder supervision and validation monitoring."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "No named or released checkpoints. The report evaluates the pretrained encoder and supervised mid-trained variants, and models of several sizes in its scaling figures.",
+    "status": "unavailable",
+    "source_ids": [
+     "@report",
+     "@hf-org"
+    ],
+    "source_locator": "Report pages 11, 41 to 42; Hugging Face org overview"
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated in the report.",
+    "status": "unreported",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report (whole text)"
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated. The report does not give the number of isoforms or genes per input, or how a sample is tokenised.",
+    "status": "unreported",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report (whole text)"
+   },
+   {
+    "label": "Weights licence",
+    "value": "No weights are released, so no weights licence exists. The Zenodo record of the report also carries no licence.",
+    "status": "unavailable",
+    "source_ids": [
+     "@zenodo",
+     "@hf-org"
+    ],
+    "source_locator": "Zenodo API record (no licence field); Hugging Face org overview"
+   },
+   {
+    "label": "Code licence",
+    "value": "No code is released, so no code licence exists.",
+    "status": "unavailable",
+    "source_ids": [
+     "@gh-org"
+    ],
+    "source_locator": "GitHub org API: public_repos"
+   },
+   {
+    "label": "Access",
+    "value": "No public weights, code or API. The report invites readers who want to use the model to contact Blank Bio. Report: https://doi.org/10.5281/zenodo.24157116. As checked on 2026-11-26, https://github.com/blankbio lists 0 public repositories and https://huggingface.co/BlankBio lists 0 models.",
+    "status": "unavailable",
+    "source_ids": [
+     "@report",
+     "@gh-org",
+     "@hf-org"
+    ],
+    "source_locator": "Report page 43, Conclusion; GitHub org API; Hugging Face org overview",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "If you’re interested in using the model today and working closely with our team to adapt it to your most pressing problems, please reach out!"
+     },
+     {
+      "source": "@gh-org",
+      "text": "\"public_repos\":0"
+     },
+     {
+      "source": "@hf-org",
+      "text": "\"numModels\":0"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Pretraining is self-supervised, so it can use RNA-seq samples that have no outcome labels.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report page 2",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Ladon learns from every sample, not just the small fraction with outcome labels"
+     }
+    ]
+   },
+   {
+    "text": "The developers evaluate every result out of distribution (held-out trials, other cohorts or platforms), which matches how a clinical test would be used.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report page 3",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "We intentionally evaluate every result in this paper in a setting not used to fit it"
+     }
+    ]
+   },
+   {
+    "text": "Works at isoform level, and by the developers' report can impute isoform usage from gene-level data.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report pages 2, 26 to 27",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Together, these results show that Ladon can infer isoform usage from gene-level expression"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Not available: no weights, code or licence are published, and access is by contacting the company.",
+    "source_ids": [
+     "@report",
+     "@gh-org",
+     "@hf-org"
+    ],
+    "source_locator": "Report page 43; GitHub org API; Hugging Face org overview",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "please reach out!"
+     },
+     {
+      "source": "@gh-org",
+      "text": "\"public_repos\":0"
+     },
+     {
+      "source": "@hf-org",
+      "text": "\"numModels\":0"
+     }
+    ]
+   },
+   {
+    "text": "The training corpus is not described beyond 'millions of bulk RNA-seq samples', so overlap with a user's evaluation data cannot be checked.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report pages 1 and 2",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "trained on millions of bulk RNA-seq samples"
+     }
+    ]
+   },
+   {
+    "text": "All results come from a company technical report on Zenodo, not a peer-reviewed paper.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo API record: resource_type",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"type\": \"publication\", \"subtype\": \"report\""
+     }
+    ]
+   },
+   {
+    "text": "Accuracy on isoforms is bounded by the short-read isoform estimates it was trained on, as the developers note; single cells and cell-type pseudobulks are untested.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report page 27",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Ladon was also trained and evaluated on short-read isoform estimates, and its accuracy is bounded by theirs."
+     },
+     {
+      "source": "@report",
+      "text": "Ladon remains to be tested on cell-type pseudobulks and individual cells."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Ladon workflow",
+   "steps": [
+    "Bulk RNA-seq, isoform level",
+    "Masked token reconstruction pretraining",
+    "Supervised mid-training on clinical labels",
+    "Frozen encoder embeddings",
+    "Cox or logistic outcome models",
+    "Survival, recurrence, response predictions"
+   ],
+   "caption": "Ladon is pretrained by reconstructing masked isoform-level expression, mid-trained on clinical labels, then frozen; simple models fitted on its embeddings predict patient outcomes.",
+   "source_ids": [
+    "@report"
+   ],
+   "source_locator": "Report page 2; page 11, Methods; page 42, Methods: Clinical benchmark",
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "It is pre-trained with masked token reconstruction on isoform-level sequences"
+    },
+    {
+     "source": "@report",
+     "text": "We perform supervised mid-training to predict patient and tumor characteristics"
+    },
+    {
+     "source": "@report",
+     "text": "We then discard the prediction heads and keep the encoder fixed"
+    },
+    {
+     "source": "@report",
+     "text": "Survival tasks used elastic-net Cox models, and classification tasks used logistic regression"
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "No code repository or model card exists, so coverage is limited to the developers' report and the organisation listings.",
+   "The report gives no layer-level architecture, tokenisation, input size, training corpus, training cutoff or hardware.",
+   "Quotes were checked against a pdftotext extraction of the PDF; figures and interactive elements in the PDF were not read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the Ladon report PDF (Zenodo record 24157116, published 2026-11-12) and its pdftotext extraction, the Zenodo API record, the GitHub organisation API response for blankbio and the Hugging Face organisation overview for BlankBio, each fetched on 2026-11-26. No command was executed beyond fetching and text extraction, and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "No weights, code or API are public. The report asks prospective users to contact Blank Bio, and the blankbio GitHub and BlankBio Hugging Face organisations list no repositories or models as of 2026-11-26.",
+ "notes": "The report text was extracted with pdftotext because the checker reads files as UTF-8; the PDF is registered as a separate source with its own hash. The Zenodo record has no licence, so neither file should be stored. The existing source ladon-20261115-source-zenodo-pdf has artifact_url null; the PDF URL https://zenodo.org/api/records/24157116/files/Ladon-An-RNA-Foundation-Model-for-Predicting-Patient-Outcomes.pdf/content could be added to it. The 3-billion-parameter figure on page 2 is new relative to the record's attributes."
+}
