@@ -113,6 +113,10 @@ jobs:
       - run: python3 kb/migrate.py --check
       - run: python3 kb/curate.py
       - run: python3 kb/board.py
+      - name: Find discrepancies from the database
+        run: |
+          python3 kb/discrepancies.py --release unreleased --out kb/build/discrepancies.json
+          python3 -c "import json; ids = [d['id'] for d in json.load(open('kb/build/discrepancies.json'))['discrepancies']]; assert len(ids) == len(set(ids)), 'duplicate discrepancy IDs'; print(len(ids), 'discrepancies')"
 
   release:
     runs-on: ubuntu-latest
