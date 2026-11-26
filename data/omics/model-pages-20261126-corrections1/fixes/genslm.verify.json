@@ -1,0 +1,14 @@
+{
+  "record_id": "lit-rna-20261011-rnagym-model-genslm",
+  "statements_checked": 32,
+  "findings": [
+    {
+      "where": "structured rows for genslm_250M_patric, genslm_2.5B_patric and genslm_25B_patric",
+      "verdict": "partly",
+      "statement": "parameters 244464576, 2533931008 and 25076188032",
+      "source_says": "inference.py gives only architecture file names (\"neox_244,464,576.json\", \"neox_2,533,931,008.json\", \"neox_25,076,188,032.json\") and the paper says only \"parameter scales ranging from 25 million to 25 billion\". Only the 25M configuration file is saved; summing its layers (8 layers, hidden size 512, intermediate size 2048, vocabulary 69, untied embeddings) reproduces 25,290,752 exactly, so the 25M row follows from a saved file, while the other three counts rest on the file names alone",
+      "fix": "Keep the 25M count, which the saved configuration reproduces, and for the other three sizes say that the counts are read off the architecture file names because those configuration files were not fetched, as the page's notes already state."
+    }
+  ],
+  "summary": "Mostly accurate. The codon tokenisation, the 69-token vocabulary, the GPT-NeoX 25M configuration (8 layers, hidden size 512, 8 heads, rotary embeddings), the 2,048 and 10,240 token limits, the five model IDs with their weight file names and sequence lengths, the training data figures (110 million prokaryotic genes, 1.5 million SARS-CoV-2 genomes, the 29,000 bp and 1 percent ambiguity filters, the 85,000-genome first-year model) and the MIT code licence with no weights licence all match the sources, and every run guide addition is disclosed. The 25M parameter count is reproducible from the saved configuration; the three larger counts are read off architecture file names, which the notes admit but the structured rows present as figures."
+}

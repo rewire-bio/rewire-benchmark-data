@@ -1,0 +1,14 @@
+{
+ "record_id": "lit-rna-20261011-rnalm-zeroshot-model-ernie-rna",
+ "statements_checked": 26,
+ "findings": [
+  {
+   "where": "strength 3",
+   "verdict": "partly",
+   "statement": "Runs on CPU as well as GPU: the README provides CPU environments for macOS and Windows, and the scripts accept -1 for CPU.",
+   "source_says": "README documents \"-1\" for CPU only for predict_ss_rna.py and the MRL script. extract_embedding.py has parser.add_argument(\"--device\", default=0, type=int) and passes the integer straight to .to(device), with no handling of -1.",
+   "fix": "Runs on CPU as well as GPU: the README provides CPU environments for macOS and Windows, and the secondary structure and MRL scripts accept --device -1 for CPU."
+  }
+ ],
+ "summary": "Reliable. Architecture, training data, context limit, checkpoints and licences match the Nature Communications full text, README, scripts and Drive listing, and the two disclosed command fixes in the run guide (environment name, --device type) are correct against the saved files."
+}

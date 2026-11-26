@@ -1,0 +1,37 @@
+[
+  {
+    "where": "section Versions and reproducibility",
+    "before": "plus 182 files under Model/Downstream for the MRL, TE and EL tasks.",
+    "after": "plus 179 checkpoint files under Model/Downstream: 178 for the TE and EL tasks and one for MRL (fold 0 of a single library).",
+    "action": "changed",
+    "why": "Of the 182 tree entries under Model/Downstream, two are folders (MRL, TE_EL) and one is .DS_Store. That leaves 178 files under TE_EL and one under MRL, a fold 0 checkpoint. Added tree quotes."
+  },
+  {
+    "where": "fact Known versions",
+    "before": "plus 182 files under Model/Downstream.",
+    "after": "plus 179 fine-tuned checkpoint files under Model/Downstream (178 for TE and EL, one for MRL).",
+    "action": "changed",
+    "why": "Same count correction as the Versions section, checked against github-tree.json. Added tree quotes."
+  },
+  {
+    "where": "strength 1",
+    "before": "Pretrained and fine-tuned checkpoints for every task and fold are committed in the repository, so a run does not depend on a separate download for the weights.",
+    "after": "Pretrained checkpoints and fine-tuned TE and EL checkpoints are committed in the repository, so these runs do not need a separate weights download; only one fine-tuned MRL checkpoint is included.",
+    "action": "changed",
+    "why": "Model/Downstream/MRL holds a single fold 0 checkpoint, so not every task and fold is covered. Added a quote for that file."
+  },
+  {
+    "where": "run_guide step Fine-tune for translation efficiency, explanation",
+    "before": "The README's TE and EL command for the Muscle cell line, using the ESM2SI_3.1 pretrained checkpoint. Change --cell_line to pc3 or HEK, and --label_type to rnaseq_log for the expression-level task.",
+    "after": "The README's TE and EL command for the Muscle cell line, using the ESM2SI_3.1 pretrained checkpoint. Change --cell_line to pc3 or HEK, and --label_type to rnaseq_log for the expression-level task. The README's --modelfile path does not match the repository tree: there is no Model folder under Scripts/UTRLM_downstream, and the checkpoint is at Model/Pretrained/ESM2SI_3.1_fiveSpeciesCao_6layers_16heads_128embedsize_4096batchToks_MLMLossMin.pkl. From Scripts/UTRLM_downstream, pass ../../Model/Pretrained/ESM2SI_3.1_fiveSpeciesCao_6layers_16heads_128embedsize_4096batchToks_MLMLossMin.pkl instead.",
+    "action": "changed",
+    "why": "The tree has no Scripts/UTRLM_downstream/Model folder, and the checkpoint sits under Model/Pretrained at the repository root. The command is kept as the README gives it; the explanation now gives the working path. Added @tree as a source with a quote."
+  },
+  {
+    "where": "fact Model type",
+    "before": "Semi-supervised masked language model for 5' UTR sequences, fine-tuned for regression and classification tasks.",
+    "after": "Semi-supervised masked language model for 5' UTR sequences, fine-tuned for regression tasks (mean ribosome loading, translation efficiency and expression level).",
+    "action": "changed",
+    "why": "The README and abstract name only regression targets (rl, te_log, rnaseq_log, trained with Huber or MSE loss); no classification task appears in the saved sources. Added README and abstract quotes."
+  }
+]

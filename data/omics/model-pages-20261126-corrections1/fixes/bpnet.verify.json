@@ -1,0 +1,14 @@
+{
+  "record_id": "lit-genomics-20261011-ntbench-model-bpnet",
+  "statements_checked": 28,
+  "findings": [
+    {
+      "where": "step Predict on the test chromosomes",
+      "verdict": "partly",
+      "statement": "Runs the trained model on the held-out chromosomes from splits.json, in the same shell as the training step so the variables are set.",
+      "source_says": "The README's sample splits.json lists chr21 under both \"test\" ([\"chr7\", \"chr13\", \"chr17\", \"chr19\", \"chr21\", \"chrX\"]) and \"train\" ([... \"chr16\", \"chr21\", \"chr22\", \"chrY\"]), so with the sample file chr21 is not held out.",
+      "fix": "Runs the trained model on the test chromosomes from splits.json, in the same shell as the training step so the variables are set. The README's sample splits.json also lists chr21 under train, so remove it from one list before treating the test set as held out."
+    }
+  ],
+  "summary": "Reliable. The paper and current architectures, the two code generations, the Zenodo model and licence, and the commands match the sources exactly; one run-step explanation calls the test chromosomes held out although the README's sample split also trains on chr21."
+}
