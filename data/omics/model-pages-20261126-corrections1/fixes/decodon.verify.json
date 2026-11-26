@@ -1,0 +1,21 @@
+{
+ "record_id": "gfm-guides-20261014-evo2-brixi2026-model-decodon",
+ "statements_checked": 25,
+ "findings": [
+  {
+   "where": "section How it works",
+   "verdict": "partly",
+   "statement": "Each token is one of the 64 codons or a special token. DeCodon is loaded as a causal language model: its configuration marks it as a decoder with 12 hidden layers, 16 attention heads, hidden size 1024 and rotary position embeddings. To generate, the wrapper builds a prompt from the organism's taxonomy ID in angle brackets, so the model writes a sequence conditioned on the organism, and stops at the separator token. The same wrapper also offers embedding extraction and variant scoring.",
+   "source_says": "decodon_auto.py: taxids = [f\"<{tid.strip()}>\" for tid in f.readlines()] ... tokenizer.set_organism_tokens(taxids); hf-config.json: \"vocab_size\": 1736. The README's \"64 codons and 5 special tokens\" omits the organism tokens.",
+   "fix": "Tokens are the 64 codons, 5 special tokens and one organism token per NCBI Taxonomy ID listed in the package's taxids.txt; config.json sets vocab_size 1736. DeCodon is loaded as a causal language model: its configuration marks it as a decoder with 12 hidden layers, 16 attention heads, hidden size 1024 and rotary position embeddings. To generate, the wrapper builds a prompt from the organism's taxonomy ID in angle brackets, so the model writes a sequence conditioned on the organism, and stops at the separator token. The same wrapper also offers embedding extraction and variant scoring."
+  },
+  {
+   "where": "fact Inputs",
+   "verdict": "partly",
+   "statement": "For generation, an NCBI Taxonomy ID (the default is 9606, human), which the wrapper turns into a prompt token; a prompt can also carry starting codons. For embeddings and variant scoring, coding sequences read as codons, from a vocabulary of 64 codons and 5 special tokens.",
+   "source_says": "The DeCodon wrapper adds organism tokens (tokenizer.set_organism_tokens(taxids)) and hf-config.json sets \"vocab_size\": 1736.",
+   "fix": "For generation, an NCBI Taxonomy ID (the default is 9606, human), which the wrapper turns into a prompt token; a prompt can also carry starting codons. For embeddings and variant scoring, coding sequences read as codons, from a vocabulary of 64 codons, 5 special tokens and organism tokens for NCBI Taxonomy IDs (vocab_size 1736 in config.json)."
+  }
+ ],
+ "summary": "Mostly reliable. Parameter counts, revisions, licence, context and the run steps (including the warning that the repository has no packaging file) match the saved files; the vocabulary description follows the README and misses the organism tokens visible in the code and config."
+}

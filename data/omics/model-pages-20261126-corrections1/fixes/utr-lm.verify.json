@@ -1,0 +1,42 @@
+{
+  "record_id": "gfm2-20261011-you2026-model-utr-lm",
+  "statements_checked": 27,
+  "findings": [
+    {
+      "where": "section Versions and reproducibility",
+      "verdict": "wrong",
+      "statement": "plus 182 files under Model/Downstream for the MRL, TE and EL tasks.",
+      "source_says": "github-tree.json has 182 entries under Model/Downstream/, but two are the folders MRL and TE_EL and one is a .DS_Store file. That leaves 179 checkpoint files: 178 under Model/Downstream/TE_EL and 1 under Model/Downstream/MRL (MJ3_seed1337_ESM2SISS_FS4.1..._fold0_epoch299.pt).",
+      "fix": "plus 179 checkpoint files under Model/Downstream: 178 for the TE and EL tasks and one for MRL (fold 0 of a single library)."
+    },
+    {
+      "where": "fact Known versions",
+      "verdict": "wrong",
+      "statement": "16 pretrained checkpoint files in Model/Pretrained, named by their variant (ESM2, ESM2SI, ESM2SS, ESM2SISS, ESM2DSD) and data split, plus 182 files under Model/Downstream. No single named release.",
+      "source_says": "The 182 entries under Model/Downstream/ in github-tree.json include the two folders and a .DS_Store file; there are 179 checkpoint files (178 TE_EL, 1 MRL).",
+      "fix": "16 pretrained checkpoint files in Model/Pretrained, named by their variant (ESM2, ESM2SI, ESM2SS, ESM2SISS, ESM2DSD) and data split, plus 179 fine-tuned checkpoint files under Model/Downstream (178 for TE and EL, one for MRL). No single named release."
+    },
+    {
+      "where": "strength 1",
+      "verdict": "partly",
+      "statement": "Pretrained and fine-tuned checkpoints for every task and fold are committed in the repository, so a run does not depend on a separate download for the weights.",
+      "source_says": "The tree holds 16 pretrained files and 178 TE/EL files, but Model/Downstream/MRL contains a single file, for fold 0 of one MRL library. Not every task and fold is covered.",
+      "fix": "Pretrained checkpoints and fine-tuned TE and EL checkpoints are committed in the repository, so these runs do not need a separate weights download; only one fine-tuned MRL checkpoint is included."
+    },
+    {
+      "where": "step Fine-tune for translation efficiency",
+      "verdict": "partly",
+      "statement": "cd ./Scripts/UTRLM_downstream ... --modelfile ./Model/ESM2SI_3.1_fiveSpeciesCao_6layers_16heads_128embedsize_4096batchToks_MLMLossMin.pkl (explanation: using the ESM2SI_3.1 pretrained checkpoint)",
+      "source_says": "The command is copied correctly from the README, but in github-tree.json the checkpoint is at Model/Pretrained/ESM2SI_3.1_fiveSpeciesCao_6layers_16heads_128embedsize_4096batchToks_MLMLossMin.pkl at the repository root. There is no Scripts/UTRLM_downstream/Model folder, and Model/ holds only a macOS resource-fork file ._ESM2SI_3.1_..., so the path as written does not reach the checkpoint.",
+      "fix": "Keep the README command but add to the explanation: the README's --modelfile path does not exist from Scripts/UTRLM_downstream; the checkpoint is at ../../Model/Pretrained/ESM2SI_3.1_fiveSpeciesCao_6layers_16heads_128embedsize_4096batchToks_MLMLossMin.pkl, so pass that path instead."
+    },
+    {
+      "where": "fact Model type",
+      "verdict": "partly",
+      "statement": "Semi-supervised masked language model for 5' UTR sequences, fine-tuned for regression and classification tasks.",
+      "source_says": "The README and abstract name only regression targets: mean ribosome loading (label_type rl), translation efficiency (te_log) and expression level (rnaseq_log), trained with Huber or MSE loss. No classification task appears in the saved sources.",
+      "fix": "Semi-supervised masked language model for 5' UTR sequences, fine-tuned for regression tasks (mean ribosome loading, translation efficiency and expression level)."
+    }
+  ],
+  "summary": "Mostly reliable on the model itself: architecture settings, variants, licence and the README conflict over --heads and --embed_dim are reported correctly. The repository inventory is wrong or overstated (179 fine-tuned files, only one for MRL), the model type adds a classification use the sources do not give, and the run step's checkpoint path, copied from the README, does not resolve in the repository tree."
+}

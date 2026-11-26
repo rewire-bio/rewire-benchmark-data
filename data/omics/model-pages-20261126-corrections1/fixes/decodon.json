@@ -1,0 +1,16 @@
+[
+  {
+    "where": "section How it works",
+    "before": "Each token is one of the 64 codons or a special token.",
+    "after": "Tokens are the 64 codons, 5 special tokens and one organism token per NCBI Taxonomy ID listed in the package's taxids.txt; config.json sets vocab_size 1736.",
+    "action": "changed",
+    "why": "decodon_auto.py reads taxids.txt and adds an organism token per ID with tokenizer.set_organism_tokens(taxids); hf-config.json sets vocab_size 1736. Added quotes for both."
+  },
+  {
+    "where": "fact Inputs",
+    "before": "For embeddings and variant scoring, coding sequences read as codons, from a vocabulary of 64 codons and 5 special tokens.",
+    "after": "For embeddings and variant scoring, coding sequences read as codons, from a vocabulary of 64 codons, 5 special tokens and organism tokens for NCBI Taxonomy IDs (vocab_size 1736 in config.json).",
+    "action": "changed",
+    "why": "The README's 64 codons and 5 special tokens omit the organism tokens the wrapper adds. Added @hf-config as a source and quotes for set_organism_tokens and vocab_size."
+  }
+]

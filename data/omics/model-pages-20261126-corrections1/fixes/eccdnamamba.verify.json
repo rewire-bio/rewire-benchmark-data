@@ -1,0 +1,28 @@
+{
+ "record_id": "lit-genomics-20261011-geneb-model-eccdnamamba",
+ "statements_checked": 27,
+ "findings": [
+  {
+   "where": "fact Training data",
+   "verdict": "partly",
+   "statement": "The pretraining scripts take eccDNA coordinates from eccDNA Atlas (human, chicken, mouse) and CircleBase (human) and extract the sequences from the hg19, hg38, galGal4 and mm10 reference genomes.",
+   "source_says": "download_datasets.py downloads hg19, hg38, galGal4 and mm10, but extract_sequences.py opens only Fasta('data/genomes/hg19.fa'), Fasta('data/genomes/galGal4.fa') and Fasta('data/genomes/mm10.fa').",
+   "fix": "The pretraining scripts take eccDNA coordinates from eccDNA Atlas (human, chicken, mouse) and CircleBase (human) and extract the sequences from the hg19, galGal4 and mm10 reference genomes; the download script also fetches hg38."
+  },
+  {
+   "where": "strength 3",
+   "verdict": "partly",
+   "statement": "Pretrained and task-specific fine-tuned weights, plus the task datasets, are openly available under Apache-2.0.",
+   "source_says": "hf-org-models.json tags all eight models \"license:apache-2.0\"; README: \"All datasets and model weights are available on Hugging Face\". No saved file gives the datasets' licence.",
+   "fix": "Pretrained and task-specific fine-tuned weights, plus the task datasets, are on Hugging Face; all eight model repositories are tagged Apache-2.0. The licence of the datasets is not stated in the sources read."
+  },
+  {
+   "where": "fact Access",
+   "verdict": "partly",
+   "statement": "Code: https://github.com/zzq1zh/eccDNAMamba (the arXiv abstract links https://github.com/zzq1zh/GenAI-Lab). Weights and datasets: https://huggingface.co/eccDNAMamba, not gated.",
+   "source_says": "\"gated\":false appears only in hf-api.json (eccDNAMamba-1M); hf-org-models.json has no gated field, and hf-api-ultra-long.json was not cited for it.",
+   "fix": "Code: https://github.com/zzq1zh/eccDNAMamba (the arXiv abstract links https://github.com/zzq1zh/GenAI-Lab). Weights and datasets: https://huggingface.co/eccDNAMamba; eccDNAMamba-1M is not gated."
+  }
+ ],
+ "summary": "Mostly reliable. Architecture, parameter counts, licence tags, the config inconsistency and the run steps match the saved files; the genome list includes hg38, which the extraction script does not use, and the datasets' licence and organisation-wide gating are not shown."
+}

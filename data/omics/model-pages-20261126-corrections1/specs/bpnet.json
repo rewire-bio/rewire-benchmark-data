@@ -1,0 +1,731 @@
+{
+ "record_id": "lit-genomics-20261011-ntbench-model-bpnet",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "kundajelab/bpnet README.md at commit f4593eed",
+   "description": "Official repository README (current version of the package), pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/kundajelab/bpnet/f4593eedca51741f25b8c5cc0c0d647faf8c8a3c/README.md",
+   "url": "https://github.com/kundajelab/bpnet",
+   "version": "git commit f4593eedca51741f25b8c5cc0c0d647faf8c8a3c",
+   "media_type": "text/markdown",
+   "sha256": "f1a54bf17f0dac0e17ae6986d35a0130bf7e9fd04d4f946f73c3314ce30b0e7d",
+   "retrieved_at": "2026-11-26T16:50:00Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "readme-v0",
+   "name": "kundajelab/bpnet README.md at tag v0-final (commit 1c6e5c4c)",
+   "description": "README of the original BPNet package that accompanied the paper, pinned to the v0-final tag.",
+   "file": "artifacts/readme-v0-final.md",
+   "artifact_url": "https://raw.githubusercontent.com/kundajelab/bpnet/1c6e5c4caf97cf34ccf716ef5b8b9c8de231cca2/README.md",
+   "url": "https://github.com/kundajelab/bpnet/releases/tag/v0-final",
+   "version": "git commit 1c6e5c4caf97cf34ccf716ef5b8b9c8de231cca2 (tag v0-final)",
+   "media_type": "text/markdown",
+   "sha256": "e198aca812ab191db43eb9575e6eab8b75b805395474916e98aad44c3ffa82cc",
+   "retrieved_at": "2026-11-26T16:50:00Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "kundajelab/bpnet LICENSE at commit f4593eed",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/kundajelab/bpnet/f4593eedca51741f25b8c5cc0c0d647faf8c8a3c/LICENSE",
+   "url": "https://github.com/kundajelab/bpnet",
+   "version": "git commit f4593eedca51741f25b8c5cc0c0d647faf8c8a3c",
+   "media_type": "text/plain",
+   "sha256": "07cc7fd1890c0f369dfc2d35bfd5fc5bc8bde189401c35ae0f4e4ef63f088a96",
+   "retrieved_at": "2026-11-26T16:50:00Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Avsec et al. 2021, Base-resolution models of transcription-factor binding reveal soft motif syntax (Europe PMC full text, PMC8812996)",
+   "description": "Author manuscript of the BPNet paper in Nature Genetics, full-text XML from Europe PMC.",
+   "file": "artifacts/paper-fulltext.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8812996/fullTextXML",
+   "url": "https://doi.org/10.1038/s41588-021-00782-6",
+   "version": "Europe PMC full text as served on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "9a63377e48e8718905a372f5aefe34c898755143b2c5ca388585e83c1c967a0a",
+   "retrieved_at": "2026-11-26T16:50:00Z",
+   "licence": "Nature author manuscript terms of use (not CC BY)",
+   "store_bytes": false
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 4294904, BPNet manuscript data (concept DOI 10.5281/zenodo.3371163)",
+   "description": "Zenodo API response for the record holding the trained BPNet model from the paper.",
+   "file": "artifacts/zenodo-3371163.json",
+   "artifact_url": "https://zenodo.org/api/records/3371163",
+   "url": "https://doi.org/10.5281/zenodo.3371163",
+   "version": "Zenodo record 4294904, as served on 2026-11-26",
+   "media_type": "application/json",
+   "sha256": "85ae6bf8a46299b8423c61e1c9b87cf562577e6b4a2b26302cdb7c5d009ed913",
+   "retrieved_at": "2026-11-26T16:50:00Z",
+   "licence": "CC-BY-4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "BPNet is a convolutional neural network that predicts transcription-factor binding from DNA sequence at single-base resolution. It reads a stretch of genomic sequence and predicts the strand-specific read profile and the total read count of a ChIP-nexus or ChIP-seq experiment over that region. It is not a pretrained model: users train a new BPNet on their own experiment, then interpret it to find the sequence motifs that drive binding.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper abstract; README.md opening paragraph",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We introduce a deep learning model, BPNet, that uses DNA sequence to predict base-resolution ChIP-nexus binding profiles of pluripotency TFs."
+   },
+   {
+    "source": "@readme",
+    "text": "BPNet is a python package with a CLI to train and interpret base-resolution deep neural networks trained on functional genomics data such as ChIP-nexus or ChIP-seq."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "In the paper, the body of the network is a first convolutional layer of 64 filters of width 25 bp, followed by 9 dilated convolutional layers of 64 filters of width 3, with the dilation rate doubling at every layer and no pooling, so base resolution is kept. Two output heads per transcription factor sit on top: a deconvolutional layer that predicts the probability of a read at each position on each strand (profile shape), and a global average pooling layer with a fully connected layer that predicts the total read count. The loss is a multinomial negative log-likelihood for profile shape plus a mean squared error on log total counts. A control track is given as an extra input so that experimental bias is regressed out. After training, contribution scores and TF-MoDISco are used to extract motifs.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, 'BPNet predicts TF binding profiles from sequence'; Methods, BPNet architecture and loss function",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The first convolutional layer uses 64 filters of width 25 bp, followed by 9 dilated convolutional layers (64 filters of width 3 in each layer) where the dilation rate (number of skipped positions in the convolutional filter) doubles at every layer."
+     },
+     {
+      "source": "@paper",
+      "text": "To preserve base resolution, pooling is not used."
+     },
+     {
+      "source": "@paper",
+      "text": "a deconvolutional layer (filter width=25, typical ChIP-nexus footprint width) predicting the strand-specific probabilities of observing a particular read at a particular position in the input sequence (shape or profile prediction)"
+     },
+     {
+      "source": "@paper",
+      "text": "a global average pooling layer followed by the fully connected layer predicting the total number of read counts aligned to the input sequence for each strand (total read count prediction)"
+     },
+     {
+      "source": "@paper",
+      "text": "BPNet uses a multi-scale loss function to separately evaluate the predictions of profile shape (using a multinomial negative log-likelihood loss) and total read counts (using a mean squared error loss)."
+     },
+     {
+      "source": "@paper",
+      "text": "The signal from this track is regressed out during training, which prevents BPNet from learning these experimental biases."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "There are two generations of the code in the same repository. The original package that accompanied the paper is kept at the v0-final tag; it uses a `bpnet train` command, a dataspec.yml file and Python 3.6 with TensorFlow 1. The current master branch is described by its authors as the improved version and the one to use; it has separate `bpnet-train`, `bpnet-predict` and `bpnet-shap` commands, Python 3.7, and an example configuration with a 2114 bp input, a 1000 bp output profile, a first filter of width 21 and 8 dilated layers. The two generations use different defaults, so a result should name the code version (tag or commit), the architecture parameters file and the training data. The trained mouse ESC model from the paper (Oct4, Sox2, Nanog, Klf4) is published on Zenodo and on Kipoi as BPNet-OSKN.",
+    "source_ids": [
+     "@readme",
+     "@readme-v0",
+     "@paper",
+     "@zenodo"
+    ],
+    "source_locator": "README.md opening paragraph, Installation and Tutorial; v0-final README.md: Main commands and Installation; paper: Data availability; Zenodo record description",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This is the improved version of the repo associated the BPNet paper. We suggest using this going forward instead of the original repo which can still be found at https://github.com/kundajelab/bpnet/releases/tag/v0-final"
+     },
+     {
+      "source": "@readme",
+      "text": "conda create --name bpnet python=3.7"
+     },
+     {
+      "source": "@readme",
+      "text": "\"input_len\": 2114,"
+     },
+     {
+      "source": "@readme",
+      "text": "\"output_profile_len\": 1000,"
+     },
+     {
+      "source": "@readme",
+      "text": "\"kernel_sizes\": [21],"
+     },
+     {
+      "source": "@readme",
+      "text": "\"num_dilation_layers\": 8,"
+     },
+     {
+      "source": "@readme-v0",
+      "text": "bpnet train --premade=bpnet9 dataspec.yml --override='seq_width=200;n_dil_layers=6' ."
+     },
+     {
+      "source": "@readme-v0",
+      "text": "Supported python version is 3.6."
+     },
+     {
+      "source": "@readme-v0",
+      "text": "pip install tensorflow~=1.0"
+     },
+     {
+      "source": "@paper",
+      "text": "The BPNet model trained on ChIP-nexus data is available on Kipoi under the name"
+     },
+     {
+      "source": "@zenodo",
+      "text": "BPNet Keras model. This model can be directly used via the model repository Kipoi:"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Supervised sequence-to-profile convolutional neural network, trained from scratch on each functional genomics experiment.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md opening paragraph; paper abstract",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "BPNet is a python package with a CLI to train and interpret base-resolution deep neural networks trained on functional genomics data such as ChIP-nexus or ChIP-seq."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Paper version: a convolutional layer of 64 filters of width 25 bp, then 9 dilated convolutional layers (64 filters of width 3) with residual skip connections, no pooling, and per-factor profile and total-count heads. Current README example: first filter width 21, 8 dilated layers of 64 filters, profile head kernel 75.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, BPNet architecture; README.md: Tutorial, bpnet_params.json",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The first convolutional layer uses 64 filters of width 25 bp, followed by 9 dilated convolutional layers (64 filters of width 3 in each layer)"
+     },
+     {
+      "source": "@paper",
+      "text": "The body of BPNet consists of a sequence of convolutional layers with residual skip connections and ReLU activations"
+     },
+     {
+      "source": "@readme",
+      "text": "\"kernel_sizes\": [21],"
+     },
+     {
+      "source": "@readme",
+      "text": "\"num_dilation_layers\": 8,"
+     },
+     {
+      "source": "@readme",
+      "text": "\"kernel_size\": 75,"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "DNA sequence from a reference genome (2114 bp in the current README example), plus optional control (bias) bigWig tracks. Training also needs signal bigWigs for each strand and a BED file of peaks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Tutorial, input_data.json and bpnet-train",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`signal`: the `plus` and `minus` bigwig tracks"
+     },
+     {
+      "source": "@readme",
+      "text": "`loci`: the bed file with the filtered peaks"
+     },
+     {
+      "source": "@readme",
+      "text": "`bias` (optional): the `plus` and `minus` control bigwig tracks"
+     },
+     {
+      "source": "@readme",
+      "text": "--input-seq-len 2114 \\"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Predicted strand-specific base-resolution read profiles and total read counts (1000 bp output in the current README example), written as test metrics and optional bigWig tracks; contribution (SHAP) scores per base from bpnet-shap.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Tutorial sections 2 and 3",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This script will output test metrics and also output bigwig tracks if the"
+     },
+     {
+      "source": "@readme",
+      "text": "This script will output shap bigwig tracks which are usefull for visualizing in a genome browser"
+     },
+     {
+      "source": "@readme",
+      "text": "--output-len 1000 \\"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported as a count. The model is trained per experiment and its size depends on the architecture parameters chosen.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Tutorial, bpnet_params.json; paper Methods"
+   },
+   {
+    "label": "Training data",
+    "value": "None shipped with the method: each model is trained on the user's own ChIP-nexus or ChIP-seq data. The paper's models were trained on ChIP-nexus profiles of Oct4, Sox2, Nanog and Klf4 in mouse embryonic stem cells.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Introduction and Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We studied the pluripotency TFs Oct4, Sox2, Nanog and Klf4 in the well-characterized mouse embryonic stem cell (ESC) model, generating ChIP-nexus data for maximum resolution."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Original package at tag v0-final (commit 1c6e5c4c); current package on the master branch, read at commit f4593eed; the trained paper model BPNet-OSKN on Zenodo (record 4294904) and Kipoi.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@zenodo"
+    ],
+    "source_locator": "README.md opening paragraph; Zenodo record",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We suggest using this going forward instead of the original repo which can still be found at https://github.com/kundajelab/bpnet/releases/tag/v0-final"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"title\": \"BPNet manuscript data 1\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not applicable: BPNet is an architecture trained by the user on their own data, not a single pretrained model.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Tutorial, Train a model"
+   },
+   {
+    "label": "Context limits",
+    "value": "Set by the user. The current README example uses a 2114 bp input and a 1000 bp output profile; the paper model has a receptive field of +/-1034 bp around each position.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: bpnet_params.json; paper Methods",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "\"input_len\": 2114,"
+     },
+     {
+      "source": "@readme",
+      "text": "\"output_profile_len\": 1000,"
+     },
+     {
+      "source": "@paper",
+      "text": "This results in a receptive field of +/−1034 bp for any position in the genome."
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "No general weights are released. The trained paper model on Zenodo (record 4294904) is under CC-BY-4.0, as listed in the Zenodo record.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record metadata, license field",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2023 Kundaje Lab"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/kundajelab/bpnet (pip install bpnet, or from the repository); also a Docker image and an AnVIL workflow. Paper model: https://doi.org/10.5281/zenodo.3371163 and Kipoi model BPNet-OSKN (http://kipoi.org/models/BPNet-OSKN/).",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper",
+     "@zenodo"
+    ],
+    "source_locator": "README.md: Installation; paper: Data availability; Zenodo description",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install git+https://github.com/kundajelab/bpnet.git"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install bpnet"
+     },
+     {
+      "source": "@readme",
+      "text": "docker pull vivekramalingam/tf-atlas:gcp-modeling_v2.1.0-rc.1"
+     },
+     {
+      "source": "@paper",
+      "text": "Trained BPNet models and all the model interpretation results are on ZENODO at"
+     },
+     {
+      "source": "@paper",
+      "text": "The BPNet model trained on ChIP-nexus data is available on Kipoi under the name"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Predicts binding at single-base resolution, because the network uses no pooling and models the full read profile on each strand.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results and Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To preserve base resolution, pooling is not used."
+     },
+     {
+      "source": "@paper",
+      "text": "BPNet uses multi-task learning to jointly train on the strand-specific ChIP-nexus profiles of all four TFs."
+     }
+    ]
+   },
+   {
+    "text": "The package covers the whole path from training to interpretation: prediction tracks, per-base contribution scores, and motif discovery with TF-MoDISco and motif hit calling with FiNeMo.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Tutorial sections 2 to 5",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "In our case we will assign each nucleotide an importance value or how much it contributed for the binding at each input region according to our model."
+     },
+     {
+      "source": "@readme",
+      "text": "This step allows one to get a list of sequence motifs that drive the signal in the studied experiment."
+     }
+    ]
+   },
+   {
+    "text": "Code is MIT licensed, and the trained paper model is on Zenodo under CC-BY-4.0.",
+    "source_ids": [
+     "@license",
+     "@zenodo"
+    ],
+    "source_locator": "LICENSE; Zenodo record metadata",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "There is no general pretrained model. Each use needs a new model trained on aligned reads from a specific experiment, plus peak calls, a reference genome and preprocessing with samtools, bedtools and bedGraphToBigWig.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation 3.4 and Tutorial",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "For the following steps you will need `samtools` `bamtools` and `bedGraphToBigWig`, which are not"
+     },
+     {
+      "source": "@readme",
+      "text": "Before we start training, we need to compile a json file that contains information about the input data."
+     }
+    ]
+   },
+   {
+    "text": "The developers recommend a GPU with NVIDIA drivers and CUDA for training.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "it is recommended that you use a GPU for model training and have the necessary NVIDIA drivers and CUDA already installed."
+     }
+    ]
+   },
+   {
+    "text": "The current package differs from the version in the paper (commands, defaults and environment), and the README says a preprint for the new version is not yet out, so results from the two are not directly comparable.",
+    "source_ids": [
+     "@readme",
+     "@readme-v0"
+    ],
+    "source_locator": "README.md opening paragraph and How to Cite",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "An preprint associated with this new version will soon be released and will be pointed out here."
+     },
+     {
+      "source": "@readme-v0",
+      "text": "Supported python version is 3.6."
+     }
+    ]
+   },
+   {
+    "text": "The current environment pins an old Python (3.7), and the original package needs Python 3.6 and TensorFlow 1.",
+    "source_ids": [
+     "@readme",
+     "@readme-v0"
+    ],
+    "source_locator": "README.md: Installation 3.2; v0-final README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create --name bpnet python=3.7"
+     },
+     {
+      "source": "@readme-v0",
+      "text": "pip install tensorflow~=1.0"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "BPNet workflow",
+   "steps": [
+    "ChIP-nexus or ChIP-seq reads and peaks for one experiment",
+    "Signal and control bigWig tracks per strand",
+    "Train BPNet on DNA sequence around the peaks",
+    "Predicted base-resolution profile and total counts",
+    "Per-base contribution scores",
+    "Motifs from TF-MoDISco"
+   ],
+   "caption": "Train-and-interpret workflow as described in the current README and the paper.",
+   "source_ids": [
+    "@readme",
+    "@paper"
+   ],
+   "source_locator": "README.md: Tutorial; paper Methods",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "The command to train a model is called `bpnet-train`."
+    },
+    {
+     "source": "@readme",
+     "text": "Use the newer version of TF-modisco to discover the motifs."
+    },
+    {
+     "source": "@paper",
+     "text": "followed by nine dilated convolutional layers with residual skip connections"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The README's data preparation (test data download, preprocessing, outlier removal, background generation) is on unpinned wiki pages that were not saved as sources.",
+   "Parameter counts are not reported for either the paper model or the README example configuration.",
+   "Hardware needs beyond the GPU recommendation, and training time, are not stated in the sources read.",
+   "The Kipoi page for BPNet-OSKN was not read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the kundajelab/bpnet README.md and LICENSE at commit f4593eedca51741f25b8c5cc0c0d647faf8c8a3c, the README.md at tag v0-final (commit 1c6e5c4caf97cf34ccf716ef5b8b9c8de231cca2), the Europe PMC full text of Avsec et al. 2021 (PMC8812996) and the Zenodo API record 4294904, each fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the current BPNet package, train a model on one prepared ChIP-seq experiment and predict profiles on held-out chromosomes.",
+  "prerequisites": [
+   "A machine with an NVIDIA GPU, drivers and CUDA is recommended for training.",
+   "Miniconda, used to create a Python 3.7 environment.",
+   "Prepared data for one experiment: plus and minus strand signal bigWigs, a filtered peaks BED file, optional control bigWigs and GC-matched background regions, hg38 reference FASTA, chromosome sizes and a chroms.txt list. The README points to wiki pages for these steps (Download-test-data, Preprocessing, Outlier_removal, Background_generation).",
+   "input_data.json, bpnet_params.json and splits.json written as in the README tutorial."
+  ],
+  "steps": [
+   {
+    "title": "Create the environment",
+    "shell": "conda create --name bpnet python=3.7\nconda activate bpnet",
+    "explanation": "Creates and activates a Python 3.7 conda environment.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation 3.2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create --name bpnet python=3.7"
+     },
+     {
+      "source": "@readme",
+      "text": "conda activate bpnet"
+     }
+    ]
+   },
+   {
+    "title": "Install BPNet and helper tools",
+    "shell": "pip install git+https://github.com/kundajelab/bpnet.git\nconda install -y -c bioconda samtools=1.1 bedtools ucsc-bedgraphtobigwig",
+    "explanation": "Installs the package from the repository's default branch, which may be newer than the commit read here, and the tools used to build bigWig tracks.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation 3.3 and 3.4",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install git+https://github.com/kundajelab/bpnet.git"
+     },
+     {
+      "source": "@readme",
+      "text": "conda install -y -c bioconda samtools=1.1 bedtools ucsc-bedgraphtobigwig"
+     }
+    ]
+   },
+   {
+    "title": "Choose the counts loss weight",
+    "shell": "bpnet-counts-loss-weight --input-data input_data.json",
+    "explanation": "Computes the counts loss weight to put in the loss_weights field of bpnet_params.json.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Tutorial, Train a model",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "bpnet-counts-loss-weight --input-data input_data.json"
+     }
+    ]
+   },
+   {
+    "title": "Train",
+    "shell": "BASE_DIR=ENCSR000EGM\nDATA_DIR=$BASE_DIR/data\nMODEL_DIR=$BASE_DIR/models\nREFERENCE_DIR=reference\nCHROM_SIZES=$REFERENCE_DIR/hg38.chrom.sizes\nREFERENCE_GENOME=$REFERENCE_DIR/hg38.genome.fa\nCV_SPLITS=$BASE_DIR/splits.json\nINPUT_DATA=$BASE_DIR/input_data.json\nMODEL_PARAMS=$BASE_DIR/bpnet_params.json\n\nmkdir $MODEL_DIR\nbpnet-train \\\n        --input-data $INPUT_DATA \\\n        --output-dir $MODEL_DIR \\\n        --reference-genome $REFERENCE_GENOME \\\n        --chroms $(paste -s -d ' ' $REFERENCE_DIR/chroms.txt) \\\n        --chrom-sizes $CHROM_SIZES \\\n        --splits $CV_SPLITS \\\n        --model-arch-name BPNet \\\n        --model-arch-params-json $MODEL_PARAMS \\\n        --sequence-generator-name BPNet \\\n        --model-output-filename model \\\n        --input-seq-len 2114 \\\n        --output-len 1000 \\\n        --shuffle \\\n        --threads 10 \\\n        --epochs 100 \\\n        --batch-size 64 \\\n        --reverse-complement-augmentation \\\n        --early-stopping-patience 10 \\\n        --reduce-lr-on-plateau-patience 5 \\\n        --learning-rate 0.001",
+    "explanation": "The README's training command for the ENCODE CTCF example ENCSR000EGM. The README notes training may take a few minutes to start.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Tutorial, 1. Train a model!",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "BASE_DIR=ENCSR000EGM"
+     },
+     {
+      "source": "@readme",
+      "text": "bpnet-train \\ --input-data $INPUT_DATA \\ --output-dir $MODEL_DIR \\"
+     },
+     {
+      "source": "@readme",
+      "text": "--model-arch-name BPNet \\"
+     },
+     {
+      "source": "@readme",
+      "text": "--learning-rate 0.001"
+     }
+    ]
+   },
+   {
+    "title": "Predict on the test chromosomes",
+    "shell": "PREDICTIONS_DIR=$BASE_DIR/predictions_and_metrics\nmkdir $PREDICTIONS_DIR\nbpnet-predict \\\n        --model $MODEL_DIR/model_split000 \\\n        --chrom-sizes $CHROM_SIZES \\\n        --chroms chr7 chr13 chr17 chr19 chr21 chrX \\\n        --test-indices-file None \\\n        --reference-genome $REFERENCE_GENOME \\\n        --output-dir $PREDICTIONS_DIR \\\n        --input-data $INPUT_DATA \\\n        --sequence-generator-name BPNet \\\n        --input-seq-len 2114 \\\n        --output-len 1000 \\\n        --output-window-size 1000 \\\n        --batch-size 64 \\\n        --reverse-complement-average \\\n        --threads 2 \\\n        --generate-predicted-profile-bigWigs",
+    "explanation": "Runs the trained model on the test chromosomes from splits.json, in the same shell as the training step so the variables are set. The README's sample splits.json also lists chr21 under train, so remove it from one list before treating the test set as held out.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Tutorial, 2. Model Prediction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "PREDICTIONS_DIR=$BASE_DIR/predictions_and_metrics"
+     },
+     {
+      "source": "@readme",
+      "text": "--model $MODEL_DIR/model_split000 \\"
+     },
+     {
+      "source": "@readme",
+      "text": "--generate-predicted-profile-bigWigs"
+     },
+     {
+      "source": "@readme",
+      "text": "[\"chr7\", \"chr13\", \"chr17\", \"chr19\", \"chr21\", \"chrX\"]"
+     },
+     {
+      "source": "@readme",
+      "text": "\"chr15\", \"chr16\", \"chr21\", \"chr22\", \"chrY\"]"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Test-set metrics in the predictions_and_metrics directory, and predicted profile bigWig tracks because --generate-predicted-profile-bigWigs is given."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The pip command installs the default branch, not the commit read for this page.",
+   "Data preparation is described on wiki pages outside the pinned repository and was not checked.",
+   "The README's splits.json example lists chr21 under both test and train."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "notes": "The record describes BPNet as an architecture trained per task, which matches the sources. The repository has two generations (tag v0-final, used in the paper, and the current master); this page describes both and runs the current one. The paper full text is a Nature author manuscript, not CC BY, so its bytes are not stored."
+}
