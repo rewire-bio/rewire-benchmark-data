@@ -46,3 +46,9 @@ Each proposed field and whether the verification pass confirmed it. An empty kep
 | claude-haiku-5-5 | 10510 | 3624 | 39621 | 7747 | 0 | 3 | $0.0058 |
 | claude-sonnet-5-5 | 4 | 6728 | 10695 | 2160 | 0 | 0 | $0.0395 |
 | Total | | | | | | | $0.0453 |
+
+## Revision after review
+
+The reviewer agent requested changes (https://github.com/rewire-bio/rewire-benchmark-data/pull/408#pullrequestreview-6079028467). The intake agent revised the batch once; it changes only the fields the review did not pass, and it does not revise again.
+
+- `intake-405-20261126-model-all-atom-structure-tokenizer` duplicates: ruled distinct from `lit-structure-20261011-lipp-model-rosettafold-aa` ("RoseTTAFold All-Atom"). Ruled in the revision after review: a different resource. New record: "discrete all-atom structure tokenizer". Store record lit-structure-20261011-lipp-model-rosettafold-aa (model): "co-folding model evaluated". The script compared the source URLs, DOIs and repository addresses the two records give and found none in common; it cannot see one resource cited at two unrelated addresses. The new record is a tokenizer that encodes heavy-atom assemblies into integer IDs with a flow-matching coordinate decoder, while the store record is RoseTTAFold All-Atom, a co-folding structure prediction model ev
