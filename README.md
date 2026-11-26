@@ -6,10 +6,14 @@ Every release also checks the evidence against itself: where one study ranks or 
 
 The website and API that display this data live in [rewire-database](https://github.com/rewire-bio/rewire-database). Benchmark execution lives in [rewire-benchmarks](https://github.com/rewire-bio/rewire-benchmarks). This repository is public and holds no credentials or private submissions.
 
+**Start with [docs/knowledge-base.md](docs/knowledge-base.md)**: how a fact gets from a paper into the records, onto the website and into the knowledge graph, in plain terms. [docs/scorecard.md](docs/scorecard.md) shows how complete each kind of record is.
+
 ## Collecting and updating data
 
 | Document | What it covers |
 | --- | --- |
+| [docs/knowledge-base.md](docs/knowledge-base.md) | The whole pipeline in plain terms: the records, how they are filled in batches and checked, releases, the nightly graph, comparing results across papers |
+| [docs/scorecard.md](docs/scorecard.md) | Counts of how complete models, benchmarks, methods, protocols, results and use cases are; rebuilt by `scripts/enrich/scorecard.py` |
 | [docs/collection.md](docs/collection.md) | The collection procedure: search, capture sources, extract, review, validate. Start here. |
 | [docs/record-contract.md](docs/record-contract.md) | Record kinds and fields |
 | [docs/use-cases.md](docs/use-cases.md) | Use-case definitions, mappings and how to change them |
