@@ -1,0 +1,293 @@
+{
+  "cluster": "proteingym",
+  "settings": [
+    {
+      "key": "proteingym-v1.3-dms-substitutions-zero-shot-spearman-average",
+      "name": "ProteinGym v1.3 DMS substitutions, zero-shot, Spearman, official average over 217 assays",
+      "definition": "All 217 ProteinGym DMS substitution assays at upstream commit 144fe22 (v1.3). The model scores each variant without any training on the assay labels. Spearman correlation between scores and DMS fitness per assay, rounded to three decimals, then averaged with the official ProteinGym aggregation (mean by UniProt ID and selection type, then equal weight per selection-type category).",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "rewire-proteingym-v1-3-dms-substitutions",
+          "comparability": "same",
+          "metric": "spearman-correlation",
+          "why": "Results are the Average_Spearman column of benchmarks/DMS_zero_shot/substitutions/Spearman/Summary_performance_DMS_substitutions_Spearman.csv at commit 144fe22; dataset is 'ProteinGym DMS substitution assays at commit 144fe22 (217 assays)'; protocol_version v1.3.",
+          "differences": "This protocol also holds the summary file's subset columns (Depth_1 to Depth_5+, Function_*, MSA depth, Taxa_*) as results with no conditions field; only the Average_Spearman rows belong to this setting. The file carries 400 of the protocol's 1,746 results, so only 23 systems were checked. Per-model scoring choices and input modalities are not recorded."
+        },
+        {
+          "protocol_id": "hyplm-flash-20261106-protocol-proteingym-zero-shot",
+          "comparability": "same",
+          "metric": "spearman-correlation",
+          "why": "metric_qualifier: 'Spearman correlation averaged over the 217 substitution assays of ProteinGym v1.3 with the benchmark's official aggregation, from masked-marginal zero-shot scores; per-assay values rounded to three decimals before aggregation'; dataset is the same 'ProteinGym DMS substitution assays at commit 144fe22 (217 assays)' record.",
+          "differences": "Values are the HyPLM authors' own BF16 runs with their masked-marginal implementation (one window centred on the position for long targets), not ProteinGym's published scores. Some values are read from Figure 3a bar labels (ESM-2 150M, 3B, 15B; ESM C 300M) rather than tables. The report says eight values between 0.403 and 0.420 are a statistical tie."
+        }
+      ]
+    },
+    {
+      "key": "proteingym-v1.3-amfr-tsuboyama-zero-shot-spearman",
+      "name": "ProteinGym AMFR_HUMAN_Tsuboyama_2023_4G3O single assay, zero-shot, Spearman",
+      "definition": "One ProteinGym DMS substitution assay, AMFR_HUMAN_Tsuboyama_2023_4G3O (stability, 2,972 variants), at upstream commit 144fe22. Zero-shot scores for every variant, Spearman correlation against the DMS score for that one assay. No aggregation. Not a suite score.",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "uc20260930-proteingym-amfr-protocol",
+          "comparability": "same",
+          "metric": "spearman-correlation",
+          "why": "Results are the AMFR_HUMAN_Tsuboyama_2023_4G3O row of DMS_substitutions_Spearman_DMS_level.csv at commit 144fe22b07dfaeec2b366f2346203a9838a55b4c (97 systems).",
+          "differences": "Per-model scored counts, score transforms and checkpoints are not extracted, and modalities differ across models. The record's limitations say 'Do not merge with local protocols'; this proposal links it for comparison only and does not merge the records."
+        },
+        {
+          "protocol_id": "rewire-protocol-proteingym-amfr-v13",
+          "comparability": "same",
+          "metric": "spearman-correlation",
+          "why": "Scores all 2,972 variants of AMFR_HUMAN_Tsuboyama_2023_4G3O (prepared_count equals expected_count) from ProteinGym v1.3 with metadata pinned to 144fe22; Spearman is read from protocol_results.per_assay for that assay.",
+          "differences": "Rewire local run of ESM-2 8M masked marginals on CPU; single run. Its ESM-2 8M Spearman (-0.209) equals the official snapshot value for ESM2 (8M)."
+        },
+        {
+          "protocol_id": "rewire-protocol-proteingym-amfr-random-v13",
+          "comparability": "same",
+          "metric": "spearman-correlation",
+          "why": "Same assay, same 2,972 variants and same protocol_configuration as the ESM-2 8M local run; Spearman from protocol_results.per_assay.",
+          "differences": "A seed-0 random ranking control, one seed only; it is a floor for the setting, not a model."
+        }
+      ]
+    },
+    {
+      "key": "proteingym-v1.3-amfr-tsuboyama-zero-shot-auroc",
+      "name": "ProteinGym AMFR_HUMAN_Tsuboyama_2023_4G3O single assay, zero-shot, AUROC",
+      "definition": "The AMFR_HUMAN_Tsuboyama_2023_4G3O assay (2,972 variants) at ProteinGym v1.3 / commit 144fe22, scored zero-shot; AUROC against the official binarised DMS labels (official_DMS_score_bin) for that one assay. No aggregation.",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "rewire-protocol-proteingym-amfr-v13",
+          "comparability": "same",
+          "metric": "auroc",
+          "why": "AUROC from protocol_results.per_assay for this assay; binary_labels official_DMS_score_bin; all 2,972 variants scored.",
+          "differences": "Rewire local ESM-2 8M run. No published value for this assay and metric is in the file to compare against."
+        },
+        {
+          "protocol_id": "rewire-protocol-proteingym-amfr-random-v13",
+          "comparability": "same",
+          "metric": "auroc",
+          "why": "Identical protocol_configuration (assay, counts, binary labels) to the ESM-2 8M run.",
+          "differences": "Seed-0 random control, one seed."
+        }
+      ]
+    },
+    {
+      "key": "proteingym-v1.3-amfr-tsuboyama-zero-shot-matthews-correlation-coefficient",
+      "name": "ProteinGym AMFR_HUMAN_Tsuboyama_2023_4G3O single assay, zero-shot, MCC",
+      "definition": "The AMFR_HUMAN_Tsuboyama_2023_4G3O assay (2,972 variants) at ProteinGym v1.3 / commit 144fe22, scored zero-shot; MCC against the official binarised DMS labels (official_DMS_score_bin) for that one assay. No aggregation.",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "rewire-protocol-proteingym-amfr-v13",
+          "comparability": "same",
+          "metric": "matthews-correlation-coefficient",
+          "why": "MCC from protocol_results.per_assay for this assay; binary_labels official_DMS_score_bin; all 2,972 variants scored.",
+          "differences": "Rewire local ESM-2 8M run. No published value for this assay and metric is in the file to compare against."
+        },
+        {
+          "protocol_id": "rewire-protocol-proteingym-amfr-random-v13",
+          "comparability": "same",
+          "metric": "matthews-correlation-coefficient",
+          "why": "Identical protocol_configuration (assay, counts, binary labels) to the ESM-2 8M run.",
+          "differences": "Seed-0 random control, one seed."
+        }
+      ]
+    },
+    {
+      "key": "proteingym-v1.3-amfr-tsuboyama-zero-shot-ndcg-at-10-percent",
+      "name": "ProteinGym AMFR_HUMAN_Tsuboyama_2023_4G3O single assay, zero-shot, NDCG at 10%",
+      "definition": "The AMFR_HUMAN_Tsuboyama_2023_4G3O assay (2,972 variants) at ProteinGym v1.3 / commit 144fe22, scored zero-shot; NDCG at 10% against the official binarised DMS labels (official_DMS_score_bin) for that one assay. No aggregation.",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "rewire-protocol-proteingym-amfr-v13",
+          "comparability": "same",
+          "metric": "ndcg-at-10-percent",
+          "why": "NDCG at 10% from protocol_results.per_assay for this assay; binary_labels official_DMS_score_bin; all 2,972 variants scored.",
+          "differences": "Rewire local ESM-2 8M run. No published value for this assay and metric is in the file to compare against."
+        },
+        {
+          "protocol_id": "rewire-protocol-proteingym-amfr-random-v13",
+          "comparability": "same",
+          "metric": "ndcg-at-10-percent",
+          "why": "Identical protocol_configuration (assay, counts, binary labels) to the ESM-2 8M run.",
+          "differences": "Seed-0 random control, one seed."
+        }
+      ]
+    },
+    {
+      "key": "proteingym-v1.3-amfr-tsuboyama-zero-shot-top-10-percent-recall",
+      "name": "ProteinGym AMFR_HUMAN_Tsuboyama_2023_4G3O single assay, zero-shot, top 10% recall",
+      "definition": "The AMFR_HUMAN_Tsuboyama_2023_4G3O assay (2,972 variants) at ProteinGym v1.3 / commit 144fe22, scored zero-shot; top 10% recall against the official binarised DMS labels (official_DMS_score_bin) for that one assay. No aggregation.",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "rewire-protocol-proteingym-amfr-v13",
+          "comparability": "same",
+          "metric": "top-10-percent-recall",
+          "why": "top 10% recall from protocol_results.per_assay for this assay; binary_labels official_DMS_score_bin; all 2,972 variants scored.",
+          "differences": "Rewire local ESM-2 8M run. No published value for this assay and metric is in the file to compare against."
+        },
+        {
+          "protocol_id": "rewire-protocol-proteingym-amfr-random-v13",
+          "comparability": "same",
+          "metric": "top-10-percent-recall",
+          "why": "Identical protocol_configuration (assay, counts, binary labels) to the ESM-2 8M run.",
+          "differences": "Seed-0 random control, one seed."
+        }
+      ]
+    }
+  ],
+  "unassigned": [
+    {
+      "protocol_id": "gfm-guides-20261014-gpnmsa-protocol-dms-tadbp-auroc",
+      "why": "Single assay (TADBP_HUMAN Bolognesi 2019, ProteinGym v0.1) binarised at a paper-specific 0.125 cutoff, scored in genomic coordinates; no other protocol in the cluster uses this assay or cutoff."
+    },
+    {
+      "protocol_id": "gpn-star-20261116-protocol-ablation-proteingym-spearman",
+      "why": "Mean Spearman over 31 human ProteinGym v0.1 assays in genomic coordinates, scored only on variants all compared models cover, for 25M-parameter ablation models trained by the authors. No other protocol uses this assay subset, release or variant filter."
+    },
+    {
+      "protocol_id": "hyplm-flash-20261106-protocol-proteingym-activity",
+      "why": "Selection-type subset ('Activity') of the 217 v1.3 assays from HyPLM Table 5 (authors' BF16 runs only). The matching data in the file is the Function_Activity column of the ProteinGym summary, which is stored under rewire-proteingym-v1-3-dms-substitutions together with the average; that protocol can only join one Spearman setting, and none of the systems here (DPLM, E1, ESM C 6B, HyPLM-Flash) appear among the 23 summary systems in the file, so there is nothing to compare yet."
+    },
+    {
+      "protocol_id": "hyplm-flash-20261106-protocol-proteingym-binding",
+      "why": "Selection-type subset ('Binding') of the 217 v1.3 assays from HyPLM Table 5 (authors' BF16 runs only). The matching data in the file is the Function_Binding column of the ProteinGym summary, which is stored under rewire-proteingym-v1-3-dms-substitutions together with the average; that protocol can only join one Spearman setting, and none of the systems here (DPLM, E1, ESM C 6B, HyPLM-Flash) appear among the 23 summary systems in the file, so there is nothing to compare yet."
+    },
+    {
+      "protocol_id": "hyplm-flash-20261106-protocol-proteingym-expression",
+      "why": "Selection-type subset ('Expression') of the 217 v1.3 assays from HyPLM Table 5 (authors' BF16 runs only). The matching data in the file is the Function_Expression column of the ProteinGym summary, which is stored under rewire-proteingym-v1-3-dms-substitutions together with the average; that protocol can only join one Spearman setting, and none of the systems here (DPLM, E1, ESM C 6B, HyPLM-Flash) appear among the 23 summary systems in the file, so there is nothing to compare yet."
+    },
+    {
+      "protocol_id": "hyplm-flash-20261106-protocol-proteingym-organismal-fitness",
+      "why": "Selection-type subset ('Organismal fitness') of the 217 v1.3 assays from HyPLM Table 5 (authors' BF16 runs only). The matching data in the file is the Function_OrganismalFitness column of the ProteinGym summary, which is stored under rewire-proteingym-v1-3-dms-substitutions together with the average; that protocol can only join one Spearman setting, and none of the systems here (DPLM, E1, ESM C 6B, HyPLM-Flash) appear among the 23 summary systems in the file, so there is nothing to compare yet."
+    },
+    {
+      "protocol_id": "hyplm-flash-20261106-protocol-proteingym-stability",
+      "why": "Selection-type subset ('Stability') of the 217 v1.3 assays from HyPLM Table 5 (authors' BF16 runs only). The matching data in the file is the Function_Stability column of the ProteinGym summary, which is stored under rewire-proteingym-v1-3-dms-substitutions together with the average; that protocol can only join one Spearman setting, and none of the systems here (DPLM, E1, ESM C 6B, HyPLM-Flash) appear among the 23 summary systems in the file, so there is nothing to compare yet."
+    },
+    {
+      "protocol_id": "hyplm-flash-20261106-protocol-proteingym-paired-difference",
+      "why": "Metric is HyPLM-Flash minus a baseline with a paired bootstrap interval, not a per-model score; it supports the tie stated under the zero-shot protocol (for example HyPLM-Flash minus ESM-2 650M is -0.006, consistent with 0.409 and 0.415) but has no counterpart elsewhere."
+    },
+    {
+      "protocol_id": "vep-lit-20261014-protocol-proteingym-clinical-supervised-substitutions-auc-144fe22",
+      "why": "ProteinGym clinical substitutions with supervised dbNSFP predictors, Average_AUC at 144fe22. Only one source in the cluster reports this test."
+    },
+    {
+      "protocol_id": "vep-lit-20261014-protocol-proteingym-clinical-zero-shot-indels-auc-144fe22",
+      "why": "ProteinGym clinical indels, zero-shot, Average_AUC at 144fe22. Only one source in the cluster reports this test."
+    },
+    {
+      "protocol_id": "vep-lit-20261014-protocol-proteingym-clinical-zero-shot-substitutions-auc-144fe22",
+      "why": "ProteinGym clinical substitutions, zero-shot, Average_AUC at 144fe22. Only one source in the cluster reports this test; it is a clinical label set, not DMS, so it does not join the DMS settings."
+    }
+  ],
+  "disagreements": [
+    {
+      "setting": "proteingym-v1.3-dms-substitutions-zero-shot-spearman-average",
+      "model": "ESM-1b",
+      "model_id": "uc20260930-model-esm-1b",
+      "metric": "spearman-correlation",
+      "values": [
+        {
+          "protocol_id": "hyplm-flash-20261106-protocol-proteingym-zero-shot",
+          "source": "HyPLM Technical Report (Hyra Team, 2026-10-12)",
+          "value": 0.389,
+          "result_id": "hyplm-flash-20261106-result-proteingym-zero-shot-esm-1b"
+        },
+        {
+          "protocol_id": "rewire-proteingym-v1-3-dms-substitutions",
+          "source": "ProteinGym zero-shot DMS substitutions Spearman summary at commit 144fe22",
+          "value": 0.394,
+          "result_id": "vep-lit-20261014-result-pg-dms-esm-1b-average-spearman"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "HyPLM reports 0.389 (Table 6) against ProteinGym's 0.394, a gap of 0.005; HyPLM rescored ESM-1b with its own masked-marginal code, and ESM-1b's context limit makes long-sequence handling (HyPLM uses one window centred on the position) the most likely innocent cause, though the file does not state ProteinGym's handling."
+    },
+    {
+      "setting": "proteingym-v1.3-dms-substitutions-zero-shot-spearman-average",
+      "model": "ESM-2 15B",
+      "model_id": "discovery-model-esm-2",
+      "metric": "spearman-correlation",
+      "values": [
+        {
+          "protocol_id": "hyplm-flash-20261106-protocol-proteingym-zero-shot",
+          "source": "HyPLM Technical Report (Hyra Team, 2026-10-12)",
+          "value": 0.403,
+          "result_id": "hyplm-flash-20261106-result-proteingym-zero-shot-esm-2-15b"
+        },
+        {
+          "protocol_id": "rewire-proteingym-v1-3-dms-substitutions",
+          "source": "ProteinGym zero-shot DMS substitutions Spearman summary at commit 144fe22",
+          "value": 0.4,
+          "result_id": "vep-lit-20261014-result-pg-dms-esm2-15b-average-spearman"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "HyPLM reports 0.403 (Figure 3a bar label) against ProteinGym's 0.400, a gap of 0.003; this is just above the rounding HyPLM's per-assay three-decimal rounding could explain, and BF16 inference or long-target windowing could account for it."
+    },
+    {
+      "setting": "proteingym-v1.3-dms-substitutions-zero-shot-spearman-average",
+      "model": "ESM3 open",
+      "model_id": "discovery-model-esm3",
+      "metric": "spearman-correlation",
+      "values": [
+        {
+          "protocol_id": "hyplm-flash-20261106-protocol-proteingym-zero-shot",
+          "source": "HyPLM Technical Report (Hyra Team, 2026-10-12)",
+          "value": 0.409,
+          "result_id": "hyplm-flash-20261106-result-proteingym-zero-shot-esm3-open"
+        },
+        {
+          "protocol_id": "rewire-proteingym-v1-3-dms-substitutions",
+          "source": "ProteinGym zero-shot DMS substitutions Spearman summary at commit 144fe22",
+          "value": 0.466,
+          "result_id": "vep-lit-20261014-result-pg-dms-esm3-open-1-4b-average-spearman"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "HyPLM reports 0.409 (Table 7) against ProteinGym's 0.466 for 'ESM3 open (1.4B)', a gap of 0.057; HyPLM scores sequence-only masked marginals while the ProteinGym tables mix modalities across models, so ProteinGym's ESM3 entry may use structure input, but the file does not say, and HyPLM does not name the ESM3-open size."
+    },
+    {
+      "setting": "proteingym-v1.3-dms-substitutions-zero-shot-spearman-average",
+      "model": "ESM-2 650M vs ESM3 open",
+      "model_id": "discovery-model-esm-2 vs discovery-model-esm3",
+      "metric": "spearman-correlation",
+      "values": [
+        {
+          "protocol_id": "hyplm-flash-20261106-protocol-proteingym-zero-shot",
+          "source": "HyPLM Technical Report (Hyra Team, 2026-10-12)",
+          "value": 0.415,
+          "result_id": "hyplm-flash-20261106-result-proteingym-zero-shot-esm-2-650m"
+        },
+        {
+          "protocol_id": "rewire-proteingym-v1-3-dms-substitutions",
+          "source": "ProteinGym zero-shot DMS substitutions Spearman summary at commit 144fe22",
+          "value": 0.414,
+          "result_id": "vep-lit-20261014-result-pg-dms-esm2-650m-average-spearman"
+        },
+        {
+          "protocol_id": "hyplm-flash-20261106-protocol-proteingym-zero-shot",
+          "source": "HyPLM Technical Report (Hyra Team, 2026-10-12)",
+          "value": 0.409,
+          "result_id": "hyplm-flash-20261106-result-proteingym-zero-shot-esm3-open"
+        },
+        {
+          "protocol_id": "rewire-proteingym-v1-3-dms-substitutions",
+          "source": "ProteinGym zero-shot DMS substitutions Spearman summary at commit 144fe22",
+          "value": 0.466,
+          "result_id": "vep-lit-20261014-result-pg-dms-esm3-open-1-4b-average-spearman"
+        }
+      ],
+      "kind": "ranking_reversal",
+      "note": "HyPLM puts ESM-2 650M above ESM3-open by 0.006, ProteinGym puts ESM3 open (1.4B) above ESM2 (650M) by 0.052; the reversal comes entirely from the ESM3 value gap above, most likely a difference in what input ESM3 was given."
+    }
+  ],
+  "notes": "Sixteen protocols. Only two cross-source tests exist in this file: the v1.3 full-suite zero-shot Spearman average (ProteinGym summary vs HyPLM report) and the AMFR single assay (ProteinGym assay-level CSV vs Rewire local runs). Eight systems match between ProteinGym and HyPLM by model_id and size; five agree within 0.001 and three differ (ESM-1b, ESM-2 15B, ESM3 open). The Rewire ESM-2 8M local run on AMFR reproduces the official assay-level value exactly (-0.209), which is a useful check on the runner. Protocol rewire-proteingym-v1-3-dms-substitutions stores 18 summary columns (average plus depth, function, MSA depth and taxon subsets) as separate results with no conditions field; it should be split so its Function_* columns can join the HyPLM per-category protocols as their own settings, and the record holds 1,746 results while this file shows 400, so more overlaps may exist. Candidate existing task for the first setting is proteingym-task-zs-sub-spearman, but that task does not pin a release or assay count, so it was not linked. The two GPN papers both use ProteinGym v0.1 in genomic coordinates but on different subsets (one assay with a custom cutoff vs 31 human assays) and different metrics, so they were left apart. The AMFR official record asks not to be merged with local protocols; linking here is for comparison only."
+}

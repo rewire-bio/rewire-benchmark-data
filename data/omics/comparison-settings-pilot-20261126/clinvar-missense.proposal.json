@@ -1,0 +1,1204 @@
+{
+  "cluster": "clinvar-missense",
+  "settings": [
+    {
+      "key": "clinvar-missense-pathogenic-vs-benign-auroc",
+      "name": "ClinVar missense SNVs, pathogenic/likely pathogenic versus benign/likely benign, AUROC",
+      "definition": "Human missense SNVs with ClinVar P/LP labels as positives and B/LB labels as negatives. Each model scores the variants without training on the labels (zero-shot or precomputed scores); a single global AUROC is computed over the missense set. ClinVar release, review-star filter and variant intersection differ between members, so numbers are expected to be close, not identical.",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "gfm-guides-20261014-esm1b-protocol-clinvar-all-19-methods",
+          "comparability": "near",
+          "metric": "auroc",
+          "why": "Global ROC-AUC for ClinVar missense pathogenic versus benign on primary isoforms, scores used directly (attributes.protocol).",
+          "differences": "Restricted to the 12,095 variants scored by all 19 eligible methods; ClinVar labels taken from the EVE portal, release not stated; methods trained on clinical data or allele frequency excluded."
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-esm1b-protocol-clinvar-head-to-head",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "Same Brandes ClinVar missense data, but each value is computed on the variants that ESM1b and one other method both score.",
+          "differences": "Every pair uses a different variant subset, so values are not comparable with one another or with other papers number for number."
+        },
+        {
+          "protocol_id": "lu-hetero-20261019-protocol-clinvar-variant-type-auroc",
+          "comparability": "near",
+          "metric": "auroc",
+          "why": "Figure 1 panel 'Missense (N=50,820, %P=40.09%)' is an AUROC for ClinVar pathogenic versus benign missense SNVs on variants every compared model scores.",
+          "differences": "Only the Missense panel belongs here; the protocol also holds 3' UTR, 5' UTR, intron, synonymous, stop, start, splice and pooled panels (see notes). ClinVar release and review filter not stated in the file."
+        },
+        {
+          "protocol_id": "phylogpn-20261116-protocol-clinvar-llr-auroc",
+          "comparability": "near",
+          "metric": "auroc",
+          "why": "Table 1 row 'Missense' is a zero-shot log-likelihood-ratio AUROC for ClinVar P/LP versus B/LB missense variants.",
+          "differences": "Only the Missense row belongs here; other rows are other consequence classes (see notes). Variants with at least one review star; class sizes not printed; values printed to two decimals."
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2023-12-af001",
+          "comparability": "near",
+          "metric": "auroc",
+          "why": "AUROC for P/LP versus B/LB ClinVar missense SNVs (8,141 variants).",
+          "differences": "Rewire's own CPU run on precomputed lookup scores. Cohort is ClinVar 2026-11-08 >=2-star clean missense SNVs with no P/LP or B/LB assertion in an earlier release (temporal holdout), so it holds newer variants than any paper cohort. Only variants with a lookup score are scored; 1,000-bootstrap intervals. This cohort is also restricted to gnomAD v3.1.2 non-1000G grpmax < 0.1%."
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2023-12",
+          "comparability": "near",
+          "metric": "auroc",
+          "why": "AUROC for P/LP versus B/LB ClinVar missense SNVs (9,450 variants).",
+          "differences": "Rewire's own CPU run on precomputed lookup scores. Cohort is ClinVar 2026-11-08 >=2-star clean missense SNVs with no P/LP or B/LB assertion in an earlier release (temporal holdout), so it holds newer variants than any paper cohort. Only variants with a lookup score are scored; 1,000-bootstrap intervals. Held out from clinvar_20231226; no allele-frequency cap."
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2025-03",
+          "comparability": "near",
+          "metric": "auroc",
+          "why": "AUROC for P/LP versus B/LB ClinVar missense SNVs (3,818 variants).",
+          "differences": "Rewire's own CPU run on precomputed lookup scores. Cohort is ClinVar 2026-11-08 >=2-star clean missense SNVs with no P/LP or B/LB assertion in an earlier release (temporal holdout), so it holds newer variants than any paper cohort. Only variants with a lookup score are scored; 1,000-bootstrap intervals. Shorter holdout from clinvar_20250330."
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-snv",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "Zero-shot AUROC for ClinVar P/LP versus B/LB in the Evo 2 paper's 'Coding SNV' stratum (ClinVar October 2024, 14,313 variants).",
+          "differences": "Coding SNVs, not missense only: the file does not say whether synonymous and nonsense SNVs are excluded."
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-gpnmsa-protocol-ablation-clinvar-auroc",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "AUROC for ClinVar Pathogenic missense variants, zero-shot.",
+          "differences": "Negatives are gnomAD common missense variants, not ClinVar benign (limitations); only GPN-MSA ablation models and two conservation scores."
+        },
+        {
+          "protocol_id": "vep-lit-20261014-protocol-livesey2025-clinical-auroc",
+          "comparability": "related",
+          "metric": "pairwise-win-rate",
+          "why": "Per-protein AUROC on ClinVar P/LP versus gnomAD v4.1 missense, turned into a pairwise win rate; linked to the clinical missense task.",
+          "differences": "Different metric (win rate relative to the other VEPs in the same table) and gnomAD negatives; not comparable with AUROC values."
+        },
+        {
+          "protocol_id": "gfm-guide-20261014-protocol-evee-deconfounded-snv-auroc",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "AUROC for P/LP versus B/LB on the deconfounded ClinVar SNV benchmark.",
+          "differences": "All consequence types pooled (158,616 variants, deconfounded construction); only the AlphaMissense cell is missense-only (limitations)."
+        }
+      ]
+    },
+    {
+      "key": "clinvar-missense-pathogenic-vs-benign-auprc",
+      "name": "ClinVar missense SNVs, pathogenic versus benign, AUPRC (family only)",
+      "definition": "ClinVar P/LP versus B/LB missense or protein-altering SNVs scored by area under the precision-recall curve. AUPRC depends on the positive fraction, which differs between every member, so this groups the family without claiming numeric comparability.",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "gpn-star-20261116-protocol-ablation-clinvar-auprc",
+          "comparability": "related",
+          "metric": "auprc",
+          "why": "AUPRC for ClinVar pathogenic versus ClinVar benign missense variants (Supplementary Table 3).",
+          "differences": "Only 25M-parameter GPN-Star ablation models, not released checkpoints; mean of three seeds; variant counts and class balance not printed."
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2023-12-af001",
+          "comparability": "related",
+          "metric": "auprc",
+          "why": "AUPRC on 8,141 held-out ClinVar missense SNVs (5,454 P/LP, 2,687 B/LB).",
+          "differences": "Positive fraction 67%; temporal holdout and AF cap."
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2023-12",
+          "comparability": "related",
+          "metric": "auprc",
+          "why": "AUPRC on 9,450 held-out ClinVar missense SNVs (5,508 P/LP, 3,942 B/LB).",
+          "differences": "Positive fraction 58%; temporal holdout."
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2025-03",
+          "comparability": "related",
+          "metric": "auprc",
+          "why": "AUPRC on 3,818 held-out ClinVar missense SNVs (2,306 P/LP, 1,512 B/LB).",
+          "differences": "Positive fraction 60%; temporal holdout."
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-esm1b-protocol-clinvar-all-19-methods",
+          "comparability": "related",
+          "metric": "auprc",
+          "why": "Balanced PRC-AUC on the same 12,095 ClinVar missense variants.",
+          "differences": "Balanced PRC-AUC: classes downsampled to equal size and averaged over 100 repeats, a different aggregation from plain AUPRC."
+        },
+        {
+          "protocol_id": "ag-atlas-20261019-protocol-clinvar-snv-by-consequence-auprc",
+          "comparability": "related",
+          "metric": "auprc",
+          "why": "AUPRC for P/LP versus B/LB ClinVar 2025-06-15 SNVs within VEP consequence class.",
+          "differences": "Its closest class is 'protein altering', not missense; positional filtering against AVI training variants; only values quoted in the text extracted."
+        },
+        {
+          "protocol_id": "alphagenome-2026-t4-protocol-1",
+          "comparability": "related",
+          "metric": "auprc",
+          "why": "AUPRC for pathogenic versus benign missense variants using splicing-effect predictions.",
+          "differences": "Scores are splicing predictions with max-absolute-track aggregation; the evaluated subset is not described."
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-snv",
+          "comparability": "related",
+          "metric": "auprc",
+          "why": "AUPRC in the Evo 2 paper ClinVar coding SNV stratum.",
+          "differences": "Coding SNVs, not stated to be missense only; positive fraction 66%."
+        }
+      ]
+    },
+    {
+      "key": "brca1-sge-all-snv-lof-auroc",
+      "name": "BRCA1 SGE, all SNVs, LOF versus FUNC/INT, AUROC",
+      "definition": "BRCA1 saturation genome editing SNVs with Findlay et al. 2018 functional classes; loss-of-function (LOF) variants are positives and functional or intermediate (FUNC, INT) variants are negatives. Each model scores the variants without training on the labels; one global AUROC over the all-SNV stratum (3,893 SNVs).",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-both-snv",
+          "comparability": "same",
+          "metric": "auroc",
+          "why": "Defines the setting: stratum Data 'BRCA1', Genomic_Feature 'Both', 823 LOF and 3,070 FUNC/INT, 3,893 variants, 8,192 bp window for Evo 2.",
+          "differences": "None; supervised comparators may overlap their training data."
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-all-auroc",
+          "comparability": "near",
+          "metric": "auroc",
+          "why": "AUROC for LOF against FUNC and INT on all 3,893 BRCA1 SGE SNVs, matching the Evo 2 paper count.",
+          "differences": "Rewire run with its own code, same total variant count; LOF count not shown in the file; the Evo 2 7B checkpoint (base or not) is not named; 8,192 bp windows (throughput protocol). L40S per-variant scores differ from the H100s. Baseline scores come from external tables (CADD v1.3 and phyloP from the Findlay table, CADD v1.7 GRCh37, SpliceAI from CADD v1.7 annotations)."
+        },
+        {
+          "protocol_id": "lit-genomics-20261011-gfmbench-protocol-brca1-zs-embedding",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "GFMBench-API BRCA1 task, zero-shot embedding distance.",
+          "differences": "Test set composition not described; the task 're-implements an earlier benchmark and may not match the original split or scoring'; embedding-distance scoring."
+        },
+        {
+          "protocol_id": "lit-genomics-20261011-gfmbench-protocol-brca1-zs-mlm-llr",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "GFMBench-API BRCA1 task, masked LLR.",
+          "differences": "Same GFMBench caveats; masked-model LLR scoring."
+        },
+        {
+          "protocol_id": "lit-genomics-20261011-gfmbench-protocol-brca1-zs-ar-llr",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "GFMBench-API BRCA1 task, autoregressive LLR over mean token probabilities.",
+          "differences": "Same GFMBench caveats; Evo2 checkpoint not named; a mean-probability LLR, not the Evo 2 paper's window log-likelihood difference."
+        }
+      ]
+    },
+    {
+      "key": "brca1-sge-coding-snv-lof-auroc",
+      "name": "BRCA1 SGE, coding SNVs, LOF versus FUNC/INT, AUROC",
+      "definition": "BRCA1 saturation genome editing SNVs with Findlay et al. 2018 functional classes; loss-of-function (LOF) variants are positives and functional or intermediate (FUNC, INT) variants are negatives. Each model scores the variants without training on the labels; one global AUROC over the coding-SNV stratum (2,768 SNVs).",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-coding-snv",
+          "comparability": "same",
+          "metric": "auroc",
+          "why": "Defines the setting: Genomic_Feature 'Coding', 584 LOF and 2,184 FUNC/INT, 2,768 variants.",
+          "differences": "None."
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "comparability": "near",
+          "metric": "auroc",
+          "why": "AUROC for LOF against FUNC and INT on 2,768 coding SNVs (missense, nonsense, synonymous), matching the count.",
+          "differences": "Rewire run with its own code, same total variant count; LOF count not shown in the file; the Evo 2 7B checkpoint (base or not) is not named; 8,192 bp windows (throughput protocol). L40S per-variant scores differ from the H100s. Baseline scores come from external tables (CADD v1.3 and phyloP from the Findlay table, CADD v1.7 GRCh37, SpliceAI from CADD v1.7 annotations)."
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-missense-auroc",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "Missense subset (2,086 SNVs) of the same Rewire BRCA1 data.",
+          "differences": "Missense only; no other paper reports this stratum; analysed in amendment 7 after the recorded run."
+        }
+      ]
+    },
+    {
+      "key": "brca1-sge-noncoding-snv-lof-auroc",
+      "name": "BRCA1 SGE, noncoding SNVs, LOF versus FUNC/INT, AUROC",
+      "definition": "BRCA1 saturation genome editing SNVs with Findlay et al. 2018 functional classes; loss-of-function (LOF) variants are positives and functional or intermediate (FUNC, INT) variants are negatives. Each model scores the variants without training on the labels; one global AUROC over the noncoding-SNV stratum (1,125 SNVs).",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-noncoding-snv",
+          "comparability": "same",
+          "metric": "auroc",
+          "why": "Defines the setting: Genomic_Feature 'Noncoding', 239 LOF and 886 FUNC/INT, 1,125 variants.",
+          "differences": "None."
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-noncoding-auroc",
+          "comparability": "near",
+          "metric": "auroc",
+          "why": "AUROC for LOF against FUNC and INT on 1,125 noncoding SNVs, matching the count.",
+          "differences": "Rewire run with its own code, same total variant count; LOF count not shown in the file; the Evo 2 7B checkpoint (base or not) is not named; 8,192 bp windows (throughput protocol). L40S per-variant scores differ from the H100s. Baseline scores come from external tables (CADD v1.3 and phyloP from the Findlay table, CADD v1.7 GRCh37, SpliceAI from CADD v1.7 annotations)."
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-intronic-snv",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "Intronic subset (489 SNVs, 9 LOF) of the same BRCA1 data.",
+          "differences": "Subset of the noncoding stratum; very few positives."
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-splice-region-snv",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "Splice-region subset (559 SNVs) of the same BRCA1 data.",
+          "differences": "Different stratum; not reported by any other study."
+        }
+      ]
+    },
+    {
+      "key": "brca1-sge-missense-threshold-evidence",
+      "name": "BRCA1 SGE missense variants, thresholded predictor calls against functional class (family only)",
+      "definition": "BRCA1 missense variants with Findlay et al. 2018 saturation genome editing classes as truth; each predictor score is cut at a threshold and the call is compared with the functional class (likelihood ratios, sensitivity, specificity).",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "brca-20261009-protocol-cubuk2021-brca1",
+          "comparability": "related",
+          "metric": "likelihood-ratio",
+          "why": "Positive likelihood ratio of binary tool calls against the BRCA1 functional truth set (1,641 missense variants, HAP1 SGE).",
+          "differences": "Thresholds from Cubuk Supplementary Table 5 (BayesDel uses Cubuk's own gene-specific thresholds); intermediates excluded; denominators differ by row."
+        },
+        {
+          "protocol_id": "brca-20261009-protocol-ramadane2025-pp3-bp4",
+          "comparability": "related",
+          "metric": "log2-likelihood-ratio",
+          "why": "Log2 likelihood ratio of BP4 and PP3 score ranges against Findlay SGE LoF versus FUNC classes.",
+          "differences": "RING and BRCT domains only (1,519 variants); three-range coding rather than one binary cut; BayesDel uses VCEP thresholds 0.15/0.28, which Cubuk does not use; some thresholds chosen on the same data."
+        },
+        {
+          "protocol_id": "brca-20261009-protocol-ramadane2025-binary",
+          "comparability": "related",
+          "metric": "recall",
+          "why": "Sensitivity, specificity and related metrics at one PP3 threshold per tool on the same Findlay SGE classes.",
+          "differences": "Different metrics from Cubuk; no tool and threshold pair is shared with Cubuk, so no value can be checked across the two papers."
+        }
+      ]
+    },
+    {
+      "key": "clingen-pp3-bp4-local-posterior-intervals",
+      "name": "ClinGen PP3/BP4 score thresholds from local posterior calibration (Pejaver 2022 method)",
+      "definition": "Missense predictor scores calibrated by local posterior probability of pathogenicity in a sliding score window, prior 0.0441, with one-sided 95% bootstrap bounds; reported as the score threshold reaching each evidence strength for PP3 and BP4.",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "vep-uc-20261014-protocol-pejaver2022-intervals",
+          "comparability": "same",
+          "metric": "evidence-strength-score-interval",
+          "why": "Defines the setting on the ClinVar 2019 calibration set (11,834 variants), 13 tools, Supporting to Very Strong.",
+          "differences": "None."
+        },
+        {
+          "protocol_id": "vep-uc-20261014-protocol-bergquist2025-point-intervals",
+          "comparability": "same",
+          "metric": "evidence-strength-score-interval",
+          "why": "Attributes say 'Same data and calibration as Pejaver et al. 2022'; same dataset link and denominator 11,834.",
+          "differences": "Points scale adds the +/-3 level and adds AlphaMissense, ESM1b and VARITY_R; all 24 shared tool, direction and strength thresholds match Pejaver within 0.001."
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2023-12-af001",
+          "comparability": "related",
+          "metric": "evidence-strength-score-interval",
+          "why": "Same calibration method and parameters (alpha 0.0441, c 1124, Bergquist discounted thresholds).",
+          "differences": "Different data: 2026 held-out ClinVar missense SNVs with AF cap and 6,312 gnomAD reference SNVs; 1,000 bootstraps; different predictor versions."
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2023-12",
+          "comparability": "related",
+          "metric": "evidence-strength-score-interval",
+          "why": "Same calibration method on the post_2023_12 cohort.",
+          "differences": "Different data from Pejaver; no AF cap."
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2025-03",
+          "comparability": "related",
+          "metric": "evidence-strength-score-interval",
+          "why": "Same calibration method on the post_2025_03 cohort.",
+          "differences": "Different data from Pejaver; smaller B/LB count widens bounds."
+        }
+      ]
+    },
+    {
+      "key": "cosmic-frequent-vs-gnomad-common-missense-auprc",
+      "name": "COSMIC frequent somatic missense versus gnomAD common missense, AUPRC",
+      "definition": "Missense variants seen frequently in COSMIC (> 0.1%) as positives against gnomAD common missense variants as negatives; zero-shot variant scores; AUPRC.",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "gfm-guides-20261014-gpnmsa-protocol-ablation-cosmic-auprc",
+          "comparability": "same",
+          "metric": "auprc",
+          "why": "Defines the setting: uses_data gfm-guides-20261014-gpnmsa-data-cosmic-frequent-vs-gnomad-common-missense.",
+          "differences": "Values are GPN-MSA ablations and two conservation baselines; mean and max over seeds both recorded."
+        },
+        {
+          "protocol_id": "gpn-star-20261116-protocol-ablation-cosmic-auprc",
+          "comparability": "near",
+          "metric": "auprc",
+          "why": "Links to the same dataset record as the GPN-MSA protocol.",
+          "differences": "Scores only variants every compared model predicts; all models are 25M-parameter ablations trained on multiz100way, so no system matches a GPN-MSA paper row."
+        }
+      ]
+    },
+    {
+      "key": "clinvar-indel-pathogenic-vs-benign-auroc",
+      "name": "ClinVar indels, pathogenic versus benign, AUROC",
+      "definition": "ClinVar P/LP versus B/LB small insertions and deletions, all genomic contexts pooled, scored without training on the labels; global AUROC.",
+      "existing_task_id": null,
+      "protocols": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-both-indel",
+          "comparability": "near",
+          "metric": "auroc",
+          "why": "Zero-shot AUROC on ClinVar October 2024 indels, 'Both' coding and noncoding (21,955 P/LP, 3,546 B/LB).",
+          "differences": "The 'Both' population is larger than coding plus noncoding and is not explained by the source."
+        },
+        {
+          "protocol_id": "gfm-guide-20261014-protocol-evee-clinvar-indel-auroc",
+          "comparability": "near",
+          "metric": "auroc",
+          "why": "AUROC for P/LP versus B/LB on 73,961 ClinVar indels, Overall row.",
+          "differences": "Different ClinVar build and size (65.1% P); Evo 2 values are supervised probes, not zero-shot likelihoods, so no system matches the Evo 2 paper."
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-indel",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "Coding-indel stratum of the Evo 2 ClinVar data.",
+          "differences": "Subset; no matching stratum elsewhere."
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-indel",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "Noncoding-indel stratum of the Evo 2 ClinVar data.",
+          "differences": "Subset; no matching stratum elsewhere."
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-esm1b-protocol-clinvar-inframe-indels",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "ROC-AUC for pathogenic versus benign ClinVar in-frame indels.",
+          "differences": "In-frame coding indels only; protein-level scores."
+        },
+        {
+          "protocol_id": "lit-genomics-20261011-gfmbench-protocol-clinvar-indel-pathogenicity-zs-embedding",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "GFMBench-API ClinVar Indel Pathogenicity, zero-shot embedding distance.",
+          "differences": "A new task built by GFMBench; composition not described; embedding-distance scoring."
+        },
+        {
+          "protocol_id": "lit-genomics-20261011-gfmbench-protocol-clinvar-indel-pathogenicity-zs-ar-llr",
+          "comparability": "related",
+          "metric": "auroc",
+          "why": "GFMBench-API ClinVar Indel Pathogenicity, autoregressive LLR.",
+          "differences": "Same GFMBench caveats; Evo2 LLR AUROC 0.627 here against 0.93 to 0.98 for Evo 2 zero-shot in the Evo 2 paper, on different data."
+        }
+      ]
+    }
+  ],
+  "unassigned": [
+    {
+      "protocol_id": "ag-atlas-20261019-protocol-table-s2-clinvar",
+      "why": "AVI ablation study on the AVI ClinVar evaluation set; only AVI variants, no other paper reports this set."
+    },
+    {
+      "protocol_id": "gfm-guide-20261014-protocol-evee-embedding-extraction-compute",
+      "why": "Compute time for embedding extraction, not a predictive test."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-esm1b-protocol-clinvar-stop-gains",
+      "why": "Stop-gain AUROC with stop-gain-specific ESM1b scores; Lu et al. have a stop-gain panel but inside a protocol already used for missense, and the ESM1b scoring for stop-gains is not shown to be the same."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-esm1b-protocol-hgmd-all-19-methods",
+      "why": "HGMD disease-causing versus gnomAD common labels, not ClinVar; no other paper uses this set."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-esm1b-protocol-hgmd-head-to-head",
+      "why": "HGMD/gnomAD pairwise subsets; single paper."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-both-snv",
+      "why": "All ClinVar SNVs pooled (89,126 variants); no other protocol with the same pooled population is free to join (Lu's pooled panel sits in the missense setting). See notes for the cross-paper values."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-snv-far-from-splice-site",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-snv-highly-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-snv-moderately-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-snv-near-splice-site",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-snv-not-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-snv-poorly-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-low-spliceai-pangolin-scores-snv",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-snv-far-from-splice-site",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-snv-highly-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-snv-intergenic",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-snv-moderately-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-snv-near-splice-site",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-snv-not-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-snv-poorly-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-microsatellite",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-non-snv-far-from-splice-site",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-non-snv-highly-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-non-snv-moderately-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-non-snv-not-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-non-snv-poorly-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-both-microsatellite",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-low-spliceai-pangolin-scores-non-snv",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-microsatellite",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-non-snv-far-from-splice-site",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-non-snv-highly-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-non-snv-intergenic",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-non-snv-moderately-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-non-snv-near-splice-site",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-non-snv-not-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-non-snv-poorly-conserved",
+      "why": "Evo 2 paper stratum defined by conservation, splice distance, microsatellite or splice-score bins; no other paper reports the same stratum."
+    },
+    {
+      "protocol_id": "gpn-paper-20261116-protocol-repeat-variants-below-missense-decile",
+      "why": "Arabidopsis simulated variants; only 'missense' in the name."
+    },
+    {
+      "protocol_id": "lit-genomics-20261011-gfmbench-protocol-songlab-clinvar-zs-embedding",
+      "why": "GFMBench 'Songlab ClinVar' task: the file does not say which variant classes or labels it holds, and it may not match the original split; only GFMBench reports it."
+    },
+    {
+      "protocol_id": "lit-genomics-20261011-gfmbench-protocol-songlab-clinvar-zs-mlm-llr",
+      "why": "Same as the GFMBench Songlab ClinVar embedding protocol: composition not described, single benchmark."
+    },
+    {
+      "protocol_id": "lit-genomics-20261011-gfmbench-protocol-songlab-clinvar-zs-ar-llr",
+      "why": "Same as the GFMBench Songlab ClinVar embedding protocol: composition not described, single benchmark."
+    },
+    {
+      "protocol_id": "lit-genomics-20261011-guanine-protocol-clinvar-snv",
+      "why": "GUANinE noncoding ClinVar SNVs scored by Spearman rho against a binary label; models partly calibrated on a dev set; no other paper uses it."
+    },
+    {
+      "protocol_id": "rare-ranking-20261009-protocol-kafkas2025-clinvar-gene-sets",
+      "why": "Phenotype-based gene ranking in candidate gene sets, not variant effect prediction."
+    },
+    {
+      "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-scoring-throughput",
+      "why": "Throughput measurement, not a predictive test."
+    },
+    {
+      "protocol_id": "rna-splicing-20261011-fortier2026-protocol-barbosa-clinvar",
+      "why": "Splice-altering classification on ClinVar intronic SNVs with thresholded calls; splicing cluster rather than pathogenicity; single paper."
+    },
+    {
+      "protocol_id": "rna-splicing-20261011-fortier2026-protocol-extended-clinvar",
+      "why": "Splice-altering classification on an extended ClinVar set; single paper."
+    },
+    {
+      "protocol_id": "somatic-oncogenicity-20261009-protocol-lee2026-all",
+      "why": "Somatic oncogenicity labels in Cancer Gene Census genes, not ClinVar germline pathogenicity; single study."
+    },
+    {
+      "protocol_id": "somatic-oncogenicity-20261009-protocol-lee2026-oncogene",
+      "why": "Somatic oncogenicity, oncogene subset; single study."
+    },
+    {
+      "protocol_id": "somatic-oncogenicity-20261009-protocol-lee2026-tsg",
+      "why": "Somatic oncogenicity, tumour suppressor subset; single study."
+    },
+    {
+      "protocol_id": "splicing-follow-up-20261009-protocol-smith2023-brca1-sge-tn10",
+      "why": "BRCA1 SGE splice-disruptive labels on synonymous and intronic SNVs, sensitivity at a genome-wide call-rate threshold; different labels and metric from the LOF AUROC settings."
+    },
+    {
+      "protocol_id": "uc-clinical-20260930-enigma-brca1-generic-protocol",
+      "why": "BP4 coverage and erroneous PP3 share for BayesDel generic thresholds on the ENIGMA functional reference set; the file does not show that set is the Findlay SGE data."
+    },
+    {
+      "protocol_id": "uc-clinical-20260930-enigma-brca1-protocol",
+      "why": "BayesDel likelihood ratios with thresholds tuned on the same ENIGMA calibration set; reference set not shown to match any other protocol."
+    },
+    {
+      "protocol_id": "uc-clinical-20260930-oncovi-clinvar-protocol",
+      "why": "Three-class agreement with ClinVar somatic oncogenicity assertions; single study."
+    },
+    {
+      "protocol_id": "uc-clinical-20261005-benet-pages-t2-protocol",
+      "why": "Clinical VUS reclassification yield on a fixed 121-variant cohort, not a predictor test."
+    },
+    {
+      "protocol_id": "uc-clinical-20261005-benet-pages-t3-protocol",
+      "why": "Clinical VUS reclassification yield under the ENIGMA VCEP specification; single study."
+    },
+    {
+      "protocol_id": "uc-clinical-20261005-hu-2026-protocol",
+      "why": "BRCA2 classification yield from integrated functional evidence; not a predictor test."
+    },
+    {
+      "protocol_id": "uc-clinical-20261005-so-2024-protocol",
+      "why": "Agreement between VarSome and CanVIG-UK classifications; not a predictor test."
+    },
+    {
+      "protocol_id": "vep-uc-20261014-protocol-pejaver2022-developer-threshold-lr",
+      "why": "Local likelihood ratio at developer thresholds for three tools; no other protocol reports this quantity."
+    }
+  ],
+  "disagreements": [
+    {
+      "setting": "clinvar-missense-pathogenic-vs-benign-auroc",
+      "model": "GPN-MSA (released precomputed hg38 scores)",
+      "model_id": "gfm-guides-20261014-gpnmsa-model-gpn-msa",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "lu-hetero-20261019-protocol-clinvar-variant-type-auroc",
+          "source": "Genomic heterogeneity inflates the performance of variant pathogenicity predictions (Lu, Liu, Lin and Brandes, bioRxiv 2025, v2)",
+          "system": "GPN-MSA precomputed hg38 scores (Lu et al. 2025)",
+          "value": 0.906,
+          "result_id": "lu-hetero-20261019-result-missense-gpn-msa-auroc"
+        },
+        {
+          "protocol_id": "phylogpn-20261116-protocol-clinvar-llr-auroc",
+          "source": "A Phylogenetic Approach to Genomic Language Modeling",
+          "system": "GPN-MSA, published precomputed hg38 likelihood ratios",
+          "value": 0.91,
+          "result_id": "phylogpn-20261116-result-t1-missense-gpn-msa"
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2023-12-af001",
+          "source": "clingen-pp3-bp4 CPU execution receipt.json",
+          "system": "GPN-MSA (-LLR)",
+          "value": 0.8513241102053388,
+          "result_id": "rewire-local-20261123-clingen-result-gpn-msa-post-2023-12-af001-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2023-12",
+          "source": "clingen-pp3-bp4 CPU execution receipt.json",
+          "system": "GPN-MSA (-LLR)",
+          "value": 0.8628613442483182,
+          "result_id": "rewire-local-20261123-clingen-result-gpn-msa-post-2023-12-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2025-03",
+          "source": "clingen-pp3-bp4 CPU execution receipt.json",
+          "system": "GPN-MSA (-LLR)",
+          "value": 0.8679521618322572,
+          "result_id": "rewire-local-20261123-clingen-result-gpn-msa-post-2025-03-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "Lu and PhyloGPN agree (0.906, 0.91) but Rewire's three held-out cohorts give 0.85 to 0.87; the likely innocent cause is that Rewire scores only variants first classified after December 2023 or March 2025, a newer and possibly harder set."
+    },
+    {
+      "setting": "clinvar-missense-pathogenic-vs-benign-auroc",
+      "model": "AlphaMissense (precomputed scores)",
+      "model_id": "somatic-oncogenicity-20261009-method-alphamissense",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "lu-hetero-20261019-protocol-clinvar-variant-type-auroc",
+          "source": "Genomic heterogeneity inflates the performance of variant pathogenicity predictions (Lu, Liu, Lin and Brandes, bioRxiv 2025, v2)",
+          "system": "AlphaMissense precomputed scores (Lu et al. 2025)",
+          "value": 0.959,
+          "result_id": "lu-hetero-20261019-result-missense-alphamissense-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2023-12-af001",
+          "source": "clingen-pp3-bp4 CPU execution receipt.json",
+          "system": "AlphaMissense lookup",
+          "value": 0.9468246969451882,
+          "result_id": "rewire-local-20261123-clingen-result-alphamissense-post-2023-12-af001-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2023-12",
+          "source": "clingen-pp3-bp4 CPU execution receipt.json",
+          "system": "AlphaMissense lookup",
+          "value": 0.9493030967511009,
+          "result_id": "rewire-local-20261123-clingen-result-alphamissense-post-2023-12-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261123-clingen-protocol-post-2025-03",
+          "source": "clingen-pp3-bp4 CPU execution receipt.json",
+          "system": "AlphaMissense lookup",
+          "value": 0.9466878877850101,
+          "result_id": "rewire-local-20261123-clingen-result-alphamissense-post-2025-03-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "Lu reports 0.959 and Rewire 0.947 to 0.949; a gap of about 0.01 that the different ClinVar cohorts (temporal holdout, 2-star filter) can explain."
+    },
+    {
+      "setting": "clinvar-missense-pathogenic-vs-benign-auroc",
+      "model": "PhyloGPN",
+      "model_id": "lit-genomics-20261011-guanine-model-phylogpn",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "lu-hetero-20261019-protocol-clinvar-variant-type-auroc",
+          "source": "Genomic heterogeneity inflates the performance of variant pathogenicity predictions (Lu, Liu, Lin and Brandes, bioRxiv 2025, v2)",
+          "system": "PhyloGPN, official example code (Lu et al. 2025)",
+          "value": 0.799,
+          "result_id": "lu-hetero-20261019-result-missense-phylogpn-auroc"
+        },
+        {
+          "protocol_id": "phylogpn-20261116-protocol-clinvar-llr-auroc",
+          "source": "A Phylogenetic Approach to Genomic Language Modeling",
+          "system": "PhyloGPN (481 bp receptive field, about 83M parameters)",
+          "value": 0.84,
+          "result_id": "phylogpn-20261116-result-t1-missense-phylogpn"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "The PhyloGPN authors report 0.84 and Lu et al., running the official example code, 0.799; ClinVar release and filters differ, but the same direction and much larger gaps appear in Lu's UTR and start or stop classes (notes), which points at scoring or setup rather than data alone."
+    },
+    {
+      "setting": "clinvar-missense-pathogenic-vs-benign-auroc",
+      "model": "ESM1b (Brandes et al. pipeline)",
+      "model_id": "uc20260930-model-esm-1b",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-esm1b-protocol-clinvar-all-19-methods",
+          "source": "Brandes et al. 2023 Supplementary Table 2: full benchmark evaluations of ESM1b and all other methods",
+          "system": "ESM1b (Brandes et al. 2023 clinical benchmarks)",
+          "value": 0.892263314721714,
+          "result_id": "gfm-guides-20261014-esm1b-result-clinvar-all-19-esm1b-auroc"
+        },
+        {
+          "protocol_id": "lu-hetero-20261019-protocol-clinvar-variant-type-auroc",
+          "source": "Genomic heterogeneity inflates the performance of variant pathogenicity predictions (Lu, Liu, Lin and Brandes, bioRxiv 2025, v2)",
+          "system": "ESM1b 650M log-likelihood ratio, Brandes et al. pipeline (Lu et al. 2025)",
+          "value": 0.919,
+          "result_id": "lu-hetero-20261019-result-missense-esm1b-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "Brandes 0.892 against Lu 0.919 with the same scoring pipeline; Brandes restricts to the 12,095 variants all 19 methods score and uses EVE-portal labels, which can lower the AUROC."
+    },
+    {
+      "setting": "clinvar-missense-pathogenic-vs-benign-auroc",
+      "model": "phyloP vertebrate",
+      "model_id": "somatic-oncogenicity-20261009-method-phylop",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-esm1b-protocol-clinvar-all-19-methods",
+          "source": "Brandes et al. 2023 Supplementary Table 2: full benchmark evaluations of ESM1b and all other methods",
+          "system": "phyloP (vertebrate) (Brandes et al. 2023 clinical benchmarks)",
+          "value": 0.798462069445608,
+          "result_id": "gfm-guides-20261014-esm1b-result-clinvar-all-19-phylop-vertebrate-auroc"
+        },
+        {
+          "protocol_id": "lu-hetero-20261019-protocol-clinvar-variant-type-auroc",
+          "source": "Genomic heterogeneity inflates the performance of variant pathogenicity predictions (Lu, Liu, Lin and Brandes, bioRxiv 2025, v2)",
+          "system": "PhyloP 100-way vertebrate (Lu et al. 2025)",
+          "value": 0.856,
+          "result_id": "lu-hetero-20261019-result-missense-phylop-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "Brandes 0.798 against Lu 0.856; Brandes names only 'phyloP (vertebrate)' from dbNSFP, so the file cannot confirm it is the same 100-way track, and the variant sets differ."
+    },
+    {
+      "setting": "brca1-sge-all-snv-lof-auroc",
+      "model": "Evo 2 7B",
+      "model_id": "discovery-model-evo-2",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-both-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "Evo 2 7B (Evo 2 paper variant effect evaluations)",
+          "value": 0.903708526444524,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-evo-2-7b-brca1-both-snv-auroc"
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-both-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "Evo 2 7B base (Evo 2 paper variant effect evaluations)",
+          "value": 0.890747879569858,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-evo-2-7b-base-brca1-both-snv-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-all-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Google Cloud H100",
+          "value": 0.8749886211168324,
+          "result_id": "rewire-local-20261121-evo2ops-result-p2-brca1-all-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-all-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Runpod H100",
+          "value": 0.8749886211168324,
+          "result_id": "rewire-local-20261121-evo2ops-result-p3-brca1-all-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-all-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Runpod L40S",
+          "value": 0.877089261896375,
+          "result_id": "rewire-local-20261121-evo2ops-result-p5-brca1-all-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "Evo 2 paper gives 0.904 (7B) and 0.891 (7B base); Rewire gives 0.875 to 0.877 on the same 3,893 variants; Rewire does not name the checkpoint, and both window scoring and hardware (L40S differs from H100) can move per-variant scores."
+    },
+    {
+      "setting": "brca1-sge-all-snv-lof-auroc",
+      "model": "CADD",
+      "model_id": "somatic-oncogenicity-20261009-method-cadd",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-both-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "CADD (Evo 2 paper variant effect evaluations)",
+          "value": 0.876331131436984,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-cadd-brca1-both-snv-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-all-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "CADD v1.7 raw score, GRCh37",
+          "value": 0.8813057812642237,
+          "result_id": "rewire-local-20261121-evo2ops-result-cadd-v1-7-brca1-all-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-all-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "CADD v1.3 score from the Findlay et al. table",
+          "value": 0.8041183641321771,
+          "result_id": "rewire-local-20261121-evo2ops-result-cadd-v1-3-brca1-all-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "The Evo 2 paper does not state its CADD version, so it cannot be matched to Rewire's v1.7 or v1.3; neither Rewire value equals the paper's, and v1.7 and v1.3 differ from each other by 0.05 to 0.08."
+    },
+    {
+      "setting": "brca1-sge-all-snv-lof-auroc",
+      "model": "SpliceAI",
+      "model_id": "discovery-model-spliceai",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-both-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "SpliceAI (Evo 2 paper variant effect evaluations)",
+          "value": 0.686390855731592,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-spliceai-brca1-both-snv-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-all-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "SpliceAI precomputed masked score from the CADD v1.7 annotations",
+          "value": 0.6939551414741492,
+          "result_id": "rewire-local-20261121-evo2ops-result-spliceai-brca1-all-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "Rewire uses precomputed masked SpliceAI scores from the CADD v1.7 annotation; the Evo 2 paper does not state masking or distance, a likely cause of the gap."
+    },
+    {
+      "setting": "brca1-sge-coding-snv-lof-auroc",
+      "model": "Evo 2 7B",
+      "model_id": "discovery-model-evo-2",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-coding-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "Evo 2 7B (Evo 2 paper variant effect evaluations)",
+          "value": 0.822895558932793,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-evo-2-7b-brca1-coding-snv-auroc"
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-coding-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "Evo 2 7B base (Evo 2 paper variant effect evaluations)",
+          "value": 0.796590397388269,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-evo-2-7b-base-brca1-coding-snv-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Google Cloud H100",
+          "value": 0.8400207455216017,
+          "result_id": "rewire-local-20261121-evo2ops-result-p2-brca1-coding-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Runpod H100",
+          "value": 0.8400207455216017,
+          "result_id": "rewire-local-20261121-evo2ops-result-p3-brca1-coding-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Runpod L40S",
+          "value": 0.8428624742837072,
+          "result_id": "rewire-local-20261121-evo2ops-result-p5-brca1-coding-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "Rewire's 0.840 to 0.843 is higher than both Evo 2 paper values (0.823 for 7B, 0.797 for 7B base) while its all-SNV value is lower, so the gap is not a uniform offset; the checkpoint and the exact scoring code are the first things to compare."
+    },
+    {
+      "setting": "brca1-sge-coding-snv-lof-auroc",
+      "model": "CADD",
+      "model_id": "somatic-oncogenicity-20261009-method-cadd",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-coding-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "CADD (Evo 2 paper variant effect evaluations)",
+          "value": 0.814478498255094,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-cadd-brca1-coding-snv-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "CADD v1.7 raw score, GRCh37",
+          "value": 0.8916207223142155,
+          "result_id": "rewire-local-20261121-evo2ops-result-cadd-v1-7-brca1-coding-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "CADD v1.3 score from the Findlay et al. table",
+          "value": 0.8408341800893171,
+          "result_id": "rewire-local-20261121-evo2ops-result-cadd-v1-3-brca1-coding-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "The Evo 2 paper does not state its CADD version, so it cannot be matched to Rewire's v1.7 or v1.3; neither Rewire value equals the paper's, and v1.7 and v1.3 differ from each other by 0.05 to 0.08."
+    },
+    {
+      "setting": "brca1-sge-coding-snv-lof-auroc",
+      "model": "SpliceAI",
+      "model_id": "discovery-model-spliceai",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-coding-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "SpliceAI (Evo 2 paper variant effect evaluations)",
+          "value": 0.549839581222559,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-spliceai-brca1-coding-snv-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "SpliceAI precomputed masked score from the CADD v1.7 annotations",
+          "value": 0.5881676827738471,
+          "result_id": "rewire-local-20261121-evo2ops-result-spliceai-brca1-coding-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "Rewire uses precomputed masked SpliceAI scores from the CADD v1.7 annotation; the Evo 2 paper does not state masking or distance, a likely cause of the gap."
+    },
+    {
+      "setting": "brca1-sge-noncoding-snv-lof-auroc",
+      "model": "Evo 2 7B",
+      "model_id": "discovery-model-evo-2",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-noncoding-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "Evo 2 7B (Evo 2 paper variant effect evaluations)",
+          "value": 0.959254606760675,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-evo-2-7b-brca1-noncoding-snv-auroc"
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-noncoding-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "Evo 2 7B base (Evo 2 paper variant effect evaluations)",
+          "value": 0.961689035390122,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-evo-2-7b-base-brca1-noncoding-snv-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-noncoding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Google Cloud H100",
+          "value": 0.9527635841589769,
+          "result_id": "rewire-local-20261121-evo2ops-result-p2-brca1-noncoding-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-noncoding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Runpod H100",
+          "value": 0.9527635841589769,
+          "result_id": "rewire-local-20261121-evo2ops-result-p3-brca1-noncoding-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-noncoding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Runpod L40S",
+          "value": 0.9533987551592886,
+          "result_id": "rewire-local-20261121-evo2ops-result-p5-brca1-noncoding-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "Evo 2 paper 0.959 (7B) and 0.962 (7B base) against Rewire 0.953; small, but larger than rounding on identical variant counts; checkpoint not named by Rewire."
+    },
+    {
+      "setting": "brca1-sge-noncoding-snv-lof-auroc",
+      "model": "CADD",
+      "model_id": "somatic-oncogenicity-20261009-method-cadd",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-noncoding-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "CADD (Evo 2 paper variant effect evaluations)",
+          "value": 0.909328749397886,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-cadd-brca1-noncoding-snv-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-noncoding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "CADD v1.7 raw score, GRCh37",
+          "value": 0.9316565448586568,
+          "result_id": "rewire-local-20261121-evo2ops-result-cadd-v1-7-brca1-noncoding-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-noncoding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "CADD v1.3 score from the Findlay et al. table",
+          "value": 0.8753600876488756,
+          "result_id": "rewire-local-20261121-evo2ops-result-cadd-v1-3-brca1-noncoding-auroc"
+        }
+      ],
+      "kind": "same_model_different_value",
+      "note": "The Evo 2 paper does not state its CADD version, so it cannot be matched to Rewire's v1.7 or v1.3; neither Rewire value equals the paper's, and v1.7 and v1.3 differ from each other by 0.05 to 0.08."
+    },
+    {
+      "setting": "brca1-sge-all-snv-lof-auroc",
+      "model": "Evo 2 7B versus CADD",
+      "model_id": "discovery-model-evo-2",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-both-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "Evo 2 7B (Evo 2 paper variant effect evaluations)",
+          "value": 0.903708526444524,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-evo-2-7b-brca1-both-snv-auroc"
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-both-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "Evo 2 7B base (Evo 2 paper variant effect evaluations)",
+          "value": 0.890747879569858,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-evo-2-7b-base-brca1-both-snv-auroc"
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-both-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "CADD (Evo 2 paper variant effect evaluations)",
+          "value": 0.876331131436984,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-cadd-brca1-both-snv-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-all-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Google Cloud H100",
+          "value": 0.8749886211168324,
+          "result_id": "rewire-local-20261121-evo2ops-result-p2-brca1-all-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-all-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Runpod H100",
+          "value": 0.8749886211168324,
+          "result_id": "rewire-local-20261121-evo2ops-result-p3-brca1-all-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-all-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Runpod L40S",
+          "value": 0.877089261896375,
+          "result_id": "rewire-local-20261121-evo2ops-result-p5-brca1-all-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-all-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "CADD v1.7 raw score, GRCh37",
+          "value": 0.8813057812642237,
+          "result_id": "rewire-local-20261121-evo2ops-result-cadd-v1-7-brca1-all-auroc"
+        }
+      ],
+      "kind": "ranking_reversal",
+      "note": "On the same 3,893 SNVs the Evo 2 paper ranks Evo 2 7B (0.904, base 0.891) above CADD (0.876) while Rewire ranks CADD v1.7 (0.881) above Evo 2 7B (0.875 to 0.877); the CADD version and the Evo 2 checkpoint may differ.",
+      "model_id_b": "somatic-oncogenicity-20261009-method-cadd"
+    },
+    {
+      "setting": "brca1-sge-coding-snv-lof-auroc",
+      "model": "Evo 2 7B versus CADD",
+      "model_id": "discovery-model-evo-2",
+      "metric": "auroc",
+      "values": [
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-coding-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "Evo 2 7B (Evo 2 paper variant effect evaluations)",
+          "value": 0.822895558932793,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-evo-2-7b-brca1-coding-snv-auroc"
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-coding-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "Evo 2 7B base (Evo 2 paper variant effect evaluations)",
+          "value": 0.796590397388269,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-evo-2-7b-base-brca1-coding-snv-auroc"
+        },
+        {
+          "protocol_id": "gfm-guides-20261014-evo2-brixi2026-protocol-brca1-coding-snv",
+          "source": "Genome modelling and design across all domains of life with Evo 2: Supplementary Data 1, human variant effect prediction results (Nature 2026)",
+          "system": "CADD (Evo 2 paper variant effect evaluations)",
+          "value": 0.814478498255094,
+          "result_id": "gfm-guides-20261014-evo2-brixi2026-result-cadd-brca1-coding-snv-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Google Cloud H100",
+          "value": 0.8400207455216017,
+          "result_id": "rewire-local-20261121-evo2ops-result-p2-brca1-coding-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Runpod H100",
+          "value": 0.8400207455216017,
+          "result_id": "rewire-local-20261121-evo2ops-result-p3-brca1-coding-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "Evo 2 7B zero-shot likelihood score on Runpod L40S",
+          "value": 0.8428624742837072,
+          "result_id": "rewire-local-20261121-evo2ops-result-p5-brca1-coding-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "CADD v1.7 raw score, GRCh37",
+          "value": 0.8916207223142155,
+          "result_id": "rewire-local-20261121-evo2ops-result-cadd-v1-7-brca1-coding-auroc"
+        },
+        {
+          "protocol_id": "rewire-local-20261121-evo2ops-protocol-brca1-coding-auroc",
+          "source": "evo2-cloud-operations amendment 7: current predictors results.json",
+          "system": "CADD v1.3 score from the Findlay et al. table",
+          "value": 0.8408341800893171,
+          "result_id": "rewire-local-20261121-evo2ops-result-cadd-v1-3-brca1-coding-auroc"
+        }
+      ],
+      "kind": "ranking_reversal",
+      "note": "The Evo 2 paper puts Evo 2 7B (0.823) above CADD (0.814), though 7B base (0.797) is below it; Rewire puts CADD v1.7 (0.892) well above Evo 2 7B (0.840 to 0.843), so the order depends on checkpoint and CADD version.",
+      "model_id_b": "somatic-oncogenicity-20261009-method-cadd"
+    }
+  ],
+  "notes": "Scope. 97 protocols mention ClinVar, BRCA1 or missense, but most are single-paper strata. Cross-study overlap is real in four places: ClinVar missense AUROC (Brandes, Lu, PhyloGPN, Rewire clingen), BRCA1 SGE LOF AUROC (Evo 2 paper and Rewire evo2-cloud-operations, with identical variant counts 3,893, 2,768 and 1,125), PP3/BP4 calibration on the ClinVar 2019 set (Pejaver and Bergquist), and COSMIC versus gnomAD (GPN-MSA and GPN-Star, but with no matching system). Matching. result conditions are null throughout, so strata were read from locators and checkpoints from system names. model_id merges different systems (Evo 2 40B, 7B and 7B base; PhyloP 100, 241, 447 and 470; CADD v1.3, v1.7 and unversioned; GPN-Star V and M and ablations; NT v2 500M LLR and NT 2.5B embeddings; cosine and L2 scores), so comparisons used hand-built system keys. Rounding tolerance is half a unit of the coarser printed precision; gaps under 0.002 between full-precision values were not listed (BRCA1 noncoding SpliceAI 0.9645 against 0.9635). Rewire's three clingen cohorts and its three GPU runs count as one study. Non-missense ClinVar strata, Lu against PhyloGPN (not formal disagreements because both protocols sit in the missense setting): AUROC Lu then PhyloGPN paper, GPN-MSA and PhyloGPN respectively: 3' UTR 0.908 vs 0.96 and 0.765 vs 0.94; 5' UTR 0.728 vs 0.95 and 0.601 vs 0.94; synonymous 0.882 vs 0.87 and 0.806 vs 0.85; noncoding 0.981 vs 0.95 and 0.951 vs 0.94; intron (Lu non-splice) vs intronic 0.885 vs 0.94 and 0.846 vs 0.95, an order reversal between GPN-MSA and PhyloGPN; stop loss 0.888 vs 0.86 and 0.695 vs 0.81; start loss vs start codon 0.769 vs 0.80 and 0.583 vs 0.77. PhyloGPN is lower in Lu in every class, by up to 0.34; class definitions and review filters differ. Pooled ClinVar SNVs: Lu 'All variants' gives Evo 2 7B base 0.969, GPN-MSA 0.960, PhyloP 100 0.908; the Evo 2 paper 'Both' SNV stratum gives 0.960, 0.959 and 0.919. Lu reports AlphaGenome at 0.310 on all variants but 0.991 on noncoding, which looks like a score-direction or aggregation issue inside Lu worth checking; EVEE's pooled deconfounded set gives AlphaGenome 0.574. Calibration. All 24 shared Pejaver and Bergquist thresholds agree within 0.001. Rewire's recalibration on 2026 held-out data is related only, but differs visibly: REVEL PP3 Supporting 0.683 and Strong 0.916 (AF-capped cohort) against Pejaver 0.644 and 0.932; AlphaMissense PP3 Supporting 0.723 against Bergquist 0.792. COSMIC. GPN-Star's 'GPN-MSA (no species curation)' ablation (0.229) is close to GPN-MSA's 'Include closest primates' ablation (0.219 or 0.214) and 'GPN-MSA (exclude 10 closest species)' (0.373) is near GPN-MSA 'Default' (0.355 max, 0.348 mean), but the GPN-Star models are retrained 25M-parameter versions, so these were not listed. Indels. GFMBench reports Evo2 AR-LLR AUROC 0.627 on its ClinVar indel task against 0.93 to 0.98 zero-shot in the Evo 2 paper; different data, but a gap large enough to check the GFMBench scoring. Existing tasks. discrepancy-v4-20261023-task-clinical-missense-pathogenicity (ClinVar or similar labels, AUROC or similar) is broader than the strict missense AUROC setting and already holds the Livesey win-rate protocol; it could be the parent task for that setting. reported-task-ed3dd3b83c4505 (ClinVar 3' UTR) matches the 3' UTR rows of Lu and PhyloGPN, which cannot be assigned to it separately here. bend-task-variant-disease has no protocol in this cluster."
+}
