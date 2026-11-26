@@ -1,0 +1,681 @@
+{
+ "record_id": "gfm2-20261011-you2026-model-utr-lm",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "a96123155/UTR-LM README.md at commit b77b589b",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/a96123155/UTR-LM/b77b589bf182eb9de6a1a5024fa09d44294d94fc/README.md",
+   "url": "https://github.com/a96123155/UTR-LM",
+   "version": "git commit b77b589bf182eb9de6a1a5024fa09d44294d94fc",
+   "media_type": "text/markdown",
+   "sha256": "879fe53304a4df8d02250e543cc1a1a9571021bef65df2e8526ae446e07c45ac",
+   "retrieved_at": "2026-11-26T17:15:00Z",
+   "licence": "GPL-3.0",
+   "store_bytes": false
+  },
+  {
+   "key": "license",
+   "name": "a96123155/UTR-LM LICENSE at commit b77b589b",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/a96123155/UTR-LM/b77b589bf182eb9de6a1a5024fa09d44294d94fc/LICENSE",
+   "url": "https://github.com/a96123155/UTR-LM",
+   "version": "git commit b77b589bf182eb9de6a1a5024fa09d44294d94fc",
+   "media_type": "text/plain",
+   "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+   "retrieved_at": "2026-11-26T17:15:00Z",
+   "licence": "GPL-3.0",
+   "store_bytes": false
+  },
+  {
+   "key": "requirements",
+   "name": "a96123155/UTR-LM utrlm_requirements.txt at commit b77b589b",
+   "description": "Python requirements file of the official repository, pinned to a commit.",
+   "file": "artifacts/requirements.txt",
+   "artifact_url": "https://raw.githubusercontent.com/a96123155/UTR-LM/b77b589bf182eb9de6a1a5024fa09d44294d94fc/utrlm_requirements.txt",
+   "url": "https://github.com/a96123155/UTR-LM",
+   "version": "git commit b77b589bf182eb9de6a1a5024fa09d44294d94fc",
+   "media_type": "text/plain",
+   "sha256": "e1712828254444838c780581ddf7b6c6d69a2772873061548c052f853627258a",
+   "retrieved_at": "2026-11-26T17:15:00Z",
+   "licence": "GPL-3.0",
+   "store_bytes": false
+  },
+  {
+   "key": "tree",
+   "name": "GitHub tree listing of a96123155/UTR-LM at commit b77b589b",
+   "description": "GitHub API listing of every file in the repository at the pinned commit, including the checkpoint files and their sizes.",
+   "file": "artifacts/github-tree.json",
+   "artifact_url": "https://api.github.com/repos/a96123155/UTR-LM/git/trees/b77b589bf182eb9de6a1a5024fa09d44294d94fc?recursive=1",
+   "url": "https://github.com/a96123155/UTR-LM",
+   "version": "git commit b77b589bf182eb9de6a1a5024fa09d44294d94fc",
+   "media_type": "application/json",
+   "sha256": "941028a972744d29896540cff60aa7377196e11f6cd170ac8cd5c43b55e8d488",
+   "retrieved_at": "2026-11-26T17:15:00Z",
+   "licence": "GitHub API metadata",
+   "store_bytes": true
+  },
+  {
+   "key": "biorxiv",
+   "name": "bioRxiv API details for 10.1101/2023.10.11.561938 (UTR-LM preprint, version 1)",
+   "description": "bioRxiv metadata and abstract of the UTR-LM preprint.",
+   "file": "artifacts/biorxiv-api.json",
+   "artifact_url": "https://api.biorxiv.org/details/biorxiv/10.1101/2023.10.11.561938",
+   "url": "https://doi.org/10.1101/2023.10.11.561938",
+   "version": "bioRxiv API response as served on 2026-11-26",
+   "media_type": "application/json",
+   "sha256": "4337146efedc403aa0c6cb8e728b9b3b21b737fa34b6ca5aca3d1e98098c7676",
+   "retrieved_at": "2026-11-26T17:15:00Z",
+   "licence": "No reuse licence (bioRxiv cc_no)",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "UTR-LM is a language model for the 5' untranslated region (5' UTR) of mRNA, the stretch before the coding sequence that strongly affects how well an mRNA is translated. It reads a 5' UTR sequence and, after fine-tuning, predicts mean ribosome loading, translation efficiency or mRNA expression level. Pretraining combines masked language modelling with labels computed from the sequence, such as secondary structure and minimum free energy.",
+  "summary_source_ids": [
+   "@readme",
+   "@biorxiv"
+  ],
+  "summary_source_locator": "README.md opening paragraph; bioRxiv abstract",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "Specifically, the 5' UTR, located at the 5' end of an RNA molecule, is a critical determinant of the RNA’s translation efficiency."
+   },
+   {
+    "source": "@readme",
+    "text": "We augmented the model with supervised information that can be computed given the sequence, including the secondary structure and minimum free energy, which improved the semantic representation."
+   },
+   {
+    "source": "@biorxiv",
+    "text": "The model outperformed the best-known benchmark by up to 42% for predicting the Mean Ribosome Loading, and by up to 60% for predicting the Translation Efficiency and the mRNA Expression Level."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "UTR-LM is built on a modified copy of the ESM-2 transformer code, shipped in the repository. The reported settings are 6 transformer layers, 16 attention heads and an embedding size of 128. Pretraining uses masked language modelling (MLM) and, in the recommended variants, also predicts the minimum free energy (MFE) and/or the secondary structure of the sequence. For downstream tasks the developers fine-tune the whole model and feed the [CLS]-token embedding to a predictor trained with Huber loss.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Install step 3; General Parameters; UTR-LM pretraining process",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "because we have modified the souce code of ESM."
+     },
+     {
+      "source": "@readme",
+      "text": "layers: Number of Transformer layers. We use 6."
+     },
+     {
+      "source": "@readme",
+      "text": "heads: Number of multi-head attentions. We use 16."
+     },
+     {
+      "source": "@readme",
+      "text": "embed_dim: Dimensions of word embeddings. We use 128."
+     },
+     {
+      "source": "@readme",
+      "text": "| v2DDP_ESM2_alldata_SupervisedInfo.py | MLM+MFE |"
+     },
+     {
+      "source": "@readme",
+      "text": "| v3DDP_ESM2_alldata_SupervisedInfo_SecondaryStructure.py | MLM+MFE+SecondaryStructure |"
+     },
+     {
+      "source": "@readme",
+      "text": "finetune: Whether to fine-tune the pre-trained LM. We fine-tuned the entire model."
+     },
+     {
+      "source": "@readme",
+      "text": "bos_emb: We choose this as [CLS]-token embedding for downstream prediction."
+     },
+     {
+      "source": "@readme",
+      "text": "huber_loss: We use HuberLoss."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The repository holds 16 pretrained checkpoint files under Model/Pretrained, named by their pretraining variant (ESM2, ESM2SI, ESM2SS, ESM2SISS, ESM2DSD) and data split, plus 182 files under Model/Downstream for the MRL, TE and EL tasks. The README's own example pretraining command passes --heads 6 --embed_dim 16, which disagrees with the 16 heads and embedding size 128 listed under General Parameters and in the checkpoint file names. A result should name the exact checkpoint file and the repository commit. A runnable copy is also published as a CodeOcean capsule.",
+    "source_ids": [
+     "@tree",
+     "@readme"
+    ],
+    "source_locator": "GitHub tree listing, Model/Pretrained; README.md: UTR-LM pretraining process, General Parameters, Implementable Version",
+    "quotes": [
+     {
+      "source": "@tree",
+      "text": "\"path\": \"Model/Pretrained/ESM2SI_3.1_fiveSpeciesCao_6layers_16heads_128embedsize_4096batchToks_MLMLossMin.pkl\""
+     },
+     {
+      "source": "@tree",
+      "text": "\"path\": \"Model/Pretrained/ESM2SISS_FS4.1_fiveSpeciesCao_6layers_16heads_128embedsize_4096batchToks_lr1e-05_supervisedweight1.0_structureweight1.0_MLMLossMin_epoch93.pkl\""
+     },
+     {
+      "source": "@readme",
+      "text": "--lr 1e-5 --layers 6 --heads 6 --embed_dim 16"
+     },
+     {
+      "source": "@readme",
+      "text": "You could run the code in [CodeOcean](https://codeocean.com/capsule/4214075/tree/v1)."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Semi-supervised masked language model for 5' UTR sequences, fine-tuned for regression and classification tasks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md title",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "# UTR-LM: A Semi-supervised 5’ UTR Language Model for mRNA Translation and Expression Prediction"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Transformer based on modified ESM-2 code: 6 layers, 16 attention heads, embedding size 128 (General Parameters and checkpoint names); a predictor on the [CLS] embedding for downstream tasks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@tree"
+    ],
+    "source_locator": "README.md: General Parameters; tree listing",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "layers: Number of Transformer layers. We use 6."
+     },
+     {
+      "source": "@readme",
+      "text": "heads: Number of multi-head attentions. We use 16."
+     },
+     {
+      "source": "@readme",
+      "text": "embed_dim: Dimensions of word embeddings. We use 128."
+     },
+     {
+      "source": "@readme",
+      "text": "cnn_layers: CNN layer number (default is 0), because we do not use CNN."
+     },
+     {
+      "source": "@tree",
+      "text": "6layers_16heads_128embedsize"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "5' UTR nucleotide sequences, supplied as FASTA for pretraining and as CSV files for fine-tuning. The TE and EL example uses an input length of 100.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: pretraining and downstream commands",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--train_fasta ./Data/Pretrained_Data/Fivespecies_Cao_energy_structure_CaoEnergyNormalDist_255795sequence.fasta"
+     },
+     {
+      "source": "@readme",
+      "text": "inp_len: input sequence length"
+     },
+     {
+      "source": "@readme",
+      "text": "--inp_len 100"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Predicted mean ribosome loading (MRL), translation efficiency (TE) or mRNA expression level (EL); embeddings and attention can be extracted with the prediction notebook.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@biorxiv"
+    ],
+    "source_locator": "README.md: downstream fine-tuning process; Predict Process",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "label_type: Choose from \"te_log\" (TE task) or \"rnaseq_log\" (EL task)"
+     },
+     {
+      "source": "@readme",
+      "text": "./Scripts/UTRLM_downstream/MJ5_Predict_and_Extract_Attention_Embedding.ipynb"
+     },
+     {
+      "source": "@biorxiv",
+      "text": "for predicting the Mean Ribosome Loading"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not extracted. The sources read give layer, head and embedding sizes but no parameter count; the paper was not read.",
+    "status": "unextracted",
+    "source_ids": [
+     "@readme",
+     "@tree"
+    ],
+    "source_locator": "README.md: General Parameters; tree listing, Model/Pretrained file sizes"
+   },
+   {
+    "label": "Training data",
+    "value": "A combined library of random 5' UTRs and endogenous 5' UTRs from multiple species. The pretraining file named in the README holds 255,795 sequences from five species with energy and structure labels.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@biorxiv"
+    ],
+    "source_locator": "README.md opening paragraph and pretraining command; bioRxiv abstract",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "which is pre-trained on a combined library of random 5' UTRs and endogenous 5' UTRs from multiple species"
+     },
+     {
+      "source": "@readme",
+      "text": "Fivespecies_Cao_energy_structure_CaoEnergyNormalDist_255795sequence.fasta"
+     },
+     {
+      "source": "@biorxiv",
+      "text": "The UTR-LM is pre-trained on endogenous 5 UTRs from multiple species and is further augmented with supervised information including secondary structure and minimum free energy."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "16 pretrained checkpoint files in Model/Pretrained, named by their variant (ESM2, ESM2SI, ESM2SS, ESM2SISS, ESM2DSD) and data split, plus 182 files under Model/Downstream. No single named release.",
+    "status": "source_checked",
+    "source_ids": [
+     "@tree"
+    ],
+    "source_locator": "GitHub tree listing, Model/Pretrained and Model/Downstream",
+    "quotes": [
+     {
+      "source": "@tree",
+      "text": "\"path\": \"Model/Pretrained/ESM2_1.4_five_species_TrainLossMin_6layers_16heads_128embedsize_4096batchToks.pkl\""
+     },
+     {
+      "source": "@tree",
+      "text": "\"path\": \"Model/Pretrained/ESM2SS_FS4.1_fiveSpeciesCao_6layers_16heads_128embedsize_4096batchToks_lr1e-05_structureweight1.0_MLMLossMin_epoch200.pkl\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not extracted. The sources read give no date for the training data and the paper was not read.",
+    "status": "unextracted",
+    "source_ids": [
+     "@readme",
+     "@biorxiv"
+    ],
+    "source_locator": "README.md; bioRxiv abstract"
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated for pretraining. The TE and EL fine-tuning example sets an input length of 100 nucleotides, and the batch size is set in tokens (4096 batch tokens in the checkpoint names).",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@tree"
+    ],
+    "source_locator": "README.md: TE and EL command, General Parameters; tree listing",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--inp_len 100"
+     },
+     {
+      "source": "@readme",
+      "text": "inp_len: input sequence length"
+     },
+     {
+      "source": "@tree",
+      "text": "4096batchToks"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "The checkpoints are committed inside the repository, which is licensed GPL-3.0; no separate weights licence is given.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@tree"
+    ],
+    "source_locator": "LICENSE; tree listing, Model/Pretrained",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "GNU GENERAL PUBLIC LICENSE"
+     },
+     {
+      "source": "@tree",
+      "text": "\"path\": \"Model/Pretrained\""
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "GPL-3.0",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "GNU GENERAL PUBLIC LICENSE"
+     },
+     {
+      "source": "@license",
+      "text": "Version 3, 29 June 2007"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code and checkpoints: https://github.com/a96123155/UTR-LM. A runnable copy with the data: https://codeocean.com/capsule/4214075/tree/v1. Training and task data are also on Google Drive folders linked from the README.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Implementable Version, File Structure, downstream commands",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You could run the code in [CodeOcean](https://codeocean.com/capsule/4214075/tree/v1)."
+     },
+     {
+      "source": "@readme",
+      "text": "train_file: Please download the dataset from [link]"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Pretrained and fine-tuned checkpoints for every task and fold are committed in the repository, so a run does not depend on a separate download for the weights.",
+    "source_ids": [
+     "@tree"
+    ],
+    "source_locator": "GitHub tree listing, Model/Pretrained and Model/Downstream",
+    "quotes": [
+     {
+      "source": "@tree",
+      "text": "\"path\": \"Model/Downstream/MRL\""
+     },
+     {
+      "source": "@tree",
+      "text": "\"path\": \"Model/Pretrained\""
+     }
+    ]
+   },
+   {
+    "text": "Pretraining adds labels computed from the sequence itself (minimum free energy, secondary structure), which the developers report improved the representation.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md opening paragraph; pretraining variants table",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We augmented the model with supervised information that can be computed given the sequence, including the secondary structure and minimum free energy, which improved the semantic representation."
+     },
+     {
+      "source": "@readme",
+      "text": "| v4DDP_ESM2_alldata_SecondaryStructure.py | MLM+SecondaryStructure |"
+     }
+    ]
+   },
+   {
+    "text": "A runnable CodeOcean capsule and a prediction notebook are published alongside the code.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Implementable Version; Predict Process",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "## Implementable Version"
+     },
+     {
+      "source": "@readme",
+      "text": "If you want to quick start, please see ./Scripts/UTRLM_downstream/MJ5_Predict_and_Extract_Attention_Embedding.ipynb"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The code is GPL-3.0, which carries copyleft obligations for derived work.",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "GNU GENERAL PUBLIC LICENSE"
+     }
+    ]
+   },
+   {
+    "text": "Installation needs a modified copy of the ESM source code to be moved by hand into the environment's site-packages, so the package will not work from a plain pip install.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Install step 3",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Move the folder ./Scripts/esm/ to the conda env fold"
+     },
+     {
+      "source": "@readme",
+      "text": "because we have modified the souce code of ESM."
+     }
+    ]
+   },
+   {
+    "text": "The example commands are written for a specific machine: the training and task data come from Google Drive links, and the README notes paths must be changed to your own.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Noted; downstream commands",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Please change the directory to your own directory."
+     },
+     {
+      "source": "@readme",
+      "text": "Please download the dataset from [link]"
+     }
+    ]
+   },
+   {
+    "text": "The examples launch torch.distributed with up to four GPUs, and the requirements file pins a full conda environment with local build paths, which will not resolve elsewhere.",
+    "source_ids": [
+     "@readme",
+     "@requirements"
+    ],
+    "source_locator": "README.md: MRL command; utrlm_requirements.txt",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m torch.distributed.launch --nproc_per_node=4"
+     },
+     {
+      "source": "@requirements",
+      "text": "anyio @ file:///home/conda/feedstock_root/build_artifacts/anyio_1652463862396/work/dist"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "UTR-LM workflow",
+   "steps": [
+    "5' UTR sequences from several species",
+    "Masked language modelling with minimum free energy and secondary structure labels",
+    "Pretrained checkpoint in Model/Pretrained",
+    "Fine-tune the whole model on task data",
+    "[CLS] embedding into a predictor",
+    "Predicted MRL, TE or EL"
+   ],
+   "caption": "Pretraining and fine-tuning as described in the README.",
+   "source_ids": [
+    "@readme"
+   ],
+   "source_locator": "README.md: opening paragraph, pretraining and downstream sections, General Parameters",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "including the secondary structure and minimum free energy"
+    },
+    {
+     "source": "@readme",
+     "text": "### UTR-LM pretraining process"
+    },
+    {
+     "source": "@readme",
+     "text": "bos_emb: We choose this as [CLS]-token embedding for downstream prediction."
+    },
+    {
+     "source": "@readme",
+     "text": "label_type: Choose from \"te_log\" (TE task) or \"rnaseq_log\" (EL task)"
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "Coverage is limited: there is no model card and the paper full text was not read. The Europe PMC full-text XML endpoint for PMC11155392 returned HTTP 500 on two tries, and the bioRxiv full-text page returned a rate limit (error 1015). Only the bioRxiv abstract was read.",
+   "The parameter count, the vocabulary and the pretraining sequence-length limit are not stated in the sources read.",
+   "The README gives no single recommended checkpoint for new work, and its example pretraining command disagrees with the documented head count and embedding size.",
+   "Hardware needs and training time are not stated."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the a96123155/UTR-LM README.md, LICENSE, utrlm_requirements.txt and the GitHub tree listing at commit b77b589bf182eb9de6a1a5024fa09d44294d94fc, and the bioRxiv API abstract for 10.1101/2023.10.11.561938, each fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Set up the UTR-LM environment with its modified ESM code, then fine-tune a pretrained checkpoint for translation efficiency on the Muscle cell line.",
+  "prerequisites": [
+   "Conda, and a CUDA GPU: the commands launch torch.distributed and set CUDA_VISIBLE_DEVICES.",
+   "Task data downloaded by hand from the Google Drive folder linked in the README (for the TE and EL task, the Muscle, pc3 or HEK cell-line data).",
+   "Paths in the commands changed to your own directories, as the README states."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/a96123155/UTR-LM.git\ncd UTR-LM\ngit checkout --detach b77b589bf182eb9de6a1a5024fa09d44294d94fc",
+    "explanation": "The README does not give a clone command; this clones the repository named in the README and pins the commit read for this page. Later commands are run from the repository root.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Install step 2 and Instruction Example",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "In UTRLM environment, install the Python packages listed in the utrlm_requirements.txt file."
+     },
+     {
+      "source": "@readme",
+      "text": "cd ./Scripts/UTRLM_downstream"
+     }
+    ]
+   },
+   {
+    "title": "Create the environment",
+    "shell": "conda create -n UTRLM python==3.9.13\nconda activate UTRLM\npip install -r utrlm_requirements.txt",
+    "explanation": "The README's environment steps. The requirements file pins a full conda environment including local build paths, so the plain pip list in the README may be needed instead.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Install steps 1 and 2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -n UTRLM python==3.9.13"
+     },
+     {
+      "source": "@readme",
+      "text": "conda activate UTRLM"
+     },
+     {
+      "source": "@readme",
+      "text": "`pip install -r utrlm_requirements.txt`"
+     }
+    ]
+   },
+   {
+    "title": "Install the modified ESM code",
+    "shell": "pip install fair-esm\nfind -name esm\nscp -r ./Scripts/esm ./.conda/envs/UTRLM/lib/python3.9/site-packages/",
+    "explanation": "Installs fair-esm, then copies the repository's modified esm folder over it. The destination path must match your own environment.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Install step 3",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install fair-esm"
+     },
+     {
+      "source": "@readme",
+      "text": "scp -r ./Scripts/esm ./.conda/envs/UTRLM/lib/python3.9/site-packages/"
+     }
+    ]
+   },
+   {
+    "title": "Fine-tune for translation efficiency",
+    "shell": "cd ./Scripts/UTRLM_downstream\nCUDA_VISIBLE_DEVICES=0 python3 -m torch.distributed.launch --nproc_per_node=1 --master_port 9001 MJ4_Finetune_extract_append_predictor_CellLine_10fold-lr-huber-DDP.py --device_ids 0 --cell_line Muscle --label_type te_log --seq_type utr --inp_len 100 --huber_loss --modelfile ./Model/ESM2SI_3.1_fiveSpeciesCao_6layers_16heads_128embedsize_4096batchToks_MLMLossMin.pkl --finetune --bos_emb --lr 1e-2 --dropout3 0.2 --epochs 300 --prefix TE_ESM2SI_3.1.1e-2.M.dropout2",
+    "explanation": "The README's TE and EL command for the Muscle cell line, using the ESM2SI_3.1 pretrained checkpoint. Change --cell_line to pc3 or HEK, and --label_type to rnaseq_log for the expression-level task.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: 2. For TE and EL task",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "MJ4_Finetune_extract_append_predictor_CellLine_10fold-lr-huber-DDP.py --device_ids 0 --cell_line Muscle --label_type te_log"
+     },
+     {
+      "source": "@readme",
+      "text": "--modelfile ./Model/ESM2SI_3.1_fiveSpeciesCao_6layers_16heads_128embedsize_4096batchToks_MLMLossMin.pkl"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Fine-tuning logs and a trained predictor checkpoint for the chosen cell line and label type. The README does not state the output paths; the prediction notebook MJ5_Predict_and_Extract_Attention_Embedding.ipynb reads such a checkpoint to produce predictions, embeddings and attention."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The checkpoint path in the README's TE command is ./Model/ESM2SI_3.1_... while the repository stores that file under Model/Pretrained/, so the path needs adjusting.",
+   "Data must be fetched by hand from Google Drive, with no checksum."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "notes": "Code and weights are GPL-3.0, so the README, LICENSE and requirements bytes are hashed and not stored. The paper was not readable openly (subscription in Europe PMC; the bioRxiv full-text page was rate-limited and the preprint is bioRxiv cc_no, so its bytes would not be stored), so only the abstract was used. The README's example pretraining flags (--heads 6 --embed_dim 16) contradict its own documented settings (16 heads, 128 embedding size); worth a human look before anyone follows that command."
+}
