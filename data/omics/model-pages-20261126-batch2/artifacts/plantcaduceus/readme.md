@@ -1,0 +1,176 @@
+![Static Badge](https://img.shields.io/badge/Linux-blue?logo=Linux&logoColor=white)
+![GitHub Repo stars](https://img.shields.io/github/stars/kuleshov-group/PlantCaduceus)
+![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/kuleshov-group/PlantCaduceus)
+[![PlantCAD](https://zenodo.org/badge/DOI/10.1073/pnas.2421738122.svg)](https://doi.org/10.1073/pnas.2421738122)
+[![PlantCAD2](https://zenodo.org/badge/DOI/10.1016/j.xgen.2026.101329.svg)](https://doi.org/10.1016/j.xgen.2026.101329)
+![PlantCAD Downloads](https://img.shields.io/badge/dynamic/json?color=blue&label=PlantCAD&query=downloadsAllTime&url=https://huggingface.co/api/models/kuleshov-group/PlantCaduceus_l32%3Fexpand%3DdownloadsAllTime)
+![PlantCAD2-Small](https://img.shields.io/badge/dynamic/json?color=blue&label=PlantCAD2-Small&query=downloadsAllTime&url=https://huggingface.co/api/models/kuleshov-group/PlantCAD2-Small-l24-d0768%3Fexpand%3DdownloadsAllTime)
+![PlantCAD2-Medium](https://img.shields.io/badge/dynamic/json?color=blue&label=PlantCAD2-Medium&query=downloadsAllTime&url=https://huggingface.co/api/models/kuleshov-group/PlantCAD2-Medium-l48-d1024%3Fexpand%3DdownloadsAllTime)
+![PlantCAD2-Large](https://img.shields.io/badge/dynamic/json?color=blue&label=PlantCAD2-Large&query=downloadsAllTime&url=https://huggingface.co/api/models/kuleshov-group/PlantCAD2-Large-l48-d1536%3Fexpand%3DdownloadsAllTime)
+[![PlantCAD 🤗](https://img.shields.io/badge/🤗-PlantCAD-yellow.svg?style=flat)](https://huggingface.co/collections/kuleshov-group/plantcaduceus-512bp-len-665a229ee098db706a55e44a)
+[![PlantCAD2 🤗](https://img.shields.io/badge/🤗-PlantCAD2-yellow.svg?style=flat)](https://huggingface.co/collections/kuleshov-group/plantcad2-67e437e241a382671371a572)
+
+<p align="center">
+  <img src="img/logo.jpg" alt="logo" width="20%">
+</p>
+
+## 🚀 [PlantCAD2](https://huggingface.co/collections/kuleshov-group/plantcad2-67e437e241a382671371a572) is now published in *[Cell Genomics](https://www.cell.com/cell-genomics/fulltext/S2666-979X(26)00191-6)*!
+
+A new DNA foundation model for angiosperms, with [LoRA fine-tuned models](https://huggingface.co/collections/plantcad/fine-tuned-plantcad2-models-68b316a57616134fa7a1b6b6) for accessible chromatin, gene expression, and protein translation.
+
+## Table of Contents
+
+- [PlantCAD overview](#plantcad-overview)
+- [Quick Start](#quick-start)
+- [Model summary](#model-summary)
+- [Quick example](#quick-example)
+- [Usage guides](#usage-guides)
+- [Citations](#citations)
+
+## [PlantCAD overview](https://plantcaduceus.github.io/)
+
+PlantCaduceus, with its short name of **PlantCAD**, is a plant DNA LM based on the [Caduceus](https://arxiv.org/abs/2403.03234) architecture, which extends the efficient [Mamba](https://arxiv.org/abs/2312.00752) linear-time sequence modeling framework to incorporate bi-directionality and reverse complement equivariance, specifically designed for DNA sequences. PlantCAD is pre-trained on a curated dataset of 16 Angiosperm genomes. PlantCAD showed state-of-the-art cross species performance in predicting TIS, TTS, Splice Donor and Splice Acceptor. The zero-shot of PlantCAD enables identifying genome-wide deleterious mutations and known causal variants in Arabidopsis, Sorghum and Maize.
+
+## Quick Start
+
+| Option | Best for |
+| :--- | :--- |
+| [Google Colab demo](https://colab.research.google.com/drive/1QW9Lgwra0vHQAOICE2hsIVcp6DKClyhO?usp=sharing) | New users — runs in the browser, no installation |
+| [Local installation (NVIDIA GPU)](docs/local-install.md) | Regular use — then open `notebooks/examples.ipynb` |
+| [Docker](docker/README.md) | Reproducible environments, HPC clusters |
+| [Local installation (AMD/ROCm)](https://github.com/plantcad/plantcad/issues/44) | Community-tested PlantCAD2 Medium/Large inference on MI250X |
+
+Then see the [Quick example](#quick-example) below or the [Usage guides](#usage-guides).
+
+## Model summary
+
+Pre-trained models have been uploaded to **HuggingFace 🤗**: [PlantCAD](https://huggingface.co/collections/kuleshov-group/plantcaduceus-512bp-len-665a229ee098db706a55e44a), [PlantCAD2](https://huggingface.co/collections/kuleshov-group/plantcad2), and [PlantCAD2-fine-tuned](https://huggingface.co/collections/plantcad/fine-tuned-plantcad2-models-68b316a57616134fa7a1b6b6).
+
+| Model | Max Input Length | Model Size | Embedding Size |
+| :--- | :--- | :--- | :--- |
+| **PlantCAD** | | | |
+| [PlantCaduceus_l20](https://huggingface.co/kuleshov-group/PlantCaduceus_l20) | 512bp | 20M | 384 |
+| [PlantCaduceus_l24](https://huggingface.co/kuleshov-group/PlantCaduceus_l24) | 512bp | 40M | 512 |
+| [PlantCaduceus_l28](https://huggingface.co/kuleshov-group/PlantCaduceus_l28) | 512bp | 128M | 768 |
+| [PlantCaduceus_l32](https://huggingface.co/kuleshov-group/PlantCaduceus_l32) | 512bp | 225M | 1024 |
+| **PlantCAD2** | | | |
+| [PlantCAD2-Small](https://huggingface.co/kuleshov-group/PlantCAD2-Small-l24-d0768) | 8192bp | 88M | 768 |
+| [PlantCAD2-Medium](https://huggingface.co/kuleshov-group/PlantCAD2-Medium-l48-d1024) | 8192bp | 311M | 1024 |
+| [PlantCAD2-Large](https://huggingface.co/kuleshov-group/PlantCAD2-Large-l48-d1536) | 8192bp | 694M | 1536 |
+
+> **⚠️ Important:** The "Max Input Length" is a hard limit — your input sequences **cannot** exceed this length. Use `-contextSize 512` for PlantCAD models and up to `-contextSize 8192` for PlantCAD2 models. See [Model Recommendations](docs/model-recommendations.md) for guidance on which model to use.
+
+> [!WARNING]
+> Double check the parameter count of the model. On some versions of Transformers, weight tying can break resulting in double the amount of apparent parameters. You can check the parameter count these models using `print(f"Num Params: {model.num_parameters():,}")`.  If the observed parameter count is double the parameter count listed in the above table, expand the section below and run the following function on the model to return a version of the model with the wieghts tied again.
+>
+> <details>
+> <summary><strong>Show re-tying function</strong></summary>
+>
+> ```python
+>def fix_and_register_ties(model, fwd_pattern=“fwd”, rev_pattern=“rev”):
+>    “”"
+>    Ties weights in memory and generates the required _tied_weights_keys.
+>    To be used whenever model param count is ~2x or the warning of uninitialized
+>    paramters is recieved
+>    Future revision wont need after _tie_weights() is fixed.
+>    “”"
+>    tied_paths = []
+>
+>    # Start with existing tied keys (like word embeddings) if present
+>    if hasattr(model, “_tied_weights_keys”) and model._tied_weights_keys is not None:
+>        tied_paths.extend(model._tied_weights_keys)
+>
+>    # Dictionary of all modules for quick lookup
+>    num_modules = dict(model.named_modules())
+>
+>    for name, module in num_modules.items():
+>        if fwd_pattern in name and “proj” in name:
+>            rev_name = name.replace(fwd_pattern, rev_pattern)
+>
+>            if rev_name in num_modules:
+>                fwd_mod = module
+>                rev_mod = num_modules[rev_name]
+>
+>                # Check if it’s a layer with weights (Linear, Conv, etc.)
+>                if hasattr(fwd_mod, “weight”):
+>                    # 1. Physical memory tie
+>                    rev_mod.weight = fwd_mod.weight
+>                    # 2. Add to HF tracking list
+>                    tied_paths.append(f”{rev_name}.weight”)
+>
+>                if hasattr(fwd_mod, “bias”) and fwd_mod.bias is not None:
+>                    rev_mod.bias = fwd_mod.bias
+>                    tied_paths.append(f”{rev_name}.bias”)
+>                # Logging for debugging
+>                print(f”Bound: {rev_name} -> {name}“)
+>
+>    # Deduplicate and assign to the magic HF attribute
+>    model._tied_weights_keys = list(set(tied_paths))
+>    print(sum([x.numel() for x in model.parameters()]))
+>    return model
+> ```
+>
+> </details>
+
+## Quick example
+
+Get sequence embeddings with PlantCAD:
+
+```python
+import torch
+from transformers import AutoTokenizer, AutoModelForMaskedLM
+
+device = 'cuda:0'
+tokenizer = AutoTokenizer.from_pretrained('kuleshov-group/PlantCaduceus_l32')
+model = AutoModelForMaskedLM.from_pretrained(
+    'kuleshov-group/PlantCaduceus_l32', trust_remote_code=True
+).to(device)
+
+sequence = "CTTAATTAATATTGCCTTTGTAATAACGCGCGAAACACAAATCTTCTCTGCCTAATGCAGTAGTCATGTGTTGACTCCTTCAAAATTTCCAAGAAGTTAGTGGCTGGTGTGTCATTGTCTTCATCTTTTTTTTTTTTTTTTTAAAAATTGAATGCGACATGTACTCCTCAACGTATAAGCTCAATGCTTGTTACTGAAACATCTCTTGTCTGATTTTTTCAGGCTAAGTCTTACAGAAAGTGATTGGGCACTTCAATGGCTTTCACAAATGAAAAAGATGGATCTAAGGGATTTGTGAAGAGAGTGGCTTCATCTTTCTCCATGAGGAAGAAGAAGAATGCAACAAGTGAACCCAAGTTGCTTCCAAGATCGAAATCAACAGGTTCTGCTAACTTTGAATCCATGAGGCTACCTGCAACGAAGAAGATTTCAGATGTCACAAACAAAACAAGGATCAAACCATTAGGTGGTGTAGCACCAGCACAACCAAGAAGGGAAAAGATCGATGATCG"
+
+input_ids = tokenizer.encode_plus(
+    sequence, return_tensors="pt", return_attention_mask=False,
+    return_token_type_ids=False
+)["input_ids"].to(device)
+
+with torch.inference_mode():
+    outputs = model(input_ids=input_ids, output_hidden_states=True)
+
+embeddings = outputs.hidden_states[-1].to(torch.float32).cpu().numpy()
+
+# Average forward and reverse complement embeddings
+hidden_size = embeddings.shape[-1] // 2
+forward = embeddings[..., 0:hidden_size]
+reverse = embeddings[..., hidden_size:][:, ::-1, :]
+averaged_embeddings = (forward + reverse) / 2
+print(averaged_embeddings.shape)
+```
+
+See `notebooks/examples.ipynb` for more detailed examples.
+
+## Usage guides
+
+| Guide | Description |
+| :--- | :--- |
+| **[Zero-shot SNP & Region Scoring](docs/zero-shot-scoring.md)** | Score variants (VCF) or genomic regions (BED) using log-likelihood ratios |
+| **[Zero-shot SV Scoring](docs/zero-shot-scoring-sv.md)** | Score structural variants (deletions & insertions) |
+| **[XGBoost Classifiers](docs/xgboost-classifiers.md)** | Train or use pre-trained classifiers for TIS, TTS, splice sites |
+| **[In-silico Mutagenesis](pipelines/in-silico-mutagenesis/README.md)** | Large-scale simulation and analysis of genetic variants |
+| **[Fine-tuned PlantCAD2 Models](docs/PlantCAD2-overview.md)** | LoRA models for chromatin, expression, translation |
+| **[Zero-shot Evaluation](docs/zero-shot-eval.md)** | PlantCAD2 zero-shot benchmark results |
+| **[Pre-training](docs/pre-training.md)** | Pre-train or fine-tune PlantCAD models from scratch |
+| **[Model Recommendations](docs/model-recommendations.md)** | Which model to use, inference speed benchmarks, GPU memory guide |
+
+## Citations
+
+If you find PlantCAD useful for your research, please consider citing our papers:
+
+- Zhai, J., Gokaslan, A., Schiff, Y., Berthel, A., Liu, Z. Y., Lai, W. L., Miller, Z. R., Scheben, A., Stitzer, M. C., Romay, M. C., Buckler, E. S., & Kuleshov, V. (2025). Cross-species modeling of plant genomes at single nucleotide resolution using a pretrained DNA language model. Proceedings of the National Academy of Sciences, 122(24), e2421738122. https://doi.org/10.1073/pnas.2421738122
+- Zhai, J., Gokaslan, A., Hsu, S.-K., Chen, S.-P., Liu, Z.-Y., Marroquin, E., Czech, E., Cannon, B., Berthel, A., Romay, M. C., Pennell, M., Kuleshov, V., & Buckler, E. S. (2026). PlantCAD2: A DNA foundation model for interpreting genomes across flowering plants. Cell Genomics, 101329. https://doi.org/10.1016/j.xgen.2026.101329
+
+## Contact
+
+Maintained by **Jingjing Zhai**.
+
+- For collaboration inquiries: [jz963@cornell.edu](mailto:jz963@cornell.edu) or [zhaijingjing603@gmail.com](mailto:zhaijingjing603@gmail.com)
+- General questions, bug reports, and feature requests: please [open an issue](https://github.com/plantcad/plantcad/issues)
