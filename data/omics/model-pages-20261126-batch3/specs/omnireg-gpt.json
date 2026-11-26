@@ -1,0 +1,686 @@
+{
+ "record_id": "lit-microbial-20261011-virobench-model-omnireg-gpt",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "wawpaopao/OmniReg-GPT README.md at commit 7cae626d",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/wawpaopao/OmniReg-GPT/7cae626d09f97d9be8dade0be0d17e3f80070fef/README.md",
+   "url": "https://github.com/wawpaopao/OmniReg-GPT",
+   "version": "git commit 7cae626d09f97d9be8dade0be0d17e3f80070fef",
+   "media_type": "text/markdown",
+   "sha256": "77dbd43a817ad9616484eac6d02b2ae3789b3d1f10ea8f6990a2417879b3e86f",
+   "retrieved_at": "2026-11-26T18:31:04Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "wawpaopao/OmniReg-GPT LICENSE at commit 7cae626d",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/wawpaopao/OmniReg-GPT/7cae626d09f97d9be8dade0be0d17e3f80070fef/LICENSE",
+   "url": "https://github.com/wawpaopao/OmniReg-GPT",
+   "version": "git commit 7cae626d09f97d9be8dade0be0d17e3f80070fef",
+   "media_type": "text/plain",
+   "sha256": "6e5ad3359b8452bb1e71be830b697fb2809a09ea0b0b2b1bea84281d66dbea95",
+   "retrieved_at": "2026-11-26T18:31:05Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "zenodo-weights",
+   "name": "Zenodo record 14893616 (OmniReg-GPT pretrained weights), API response as served on 2026-11-26",
+   "description": "Zenodo metadata for the pretrained weights linked from the README: licence, date and file size.",
+   "file": "artifacts/zenodo-weights.json",
+   "artifact_url": "https://zenodo.org/api/records/14893616",
+   "url": "https://zenodo.org/records/14893616",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "439205f78690d8f29a96cdabca6c01e35aedc8032575eb41662eb5e078f54f76",
+   "retrieved_at": "2026-11-26T18:32:54Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Wang et al. 2025, Nature Communications, Europe PMC full text PMC12630854",
+   "description": "Full text of 'OmniReg-GPT: a high-efficiency foundation model for comprehensive genomic sequence understanding'.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC12630854/fullTextXML",
+   "url": "https://doi.org/10.1038/s41467-025-65066-7",
+   "version": "Published version, PMC12630854",
+   "media_type": "application/xml",
+   "sha256": "8530040438d6b9bdadd36ae462551fef4b86bff35e7e18a742fce009c653a062",
+   "retrieved_at": "2026-11-26T18:32:54Z",
+   "licence": "CC BY-NC-ND 4.0",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "OmniReg-GPT is a generative DNA foundation model for long human genomic sequences. It reads DNA tokenised into subword units and was pretrained to predict the next token on 20 kb windows of the human T2T genome. Its embeddings are fine-tuned for regulatory tasks such as histone marks, promoters and enhancers, gene expression, chromatin accessibility and 3D chromatin contacts, and it can generate candidate enhancer sequences from a prompt.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Abstract; Methods, Training procedure; README: introduction",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "a generative foundation model designed for the low-resource pretraining of long genomic sequences by optimized attention mechanism"
+   },
+   {
+    "source": "@paper",
+    "text": "we pretrained OmniReg-GPT on the human reference genome using 20 kb sequence windows"
+   },
+   {
+    "source": "@readme",
+    "text": "including predicting histone modifications, CpG methylation, transcription factor binding sites, context dependent gene expression, single-cell chromatin accessibility, 3D chromatin contact and generating cell-type-specific enhancers"
+   },
+   {
+    "source": "@paper",
+    "text": "OmniReg-GPT also holds the potential to generate candidate cell-type-specific enhancers through prompt engineering"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "OmniReg-GPT is a decoder-only transformer trained with next-token prediction. DNA is tokenised with the BPE tokenizer from GENA-LM (vocabulary 32,000). The network has 12 local blocks, where each window of tokens attends to itself and the preceding window, and 2 global blocks that build a whole-sequence representation. The authors say this reduces attention cost from quadratic to linear in sequence length. It uses rotary position embeddings and FlashAttention. For downstream tasks a single vector is taken as the mean of all token embeddings.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, model architecture; Methods, OmniReg-GPT architecture and Training procedure; Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "OmniReg-GPT maintains a decoder-only transformer architecture."
+     },
+     {
+      "source": "@paper",
+      "text": "OmniReg-GPT retains the generative pretraining transformer architecture and next-token-prediction task, while utilizing a Byte Pair Encoding tokenizer"
+     },
+     {
+      "source": "@paper",
+      "text": "We then processed these sentences using Gena’s tokenizer, which is configured with a dictionary size of 32,000."
+     },
+     {
+      "source": "@paper",
+      "text": "OmniReg-GPT consists 12 local blocks for generating contextual embeddings and 2 global blocks for constructing comprehensive sequence representations"
+     },
+     {
+      "source": "@paper",
+      "text": "Then a local window attention is employed, allowing attention to be performed with both the preceding window and the sequence itself."
+     },
+     {
+      "source": "@paper",
+      "text": "This architecture reduces the quadratic complexity of attention layers to linear complexity"
+     },
+     {
+      "source": "@paper",
+      "text": "our implementation of Rotary Position Embedding (RoPE)"
+     },
+     {
+      "source": "@paper",
+      "text": "we utilize FlashAttention"
+     },
+     {
+      "source": "@paper",
+      "text": "we compute a single vector representation by taking the mean of all token embeddings, which is then used for downstream applications"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "One set of pretrained weights is released on Zenodo (record 14893616, 2025-02-19) as a single pytorch_model.bin of 1,143,401,937 bytes. The paper reports a 270 million parameter model and also mentions a 138 million parameter variant with hidden dimension 768 in its memory comparison; the Zenodo record does not say which variant the file is. The code is also archived on Zenodo (10.5281/zenodo.16933275), and downstream datasets are in Zenodo record 14883459. A result should name the repository commit and the Zenodo weights record; this page read commit 7cae626d.",
+    "source_ids": [
+     "@zenodo-weights",
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Zenodo API response; Paper: Fig. 2 legend, Code availability; README: Training and Inference",
+    "quotes": [
+     {
+      "source": "@zenodo-weights",
+      "text": "\"publication_date\": \"2025-02-19\""
+     },
+     {
+      "source": "@zenodo-weights",
+      "text": "\"key\": \"pytorch_model.bin\""
+     },
+     {
+      "source": "@zenodo-weights",
+      "text": "\"size\": 1143401937"
+     },
+     {
+      "source": "@paper",
+      "text": "accumulating 270 million parameters"
+     },
+     {
+      "source": "@paper",
+      "text": "The 138 million parameter size for OmniReg-GPT refers to the variant with a hidden dimension of 768."
+     },
+     {
+      "source": "@paper",
+      "text": "and at the Zenodo (10.5281/zenodo.16933275)"
+     },
+     {
+      "source": "@readme",
+      "text": "download the corresponding datasets from [https://zenodo.org/records/14883459]"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Generative (autoregressive) DNA foundation model for long genomic sequences.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we introduce OmniReg-GPT, a generative foundation model"
+     },
+     {
+      "source": "@paper",
+      "text": "We employed an autoregressive form of a language model as the loss function"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Decoder-only transformer with hybrid attention: 12 local-window attention blocks and 2 global attention blocks, rotary position embeddings, FlashAttention.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Methods, OmniReg-GPT architecture",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "hybrid architecture with 12 layers of local attention and 2 layers of global attention"
+     },
+     {
+      "source": "@paper",
+      "text": "our implementation of Rotary Position Embedding (RoPE)"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "DNA sequence tokenised with the GENA-LM BPE tokenizer (AIRI-Institute/gena-lm-bert-large-t2t), vocabulary 32,000.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Training and Inference; Paper: Methods",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "huggingface-cli download AIRI-Institute/gena-lm-bert-large-t2t --local-dir ./gena-lm-bert-large-t2t"
+     },
+     {
+      "source": "@paper",
+      "text": "configured with a dictionary size of 32,000"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Next-token predictions (used to generate sequences) and token embeddings, pooled as a mean into one vector for downstream fine-tuning.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods; README: Training and Inference",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "aiming to predict each subsequent token based on the previous tokens"
+     },
+     {
+      "source": "@paper",
+      "text": "taking the mean of all token embeddings"
+     },
+     {
+      "source": "@readme",
+      "text": "You can run `generation.py` to generate functional elements by prompt."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "270 million, as stated by the authors. The paper also mentions a 138 million parameter variant (hidden dimension 768); which one the released file holds is not stated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Results; Fig. 2 legend; README",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "based on hybrid attention architecture of local and global attention with 270 million parameters"
+     },
+     {
+      "source": "@paper",
+      "text": "The 138 million parameter size for OmniReg-GPT refers to the variant with a hidden dimension of 768."
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "The human T2T v2 genome assembly (NCBI GCF_009914755.1), cut into 20,000 bp sentences, about 5 billion tokens. Trained for 3 epochs on four RTX 3090 GPUs (60 h).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Training procedure",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For pretraining, we utilized the Human T2T v2 genome assembly, which was downloaded from the NCBI database (Accession number GCF_009914755.1)."
+     },
+     {
+      "source": "@paper",
+      "text": "In total, this process generated approximately 5 billion tokens as training corpus."
+     },
+     {
+      "source": "@paper",
+      "text": "In total, the model was trained on four NVIDIA GeForce RTX 3090 GPUs, totaling 60 h of training time."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One released pretrained checkpoint: pytorch_model.bin in Zenodo record 14893616 (2025-02-19). The README names no Hugging Face release.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo-weights",
+     "@readme"
+    ],
+    "source_locator": "Zenodo API response; README: Training and Inference",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Then you need to download the pretrained model weights from https://zenodo.org/records/14893616"
+     },
+     {
+      "source": "@zenodo-weights",
+      "text": "\"key\": \"pytorch_model.bin\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not applicable as a date: pretraining used a single fixed assembly, T2T v2 (GCF_009914755.1).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Training procedure",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Accession number GCF_009914755.1"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "20 kb pretraining length. The authors report the architecture fits inputs up to 200 kb in 32 GB of GPU memory during pretraining, but extrapolation beyond 20 kb was not explored.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, efficiency; Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "On a single NVIDIA Tesla V100 with 32GB memory, OmniReg-GPT architecture could accommodate DNA sequence inputs up to 200 kb"
+     },
+     {
+      "source": "@paper",
+      "text": "the full potential of its RoPE positional embeddings for extrapolation to sequences far beyond the 20 kb pre-training length has not yet been explored"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "CC BY 4.0, as declared on the Zenodo record of the pretrained weights.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo-weights"
+    ],
+    "source_locator": "Zenodo API response, metadata.license",
+    "quotes": [
+     {
+      "source": "@zenodo-weights",
+      "text": "\"id\": \"cc-by-4.0\""
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT License.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2024 Aowen Wang"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/wawpaopao/OmniReg-GPT (also Zenodo 10.5281/zenodo.16933275). Weights: https://zenodo.org/records/14893616. Tokenizer: AIRI-Institute/gena-lm-bert-large-t2t on Hugging Face. Example datasets: https://zenodo.org/records/14883459.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Requirements and setup, Training and Inference; Paper: Code availability",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/wawpaopao/OmniReg-GPT.git"
+     },
+     {
+      "source": "@readme",
+      "text": "https://zenodo.org/records/14893616"
+     },
+     {
+      "source": "@paper",
+      "text": "and at the Zenodo (10.5281/zenodo.16933275)"
+     },
+     {
+      "source": "@readme",
+      "text": "[https://zenodo.org/records/14883459](https://zenodo.org/records/14883459)"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Long inputs at modest cost: the authors report pretraining on inputs up to 200 kb on one 32 GB V100, and pretraining took 60 hours on four RTX 3090 GPUs.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Methods, Training procedure",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "could accommodate DNA sequence inputs up to 200 kb"
+     },
+     {
+      "source": "@paper",
+      "text": "totaling 60 h of training time"
+     }
+    ]
+   },
+   {
+    "text": "Generative as well as predictive: it can produce candidate cell-type-specific enhancers from a prompt, with a generation script in the repository.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Abstract; README",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "OmniReg-GPT also holds the potential to generate candidate cell-type-specific enhancers through prompt engineering"
+     },
+     {
+      "source": "@readme",
+      "text": "You can run `generation.py` to generate functional elements by prompt."
+     }
+    ]
+   },
+   {
+    "text": "Code is MIT and weights are CC BY 4.0, and the repository includes pretraining, fine-tuning and example task scripts.",
+    "source_ids": [
+     "@license",
+     "@zenodo-weights",
+     "@readme"
+    ],
+    "source_locator": "LICENSE; Zenodo API response; README",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@zenodo-weights",
+      "text": "\"id\": \"cc-by-4.0\""
+     },
+     {
+      "source": "@readme",
+      "text": "we provide a simplified pretraining pipeline in the `pretrain` folder"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Pretrained on the human reference genome only; the authors list cross-species training as future work.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "our framework optimizes pretraining on the human reference genome solely"
+     },
+     {
+      "source": "@paper",
+      "text": "particularly when incorporating cross-species genomes"
+     }
+    ]
+   },
+   {
+    "text": "Pretraining length was 20 kb, and no context extension was done, so behaviour on much longer inputs is untested.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we have not performed a post-training stage for context window extension"
+     }
+    ]
+   },
+   {
+    "text": "Generated enhancers are pilot results; the authors say experimental validation is still needed.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Further experimental validation is needed to prove the generative abilities."
+     }
+    ]
+   },
+   {
+    "text": "Using it means editing script lines by hand to set tokenizer, weight and data paths; the README gives no single inference command, and the install line points pip at the pypi.tuna.tsinghua.edu.cn index.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Configuration Steps; Requirements and setup",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "**Line 227**: Fill in the tokenizer path"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "OmniReg-GPT workflow",
+   "steps": [
+    "DNA sequence (pretraining used 20 kb windows)",
+    "GENA-LM BPE tokenizer (32,000 tokens)",
+    "12 local-window attention blocks",
+    "2 global attention blocks",
+    "Next-token prediction or mean-pooled embedding",
+    "Fine-tuned task head or generated sequence"
+   ],
+   "caption": "Data flow as described in the paper Methods and the README.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "Paper: Methods; README: Training and Inference",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "OmniReg-GPT consists 12 local blocks for generating contextual embeddings and 2 global blocks"
+    },
+    {
+     "source": "@paper",
+     "text": "each comprising 20,000 base pairs (bp)"
+    },
+    {
+     "source": "@readme",
+     "text": "To finetune or inference the OmniReg-GPT model or change some layers, you can refer to the example model code provided in the `finetune` folder."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The Zenodo record does not say which model variant (270M or 138M) the released weights are.",
+   "There is no model card and no single-sequence inference example; the run guide stops after downloading the weights.",
+   "Supplementary Fig. 1 and Supplementary Table 1, which detail the architecture, were not read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the OmniReg-GPT README and LICENSE at commit 7cae626d, the Zenodo API record 14893616 and the Europe PMC full text of the Nature Communications paper (PMC12630854), each fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Set up the OmniReg-GPT environment at a pinned commit and download the tokenizer and pretrained weights needed by the fine-tuning and generation scripts.",
+  "prerequisites": [
+   "conda, for a Python 3.8 environment; PyTorch 2.0 or later (the README pins torch==2.0.1).",
+   "GPU needs for inference are not stated.",
+   "Code is MIT; weights are CC BY 4.0; the weights file is 1,143,401,937 bytes."
+  ],
+  "steps": [
+   {
+    "title": "Clone the repository at the pinned commit",
+    "shell": "git clone https://github.com/wawpaopao/OmniReg-GPT.git\ncd OmniReg-GPT\ngit checkout --detach 7cae626d09f97d9be8dade0be0d17e3f80070fef",
+    "explanation": "The clone and cd lines are from the README; the checkout line is added to pin the commit this page was written from.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Requirements and setup",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/wawpaopao/OmniReg-GPT.git"
+     },
+     {
+      "source": "@readme",
+      "text": "cd OmniReg-GPT"
+     }
+    ]
+   },
+   {
+    "title": "Create the environment",
+    "shell": "conda create -n omnireg python=3.8 -y\nconda activate omnireg\npip install --upgrade pip\npip install -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn \\\n    numpy==1.24.3 pandas==2.0.3 h5py==3.11.0 torch==2.0.1 einops==0.6.1 \\\n    accelerate==0.22.0 transformers==4.33.0 scikit-learn==1.3.0",
+    "explanation": "As in the README. The install line uses the pypi.tuna.tsinghua.edu.cn package index.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Requirements and setup",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -n omnireg python=3.8 -y"
+     },
+     {
+      "source": "@readme",
+      "text": "conda activate omnireg"
+     },
+     {
+      "source": "@readme",
+      "text": "numpy==1.24.3 pandas==2.0.3 h5py==3.11.0 torch==2.0.1 einops==0.6.1"
+     },
+     {
+      "source": "@readme",
+      "text": "accelerate==0.22.0 transformers==4.33.0 scikit-learn==1.3.0"
+     }
+    ]
+   },
+   {
+    "title": "Download the tokenizer",
+    "shell": "huggingface-cli download AIRI-Institute/gena-lm-bert-large-t2t --local-dir ./gena-lm-bert-large-t2t",
+    "explanation": "Downloads the GENA-LM tokenizer, whose path must then be set in the training script.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Training and Inference",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "huggingface-cli download AIRI-Institute/gena-lm-bert-large-t2t --local-dir ./gena-lm-bert-large-t2t"
+     }
+    ]
+   },
+   {
+    "title": "Download the pretrained weights",
+    "shell": "wget -O pytorch_model.bin https://zenodo.org/api/records/14893616/files/pytorch_model.bin/content",
+    "explanation": "The README gives only the Zenodo record; this wget line is added and uses the file link from the Zenodo API record.",
+    "source_ids": [
+     "@readme",
+     "@zenodo-weights"
+    ],
+    "source_locator": "README: Training and Inference; Zenodo API response, files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Then you need to download the pretrained model weights from https://zenodo.org/records/14893616"
+     },
+     {
+      "source": "@zenodo-weights",
+      "text": "\"self\": \"https://zenodo.org/api/records/14893616/files/pytorch_model.bin/content\""
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A conda environment, the GENA-LM tokenizer in ./gena-lm-bert-large-t2t and pytorch_model.bin. No prediction is run: the README's next steps are fine-tuning scripts that need paths edited by hand."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The README gives no minimal inference command; finetune/generation.py and the example scripts need tokenizer, weight and data paths set in the code.",
+   "The example scripts need datasets from Zenodo record 14883459 placed in a model_and_data folder."
+  ],
+  "source_ids": [
+   "@readme",
+   "@zenodo-weights"
+  ]
+ },
+ "notes": "The record sits in the microbial area because ViroBench evaluated it, but the model was pretrained on the human genome only. The paper is CC BY-NC-ND 4.0, so its bytes are not stored. Europe PMC returned HTTP 500 on the first request and succeeded on retry. The README's single-cell section tells users to run run_variant.sh, which looks like a copy error for run_sc_gene_expression.sh; not used in the guide."
+}

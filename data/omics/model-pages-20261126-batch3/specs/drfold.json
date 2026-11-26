@@ -1,0 +1,682 @@
+{
+ "record_id": "lit-rna-20261011-rna3d-model-drfold",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "leeyang/DRfold readme.txt at commit 9586990c",
+   "description": "Official repository README (installation and running instructions), pinned to a commit.",
+   "file": "artifacts/readme.txt",
+   "artifact_url": "https://raw.githubusercontent.com/leeyang/DRfold/9586990c79e4ca488e5f967fcc8bd5b06cd60273/readme.txt",
+   "url": "https://github.com/leeyang/DRfold",
+   "version": "git commit 9586990c79e4ca488e5f967fcc8bd5b06cd60273",
+   "media_type": "text/plain",
+   "sha256": "b9a21e1d46eb973b7f191738b7574c3c9126dc9dac9d4ad321cb57a4186d00f8",
+   "retrieved_at": "2026-11-26T18:31:30Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "script",
+   "name": "leeyang/DRfold DRfold.sh at commit 9586990c",
+   "description": "Pipeline driver script named in the README run step, pinned to a commit.",
+   "file": "artifacts/DRfold.sh.txt",
+   "artifact_url": "https://raw.githubusercontent.com/leeyang/DRfold/9586990c79e4ca488e5f967fcc8bd5b06cd60273/DRfold.sh",
+   "url": "https://github.com/leeyang/DRfold",
+   "version": "git commit 9586990c79e4ca488e5f967fcc8bd5b06cd60273",
+   "media_type": "text/x-shellscript",
+   "sha256": "bd8ff2db5628b2ecae31e01aae8c39b18cd3ae074e9b7e320ea397a0d4370776",
+   "retrieved_at": "2026-11-26T18:31:30Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Li et al. 2023, Nat Commun 14, 5745, Europe PMC full text XML (PMC10505173)",
+   "description": "Open full text of the DRfold paper.",
+   "file": "artifacts/paper.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10505173/fullTextXML",
+   "url": "https://doi.org/10.1038/s41467-023-41303-9",
+   "version": "Europe PMC full text as served on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "5d2786a90e05e50cd784a20cfac2d466045f292b0aae4b1af9d0babdd268fec9",
+   "retrieved_at": "2026-11-26T18:32:35Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "repo-api",
+   "name": "GitHub API metadata for leeyang/DRfold, as served on 2026-11-26",
+   "description": "GitHub repository API response, used for the licence field GitHub reports.",
+   "file": "artifacts/repo-api.json",
+   "artifact_url": "https://api.github.com/repos/leeyang/DRfold",
+   "url": "https://github.com/leeyang/DRfold",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "2ff9630204286e6bddd1b8754802a62b76b47650cc6dc03ba7a46121c5d72774",
+   "retrieved_at": "2026-11-26T18:37:25Z",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "DRfold predicts the 3D (tertiary) structure of an RNA from its nucleotide sequence alone, without a multiple sequence alignment. Deep learning models trained on solved RNA structures predict both coarse nucleotide positions and inter-nucleotide geometry; these are combined into an energy function that guides structure assembly. The output is a refined all-atom model in PDB format.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Abstract; Methods: Feature preparation and embedding; README: Example",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We present a novel method, DRfold, to predict RNA tertiary structures by simultaneous learning of local frame rotations and geometric restraints from experimentally solved RNA structures, where the learned knowledge is converted into a hybrid energy potential to guide RNA structure assembly."
+   },
+   {
+    "source": "@paper",
+    "text": "The only required input of DRfold is the nucleotide sequence"
+   },
+   {
+    "source": "@paper",
+    "text": "DRfold was trained only on single sequences"
+   },
+   {
+    "source": "@readme",
+    "text": "' DPR.pdb ': is the final results of DRfold"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "DRfold encodes the sequence as one-hot vectors (A, U, G, C and N for unknown) and adds secondary structure predicted by RNAfold and PETfold as pair features. A stack of 48 transformer blocks, extended from AlphaFold2's Evoformer, updates sequence and pair representations, with 3 recycles. Two kinds of model are trained. End-to-end models use a structure module with invariant point attention to place each nucleotide as a rigid three-bead unit (C4', P and glycosidic N). Geometry models predict inter-nucleotide geometry restraints. Both outputs are combined into a hybrid energy potential that is minimised to assemble a coarse-grained structure. Arena rebuilds full atoms and OpenMM refines the model.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods (Feature preparation and embedding; RNA transformer network; RNA structure module); Results on refinement",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "represented by a 5-D one-hot encoded vector, including 4 types of nucleotides (‘A’, ‘U’, ‘G’, ‘C’) and an unknown state (‘N’)"
+     },
+     {
+      "source": "@paper",
+      "text": "the SS is predicted by two complementary methods: RNAfold"
+     },
+     {
+      "source": "@paper",
+      "text": "The transformer block module is extended from the design of the Evoformer in AlphaFold2"
+     },
+     {
+      "source": "@paper",
+      "text": "The recycle number is set to 3 for both end-to-end and geometry models"
+     },
+     {
+      "source": "@paper",
+      "text": "we use a three-bead model, as specified by the C4’, P, and glycosidic N atoms of the nucleobase"
+     },
+     {
+      "source": "@paper",
+      "text": "the pair representation is also utilized by the invariant point attention (IPA) module"
+     },
+     {
+      "source": "@paper",
+      "text": "Arena, an in-house program (see “Methods”), was employed to quickly reconstruct full-atom RNA structures"
+     },
+     {
+      "source": "@paper",
+      "text": "Step 2 involved the use of OpenMM"
+     },
+     {
+      "source": "@paper",
+      "text": "both RNAfold and PETfold are configured with sequence input only"
+     }
+    ]
+   },
+   {
+    "title": "Training data",
+    "body": "The training set holds 3864 unique RNAs from the PDB deposited before 2021. Test structures deposited in or after 2021, and their sequence cluster members, were excluded from training. Training crops were limited to under 200 nucleotides because of GPU memory (a single Nvidia A40 GPU). The training and test sets are available for download from the authors' website.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results (benchmark set description); Discussion of large RNAs",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the training dataset, which contains 3864 unique RNAs extracted from the PDB that were deposited before the year 2021"
+     },
+     {
+      "source": "@paper",
+      "text": "All test sequences, as well as their cluster members, were excluded from the training dataset"
+     },
+     {
+      "source": "@paper",
+      "text": "a maximum RNA length cutoff was set to 200 NTs when we trained the models in DRfold due to the limited GPU memory (with a single Nvidia A40 GPU with 32 GB memory)"
+     },
+     {
+      "source": "@paper",
+      "text": "both of which are available for download at"
+     },
+     {
+      "source": "@paper",
+      "text": "xlink:href=\"https://zhanggroup.org/DRfold\""
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The GitHub repository does not include the trained models; they are downloaded separately as DRfold_models.zip from the Zhang group website. A run uses 6 end-to-end models and 3 geometry models; the final model is DPR.pdb. A result should name the repository commit (this page read 9586990c) and the date the model archive was downloaded, since the archive has no version number in the sources read.",
+    "source_ids": [
+     "@readme",
+     "@script"
+    ],
+    "source_locator": "README: header; Model file downloads; Example; DRfold.sh",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This version does not include trained models, users need to manually download them"
+     },
+     {
+      "source": "@readme",
+      "text": "Download https://zhanggroup.org/DRfold/DRfold_models.zip and unzip the file"
+     },
+     {
+      "source": "@readme",
+      "text": "raw structures from 6 end-to-end models (numbers are not related to the rankings)"
+     },
+     {
+      "source": "@readme",
+      "text": "averaged geometry predictions from 3 geometry models"
+     },
+     {
+      "source": "@script",
+      "text": "echo \"Predicting geo 3/3\""
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Ab initio RNA tertiary structure prediction from a single sequence, using deep learning potentials and structure assembly.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: What is DRfold?; Paper: Methods",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "DRfold (Deep RNA fold) is a program for RNA tertiary structure prediction based on deep learning potentials."
+     },
+     {
+      "source": "@paper",
+      "text": "DRfold is a deep machine learning-based approach to ab initio RNA structure prediction."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "48 transformer blocks extended from the AlphaFold2 Evoformer (sequence and pair representations of 64 channels), with an IPA structure module for the end-to-end models and geometry heads for the geometry models; energy minimisation, Arena full-atom reconstruction and OpenMM refinement.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "There are a total of 48 transformer blocks in DRfold"
+     },
+     {
+      "source": "@paper",
+      "text": "After the embedding layer, each residue and residue-residue pair will be represented by a 64-D vector."
+     },
+     {
+      "source": "@paper",
+      "text": "It consists of three steps of end-to-end frame and geometric potential training, deep-potential-guided 3D structure assembly simulations, and full-atom structure reconstruction and refinement"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "One RNA sequence in a FASTA file. No MSA is needed; secondary structure is predicted internally with RNAfold and PETfold. Modified or unknown nucleotides are encoded as N.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: How to run the DRfold?; Paper: Methods",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "fastafile: The input fastafile containing the query sequence"
+     },
+     {
+      "source": "@paper",
+      "text": "an unknown state (‘N’) representing modified or degenerate nucleotides"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "DPR.pdb, the final refined all-atom model; also DPR_0 to DPR_5.pdb from the 6 end-to-end models and geo.npy with the averaged geometry predictions.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Example",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "' DPR.pdb ': is the final results of DRfold"
+     },
+     {
+      "source": "@readme",
+      "text": "' DPR_{0~5}.pdb ' : raw structures from 6 end-to-end models"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported. The paper and README give layer sizes but no total parameter count.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods; README"
+   },
+   {
+    "label": "Training data",
+    "value": "3864 unique RNAs from the PDB deposited before 2021, with test-set clusters removed; training crops under 200 nucleotides.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the training dataset, which contains 3864 unique RNAs extracted from the PDB that were deposited before the year 2021"
+     },
+     {
+      "source": "@paper",
+      "text": "the crop-size range of the RNAs that were used for training the DRfold models (i.e., &lt;200 NTs)"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One release of DRfold, with model files in DRfold_models.zip: 6 end-to-end models and 3 geometry models (config1 to config3).",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@script"
+    ],
+    "source_locator": "README: Model file downloads; Example; DRfold.sh",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Now downloaded model files shouold be available under DRfold/DeepE2EPotential/model and DRfold/DeepGeoPotential/config*/model"
+     },
+     {
+      "source": "@script",
+      "text": "$PYTHON $dir_path/DeepGeoPotential/config1/predict.py"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "PDB structures deposited before 2021.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "3864 unique RNAs extracted from the PDB that were deposited before the year 2021"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "No hard limit stated. Models were trained on RNAs cropped to 200 nucleotides, the benchmark covered 14 to 392 nucleotides, and the authors report weaker results above 200 nucleotides.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a maximum RNA length cutoff was set to 200 NTs when we trained the models in DRfold"
+     },
+     {
+      "source": "@paper",
+      "text": "for those targets with lengths &gt;200 NTs, the TM-scores obtained by DRfold are lower overall than those obtained for smaller targets &lt;200 NTs"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "MIT, as the README states for DRfold; the README does not give separate terms for the model archive downloaded from zhanggroup.org.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "DRfold can be used under The MIT License"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, as stated in the README. GitHub's licence detection reports no licence for the repository.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@repo-api"
+    ],
+    "source_locator": "README: header",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "(Copyright 2022 by Zhang Lab and Freddolino lab, University of Michigan, All rights reserved) DRfold can be used under The MIT License"
+     },
+     {
+      "source": "@repo-api",
+      "text": "\"license\":null"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/leeyang/DRfold and https://zhanggroup.org/DRfold/. Model files: https://zhanggroup.org/DRfold/DRfold_models.zip.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Model file downloads; Paper: Code availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "https://github.com/leeyang/DRfold/"
+     },
+     {
+      "source": "@readme",
+      "text": "Download https://zhanggroup.org/DRfold/DRfold_models.zip"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Needs only the sequence: no multiple sequence alignment or database search, which suits RNAs with few homologues.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "to facilitate the modeling of hard RNAs without many homologous sequences, DRfold was trained only on single sequences"
+     }
+    ]
+   },
+   {
+    "text": "Training and test sets are separated by deposition date and sequence clustering, and both sets can be downloaded.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a filter based on both sequence identity and time stamp implements a stringent separation between the training and testing datasets of DRfold"
+     }
+    ]
+   },
+   {
+    "text": "The authors report a TM-score more than 73.3% higher than previous approaches on recently released, sequence-nonredundant structures. This is the authors' own claim.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The method significantly outperforms previous approaches by &gt;73.3% in TM-score on a sequence-nonredundant dataset containing recently released structures."
+     }
+    ]
+   },
+   {
+    "text": "Code is MIT licensed according to the README.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "DRfold can be used under The MIT License"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Accuracy drops for RNAs longer than 200 nucleotides, because training was limited to shorter crops.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "made the current models fall short on large-size RNA modeling as demonstrated in both the benchmark and CASP15 experiments"
+     }
+    ]
+   },
+   {
+    "text": "Non-canonical base pairs are often predicted wrongly.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the success rate of non-canonical base-pairing prediction (INF_nwc) by DRfold was still low"
+     }
+    ]
+   },
+   {
+    "text": "Slow: about 1 hour for a 50-nucleotide RNA, and under 2 hours for the test example.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: How to run the DRfold?; Example",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The running time for a regular RNA seqeunce (~50 nts) should be around 1 hour"
+     }
+    ]
+   },
+   {
+    "text": "Set-up is manual: model files are a separate download, and PETfold, ViennaRNA, Arena and OpenMM must be installed and their paths edited into the scripts. Linux only.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: How to install the DRfold?",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Modify DRfold/scripts/Features.py to set 'petfoldbin' and 'ViennaRNAbin' properly"
+     },
+     {
+      "source": "@readme",
+      "text": "1. Linux systems"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "DRfold workflow",
+   "steps": [
+    "RNA sequence (FASTA)",
+    "Secondary structure features (RNAfold, PETfold)",
+    "3 geometry models and 6 end-to-end models (48 transformer blocks)",
+    "Hybrid energy potential and structure assembly",
+    "Full-atom reconstruction (Arena) and refinement",
+    "Final model DPR.pdb"
+   ],
+   "caption": "DRfold combines geometry and end-to-end deep learning predictions into one energy function, folds a coarse-grained model and rebuilds full atoms.",
+   "source_ids": [
+    "@paper",
+    "@readme",
+    "@script"
+   ],
+   "source_locator": "Paper: Methods; README: Example; DRfold.sh",
+   "quotes": [
+    {
+     "source": "@script",
+     "text": "echo \"Generating ss features\""
+    },
+    {
+     "source": "@script",
+     "text": "echo \"Combining geo potentials\""
+    },
+    {
+     "source": "@script",
+     "text": "echo \"Optimizing structure\""
+    },
+    {
+     "source": "@script",
+     "text": "echo \"Filling full atoms\""
+    },
+    {
+     "source": "@script",
+     "text": "echo \"Refinement\""
+    },
+    {
+     "source": "@readme",
+     "text": "' DPR.pdb ': is the final results of DRfold"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count is given in the sources read.",
+   "The model archive DRfold_models.zip has no version or checksum in the sources read.",
+   "GPU needs for inference are not stated; only the training GPU (one Nvidia A40) is described.",
+   "Supplementary material and the full results tables were not read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the leeyang/DRfold readme.txt and DRfold.sh at commit 9586990c and the Nature Communications paper full text from Europe PMC (PMC10505173), each fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install DRfold at a pinned commit with its model files and third-party tools, then predict the structure of the bundled test sequence.",
+  "prerequisites": [
+   "A Linux system with Python 3, numpy, scipy, PyTorch and OpenMM; Anaconda is recommended.",
+   "PETfold v2.0, the ViennaRNA Package and Arena installed, with their paths set in scripts/Features.py and DRfold.sh as the README describes.",
+   "GPU type and memory for inference are not stated in the sources read.",
+   "MIT licence, as stated in the README."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/leeyang/DRfold.git\ncd DRfold\ngit checkout --detach 9586990c79e4ca488e5f967fcc8bd5b06cd60273",
+    "explanation": "The README gives no clone command; these lines are added to get the commit this page was written from.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Code availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "https://github.com/leeyang/DRfold/"
+     }
+    ]
+   },
+   {
+    "title": "Download the model files",
+    "shell": "wget https://zhanggroup.org/DRfold/DRfold_models.zip\nunzip DRfold_models.zip",
+    "explanation": "The README says to download and unzip the archive, then merge the files in the unzipped DRfold folder into the repository so that models sit under DeepE2EPotential/model and DeepGeoPotential/config*/model. The wget and unzip commands are added; the merge is done by hand as the README describes.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model file downloads",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Download https://zhanggroup.org/DRfold/DRfold_models.zip and unzip the file"
+     },
+     {
+      "source": "@readme",
+      "text": "Simply merge the files in unzipped 'DRfold' to the current path."
+     }
+    ]
+   },
+   {
+    "title": "Set tool paths",
+    "shell": "chmod +x bin/*",
+    "explanation": "Sets executable permission on the bundled binaries. Before running, edit scripts/Feature.py ('petfoldbin', 'ViennaRNAbin') and lines 6 and 7 of DRfold.sh (PETFOLDBIN, PYTHON) to match your installation, as the README instructs; the chmod command is added for the permission step.",
+    "source_ids": [
+     "@readme",
+     "@script"
+    ],
+    "source_locator": "README: Localization; DRfold.sh lines 6 and 7",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Set executable permission to the bin file in DRfold/bin/."
+     },
+     {
+      "source": "@readme",
+      "text": "Modify the PETFOLDBIN path in DRfold/DRfold.sh (Line 6)"
+     },
+     {
+      "source": "@script",
+      "text": "export PETFOLDBIN=\"/home/liyangum/projects/RNA/DRfold/bin/PETfold/bin\""
+     }
+    ]
+   },
+   {
+    "title": "Run the example",
+    "shell": "bash DRfold.sh test/seq.fasta test/DRfold_out",
+    "explanation": "Runs the full pipeline on the bundled test sequence and writes results to test/DRfold_out.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Example",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "bash DRfold.sh test/seq.fasta test/DRfold_out"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "In test/DRfold_out: DPR.pdb, the final model; DPR_0.pdb to DPR_5.pdb from the 6 end-to-end models; geo.npy with averaged geometry predictions. The README says this takes less than 2 hours."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The model merge and path edits are manual steps described in the README, not commands.",
+   "The README spells the feature script as Features.py in one place, but the repository file is scripts/Feature.py."
+  ],
+  "source_ids": [
+   "@readme",
+   "@script"
+  ]
+ },
+ "notes": "GitHub reports no licence for the repository; the MIT statement is in readme.txt only. The README says 'Features.py' while the script DRfold.sh calls scripts/Feature.py. A separate later repository, leeyang/DRfold2, was seen in a GitHub search; it is a different model and was not reviewed."
+}

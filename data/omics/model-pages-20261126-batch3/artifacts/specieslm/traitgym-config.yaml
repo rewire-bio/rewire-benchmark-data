@@ -1,0 +1,340 @@
+genome_url: "http://ftp.ensembl.org/pub/release-107/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz"
+annotation_url: "http://ftp.ensembl.org/pub/release-107/gtf/homo_sapiens/Homo_sapiens.GRCh38.107.chr.gtf.gz"
+
+clinvar_release: 20240909
+
+datasets:
+  - mendelian_traits_matched_9
+  - complex_traits_matched_9
+
+consequence_subsets:
+  - non_coding_transcript_exon_variant
+  - 3_prime_UTR_variant
+  - 5_prime_UTR_variant
+  - nonexonic_AND_proximal
+  - nonexonic_AND_distal
+
+complex_traits_disease:
+  - AFib
+  - AID_Combined
+  - Alzheimer_LTFH
+  - Asthma
+  - Blood_Clot_Lung
+  - BrC
+  - CAD
+  - CRC
+  - Cholelithiasis
+  - Depression_GP
+  - DVT
+  - Fibroblastic_Disorders
+  - Glaucoma_Combined
+  - Hypothyroidism
+  - IBD
+  - Inguinal_Hernia
+  - Insomnia
+  - Migraine_Self
+  - PrC
+  - T2D
+  - T2D_BMI
+
+feature_sets:
+  CADD:
+    - CADD
+  Sei:
+    - Sei
+  GPN-MSA:
+    - GPN-MSA_LLR
+    - GPN-MSA_absLLR
+    - GPN-MSA_InnerProducts
+  NucleotideTransformer:
+    - NucleotideTransformer_LLR
+    - NucleotideTransformer_absLLR
+    - NucleotideTransformer_InnerProducts
+  GPN_final:
+    - GPN_final_LLR
+    - GPN_final_absLLR
+    - GPN_final_InnerProducts
+  HyenaDNA:
+    - HyenaDNA_LLR
+    - HyenaDNA_absLLR
+    - HyenaDNA_InnerProducts
+  Caduceus:
+    - Caduceus_LLR
+    - Caduceus_absLLR
+    - Caduceus_InnerProducts
+  SpeciesLM:
+    - SpeciesLM_LLR
+    - SpeciesLM_absLLR
+    - SpeciesLM_InnerProducts
+  AIDO.DNA:
+    - AIDO.DNA_LLR
+    - AIDO.DNA_absLLR
+    - AIDO.DNA_InnerProducts
+  evo2_1b_base:
+    - evo2_1b_base_LLR
+    - evo2_1b_base_absLLR
+    - evo2_1b_base_InnerProducts
+  evo2_7b:
+    - evo2_7b_LLR
+    - evo2_7b_absLLR
+    - evo2_7b_InnerProducts
+  evo2_40b:
+    - evo2_40b_LLR
+    - evo2_40b_absLLR
+    - evo2_40b_InnerProducts
+  Enformer:
+    - Enformer_L2
+    - Enformer_L2_L2
+  Borzoi:
+    - Borzoi_L2
+    - Borzoi_L2_L2
+
+  Enformer_L2:
+    - Enformer_L2
+  Enformer_L2_L2:
+    - Enformer_L2_L2
+
+  Borzoi_L2:
+    - Borzoi_L2
+  Borzoi_L2_L2:
+    - Borzoi_L2_L2
+
+  # heavy ensembles
+  CADD+GPN-MSA:
+    - CADD
+    - GPN-MSA_LLR
+    - GPN-MSA_absLLR
+    - GPN-MSA_InnerProducts
+
+  CADD+Borzoi:
+    - CADD
+    - Borzoi_L2
+    - Borzoi_L2_L2
+
+  GPN-MSA+Borzoi:
+    - GPN-MSA_LLR
+    - GPN-MSA_absLLR
+    - GPN-MSA_InnerProducts
+    - Borzoi_L2
+    - Borzoi_L2_L2
+
+  CADD+GPN-MSA+Borzoi:
+    - CADD
+    - GPN-MSA_LLR
+    - GPN-MSA_absLLR
+    - GPN-MSA_InnerProducts
+    - Borzoi_L2
+    - Borzoi_L2_L2
+
+  # light ensembles
+  CADD+GPN-MSA_LLR:
+    - CADD
+    - GPN-MSA_LLR
+    - GPN-MSA_absLLR
+
+  CADD+Borzoi_L2_L2:
+    - CADD
+    - Borzoi_L2_L2
+
+  CADD+GPN-MSA_LLR+Borzoi_L2_L2:
+    - CADD
+    - GPN-MSA_LLR
+    - GPN-MSA_absLLR
+    - Borzoi_L2_L2
+
+enformer:
+  batch_size: 16
+
+borzoi:
+  batch_size: 8
+
+gpn_msa:
+  model_path: "songlab/gpn-msa-sapiens"
+  msa_path: "/accounts/projects/yss/gbenegas/projects/gpn/analysis/human/results/msa/multiz100way/89/all.zarr"
+  window_size: 128
+
+gpn:
+  window_size: 512
+  per_device_batch_size: 2048
+  final:
+    model_path: songlab/gpn-animal-promoter
+
+cadd:
+  url: https://krishna.gs.washington.edu/download/CADD/v1.7/GRCh38/whole_genome_SNVs_inclAnno.tsv.gz
+  features:
+#  - Type
+#  - Length
+#  - Consequence
+  - GC
+  - CpG
+  - motifECount
+  - motifEHIPos
+  - motifEScoreChng
+#  - oAA
+#  - nAA
+  - cDNApos
+  - relcDNApos
+  - CDSpos
+  - relCDSpos
+  - protPos
+  - relProtPos
+#  - Domain
+  - Dst2Splice
+#  - Dst2SplType
+  - minDistTSS
+  - minDistTSE
+#  - SIFTcat
+  - SIFTval
+#  - PolyPhenCat
+  - PolyPhenVal
+  - priPhCons
+  - mamPhCons
+  - verPhCons
+  - priPhyloP
+  - mamPhyloP
+  - verPhyloP
+  - bStatistic
+  - targetScan
+  - mirSVR-Score
+  - mirSVR-E
+  - mirSVR-Aln
+  - cHmm_E1
+  - cHmm_E2
+  - cHmm_E3
+  - cHmm_E4
+  - cHmm_E5
+  - cHmm_E6
+  - cHmm_E7
+  - cHmm_E8
+  - cHmm_E9
+  - cHmm_E10
+  - cHmm_E11
+  - cHmm_E12
+  - cHmm_E13
+  - cHmm_E14
+  - cHmm_E15
+  - cHmm_E16
+  - cHmm_E17
+  - cHmm_E18
+  - cHmm_E19
+  - cHmm_E20
+  - cHmm_E21
+  - cHmm_E22
+  - cHmm_E23
+  - cHmm_E24
+  - cHmm_E25
+  - GerpRS
+  - GerpRSpval
+  - GerpN
+  - GerpS
+  - tOverlapMotifs
+  - motifDist
+  - EncodeH3K4me1-sum
+  - EncodeH3K4me1-max
+  - EncodeH3K4me2-sum
+  - EncodeH3K4me2-max
+  - EncodeH3K4me3-sum
+  - EncodeH3K4me3-max
+  - EncodeH3K9ac-sum
+  - EncodeH3K9ac-max
+  - EncodeH3K9me3-sum
+  - EncodeH3K9me3-max
+  - EncodeH3K27ac-sum
+  - EncodeH3K27ac-max
+  - EncodeH3K27me3-sum
+  - EncodeH3K27me3-max
+  - EncodeH3K36me3-sum
+  - EncodeH3K36me3-max
+  - EncodeH3K79me2-sum
+  - EncodeH3K79me2-max
+  - EncodeH4K20me1-sum
+  - EncodeH4K20me1-max
+  - EncodeH2AFZ-sum
+  - EncodeH2AFZ-max
+  - EncodeDNase-sum
+  - EncodeDNase-max
+  - EncodetotalRNA-sum
+  - EncodetotalRNA-max
+  - Grantham
+  - SpliceAI-acc-gain
+  - SpliceAI-acc-loss
+  - SpliceAI-don-gain
+  - SpliceAI-don-loss
+  - MMSp_acceptorIntron
+  - MMSp_acceptor
+  - MMSp_exon
+  - MMSp_donor
+  - MMSp_donorIntron
+  - Dist2Mutation
+  - Freq100bp
+  - Rare100bp
+  - Sngl100bp
+  - Freq1000bp
+  - Rare1000bp
+  - Sngl1000bp
+  - Freq10000bp
+  - Rare10000bp
+  - Sngl10000bp
+#  - EnsembleRegulatoryFeature
+  - dbscSNV-ada_score
+  - dbscSNV-rf_score
+  - RemapOverlapTF
+  - RemapOverlapCL
+  - EsmScoreMissense
+  - EsmScoreInFrame
+  - EsmScoreFrameshift
+  - RegSeq0
+  - RegSeq1
+  - RegSeq2
+  - RegSeq3
+  - RegSeq4
+  - RegSeq5
+  - RegSeq6
+  - RegSeq7
+  - Aparent2
+  - ZooPriPhyloP
+  - ZooVerPhyloP
+  - ZooRoCC
+  - ZooUCE
+#  - Roulette-FILTER
+  - Roulette-MR
+  - Roulette-AR
+  - RawScore
+#  - PHRED
+
+nucleotide_transformer:
+  model_path: InstaDeepAI/nucleotide-transformer-2.5b-multi-species
+
+hyenadna:
+  #model_path: LongSafari/hyenadna-tiny-1k-seqlen-hf
+  #model_path: LongSafari/hyenadna-large-1m-seqlen-hf
+  model_path: LongSafari/hyenadna-medium-160k-seqlen-hf
+
+caduceus:
+  model_path: kuleshov-group/caduceus-ps_seqlen-131k_d_model-256_n_layer-16
+  window_size: 131071  # 1 token reserved for the [SEP] at the end
+  per_device_batch_size: 32
+
+specieslm:
+  model_path: johahi/specieslm-metazoa-upstream-k6
+  window_size: 2000
+  per_device_batch_size: 128
+
+aidodna:
+  model_path: genbio-ai/AIDO.DNA-7B
+  window_size: 4000
+  per_device_batch_size: 4
+
+evo2:
+  1b_base:
+    model_path: evo2_1b_base
+    window_size: 8192
+    per_device_batch_size: 16  # L40
+  7b:
+    model_path: evo2_7b
+    window_size: 8192
+    per_device_batch_size: 8  # L40
+  40b:
+    model_path: evo2_40b
+    window_size: 8192
+    per_device_batch_size: 8  # H200

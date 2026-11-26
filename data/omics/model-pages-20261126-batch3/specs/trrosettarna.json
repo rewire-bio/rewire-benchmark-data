@@ -1,0 +1,676 @@
+{
+ "record_id": "lit-rna-20261011-rna3d-model-trrosettarna",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Wang et al. 2023, Nature Communications, Europe PMC full text PMC10636060",
+   "description": "Full text of 'trRosettaRNA: automated prediction of RNA 3D structure with transformer network'.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10636060/fullTextXML",
+   "url": "https://doi.org/10.1038/s41467-023-42528-4",
+   "version": "Published version, PMC10636060",
+   "media_type": "application/xml",
+   "sha256": "bb091a9e104dbc9e3ca47d916d4530f1ec3736f17713185f5a71d4911512d77f",
+   "retrieved_at": "2026-11-26T18:26:04Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 10616895 (trRosettaRNA source code and data, v1.1), API response as served on 2026-11-26",
+   "description": "Zenodo metadata for the standalone package named in the paper's Code availability (concept DOI 10.5281/zenodo.8362613): licence, date and files.",
+   "file": "artifacts/zenodo.json",
+   "artifact_url": "https://zenodo.org/api/records/8362613",
+   "url": "https://zenodo.org/doi/10.5281/zenodo.8362613",
+   "version": "Record 10616895, as served on 2026-11-26",
+   "media_type": "application/json",
+   "sha256": "dc9d29fe2b64f3a41b96e0a33863ca9c604bfbdb38646f5eb22a0ea8e97da79c",
+   "retrieved_at": "2026-11-26T18:26:13Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "package-readme",
+   "name": "trRosettaRNA_v1.1/README from Zenodo record 10616895",
+   "description": "Instructions for the standalone package, extracted from trRosettaRNA_v1.1.zip (zip sha256 d7622d1b7b567f416f72eb7dff71cc064ff559bab6020475fd09b5b0553b0ab4).",
+   "file": "artifacts/zenodo-v1.1-readme.txt",
+   "artifact_url": "https://zenodo.org/api/records/10616895/files/trRosettaRNA_v1.1.zip/content",
+   "url": "https://zenodo.org/doi/10.5281/zenodo.8362613",
+   "version": "trRosettaRNA_v1.1.zip in Zenodo record 10616895 (2024-02-03)",
+   "media_type": "text/plain",
+   "sha256": "7023695c9ebdd70a209771d66ab0be10fd27e5b8ea1fd95aa0cdbb3f186ea5ac",
+   "retrieved_at": "2026-11-26T18:27:25Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "package-env",
+   "name": "trRosettaRNA_v1.1/linux.yml from Zenodo record 10616895",
+   "description": "Conda environment file for CUDA 11.x named in the package README, extracted from trRosettaRNA_v1.1.zip.",
+   "file": "artifacts/zenodo-v1.1-linux.yml",
+   "artifact_url": "https://zenodo.org/api/records/10616895/files/trRosettaRNA_v1.1.zip/content",
+   "url": "https://zenodo.org/doi/10.5281/zenodo.8362613",
+   "version": "trRosettaRNA_v1.1.zip in Zenodo record 10616895 (2024-02-03)",
+   "media_type": "text/yaml",
+   "sha256": "dca2fb03d799aa6b738302d52132ddec635bee6f89b694782fa8490d83b78590",
+   "retrieved_at": "2026-11-26T18:27:25Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "trRosettaRNA predicts the full-atom 3D structure of an RNA from its sequence. It takes a multiple sequence alignment and a secondary structure, uses a transformer network to predict inter-nucleotide distances, orientations and backbone torsion angles, and then folds a 3D model by energy minimisation in Rosetta. The output is a PDB file.",
+  "summary_source_ids": [
+   "@paper",
+   "@package-readme"
+  ],
+  "summary_source_locator": "Paper: Abstract; package README: Overview, Usage",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "The trRosettaRNA pipeline comprises two major steps: 1D and 2D geometries prediction by a transformer network; and 3D structure folding by energy minimization."
+   },
+   {
+    "source": "@package-readme",
+    "text": "1D geometries: backbone torsion angles."
+   },
+   {
+    "source": "@package-readme",
+    "text": "2D geometries: inter-nucleotide distances and orientations."
+   },
+   {
+    "source": "@package-readme",
+    "text": "output PDB file storing the predicted 3D structure"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "For a query RNA, an MSA is built (with rMSA, or Infernal against RNAcentral) and a secondary structure is predicted with SPOT-RNA. These are turned into an MSA representation and a pair representation, which also carries direct couplings from the MSA and the secondary structure probability matrix. A transformer called RNAformer, similar to the Evoformer in AlphaFold2, updates both representations. A single pass has 48 blocks, cycled 4 times. It outputs probability distributions for 1D torsion angles and 2D distances, contacts and orientations. These are converted into restraints that, with physics-based Rosetta energy terms, guide energy minimisation to full-atom models; the package generates several decoys and keeps the one with minimum energy.",
+    "source_ids": [
+     "@paper",
+     "@package-readme"
+    ],
+    "source_locator": "Paper: Overview of trRosettaRNA; Methods, Preparation of input data, RNAformer, 3D structure folding; package README: Step 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The first is generated by using the program rMSA against multiple sequence databases (NCBI’s nt, Rfam, and RNAcentral"
+     },
+     {
+      "source": "@paper",
+      "text": "a multiple sequence alignment (MSA) and a secondary structure are first generated by the programs rMSA"
+     },
+     {
+      "source": "@paper",
+      "text": "the pair representation (including the direct couplings derived from MSA and the probability matrix of the predicted secondary structure)"
+     },
+     {
+      "source": "@paper",
+      "text": "We design a transformer network (named RNAformer) similar to the network Evoformer in AlphaFold2."
+     },
+     {
+      "source": "@paper",
+      "text": "A single-pass RNAformer consists of 48 blocks, which are cycled 4 times in the complete inference"
+     },
+     {
+      "source": "@paper",
+      "text": "trRosettaRNA generates full-atom structure models by energy minimization with deep learning potentials and physics-based energy terms in Rosetta."
+     },
+     {
+      "source": "@package-readme",
+      "text": "This script will generate `nm` decoys and only output the decoy with minimum free energy."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "Two releases of the standalone package are named. Version 1.0 is the version used in the Nature Communications paper, downloadable from the lab website. Version 1.1, on Zenodo (record 10616895, 2024-02-03), adds support for custom secondary structure files. The package ships one RNAformer checkpoint, params/model_1, used by default. For its benchmarks the paper trained separate models on date-filtered training sets to avoid leakage; those are not described as released. A result should name the package version, the MSA tool and database, and the secondary structure source, since the authors report sensitivity to secondary structure quality.",
+    "source_ids": [
+     "@zenodo",
+     "@package-readme",
+     "@paper"
+    ],
+    "source_locator": "Zenodo API response, description; package README: Update, predict.py arguments; Paper: Training sets from PDB; Discussion",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "The NC paper version:"
+     },
+     {
+      "source": "@zenodo",
+      "text": "trRosettaRNA_v1.0.zip"
+     },
+     {
+      "source": "@zenodo",
+      "text": "The standalone packages have been enhanced to support custom secondary structure files as input."
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"publication_date\": \"2024-02-03\""
+     },
+     {
+      "source": "@package-readme",
+      "text": "path to pretrained models (optional, default to `./params/model_1`)"
+     },
+     {
+      "source": "@paper",
+      "text": "We trained four network models with these training sets, respectively."
+     },
+     {
+      "source": "@paper",
+      "text": "the performance of trRosettaRNA is susceptible to the quality of predicted secondary structures"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Automated deep learning pipeline for RNA 3D structure prediction: a transformer predicts geometries, then Rosetta energy minimisation builds the model.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "an automated deep learning-based approach to RNA 3D structure prediction"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "RNAformer transformer (Evoformer-like, 48 blocks cycled 4 times) acting on MSA and pair representations, followed by restraint-guided energy minimisation with Rosetta energy terms.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, RNAformer; 3D structure folding",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "A single-pass RNAformer consists of 48 blocks, which are cycled 4 times in the complete inference"
+     },
+     {
+      "source": "@paper",
+      "text": "energy minimization with deep learning potentials and physics-based energy terms in Rosetta"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "An MSA in A3M format and the sequence in FASTA. A secondary structure is predicted by SPOT-RNA automatically, or given as a dot-bracket, ct or SPOT-RNA .prob file (v1.1).",
+    "status": "source_checked",
+    "source_ids": [
+     "@package-readme"
+    ],
+    "source_locator": "package README: Usage, Step 1 and Step 2",
+    "quotes": [
+     {
+      "source": "@package-readme",
+      "text": "The inputs include 1) MSA (multiple sequence alignment, in A3M format) and 2) secondary structure."
+     },
+     {
+      "source": "@package-readme",
+      "text": "It now supports formats including dot_bracket, ct, and the .prob file generated by SPOT-RNA."
+     },
+     {
+      "source": "@package-readme",
+      "text": "input FASTA file storing the nucleotide sequence"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "An NPZ file of predicted distograms and anglegrams, then a PDB file with the lowest-energy full-atom 3D model.",
+    "status": "source_checked",
+    "source_ids": [
+     "@package-readme"
+    ],
+    "source_locator": "package README: predict.py and fold.py arguments",
+    "quotes": [
+     {
+      "source": "@package-readme",
+      "text": "output npz file containing predicted distograms and anglegrams"
+     },
+     {
+      "source": "@package-readme",
+      "text": "output PDB file storing the predicted 3D structure"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported. The sources read give no parameter count; the model_1 checkpoint is not described by size.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@package-readme"
+    ],
+    "source_locator": "Paper: Methods; package README"
+   },
+   {
+    "label": "Training data",
+    "value": "3633 RNA chains from the PDB released before 2022-01 (from 8849 samples, keeping chains with sequence homologs), plus a self-distillation set from bpRNA (13175 chains in the benchmark version). The model was finetuned on sequences longer than 100 nucleotides.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Training sets from PDB; Self-distillation training set; Training",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To train our models, we first collected all the RNA chains released before 2022-01 in PDB."
+     },
+     {
+      "source": "@paper",
+      "text": "Finally, 3633 RNA chains were retained for training the network models of trRosettaRNA."
+     },
+     {
+      "source": "@paper",
+      "text": "Consequently, the self-distillation dataset for benchmark tests consists of 13175 RNA chains."
+     },
+     {
+      "source": "@paper",
+      "text": "we finetuned the models on the long sequences ("
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Standalone package v1.0 (paper version, lab website) and v1.1 (Zenodo record 10616895, 2024-02-03, adds custom secondary structure input), v1.1 ships an RNAformer checkpoint in params/model_1. A web server is also offered.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo",
+     "@package-readme"
+    ],
+    "source_locator": "Zenodo API response; package README",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "https://yanglab.qd.sdu.edu.cn/trRosettaRNA/download/trRosettaRNA_v1.0.zip"
+     },
+     {
+      "source": "@zenodo",
+      "text": "trRosettaRNA_v1.1.zip"
+     },
+     {
+      "source": "@package-readme",
+      "text": "default to `./params/model_1`"
+     },
+     {
+      "source": "@zenodo",
+      "text": "The corresponding web server is available at"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "January 2022: training chains were PDB structures released before 2022-01.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Training sets from PDB",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we first collected all the RNA chains released before 2022-01 in PDB"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated as a hard limit. The authors say a typical RNA under 200 nucleotides takes under 30 minutes, with run time rising linearly with length.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Running time",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "With the increase in sequence length, the running time increases linearly."
+     },
+     {
+      "source": "@paper",
+      "text": "it takes &lt;30 min to complete the prediction for a typical RNA with &lt;200 nucleotides"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "CC BY 4.0, as declared on the Zenodo record that holds the standalone package with its model files.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo API response, metadata.license",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"id\": \"cc-by-4.0\""
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "CC BY 4.0, as declared on the Zenodo record of the source code. The package also needs PyRosetta and SPOT-RNA, which carry their own terms not covered here.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo",
+     "@package-readme"
+    ],
+    "source_locator": "Zenodo API response; package README: Installation",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"id\": \"cc-by-4.0\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "Source code for trRosettaRNA"
+     },
+     {
+      "source": "@package-readme",
+      "text": "conda install -y pyrosetta"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Standalone package: https://zenodo.org/doi/10.5281/zenodo.8362613 (v1.1) and https://yanglab.qd.sdu.edu.cn/trRosettaRNA/download/trRosettaRNA_v1.0.zip (v1.0). Web server: https://yanglab.qd.sdu.edu.cn/trRosettaRNA/. No official GitHub repository is named.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@zenodo"
+    ],
+    "source_locator": "Paper: Code availability; Zenodo API response",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The trRosettaRNA server and the standalone package are available at Zenodo"
+     },
+     {
+      "source": "@paper",
+      "text": "https://zenodo.org/doi/10.5281/zenodo.8362613"
+     },
+     {
+      "source": "@zenodo",
+      "text": "https://yanglab.qd.sdu.edu.cn/trRosettaRNA/download/trRosettaRNA_v1.0.zip"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Fully automated: in CASP15 and RNA-Puzzles blind tests the authors report its predictions for natural RNAs were competitive with the top human predictions.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the automated trRosettaRNA predictions for the natural RNAs are competitive with the top human predictions"
+     }
+    ]
+   },
+   {
+    "text": "Code and model files are on Zenodo under CC BY 4.0, and a web server is available for users who do not want to install it.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo API response",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"id\": \"cc-by-4.0\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "The corresponding web server is available at"
+     }
+    ]
+   },
+   {
+    "text": "Version 1.1 accepts a user-supplied secondary structure (dot-bracket, ct or SPOT-RNA probabilities), so SPOT-RNA can be replaced by another predictor or a known structure.",
+    "source_ids": [
+     "@package-readme"
+    ],
+    "source_locator": "package README: Step 1",
+    "quotes": [
+     {
+      "source": "@package-readme",
+      "text": "the custom secondary structure (SS) file (optional; if not provided, SPOT-RNA will be executed automatically)"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The authors state that accuracy depends on the quality of the predicted secondary structure, is limited on novel RNAs, and that synthetic RNAs remain hard.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "First, the performance of trRosettaRNA is susceptible to the quality of predicted secondary structures. Secondly, though trRosettaRNA achieves promising accuracy in the internal benchmark tests, its performance on novel RNAs remains limited. Moreover, the automated structure prediction of synthetic RNAs remains challenging."
+     }
+    ]
+   },
+   {
+    "text": "Needs an MSA built separately (Infernal or BLASTN against NT or RNAcentral are recommended) and converted to A3M.",
+    "source_ids": [
+     "@package-readme"
+    ],
+    "source_locator": "package README: Usage, MSA",
+    "quotes": [
+     {
+      "source": "@package-readme",
+      "text": "The MSA can be generated with searching tools such as [Infernal](http://eddylab.org/infernal/) (recommend) and [BLASTN](https://blast.ncbi.nlm.nih.gov/)."
+     },
+     {
+      "source": "@package-readme",
+      "text": "The MSA file should be processed into A3M format"
+     }
+    ]
+   },
+   {
+    "text": "Installation pulls in PyRosetta and a separate Python 3.6 TensorFlow 1.14 environment for SPOT-RNA. Most run time (over 95%) is the CPU-bound 3D folding step.",
+    "source_ids": [
+     "@package-readme",
+     "@paper"
+    ],
+    "source_locator": "package README: Installation; Paper: Running time",
+    "quotes": [
+     {
+      "source": "@package-readme",
+      "text": "conda create -n spot_venv python=3.6"
+     },
+     {
+      "source": "@package-readme",
+      "text": "conda install tensorflow-gpu==1.14.0"
+     },
+     {
+      "source": "@paper",
+      "text": "trRosettaRNA spends most time in the generation of 3D structure ("
+     },
+     {
+      "source": "@paper",
+      "text": "The 3D structure folding was performed on one CPU core."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "trRosettaRNA workflow",
+   "steps": [
+    "RNA sequence",
+    "MSA (rMSA or Infernal) and secondary structure (SPOT-RNA or user file)",
+    "RNAformer transformer, 48 blocks cycled 4 times",
+    "Predicted 1D torsions and 2D distances, contacts, orientations (NPZ)",
+    "Restraints plus Rosetta energy, energy minimisation",
+    "Lowest-energy full-atom PDB model"
+   ],
+   "caption": "Pipeline as described in the paper's Fig. 1 and Methods and the standalone package README.",
+   "source_ids": [
+    "@paper",
+    "@package-readme"
+   ],
+   "source_locator": "Paper: Overview; Methods; package README: Usage",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Similar to trRosetta, these geometries are converted into restraints to guide the final step of 3D structure folding based on energy minimization"
+    },
+    {
+     "source": "@package-readme",
+     "text": "The predicted geometries will be output to a NPZ file, which will subsequently serve as a guide for the folding process of the 3D structure in step 2."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count is given in the sources read.",
+   "The lab website pages and the v1.0 package were not read; only the v1.1 package README and conda file were extracted from the Zenodo archive.",
+   "Licence terms of PyRosetta and SPOT-RNA, which the package depends on, were not reviewed."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the Europe PMC full text of the Nature Communications paper (PMC10636060), the Zenodo API record 10616895 (concept 8362613), and the README and linux.yml extracted from trRosettaRNA_v1.1.zip in that record, each fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Download the trRosettaRNA v1.1 package from Zenodo, install its environment and PyRosetta, and predict the bundled example with its supplied MSA and dot-bracket secondary structure.",
+  "prerequisites": [
+   "conda; the linux.yml environment uses Python 3.8, PyTorch 1.11.0 and cudatoolkit 11.3.1 (linux-cu102.yml for CUDA 10.x).",
+   "The RosettaCommons conda channel added before installing PyRosetta; PyRosetta's own licence terms apply.",
+   "A GPU is optional for predict.py (the default -gpu -1 is CPU only); folding runs on CPU.",
+   "SPOT-RNA in its own Python 3.6 environment, only if no secondary structure file is supplied."
+  ],
+  "steps": [
+   {
+    "title": "Download and unpack the package",
+    "shell": "wget -O trRosettaRNA_v1.1.zip https://zenodo.org/api/records/10616895/files/trRosettaRNA_v1.1.zip/content\nunzip trRosettaRNA_v1.1.zip\ncd trRosettaRNA_v1.1",
+    "explanation": "The download URL is the file link in the Zenodo record; the wget, unzip and cd lines are added, as the package README starts from inside the unpacked folder.",
+    "source_ids": [
+     "@zenodo",
+     "@paper"
+    ],
+    "source_locator": "Zenodo API response, files; Paper: Code availability",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"self\": \"https://zenodo.org/api/records/10616895/files/trRosettaRNA_v1.1.zip/content\""
+     },
+     {
+      "source": "@paper",
+      "text": "The trRosettaRNA server and the standalone package are available at Zenodo"
+     }
+    ]
+   },
+   {
+    "title": "Create the conda environment",
+    "shell": "conda env create -f linux.yml\nconda activate trRNA",
+    "explanation": "For CUDA 11.x. For CUDA 10.x, use linux-cu102.yml instead.",
+    "source_ids": [
+     "@package-readme",
+     "@package-env"
+    ],
+    "source_locator": "package README: Installation, Step 1; linux.yml",
+    "quotes": [
+     {
+      "source": "@package-readme",
+      "text": "conda env create -f linux.yml"
+     },
+     {
+      "source": "@package-readme",
+      "text": "conda activate trRNA"
+     },
+     {
+      "source": "@package-env",
+      "text": "name: trRNA"
+     }
+    ]
+   },
+   {
+    "title": "Install PyRosetta",
+    "shell": "conda activate trRNA\nconda install -y pyrosetta",
+    "explanation": "Add the RosettaCommons conda channel first, as the README instructs.",
+    "source_ids": [
+     "@package-readme"
+    ],
+    "source_locator": "package README: Installation, Step 3",
+    "quotes": [
+     {
+      "source": "@package-readme",
+      "text": "Before install pyRosetta, the RosettaCommons conda channel should be added to the channel lists"
+     },
+     {
+      "source": "@package-readme",
+      "text": "conda install -y pyrosetta"
+     }
+    ]
+   },
+   {
+    "title": "Predict geometries for the example",
+    "shell": "python predict.py -i example/seq.a3m -o example/seq.npz -ss example/seq.dbn -ss_fmt dot_bracket -mdir ./params/model_1 -gpu 0",
+    "explanation": "Uses the example MSA and the supplied dot-bracket secondary structure, so SPOT-RNA is not needed. Use -gpu -1 to run on CPU only.",
+    "source_ids": [
+     "@package-readme"
+    ],
+    "source_locator": "package README: Usage, Step 1",
+    "quotes": [
+     {
+      "source": "@package-readme",
+      "text": "python predict.py -i example/seq.a3m -o example/seq.npz -ss example/seq.dbn -ss_fmt dot_bracket -mdir ./params/model_1 -gpu 0"
+     },
+     {
+      "source": "@package-readme",
+      "text": "use which GPU (optional, default to \"-1\", i.e., use CPU only)"
+     }
+    ]
+   },
+   {
+    "title": "Fold the 3D structure",
+    "shell": "python fold.py -npz example/seq.npz -fa example/seq.fasta -out example/model_1.pdb",
+    "explanation": "Turns the predicted geometries into restraints and runs energy minimisation, generating 5 decoys by default and writing the lowest-energy one.",
+    "source_ids": [
+     "@package-readme"
+    ],
+    "source_locator": "package README: Usage, Step 2",
+    "quotes": [
+     {
+      "source": "@package-readme",
+      "text": "python fold.py -npz example/seq.npz -fa example/seq.fasta -out example/model_1.pdb"
+     },
+     {
+      "source": "@package-readme",
+      "text": "number of decoys to generate (default:5)"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "example/seq.npz with the predicted distograms and anglegrams.",
+   "example/model_1.pdb, the decoy with minimum free energy."
+  ],
+  "limitations": [
+   "These commands were read from the package README and have not been executed by Rewire.",
+   "The download and unzip lines are not in the README; they use the file URL from the Zenodo record.",
+   "For a new RNA the user must build an A3M MSA and either supply a secondary structure or install SPOT-RNA.",
+   "The README gives no command for adding the RosettaCommons conda channel, only a link to its instructions."
+  ],
+  "source_ids": [
+   "@package-readme",
+   "@zenodo"
+  ]
+ },
+ "notes": "No official GitHub repository exists for trRosettaRNA v1; several GitHub mirrors (for example yss-THU/trRosettaRNA_v1.1, LunaLau0/trRosettaRNA_v1.1) were seen in search and not used. A successor, YangLab-SDU/trRosettaRNA2, exists and may deserve its own record; it was not read. The v1.1 zip (172,235,702 bytes) was downloaded to extract two files and then deleted; only the README and linux.yml are kept. The package-readme and package-env sources have the zip as artifact_url, while their sha256 is of the extracted member file, so a re-fetch of the URL will not match the hash without extracting trRosettaRNA_v1.1/README and trRosettaRNA_v1.1/linux.yml first."
+}
