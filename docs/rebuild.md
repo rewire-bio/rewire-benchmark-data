@@ -111,6 +111,8 @@ The first slice is in `kb/`.
 | `kb/migrate.py` | Builds `kb/build/kb.sqlite` from the current store. `--check` reads every record back and compares it with the original |
 | `kb/curation/` | The new information the old store has no place for: `settings.jsonl`, `protocol_settings.jsonl`, `checkpoints.jsonl`, `leads.jsonl` |
 | `kb/curate.py` | Loads the curation files and creates the comparison views |
+| `kb/board.py` | Estimates a leaderboard for each use case from within-study comparisons (Bradley-Terry), with each row labelled by how many studies it rests on |
+| `kb/report.py` | For one source: what it measured, which of its numbers another study also reports, and which pairs of models it orders differently |
 | `kb/tools/import_pilot.py` | One-off: filled the curation files from the comparison settings pilot and the structured checkpoint facts |
 
 Measured on 26 November 2026:
@@ -127,6 +129,8 @@ To try it:
 ```sh
 python3 kb/migrate.py --check
 python3 kb/curate.py
+python3 kb/board.py --use-case brca1-brca2-germline-interpretation
+python3 kb/report.py gfm-guides-20261014-evo2-brixi2026-source-supplementary-data-1
 sqlite3 -header -column kb/build/kb.sqlite "SELECT * FROM setting_pair_v WHERE first_ahead > 0 AND second_ahead > 0"
 ```
 
@@ -149,12 +153,12 @@ observation.
 | Step | What | Done when | State |
 | --- | --- | --- | --- |
 | 1 | Inventory of the current store | Every kind, attribute and link is listed with counts | Done |
-| 2 | Migration as a repeatable function of the store | Every record reads back equal; runs in CI on every pull request | Done locally; CI job to add |
+| 2 | Migration as a repeatable function of the store | Every record reads back equal; runs in CI on every pull request | Done. The `kb` job runs it in 35 seconds |
 | 3 | One slice end to end: ClinVar and BRCA1 | Checkpoints and subsets as fields; a board with no mixed rows; the pilot's 16 disagreements returned by a query | Settings loaded; checkpoint and subset grounding not started |
 | 4 | Grounding at scale | Every Tier 1 system has a checkpoint; every Tier 1 protocol is in a setting or marked as standing alone | Not started |
 | 5 | The seam: the new core writes today's serving file | The website's own tests and data checks pass on it; sample pages render the same text | Not started |
 | 6 | New writers | A batch of model pages, a batch of results and a correction each go in through the new core | Not started |
-| 7 | New outputs | Use case boards built by query; a "what this paper changes" report for one new paper | Not started |
+| 7 | New outputs | Use case boards built by query; a "what this paper changes" report for one new paper | First version of both: `kb/board.py` ranks all 31 use cases in 2 seconds, `kb/report.py` reports on one source in 2 seconds. Both compare at the model, not the checkpoint, until step 3 is done. Neither is on the website yet |
 | 8 | Nightly graph from the new core | The named queries the gap scanner and the plugin use return the same answers | Not started |
 | 9 | The website's data layer reads the new database directly | The compatibility export is no longer needed | Not started |
 | 10 | Deletion | The old record tooling, the per-batch scripts, the release-time reasoning and the compatibility export are removed | Not started. Raised with the owner first |
