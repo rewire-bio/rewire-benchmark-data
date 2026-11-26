@@ -1,0 +1,694 @@
+{
+ "record_id": "regulatory-variant-20261009-model-sei",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "FunctionLab/sei-framework README.md at commit 1e16bff9",
+   "description": "Official repository README, pinned to a commit. It includes the academic-use licence text.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/FunctionLab/sei-framework/1e16bff9b1618af7065a23f82c4a3bb82aaeb689/README.md",
+   "url": "https://github.com/FunctionLab/sei-framework",
+   "version": "git commit 1e16bff9b1618af7065a23f82c4a3bb82aaeb689",
+   "media_type": "text/markdown",
+   "sha256": "3a967b1a5c691ace4c2fa330e11358ccea5960d03d84bfc9ab2c52ef7e76ca2b",
+   "retrieved_at": "2026-11-26T18:15:56Z",
+   "store_bytes": false
+  },
+  {
+   "key": "download-script",
+   "name": "FunctionLab/sei-framework download_data.sh at commit 1e16bff9",
+   "description": "Script named in the README Setup section that downloads the trained model and reference genome files.",
+   "file": "artifacts/download_data.sh",
+   "artifact_url": "https://raw.githubusercontent.com/FunctionLab/sei-framework/1e16bff9b1618af7065a23f82c4a3bb82aaeb689/download_data.sh",
+   "url": "https://github.com/FunctionLab/sei-framework",
+   "version": "git commit 1e16bff9b1618af7065a23f82c4a3bb82aaeb689",
+   "media_type": "text/x-shellscript",
+   "sha256": "bdf2975f2354cabcf54be89b845da8c28de5ac36f8015a9ac7bea6264a526b8b",
+   "retrieved_at": "2026-11-26T18:16:51Z",
+   "store_bytes": false
+  },
+  {
+   "key": "train-config",
+   "name": "FunctionLab/sei-framework train/train.yml at commit 1e16bff9",
+   "description": "Selene training configuration for the Sei model, linked from the paper Methods.",
+   "file": "artifacts/train.yml",
+   "artifact_url": "https://raw.githubusercontent.com/FunctionLab/sei-framework/1e16bff9b1618af7065a23f82c4a3bb82aaeb689/train/train.yml",
+   "url": "https://github.com/FunctionLab/sei-framework",
+   "version": "git commit 1e16bff9b1618af7065a23f82c4a3bb82aaeb689",
+   "media_type": "text/yaml",
+   "sha256": "c82d2388e613fdffbeda6de3e5ae9c0aa486df5b91db7e9148112e976a18a3df",
+   "retrieved_at": "2026-11-26T18:17:04Z",
+   "store_bytes": false
+  },
+  {
+   "key": "zenodo-model",
+   "name": "Zenodo record 4906996 (trained Sei model), API response as served on 2026-11-26",
+   "description": "Zenodo metadata for the trained model archive: licence, publication date and file size.",
+   "file": "artifacts/zenodo-model.json",
+   "artifact_url": "https://zenodo.org/api/records/4906996",
+   "url": "https://doi.org/10.5281/zenodo.4906996",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "d08c2f3de3482441223894c685552b6ab098fcf4f6fd8abef3941402e61da69c",
+   "retrieved_at": "2026-11-26T18:16:51Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Chen et al. 2022, Nature Genetics, Europe PMC full text PMC9279145",
+   "description": "Full text of the Sei paper, 'A sequence-based global map of regulatory activity for deciphering human genetics'.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9279145/fullTextXML",
+   "url": "https://doi.org/10.1038/s41588-022-01102-2",
+   "version": "Published version, PMC9279145",
+   "media_type": "application/xml",
+   "sha256": "880dd8d9825dcf9eb5fa177ffb472f1ad3cba31bdf068d834ce77a65c947f8c6",
+   "retrieved_at": "2026-11-26T18:16:42Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "Sei is a deep learning model that reads a 4-kb human DNA sequence and predicts the probability of 21,907 chromatin profiles (transcription factor binding, histone marks and chromatin accessibility) at its centre. Those predictions are then summarised into 40 sequence classes, such as promoter, cell type-specific enhancer or Polycomb-repressed, which give a score for a sequence or for the effect of a variant.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Results (model) and Methods; README: introduction",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "which takes as input a 4-kilobase (kb) length sequence and predicts the probabilities of 21,907"
+   },
+   {
+    "source": "@readme",
+    "text": "Sei provides a global map from any sequence to regulatory activities, as represented by 40 sequence classes, and each sequence class integrates predictions for 21,907 chromatin profiles (transcription factor, histone marks, and chromatin accessibility profiles across a wide range of cell types)."
+   },
+   {
+    "source": "@paper",
+    "text": "Sequence classes provide a global classification and quantification of sequence and variant effects based on diverse regulatory activities, such as cell type-specific enhancer functions."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The Sei model has three parts: a convolutional network with parallel linear and nonlinear paths, residual dilated convolution layers that widen the receptive field without losing resolution, and a B-spline basis layer that reduces 256 spatial bins to 16 before fully connected output layers. It was trained with Selene in PyTorch as a multi-label classifier: for each 4-kb region, the label is whether the centre base overlaps a peak in each of the 21,907 profiles. The authors then predicted 30 million genome positions at a 100-bp step, reduced the predictions with PCA and clustered them with Louvain community detection. The 40 largest clusters are the sequence classes. A sequence's class score is a projection of its chromatin predictions onto each class vector; for variants the score is alt minus ref, with histone predictions adjusted for nucleosome occupancy.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, Model architecture and training, Sequence classes; README: Sequence class prediction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The model architecture is composed of three sequential sections: (1) a convolutional network with dual linear and nonlinear paths; (2) residual dilated convolution layers; (3) spatial basis function transformation and output layers."
+     },
+     {
+      "source": "@paper",
+      "text": "Dilated convolutional layers with residual connections further expand the receptive fields without reducing spatial resolution."
+     },
+     {
+      "source": "@paper",
+      "text": "a B-spline basis matrix (256 × 16) with 16 degrees of freedom across 256 uniformly spaced spatial bins is generated and multiplied with the convolutional layers output to reduce the 256 spatial dimensions to 16 spline basis function dimensions"
+     },
+     {
+      "source": "@paper",
+      "text": "a 21,907 dimensional binary label vector was created for the 21,907"
+     },
+     {
+      "source": "@paper",
+      "text": "The model was implemented in PyTorch and trained with Selene."
+     },
+     {
+      "source": "@paper",
+      "text": "We selected 30 million genomic positions that uniformly tile the genome with a 100-bp step size"
+     },
+     {
+      "source": "@paper",
+      "text": "We refer to the largest 40 clusters as sequence classes"
+     },
+     {
+      "source": "@readme",
+      "text": "Raw sequence class scores are projection scores of chromatin profile predictions projected on the unit-length vectors representing each sequence class."
+     },
+     {
+      "source": "@readme",
+      "text": "Computed as alt - ref of the raw sequence class scores **adjusted for nucleosome occupancy, i.e. histone normalized**."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "There is one released Sei model, published on Zenodo (record 4906996, dated 2021-06-07) as a 3,281,639,255-byte archive. The repository download script fetches it, with a resources archive holding hg19 and hg38 FASTA files. Whole-genome sequence class annotations for hg38, and for hg19 lifted over from hg38, are in a separate Zenodo record, and the authors recommend these annotations over raw sequence class scores for reference genome sequences. The training configuration is in train/train.yml. A result should name the repository commit and the Zenodo model record; this page read commit 1e16bff9.",
+    "source_ids": [
+     "@zenodo-model",
+     "@download-script",
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "Zenodo API response; download_data.sh; README: Setup, Sequence class prediction; Paper: Methods",
+    "quotes": [
+     {
+      "source": "@zenodo-model",
+      "text": "\"publication_date\": \"2021-06-07\""
+     },
+     {
+      "source": "@zenodo-model",
+      "text": "\"size\": 3281639255"
+     },
+     {
+      "source": "@download-script",
+      "text": "wget https://zenodo.org/record/4906997/files/sei_model.tar.gz"
+     },
+     {
+      "source": "@readme",
+      "text": "Please download and extract the trained Sei model and `resources` (containing hg19 and hg38 FASTA files) `.tar.gz` files before proceeding"
+     },
+     {
+      "source": "@readme",
+      "text": "we encourage the use of these annotations over the raw sequence class scores when possible. Sequence class annotations for hg38 and hg19 (lifted over from hg38) are available for download"
+     },
+     {
+      "source": "@paper",
+      "text": "A detailed training configuration file is available at"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Supervised deep learning sequence model that predicts chromatin profiles from DNA, with a sequence class layer built on its predictions.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Sei learns a vocabulary of regulatory activities, called sequence classes, using a deep learning model that predicts 21,907 chromatin profiles"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Convolutional network with dual linear and nonlinear paths, residual dilated convolutions, a B-spline spatial basis layer (256 bins to 16), then a fully connected layer and an output layer.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Model architecture",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "(1) a convolutional network with dual linear and nonlinear paths; (2) residual dilated convolution layers; (3) spatial basis function transformation and output layers"
+     },
+     {
+      "source": "@paper",
+      "text": "a fully connected layer and an output layer are used to integrate information across the whole sequence and generate the final 21,907 dimensional predictions"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A 4,096-base DNA sequence. The scripts accept a BED or FASTA file for sequences, or a VCF file for variants (hg19 or hg38).",
+    "status": "source_checked",
+    "source_ids": [
+     "@train-config",
+     "@readme"
+    ],
+    "source_locator": "train/train.yml; README: Chromatin profile prediction",
+    "quotes": [
+     {
+      "source": "@train-config",
+      "text": "sequence_length: 4096"
+     },
+     {
+      "source": "@readme",
+      "text": "Accepts either a BED (`.bed`) or FASTA (`.fa`, `.fasta`) file as input and makes sequence predictions."
+     },
+     {
+      "source": "@readme",
+      "text": "Accepts a VCF file as input and makes variant effect predictions."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Probabilities for 21,907 chromatin profiles at the sequence centre, written as HDF5 files; 40 sequence class scores; for variants, ref and alt predictions and sequence class variant effect scores as TSV and NPY files.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods; README: Chromatin profile prediction, Example variant effect prediction run",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the model output is continuous, representing probabilities of peaks"
+     },
+     {
+      "source": "@readme",
+      "text": "These scripts will output the chromatin profile predictions as HDF5 files to a subdirectory `chromatin-profiles-hdf5` in your specified output directory."
+     },
+     {
+      "source": "@readme",
+      "text": "`sorted.test.sequence_class_scores.tsv`: sequence class prediction TSV file, sorted by max absolute sequence class scores."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not extracted. The README and main paper text give no parameter count; the paper points to Supplementary Fig. 21, which was not read.",
+    "status": "unextracted",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods; README"
+   },
+   {
+    "label": "Training data",
+    "value": "21,907 peak-format profiles (9,471 TF binding, 10,064 histone mark, 2,372 chromatin accessibility) from Cistrome (19,905), ENCODE and Roadmap Epigenomics, on the GRCh38/hg38 genome. Chromosomes 8 and 9 were held out for testing and chromosome 10 for validation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Methods, Training data and Model training",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "including peak calls from 9,471 TF binding, 10,064 histone mark and 2,372 chromatin accessibility profiles"
+     },
+     {
+      "source": "@paper",
+      "text": "contributed most of the profiles predicted in Sei"
+     },
+     {
+      "source": "@paper",
+      "text": "Genome sequences are from the GRCh38/hg38 human reference genome."
+     },
+     {
+      "source": "@paper",
+      "text": "holding out chromosome 8 and 9 for the test set and chromosome 10 for the validation set"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One released model: Zenodo concept record 4906996, which resolves to version record 4906997 (the one the download script uses), published 2021-06-07. Sequence class annotations for hg38 and hg19 are a separate Zenodo record (10.5281/zenodo.7113988).",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo-model",
+     "@download-script",
+     "@readme"
+    ],
+    "source_locator": "Zenodo API response; download_data.sh; README: Setup, Sequence class prediction",
+    "quotes": [
+     {
+      "source": "@zenodo-model",
+      "text": "\"publication_date\": \"2021-06-07\""
+     },
+     {
+      "source": "@download-script",
+      "text": "https://zenodo.org/record/4906997/files/sei_model.tar.gz"
+     },
+     {
+      "source": "@readme",
+      "text": "[this Zenodo record](https://doi.org/10.5281/zenodo.7113988)"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported. The sources do not date the Cistrome, ENCODE and Roadmap data snapshot used for training.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Training data"
+   },
+   {
+    "label": "Context limits",
+    "value": "4,096 bases (4 kb) per input, predicting at the centre base.",
+    "status": "source_checked",
+    "source_ids": [
+     "@train-config",
+     "@paper"
+    ],
+    "source_locator": "train/train.yml; Paper: Methods",
+    "quotes": [
+     {
+      "source": "@train-config",
+      "text": "center_bin_to_predict: [2048, 2049]"
+     },
+     {
+      "source": "@train-config",
+      "text": "sequence_length: 4096"
+     },
+     {
+      "source": "@paper",
+      "text": "at the center of 4-kb length sequences"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "CC BY 4.0, as declared on the Zenodo record of the trained model. Note the code itself is academic-use only.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo-model"
+    ],
+    "source_locator": "Zenodo API response, metadata.license",
+    "quotes": [
+     {
+      "source": "@zenodo-model",
+      "text": "\"id\": \"cc-by-4.0\""
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Academic and research use only, under a custom licence from Princeton University, the Simons Foundation and UT Southwestern. Commercial use needs a licence from Princeton's Office of Technology Licensing.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: License",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "are permitted for academic and research use only"
+     },
+     {
+      "source": "@readme",
+      "text": "If you are interested in obtaining the software for commercial use, please contact Office of Technology Licensing, Princeton University"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/FunctionLab/sei-framework. Weights: https://doi.org/10.5281/zenodo.4906996. Resources (hg19 and hg38 FASTA): https://doi.org/10.5281/zenodo.4906961. Training data: https://doi.org/10.5281/zenodo.4907037, which requires agreeing to the Cistrome Project terms first.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Setup, Training; Paper: Code availability",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "[Sei model](https://doi.org/10.5281/zenodo.4906996)"
+     },
+     {
+      "source": "@readme",
+      "text": "[Sei framework `resources` directory](https://doi.org/10.5281/zenodo.4906961)"
+     },
+     {
+      "source": "@readme",
+      "text": "The training data is available [here](https://doi.org/10.5281/zenodo.4907037)"
+     },
+     {
+      "source": "@readme",
+      "text": "please first agree to the Cistrome Project [terms of usage](http://cistrome.org/db/#/bdown) before downloading the data"
+     },
+     {
+      "source": "@paper",
+      "text": "The Sei framework code is available at"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Covers a wide set of regulatory signals in one model: 21,907 profiles spanning about 1,000 DNA-binding proteins, 77 histone marks and chromatin accessibility in more than 1,300 cell lines and tissues.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The Sei model encompasses an estimated 1,000 nonhistone DNA-binding proteins (which we refer to as TFs), 77 histone marks and chromatin accessibility across"
+     }
+    ]
+   },
+   {
+    "text": "The 40 sequence classes give a compact, interpretable summary of a sequence or variant effect, grouped as promoter, enhancer, CTCF, TF binding, Polycomb, heterochromatin, transcription and low signal.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Sequence classes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "we grouped sequence classes into groups including P (Promoter), E (Enhancer), CTCF (CTCF-cohesin binding), TF (TF binding), PC (Polycomb-repressed), HET (Heterochromatin), TN (Transcription), and L (Low Signal) sequence classes"
+     }
+    ]
+   },
+   {
+    "text": "The authors report an average AUROC of 0.972 and AUPRC of 0.409 across all 21,907 profiles on held-out chromosomes, and a 19% average improvement over their earlier DeepSEA Beluga model on the 2,002 shared profiles.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The model achieved an average area under the receiver operating characteristic (AUROC) of 0.972 and average area under the precision-recall curve (AUPRC) of 0.409 across all 21,907 chromatin profiles"
+     },
+     {
+      "source": "@paper",
+      "text": "on the 2,002 chromatin profiles predicted by both models by 19% on average"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The code is licensed for academic and research use only; commercial use needs a separate licence from Princeton.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: License",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "are permitted for academic and research use only"
+     }
+    ]
+   },
+   {
+    "text": "Human only: the model was trained on hg38 and the scripts accept hg19 or hg38 coordinates. Each prediction sees only 4 kb of sequence.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods; README: Chromatin profile prediction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Genome sequences are from the GRCh38/hg38 human reference genome."
+     },
+     {
+      "source": "@readme",
+      "text": "this must be either `hg19` or `hg38` as these are the FASTA reference genome files we provide by default"
+     },
+     {
+      "source": "@paper",
+      "text": "at the center of 4-kb length sequences"
+     }
+    ]
+   },
+   {
+    "text": "The README asks for chromatin profile prediction to run on a GPU node, and the model archive is about 3.3 GB. Training used 4 Tesla V100 GPUs. Inference memory needs are not stated.",
+    "source_ids": [
+     "@readme",
+     "@zenodo-model"
+    ],
+    "source_locator": "README: Chromatin profile prediction, Training; Zenodo API response",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "(please run on a GPU node)"
+     },
+     {
+      "source": "@readme",
+      "text": "we run training on 4x Tesla V100 GPUs connected with NVLink"
+     },
+     {
+      "source": "@zenodo-model",
+      "text": "\"size\": 3281639255"
+     }
+    ]
+   },
+   {
+    "text": "Retraining needs agreement to the Cistrome Project terms, because the training data contains processed Cistrome files.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Training",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "because the Sei training data contains processed files from the Cistrome Project, please first agree to the Cistrome Project [terms of usage]"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Sei workflow",
+   "steps": [
+    "BED, FASTA or VCF input (hg19 or hg38)",
+    "4-kb sequence around each position",
+    "Sei convolutional model",
+    "Probabilities for 21,907 chromatin profiles (HDF5)",
+    "Projection onto 40 sequence classes",
+    "Sequence class scores or variant effect scores"
+   ],
+   "caption": "Data flow as described in the README and paper. For variants, scores are alt minus ref, with histone predictions adjusted for nucleosome occupancy.",
+   "source_ids": [
+    "@readme",
+    "@paper"
+   ],
+   "source_locator": "README: Chromatin profile prediction, Sequence class prediction; Paper: Methods",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "Sequence class scores can be obtained from Sei chromatin profile predictions."
+    },
+    {
+     "source": "@paper",
+     "text": "which takes as input a 4-kilobase (kb) length sequence"
+    },
+    {
+     "source": "@readme",
+     "text": "These scripts will output the chromatin profile predictions as HDF5 files"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The parameter count is not stated in the README or main paper text; Supplementary Fig. 21, which specifies the model, was not read.",
+   "GPU memory and run time for inference are not stated.",
+   "The training data snapshot is not dated."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the sei-framework README, download_data.sh and train/train.yml at commit 1e16bff9, the Zenodo API record 4906996 and the Europe PMC full text of the Nature Genetics paper (PMC9279145), each fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Get the Sei code, download the trained model and reference files, and score the bundled test VCF for chromatin profile and sequence class variant effects.",
+  "prerequisites": [
+   "A new Anaconda environment with Python 3.6+, PyTorch (>=1.0), Selene (>=0.5.0) and docopt, as the README asks. PyTorch and Selene are installed by following their own instructions.",
+   "A CUDA GPU for chromatin profile prediction, as the README advises; the sequence class step runs on CPU.",
+   "About 3.3 GB of disk for the model archive, plus the resources archive.",
+   "Code is for academic and research use only; weights are CC BY 4.0 on Zenodo."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/FunctionLab/sei-framework.git\ncd sei-framework\ngit checkout --detach 1e16bff9b1618af7065a23f82c4a3bb82aaeb689",
+    "explanation": "The README gives no clone command; these lines are added to get the repository at the commit this page was written from.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Code availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The Sei framework code is available at"
+     }
+    ]
+   },
+   {
+    "title": "Install docopt",
+    "shell": "conda install docopt",
+    "explanation": "Run inside the new environment after installing PyTorch and Selene by their own instructions.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Requirements",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Install `docopt` with pip or conda (e.g. `conda install docopt`)"
+     }
+    ]
+   },
+   {
+    "title": "Download the model and resources",
+    "shell": "sh ./download_data.sh",
+    "explanation": "Downloads and extracts the trained Sei model and the resources archive with the hg19 and hg38 FASTA files.",
+    "source_ids": [
+     "@readme",
+     "@download-script"
+    ],
+    "source_locator": "README: Setup; download_data.sh",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "sh ./download_data.sh"
+     },
+     {
+      "source": "@download-script",
+      "text": "tar -xzvf sei_model.tar.gz"
+     }
+    ]
+   },
+   {
+    "title": "Predict chromatin profiles for the test variants",
+    "shell": "sh 1_variant_effect_prediction.sh test.vcf hg19 ./test_outputs --cuda",
+    "explanation": "Runs the Sei model on the bundled test.vcf (hg19 coordinates) on a GPU and writes ref and alt predictions as HDF5.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Example variant effect prediction run",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "sh 1_variant_effect_prediction.sh test.vcf hg19 ./test_outputs --cuda"
+     }
+    ]
+   },
+   {
+    "title": "Compute sequence class variant effect scores",
+    "shell": "sh 2_varianteffect_sc_score.sh ./test_outputs/chromatin-profiles-hdf5/test.ref_predictions.h5 \\\n                               ./test_outputs/chromatin-profiles-hdf5/test.alt_predictions.h5 \\\n                               ./test_outputs",
+    "explanation": "Runs on CPU and turns the ref and alt chromatin predictions into sequence class scores.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Example variant effect prediction run",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "sh 2_varianteffect_sc_score.sh ./test_outputs/chromatin-profiles-hdf5/test.ref_predictions.h5"
+     },
+     {
+      "source": "@readme",
+      "text": "./test_outputs/chromatin-profiles-hdf5/test.alt_predictions.h5"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "test_outputs/chromatin-profiles-hdf5: HDF5 prediction files and test_row_labels.txt.",
+   "sorted.test.chromatin_profile_diffs.tsv and sorted.test.sequence_class_scores.tsv, sorted by maximum absolute sequence class score.",
+   "test.sequence_class_scores.npy, unsorted, in the order of test_row_labels.txt."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The README does not give install commands for PyTorch or Selene, only links to their instructions.",
+   "Hardware needs beyond 'a GPU node' are not stated."
+  ],
+  "source_ids": [
+   "@readme",
+   "@download-script"
+  ]
+ },
+ "notes": "The weights (Zenodo, CC BY 4.0) and the code (academic-use only) carry different terms; the GitHub API reports the code licence as NOASSERTION. The download script points at Zenodo version record 4906997 while the README links concept DOI 4906996; the API call to 4906996 resolved to record 4906997, the same record the script uses."
+}

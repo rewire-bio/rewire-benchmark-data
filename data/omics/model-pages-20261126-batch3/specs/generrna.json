@@ -1,0 +1,712 @@
+{
+ "record_id": "lit-rna-20261011-rnalm-zeroshot-model-generrna",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "pfnet-research/GenerRNA README.md at commit f0a4ebd5",
+   "description": "Official GitHub repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/pfnet-research/GenerRNA/f0a4ebd5fdf1d97d8114aa3671b559c4d7b770d2/README.md",
+   "url": "https://github.com/pfnet-research/GenerRNA",
+   "version": "git commit f0a4ebd5fdf1d97d8114aa3671b559c4d7b770d2",
+   "media_type": "text/markdown",
+   "sha256": "66e225598ecc021868974cc9de66e5f439fac00b4ba84ad01b500d6f08b49881",
+   "retrieved_at": "2026-11-26T18:16:04Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "pfnet-research/GenerRNA LICENSE at commit f0a4ebd5",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/pfnet-research/GenerRNA/f0a4ebd5fdf1d97d8114aa3671b559c4d7b770d2/LICENSE",
+   "url": "https://github.com/pfnet-research/GenerRNA",
+   "version": "git commit f0a4ebd5fdf1d97d8114aa3671b559c4d7b770d2",
+   "media_type": "text/plain",
+   "sha256": "b42a9b2def7751f00c723849aa21c99998eb7fbf7efa5dfa6c2e605f74d9bda6",
+   "retrieved_at": "2026-11-26T18:29:47Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "hf-card",
+   "name": "pfnet/GenerRNA model card at revision 43efbbd0",
+   "description": "Hugging Face model card of the current GenerRNA release, pinned to a revision.",
+   "file": "artifacts/hf-card.md",
+   "artifact_url": "https://huggingface.co/pfnet/GenerRNA/raw/43efbbd0696ad4743cd12e5267b4a0bb76d45144/README.md",
+   "url": "https://huggingface.co/pfnet/GenerRNA",
+   "version": "Hugging Face revision 43efbbd0696ad4743cd12e5267b4a0bb76d45144",
+   "media_type": "text/markdown",
+   "sha256": "f48536d35991219af3dc47c8ca4b1ff5c1632b543ea1c60012776552e78c7dd6",
+   "retrieved_at": "2026-11-26T18:29:41Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "hf-api",
+   "name": "Hugging Face metadata for pfnet/GenerRNA, as served on 2026-11-26",
+   "description": "Hugging Face API response: revision, licence field, gating and the file listing of the repository.",
+   "file": "artifacts/hf-api.json",
+   "artifact_url": "https://huggingface.co/api/models/pfnet/GenerRNA?expand[]=safetensors&expand[]=sha&expand[]=cardData&expand[]=gated&expand[]=siblings",
+   "url": "https://huggingface.co/pfnet/GenerRNA",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "bf3f634488fce692865dccdcdde51cc14d55ee04306bf462685f8b7b8539a597",
+   "retrieved_at": "2026-11-26T18:29:40Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Zhao et al. 2024, PLOS ONE 19(10):e0310814: Europe PMC full text PMC11444397",
+   "description": "GenerRNA paper, full text XML from Europe PMC.",
+   "file": "artifacts/paper-fulltext.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11444397/fullTextXML",
+   "url": "https://doi.org/10.1371/journal.pone.0310814",
+   "version": "Europe PMC full text PMC11444397 as served on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "398c86b75f9816517b6afe4eb91b2c1bbd36c7876bdee15d86b9381b6d0d7453",
+   "retrieved_at": "2026-11-26T18:30:27Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "GenerRNA is a generative language model that writes new RNA sequences. It is a decoder-only transformer, the same style as GPT, trained on millions of natural RNA sequences so that it can sample sequences it has never seen. It takes no structure, label or alignment as input: either sample from it as it is, or fine-tune it on a family or a function first.",
+  "summary_source_ids": [
+   "@readme",
+   "@hf-card",
+   "@paper"
+  ],
+  "summary_source_locator": "README.md: GenerRNA; model card: Model Summary; paper: Abstract",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "GenerRNA is a generative RNA language model based on a Transformer decoder-only architecture."
+   },
+   {
+    "source": "@hf-card",
+    "text": "can generate novel, realistic RNA sequences **without any structural input, functional label, or sequence alignment**"
+   },
+   {
+    "source": "@readme",
+    "text": "GenerRNA enable you to generate RNA sequences in a zero-shot manner for exploring the RNA space, or to fine-tune the model using a specific dataset for generating RNAs belonging to a particular family or possessing specific characteristics."
+   },
+   {
+    "source": "@paper",
+    "text": "GenerRNA is pre-trained on large-scale RNA sequences and capable of generating novel RNA sequences"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "GenerRNA is a decoder-only transformer of 350 million parameters: 24 layers with a model dimension of 1280, the same shape as GPT-2-medium. It is trained to predict the next token, with no labels. Sequences are split by a byte-pair encoding tokenizer with a vocabulary of 1024, so one token covers several nucleotides. The context window is 1024 tokens, about 4000 nucleotides. In preprocessing, U was replaced with T and ambiguity codes were kept. Generation is sampling: sampling.py writes new sequences from a checkpoint and a tokenizer.",
+    "source_ids": [
+     "@paper",
+     "@hf-card",
+     "@readme"
+    ],
+    "source_locator": "paper: 2.1 Model architecture, 2.2 Pre-training data preparation; model card: Model Details; README.md: Usage",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Our decoder-only architecture model consists of 350 million parameters across 24 transformer layers and has a model dimension of 1280."
+     },
+     {
+      "source": "@paper",
+      "text": "This configuration mirrors the GPT-2-medium model architecture proposed by OpenAI"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Byte-Pair Encoding (BPE), vocabulary size 1024"
+     },
+     {
+      "source": "@paper",
+      "text": "GenerRNA has a maximum output length and context window of 1024 tokens, corresponding to approximately 4000 nucleotides (nt)"
+     },
+     {
+      "source": "@paper",
+      "text": "we replaced ‘U’ with ‘T’ while retaining all ambiguity code"
+     },
+     {
+      "source": "@readme",
+      "text": "sampling.py      # script to generate sequences"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "Two checkpoints exist. The Hugging Face repository pfnet/GenerRNA holds model_updated.pt, which the card recommends and calls the longer-context model trained on deduplicated data, and keeps the original model under experiment_data/historical_version/ as four split parts with its own tokenizer. The GitHub repository pfnet-research/GenerRNA opens by saying it is not the newest version and points to Hugging Face. Each checkpoint has its own tokenizer directory, and they must be paired correctly. A result should name the checkpoint file, its tokenizer and the Hugging Face revision; this page read revision 43efbbd0.",
+    "source_ids": [
+     "@hf-card",
+     "@readme",
+     "@hf-api"
+    ],
+    "source_locator": "model card: Model Details, Quickstart, Repository Structure; README.md: header; Hugging Face API response",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "# This is NOT the newest version"
+     },
+     {
+      "source": "@readme",
+      "text": "The newest version with trained model is placed in the following repository: https://huggingface.co/pfnet/GenerRNA"
+     },
+     {
+      "source": "@hf-card",
+      "text": "`model_updated.pt` (recommended; longer context, deduplicated data) · original split model in `experiment_data/historical_version/`"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Recombine it and use its dedicated tokenizer:"
+     },
+     {
+      "source": "@hf-api",
+      "text": "{\"rfilename\":\"model_updated.pt\"}"
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"sha\":\"43efbbd0696ad4743cd12e5267b4a0bb76d45144\""
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Generative (decoder-only, GPT-style) RNA language model for de novo sequence design.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@hf-card"
+    ],
+    "source_locator": "README.md: GenerRNA; model card: Model Details",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "GenerRNA is a generative RNA language model based on a Transformer decoder-only architecture."
+     },
+     {
+      "source": "@hf-card",
+      "text": "Generative language model (decoder-only Transformer, GPT-style)"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Decoder-only transformer: 24 layers, model dimension 1280, mirroring GPT-2-medium; byte-pair encoding tokenizer with vocabulary 1024.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@hf-card"
+    ],
+    "source_locator": "paper: 2.1 Model architecture; model card: Model Details",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "350 million parameters across 24 transformer layers and has a model dimension of 1280"
+     },
+     {
+      "source": "@paper",
+      "text": "This configuration mirrors the GPT-2-medium model architecture proposed by OpenAI"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Byte-Pair Encoding (BPE), vocabulary size 1024"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "For generation, no sequence input: a checkpoint, a tokenizer and a token budget. For fine-tuning, a plain text file of RNA sequences, one per line with no header, tokenised first.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@hf-card"
+    ],
+    "source_locator": "README.md: De novo Generation, Pre-training or Fine-tuning; model card: Quickstart, Training & Fine-tuning",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "First, tokenize your sequence data, ensuring each sequence is on a separate line and there is no header."
+     },
+     {
+      "source": "@hf-card",
+      "text": "No. GenerRNA generates sequences directly from its learned distribution; no structure or alignment is needed."
+     },
+     {
+      "source": "@readme",
+      "text": "--max_new_tokens 256 \\"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Generated RNA sequences, written to the file given by --out_path. The authors report the generated sequences are novel and fold into stable secondary structures (low minimum free energy).",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@hf-card"
+    ],
+    "source_locator": "README.md: De novo Generation; model card: Model Summary, Key Features",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--out_path {output_file_path} \\"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Generated RNAs are novel (distinct from training sequences) yet fold into stable secondary structures"
+     },
+     {
+      "source": "@hf-card",
+      "text": "generated sequences fold into stable secondary structures (low minimum free energy)"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "350M (24 transformer layers, model dimension 1280), as the paper and the model card both state.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@hf-card"
+    ],
+    "source_locator": "paper: 2.1 Model architecture; model card: Model Details",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "350 million parameters across 24 transformer layers"
+     },
+     {
+      "source": "@hf-card",
+      "text": "350M (24 transformer layers, model dimension 1280)"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "RNAcentral release 22 (51 expert databases): 34.39 million raw sequences, deduplicated with MMseqs2 at 80% identity. The reported corpus size differs between sources: the paper says about 16 million sequences and 11.6 billion nucleotides, the model card says 16.09M sequences and about 17.4 billion nucleotides, and the GitHub README says 30M sequences and 17B nucleotides.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@hf-card",
+     "@readme"
+    ],
+    "source_locator": "paper: 2.2 Pre-training data preparation, Abstract; model card: Training Data; README.md: GenerRNA",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we obtained a total of 34.39 million sequences from RNAcentral (release 22), a comprehensive database that combines RNA sequences from 51 expert databases"
+     },
+     {
+      "source": "@paper",
+      "text": "for deduplication with an identity threshold of 80%"
+     },
+     {
+      "source": "@paper",
+      "text": "GenerRNA was pre-trained on approximately 16 million RNA sequences encompassing 11.6 billion nucleotides"
+     },
+     {
+      "source": "@hf-card",
+      "text": "yielded a pre-training corpus of **~16 million sequences (16.09M), encompassing ~17.4 billion nucleotides**"
+     },
+     {
+      "source": "@readme",
+      "text": "It was pre-trained on 30M sequences, encompassing 17B nucleotides."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Two checkpoints: model_updated.pt (recommended, longer context, deduplicated data) and the original model kept as four split parts under experiment_data/historical_version/, each with its own tokenizer directory.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@hf-api"
+    ],
+    "source_locator": "model card: Model Details, Repository Structure; Hugging Face API response, siblings",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "**Two checkpoints provided** — an updated long-context model and the original historical model."
+     },
+     {
+      "source": "@hf-api",
+      "text": "{\"rfilename\":\"experiment_data/historical_version/model.pt.part-aa\"}"
+     },
+     {
+      "source": "@hf-card",
+      "text": "tokenizer/                 # BPE tokenizer for model_updated.pt"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "RNAcentral release 22, the snapshot named in the paper. No calendar date for the snapshot is given in the sources read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: 2.2 Pre-training data preparation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "from RNAcentral (release 22)"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "1024 tokens, about 4000 nucleotides, which is also the maximum output length. Longer sequences were filtered out of the training data.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@hf-card"
+    ],
+    "source_locator": "paper: results, sequence length; model card: Model Details",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "GenerRNA has a maximum output length and context window of 1024 tokens, corresponding to approximately 4000 nucleotides (nt)"
+     },
+     {
+      "source": "@paper",
+      "text": "we filtered out excessively long sequences from the training data"
+     },
+     {
+      "source": "@hf-card",
+      "text": "1024 tokens (~4000 nucleotides)"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "MIT, as declared in the Hugging Face model card metadata and its FAQ, which says the code and weights are released under the MIT License.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@hf-api"
+    ],
+    "source_locator": "model card metadata, FAQ; Hugging Face API, cardData",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "license: mit"
+     },
+     {
+      "source": "@hf-card",
+      "text": "The code and weights are released under the MIT License."
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"license\":\"mit\""
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, per the repository LICENSE (copyright 2024 Yichong Zhao, Masaaki Kotera, Kenta Oono, Hiroki Takizawa).",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE; README.md: License",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2024 Yichong Zhao, Masaaki Kotera, Kenta Oono, Hiroki Takizawa"
+     },
+     {
+      "source": "@readme",
+      "text": "The source code is licensed MIT."
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Weights and current code: https://huggingface.co/pfnet/GenerRNA, not gated. Older code: https://github.com/pfnet-research/GenerRNA. The model card also names https://github.com/ekkkkki/GenerRNA and a project page.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@readme",
+     "@hf-api"
+    ],
+    "source_locator": "model card: Quickstart, Citation links; README.md: header; Hugging Face API, gated",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "git clone https://huggingface.co/pfnet/GenerRNA"
+     },
+     {
+      "source": "@readme",
+      "text": "https://huggingface.co/pfnet/GenerRNA"
+     },
+     {
+      "source": "@hf-card",
+      "text": "**Code (GitHub):** https://github.com/ekkkkki/GenerRNA"
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"gated\":false"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Needs no structure, label or alignment to generate: it samples from a learned distribution over sequences.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "model card: Key Features, FAQ",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "create novel RNA sequences from scratch; no structure, label, or alignment required"
+     },
+     {
+      "source": "@hf-card",
+      "text": "it samples entirely new sequences"
+     }
+    ]
+   },
+   {
+    "text": "Code, tokenizer and both checkpoints are MIT licensed and not gated, and the data behind the paper's figures is published with them.",
+    "source_ids": [
+     "@hf-card",
+     "@license"
+    ],
+    "source_locator": "model card: Key Features, Repository Structure; LICENSE",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "MIT-licensed code, tokenizer, checkpoints, and the data behind the paper's figures"
+     },
+     {
+      "source": "@license",
+      "text": "MIT License"
+     }
+    ]
+   },
+   {
+    "text": "Fine-tuning for a target is demonstrated by the authors: the paper designs RNAs with high binding affinity to the proteins ELAVL1 and SRSF1.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "model card: Intended Use & Use Cases, FAQ",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "demonstrated for the RNA-binding proteins **ELAVL1** and **SRSF1** in the paper"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "A CUDA GPU with at least 8GB of VRAM is required, both to generate and to train.",
+    "source_ids": [
+     "@readme",
+     "@hf-card"
+    ],
+    "source_locator": "README.md: Requirements; model card: Requirements, Limitations",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "A CUDA environment, and a minimum VRAM of 8GB was required."
+     },
+     {
+      "source": "@hf-card",
+      "text": "A CUDA GPU is required for generation and training as provided."
+     }
+    ]
+   },
+   {
+    "text": "It models sequence only. It does not predict tertiary structure or function, so candidates need separate structure or function tools and experimental work.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "model card: Limitations",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "it does not explicitly predict tertiary structure or function"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Generated sequences are computational hypotheses and should be experimentally validated before any real-world application."
+     }
+    ]
+   },
+   {
+    "text": "The context window and maximum output are 1024 tokens, about 4000 nucleotides, and longer sequences were dropped from training.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: results, sequence length",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "GenerRNA has a maximum output length and context window of 1024 tokens, corresponding to approximately 4000 nucleotides (nt)"
+     },
+     {
+      "source": "@paper",
+      "text": "we filtered out excessively long sequences from the training data"
+     }
+    ]
+   },
+   {
+    "text": "Zero-shot output follows the distribution of the training data, so aiming at a particular family or property generally needs fine-tuning.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "model card: Limitations",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Zero-shot outputs reflect the natural distribution of the training data; targeting a specific family or property generally requires fine-tuning."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "GenerRNA workflow",
+   "steps": [
+    "Checkpoint and BPE tokenizer (vocabulary 1024)",
+    "Optional fine-tuning on your own sequences, one per line",
+    "Sampling with a token budget, up to 1024 tokens",
+    "24-layer decoder-only transformer, dimension 1280",
+    "Generated RNA sequences written to a file"
+   ],
+   "caption": "Data flow for generation as described in the README, the model card and the paper. Fine-tuning is optional and needs tokenisation first.",
+   "source_ids": [
+    "@readme",
+    "@hf-card",
+    "@paper"
+   ],
+   "source_locator": "README.md: Usage; model card: Quickstart, Training & Fine-tuning; paper: 2.1 Model architecture",
+   "quotes": [
+    {
+     "source": "@hf-card",
+     "text": "Byte-Pair Encoding (BPE), vocabulary size 1024"
+    },
+    {
+     "source": "@readme",
+     "text": "First, tokenize your sequence data, ensuring each sequence is on a separate line and there is no header."
+    },
+    {
+     "source": "@readme",
+     "text": "--max_new_tokens 256 \\"
+    },
+    {
+     "source": "@paper",
+     "text": "350 million parameters across 24 transformer layers and has a model dimension of 1280"
+    },
+    {
+     "source": "@readme",
+     "text": "--out_path {output_file_path} \\"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The three sources give different pretraining corpus sizes (about 16 million, 16.09M and 30M sequences; 11.6, 17.4 and 17 billion nucleotides). All three figures are reported and none was chosen.",
+   "The paper describes the original model; how the recommended model_updated.pt differs beyond 'longer context, deduplicated data' is not stated, and no parameter count is given for it specifically.",
+   "No parameter count was read from the checkpoint files themselves: the model is distributed as PyTorch .pt files, not safetensors, so the Hugging Face API reports no count.",
+   "Sampling settings beyond --max_new_tokens (temperature, number of sequences) were not read from the sources."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the pfnet-research/GenerRNA README and LICENSE at commit f0a4ebd5, the pfnet/GenerRNA model card at revision 43efbbd0, the Hugging Face API response, and the PLOS ONE paper full text (Europe PMC PMC11444397), each fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Clone the Hugging Face repository, which ships the recommended checkpoint and its tokenizer, and generate RNA sequences with it.",
+  "prerequisites": [
+   "A CUDA environment with at least 8GB of VRAM.",
+   "torch>=2.0, numpy, transformers==4.33.0.dev0, datasets==2.14.4 and tqdm, as both the README and the model card list.",
+   "Code and weights are MIT and the repository is not gated."
+  ],
+  "steps": [
+   {
+    "title": "Clone the model repository",
+    "shell": "git clone https://huggingface.co/pfnet/GenerRNA\ncd GenerRNA\ngit checkout --detach 43efbbd0696ad4743cd12e5267b4a0bb76d45144",
+    "explanation": "The model card's quickstart. The clone brings the recommended checkpoint model_updated.pt and its tokenizer directory. The checkout line is added to pin the revision this page was read from.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "model card: Quickstart",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "git clone https://huggingface.co/pfnet/GenerRNA"
+     },
+     {
+      "source": "@hf-card",
+      "text": "it ships with the recommended checkpoint `model_updated.pt` and its `tokenizer/`"
+     }
+    ]
+   },
+   {
+    "title": "Install the dependencies",
+    "shell": "pip install 'torch>=2.0' numpy 'transformers==4.33.0.dev0' 'datasets==2.14.4' tqdm",
+    "explanation": "One pip line built from the dependency list given in the README and the model card. The sources list the packages but give no install command.",
+    "source_ids": [
+     "@readme",
+     "@hf-card"
+    ],
+    "source_locator": "README.md: Dependencies; model card: Requirements",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "torch>=2.0 numpy transformers==4.33.0.dev0 datasets==2.14.4 tqdm"
+     },
+     {
+      "source": "@hf-card",
+      "text": "A CUDA environment with a minimum of **8 GB VRAM** is required."
+     }
+    ]
+   },
+   {
+    "title": "Generate sequences",
+    "shell": "python sampling.py \\\n    --out_path generated.txt \\\n    --max_new_tokens 256 \\\n    --ckpt_path model_updated.pt \\\n    --tokenizer_path tokenizer",
+    "explanation": "The model card's zero-shot generation command, with the placeholder output path replaced by a filename. For the original checkpoint, the card instead recombines the split parts and pairs them with experiment_data/historical_version/tokenizer_bpe_1024.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "model card: Quickstart, De novo generation (zero-shot)",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "python sampling.py \\ --out_path {output_file_path} \\ --max_new_tokens 256 \\ --ckpt_path model_updated.pt \\ --tokenizer_path tokenizer"
+     },
+     {
+      "source": "@hf-card",
+      "text": "cat experiment_data/historical_version/model.pt.part-* > model.pt"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Generated RNA sequences in the file given to --out_path. The sources do not show the file format or how many sequences one run writes."
+  ],
+  "limitations": [
+   "These commands were read from the model card and have not been executed by Rewire.",
+   "Generation needs a CUDA GPU; no CPU path is described.",
+   "A checkpoint must be paired with its own tokenizer directory; the two checkpoints use different tokenizers."
+  ],
+  "source_ids": [
+   "@hf-card",
+   "@readme"
+  ]
+ },
+ "notes": "Three sources disagree on the pretraining corpus size: the GitHub README says 30M sequences and 17B nucleotides, the Hugging Face card says 16.09M and about 17.4B, and the paper says about 16 million and 11.6 billion. All three are reported in the Training data fact and flagged in gaps; a human should decide which to show. The GitHub repository states plainly that it is not the newest version and points to Hugging Face, so the card was treated as the current source. The model card also names a third code location, github.com/ekkkkki/GenerRNA, which was not fetched. git-lfs is likely needed to pull the checkpoint, and the pinned transformers version (4.33.0.dev0) is a development release that may not install from PyPI; neither point is stated in the sources."
+}

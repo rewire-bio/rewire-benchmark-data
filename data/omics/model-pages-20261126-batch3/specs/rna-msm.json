@@ -1,0 +1,715 @@
+{
+ "record_id": "gfm2-20261011-you2026-model-rna-msm",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "yikunpku/RNA-MSM README.md at commit faadd575",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/yikunpku/RNA-MSM/faadd57559c1c146effbfd84a7628cd2042d5ede/README.md",
+   "url": "https://github.com/yikunpku/RNA-MSM",
+   "version": "git commit faadd57559c1c146effbfd84a7628cd2042d5ede",
+   "media_type": "text/markdown",
+   "sha256": "d03dbb6ec72e162b00287ac39aa93a235ba3859b87dc86fb0b9e10259efc7464",
+   "retrieved_at": "2026-11-26T18:16:03Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "yikunpku/RNA-MSM LICENSE at commit faadd575",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/yikunpku/RNA-MSM/faadd57559c1c146effbfd84a7628cd2042d5ede/LICENSE",
+   "url": "https://github.com/yikunpku/RNA-MSM",
+   "version": "git commit faadd57559c1c146effbfd84a7628cd2042d5ede",
+   "media_type": "text/plain",
+   "sha256": "423fde8b633fa63af388ffcc58277cfa28c2fcde817f696a781867f4536c7655",
+   "retrieved_at": "2026-11-26T18:27:05Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "inference",
+   "name": "yikunpku/RNA-MSM RNA_MSM_Inference.py at commit faadd575",
+   "description": "Feature extraction script named in the README, pinned to a commit.",
+   "file": "artifacts/RNA_MSM_Inference.py",
+   "artifact_url": "https://raw.githubusercontent.com/yikunpku/RNA-MSM/faadd57559c1c146effbfd84a7628cd2042d5ede/RNA_MSM_Inference.py",
+   "url": "https://github.com/yikunpku/RNA-MSM",
+   "version": "git commit faadd57559c1c146effbfd84a7628cd2042d5ede",
+   "media_type": "text/x-python",
+   "sha256": "1b8c0d671f1bc2b76ab9cf4be9c9673d1ec7e7a366b22d3c826f95b70faf9716",
+   "retrieved_at": "2026-11-26T18:27:13Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "env",
+   "name": "yikunpku/RNA-MSM environment.yml at commit faadd575",
+   "description": "Conda environment file named in the README, pinned to a commit.",
+   "file": "artifacts/environment.yml",
+   "artifact_url": "https://raw.githubusercontent.com/yikunpku/RNA-MSM/faadd57559c1c146effbfd84a7628cd2042d5ede/environment.yml",
+   "url": "https://github.com/yikunpku/RNA-MSM",
+   "version": "git commit faadd57559c1c146effbfd84a7628cd2042d5ede",
+   "media_type": "text/yaml",
+   "sha256": "3ec49f9e31b0721ee5b64586750ceffdb7710e772affb177a9e594f5cc36b7e9",
+   "retrieved_at": "2026-11-26T18:27:14Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Zhang et al. 2024, Nucleic Acids Research 52(1):e3: Europe PMC full text PMC10783488",
+   "description": "RNA-MSM paper, full text XML from Europe PMC.",
+   "file": "artifacts/paper-fulltext.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10783488/fullTextXML",
+   "url": "https://doi.org/10.1093/nar/gkad1031",
+   "version": "Europe PMC full text PMC10783488 as served on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "6d55d8ad17909aa97e6c3a87fd76f58003733d57c23ecffe698f69aac84dba12",
+   "retrieved_at": "2026-11-26T18:28:00Z",
+   "licence": "CC BY-NC 4.0",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "RNA-MSM is an RNA language model that reads a multiple sequence alignment (MSA) of a target RNA and its homologues rather than a single sequence. It outputs a per-nucleotide embedding and attention maps, which the authors use to predict RNA secondary structure (base pairs) and solvent accessibility. The MSA must first be built with a homology search tool such as RNAcmap3.",
+  "summary_source_ids": [
+   "@readme",
+   "@paper"
+  ],
+  "summary_source_locator": "README.md: About The Project, Data Preparation; paper: Abstract",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "RNA-MSM is the first unsupervised MSA RNA language model based on aligned homologous sequences that outputs both embedding and attention map to match different types of downstream tasks."
+   },
+   {
+    "source": "@paper",
+    "text": "they can be directly mapped with high accuracy to 2D base pairing probabilities and 1D solvent accessibilities, respectively"
+   },
+   {
+    "source": "@readme",
+    "text": "we recommend utilizing our recently developed [RNAcmap3](https://academic.oup.com/gpb/article/22/1/qzae018/7617691) tool to search for homologous sequences of the target RNA sequences to serve as input for the RNA-MSM model"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "RNA-MSM follows the protein MSA Transformer design: an embedding module with two learned position embeddings, one for the rows (sequences in the MSA) and one for the columns (positions), then 10 transformer blocks with 12 attention heads each and a 768-dimensional embedding. The authors cut the block count from 12 to 10 because of GPU memory. It was trained with the BERT masked language modelling objective, masking 20% of MSA tokens. The 120 attention maps (10 blocks by 12 heads) and the embedding of the query sequence are the outputs; separate downstream networks in the repository turn them into secondary structure and solvent accessibility predictions.",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@inference"
+    ],
+    "source_locator": "paper: Materials and methods; Figure 1 legend; README.md: Inference; RNA_MSM_Inference.py",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The embedding module consists of one initial embedding layer and two learnable position-embedding layers"
+     },
+     {
+      "source": "@paper",
+      "text": "The position-embedding layers encode rows (number of entries in the MSA) and columns (sequence length) of the MSA separately."
+     },
+     {
+      "source": "@paper",
+      "text": "The RNA-MSM model is stacked with 10 transformer blocks, each containing 12 attention heads. The output embedding identifies all sequences in a 768-dimensional space."
+     },
+     {
+      "source": "@paper",
+      "text": "The number of blocks was changed from 12 to 10 due to the graphics processing unit (GPU) memory limitation."
+     },
+     {
+      "source": "@paper",
+      "text": "We employed the BERT masked language modeling objective function for training. Briefly, 20% tokens of the input MSA were substituted by a special token [MASK] at random."
+     },
+     {
+      "source": "@paper",
+      "text": "A total of 120 attentional maps were constructed"
+     },
+     {
+      "source": "@readme",
+      "text": "cd ./_downstream_tasks/SS"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "One pretrained checkpoint is released on Google Drive (RNA_MSM_pretrained.ckpt by the script's default path). The repository also carries trained downstream models for secondary structure and solvent accessibility, and the downstream datasets with their MSAs were released in July 2024. Results depend strongly on the MSA, so a result should name the checkpoint, the repository commit, and the homology search tool and settings used to build the MSA.",
+    "source_ids": [
+     "@readme",
+     "@inference"
+    ],
+    "source_locator": "README.md: Updates, Access Pre-trained Model, Data Preparation; RNA_MSM_Inference.py: DataConfig",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Download [pre-trained](https://drive.google.com/file/d/11A-S13qAb5wiBi1YLs3EOrnixSDq7Q0q/view?usp=share_link) models from and place the .ckpt files into the `./pretrained` folder."
+     },
+     {
+      "source": "@inference",
+      "text": "model_path: str = str(current_directory / \"pretrained/RNA_MSM_pretrained.ckpt\")"
+     },
+     {
+      "source": "@readme",
+      "text": "We release the [downstream task datasets](https://drive.google.com/drive/folders/1jYqk7rAp9ysJCBXOa5Yx4Z9es89h-f2h?usp=sharing) along with its Multiple Sequence Alignment (MSA) searched by"
+     },
+     {
+      "source": "@readme",
+      "text": "The effectiveness of predictions made by the RNA-MSM model is largely dependent on the quantity and quality of MSAs."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Unsupervised, MSA-based RNA language model (masked language modelling over aligned homologous sequences).",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: About The Project; paper: Materials and methods",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "unsupervised MSA RNA language model based on aligned homologous sequences"
+     },
+     {
+      "source": "@paper",
+      "text": "We employed the BERT masked language modeling objective function for training."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "MSA Transformer: 10 transformer blocks, 12 attention heads each, 768-dimensional embedding, with separate row and column position embeddings.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@inference"
+    ],
+    "source_locator": "paper: Figure 1 legend; RNA_MSM_Inference.py: MSATransformerModelConfig",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The RNA-MSM model is stacked with 10 transformer blocks, each containing 12 attention heads."
+     },
+     {
+      "source": "@inference",
+      "text": "embed_dim: int = 768"
+     },
+     {
+      "source": "@inference",
+      "text": "num_attention_heads: int = 12"
+     },
+     {
+      "source": "@inference",
+      "text": "num_layers: int = 10"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "An MSA of the target RNA and its homologues, as a file ending .a2m_msa2 in the results folder, listed by RNA ID in a text file.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Data Preparation; Feature Extraction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The input MSA file should be be situated within `./results` folder, and its suffix ought to be `.a2m_msa2`."
+     },
+     {
+      "source": "@readme",
+      "text": "data.MSA_list=rna_id.txt"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Attention maps of shape (seq_len, seq_len, 120) in *_atp.npy and an embedding of shape (seq_len, 768) in *_emb.npy. Downstream scripts write secondary structure (.ct, .bpseq, base-pair probability matrix) and solvent accessibility predictions.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Feature Extraction; Downstream Prediction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "with dimension (seq_len, seq_len, 120), saved as .npy format"
+     },
+     {
+      "source": "@readme",
+      "text": "with dimension (seq_len, 768), saved as .npy format"
+     },
+     {
+      "source": "@readme",
+      "text": "RNA secondary structure prediction results include 3 files:"
+     },
+     {
+      "source": "@readme",
+      "text": "Solvent accessibility prediction results include 6 files:"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported. The README, inference script and paper text read do not give a parameter count.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md; paper: full text"
+   },
+   {
+    "label": "Training data",
+    "value": "MSAs built with RNAcmap3 for 4069 Rfam families (version 14.7), downloaded on 09/04/2022, excluding families that contain RNAs with experimentally determined structures.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Materials and methods, MSA generation and the training set",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We downloaded 4069 RNA families (version 14.7) from"
+     },
+     {
+      "source": "@paper",
+      "text": "on 09/04/2022. The fully automatic RNAcmap3 for homolog search and sequence alignment"
+     },
+     {
+      "source": "@paper",
+      "text": "we excluded the Rfam families which contain RNA sequences with experimentally determined structures"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One pretrained checkpoint (RNA_MSM_pretrained.ckpt) on Google Drive, plus downstream secondary structure and solvent accessibility models in the repository.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@inference"
+    ],
+    "source_locator": "README.md: About The Project, Access Pre-trained Model; RNA_MSM_Inference.py",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This repository contains codes and [pre-trained weight]"
+     },
+     {
+      "source": "@inference",
+      "text": "pretrained/RNA_MSM_pretrained.ckpt"
+     },
+     {
+      "source": "@readme",
+      "text": "as well as RNA secondary structure and solvent accessibility tasks"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Rfam version 14.7, downloaded on 09/04/2022 (date as printed in the paper).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Materials and methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We downloaded 4069 RNA families (version 14.7) from"
+     },
+     {
+      "source": "@paper",
+      "text": "on 09/04/2022."
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "1024 positions (max_seqlen) and up to 512 MSA sequences at inference, with a 16384-token cap; in training the authors capped tokens at 16 384 because of 32G V100 memory.",
+    "status": "source_checked",
+    "source_ids": [
+     "@inference",
+     "@paper"
+    ],
+    "source_locator": "RNA_MSM_Inference.py: DataConfig; paper: Materials and methods",
+    "quotes": [
+     {
+      "source": "@inference",
+      "text": "max_seqlen: int = 1024"
+     },
+     {
+      "source": "@inference",
+      "text": "max_tokens: int = 16384"
+     },
+     {
+      "source": "@inference",
+      "text": "max_seqs_per_msa: int = 512"
+     },
+     {
+      "source": "@paper",
+      "text": "The maximum number of tokens is set to 16 384 because of the memory limitation of 32G of each V100 GPU."
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated separately. The checkpoint is on Google Drive; the repository's MIT licence does not mention the weights.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README.md: Access Pre-trained Model; LICENSE"
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, per the repository LICENSE (copyright 2023 Yikun).",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2023 Yikun"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/yikunpku/RNA-MSM. Weights: on Google Drive at https://drive.google.com/file/d/11A-S13qAb5wiBi1YLs3EOrnixSDq7Q0q/view?usp=share_link. Web server: https://aigene.cloudbastion.cn/#/rna-msm.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: header; About The Project; Online RNA-MSM Sever",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "https://github.com/yikunpku/RNA-MSM/issues"
+     },
+     {
+      "source": "@readme",
+      "text": "https://drive.google.com/file/d/11A-S13qAb5wiBi1YLs3EOrnixSDq7Q0q/view?usp=share_link"
+     },
+     {
+      "source": "@readme",
+      "text": "https://aigene.cloudbastion.cn/#/rna-msm"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Uses evolutionary information from homologous sequences, which the authors argue single-sequence BERT-style RNA models fail to capture.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "they are ineffective at capturing the evolutionary information from homologous sequences"
+     }
+    ]
+   },
+   {
+    "text": "The authors chose validation and test sets structurally different from the training set, and excluded Rfam families with known structures from pretraining, to limit overlap.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: About The Project; paper: Materials and methods",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "choosing validation and test sets structurally different from the training set"
+     },
+     {
+      "source": "@paper",
+      "text": "Therefore, the RNAs used in downstream models would have no overlap with those used for training RNA-MSM."
+     }
+    ]
+   },
+   {
+    "text": "Ready-made downstream predictors for secondary structure and solvent accessibility are included, and a free web server builds the MSA and runs both tasks.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Downstream Prediction; Online RNA-MSM Sever",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We also built a freely accessible [web server](https://aigene.cloudbastion.cn/#/rna-msm) for using the RNA-MSM models"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Needs an MSA for every input. Building it requires a separate homology search (the authors recommend RNAcmap3), and prediction quality depends on the number and quality of homologues.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Data Preparation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The effectiveness of predictions made by the RNA-MSM model is largely dependent on the quantity and quality of MSAs."
+     }
+    ]
+   },
+   {
+    "text": "Sequence length is capped at 1024 positions in the inference script.",
+    "source_ids": [
+     "@inference"
+    ],
+    "source_locator": "RNA_MSM_Inference.py: DataConfig",
+    "quotes": [
+     {
+      "source": "@inference",
+      "text": "max_seqlen: int = 1024"
+     }
+    ]
+   },
+   {
+    "text": "The environment pins old software (Python 3.8.5, PyTorch 1.7.1 with CUDA 11.0), and the inference script defaults to a CUDA device.",
+    "source_ids": [
+     "@env",
+     "@inference"
+    ],
+    "source_locator": "environment.yml; RNA_MSM_Inference.py: DataConfig",
+    "quotes": [
+     {
+      "source": "@env",
+      "text": "python=3.8.5=h7579374_1"
+     },
+     {
+      "source": "@env",
+      "text": "pytorch=1.7.1=py3.8_cuda11.0.221_cudnn8.0.5_0"
+     },
+     {
+      "source": "@inference",
+      "text": "device: str = \"cuda\""
+     }
+    ]
+   },
+   {
+    "text": "The script loads the checkpoint with torch.load on the path given as model_path, so that path must be the .ckpt file itself, while the README's command passes the pretrained folder.",
+    "source_ids": [
+     "@inference",
+     "@readme"
+    ],
+    "source_locator": "RNA_MSM_Inference.py: extract_feat; README.md: Feature Extraction",
+    "quotes": [
+     {
+      "source": "@inference",
+      "text": "model_path = cfg.data.model_path"
+     },
+     {
+      "source": "@inference",
+      "text": "model.load_state_dict(torch.load("
+     },
+     {
+      "source": "@readme",
+      "text": "data.model_path=./pretrained \\"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "RNA-MSM workflow",
+   "steps": [
+    "Target RNA sequence",
+    "Homology search (RNAcmap3) gives an MSA",
+    "Row and column position embeddings",
+    "10-block MSA transformer, 12 heads",
+    "Query embedding (L by 768) and 120 attention maps",
+    "Downstream networks: secondary structure and solvent accessibility"
+   ],
+   "caption": "Data flow as described in the README and the paper. The homology search is a separate tool, not part of the repository.",
+   "source_ids": [
+    "@readme",
+    "@paper"
+   ],
+   "source_locator": "README.md: Data Preparation, Inference; paper: Figure 1 legend",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "tool to search for homologous sequences of the target RNA sequences to serve as input for the RNA-MSM model"
+    },
+    {
+     "source": "@paper",
+     "text": "two learnable position-embedding layers"
+    },
+    {
+     "source": "@paper",
+     "text": "The RNA-MSM model is stacked with 10 transformer blocks, each containing 12 attention heads."
+    },
+    {
+     "source": "@readme",
+     "text": "with dimension (seq_len, 768)"
+    },
+    {
+     "source": "@readme",
+     "text": "Downstream Prediction - RNA Secondary Structure (SS)"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count is given in the sources read.",
+   "The README's conda activate name (RNA-MSM) differs from the name in environment.yml (rnamsm); the commands were not run.",
+   "The downstream model architectures and benchmark numbers were not reviewed."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the yikunpku/RNA-MSM README, LICENSE, RNA_MSM_Inference.py and environment.yml at commit faadd575, and the Nucleic Acids Research paper full text (Europe PMC PMC10783488), each fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Set up the RNA-MSM environment at a pinned commit, add the pretrained checkpoint, and extract embeddings and attention maps for the bundled example MSA.",
+  "prerequisites": [
+   "conda, to build the environment from environment.yml (Python 3.8.5, PyTorch 1.7.1, CUDA toolkit 11.0).",
+   "A CUDA GPU by default; the script's device setting is cuda. Memory needs for inference are not stated.",
+   "A browser or other means to download the checkpoint from Google Drive. For new RNAs, an MSA built with RNAcmap3 or the web server.",
+   "Code is MIT. No licence is stated for the weights.",
+   "The README's clone command uses the SSH URL, which needs a GitHub SSH key; use the HTTPS URL otherwise."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone git@github.com:yikunpku/RNA-MSM.git\ncd ./RNA-MSM\ngit checkout --detach faadd57559c1c146effbfd84a7628cd2042d5ede",
+    "explanation": "Clone and enter the repository as the README says (the README uses the SSH URL). The checkout line is added to pin the commit this page was read from.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Create Environment with Anaconda",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone git@github.com:yikunpku/RNA-MSM.git"
+     },
+     {
+      "source": "@readme",
+      "text": "cd ./RNA-MSM"
+     }
+    ]
+   },
+   {
+    "title": "Create and activate the environment",
+    "shell": "conda env create -f environment.yml\nconda activate RNA-MSM",
+    "explanation": "Builds the conda environment. environment.yml names the environment rnamsm, so activation may need conda activate rnamsm instead of the README's RNA-MSM.",
+    "source_ids": [
+     "@readme",
+     "@env"
+    ],
+    "source_locator": "README.md: Create Environment with Anaconda; environment.yml",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda env create -f environment.yml"
+     },
+     {
+      "source": "@readme",
+      "text": "conda activate RNA-MSM"
+     },
+     {
+      "source": "@env",
+      "text": "name: rnamsm"
+     }
+    ]
+   },
+   {
+    "title": "Place the pretrained checkpoint",
+    "shell": "mkdir -p pretrained",
+    "explanation": "Download the .ckpt file by hand from the README's Google Drive link and place it in ./pretrained. The script's default path is pretrained/RNA_MSM_pretrained.ckpt. The mkdir line is added.",
+    "source_ids": [
+     "@readme",
+     "@inference"
+    ],
+    "source_locator": "README.md: Access Pre-trained Model; RNA_MSM_Inference.py: DataConfig",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "place the .ckpt files into the `./pretrained` folder"
+     },
+     {
+      "source": "@inference",
+      "text": "pretrained/RNA_MSM_pretrained.ckpt"
+     }
+    ]
+   },
+   {
+    "title": "Extract embedding and attention maps",
+    "shell": "python RNA_MSM_Inference.py \\\ndata.root_path=./ \\\ndata.MSA_path=./results \\\ndata.model_path=./pretrained \\\ndata.MSA_list=rna_id.txt",
+    "explanation": "The README command. The repository ships rna_id.txt and an example MSA, results/2DRB_1.a2m_msa2.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Feature Extraction; Results",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python RNA_MSM_Inference.py \\ data.root_path=./ \\ data.MSA_path=./results \\ data.model_path=./pretrained \\ data.MSA_list=rna_id.txt"
+     },
+     {
+      "source": "@readme",
+      "text": "|-- 2DRB_1.a2m_msa2"
+     }
+    ]
+   },
+   {
+    "title": "Predict secondary structure",
+    "shell": "cd ./_downstream_tasks/SS\npython predict.py \\\n--rnaid 2DRB_1 \\\n--device cpu \\\n--featdir ./results",
+    "explanation": "The README's secondary structure command. --featdir must point to the folder holding the features from the previous step; the README writes ./results.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Downstream Prediction - RNA Secondary Structure (SS)",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "cd ./_downstream_tasks/SS python predict.py \\ --rnaid 2DRB_1 \\ --device cpu \\ --featdir ./results"
+     },
+     {
+      "source": "@readme",
+      "text": "`--featdir`： inference output dir"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "2DRB_1_atp.npy (attention maps, seq_len by seq_len by 120) and 2DRB_1_emb.npy (embedding, seq_len by 768) in ./results; then SS_result/2DRB_1.ct, 2DRB_1.bpseq and 2DRB_1.prob."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The checkpoint must be downloaded by hand from Google Drive.",
+   "The README's activation name and the environment file's name differ (RNA-MSM against rnamsm).",
+   "Inputs for new RNAs need an MSA built outside this repository.",
+   "The README passes a folder as data.model_path while the script loads that path as a file; the .ckpt path may have to be given in full."
+  ],
+  "source_ids": [
+   "@readme",
+   "@inference",
+   "@env"
+  ]
+ },
+ "notes": "The paper is CC BY-NC 4.0, so store_bytes is false for it; that is the article's licence, not a licence for the code or weights. The README's solvent accessibility command repeats 'python predict.py \\' twice; it was left out of the run guide. The script passes data.model_path straight to torch.load, so the README's folder path may need to be the .ckpt file instead."
+}
