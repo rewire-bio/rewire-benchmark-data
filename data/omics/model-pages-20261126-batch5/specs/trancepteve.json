@@ -1,0 +1,495 @@
+{
+ "record_id": "uc20260930-model-trancepteve",
+ "sources": [
+  {
+   "key": "pg-readme",
+   "name": "OATML-Markslab/ProteinGym README.md at commit 144fe22b",
+   "description": "README of the repository that holds the TranceptEVE scoring code, pinned to a commit.",
+   "file": "artifacts/proteingym-readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/README.md",
+   "url": "https://github.com/OATML-Markslab/ProteinGym",
+   "version": "git commit 144fe22b07dfaeec2b366f2346203a9838a55b4c",
+   "media_type": "text/markdown",
+   "sha256": "321487a8de52c6cfa647a658f61150dd72e0acb0125470524fb94d1f8b23321a",
+   "retrieved_at": "2026-11-26T18:40:00Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "scoring-sh",
+   "name": "ProteinGym scripts/scoring_DMS_zero_shot/scoring_TranceptEVE_substitutions.sh at commit 144fe22b",
+   "description": "The shell script that runs TranceptEVE on the ProteinGym substitution benchmark, with the settings the maintainers used.",
+   "file": "artifacts/scoring-trancepteve-substitutions.sh",
+   "artifact_url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/scripts/scoring_DMS_zero_shot/scoring_TranceptEVE_substitutions.sh",
+   "url": "https://github.com/OATML-Markslab/ProteinGym/blob/main/scripts/scoring_DMS_zero_shot/scoring_TranceptEVE_substitutions.sh",
+   "version": "git commit 144fe22b07dfaeec2b366f2346203a9838a55b4c",
+   "media_type": "text/x-shellscript",
+   "sha256": "ba105dbca11e3f0a5fd9f16ca5705d1fd8149b898aa139866a199cc0cbbbc9c7",
+   "retrieved_at": "2026-11-26T18:40:00Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "score-py",
+   "name": "ProteinGym proteingym/baselines/trancepteve/score_trancepteve.py at commit 144fe22b",
+   "description": "The TranceptEVE scoring script, whose arguments document the parts of the method and how they are combined.",
+   "file": "artifacts/score-trancepteve.py",
+   "artifact_url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/proteingym/baselines/trancepteve/score_trancepteve.py",
+   "url": "https://github.com/OATML-Markslab/ProteinGym/blob/main/proteingym/baselines/trancepteve/score_trancepteve.py",
+   "version": "git commit 144fe22b07dfaeec2b366f2346203a9838a55b4c",
+   "media_type": "text/x-python",
+   "sha256": "b837c58ab51b07202a14a55340e5979e9afbec2c734521086cd89ecb4be7d898",
+   "retrieved_at": "2026-11-26T18:40:00Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "tranception-readme",
+   "name": "OATML-Markslab/Tranception README.md at commit 2ddf40e1",
+   "description": "README of the Tranception repository, the autoregressive transformer TranceptEVE is built on, with the checkpoint and alignment downloads.",
+   "file": "artifacts/tranception-readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/OATML-Markslab/Tranception/2ddf40e1db9d2d180d1b5fc9d1b39ad5b04fbb6d/README.md",
+   "url": "https://github.com/OATML-Markslab/Tranception",
+   "version": "git commit 2ddf40e1db9d2d180d1b5fc9d1b39ad5b04fbb6d",
+   "media_type": "text/markdown",
+   "sha256": "bb8e4316460c36b00028c42fc285cf5221a066617630845391d59c7f81c89970",
+   "retrieved_at": "2026-11-26T18:40:00Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "paper-record",
+   "name": "Europe PMC record for preprint PPR582395 (TranceptEVE), as served on 2026-11-26",
+   "description": "Europe PMC API response with the title, authors, date and abstract of the TranceptEVE preprint.",
+   "file": "artifacts/europepmc-trancepteve.json",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID%3APPR582395+AND+SRC%3APPR&format=json&resultType=core",
+   "url": "https://doi.org/10.1101/2022.12.07.519495",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "fd2e8c57ad0318617586c21e92e76a172b50f7aa785c175354464d49c7633593",
+   "retrieved_at": "2026-11-26T18:40:00Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "TranceptEVE predicts the effect of mutations in a protein without training on any experimental measurement of that protein. It combines two kinds of model: Tranception, an autoregressive transformer trained across protein families on unaligned sequences, and family-specific models built from a multiple sequence alignment of the protein in question, namely weighted pseudocounts and a trained EVE model. The input is a wild-type sequence, an alignment of its family and a list of variants; the output is one fitness score per variant. The three parts are combined with weights that follow the depth of the alignment, so a protein with a shallow alignment leans on the transformer.",
+  "summary_source_ids": ["@paper-record", "@score-py", "@scoring-sh"],
+  "summary_source_locator": "Europe PMC abstract of PPR582395; score_trancepteve.py argument list; scoring_TranceptEVE_substitutions.sh",
+  "summary_quotes": [
+   {"source": "@paper-record", "text": "we introduce TranceptEVE"},
+   {"source": "@paper-record", "text": "a hybrid method between family-specific and family-agnostic models that seeks to build on the relative strengths from each approach. Our method gracefully adapts to the depth of the alignment, fully relying on its autoregressive transformer when dealing with shallow alignments and leaning more heavily on the family-specific models for proteins with deeper alignments."},
+   {"source": "@score-py", "text": "Coefficient (alpha) used when aggregating autoregressive transformer and MSA retrieval"},
+   {"source": "@score-py", "text": "Coefficient (beta) used when aggregating autoregressive transformer and EVE retrieval"},
+   {"source": "@scoring-sh", "text": "export inference_time_retrieval_type=\"TranceptEVE\""}
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Three sources of evidence are combined at scoring time, not during training. The first is Tranception, an autoregressive transformer with attention heads specialised for contiguous subsequences, which scores a mutated sequence in both directions by default. The second is retrieval from the alignment: weighted pseudocounts at each position, computed with the sequence weighting procedure of Hopf et al. The third is EVE, a family-specific alignment model, whose log probabilities are estimated by sampling and averaged over several trained seeds. The scoring script exposes the combination as two coefficients, alpha for the alignment pseudocounts and beta for EVE, and can rescale the alignment and EVE log probabilities to match the temperature of the transformer.",
+    "source_ids": ["@score-py", "@scoring-sh", "@tranception-readme"],
+    "source_locator": "score_trancepteve.py argument list; scoring_TranceptEVE_substitutions.sh; Tranception README, Tranception section",
+    "quotes": [
+     {"source": "@tranception-readme", "text": "Tranception is a novel autoregressive transformer architecture that was designed with two core principles in mind: 1) promoting specialization across attention heads 2) explicitly extracting patterns from contiguous subsequences."},
+     {"source": "@tranception-readme", "text": "When scoring with retrieval, we compute weighted pseudocounts at each position using sequence weights as per the exact procedure described in [Hopf et al.](https://www.nature.com/articles/nbt.3769)"},
+     {"source": "@score-py", "text": "Whether to deactivate sequence scoring from both directions (Left->Right and Right->Left)"},
+     {"source": "@score-py", "text": "Coefficient (alpha) used when aggregating autoregressive transformer and MSA retrieval"},
+     {"source": "@score-py", "text": "Coefficient (beta) used when aggregating autoregressive transformer and EVE retrieval"},
+     {"source": "@score-py", "text": "Seeds of the EVE model(s) to be leveraged"},
+     {"source": "@score-py", "text": "Whether to normalize EVE & MSA log probas (matching temp. of Transformer)"}
+    ]
+   },
+   {
+    "title": "What a run needs",
+    "body": "TranceptEVE is not a single downloadable model. A run needs a Tranception checkpoint, an alignment of the protein family, redundancy-based sequence weights for that alignment, and one or more trained EVE models for the same family. The alignments and weights for the ProteinGym proteins are published by the ProteinGym project, 5.2 GB of alignments and 200 MB of weights; the EVE models themselves are not in that list of downloads, and the scoring script takes a path to a folder holding them. The reference settings the maintainers used draw 200,000 samples for each EVE log probability and average five EVE seeds, 0 to 4.",
+    "source_ids": ["@scoring-sh", "@score-py", "@pg-readme", "@tranception-readme"],
+    "source_locator": "scoring_TranceptEVE_substitutions.sh; score_trancepteve.py argument list; ProteinGym README Resources table; Tranception README",
+    "quotes": [
+     {"source": "@scoring-sh", "text": "export EVE_num_samples_log_proba=200000 \nexport EVE_model_parameters_location=\"../../proteingym/baselines/trancepteve/trancepteve/utils/eve_model_default_params.json\"\nexport EVE_seeds=\"0 1 2 3 4\""},
+     {"source": "@score-py", "text": "Path to folder containing the EVE model(s)"},
+     {"source": "@pg-readme", "text": "Multiple Sequence Alignments (MSAs) for DMS assays | 5.2GB | DMS_msa_files.zip"},
+     {"source": "@pg-readme", "text": "Redundancy-based sequence weights for DMS assays | 200MB | DMS_msa_weights.zip"},
+     {"source": "@tranception-readme", "text": "The MSAs used to train alignment-based methods or used at inference in Tranception with retrieval and MSA Transformer may be downloaded as follows"}
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The variants are named after the Tranception checkpoint they use: TranceptEVE S, M and L, over Tranception Small, Medium and Large. The published script has all three output paths written out, with Medium left active. A result must name which of the three it used, and also the EVE models, because those are trained per family and are not part of a published checkpoint: different EVE training runs give different numbers. The probability recalibration flags and the alpha and beta coefficients are also part of the setting, and the script runs with recalibration of the EVE probabilities switched on and the coefficients left at their defaults of 0.5.",
+    "source_ids": ["@scoring-sh", "@score-py", "@tranception-readme", "uc20260930-source-proteingym-amfr-spearman"],
+    "source_locator": "scoring_TranceptEVE_substitutions.sh output paths and flags; score_trancepteve.py defaults; Tranception README checkpoint downloads; ProteinGym Spearman file column headers",
+    "quotes": [
+     {"source": "@scoring-sh", "text": "export output_scores_folder=${DMS_output_score_folder_subs}/TranceptEVE/TranceptEVE_S"},
+     {"source": "@scoring-sh", "text": "export checkpoint=\"path to Tranception_Medium checkpoint\""},
+     {"source": "@scoring-sh", "text": "--EVE_recalibrate_probas"},
+     {"source": "@score-py", "text": "parser.add_argument('--retrieval_inference_MSA_weight', default=0.5, type=float"},
+     {"source": "@tranception-readme", "text": "To download the *Tranception Large* model checkpoint (~3.1GB unzipped):"}
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Zero-shot variant effect predictor: a hybrid of a family-agnostic autoregressive protein language model with family-specific alignment models, combined at scoring time.",
+    "status": "source_checked",
+    "source_ids": ["@paper-record", "@pg-readme"],
+    "source_locator": "Europe PMC abstract of PPR582395; ProteinGym README baseline table row TranceptEVE",
+    "quotes": [
+     {"source": "@paper-record", "text": "a hybrid method between family-specific and family-agnostic models"},
+     {"source": "@pg-readme", "text": "TranceptEVE | MSA |"}
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Tranception, an autoregressive transformer with specialised attention heads, plus two alignment-based components: weighted pseudocounts per position and EVE, a deep generative model of the family alignment. The three sets of log probabilities are added with coefficients alpha and beta.",
+    "status": "source_checked",
+    "source_ids": ["@tranception-readme", "@score-py"],
+    "source_locator": "Tranception README, Tranception section; score_trancepteve.py argument list",
+    "quotes": [
+     {"source": "@tranception-readme", "text": "Tranception is a novel autoregressive transformer architecture that was designed with two core principles in mind: 1) promoting specialization across attention heads 2) explicitly extracting patterns from contiguous subsequences."},
+     {"source": "@score-py", "text": "Coefficient (alpha) used when aggregating autoregressive transformer and MSA retrieval"},
+     {"source": "@score-py", "text": "Coefficient (beta) used when aggregating autoregressive transformer and EVE retrieval"}
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "The wild-type sequence that was mutated, a file of mutants to score, an alignment built on that wild-type sequence with optional sequence weights, and a folder of trained EVE models. Scoring indels as well as substitutions is supported and then also needs Clustal Omega.",
+    "status": "source_checked",
+    "source_ids": ["@score-py", "@tranception-readme"],
+    "source_locator": "score_trancepteve.py argument list; Tranception README Setup",
+    "quotes": [
+     {"source": "@score-py", "text": "Full wild type sequence that is mutated in the DMS asssay"},
+     {"source": "@score-py", "text": "Name of MSA (eg., a2m) file constructed on the wild type sequence"},
+     {"source": "@score-py", "text": "Flag to be used when scoring insertions and deletions. Otherwise assumes substitutions"},
+     {"source": "@tranception-readme", "text": "To leverage retrieval when scoring insertions and deletions, you will need [Clustal Omega](http://www.clustal.org/omega/#Download)."}
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "One fitness score per variant, written to a scores folder. In ProteinGym these scores are then compared with the experimental DMS score by Spearman correlation and other metrics; the scores themselves are not calibrated units.",
+    "status": "source_checked",
+    "source_ids": ["@score-py", "@pg-readme"],
+    "source_locator": "score_trancepteve.py argument list; ProteinGym README Results and the processed file description",
+    "quotes": [
+     {"source": "@score-py", "text": "Name of folder to write model scores to"},
+     {"source": "@pg-readme", "text": "For DMS benchmarks in the zero-shot setting: Spearman, NDCG, AUC, MCC and Top-K recall"},
+     {"source": "@pg-readme", "text": "DMS_score (float): corresponds to the experimental measurement in the DMS assay."}
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported in the sources read. No parameter count is given for Tranception Small, Medium or Large, nor for the EVE component. The only size figures are the checkpoint archives: about 400 MB, 1.4 GB and 3.1 GB unzipped.",
+    "status": "unreported",
+    "source_ids": ["@tranception-readme"],
+    "source_locator": "Tranception README, Tranception section checkpoint downloads",
+    "quotes": []
+   },
+   {
+    "label": "Training data",
+    "value": "Two different sets, one per component. Tranception is trained across protein families on non-aligned sequences; the sources read do not name the corpus. The family-specific parts are fitted per protein on its own alignment, and for ProteinGym those alignments are the ones published with the benchmark.",
+    "status": "source_checked",
+    "source_ids": ["@paper-record", "@pg-readme"],
+    "source_locator": "Europe PMC abstract of PPR582395; ProteinGym README Resources table",
+    "quotes": [
+     {"source": "@paper-record", "text": "large protein language models trained on non-aligned sequences across protein families"},
+     {"source": "@pg-readme", "text": "Multiple Sequence Alignments (MSAs) for DMS assays | 5.2GB | DMS_msa_files.zip"}
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Three: TranceptEVE S, M and L, which differ only in the Tranception checkpoint, Small, Medium or Large. The published scoring script writes to a separate output folder for each.",
+    "status": "source_checked",
+    "source_ids": ["@scoring-sh", "@tranception-readme"],
+    "source_locator": "scoring_TranceptEVE_substitutions.sh checkpoint and output paths; Tranception README checkpoint downloads",
+    "quotes": [
+     {"source": "@scoring-sh", "text": "export output_scores_folder=${DMS_output_score_folder_subs}/TranceptEVE/TranceptEVE_S"},
+     {"source": "@scoring-sh", "text": "export checkpoint=\"path to Tranception_Large checkpoint\""},
+     {"source": "@tranception-readme", "text": "To download the *Tranception Medium* model checkpoint (~1.4GB unzipped):"}
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported. The sources read give no date for the sequence corpus Tranception was trained on. The preprint describing TranceptEVE was first published on 10 December 2022.",
+    "status": "unreported",
+    "source_ids": ["@paper-record"],
+    "source_locator": "Europe PMC record for PPR582395",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "Not reported as a number. The scoring script has a scoring_window option described as a sequence window selection mode for when the sequence is longer than the model context size, and the reference run sets it to optimal, but the context size itself is not stated in the sources read.",
+    "status": "unreported",
+    "source_ids": ["@score-py", "@scoring-sh"],
+    "source_locator": "score_trancepteve.py scoring_window argument; scoring_TranceptEVE_substitutions.sh",
+    "quotes": []
+   },
+   {
+    "label": "Weights licence",
+    "value": "MIT is the only licence stated, in the Tranception README for that project, which distributes the Tranception checkpoints. The checkpoint archives on marks.hms.harvard.edu and the Hugging Face hub copies carry no separate licence statement in the sources read, and the EVE models are trained by the user rather than distributed.",
+    "status": "source_checked",
+    "source_ids": ["@tranception-readme"],
+    "source_locator": "Tranception README License and Tranception sections",
+    "quotes": [
+     {"source": "@tranception-readme", "text": "This project is available under the MIT license."},
+     {"source": "@tranception-readme", "text": "The Tranception model checkpoints are also made available through the [Huggging Face hub](https://huggingface.co/OATML-Markslab/Tranception_Large)."}
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT for both repositories involved: ProteinGym, which holds the TranceptEVE scoring code, and Tranception.",
+    "status": "source_checked",
+    "source_ids": ["@pg-readme", "@tranception-readme"],
+    "source_locator": "ProteinGym README License; Tranception README License",
+    "quotes": [
+     {"source": "@pg-readme", "text": "This project is available under the MIT license found in the LICENSE file in this GitHub repository."},
+     {"source": "@tranception-readme", "text": "This project is available under the MIT license."}
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/OATML-Markslab/ProteinGym/tree/main/proteingym/baselines/trancepteve and https://github.com/OATML-Markslab/Tranception. Weights: the Tranception checkpoints from https://marks.hms.harvard.edu/tranception/Tranception_Large_checkpoint.zip (also Medium and Small) and from https://huggingface.co/OATML-Markslab/Tranception_Large. Alignments and sequence weights for the benchmark proteins come from the ProteinGym downloads. EVE models are not distributed.",
+    "status": "source_checked",
+    "source_ids": ["@tranception-readme", "@pg-readme", "@score-py"],
+    "source_locator": "Tranception README Tranception and Links sections; ProteinGym README Resources; score_trancepteve.py EVE_model_folder argument",
+    "quotes": [
+     {"source": "@tranception-readme", "text": "curl -o Tranception_Large_checkpoint.zip https://marks.hms.harvard.edu/tranception/Tranception_Large_checkpoint.zip"},
+     {"source": "@tranception-readme", "text": "Hugging Face Hub (model checkpoints): https://huggingface.co/OATML-Markslab/Tranception"},
+     {"source": "@pg-readme", "text": "Redundancy-based sequence weights for DMS assays | 200MB | DMS_msa_weights.zip"},
+     {"source": "@score-py", "text": "Path to folder containing the EVE model(s)"}
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Adapts to how much family data exists. The authors state the method relies fully on the autoregressive transformer for shallow alignments and leans on the family-specific models when the alignment is deep.",
+    "source_ids": ["@paper-record"],
+    "source_locator": "Europe PMC abstract of PPR582395",
+    "quotes": [
+     {"source": "@paper-record", "text": "Our method gracefully adapts to the depth of the alignment, fully relying on its autoregressive transformer when dealing with shallow alignments and leaning more heavily on the family-specific models for proteins with deeper alignments."}
+    ]
+   },
+   {
+    "text": "Scores insertions and deletions as well as substitutions, which alignment-only methods struggle with; the ProteinGym repository ships scoring scripts for both.",
+    "source_ids": ["@score-py", "@tranception-readme"],
+    "source_locator": "score_trancepteve.py indel_mode argument; Tranception README Setup and Fitness prediction sections",
+    "quotes": [
+     {"source": "@score-py", "text": "Flag to be used when scoring insertions and deletions. Otherwise assumes substitutions"},
+     {"source": "@tranception-readme", "text": "To predict the fitness of mutated sequences (substitutions and indels) with Tranception"}
+    ]
+   },
+   {
+    "text": "Reproducible as a benchmark baseline: the exact settings the ProteinGym maintainers ran are committed in the repository, including the EVE sample count, the five EVE seeds and the scoring window.",
+    "source_ids": ["@scoring-sh"],
+    "source_locator": "scoring_TranceptEVE_substitutions.sh",
+    "quotes": [
+     {"source": "@scoring-sh", "text": "export EVE_num_samples_log_proba=200000 \nexport EVE_model_parameters_location=\"../../proteingym/baselines/trancepteve/trancepteve/utils/eve_model_default_params.json\"\nexport EVE_seeds=\"0 1 2 3 4\""},
+     {"source": "@scoring-sh", "text": "export scoring_window=\"optimal\""}
+    ]
+   },
+   {
+    "text": "The authors report it reaches their best performance both against experimental assays and against ClinVar annotations; that is their own claim, made in the preprint abstract.",
+    "source_ids": ["@paper-record"],
+    "source_locator": "Europe PMC abstract of PPR582395",
+    "quotes": [
+     {"source": "@paper-record", "text": "it achieves state-of-the-art performance for mutation effects prediction, both in terms of correlation with experimental assays and with clinical annotations from ClinVar"}
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Needs an alignment, and needs EVE models trained on it. The EVE models are not published with the benchmark downloads, so running TranceptEVE on a new protein means training them first, and two users' EVE runs will not give identical scores.",
+    "source_ids": ["@score-py", "@scoring-sh", "@pg-readme"],
+    "source_locator": "score_trancepteve.py EVE arguments; scoring_TranceptEVE_substitutions.sh; ProteinGym README Resources table",
+    "quotes": [
+     {"source": "@score-py", "text": "Path to folder containing the EVE model(s)"},
+     {"source": "@score-py", "text": "Seeds of the EVE model(s) to be leveraged"},
+     {"source": "@scoring-sh", "text": "export EVE_seeds=\"0 1 2 3 4\""},
+     {"source": "@pg-readme", "text": "Multiple Sequence Alignments (MSAs) for DMS assays | 5.2GB | DMS_msa_files.zip"}
+    ]
+   },
+   {
+    "text": "Not a standalone package. There is no TranceptEVE repository or pip package: the code lives inside the ProteinGym baselines folder and expects the benchmark's directory layout and config script.",
+    "source_ids": ["@scoring-sh", "@pg-readme"],
+    "source_locator": "scoring_TranceptEVE_substitutions.sh first lines; ProteinGym README Usage and reproducibility",
+    "quotes": [
+     {"source": "@scoring-sh", "text": "source ../zero_shot_config.sh\nsource activate proteingym_env"},
+     {"source": "@pg-readme", "text": "Update the paths for all files downloaded in the prior step in the [config script](https://github.com/OATML-Markslab/ProteinGym/blob/main/scripts/zero_shot_config.sh)"}
+    ]
+   },
+   {
+    "text": "Expensive per protein. The reference run draws 200,000 samples for each EVE log probability, averages five seeds, and by default scores every sequence in both directions.",
+    "source_ids": ["@scoring-sh", "@score-py"],
+    "source_locator": "scoring_TranceptEVE_substitutions.sh; score_trancepteve.py deactivate_scoring_mirror argument",
+    "quotes": [
+     {"source": "@scoring-sh", "text": "export EVE_num_samples_log_proba=200000"},
+     {"source": "@score-py", "text": "Whether to deactivate sequence scoring from both directions (Left->Right and Right->Left)"}
+    ]
+   },
+   {
+    "text": "No parameter counts and no stated context length, so compute and memory cannot be planned from the sources read. Long sequences are handled by a window selection mode rather than by full-length scoring.",
+    "source_ids": ["@score-py", "@tranception-readme"],
+    "source_locator": "score_trancepteve.py scoring_window argument; Tranception README checkpoint downloads",
+    "quotes": [
+     {"source": "@score-py", "text": "Sequence window selection mode (when sequence length longer than model context size)"},
+     {"source": "@tranception-readme", "text": "To download the *Tranception Small* model checkpoint (~400MB unzipped):"}
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "TranceptEVE workflow",
+   "steps": [
+    "Wild-type sequence, its family alignment and a list of variants",
+    "Tranception scores each variant sequence in both directions",
+    "Weighted pseudocounts from the alignment give a retrieval term",
+    "EVE models, averaged over five seeds, give a family term",
+    "The three log probabilities are combined with alpha and beta",
+    "One fitness score per variant, written to the scores folder"
+   ],
+   "caption": "All three components are combined at scoring time; nothing is trained on the assay.",
+   "source_ids": ["@score-py", "@scoring-sh", "@tranception-readme"],
+   "source_locator": "score_trancepteve.py argument list; scoring_TranceptEVE_substitutions.sh; Tranception README Tranception section",
+   "quotes": [
+    {"source": "@score-py", "text": "Full wild type sequence that is mutated in the DMS asssay"},
+    {"source": "@score-py", "text": "Whether to deactivate sequence scoring from both directions (Left->Right and Right->Left)"},
+    {"source": "@tranception-readme", "text": "we compute weighted pseudocounts at each position using sequence weights"},
+    {"source": "@scoring-sh", "text": "export EVE_seeds=\"0 1 2 3 4\""},
+    {"source": "@score-py", "text": "Coefficient (beta) used when aggregating autoregressive transformer and EVE retrieval"},
+    {"source": "@score-py", "text": "Name of folder to write model scores to"}
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter counts for Tranception Small, Medium or Large, and no description of the EVE network, in the sources read.",
+   "The context size of the transformer is referred to but never stated.",
+   "Only the preprint abstract was read; the preprint is not open access at Europe PMC, so the method section, the weighting scheme that adapts to alignment depth and the reported benchmark numbers were not read.",
+   "No training corpus is named for Tranception, and no training date or compute figure is given.",
+   "Where to obtain pretrained EVE models for the benchmark proteins is not stated in the sources read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the ProteinGym README, scripts/scoring_DMS_zero_shot/scoring_TranceptEVE_substitutions.sh and proteingym/baselines/trancepteve/score_trancepteve.py at commit 144fe22b07dfaeec2b366f2346203a9838a55b4c, the Tranception README at commit 2ddf40e1db9d2d180d1b5fc9d1b39ad5b04fbb6d, and the Europe PMC record for preprint PPR582395, all fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Set up the ProteinGym repository, fetch a Tranception checkpoint and the benchmark alignments, then score one DMS assay with TranceptEVE.",
+  "prerequisites": [
+   "A conda environment named proteingym_env, which the scoring script activates.",
+   "A Tranception checkpoint: about 400 MB unzipped for Small, 1.4 GB for Medium and 3.1 GB for Large.",
+   "Alignments and sequence weights for the proteins to be scored: 5.2 GB and 200 MB for the ProteinGym substitution assays.",
+   "Trained EVE models for the same proteins, in a folder given to the script. These are not among the ProteinGym downloads.",
+   "Clustal Omega as well, if insertions and deletions are to be scored.",
+   "GPU needs are not stated in the sources read.",
+   "MIT licence on both repositories."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/OATML-Markslab/ProteinGym.git\ncd ProteinGym\ngit checkout --detach 144fe22b07dfaeec2b366f2346203a9838a55b4c",
+    "explanation": "The README does not give a clone command. These lines are added to get the repository that holds the TranceptEVE scoring code at the commit this page was written from.",
+    "source_ids": ["@pg-readme"],
+    "source_locator": "ProteinGym README Usage and reproducibility",
+    "quotes": [
+     {"source": "@pg-readme", "text": "If adding a new model, adjust the [config.json](https://github.com/OATML-Markslab/ProteinGym/blob/main/config.json) file accordingly"}
+    ]
+   },
+   {
+    "title": "Download a Tranception checkpoint and the alignment weights",
+    "shell": "curl -o Tranception_Medium_checkpoint.zip https://marks.hms.harvard.edu/tranception/Tranception_Medium_checkpoint.zip\nunzip Tranception_Medium_checkpoint.zip\nrm Tranception_Medium_checkpoint.zip\n\ncurl -o MSA_weights.zip https://marks.hms.harvard.edu/tranception/MSA_weights.zip\nunzip MSA_weights.zip\nrm MSA_weights.zip",
+    "explanation": "Both blocks are copied from the Tranception README. The Medium checkpoint matches the setting left active in the ProteinGym script. The weights archive holds the redundancy-based sequence weights for the ProteinGym proteins.",
+    "source_ids": ["@tranception-readme"],
+    "source_locator": "Tranception README, Tranception section",
+    "quotes": [
+     {"source": "@tranception-readme", "text": "curl -o Tranception_Medium_checkpoint.zip https://marks.hms.harvard.edu/tranception/Tranception_Medium_checkpoint.zip\nunzip Tranception_Medium_checkpoint.zip\nrm Tranception_Medium_checkpoint.zip"},
+     {"source": "@tranception-readme", "text": "curl -o MSA_weights.zip https://marks.hms.harvard.edu/tranception/MSA_weights.zip\nunzip MSA_weights.zip\nrm MSA_weights.zip"}
+    ]
+   },
+   {
+    "title": "Download the benchmark data and the alignments",
+    "shell": "VERSION=\"v1.3\"\nFILENAME=\"DMS_ProteinGym_substitutions.zip\"\ncurl -o ${FILENAME} https://marks.hms.harvard.edu/proteingym/ProteinGym_${VERSION}/${FILENAME}\nunzip ${FILENAME} && rm ${FILENAME}\n\nFILENAME=\"DMS_msa_files.zip\"\ncurl -o ${FILENAME} https://marks.hms.harvard.edu/proteingym/ProteinGym_${VERSION}/${FILENAME}\nunzip ${FILENAME} && rm ${FILENAME}",
+    "explanation": "The ProteinGym README gives this download template and the file names. The second block repeats it for the alignments, which the scoring run needs as its MSA_folder.",
+    "source_ids": ["@pg-readme"],
+    "source_locator": "ProteinGym README Resources",
+    "quotes": [
+     {"source": "@pg-readme", "text": "VERSION=\"v1.3\"\nFILENAME=\"DMS_ProteinGym_substitutions.zip\"\ncurl -o ${FILENAME} https://marks.hms.harvard.edu/proteingym/ProteinGym_${VERSION}/${FILENAME}\nunzip ${FILENAME} && rm ${FILENAME}"},
+     {"source": "@pg-readme", "text": "Multiple Sequence Alignments (MSAs) for DMS assays | 5.2GB | DMS_msa_files.zip"}
+    ]
+   },
+   {
+    "title": "Set the paths and run the scoring script",
+    "shell": "# edit scripts/zero_shot_config.sh so the data paths point at the downloads above,\n# then edit scripts/scoring_DMS_zero_shot/scoring_TranceptEVE_substitutions.sh:\n#   export checkpoint=\"<path to the unzipped Tranception_Medium checkpoint>\"\n#   export DMS_index=1\ncd scripts/scoring_DMS_zero_shot\nsh scoring_TranceptEVE_substitutions.sh",
+    "explanation": "The script as published holds placeholder strings for the checkpoint path and the assay index, and sources the repository's config script for the data paths, so both files have to be edited before it will run. The assay index selects which DMS assay to score. The command line it then builds is the one shown in the script.",
+    "source_ids": ["@scoring-sh", "@pg-readme"],
+    "source_locator": "scoring_TranceptEVE_substitutions.sh; ProteinGym README Usage and reproducibility",
+    "quotes": [
+     {"source": "@scoring-sh", "text": "export checkpoint=\"path to Tranception_Medium checkpoint\""},
+     {"source": "@scoring-sh", "text": "export DMS_index=\"Experiment index to run (e.g. 1,2,...217)\""},
+     {"source": "@scoring-sh", "text": "# Replace the following paths based on where you store models and data"},
+     {"source": "@scoring-sh", "text": "source ../zero_shot_config.sh\nsource activate proteingym_env"},
+     {"source": "@pg-readme", "text": "Update the paths for all files downloaded in the prior step in the [config script](https://github.com/OATML-Markslab/ProteinGym/blob/main/scripts/zero_shot_config.sh)"}
+    ]
+   }
+  ],
+  "outputs": [
+   "A score file for the chosen assay under the TranceptEVE output folder, one row per variant.",
+   "To turn those into benchmark metrics, the ProteinGym README directs you to the merge script and then the performance script."
+  ],
+  "limitations": [
+   "These commands were read from the repositories and have not been executed by Rewire.",
+   "The run cannot complete without trained EVE models for the protein being scored, and the sources read do not say where to get them.",
+   "The scoring script as published is a template: the checkpoint path, the assay index and the data paths are placeholder strings.",
+   "No environment file is named for proteingym_env in the sources read, so the step that creates it is missing.",
+   "No GPU or memory requirement is stated anywhere in the sources read."
+  ],
+  "source_ids": ["@pg-readme", "@scoring-sh", "@score-py", "@tranception-readme"]
+ },
+ "structured": [
+  {
+   "checkpoint": "TranceptEVE S",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://github.com/OATML-Markslab/ProteinGym/tree/main/proteingym/baselines/trancepteve",
+   "weights_url": "https://marks.hms.harvard.edu/tranception/Tranception_Small_checkpoint.zip",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {"source": "@scoring-sh", "text": "export checkpoint=\"path to Tranception_Small checkpoint\""},
+    {"source": "@tranception-readme", "text": "curl -o Tranception_Small_checkpoint.zip https://marks.hms.harvard.edu/tranception/Tranception_Small_checkpoint.zip"}
+   ]
+  },
+  {
+   "checkpoint": "TranceptEVE M",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://github.com/OATML-Markslab/ProteinGym/tree/main/proteingym/baselines/trancepteve",
+   "weights_url": "https://marks.hms.harvard.edu/tranception/Tranception_Medium_checkpoint.zip",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {"source": "@scoring-sh", "text": "export checkpoint=\"path to Tranception_Medium checkpoint\""},
+    {"source": "@tranception-readme", "text": "curl -o Tranception_Medium_checkpoint.zip https://marks.hms.harvard.edu/tranception/Tranception_Medium_checkpoint.zip"}
+   ]
+  },
+  {
+   "checkpoint": "TranceptEVE L",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://github.com/OATML-Markslab/ProteinGym/tree/main/proteingym/baselines/trancepteve",
+   "weights_url": "https://marks.hms.harvard.edu/tranception/Tranception_Large_checkpoint.zip",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {"source": "@scoring-sh", "text": "export checkpoint=\"path to Tranception_Large checkpoint\""},
+    {"source": "@tranception-readme", "text": "curl -o Tranception_Large_checkpoint.zip https://marks.hms.harvard.edu/tranception/Tranception_Large_checkpoint.zip"}
+   ]
+  }
+ ],
+ "notes": "TranceptEVE has no repository of its own. The code is in the ProteinGym baselines folder and the transformer it wraps is Tranception, so the sources here are those two repositories plus the preprint record. The weights_licence in the structured rows is MIT because that is the licence the Tranception README states for that project, which distributes the checkpoints; the checkpoint archives themselves carry no separate statement, and the EVE component is trained by the user, not distributed, so a row's weights_url covers only the Tranception half of the method. The preprint is not open access at Europe PMC, so only its abstract was read: the weighting scheme that adapts to alignment depth is described here from the abstract and from the alpha and beta arguments of the scoring script, not from the method section. This record may overlap with a separate Tranception record, since TranceptEVE S, M and L are Tranception checkpoints with alignment-based retrieval added."
+}

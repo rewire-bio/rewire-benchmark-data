@@ -1,0 +1,900 @@
+{
+ "record_id": "lit-structure-20261011-afesmfold-model-alphafold2",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "google-deepmind/alphafold README.md at commit c77e5d2a",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/google-deepmind/alphafold/c77e5d2a8961d1a353632c462914ff0a32a950f6/README.md",
+   "url": "https://github.com/google-deepmind/alphafold",
+   "version": "git commit c77e5d2a8961d1a353632c462914ff0a32a950f6",
+   "media_type": "text/markdown",
+   "sha256": "39a82c6f8ecfaf16872275167e98ff00109321f8de150edf5212dc9ed36f3763",
+   "retrieved_at": "2026-11-26T20:55:24Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "google-deepmind/alphafold LICENSE at commit c77e5d2a",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license",
+   "artifact_url": "https://raw.githubusercontent.com/google-deepmind/alphafold/c77e5d2a8961d1a353632c462914ff0a32a950f6/LICENSE",
+   "url": "https://github.com/google-deepmind/alphafold",
+   "version": "git commit c77e5d2a8961d1a353632c462914ff0a32a950f6",
+   "media_type": "text/plain",
+   "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+   "retrieved_at": "2026-11-26T20:55:49Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "technical-note",
+   "name": "google-deepmind/alphafold docs/technical_note_v2.3.0.md at commit c77e5d2a",
+   "description": "Technical note on the AlphaFold v2.3.0 models and training cutoff, pinned to a commit.",
+   "file": "artifacts/technical-note.md",
+   "artifact_url": "https://raw.githubusercontent.com/google-deepmind/alphafold/c77e5d2a8961d1a353632c462914ff0a32a950f6/docs/technical_note_v2.3.0.md",
+   "url": "https://github.com/google-deepmind/alphafold",
+   "version": "git commit c77e5d2a8961d1a353632c462914ff0a32a950f6",
+   "media_type": "text/markdown",
+   "sha256": "8ab96dfd4925acc0878b558c6dbd8a2fd0f62bbe72dd2a6ced68b8cddc421de0",
+   "retrieved_at": "2026-11-26T20:55:49Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Jumper et al. 2021, Highly accurate protein structure prediction with AlphaFold, Nature (Europe PMC PMC8371605 full text)",
+   "description": "Europe PMC full text XML of the AlphaFold paper.",
+   "file": "artifacts/paper-fulltext.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8371605/fullTextXML",
+   "url": "https://doi.org/10.1038/s41586-021-03819-2",
+   "version": "Europe PMC full text as served on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "a93693b00ee4ba41da6bc50f04712a66aa1aa2184d3a85b4b68ec7a35757c028",
+   "retrieved_at": "2026-11-26T20:56:13Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "AlphaFold 2 predicts the three-dimensional structure of a protein from its amino acid sequence. It first searches sequence databases to build a multiple sequence alignment and find structural templates, then runs a neural network that reasons jointly over the alignment and over pairs of residues, and finally outputs atomic coordinates with a per-residue confidence score. This repository is the inference pipeline, and it also includes AlphaFold-Multimer for predicting complexes of several chains.",
+  "summary_source_ids": [
+   "@readme",
+   "@paper"
+  ],
+  "summary_source_locator": "README: AlphaFold; Installation; AlphaFold output; paper, introduction",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "This package provides an implementation of the inference pipeline of AlphaFold\nv2."
+   },
+   {
+    "source": "@paper",
+    "text": "we demonstrate a new architecture to jointly embed multiple sequence alignments (MSAs) and pairwise features, a new output representation and associated loss that enable accurate end-to-end structure prediction"
+   },
+   {
+    "source": "@readme",
+    "text": "AlphaFold needs multiple genetic (sequence) databases to run:"
+   },
+   {
+    "source": "@readme",
+    "text": "Per-residue pLDDT scores (`plddt` contains a NumPy array of shape\n        [N_res]"
+   },
+   {
+    "source": "@readme",
+    "text": "An implementation of AlphaFold-Multimer."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The pipeline has two halves. First, standard search tools, which the paper names as jackhmmer and HHBlits, build a multiple sequence alignment from the sequence databases, and templates are taken from homologous structures where available. Then the network runs: a trunk of 48 Evoformer blocks that passes information between the alignment representation and a pairwise representation of residue relationships, followed by a structure module that gives each residue an explicit rotation and translation and so places the atoms. The whole network is applied several times over, feeding its own output back in, which the authors call recycling. A relaxation step with Amber then fixes local geometry, and the five models are ranked by predicted LDDT.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper, Inputs and data sources, AlphaFold network; README: AlphaFold output",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "sequences from evolutionarily related proteins in the form of a MSA created by standard tools including jackhmmer"
+     },
+     {
+      "source": "@paper",
+      "text": "The network comprises two main stages. First, the trunk of the network processes the inputs through repeated layers of a novel neural network block that we term Evoformer"
+     },
+     {
+      "source": "@paper",
+      "text": "48 Evoformer blocks"
+     },
+     {
+      "source": "@paper",
+      "text": "The trunk of the network is followed by the structure module that introduces an explicit 3D structure in the form of a rotation and translation for each residue of the protein (global rigid body frames)."
+     },
+     {
+      "source": "@paper",
+      "text": "The iterative refinement using the whole network (which we term ‘recycling’"
+     },
+     {
+      "source": "@readme",
+      "text": "after performing an Amber relaxation procedure on the unrelaxed\n    structure prediction"
+     },
+     {
+      "source": "@readme",
+      "text": "To rank model confidence, we use predicted LDDT\n    (pLDDT) scores"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "A result must name three things: the code version, the parameter set and the databases. The presets are monomer, monomer_casp14, monomer_ptm and multimer. The parameter sets are dated tar files, and the README explains how to go back to the 2022-03-02 (v2.2.0) or 2022-01-19 (v2.1.0) multimer weights. The v2.3.0 technical note says the current multimer weights were fine-tuned with a new training cutoff of 2021-09-30, keeping the same model architecture. The databases that the download scripts fetch are not the CASP14 versions, and the README lists the exact CASP14 database releases for anyone reproducing that work. Some targets have high run-to-run variance over random seeds. The authors call AlphaFold-Multimer a work in progress that is not expected to be as stable as the monomer system, and it also needs the UniProt database.",
+    "source_ids": [
+     "@readme",
+     "@technical-note"
+    ],
+    "source_locator": "README: Running AlphaFold; Using deprecated model weights; Note on CASP14 reproducibility; technical_note_v2.3.0.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You can control which AlphaFold model to run by adding the `--model_preset=`\n    flag."
+     },
+     {
+      "source": "@readme",
+      "text": "To use the deprecated v2.1.0 AlphaFold-Multimer model weights:"
+     },
+     {
+      "source": "@readme",
+      "text": "To reproduce the results of our CASP14 system as closely as possible you must\nuse the same database versions we used in CASP. These may not match the default\nversions downloaded by our scripts."
+     },
+     {
+      "source": "@readme",
+      "text": "Some targets such as T1064 may also have high\nindividual run variance over random seeds."
+     },
+     {
+      "source": "@technical-note",
+      "text": "These models were initially developed in response to a request from the CASP\norganizers"
+     },
+     {
+      "source": "@readme",
+      "text": "This represents a work in progress\n    and AlphaFold-Multimer isn't expected to be as stable as our monomer\n    AlphaFold system."
+     },
+     {
+      "source": "@readme",
+      "text": "In addition, the\n        UniProt database should have been downloaded."
+     },
+     {
+      "source": "@technical-note",
+      "text": "We have fine-tuned new AlphaFold-Multimer weights using identical model\narchitecture but a new training cutoff of 2021-09-30."
+     }
+    ]
+   },
+   {
+    "title": "What it costs to run",
+    "body": "The README is specific about the setup. Linux only, up to 3 TB of disk for the databases (556 GB to download, 2.62 TB unpacked) and an NVIDIA GPU; larger proteins need more GPU memory. The reduced_dbs preset asks for 8 CPU cores, 8 GB of RAM and 600 GB of disk. The reference machine was 12 vCPUs, 85 GB of RAM and one A100. Prediction alone, excluding the database searches, took 4.9 s for 100 residues and 18,824 s for 5,000 residues on one A100.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation and running your first prediction; Running AlphaFold; AlphaFold prediction speed",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You will need a machine running Linux, AlphaFold does not support other\noperating systems. Full installation requires up to 3 TB of disk space to keep\ngenetic databases (SSD storage is recommended) and a modern NVIDIA GPU"
+     },
+     {
+      "source": "@readme",
+      "text": "The total download size for the full databases is around 556 GB\nand the total size when unzipped is 2.62 TB"
+     },
+     {
+      "source": "@readme",
+      "text": "It\n    requires 8 CPU cores (vCPUs), 8 GB of RAM, and 600 GB of disk space."
+     },
+     {
+      "source": "@readme",
+      "text": "12 vCPUs, 85 GB of RAM, a 100 GB boot disk, the databases on an additional\n3 TB disk, and an A100 GPU"
+     },
+     {
+      "source": "@readme",
+      "text": "All runtimes are\nfrom a single A100 NVIDIA GPU."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Protein structure prediction: it predicts the 3D atomic coordinates of a protein from its amino acid sequence. This repository is the inference pipeline of AlphaFold v2, plus AlphaFold-Multimer for complexes.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: AlphaFold; paper, introduction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This package provides an implementation of the inference pipeline of AlphaFold\nv2."
+     },
+     {
+      "source": "@readme",
+      "text": "An implementation of AlphaFold-Multimer."
+     },
+     {
+      "source": "@paper",
+      "text": "demonstrating accuracy competitive with experimental structures in a majority of cases"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Two stages. A trunk of 48 Evoformer blocks that jointly embeds the multiple sequence alignment and pairwise residue features, then a structure module that produces coordinates, with the whole network applied repeatedly (recycling).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper, AlphaFold network and Fig. 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the trunk of the network processes the inputs through repeated layers of a novel neural network block that we term Evoformer"
+     },
+     {
+      "source": "@paper",
+      "text": "48 Evoformer blocks"
+     },
+     {
+      "source": "@paper",
+      "text": "we demonstrate a new architecture to jointly embed multiple sequence alignments (MSAs) and pairwise features"
+     },
+     {
+      "source": "@paper",
+      "text": "The iterative refinement using the whole network (which we term ‘recycling’"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A FASTA file with one sequence for the monomer presets, or several sequences for the multimer preset, together with multiple sequence alignments and templates that the pipeline builds by searching the genetic databases. A max_template_date flag limits which templates may be used.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation and running your first prediction; Running AlphaFold-Multimer",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Run `run_docker.py` pointing to a FASTA file containing the protein\n    sequence(s) for which you wish to predict the structure"
+     },
+     {
+      "source": "@readme",
+      "text": "provide an input fasta with multiple sequences,"
+     },
+     {
+      "source": "@readme",
+      "text": "AlphaFold will search for the available templates before the\n    date specified by the `--max_template_date` parameter"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "PDB files of the predicted structures, unrelaxed, relaxed by Amber and ranked by confidence, plus the MSAs, timings and a pickle per model holding distograms, per-residue pLDDT (0 to 100) and, for pTM models, predicted TM-score and predicted aligned error. pLDDT is also written into the B-factor field.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: AlphaFold output",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "outputs include the computed MSAs, unrelaxed structures, relaxed structures,\nranked structures, raw model outputs, prediction metadata, and section timings."
+     },
+     {
+      "source": "@readme",
+      "text": "`ranked_*.pdb` – A PDB format text file containing the predicted structures,\n    after reordering by model confidence."
+     },
+     {
+      "source": "@readme",
+      "text": "Per-residue pLDDT scores (`plddt` contains a NumPy array of shape\n        [N_res] with the range of possible values from `0` to `100`"
+     },
+     {
+      "source": "@readme",
+      "text": "Present only if using pTM models: predicted TM-score (`ptm` field\n        contains a scalar)."
+     },
+     {
+      "source": "@readme",
+      "text": "The pLDDT confidence measure is stored in the B-factor field of the output PDB\nfiles"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported as a count. The sources read give the download instead: one parameter set of about 5.3 GB holding 15 model files (5 CASP14 monomer models, 5 pTM models, 5 AlphaFold-Multimer models) plus a licence.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Genetic databases directory listing; Model parameters",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "params/                                # ~ 5.3 GB (download: 5.3 GB)"
+     },
+     {
+      "source": "@readme",
+      "text": "# 5 CASP14 models,\n        # 5 pTM models,\n        # 5 AlphaFold-Multimer models,\n        # LICENSE,\n        # = 16 files."
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "PDB structures. Versions before v2.3.0 were trained on structures released before 2018-04-30; the v2.3.0 AlphaFold-Multimer weights use a cutoff of 2021-09-30, about 30% more data, with training crops raised from 384 to 640 residues and a self-distillation set built from clustered MGnify.",
+    "status": "source_checked",
+    "source_ids": [
+     "@technical-note"
+    ],
+    "source_locator": "technical_note_v2.3.0.md",
+    "quotes": [
+     {
+      "source": "@technical-note",
+      "text": "Previously released\nversions of AlphaFold and AlphaFold-Multimer were trained using PDB structures\nwith a release date before 2018-04-30"
+     },
+     {
+      "source": "@technical-note",
+      "text": "a new training cutoff of 2021-09-30"
+     },
+     {
+      "source": "@technical-note",
+      "text": "increase the size of\ntraining crops (subsets of the structure used to train AlphaFold) from 384 to\n640 residues"
+     },
+     {
+      "source": "@technical-note",
+      "text": "The original AF-Multimer self-distillation set\nwas created using the clustered MGnify dataset"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One code release with several model presets: monomer (the CASP14 model, no ensembling), monomer_casp14 (num_ensemble=8), monomer_ptm (pTM fine tuned) and multimer (AlphaFold-Multimer). Parameter sets are dated: alphafold_params_2022-12-06.tar is current, with 2022-03-02 (v2.2.0) and 2022-01-19 (v2.1.0) multimer weights kept as deprecated options. The v2.3.0 technical note describes the current multimer models.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@technical-note"
+    ],
+    "source_locator": "README: Running AlphaFold model presets; Model parameters; Using deprecated model weights; technical_note_v2.3.0.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "**monomer**: This is the original model used at CASP14 with no\n        ensembling."
+     },
+     {
+      "source": "@readme",
+      "text": "**monomer\\_casp14**: This is the original model used at CASP14 with\n        `num_ensemble=8`"
+     },
+     {
+      "source": "@readme",
+      "text": "**monomer\\_ptm**: This is the original CASP14 model fine tuned with the\n        pTM head"
+     },
+     {
+      "source": "@readme",
+      "text": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar"
+     },
+     {
+      "source": "@readme",
+      "text": "To use the deprecated v2.2.0 AlphaFold-Multimer model weights:"
+     },
+     {
+      "source": "@technical-note",
+      "text": "# AlphaFold v2.3.0"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "2018-04-30 for the originally released AlphaFold and AlphaFold-Multimer weights; 2021-09-30 for the v2.3.0 AlphaFold-Multimer weights. These are PDB release dates for the training structures.",
+    "status": "source_checked",
+    "source_ids": [
+     "@technical-note"
+    ],
+    "source_locator": "technical_note_v2.3.0.md",
+    "quotes": [
+     {
+      "source": "@technical-note",
+      "text": "a cutoff date chosen to coincide with the\nstart of the 2018 CASP13 assessment"
+     },
+     {
+      "source": "@technical-note",
+      "text": "a release date before 2018-04-30"
+     },
+     {
+      "source": "@technical-note",
+      "text": "a new training cutoff of 2021-09-30"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "No hard residue limit is stated; memory is the constraint, since GPUs with more memory can predict larger structures. The README's timing table runs from 100 to 5,000 residues (4.9 s to 18,824 s on one A100, prediction only). Training crops are 640 residues in v2.3.0.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@technical-note"
+    ],
+    "source_locator": "README: Installation; AlphaFold prediction speed; technical_note_v2.3.0.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "a modern NVIDIA GPU (GPUs\nwith more memory can predict larger protein structures)"
+     },
+     {
+      "source": "@readme",
+      "text": "5,000        | 18,824"
+     },
+     {
+      "source": "@readme",
+      "text": "100          | 4.9"
+     },
+     {
+      "source": "@technical-note",
+      "text": "from 384 to\n640 residues"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "CC BY 4.0: the parameters are made available under the Creative Commons Attribution 4.0 International licence, separately from the Apache-2.0 code. DeepMind adds that the model and its output are for theoretical modelling only and not for clinical use.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model parameters; License and Disclaimer; Model Parameters License",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "While the AlphaFold code is licensed under the Apache 2.0 License, the AlphaFold\nparameters and CASP15 prediction data are made available under the terms of the\nCC BY 4.0 license."
+     },
+     {
+      "source": "@readme",
+      "text": "The AlphaFold parameters are made available under the terms of the Creative\nCommons Attribution 4.0 International (CC BY 4.0) license."
+     },
+     {
+      "source": "@readme",
+      "text": "They are not\nintended, validated, or approved for clinical use."
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0 (Apache License, Version 2.0), per the repository LICENSE file and the README.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE; README: Model parameters",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Apache License"
+     },
+     {
+      "source": "@license",
+      "text": "Version 2.0, January 2004"
+     },
+     {
+      "source": "@readme",
+      "text": "the AlphaFold code is licensed under the Apache 2.0 License"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/google-deepmind/alphafold. Weights: https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar, downloaded by scripts/download_all_data.sh. No login or agreement is needed, but the genetic databases are a 556 GB download.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation; Model parameters",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The AlphaFold parameters are available from\nhttps://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar"
+     },
+     {
+      "source": "@readme",
+      "text": "scripts/download_all_data.sh <DOWNLOAD_DIR> > download.log 2> download_all.log &"
+     },
+     {
+      "source": "@readme",
+      "text": "download size is 556\n        GB"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Reports its own confidence: per-residue pLDDT for every prediction, and predicted TM-score and predicted aligned error from the pTM and multimer models.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: AlphaFold output",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Per-residue pLDDT scores (`plddt` contains a NumPy array of shape\n        [N_res] with the range of possible values from `0` to `100`, where `100`\n        means most confident)."
+     },
+     {
+      "source": "@readme",
+      "text": "Present only if using pTM models: predicted pairwise aligned errors"
+     }
+    ]
+   },
+   {
+    "text": "The authors report a median backbone accuracy of 0.96 Angstrom r.m.s.d.95 on CASP14 domains, against 2.8 Angstrom for the next best method (their claim, from the paper).",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper, introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "AlphaFold structures had a median backbone accuracy of 0.96 Å r.m.s.d."
+     },
+     {
+      "source": "@paper",
+      "text": "whereas the next best performing method had a median backbone accuracy of 2.8 Å r.m.s.d."
+     },
+     {
+      "source": "@paper",
+      "text": "demonstrating accuracy competitive with experimental structures in a majority of cases and greatly outperforming other methods"
+     }
+    ]
+   },
+   {
+    "text": "Code is Apache-2.0 and the weights are CC BY 4.0, both without a request or agreement step.",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README: Model parameters; LICENSE",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "the AlphaFold code is licensed under the Apache 2.0 License, the AlphaFold\nparameters and CASP15 prediction data are made available under the terms of the\nCC BY 4.0 license"
+     },
+     {
+      "source": "@license",
+      "text": "Apache License"
+     }
+    ]
+   },
+   {
+    "text": "Runs as a Docker image with one command per prediction, and can reuse precomputed MSAs when only model settings change.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Running AlphaFold",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "**The simplest way to run AlphaFold is using the provided Docker script.**"
+     },
+     {
+      "source": "@readme",
+      "text": "AlphaFold can reuse MSAs (multiple sequence alignments) for the same\n    sequence via `--use_precomputed_msas=true` option"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Heavy to install and run: Linux only, up to 3 TB of disk for the genetic databases, a 556 GB download and an NVIDIA GPU. The relaxation step can be put on the CPU, but the structure prediction is set up for GPU.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation and running your first prediction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You will need a machine running Linux, AlphaFold does not support other\noperating systems."
+     },
+     {
+      "source": "@readme",
+      "text": "Full installation requires up to 3 TB of disk space to keep\ngenetic databases (SSD storage is recommended) and a modern NVIDIA GPU"
+     },
+     {
+      "source": "@readme",
+      "text": "download size is 556\n        GB"
+     },
+     {
+      "source": "@readme",
+      "text": "The relaxation step can be run on GPU (faster, but could be less stable) or\n    CPU (slow, but stable)."
+     }
+    ]
+   },
+   {
+    "text": "Needs alignments, not just a sequence: the prediction depends on database searches, and the databases fetched by the scripts are not the CASP14 versions, so results shift with the data.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Genetic databases; Note on CASP14 reproducibility",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "AlphaFold needs multiple genetic (sequence) databases to run:"
+     },
+     {
+      "source": "@readme",
+      "text": "AlphaFold's output for a small number of proteins has high inter-run variance,\nand may be affected by changes in the input data."
+     },
+     {
+      "source": "@readme",
+      "text": "We don't provide exactly the database versions used in CASP14"
+     }
+    ]
+   },
+   {
+    "text": "AlphaFold-Multimer is described by the authors as a work in progress and not expected to be as stable as the monomer system, and it needs the UniProt database as well.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: AlphaFold; Running AlphaFold",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This represents a work in progress\n    and AlphaFold-Multimer isn't expected to be as stable as our monomer\n    AlphaFold system."
+     },
+     {
+      "source": "@readme",
+      "text": "In addition, the\n        UniProt database should have been downloaded."
+     }
+    ]
+   },
+   {
+    "text": "DeepMind states that AlphaFold 2 and its output are for theoretical modelling only, are not intended, validated or approved for clinical use, and should be interpreted carefully.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: License and Disclaimer",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "AlphaFold 2 and its output are for theoretical modeling only. They are not\nintended, validated, or approved for clinical use."
+     },
+     {
+      "source": "@readme",
+      "text": "Output of AlphaFold 2 are predictions with varying levels of confidence and\nshould be interpreted carefully."
+     },
+     {
+      "source": "@readme",
+      "text": "This is not an officially supported Google product."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "AlphaFold 2 workflow",
+   "steps": [
+    "FASTA sequence or sequences",
+    "Database search: BFD, MGnify, UniRef, PDB templates",
+    "Evoformer trunk over MSA and pairwise features, with recycling",
+    "Structure module: atomic coordinates",
+    "Amber relaxation and ranking by pLDDT",
+    "ranked_*.pdb, ranking_debug.json, result_model_*.pkl"
+   ],
+   "caption": "The pipeline as the README and the paper describe it, from sequence to ranked structures.",
+   "source_ids": [
+    "@readme",
+    "@paper"
+   ],
+   "source_locator": "README: Genetic databases; AlphaFold output; paper, AlphaFold network",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "AlphaFold needs multiple genetic (sequence) databases to run:"
+    },
+    {
+     "source": "@paper",
+     "text": "the trunk of the network processes the inputs through repeated layers of a novel neural network block that we term Evoformer"
+    },
+    {
+     "source": "@readme",
+     "text": "after performing an Amber relaxation procedure on the unrelaxed\n    structure prediction"
+    },
+    {
+     "source": "@readme",
+     "text": "ranked_{0,1,2,3,4}.pdb"
+    },
+    {
+     "source": "@readme",
+     "text": "ranking_debug.json"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Parameter counts are not given in the sources read; only the size of the parameter download.",
+   "The paper's Supplementary Methods, which hold the layer-level detail and the training procedure, were not read.",
+   "The AlphaFold-Multimer paper was not read; multimer facts come from the README and the v2.3.0 technical note.",
+   "Accuracy figures here are the authors' CASP14 results. The benchmark paper attached to this record was not used.",
+   "AlphaFold 3 and the AlphaFold Protein Structure Database are out of scope for this record.",
+   "The mirrored database licences (BFD and UniRef30 under CC BY-SA 4.0, MGnify under CC0) affect redistribution of inputs and were only noted, not reviewed."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the whole repository README, LICENSE and docs/technical_note_v2.3.0.md at commit c77e5d2a, and the Europe PMC full text XML of Jumper et al. 2021 (PMC8371605), each fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Build the Docker image at a pinned commit, download the databases and parameters, and predict the structure of one protein from a FASTA file.",
+  "prerequisites": [
+   "A Linux machine with an NVIDIA GPU, Docker and the NVIDIA Container Toolkit. The README's own note on what was tested: 12 vCPUs, 85 GB of RAM and one A100.",
+   "Up to 3 TB of disk for the genetic databases (556 GB to download, 2.62 TB unpacked), or 600 GB with the reduced_dbs preset, which also needs 8 CPU cores and 8 GB of RAM.",
+   "aria2c and rsync for the download script.",
+   "Code is Apache-2.0; the parameters are CC BY 4.0."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/deepmind/alphafold.git\ncd ./alphafold\ngit checkout --detach c77e5d2a8961d1a353632c462914ff0a32a950f6",
+    "explanation": "The README's clone step, with a checkout line added to pin the commit this page was written from.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation and running your first prediction, step 2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/deepmind/alphafold.git\n    cd ./alphafold"
+     }
+    ]
+   },
+   {
+    "title": "Download the databases and model parameters",
+    "shell": "scripts/download_all_data.sh <DOWNLOAD_DIR> > download.log 2> download_all.log &",
+    "explanation": "Downloads the genetic databases and the parameter files. Replace <DOWNLOAD_DIR> with a directory outside the repository. Add reduced_dbs as a second argument for the smaller set.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation, step 3; Genetic databases",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "scripts/download_all_data.sh <DOWNLOAD_DIR> > download.log 2> download_all.log &"
+     },
+     {
+      "source": "@readme",
+      "text": "The `download_all_data.sh` script will also download the model parameter files."
+     },
+     {
+      "source": "@readme",
+      "text": "scripts/download_all_data.sh <DOWNLOAD_DIR> reduced_dbs"
+     }
+    ]
+   },
+   {
+    "title": "Build the image and install the launcher's dependencies",
+    "shell": "docker build -f docker/Dockerfile -t alphafold .\npip3 install -r docker/requirements.txt",
+    "explanation": "The two README commands: build the AlphaFold image, then install what run_docker.py needs on the host.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation, steps 5 and 6",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "docker build -f docker/Dockerfile -t alphafold ."
+     },
+     {
+      "source": "@readme",
+      "text": "pip3 install -r docker/requirements.txt"
+     }
+    ]
+   },
+   {
+    "title": "Predict one monomer",
+    "shell": "python3 docker/run_docker.py \\\n  --fasta_paths=monomer.fasta \\\n  --max_template_date=2021-11-01 \\\n  --model_preset=monomer \\\n  --data_dir=$DOWNLOAD_DIR \\\n  --output_dir=/home/user/absolute_path_to_the_output_dir",
+    "explanation": "The README's monomer example. monomer.fasta holds one sequence; output_dir must be an absolute path. For a complex, use a multi-sequence FASTA and --model_preset=multimer.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Examples, Folding a monomer; Running AlphaFold-Multimer",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python3 docker/run_docker.py \\\n  --fasta_paths=monomer.fasta \\\n  --max_template_date=2021-11-01 \\\n  --model_preset=monomer \\\n  --data_dir=$DOWNLOAD_DIR \\\n  --output_dir=/home/user/absolute_path_to_the_output_dir"
+     },
+     {
+      "source": "@readme",
+      "text": "set `--model_preset=multimer`,"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A subdirectory of the output directory per target, holding features.pkl, unrelaxed_model_{1..5}.pdb, relaxed PDB files, ranked_{0..4}.pdb, ranking_debug.json, relax_metrics.json, timings.json, result_model_*.pkl and the msas/ directory. ranked_0.pdb is the highest-confidence prediction."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The database download is 556 GB and can take a long time; the script is meant to be run in the background.",
+   "The run is set up for an NVIDIA GPU; the README offers a CPU option only for the relaxation step (--enable_gpu_relax=false)."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "alphafold_params_2022-12-06",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "Apache-2.0",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/google-deepmind/alphafold",
+   "weights_url": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "The AlphaFold parameters are available from\nhttps://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar"
+    },
+    {
+     "source": "@readme",
+     "text": "the AlphaFold code is licensed under the Apache 2.0 License, the AlphaFold\nparameters and CASP15 prediction data are made available under the terms of the\nCC BY 4.0 license"
+    },
+    {
+     "source": "@license",
+     "text": "Apache License"
+    }
+   ]
+  },
+  {
+   "checkpoint": "alphafold_params_2022-03-02",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "Apache-2.0",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/google-deepmind/alphafold",
+   "weights_url": "https://storage.googleapis.com/alphafold/alphafold_params_2022-03-02.tar",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "To use the deprecated v2.2.0 AlphaFold-Multimer model weights:"
+    },
+    {
+     "source": "@readme",
+     "text": "`https://storage.googleapis.com/alphafold/alphafold_params_2022-03-02.tar`"
+    }
+   ]
+  },
+  {
+   "checkpoint": "alphafold_params_2022-01-19",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "Apache-2.0",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/google-deepmind/alphafold",
+   "weights_url": "https://storage.googleapis.com/alphafold/alphafold_params_2022-01-19.tar",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "To use the deprecated v2.1.0 AlphaFold-Multimer model weights:"
+    },
+    {
+     "source": "@readme",
+     "text": "`https://storage.googleapis.com/alphafold/alphafold_params_2022-01-19.tar`"
+    }
+   ]
+  }
+ ],
+ "notes": "The parameter tar files are dated, not versioned by model name, and the current one holds 15 model files (5 CASP14 monomer, 5 pTM, 5 multimer); structured lists the three tar files the README names, with no parameter counts because none is stated and no released dates because the sources give no publication date for them, only the date in the filename. The record describes AlphaFold 2 as released by DeepMind; AlphaFold 3 is a separate model and is not covered. The README is for AlphaFold v2 inference and also documents AlphaFold-Multimer, which may warrant its own record. The README also gives multimer examples for homomers and heteromers and lists the mirrored database licences; those were read."
+}
