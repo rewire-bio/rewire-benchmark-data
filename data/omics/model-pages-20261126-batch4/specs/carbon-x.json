@@ -1,0 +1,725 @@
+{
+ "record_id": "finedna-20261101-model-carbon-x",
+ "sources": [
+  {
+   "key": "hf-card",
+   "name": "HuggingFaceBio/Carbon-X model card at revision 17de8916",
+   "description": "Hugging Face model card of Carbon-X, pinned to a revision.",
+   "file": "artifacts/hf-card.md",
+   "artifact_url": "https://huggingface.co/HuggingFaceBio/Carbon-X/raw/17de89165e25c49e7de4f845d0e5d464469de359/README.md",
+   "url": "https://huggingface.co/HuggingFaceBio/Carbon-X",
+   "version": "Hugging Face revision 17de89165e25c49e7de4f845d0e5d464469de359",
+   "media_type": "text/markdown",
+   "sha256": "e57db655c2701442f280fa1c6570f548db958d98ca317d1129c0cf3a93ec59aa",
+   "retrieved_at": "2026-11-26T19:26:17Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "hf-config",
+   "name": "HuggingFaceBio/Carbon-X config.json at revision 17de8916",
+   "description": "Model configuration file of Carbon-X, pinned to a revision.",
+   "file": "artifacts/hf-config.json",
+   "artifact_url": "https://huggingface.co/HuggingFaceBio/Carbon-X/raw/17de89165e25c49e7de4f845d0e5d464469de359/config.json",
+   "url": "https://huggingface.co/HuggingFaceBio/Carbon-X",
+   "version": "Hugging Face revision 17de89165e25c49e7de4f845d0e5d464469de359",
+   "media_type": "application/json",
+   "sha256": "3c9d05428d5487d159f4477b50f5951d02d852c216b2224bfcde4ee5436724d7",
+   "retrieved_at": "2026-11-26T19:26:17Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "hf-api",
+   "name": "Hugging Face metadata for HuggingFaceBio/Carbon-X, as served on 2026-11-26",
+   "description": "Hugging Face API response: revision, licence field, base model, gating and safetensors parameter count.",
+   "file": "artifacts/hf-api.json",
+   "artifact_url": "https://huggingface.co/api/models/HuggingFaceBio/Carbon-X?expand[]=safetensors&expand[]=sha&expand[]=cardData&expand[]=gated",
+   "url": "https://huggingface.co/HuggingFaceBio/Carbon-X",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "fa1880482496f322d1b00c895410cd0efcf1a16440bd6f71cb193ec5d0d475e2",
+   "retrieved_at": "2026-11-26T19:26:17Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "readme",
+   "name": "huggingface/carbon carbon-x/README.md at commit 4ca3ce3e",
+   "description": "README of the Carbon-X training recipe and evaluation directory in the official code repository, pinned to a commit.",
+   "file": "artifacts/repo-readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/huggingface/carbon/4ca3ce3e5c55e5821d6068bac5c6e3806027a26f/carbon-x/README.md",
+   "url": "https://github.com/huggingface/carbon",
+   "version": "git commit 4ca3ce3e5c55e5821d6068bac5c6e3806027a26f",
+   "media_type": "text/markdown",
+   "sha256": "40300c97536cea4102e3effd2c756d6ff913d19793a8ced84cb24f84f3dcc15f",
+   "retrieved_at": "2026-11-26T19:26:30Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "huggingface/carbon LICENSE at commit 4ca3ce3e",
+   "description": "Licence file of the official code repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/huggingface/carbon/4ca3ce3e5c55e5821d6068bac5c6e3806027a26f/LICENSE",
+   "url": "https://github.com/huggingface/carbon",
+   "version": "git commit 4ca3ce3e5c55e5821d6068bac5c6e3806027a26f",
+   "media_type": "text/plain",
+   "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+   "retrieved_at": "2026-11-26T19:26:30Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "Carbon-X is a 14.8 billion parameter chat language model that reads DNA and English in the same conversation. You paste raw DNA into a message and ask a question; it answers in English, for example whether a mutation is likely benign or pathogenic, which organism group a sequence comes from, or what the next bases are. It was built from the general-purpose Qwen3-14B model by adding DNA tokens and further training on DNA and biology text.",
+  "summary_source_ids": [
+   "@hf-card"
+  ],
+  "summary_source_locator": "Model card: Model Summary; Vocabulary extension",
+  "summary_quotes": [
+   {
+    "source": "@hf-card",
+    "text": "**Carbon-X** is a 14.8B-parameter decoder-only language model trained jointly on DNA sequences and natural-language text."
+   },
+   {
+    "source": "@hf-card",
+    "text": "You give it raw DNA inside an ordinary chat conversation and it answers in English: it predicts whether mutations are benign or pathogenic, identifies regions that control gene activity, classifies sequences by organism group, predicts the next bases of a sequence, and explains its reasoning."
+   },
+   {
+    "source": "@hf-card",
+    "text": "Carbon-X starts from [Qwen3-14B](https://huggingface.co/Qwen/Qwen3-14B). We add the DNA tokens to its vocabulary with randomly initialised embeddings."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "DNA and text share one token stream in one decoder, with no separate DNA encoder. A hybrid tokeniser keeps Qwen3's BPE vocabulary for text and encodes DNA as non-overlapping 6-mers, so one DNA token covers 6 base pairs; runs of at least 6 A, C, G or T bases are tagged as DNA automatically. Training had four stages. New DNA embeddings were first trained for about 10B tokens with the transformer frozen. The full model was then mid-trained on 302B tokens at sequence length 8,192, a mixture of 55% raw DNA, 20% English, 15% biology text and 10% instruction data. Supervised fine-tuning followed (3 epochs over 20 dataset subsets), then two rounds of GRPO reinforcement learning with code-checked rewards, all with thinking disabled.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Model Summary; Tokenizer; Training (Vocabulary extension, Mid-training, Supervised fine-tuning, Reinforcement learning)",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "DNA and text share a single token stream in a single decoder. There is no separate DNA encoder."
+     },
+     {
+      "source": "@hf-card",
+      "text": "A hybrid tokenizer keeps a BPE vocabulary for text and encodes DNA as non-overlapping 6-mers, so one DNA token covers 6 base pairs."
+     },
+     {
+      "source": "@hf-card",
+      "text": "Runs of at least 6 A/C/G/T bases are wrapped in `<dna>…</dna>` and tokenized as 6-mers."
+     },
+     {
+      "source": "@hf-card",
+      "text": "We then train for about 10B tokens with the transformer body frozen, so that only the new DNA embeddings learn, before unfreezing the whole model."
+     },
+     {
+      "source": "@hf-card",
+      "text": "The full model is then trained for **302B tokens** with a sequence length of 8,192"
+     },
+     {
+      "source": "@hf-card",
+      "text": "The mid-trained model is fine-tuned for 3 epochs on a mixture of 20 dataset subsets."
+     },
+     {
+      "source": "@hf-card",
+      "text": "The fine-tuned model is then trained with asynchronous GRPO and verifiable rewards in two rounds, with thinking disabled:"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The released model is HuggingFaceBio/Carbon-X; this page read revision 17de8916. The training pipeline names two intermediate models, Carbon-X-Base (after mid-training) and Carbon-X-SFT (after fine-tuning), and GGUF quantisations exist for llama.cpp. All reported results used thinking disabled and the sampling defaults in generation_config.json (temperature 0.6, top-p 0.95, top-k 20), so a result should name the revision, the model variant and any change to these settings. The training recipes, decontamination scripts and evaluation tasks are in the huggingface/carbon repository.",
+    "source_ids": [
+     "@hf-api",
+     "@readme",
+     "@hf-card"
+    ],
+    "source_locator": "Hugging Face API: sha. carbon-x README: Pipeline; Layout. Model card: How to use; Using Carbon-X as a tool for an agent",
+    "quotes": [
+     {
+      "source": "@hf-api",
+      "text": "\"sha\":\"17de89165e25c49e7de4f845d0e5d464469de359\""
+     },
+     {
+      "source": "@readme",
+      "text": "| SFT | TRL | `HuggingFaceBio/Carbon-X-Base` | `HuggingFaceBio/FineDNA` (`sft_mix`) |"
+     },
+     {
+      "source": "@readme",
+      "text": "| RL | TRL | `HuggingFaceBio/Carbon-X-SFT` | `HuggingFaceBio/FineDNA` (`rl_mix`) |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "GGUF quantizations of Carbon-X for local inference with llama.cpp can be found here https://huggingface.co/HuggingFaceBio/Carbon-X-GGUF"
+     },
+     {
+      "source": "@hf-card",
+      "text": "`generate()` uses the sampling defaults from `generation_config.json` (temperature 0.6, top-p 0.95, top-k 20), which are also the settings we used for every reported result."
+     },
+     {
+      "source": "@readme",
+      "text": "This directory contains the training recipe and evals for"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Decoder-only chat language model trained jointly on DNA and natural-language text; text generation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@hf-api"
+    ],
+    "source_locator": "Model card: Model Summary. Hugging Face API: pipeline_tag",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "decoder-only language model trained jointly on DNA sequences and natural-language text"
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"pipeline_tag\":\"text-generation\""
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Qwen3 decoder-only transformer: 40 layers, hidden size 5120, FFN size 17408, 40 attention heads with grouped-query attention (8 KV heads), head dimension 128, SwiGLU, RMSNorm with QK-norm, RoPE (base 1,000,000), untied embeddings.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@hf-config"
+    ],
+    "source_locator": "Model card: Training, Model. config.json",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "decoder-only Transformer with 40 layers, hidden size 5120, FFN size 17408, 40 attention heads with GQA (8 KV heads), head dimension 128, SwiGLU, RMSNorm with QK-norm and untied embeddings"
+     },
+     {
+      "source": "@hf-config",
+      "text": "\"Qwen3ForCausalLM\""
+     },
+     {
+      "source": "@hf-config",
+      "text": "\"rope_theta\": 1000000,"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Chat messages mixing English and raw DNA. DNA is tokenised as 6-mers plus tail tokens for lengths not divisible by 6; any 6-mer containing a base other than A, C, G or T becomes a single <oov> token.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Key features; Tokenizer: working with DNA inputs",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "the Qwen3 BPE vocabulary for text plus 5,515 DNA tokens"
+     },
+     {
+      "source": "@hf-card",
+      "text": "A 6-mer that contains any other character, such as `N`, becomes a single `<oov>` token."
+     },
+     {
+      "source": "@hf-card",
+      "text": "When a sequence's length is not a multiple of 6, its last 1–5 bases are encoded with dedicated tail tokens"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Generated text: English answers and explanations, which can contain DNA wrapped in <dna> tags.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Model Summary; Tokenizer",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Responses can contain both DNA and natural language."
+     },
+     {
+      "source": "@hf-card",
+      "text": "The model writes DNA inside `<dna>…</dna>`."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "14,822,046,720 (BF16), as counted by Hugging Face from the safetensors files; the card rounds this to 14.8B.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-api",
+     "@hf-card"
+    ],
+    "source_locator": "Hugging Face API: safetensors. Model card: Key features",
+    "quotes": [
+     {
+      "source": "@hf-api",
+      "text": "\"safetensors\":{\"parameters\":{\"BF16\":14822046720},\"total\":14822046720}"
+     },
+     {
+      "source": "@hf-card",
+      "text": "**14.8B parameters**"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Starts from Qwen3-14B. Mid-training on 302B tokens: 55% raw DNA (eukaryotic genomes, plus mRNA and prokaryotic genomes from OpenGenome2), 20% English web and PDF text, 15% biology text and 10% instruction data. All stages draw on HuggingFaceBio/FineDNA. Training data was decontaminated against the five evaluation benchmarks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@readme",
+     "finedna-20261101-source-finedna-card"
+    ],
+    "source_locator": "Model card: Mid-training; Evaluation. carbon-x README: Pipeline",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "| **Raw DNA** | **55%** |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "| Prokaryotic genomes (OpenGenome2) | 5.5% |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "| **English** | **20%** |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "| **Biology text** | **15%** |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "| **Instruction data** | **10%** |"
+     },
+     {
+      "source": "@readme",
+      "text": "| Midtraining | Megatron-LM | `Qwen/Qwen3-14B` | `HuggingFaceBio/FineDNA` (`mid_*`) |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "All training data was decontaminated against these benchmarks with three checks: whole-span DNA overlap, text n-gram overlap and sequence homology search."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "HuggingFaceBio/Carbon-X (released, read at revision 17de8916). Intermediate pipeline models HuggingFaceBio/Carbon-X-Base and HuggingFaceBio/Carbon-X-SFT, and quantised HuggingFaceBio/Carbon-X-GGUF, are named but were not reviewed.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-api",
+     "@readme",
+     "@hf-card"
+    ],
+    "source_locator": "Hugging Face API. carbon-x README: Pipeline. Model card: agent section",
+    "quotes": [
+     {
+      "source": "@hf-api",
+      "text": "\"id\":\"HuggingFaceBio/Carbon-X\""
+     },
+     {
+      "source": "@readme",
+      "text": "`HuggingFaceBio/Carbon-X-Base`"
+     },
+     {
+      "source": "@readme",
+      "text": "`HuggingFaceBio/Carbon-X-SFT`"
+     },
+     {
+      "source": "@hf-card",
+      "text": "https://huggingface.co/HuggingFaceBio/Carbon-X-GGUF"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported. The card does not date the training data or the base model's data.",
+    "status": "unreported",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Training"
+   },
+   {
+    "label": "Context limits",
+    "value": "40,960 tokens. With 6 bases per DNA token, mid-training sequences of 8,192 tokens held up to about 49 kbp; inputs much longer than seen in training were not evaluated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@hf-config"
+    ],
+    "source_locator": "Model card: Key features; Limitations. config.json",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "**Context window**: 40,960 tokens."
+     },
+     {
+      "source": "@hf-config",
+      "text": "\"max_position_embeddings\": 40960,"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Mid-training used 8,192-token sequences (up to ≈ 49 kbp of DNA), and post-training examples were shorter than 16k tokens. The model accepts up to 40,960 tokens, but we have not evaluated inputs much longer than those seen in training."
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Apache-2.0, as declared in the model card metadata and License section.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@hf-api"
+    ],
+    "source_locator": "Model card metadata and License section; Hugging Face API cardData",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "license: apache-2.0"
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"license\":\"apache-2.0\""
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0, per the LICENSE file of the huggingface/carbon repository.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Apache License"
+     },
+     {
+      "source": "@license",
+      "text": "Version 2.0, January 2004"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Weights: https://huggingface.co/HuggingFaceBio/Carbon-X (not gated). Code: https://github.com/huggingface/carbon (carbon-x directory). GGUF quantisations: https://huggingface.co/HuggingFaceBio/Carbon-X-GGUF.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-api",
+     "@hf-card"
+    ],
+    "source_locator": "Hugging Face API: gated. Model card: links; agent section",
+    "quotes": [
+     {
+      "source": "@hf-api",
+      "text": "\"gated\":false"
+     },
+     {
+      "source": "@hf-card",
+      "text": "https://github.com/huggingface/carbon/tree/main"
+     },
+     {
+      "source": "@hf-card",
+      "text": "https://huggingface.co/HuggingFaceBio/Carbon-X-GGUF"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Asks and answers in plain language, so one model covers variant effect questions, sequence classification and next-base prediction without task-specific heads.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Model Summary",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "You give it raw DNA inside an ordinary chat conversation and it answers in English"
+     }
+    ]
+   },
+   {
+    "text": "Runs locally on a single 80 GB GPU in bfloat16, with vLLM serving documented, so sensitive sequences can stay on the user's own hardware.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Model Summary; Serving with vLLM",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "The weights fit on a single 80 GB GPU in bfloat16, so researchers can keep sensitive or unpublished sequences on their own infrastructure."
+     },
+     {
+      "source": "@hf-card",
+      "text": "vllm serve HuggingFaceBio/Carbon-X --trust-remote-code"
+     }
+    ]
+   },
+   {
+    "text": "By the developers' own evaluation, it averages 66.7% over five DNA benchmarks with thinking disabled, 27 points above its Qwen3-14B starting point.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Model Summary; Evaluation",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Across five DNA benchmarks, which cover variant-effect prediction, sequence understanding and next-base prediction, Carbon-X averages **66.7%** with thinking disabled. That is 27 points above Qwen3-14B, the model it starts from"
+     }
+    ]
+   },
+   {
+    "text": "Weights and code are Apache-2.0, and the training recipes and the scripts that decontaminate training data against the evaluation benchmarks are public.",
+    "source_ids": [
+     "@hf-card",
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "Model card: License. LICENSE. carbon-x README: Layout",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Apache 2.0."
+     },
+     {
+      "source": "@license",
+      "text": "Apache License"
+     },
+     {
+      "source": "@readme",
+      "text": "decontamination of training data against the evaluation benchmarks"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Not clinically validated; the developers say it should not be used for medical decisions.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Limitations",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "It has **not been clinically validated**, and it should not be used to make medical decisions."
+     }
+    ]
+   },
+   {
+    "text": "Needs a GPU with about 80 GB of memory for the full bfloat16 weights, and Transformers v5 or later.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: How to use; agent section",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "You need a GPU with about 80 GB of memory and vLLM"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Carbon-X requires Transformers v5 or later."
+     }
+    ]
+   },
+   {
+    "text": "Can miscount bases, confuse coordinates and invent a sequence's identity when context is missing. Splice-site and histone-mark questions remain weak (29.8% and 34.6% on GenomeQA).",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Limitations",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "The model can miscount bases, confuse coordinates or make incorrect edits"
+     },
+     {
+      "source": "@hf-card",
+      "text": "The model may invent a sequence's identity or function when the prompt does not give enough information."
+     },
+     {
+      "source": "@hf-card",
+      "text": "Splice-site and histone-mark questions remain weak (29.8% and 34.6% on GenomeQA)."
+     }
+    ]
+   },
+   {
+    "text": "Not trained to design sequences; quality degrades for long DNA generation. Ambiguous bases such as N collapse a whole 6-mer into one <oov> token.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Limitations; Tokenizer",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Quality degrades when the model is asked to generate long DNA sequences. Carbon-X reads and explains existing sequences. It was not trained to design new ones."
+     },
+     {
+      "source": "@hf-card",
+      "text": "becomes a single `<oov>` token"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Carbon-X workflow",
+   "steps": [
+    "Chat message with English and raw DNA",
+    "Hybrid tokeniser: BPE for text, 6-mers for DNA",
+    "40-layer Qwen3 decoder, 14.8B parameters",
+    "Generated answer in English, DNA in <dna> tags"
+   ],
+   "caption": "Data flow as described in the model card. Thinking mode is disabled, as in post-training and evaluation.",
+   "source_ids": [
+    "@hf-card"
+   ],
+   "source_locator": "Model card: Model Summary; Key features; Tokenizer",
+   "quotes": [
+    {
+     "source": "@hf-card",
+     "text": "You give it raw DNA inside an ordinary chat conversation"
+    },
+    {
+     "source": "@hf-card",
+     "text": "The tokenizer switches between BPE for text and 6-mers for DNA."
+    },
+    {
+     "source": "@hf-card",
+     "text": "40 layers, hidden size 5120"
+    },
+    {
+     "source": "@hf-card",
+     "text": "The model writes DNA inside `<dna>…</dna>`."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No paper exists in the sources read; the release blog post (a Hugging Face Space) was not fetched.",
+   "Carbon-X-Base, Carbon-X-SFT and Carbon-X-GGUF were not reviewed, so their parameter counts and licences are not checked here.",
+   "The card's benchmark comparisons are the developers' own and have not been checked against independent results.",
+   "No release date is given in the sources read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from the HuggingFaceBio/Carbon-X model card and config.json at revision 17de89165e25c49e7de4f845d0e5d464469de359, the Hugging Face API response, and the carbon-x/README.md and LICENSE of huggingface/carbon at commit 4ca3ce3e5c55e5821d6068bac5c6e3806027a26f, fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install Transformers, load Carbon-X in bfloat16 on a GPU and ask it whether a variant is likely benign or pathogenic.",
+  "prerequisites": [
+   "A CUDA GPU; the card says the weights fit on a single 80 GB GPU in bfloat16.",
+   "Transformers v5 or later, and PyTorch.",
+   "Hugging Face Hub access on first load (the tokeniser downloads its BPE vocabulary). The tokeniser is custom code loaded with trust_remote_code=True.",
+   "Weights and code are Apache-2.0 and not gated."
+  ],
+  "steps": [
+   {
+    "title": "Install",
+    "shell": "pip install -U transformers",
+    "explanation": "The model card's install command. The card requires Transformers v5 or later.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: How to use",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "pip install -U transformers"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Carbon-X requires Transformers v5 or later."
+     }
+    ]
+   },
+   {
+    "title": "Ask a variant question",
+    "shell": "python - <<'PY'\nimport torch\nfrom transformers import AutoModelForCausalLM, AutoTokenizer\n\nmodel_id = \"HuggingFaceBio/Carbon-X\"\n\ntokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)\nmodel = AutoModelForCausalLM.from_pretrained(model_id, dtype=torch.bfloat16, device_map=\"cuda\")\n\nmessages = [\n    {\n        \"role\": \"user\",\n        \"content\": (\n            \"Reference: ATGGTGCATCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGG\\n\"\n            \"Variant:   ATGGTGCATCTGACTCCTGTGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGG\\n\\n\"\n            \"Is this variant likely to be benign or pathogenic? Explain your reasoning.\"\n        ),\n    }\n]\ninputs = tokenizer.apply_chat_template(\n    messages,\n    add_generation_prompt=True,\n    enable_thinking=False,\n    return_tensors=\"pt\",\n    return_dict=True,\n).to(model.device)\n\noutputs = model.generate(**inputs, max_new_tokens=1024)\nprint(tokenizer.decode(outputs[0][inputs[\"input_ids\"].shape[1]:], skip_special_tokens=True))\nPY",
+    "explanation": "The model card's Python example, unchanged, wrapped in a shell heredoc. It downloads the weights on first run and keeps thinking disabled, as the developers recommend.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: How to use",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "model_id = \"HuggingFaceBio/Carbon-X\""
+     },
+     {
+      "source": "@hf-card",
+      "text": "tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)"
+     },
+     {
+      "source": "@hf-card",
+      "text": "model = AutoModelForCausalLM.from_pretrained(model_id, dtype=torch.bfloat16, device_map=\"cuda\")"
+     },
+     {
+      "source": "@hf-card",
+      "text": "outputs = model.generate(**inputs, max_new_tokens=1024)"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Carbon-X was post-trained and evaluated with `enable_thinking=False`, and we recommend keeping it that way."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "The model's English answer on whether the variant is likely benign or pathogenic, with its reasoning, printed to the terminal. Sampling uses the defaults in generation_config.json, so the text can differ between runs."
+  ],
+  "limitations": [
+   "These commands were read from the model card and have not been executed by Rewire.",
+   "The snippet does not pin a Hugging Face revision; this page was written from revision 17de89165e25c49e7de4f845d0e5d464469de359.",
+   "The card also documents serving with vLLM (vllm serve HuggingFaceBio/Carbon-X --trust-remote-code) behind an OpenAI-compatible API."
+  ],
+  "source_ids": [
+   "@hf-card"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "HuggingFaceBio/Carbon-X",
+   "parameters": 14822046720,
+   "context_length": 40960,
+   "context_unit": "tokens",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "Apache-2.0",
+   "code_url": "https://github.com/huggingface/carbon",
+   "weights_url": "https://huggingface.co/HuggingFaceBio/Carbon-X",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@hf-api",
+     "text": "\"total\":14822046720"
+    },
+    {
+     "source": "@hf-config",
+     "text": "\"max_position_embeddings\": 40960,"
+    }
+   ]
+  }
+ ],
+ "notes": "The fetched model card is the same file at the same revision as the existing source finedna-20261101-source-carbon-x-card; it was fetched again so it could be quoted. The existing record attributes (Apache-2.0, 14.8B, single 80 GB GPU, FineDNA, decontamination) agree with the card. Context is in tokens, and DNA tokens are 6-mers; the card states a base-pair figure only for the 8,192-token training length (about 49 kbp)."
+}
