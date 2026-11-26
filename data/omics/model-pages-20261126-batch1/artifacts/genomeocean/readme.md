@@ -1,0 +1,169 @@
+# [GenomeOcean: An Efficient Genome Foundation Model Trained on Large-Scale Metagenomic Assemblies](https://www.biorxiv.org/content/10.1101/2025.01.30.635558v2)
+
+![Figure 1](figures/Overview.jpeg)
+
+
+## 1. Installation
+
+### 1.1 Docker or Apptainer (Recommended)
+We provide container images for GenomeOcean, which is the recommended way to run the software due to complex dependencies like CUDA and vLLM. See `docker/` and `apptainer/` for more information on building the images.
+
+### 1.2 uv (Alternative)
+
+If you prefer to run locally without containers, we recommend using `uv` for dependency management.
+
+#### Pre-requisites: Python 3.10 - 3.12 (tested)
+Install `uv` if you haven't already:
+```bash
+# On macOS and Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Create a virtual environment and install dependencies:
+```bash
+# Create a new virtual environment
+uv venv GO --python 3.12
+source GO/bin/activate
+
+# Install GenomeOcean package and dependencies
+# This will install all dependencies including vllm, torch, etc.
+uv pip install -e ".[all]"
+
+
+#### Running Tests
+```bash
+python -m unittest unittests.py
+```
+
+
+## 1.3 Upgrading to vLLM V1 (migration guide)
+
+As of this release, GenomeOcean runs on the **vLLM V1 engine** (vLLM ≥ 0.24) with
+**transformers ≥ 5.12**. The V1 engine is significantly faster for generation — on NVIDIA
+A100 (GenomeOcean-4B) we measured **1.1×–3.7× higher generation throughput** than the old V0
+engine, with much better multi-GPU scaling (6.4× vs 2.4× going from 1→4 GPUs at tensor
+parallelism). Embedding throughput is unchanged. See `benchmarks/BENCHMARK_REPORT.md` for the
+full numbers.
+
+**If you use the `genomeocean` package API** (`LLMUtils`, the embedding/generation classes, or
+the `go_generate.py` / `go_scan.py` command-line tools): **no code changes are required.** The
+public API is unchanged and has been smoke-tested end-to-end on V1.
+
+**Two things to check when upgrading:**
+
+1. **Remove `VLLM_USE_V1=0`.** This environment variable forced the old V0 engine and no longer
+   exists in vLLM ≥ 0.11 — leaving it set will cause errors. We have removed it from the
+   Docker/Apptainer images; delete it from any of your own shell scripts or job files.
+
+2. **Use `PreTrainedTokenizerFast`, not `AutoTokenizer`, if you load the tokenizer directly.**
+   Under transformers ≥ 5.0, `AutoTokenizer.from_pretrained("pGenomeOcean/...")` can be routed
+   to the MistralCommon backend (GenomeOcean ships a BPE tokenizer, not a `tekken.json`), which
+   fails. The package handles this internally; downstream code that loads the tokenizer itself
+   should switch:
+
+   ```python
+   # Before (may fail on transformers >= 5.0)
+   from transformers import AutoTokenizer
+   tok = AutoTokenizer.from_pretrained("pGenomeOcean/GenomeOcean-4B")
+
+   # After
+   from transformers import PreTrainedTokenizerFast
+   tok = PreTrainedTokenizerFast.from_pretrained("pGenomeOcean/GenomeOcean-4B")
+   ```
+
+**Removed V0-only features.** vLLM V1 no longer supports `best_of`, `use_beam_search`,
+per-request `logits_processors`, or GPU↔CPU KV-cache swap. GenomeOcean does not use any of
+these, but if your own code passes them to vLLM directly, remove them.
+
+**Note:** the package sets `enforce_eager=True` (CUDA graphs disabled) to avoid a CUDA-graph
+capture hang seen on some aarch64 platforms (e.g. GB10). On x86/A100 you may set it back to
+`False` for extra speed if generation is stable in your environment.
+
+## 2. Usage
+
+GenomeOcean is compatible with all the standard HuggingFace APIs. We publish the following checkpoints on HuggingFace:
+
+| Checkpoint                                   | Description                                                  |
+| -------------------------------------------- | ------------------------------------------------------------ |
+| [pGenomeOcean/GenomeOcean-100M](https://huggingface.co/pGenomeOcean/GenomeOcean-100M)                  | The base model with 100M parameters. Support maximum sequence length of 1024 tokens (~5,100 bp). |
+| [pGenomeOcean/GenomeOcean-500M](https://huggingface.co/pGenomeOcean/GenomeOcean-500M)                  | The base model with 500M parameters. Support maximum sequence length of 1024 tokens (~5,100 bp). |
+| [pGenomeOcean/GenomeOcean-4B](https://huggingface.co/pGenomeOcean/GenomeOcean-4B)                    | The base model with 4B parameters. Support maximum sequence length of 10240 tokens (~51,000 bp). |
+| [pGenomeOcean/GenomeOcean-4B-bgcFM](https://huggingface.co/pGenomeOcean/GenomeOcean-4B-bgcFM)             | The `GenomeOcean-4B` model finetuned on 11M biosynthetic gene clusters (BGC) sequences. Support maximum sequence length of 10240 tokens (~51,000 bp). |
+| [pGenomeOcean/GenomeOcean-4B-Artificial-Detector](https://huggingface.co/pGenomeOcean/GenomeOcean-4B-Artificial-Detector)   | The `GenomeOcean-4B` model finetuned to detected GenomeOcean-generated sequences. A binary classifier where label `0` indicate artificial sequences. |
+
+We recommend using the `GenomeOcean-4B` model for general-purpose genome sequence analysis. The `GenomeOcean-4B-bgcFM` model is fine-tuned on BGC sequences and can be used for BGC-related tasks. The smaller models (`GenomeOcean-100M` and `GenomeOcean-500M`) can be used when GPU memory is limited, but the performance may be compromised.
+
+### 2.1. Sequence Embedding
+```bash
+cd examples
+python embedding_sequences.py \
+    --model_dir pGenomeOcean/GenomeOcean-4B \
+    --sequence_file ../sample_data/dna_sequences.txt \
+    --model_max_length 10240 \
+    --batch_size 10 \
+    --output_file outputs/embeddings.npy
+```
+
+### 2.2. Sequence Generation
+```bash
+cd examples
+python generate_sequences.py \
+    --model_dir pGenomeOcean/GenomeOcean-4B \
+    --promptfile ../sample_data/dna_sequences.txt \
+    --out_prefix outputs/generated \
+    --out_format fa \
+    --num 10 \
+    --min_seq_len 100 \
+    --max_seq_len 100 \
+    --temperature 1.3 \
+    --top_k -1 \
+    --top_p 0.7 \
+    --max_repeats 100 \
+    --presence_penalty 0.5 \
+    --frequency_penalty 0.5 \
+    --repetition_penalty 1.0 \
+    --seed 123 \
+    --sort_by_orf_length
+```
+
+### 2.3. more examples
+
+please see the folder `examples/`
+
+
+## 3. Contribute
+
+Please submit pull requests and issues to the main branch.
+
+## 4. Citation
+
+Zhou, Zhihan, et al. "GenomeOcean: An Efficient Genome Foundation Model Trained on Large-Scale Metagenomic Assemblies." bioRxiv (2025): 2025-01. (https://www.biorxiv.org/content/10.1101/2025.01.30.635558v2.full)
+
+```
+@article{zhou2025genomeocean,
+  title={GenomeOcean: An Efficient Genome Foundation Model Trained on Large-Scale Metagenomic Assemblies},
+  author={Zhou, Zhihan and Riley, Robert and Kautsar, Satria and Wu, Weimin and Egan, Rob and Hofmeyr, Steven and Goldhaber-Gordon, Shira and Yu, Mutian and Ho, Harrison and Liu, Fengchen and others},
+  journal={bioRxiv},
+  pages={2025--01},
+  year={2025},
+  publisher={Cold Spring Harbor Laboratory}
+}
+```
+
+## 5. Copyright Notice
+
+genomeocean: a pretrained microbial genome foundational model (genomeoceanLLM) ” Copyright (c) 2025, The Regents of the
+University of California, through Lawrence Berkeley National Laboratory (subject to receipt of any required approvals from the U.S. Dept. of Energy) and Northwestern University. All rights reserved.
+
+If you have questions about your rights to use or distribute this software,
+please contact Berkeley Lab's Intellectual Property Office at
+IPO@lbl.gov.
+
+NOTICE.  This Software was developed under funding from the U.S. Department
+of Energy and the U.S. Government consequently retains certain rights.  As
+such, the U.S. Government has been granted for itself and others acting on
+its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+Software to reproduce, distribute copies to the public, prepare derivative 
+works, and perform publicly and display publicly, and to permit others to do so.
+
+

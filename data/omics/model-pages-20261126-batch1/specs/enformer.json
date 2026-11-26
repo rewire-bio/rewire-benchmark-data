@@ -1,0 +1,641 @@
+{
+ "record_id": "regulatory-variant-20261009-model-enformer",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "google-deepmind/deepmind-research enformer/README.md at commit f5de0ede",
+   "description": "Official Enformer README in the DeepMind research monorepo, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/google-deepmind/deepmind-research/f5de0ede8430809180254ee957abf36ed62579ef/enformer/README.md",
+   "url": "https://github.com/google-deepmind/deepmind-research/tree/master/enformer",
+   "version": "git commit f5de0ede8430809180254ee957abf36ed62579ef",
+   "media_type": "text/markdown",
+   "sha256": "08e67f46f3b69d5d4b602a6859f46911a9e7ddea6dc7829b3c3fdda00dd586fd",
+   "retrieved_at": "2026-11-26T17:11:42Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "requirements",
+   "name": "google-deepmind/deepmind-research enformer/requirements.txt at commit f5de0ede",
+   "description": "Pinned Python dependencies of the Enformer package.",
+   "file": "artifacts/requirements.txt",
+   "artifact_url": "https://raw.githubusercontent.com/google-deepmind/deepmind-research/f5de0ede8430809180254ee957abf36ed62579ef/enformer/requirements.txt",
+   "url": "https://github.com/google-deepmind/deepmind-research/tree/master/enformer",
+   "version": "git commit f5de0ede8430809180254ee957abf36ed62579ef",
+   "media_type": "text/plain",
+   "sha256": "5825849602f7152be4926a6da26186956aa32a3129be59393057d8c218902ef0",
+   "retrieved_at": "2026-11-26T17:11:42Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "notebook",
+   "name": "google-deepmind/deepmind-research enformer/enformer-usage.ipynb at commit f5de0ede",
+   "description": "Official usage notebook: loading the pre-trained model, predictions, contribution scores and variant scoring.",
+   "file": "artifacts/usage-notebook.ipynb",
+   "artifact_url": "https://raw.githubusercontent.com/google-deepmind/deepmind-research/f5de0ede8430809180254ee957abf36ed62579ef/enformer/enformer-usage.ipynb",
+   "url": "https://github.com/google-deepmind/deepmind-research/tree/master/enformer",
+   "version": "git commit f5de0ede8430809180254ee957abf36ed62579ef",
+   "media_type": "application/x-ipynb+json",
+   "sha256": "94d8966529007fe26305b8e6e6d7cfa8e7d18b41c2a8d6d6cab8b8b26a2409ec",
+   "retrieved_at": "2026-11-26T17:11:49Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "google-deepmind/deepmind-research LICENSE at commit f5de0ede",
+   "description": "Licence file of the monorepo that holds the Enformer code, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/google-deepmind/deepmind-research/f5de0ede8430809180254ee957abf36ed62579ef/LICENSE",
+   "url": "https://github.com/google-deepmind/deepmind-research",
+   "version": "git commit f5de0ede8430809180254ee957abf36ed62579ef",
+   "media_type": "text/plain",
+   "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+   "retrieved_at": "2026-11-26T17:12:46Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Avsec et al. 2021, Effective gene expression prediction from sequence by integrating long-range interactions (Nature Methods), Europe PMC full text PMC8490152",
+   "description": "Open-access full text of the model paper as Europe PMC XML.",
+   "file": "artifacts/paper-fulltext.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8490152/fullTextXML",
+   "url": "https://doi.org/10.1038/s41592-021-01252-x",
+   "version": "Nature Methods (2021), as served by Europe PMC on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "354632b465ccce978c56e049a314134cb74ad78a5301c8c8bf3127aa06d6c3b0",
+   "retrieved_at": "2026-11-26T17:12:30Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "Enformer is a neural network that predicts gene expression and other genomic signals directly from DNA sequence. It reads about 200 kb of sequence and predicts 5,313 human (or 1,643 mouse) tracks, such as CAGE, DNase-seq, ATAC-seq and ChIP-seq signal, in 128 bp bins across the central 114,688 bp. Comparing predictions for reference and alternate sequences gives variant effect scores, and precomputed scores are published for common 1000 Genomes variants.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Abstract and Methods, Model architecture; README.md: Pre-computed variant effect predictions",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "of length 196,608 bp and predicts 5,313 genomic tracks for the human genome and 1,643 tracks for the mouse genome, each of length 896 corresponding to 114,688 bp aggregated into 128-bp bins"
+   },
+   {
+    "source": "@readme",
+    "text": "SAD \\[num_snps, num_targets](float16) - SNP Activity Difference (SAD) scores - main variant effect score computed as `model(alternate_sequence) - model(reference_sequence)`."
+   },
+   {
+    "source": "@readme",
+    "text": "We precomputed variant effect scores for all frequent variants (MAF>0.5%, in any population) present in the 1000 genomes project."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Enformer is a supervised model trained to reproduce measured genomic tracks. It has three parts: seven convolutional blocks with pooling that reduce 196,608 bp to 1,536 positions of 128 bp each, eleven transformer blocks that let distant positions exchange information, and a cropping layer followed by pointwise convolutions into separate human and mouse output heads. The transformer layers use relative positional basis functions and give a receptive field that reaches elements up to 100 kb away. It was trained jointly on human and mouse data from the Basenji2 dataset, with the input extended to 196,608 bp.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Model architecture and Training; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The Enformer architecture consists of three parts: (1) 7 convolutional blocks with pooling, (2) 11 transformer blocks, and (3) a cropping layer followed by final pointwise convolutions branching into 2 organism-specific network heads"
+     },
+     {
+      "source": "@paper",
+      "text": "The convolutional blocks with pooling first reduce the spatial dimension from 196,608 bp to 1,536 so that each sequence position vector represents 128 bp"
+     },
+     {
+      "source": "@paper",
+      "text": "Enformer uses custom relative positional basis functions in the transformer layers"
+     },
+     {
+      "source": "@paper",
+      "text": "reaching distal regulatory elements up to 100 kb away while still being able to effectively integrate their information"
+     },
+     {
+      "source": "@paper",
+      "text": "We modified the Basenji2 dataset by extending the input sequence to 196,608 bp from the original 131,072 bp using the hg38 reference genome."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "One pre-trained model is published, at https://tfhub.dev/deepmind/enformer/1, with code to load its weights into the Sonnet Enformer module for fine-tuning. The README's inference example passes 393,216 bp, of which the model uses only the central 196,608 bp. Precomputed SAD and SAR variant scores on hg19 and their top 20 principal components are published for frequent 1000 Genomes variants. The paper also describes fine-tuning the model on human data. A result should state the model URL and version, whether published scores were used, and the genome build.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Running Inference, Pre-computed variant effect predictions, Training Code; paper: Code availability, Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Pre-trained Enformer model is available on TF-Hub so that users can easily run it on new data:"
+     },
+     {
+      "source": "@readme",
+      "text": "Note that only the central 196,608 bp of the input sequence will be used by the Enformer model. The rest will be cropped within the model."
+     },
+     {
+      "source": "@readme",
+      "text": "Variant scores in HDF5 file format per chromosome for HG19 reference genome can be found"
+     },
+     {
+      "source": "@readme",
+      "text": "how to load the pre-trained weights into the Enformer module for fine-tuning"
+     },
+     {
+      "source": "@paper",
+      "text": "Finally, we fine-tuned the Enformer model on human data for 30,000 steps using a lower learning rate of 0.0001."
+     },
+     {
+      "source": "@paper",
+      "text": "https://tfhub.dev/deepmind/enformer/1"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Supervised sequence-to-function model (convolution and transformer network) predicting genomic tracks",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a deep learning architecture, called Enformer, that is able to integrate information from long-range interactions (up to 100 kb away) in the genome"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "7 convolutional blocks with attention pooling, 11 transformer blocks with relative positional encodings, a cropping layer and two organism-specific output heads; main model with 1,536 channels, implemented in Sonnet v2.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, Model architecture and Training; README.md: Training Code",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "(1) 7 convolutional blocks with pooling, (2) 11 transformer blocks"
+     },
+     {
+      "source": "@paper",
+      "text": "The main Enformer model with 1,536 channels was implemented in Sonnet v2, TensorFlow (v2.4.0)"
+     },
+     {
+      "source": "@readme",
+      "text": "The model is implemented using [Sonnet](https://github.com/deepmind/sonnet)."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "One-hot encoded DNA (order ACGT, N as all zeros). The model uses 196,608 bp; the published inference example passes 393,216 bp and the model crops it.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Running Inference",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The input sequence length is 393,216 with the prediction corresponding to 128 base pair windows of the center 114,688 base pairs."
+     },
+     {
+      "source": "@readme",
+      "text": "The input sequence is one hot encoded using the order of indices being 'ACGT' with N values being all zeros."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "896 bins of 128 bp for each of 5,313 human tracks or 1,643 mouse tracks. Track names are in the Basenji2 targets files.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Running Inference, Outputs",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "predictions['human'].shape # [batch_size, 896, 5313]"
+     },
+     {
+      "source": "@readme",
+      "text": "# [batch_size, 896, 1643]"
+     },
+     {
+      "source": "@readme",
+      "text": "The mapping from track idx to track name is found in the corresponding file in the basenji"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported in the sources read.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods; README.md"
+   },
+   {
+    "label": "Training data",
+    "value": "The Basenji2 dataset, extended to 196,608 bp inputs on hg38: for human, 2,131 TF ChIP-seq, 1,860 histone ChIP-seq, 684 DNase-seq or ATAC-seq and 638 CAGE tracks (5,313 in total); for mouse, 308, 750, 228 and 357 (1,643 in total). Human and mouse batches were alternated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Training",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For the human genome, each example contains 2,131 transcription factor (TF) chromatin immunoprecipitation and sequencing (ChIP–seq), 1,860 histone modification ChIP–seq, 684 DNase-seq or ATAC-seq, and 638 CAGE tracks (total 5,313,"
+     },
+     {
+      "source": "@paper",
+      "text": "For the mouse genome, each example contains 308 TF ChIP–seq, 750 histone modification ChIP–seq, 228 DNase-seq or ATAC-seq, and 357 CAGE tracks (total 1,643,"
+     },
+     {
+      "source": "@paper",
+      "text": "we alternated between a batch containing data from the human genome and the mouse genome"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One published pre-trained model, deepmind/enformer version 1 on TF Hub. The paper also describes a human fine-tuned model and smaller 768-channel models used for ablations.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Code availability, Methods; README.md: Running Inference",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "enformer = hub.Module('https://tfhub.dev/deepmind/enformer/1')"
+     },
+     {
+      "source": "@paper",
+      "text": "we used 768 channels (1/2 of the original Enformer model obtained by using a value size of 96 in MHA)"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported as a date. The training data are the Basenji2 dataset; gene annotation was GENCODE v32.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data availability"
+   },
+   {
+    "label": "Context limits",
+    "value": "196,608 bp input; predictions cover the central 114,688 bp in 128 bp bins. The authors report a receptive field reaching elements up to 100 kb away.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods and Results; README.md: Running Inference",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Note that only the central 196,608 bp of the input sequence will be used by the Enformer model."
+     },
+     {
+      "source": "@paper",
+      "text": "reaching distal regulatory elements up to 100 kb away"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not reported. The README licenses the model predictions (precomputed scores) under CC BY 4.0, but the sources read do not state a licence for the weights.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Pre-computed variant effect predictions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All model predictions are licensed under [CC-BY 4.0 license](https://creativecommons.org/licenses/by/4.0/)."
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@license"
+    ],
+    "source_locator": "Paper: Code availability; LICENSE",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "All components of our core algorithm, including the full model architecture and example code to train and evaluate the model are available under the open source Apache 2.0 license"
+     },
+     {
+      "source": "@license",
+      "text": "Apache License Version 2.0, January 2004"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/deepmind/deepmind-research/tree/master/enformer (archived at Zenodo 10.5281/zenodo.5098375). Weights: https://tfhub.dev/deepmind/enformer/1. Precomputed variant scores: https://console.cloud.google.com/storage/browser/dm-enformer/variant-scores/1000-genomes/enformer.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Code availability; README.md: Pre-computed variant effect predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "https://github.com/deepmind/deepmind-research/tree/master/enformer"
+     },
+     {
+      "source": "@paper",
+      "text": "The code is also archived at Zenodo 10.5281/zenodo.5098375"
+     },
+     {
+      "source": "@paper",
+      "text": "https://tfhub.dev/deepmind/enformer/1"
+     },
+     {
+      "source": "@readme",
+      "text": "(https://console.cloud.google.com/storage/browser/dm-enformer/variant-scores/1000-genomes/enformer)"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Long receptive field: the authors report it reaches regulatory elements up to 100 kb away, against 20 kb for the earlier Basenji2 and ExPecto models.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "By contrast, previous state-of-the-art models Basenji2 or ExPecto only reach elements up to 20 kb away"
+     }
+    ]
+   },
+   {
+    "text": "Predicts thousands of cell-type and assay-specific tracks at once, for human and mouse.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "predicts 5,313 genomic tracks for the human genome and 1,643 tracks for the mouse genome"
+     }
+    ]
+   },
+   {
+    "text": "Precomputed variant effect scores for frequent 1000 Genomes variants are published under CC BY 4.0, so many lookups need no inference.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Pre-computed variant effect predictions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We precomputed variant effect scores for all frequent variants (MAF>0.5%, in any population) present in the 1000 genomes project."
+     },
+     {
+      "source": "@readme",
+      "text": "All model predictions are licensed under"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "It predicts only the cell types and assays in its training data and cannot generalise to new ones, as the authors state.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "A limitation of the current approach is that we can model and predict only for cell types and assays in the training data and cannot generalize to new cell types or assays."
+     }
+    ]
+   },
+   {
+    "text": "The software is pinned to old versions (TensorFlow 2.5.0 in requirements.txt, 2.4.1 in the README text, Python 3.8 in the test instructions), and the usage notebook expects a GPU.",
+    "source_ids": [
+     "@requirements",
+     "@readme",
+     "@notebook"
+    ],
+    "source_locator": "requirements.txt; README.md: Setup; enformer-usage.ipynb: Setup",
+    "quotes": [
+     {
+      "source": "@requirements",
+      "text": "tensorflow==2.5.0"
+     },
+     {
+      "source": "@readme",
+      "text": "tensoflow (2.4.1)"
+     },
+     {
+      "source": "@readme",
+      "text": "python3.8 -m venv enformer_venv"
+     },
+     {
+      "source": "@notebook",
+      "text": "Start the colab kernel with GPU"
+     }
+    ]
+   },
+   {
+    "text": "The repository documentation is partly out of date: the README has a TODO where the model link should be, and the usage notebook still says the model is not yet publicly available.",
+    "source_ids": [
+     "@readme",
+     "@notebook"
+    ],
+    "source_locator": "README.md: Running Inference; enformer-usage.ipynb: opening notes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The simplest way to perform inference is to load the model via tfhub.dev (TODO: LINK)."
+     },
+     {
+      "source": "@notebook",
+      "text": "This colab will not yet work since the model isn't yet publicly available."
+     }
+    ]
+   },
+   {
+    "text": "The precomputed variant scores are on hg19 only and cover frequent variants (MAF above 0.5%), not rare ones.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Pre-computed variant effect predictions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Variant scores in HDF5 file format per chromosome for HG19 reference genome"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Enformer workflow",
+   "steps": [
+    "196,608 bp one-hot DNA",
+    "7 convolutional blocks with pooling to 1,536 positions of 128 bp",
+    "11 transformer blocks",
+    "Crop to the central 896 bins",
+    "Human head: 5,313 tracks; mouse head: 1,643 tracks",
+    "Variant score: alternate minus reference prediction"
+   ],
+   "caption": "Data flow from sequence to tracks and variant scores, as described in the paper and README.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "Paper: Methods, Model architecture; README.md: Pre-computed variant effect predictions",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The convolutional blocks with pooling first reduce the spatial dimension from 196,608 bp to 1,536"
+    },
+    {
+     "source": "@paper",
+     "text": "The transformer blocks then capture long-range interactions across the sequence."
+    },
+    {
+     "source": "@paper",
+     "text": "The cropping layer trims 320 positions on each side"
+    },
+    {
+     "source": "@readme",
+     "text": "main variant effect score computed as `model(alternate_sequence) - model(reference_sequence)`"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The parameter count is not stated in the sources read.",
+   "No licence for the weights is stated in the sources read.",
+   "Hardware needed for inference is not stated beyond the notebook asking for a GPU.",
+   "The README does not say whether the TF Hub model is the multi-species base model or the human fine-tuned model."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from enformer/README.md, enformer/requirements.txt, enformer/enformer-usage.ipynb and the LICENSE of google-deepmind/deepmind-research at commit f5de0ede8430809180254ee957abf36ed62579ef, and from the Europe PMC full text of the Nature Methods paper (PMC8490152), each fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Get the Enformer code, install its pinned requirements, run the unit test, then load the pre-trained model from TF Hub and predict tracks for one all-zero input.",
+  "prerequisites": [
+   "Python 3.8, as in the README's test instructions, and the pinned packages in requirements.txt (TensorFlow 2.5.0, dm-sonnet 2.0.0, tensorflow-hub 0.11.0).",
+   "The usage notebook asks for a GPU; memory needs are not stated.",
+   "Network access to tfhub.dev for the weights.",
+   "Code is Apache-2.0; no weights licence is stated."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/google-deepmind/deepmind-research.git\ncd deepmind-research\ngit checkout --detach f5de0ede8430809180254ee957abf36ed62579ef\ncd enformer",
+    "explanation": "The clone, checkout and cd lines are written by Rewire. The repository is the one the README was fetched from at this commit; the paper gives the older deepmind organisation URL for the same enformer folder.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Code availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "https://github.com/deepmind/deepmind-research/tree/master/enformer"
+     }
+    ]
+   },
+   {
+    "title": "Install and run the unit test",
+    "shell": "python3.8 -m venv enformer_venv\nsource enformer_venv/bin/activate\npip install -r requirements.txt\npython -m enformer_test",
+    "explanation": "Copied from the README.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Setup",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python3.8 -m venv enformer_venv source enformer_venv/bin/activate pip install -r requirements.txt python -m enformer_test"
+     }
+    ]
+   },
+   {
+    "title": "Load the pre-trained model and predict",
+    "shell": "python - <<'PY'\nimport tensorflow as tf\nimport tensorflow_hub as hub\n\nenformer = hub.load('https://tfhub.dev/deepmind/enformer/1').model\n\nSEQ_LENGTH = 393_216\ninputs = tf.zeros((1, SEQ_LENGTH, 4), dtype=tf.float32)\npredictions = enformer.predict_on_batch(inputs)\nprint(predictions['human'].shape)\nPY",
+    "explanation": "The README's inference example, wrapped in a shell heredoc. The model is loaded with hub.load(...).model as in the usage notebook instead of the README's hub.Module line, and a print is added. A real input is a one-hot encoded sequence of the same length.",
+    "source_ids": [
+     "@readme",
+     "@notebook"
+    ],
+    "source_locator": "README.md: Running Inference; enformer-usage.ipynb: Enformer class",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "SEQ_LENGTH = 393_216"
+     },
+     {
+      "source": "@readme",
+      "text": "inputs = tf.zeros((1, SEQ_LENGTH, 4), dtype=tf.float32) predictions = enformer.predict_on_batch(inputs)"
+     },
+     {
+      "source": "@notebook",
+      "text": "self._model = hub.load(tfhub_url).model"
+     },
+     {
+      "source": "@notebook",
+      "text": "model_path = 'https://tfhub.dev/deepmind/enformer/1'"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "The printed shape of the human predictions, which the README gives as [batch_size, 896, 5313]."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The README and the notebook load the model in different ways, and the README's example has a typo in its mouse line; the notebook's loading call is used here.",
+   "The pinned TensorFlow 2.5.0 and Python 3.8 may not install on current systems."
+  ],
+  "source_ids": [
+   "@readme",
+   "@notebook",
+   "@paper"
+  ]
+ },
+ "notes": "Both existing sources (Manzo et al. 2025 and Tang et al. 2025) are benchmarks that evaluated Enformer. The official code lives in a monorepo folder; the paper links github.com/deepmind/deepmind-research, and on 2026-11-26 the GitHub API resolved that name to google-deepmind/deepmind-research, which is where the files were fetched. On 2026-11-26 a GET of https://tfhub.dev/deepmind/enformer/1 redirected to the Kaggle model page https://www.kaggle.com/models/deepmind/enformer/tensorFlow2/enformer/1, so the weights now sit on Kaggle; that page was not saved and its licence was not read. A human may want to add the Kaggle page as a source for the weights licence."
+}

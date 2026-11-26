@@ -1,0 +1,604 @@
+{
+ "record_id": "gfm2-20261011-you2026-model-rnabert",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "mana438/RNABERT README.md at commit 1aeebcb2",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/mana438/RNABERT/1aeebcb2823bc34fc37f6527d63fca06917e3919/README.md",
+   "url": "https://github.com/mana438/RNABERT",
+   "version": "git commit 1aeebcb2823bc34fc37f6527d63fca06917e3919",
+   "media_type": "text/markdown",
+   "sha256": "94319bb8c359138ef00e6bd575a619b1cc18d1181a7eeb78b209bca4510c3380",
+   "retrieved_at": "2026-11-26T17:05:23Z",
+   "licence": "No licence stated",
+   "store_bytes": false
+  },
+  {
+   "key": "config",
+   "name": "mana438/RNABERT RNA_bert_config.json at commit 1aeebcb2",
+   "description": "Model configuration file of the official repository, pinned to a commit.",
+   "file": "artifacts/RNA_bert_config.json",
+   "artifact_url": "https://raw.githubusercontent.com/mana438/RNABERT/1aeebcb2823bc34fc37f6527d63fca06917e3919/RNA_bert_config.json",
+   "url": "https://github.com/mana438/RNABERT",
+   "version": "git commit 1aeebcb2823bc34fc37f6527d63fca06917e3919",
+   "media_type": "application/json",
+   "sha256": "f97799857a2a035b1fcd07e4ac33522cb937050a0780c36fd728db68bef5e015",
+   "retrieved_at": "2026-11-26T17:05:23Z",
+   "licence": "No licence stated",
+   "store_bytes": false
+  },
+  {
+   "key": "paper",
+   "name": "Akiyama and Sakakibara 2022, NAR Genomics and Bioinformatics lqac012, Europe PMC full text PMC8862729",
+   "description": "Full text of the RNABERT paper (doi:10.1093/nargab/lqac012).",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8862729/fullTextXML",
+   "url": "https://doi.org/10.1093/nargab/lqac012",
+   "version": "Version of record, NAR Genomics and Bioinformatics 2022",
+   "media_type": "application/xml",
+   "sha256": "d4de00d191c1a58e5a8d69cc63556df89fcb49f8ac32f9ead0c07ca8fd7a171c",
+   "retrieved_at": "2026-11-26T17:07:53Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "RNABERT is a small RNA language model from Keio University that turns each base of a non-coding RNA sequence into a numerical vector (an embedding) that reflects its sequence context and secondary structure. It reads RNA sequences in FASTA format and outputs per-base embeddings, which the authors use to align RNAs by structure and to cluster them into RNA families.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Abstract, Introduction; README.md: Data processing, Earn embeddings",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "Department of Biosciences and Informatics, Keio University"
+   },
+   {
+    "source": "@paper",
+    "text": "we construct an informative base embedding method, RNABERT, for RNA sequences that takes into account the context and secondary structure of RNA sequences"
+   },
+   {
+    "source": "@readme",
+    "text": "RNABERT requires that RNA sequences be represented in fasta format."
+   },
+   {
+    "source": "@readme",
+    "text": "To obtain the embedding vector for the RNA sequence, run"
+   },
+   {
+    "source": "@paper",
+    "text": "apply this algorithm to two fundamental RNA sequence problems: structural alignment and clustering"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Each base gets a 120-dimensional token embedding plus a position embedding, and the sum passes through six Transformer layers. The output is a context-sensitive embedding for every base. Training alternates two tasks. In masked language modelling (MLM), some bases are hidden and predicted from the rest. In structural alignment learning (SAL), pairs of sequences from Rfam seed alignments are aligned using their embeddings, so that bases aligned in the reference alignment get similar embeddings. A structural alignment of two RNAs is then computed from the embeddings with the Needleman-Wunsch algorithm.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Figure 2 caption; Introduction; Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Token and position embedding randomly generates a 120-dimensional vector representing four RNA bases. The transformer layer component consists of a stack of six transformer layers"
+     },
+     {
+      "source": "@paper",
+      "text": "The weights of the transformer layer are trained by alternately training two different tasks (MLM and SAL) on top of the output of the transformer layer."
+     },
+     {
+      "source": "@paper",
+      "text": "The SAL task employs pre-training using seed alignments obtained from the Rfam database"
+     },
+     {
+      "source": "@paper",
+      "text": "so that the bases aligned in the seed structural alignment are expected to have more similar embeddings"
+     },
+     {
+      "source": "@paper",
+      "text": "the third procedure calculates the alignment by the Needleman–Wunsch algorithm"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "One pre-trained model file is offered, through a Google Drive link in the README, with no version number. The README says this model was trained on the full Rfam 14.3 dataset (about 400 nucleotides), while the paper describes MLM pre-training on 76 237 human small ncRNAs from RNAcentral and SAL training on Rfam alignments (TrainSet-A or TrainSet-B). Which of the paper's settings the download matches is not stated. A result should cite the repository commit and say that the Google Drive model was used.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "README.md: Download pre-trained RNABERT; paper: Datasets",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Download the pre-trained model in to a directory. This model has been created using a full Rfam 14.3 dataset (~400nt)."
+     },
+     {
+      "source": "@paper",
+      "text": "For the pre-training of the MLM task, 76 237 human-derived small ncRNAs with lengths ranging from 20 to 440 bases from RNAcentral"
+     },
+     {
+      "source": "@paper",
+      "text": "In the training of the SAL task, two types of datasets, named TrainSet-A and TrainSet-B, were devised."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Pre-trained RNA base embedding model (BERT-style language model)",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we construct an informative base embedding method, RNABERT"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Transformer encoder: 6 layers, 12 attention heads, embedding size 120, feed-forward size 40, GELU activation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@config",
+     "@paper"
+    ],
+    "source_locator": "Paper: Figure 2 caption; RNA_bert_config.json",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The transformer layer component consists of a stack of six transformer layers"
+     },
+     {
+      "source": "@paper",
+      "text": "generates a 120-dimensional vector representing four RNA bases"
+     },
+     {
+      "source": "@config",
+      "text": "\"num_attention_heads\": 12, \"multiple\": 10, \"num_hidden_layers\": 6"
+     },
+     {
+      "source": "@config",
+      "text": "\"intermediate_size\": 40"
+     },
+     {
+      "source": "@config",
+      "text": "\"hidden_act\": \"gelu\""
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "RNA sequences in FASTA format, with bases A, U (or T), G and C.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Data processing",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "RNABERT requires that RNA sequences be represented in fasta format. All nucleotides are represented by A, U (T), G, C."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "A 120-dimensional embedding per base, written to an output file; pairwise structural alignments; family clusters.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "README.md: Prediction, Earn embeddings; paper: Figure 2 caption",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--embedding_output ${OUTPUT_FILE}"
+     },
+     {
+      "source": "@readme",
+      "text": "--show_aln"
+     },
+     {
+      "source": "@paper",
+      "text": "The final output from the transformer layer is an informative base embedding"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported in the sources read.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Materials and methods; README.md"
+   },
+   {
+    "label": "Training data",
+    "value": "Paper: MLM on 76 237 human small ncRNAs (20 to 440 bases) from RNAcentral, expanded to 762 370 masked copies; SAL on pairwise structural alignments from Rfam seed alignments (TrainSet-A: 36 families; TrainSet-B: all 3983 Rfam families except those in the BRAliBase2.1 k2 benchmark). README: the downloadable model used the full Rfam 14.3 dataset.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Datasets, MLM task; README.md: Download pre-trained RNABERT",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The pre-training set for the MLM task consists of 762 370 sequences generated from 76 237 human ncRNA sequences obtained from RNAcentral"
+     },
+     {
+      "source": "@paper",
+      "text": "For the pre-training of the MLM task, 76 237 human-derived small ncRNAs with lengths ranging from 20 to 440 bases from RNAcentral"
+     },
+     {
+      "source": "@paper",
+      "text": "TrainSet-A consists of RNA sequences sampled from seed RNA sequences in 36 RNA families"
+     },
+     {
+      "source": "@paper",
+      "text": "TrainSet-B consists of RNA sequences from all RNA families (3983 families) in Rfam database except the RNA families used in the benchmark dataset BRAliBase2.1 k2 database"
+     },
+     {
+      "source": "@readme",
+      "text": "This model has been created using a full Rfam 14.3 dataset (~400nt)."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One pre-trained model, distributed as a single Google Drive file with no version label.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Download pre-trained RNABERT",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "[RNABERT](https://drive.google.com/file/d/1sT6jlv9vrpX0npKmnbFeOqZ1JZDrZTQ2/view?usp=sharing)"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Rfam 14.3 for the downloadable model, according to the README. The RNAcentral release used is not stated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Download pre-trained RNABERT",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This model has been created using a full Rfam 14.3 dataset (~400nt)."
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "440 positions (max_position_embeddings in the configuration). The MLM training sequences were 20 to 440 bases long, and the README describes the download as trained on sequences of about 400 nucleotides.",
+    "status": "source_checked",
+    "source_ids": [
+     "@config",
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "RNA_bert_config.json; paper: Datasets; README.md",
+    "quotes": [
+     {
+      "source": "@config",
+      "text": "\"max_position_embeddings\": 440"
+     },
+     {
+      "source": "@paper",
+      "text": "with lengths ranging from 20 to 440 bases"
+     },
+     {
+      "source": "@readme",
+      "text": "full Rfam 14.3 dataset (~400nt)"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not reported. The README gives no licence for the pre-trained model.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md"
+   },
+   {
+    "label": "Code licence",
+    "value": "Not reported. The repository contains no licence file and the README states none.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md; repository file list at commit 1aeebcb2"
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/mana438/RNABERT. Weights: Google Drive (https://drive.google.com/file/d/1sT6jlv9vrpX0npKmnbFeOqZ1JZDrZTQ2/view). Training data: Google Drive (https://drive.google.com/file/d/1jJa6_TOYNrJj5tN-8t4mL2IUDoQprtzV/view).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Data availability; README.md: Data processing, Download pre-trained RNABERT",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The codes, pre-trained RNABERT model, and all datasets used in this study are available at"
+     },
+     {
+      "source": "@paper",
+      "text": "xlink:href=\"https://github.com/mana438/RNABERT.git\""
+     },
+     {
+      "source": "@readme",
+      "text": "[RNABERT](https://drive.google.com/file/d/1sT6jlv9vrpX0npKmnbFeOqZ1JZDrZTQ2/view?usp=sharing)"
+     },
+     {
+      "source": "@readme",
+      "text": "[DATASETS](https://drive.google.com/file/d/1jJa6_TOYNrJj5tN-8t4mL2IUDoQprtzV/view?usp=sharing)"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The SAL task trains embeddings on Rfam structural alignments, so the embeddings are designed to carry secondary structure information, not sequence alone.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "RNABERT introduces a novel pre-training task, SAL, in addition to the usual MLM task to more explicitly incorporate RNA secondary structure information into the base embedding for structural alignments."
+     }
+    ]
+   },
+   {
+    "text": "The model is very small (six layers, 120-dimensional embeddings), and the repository includes training code and sample data for both pre-training tasks.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Figure 2 caption; README.md: Pre-train",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a stack of six transformer layers"
+     },
+     {
+      "source": "@paper",
+      "text": "a 120-dimensional vector"
+     },
+     {
+      "source": "@readme",
+      "text": "see the template data at /sample/mlm/ for MLM task and /sample/sal/ for SAL task"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Inputs are limited to 440 positions, and training used short non-coding RNAs, so long transcripts such as mRNAs are outside what the model saw.",
+    "source_ids": [
+     "@config",
+     "@paper"
+    ],
+    "source_locator": "RNA_bert_config.json; paper: Datasets",
+    "quotes": [
+     {
+      "source": "@config",
+      "text": "\"max_position_embeddings\": 440"
+     },
+     {
+      "source": "@paper",
+      "text": "76 237 human-derived small ncRNAs with lengths ranging from 20 to 440 bases"
+     }
+    ]
+   },
+   {
+    "text": "No licence is given for the code or the weights, so reuse terms are unclear.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Please cite this paper if you use our code or system output."
+     }
+    ]
+   },
+   {
+    "text": "The software is dated and GPU-bound: Python 3.6.5, PyTorch 1.4.0 or later, a C++17 compiler and at least one NVIDIA GPU. The authors report about 35.2 GB peak memory for structural alignment.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "README.md: Environment setup; paper: Results",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Our code is written with python Python 3.6.5. Our code requires PyTorch version >= 1.4.0, biopython version >=1.76, and C++17 compatible compiler."
+     },
+     {
+      "source": "@readme",
+      "text": "please make sure you have at least one NVIDIA GPU"
+     },
+     {
+      "source": "@paper",
+      "text": "the maximum memory consumption for the RNA structural alignment was around 35.2G bytes in RNABERT"
+     }
+    ]
+   },
+   {
+    "text": "The weights are a single unversioned Google Drive file, and the README's description of its training data (Rfam 14.3) differs from the paper's pre-training description.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "README.md: Download pre-trained RNABERT; paper: Datasets",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This model has been created using a full Rfam 14.3 dataset (~400nt)."
+     },
+     {
+      "source": "@paper",
+      "text": "from 76 237 human ncRNA sequences obtained from RNAcentral"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "RNABERT workflow",
+   "steps": [
+    "RNA sequence in FASTA format",
+    "Token and position embeddings (120 dimensions)",
+    "Six Transformer layers",
+    "Embedding for each base",
+    "Structural alignment or family clustering"
+   ],
+   "caption": "Data flow as described in Figure 2 of the paper and the README.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "Paper: Figure 2 caption, Abstract; README.md: Data processing",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "RNABERT requires that RNA sequences be represented in fasta format."
+    },
+    {
+     "source": "@paper",
+     "text": "Token and position embedding randomly generates a 120-dimensional vector representing four RNA bases."
+    },
+    {
+     "source": "@paper",
+     "text": "The transformer layer component consists of a stack of six transformer layers"
+    },
+    {
+     "source": "@paper",
+     "text": "The final output from the transformer layer is an informative base embedding"
+    },
+    {
+     "source": "@paper",
+     "text": "two fundamental RNA sequence problems: structural alignment and clustering"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count is given in the sources read.",
+   "No licence is stated for code or weights.",
+   "The README's account of the downloadable model's training data (full Rfam 14.3) does not match the paper's MLM pre-training data (RNAcentral); which paper setting the download corresponds to is not stated.",
+   "The format of the embedding output file is not described."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Written from README.md and RNA_bert_config.json of mana438/RNABERT at commit 1aeebcb2 and the Europe PMC full text of the NAR Genomics and Bioinformatics paper (PMC8862729), all fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install RNABERT, download the pre-trained model and write per-base embeddings for the repository's sample sequences.",
+  "prerequisites": [
+   "Python 3.6.5 as used by the authors, PyTorch 1.4.0 or later, biopython 1.76 or later, and a C++17 compiler.",
+   "At least one NVIDIA GPU, as the README requires.",
+   "The pre-trained model file, downloaded by hand from the Google Drive link in the README. No licence is stated for it."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit and install",
+    "shell": "git clone https://github.com/mana438/RNABERT.git\ncd RNABERT\ngit checkout --detach 1aeebcb2823bc34fc37f6527d63fca06917e3919\npython setup.py install",
+    "explanation": "The README's clone line has the owner missing (https://github.com//RNABERT); the repository URL here is the one given in the paper. A checkout line is added to pin the commit read for this page.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "README.md: Install the package; paper: Data availability",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com//RNABERT cd RNABERT python setup.py install"
+     },
+     {
+      "source": "@paper",
+      "text": "xlink:href=\"https://github.com/mana438/RNABERT.git\""
+     }
+    ]
+   },
+   {
+    "title": "Download the pre-trained model",
+    "shell": "# Download the pre-trained RNABERT file from\n# https://drive.google.com/file/d/1sT6jlv9vrpX0npKmnbFeOqZ1JZDrZTQ2/view?usp=sharing\n# into a directory of your choice.",
+    "explanation": "The README gives only a Google Drive link. Note the full path of the downloaded file for the next step.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Download pre-trained RNABERT",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "[RNABERT](https://drive.google.com/file/d/1sT6jlv9vrpX0npKmnbFeOqZ1JZDrZTQ2/view?usp=sharing)"
+     },
+     {
+      "source": "@readme",
+      "text": "Download the pre-trained model in to a directory."
+     }
+    ]
+   },
+   {
+    "title": "Write embeddings",
+    "shell": "export PRED_FILE=sample/aln/sample.raw.fa\nexport PRE_WEIGHT=/path/to/pretrained/weight\nexport OUTPUT_FILE=/path/to/output/file\n\npython MLM_SFP.py \\\n    --pretraining ${PRE_WEIGHT} \\\n    --data_embedding ${PRED_FILE} \\\n    --embedding_output ${OUTPUT_FILE} \\\n    --batch 40",
+    "explanation": "The README's embedding command, using the sample FASTA from its prediction section. Set PRE_WEIGHT to the downloaded model file and OUTPUT_FILE to the file to write; the README uses OUTPUT_FILE without defining it, so the export line is added. The README's version lacks a backslash after MLM_SFP.py and has a trailing one after --batch 40; both are corrected here so the command runs as one line.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Prediction; Earn embeddings",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "export PRED_FILE=sample/aln/sample.raw.fa export PRE_WEIGHT=/path/to/pretrained/weight"
+     },
+     {
+      "source": "@readme",
+      "text": "--pretraining ${PRE_WEIGHT} \\ --data_embedding ${PRED_FILE} \\ --embedding_output ${OUTPUT_FILE} \\ --batch 40 \\"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Per-base embedding vectors for the sample sequences, written to OUTPUT_FILE. The README does not describe the file format."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The README's clone URL and line continuations are broken; the fixes made here are described in each step.",
+   "The software targets Python 3.6 and PyTorch 1.4 or later; newer environments were not checked."
+  ],
+  "source_ids": [
+   "@readme",
+   "@paper"
+  ]
+ },
+ "notes": "The repository has no licence file, so its README and config are hashed but not stored. MultiMolecule hosts an unofficial port of RNABERT on Hugging Face; it was not used. The record's area facet is dna-genomes, although RNABERT is an RNA model; consider rna-transcriptomes. The README and the paper disagree on the training data behind the downloadable model."
+}
