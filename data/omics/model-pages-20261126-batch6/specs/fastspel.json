@@ -1,0 +1,684 @@
+{
+ "record_id": "lit-otheromics-20261011-pepspecbench-model-fastspel",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Hamaneh and Yu 2025, FastSpel: A Method for Fast Spectral Library Generation, Journal of Proteome Research, Europe PMC full text PMC12501936",
+   "description": "Open-access full text of the FastSpel paper (CC-BY 4.0) from Europe PMC. This is the model's own paper.",
+   "file": "artifacts/paper.xml",
+   "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC12501936/fullTextXML",
+   "url": "https://doi.org/10.1021/acs.jproteome.5c00279",
+   "version": "PMC12501936, as served on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "87e8442e56aaafa77c271fe0790ebd555a757dcd54cfb3692a62b95dd689d885",
+   "retrieved_at": "2026-11-26T22:00:22Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "download-page",
+   "name": "FastSpel page on the NCBI Quantitative Molecular Biological Physics group site, as served on 2026-11-26",
+   "description": "The official download and usage page named in the paper: install commands, the generate and train commands and the input format.",
+   "file": "artifacts/download-page.html",
+   "artifact_url": "https://www.ncbi.nlm.nih.gov/CBBresearch/Yu/downloads/fastspel.html",
+   "url": "https://www.ncbi.nlm.nih.gov/CBBresearch/Yu/downloads/fastspel.html",
+   "version": "As served on 2026-11-26; the page says it was last updated on 2 September 2026",
+   "media_type": "text/html",
+   "sha256": "cfc760f3f4a0ba08062878652570348c8d2e0da51515be1e5db24b9c1a9b5eab",
+   "retrieved_at": "2026-11-26T22:00:46Z",
+   "store_bytes": false
+  },
+  {
+   "key": "ftp-listing",
+   "name": "Directory listing of the FastSpel FTP folder, as served on 2026-11-26",
+   "description": "The FTP folder the download page links to, showing the released package file.",
+   "file": "artifacts/ftp-listing.html",
+   "artifact_url": "https://ftp.ncbi.nlm.nih.gov/pub/qmbp/qmbp_ms/FastSpel/",
+   "url": "https://ftp.ncbi.nlm.nih.gov/pub/qmbp/qmbp_ms/FastSpel/",
+   "version": "As served on 2026-11-26",
+   "media_type": "text/html",
+   "sha256": "5e2bc08dc39a4e451dceda906874b426652c6f56b2dcaddae4a569d77714e9ea",
+   "retrieved_at": "2026-11-26T22:01:02Z",
+   "store_bytes": false
+  },
+  {
+   "key": "pepspecbench",
+   "name": "PepSpecBench arXiv 2605.01945v1 HTML full text (Yang et al. 2026)",
+   "description": "The benchmark paper that evaluated this model, fetched so its statements about the model can be quoted. Under the arXiv perpetual non-exclusive licence, so the bytes are hashed and not committed.",
+   "file": "artifacts/pepspecbench.html",
+   "artifact_url": "https://arxiv.org/html/2605.01945v1",
+   "url": "https://arxiv.org/abs/2605.01945v1",
+   "version": "arXiv 2605.01945v1, as served on 2026-11-26",
+   "media_type": "text/html",
+   "sha256": "88593c0ae3f0066461468b989cabfe3b4c6a7976d39639cae5066dd12f6dcce1",
+   "retrieved_at": "2026-11-26T21:54:45Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "FastSpel predicts the fragment intensities of a tryptic peptide measured by higher-energy collisional dissociation, so that a spectral library can be generated or peptide-spectrum matches rescored. It takes a list of precursors, each with a modified sequence, a precursor charge and a collision energy, and returns the non-zero predicted b and y ion intensities with their m/z values. Instead of a neural network it fits a separate multistep linear regression for each peptide length, charge and collision energy, which makes it fast and its parameters readable.",
+  "summary_source_ids": [
+   "@paper",
+   "@download-page"
+  ],
+  "summary_source_locator": "paper: abstract, Description of FastSpel Prediction Method; download page: Spectral library generation",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "we introduce FastSpel (<underline>fast</underline> <underline>spe</underline>ctral <underline>l</underline>ibrary), a fast and interpretable fragment intensity prediction method for tryptic peptides"
+   },
+   {
+    "source": "@paper",
+    "text": "FastSpel uses a multistep linear regression to relate the matrix representing the sequences of peptides of given length and charge, to the matrix containing the predicted fragment intensities."
+   },
+   {
+    "source": "@download-page",
+    "text": "The required fields are \"modified_sequence\",\n            \"precursor_charge\", and \"collision_energy\"."
+   },
+   {
+    "source": "@download-page",
+    "text": "This is a tab-separated file containing the precursors, their\n            non-zero predicted intensities, and the corresponding m/z values."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "For each combination of peptide length, precursor charge and collision energy, FastSpel fits a multistep linear regression that maps a binary encoding of the peptide sequence to the fragment intensity profile. Peptides are built from the 20 common amino acids plus oxidised methionine, so the encoding uses 21 symbols, and fragments are predicted up to charge min(3, precursor charge). The model is effectively hundreds of small separate models: the paper says 350 length, charge and collision energy triplets were trained. Because the relation is linear, the authors read the fitted coefficients and find known fragmentation rules such as the proline effect.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Description of FastSpel Prediction Method, Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "FastSpel uses a multistep linear regression to relate the matrix representing the sequences of peptides of given length and charge, to the matrix containing the predicted fragment intensities."
+     },
+     {
+      "source": "@paper",
+      "text": "we use a multistep linear regression to find an equation that relates the matrix containing the predicted intensity profiles"
+     },
+     {
+      "source": "@paper",
+      "text": "In this study, we consider only peptides that consist of a subset of the 20 preval"
+     },
+     {
+      "source": "@paper",
+      "text": "effectively training hundreds of separate models, each of which require pretty large amount of data to produce good results"
+     },
+     {
+      "source": "@paper",
+      "text": "This simple linear relation allows us to easily interpret the model parameters and relate them to known rules of fragmentation chemistry (e.g., the “proline effect”), or suggest new fragmentation patterns."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The code is a Python package distributed from the group's own site, not from GitHub or PyPI. The FTP folder it links to holds one file, fastspel-0.1.0.tar.gz, and the page's install commands name that same version. The page says it was last updated on 2 September 2026. A result should name the package version and the collision energy used, because a separate model is fitted per collision energy and only the six trained values are accepted.",
+    "source_ids": [
+     "@paper",
+     "@download-page",
+     "@ftp-listing"
+    ],
+    "source_locator": "paper: closing paragraph; download page: Installation; FTP listing",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "FastSpel Python package is available on our Web site"
+     },
+     {
+      "source": "@download-page",
+      "text": "tar -xzf fastspel-0.1.0.tar.gz"
+     },
+     {
+      "source": "@ftp-listing",
+      "text": "href=\"fastspel-0.1.0.tar.gz\""
+     },
+     {
+      "source": "@download-page",
+      "text": "Last update: September 2, 2026"
+     },
+     {
+      "source": "@paper",
+      "text": "the collision energies considered are limited to the values the method has been trained for (20, 23, 25, 28, 30, 35)"
+     }
+    ]
+   },
+   {
+    "title": "How the benchmark used it",
+    "body": "PepSpecBench calls FastSpel a linear model of about 50K parameters and uses it as a lower-bound reference, with its output projected into the benchmark's shared fragment layout. All six baselines, FastSpel among them, were retrained on the benchmark data under backbone-disjoint splits, so that parameter figure and those results describe the benchmark's retrained model rather than the released package.",
+    "source_ids": [
+     "@pepspecbench"
+    ],
+    "source_locator": "PepSpecBench Section 3.2",
+    "quotes": [
+     {
+      "source": "@pepspecbench",
+      "text": "50K parameters) is a linear model whose output is projected to the canonical layout, serving as a lower-bound reference."
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "All baselines are retrained on the benchmark data under the Backbone-Disjoint splits described above."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Linear regression fragment intensity predictor for tryptic HCD peptides, used for spectral library generation and rescoring.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we introduce FastSpel (<underline>fast</underline> <underline>spe</underline>ctral <underline>l</underline>ibrary), a fast and interpretable fragment intensity prediction method for tryptic peptides"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Multistep linear regression, fitted separately for each peptide length, charge and collision energy; 350 such triplets were trained.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Description of FastSpel Prediction Method, Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "FastSpel uses a multistep linear regression to relate the matrix representing the sequences of peptides of given length and charge, to the matrix containing the predicted fragment intensities."
+     },
+     {
+      "source": "@paper",
+      "text": "The list of the 350"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A comma-separated list of precursors with modified_sequence, precursor_charge and collision_energy. Cysteines are treated as carbamidomethylated and the only variable modification accepted is oxidised methionine.",
+    "status": "source_checked",
+    "source_ids": [
+     "@download-page"
+    ],
+    "source_locator": "download page: Spectral library generation",
+    "quotes": [
+     {
+      "source": "@download-page",
+      "text": "The required fields are \"modified_sequence\",\n            \"precursor_charge\", and \"collision_energy\"."
+     },
+     {
+      "source": "@download-page",
+      "text": "Note that all Cysteines are considered carbamidomethylated (fixed modification).\n            Currently, the only variable accepted modification is oxidized Methoinine, which should be specified as M(ox) or M[UNIMOD:35]"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "A tab-separated file of precursors with their non-zero predicted b and y ion intensities and the matching m/z values; from Python, a dictionary keyed by sequence, charge and collision energy.",
+    "status": "source_checked",
+    "source_ids": [
+     "@download-page",
+     "@paper"
+    ],
+    "source_locator": "download page: Spectral library generation; paper: FastSpel Limitations",
+    "quotes": [
+     {
+      "source": "@download-page",
+      "text": "This is a tab-separated file containing the precursors, their\n            non-zero predicted intensities, and the corresponding m/z values."
+     },
+     {
+      "source": "@download-page",
+      "text": "The output (inten_dict) is a python dictionary whose keys are (sequence, charge, collisio_energy)\n            triplets."
+     },
+     {
+      "source": "@paper",
+      "text": "FastSpel has three main limitations in comparison with other prediction methods: (1) no retention time/ion mobility prediction capability, (2) intensity prediction only for tryptic/HCD data, and (3) predictions limited to only"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported as a count in the model's own sources: the parameters are the coefficient matrices of 350 separate regressions. PepSpecBench quotes about 50K parameters for the model it retrained.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@pepspecbench"
+    ],
+    "source_locator": "paper: Results; PepSpecBench Section 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The list of the 350"
+     },
+     {
+      "source": "@pepspecbench",
+      "text": "50K parameters) is a linear model whose output is projected to the canonical layout, serving as a lower-bound reference."
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "The tryptic HCD ProteomeTools data (PT-train) downloaded from the Prosit figshare project: peptides of length 7 to 30, charges 1 to 6, at six collision energies (20, 23, 25, 28, 30, 35).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Methods, Training Data",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We used the ProteomeTools data for training FastSpel."
+     },
+     {
+      "source": "@paper",
+      "text": "The PT-train data contain peptides of lengths between 7 and 30, charges between 1 and 6, and intensities obtained using 6 collision energies that are 20, 23, 25, 28, 30, and 35."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "fastspel-0.1.0, the single package file in the group's FTP folder and the version named in the install commands.",
+    "status": "source_checked",
+    "source_ids": [
+     "@ftp-listing",
+     "@download-page"
+    ],
+    "source_locator": "FTP listing; download page: Installation",
+    "quotes": [
+     {
+      "source": "@ftp-listing",
+      "text": "href=\"fastspel-0.1.0.tar.gz\""
+     },
+     {
+      "source": "@download-page",
+      "text": "tar -xzf fastspel-0.1.0.tar.gz"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported as a date. The training data are the ProteomeTools tryptic HCD sets from the Prosit figshare project.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Methods, Training Data",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We used the ProteomeTools data for training FastSpel."
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "Peptide length 7 to 30 and charge 1 to 6 in the training data, with models fitted for the most frequent combinations: charge 2 with length 7 to 24, charge 3 with length 8 to 30 and charge 4 with length 12 to 30. Only the six trained collision energies are accepted.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Methods, Training Data; FastSpel Limitations",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The PT-train data contain peptides of lengths between 7 and 30, charges between 1 and 6, and intensities obtained using 6 collision energies that are 20, 23, 25, 28, 30, and 35."
+     },
+     {
+      "source": "@paper",
+      "text": "for the most frequently occurring"
+     },
+     {
+      "source": "@paper",
+      "text": "the collision energies considered are limited to the values the method has been trained for (20, 23, 25, 28, 30, 35)"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated. The model coefficients ship inside the package; the paper carries the statement that the article is not subject to U.S. copyright and is licensed CC-BY 4.0, which covers the article, not the software.",
+    "status": "unreported",
+    "source_ids": [
+     "@download-page",
+     "@paper"
+    ],
+    "source_locator": "download page; paper: permissions"
+   },
+   {
+    "label": "Code licence",
+    "value": "Not stated. The download page gives install commands but no licence, and the package is distributed from an NCBI group site rather than a code host.",
+    "status": "unreported",
+    "source_ids": [
+     "@download-page",
+     "@ftp-listing"
+    ],
+    "source_locator": "download page; FTP listing"
+   },
+   {
+    "label": "Access",
+    "value": "Code and model: https://www.ncbi.nlm.nih.gov/CBBresearch/Yu/downloads/fastspel.html, with the package at https://ftp.ncbi.nlm.nih.gov/pub/qmbp/qmbp_ms/FastSpel/. No GitHub repository is named in the sources read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@download-page",
+     "@ftp-listing"
+    ],
+    "source_locator": "paper: closing paragraph; download page: Installation; FTP listing",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "FastSpel Python package is available on our Web site"
+     },
+     {
+      "source": "@download-page",
+      "text": "You can download and install FastSpel directly from its source code."
+     },
+     {
+      "source": "@ftp-listing",
+      "text": "href=\"fastspel-0.1.0.tar.gz\""
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Prediction is fast on CPU only: the authors report one million precursors in under 5 s on a single CPU core, and hundreds of times faster than Prosit, PeptDeep and MS2PIP in their own test.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Results, prediction speed",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Using a single (AMD EPYC 3.8 GHZ) CPU, FastSpel is able to predict intensities for one million precursors in less than 5 s."
+     },
+     {
+      "source": "@paper",
+      "text": "using only 1 CPU, FastSpel is hundreds of times faster than the other three methods"
+     }
+    ]
+   },
+   {
+    "text": "The fitted coefficients can be read directly, and the authors use them to recover known fragmentation rules such as the proline effect.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: abstract, Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "analysis of parameters of the model corroborates known fragmentation rules, such as the “proline effect”, and suggests novel patterns"
+     },
+     {
+      "source": "@paper",
+      "text": "This simple linear relation allows us to easily interpret the model parameters and relate them to known rules of fragmentation chemistry (e.g., the “proline effect”), or suggest new fragmentation patterns."
+     }
+    ]
+   },
+   {
+    "text": "Retraining is cheap: the authors say less than 40 s per collision energy, so the method can be refitted for other instruments, CID data or non-tryptic peptides.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Results, training time",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This amounts to less than 40 s per collision energy. It is therefore quite fast to retrain FastSpel with more training data, or to train it for more collision energy values, new instruments, CID data, or nontryptic peptides."
+     }
+    ]
+   },
+   {
+    "text": "The package installs with pip and needs only numpy, scipy, pandas and h5py, with a command line tool and a Python function for use inside other code.",
+    "source_ids": [
+     "@download-page"
+    ],
+    "source_locator": "download page: Installation, Spectral library generation",
+    "quotes": [
+     {
+      "source": "@download-page",
+      "text": "FastSpel requires numpy, scipy, pandas, and h5py packages, which will be installed automatically."
+     },
+     {
+      "source": "@download-page",
+      "text": "from fastspel.generate import get_predicted_intensities"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "It predicts no retention time or ion mobility, only fragment intensities, so rescoring features that need retention time have to come from elsewhere.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: FastSpel Limitations",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "FastSpel has three main limitations in comparison with other prediction methods: (1) no retention time/ion mobility prediction capability, (2) intensity prediction only for tryptic/HCD data, and (3) predictions limited to only"
+     },
+     {
+      "source": "@paper",
+      "text": "Since FastSpel does not currently predict retention times, Percolator was run both including and excluding RT-related features."
+     }
+    ]
+   },
+   {
+    "text": "Scope is narrow: tryptic HCD data only, b and y ions only, unmodified peptides or oxidised methionine only, and the authors say it is not trained for timsTOF instruments.",
+    "source_ids": [
+     "@paper",
+     "@download-page"
+    ],
+    "source_locator": "paper: FastSpel Limitations, Methods; download page: Spectral library generation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "FastSpel has three main limitations in comparison with other prediction methods: (1) no retention time/ion mobility prediction capability, (2) intensity prediction only for tryptic/HCD data, and (3) predictions limited to only"
+     },
+     {
+      "source": "@paper",
+      "text": "as FastSpel is not currently trained for timsTOF instruments"
+     },
+     {
+      "source": "@download-page",
+      "text": "Currently, the only variable accepted modification is oxidized Methoinine, which should be specified as M(ox) or M[UNIMOD:35]"
+     }
+    ]
+   },
+   {
+    "text": "A separate model is fitted per length, charge and collision energy, so a precursor outside the trained combinations or at an untrained collision energy falls back to the nearest trained value.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Methods, prediction; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "with closest"
+     },
+     {
+      "source": "@paper",
+      "text": "effectively training hundreds of separate models, each of which require pretty large amount of data to produce good results"
+     },
+     {
+      "source": "@paper",
+      "text": "the collision energies considered are limited to the values the method has been trained for (20, 23, 25, 28, 30, 35)"
+     }
+    ]
+   },
+   {
+    "text": "No licence is stated for the code or the fitted model, and the package is served from a group web page rather than a code host, so there is no commit to pin.",
+    "source_ids": [
+     "@download-page",
+     "@ftp-listing"
+    ],
+    "source_locator": "download page; FTP listing",
+    "quotes": [
+     {
+      "source": "@download-page",
+      "text": "You can download and install FastSpel directly from its source code."
+     },
+     {
+      "source": "@ftp-listing",
+      "text": "href=\"fastspel-0.1.0.tar.gz\""
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "FastSpel workflow",
+   "steps": [
+    "Precursor list (sequence, charge, collision energy)",
+    "Binary sequence encoding",
+    "Linear model for that length, charge and collision energy",
+    "Non-zero b and y intensities with m/z",
+    "Spectral library or rescoring features"
+   ],
+   "caption": "Each precursor is routed to the regression fitted for its length, charge and collision energy, and the predicted intensities are written as a table.",
+   "source_ids": [
+    "@paper",
+    "@download-page"
+   ],
+   "source_locator": "paper: Description of FastSpel Prediction Method; download page: Spectral library generation",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "FastSpel uses a multistep linear regression to relate the matrix representing the sequences of peptides of given length and charge, to the matrix containing the predicted fragment intensities."
+    },
+    {
+     "source": "@download-page",
+     "text": "The required fields are \"modified_sequence\",\n            \"precursor_charge\", and \"collision_energy\"."
+    },
+    {
+     "source": "@download-page",
+     "text": "This is a tab-separated file containing the precursors, their\n            non-zero predicted intensities, and the corresponding m/z values."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count from the model's own sources, and no licence for the code or the fitted coefficients.",
+   "The number of trained length and charge combinations is given as 350 triplets but the full list is in the supplementary spreadsheet, which was not fetched.",
+   "The download page is not versioned beyond the package file name, so there is no commit or revision to pin.",
+   "The authors' speed and accuracy comparisons were read from their own paper and have not been reproduced."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: the FastSpel paper full text from Europe PMC (PMC12501936); the FastSpel page on the NCBI QMBP group site and the FTP directory listing it links to; the PepSpecBench HTML (arXiv 2605.01945v1) for its statements about this model. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Download the FastSpel package, install it, and predict fragment intensities for the example precursor list.",
+  "prerequisites": [
+   "Python with pip. numpy, scipy, pandas and h5py are installed with the package.",
+   "CPU only: the sources describe prediction on CPU cores and give no GPU requirement.",
+   "A precursor list as a comma-separated file with modified_sequence, precursor_charge and collision_energy; an example ships in the package."
+  ],
+  "steps": [
+   {
+    "title": "Download the package",
+    "shell": "curl -O https://ftp.ncbi.nlm.nih.gov/pub/qmbp/qmbp_ms/FastSpel/fastspel-0.1.0.tar.gz",
+    "explanation": "The download page links to this FTP folder and its install commands name fastspel-0.1.0.tar.gz, which is the only file the folder listing shows. Rewire assembled the URL from those two sources.",
+    "source_ids": [
+     "@download-page",
+     "@ftp-listing"
+    ],
+    "source_locator": "download page: Installation; FTP listing",
+    "quotes": [
+     {
+      "source": "@download-page",
+      "text": "tar -xzf fastspel-0.1.0.tar.gz"
+     },
+     {
+      "source": "@ftp-listing",
+      "text": "href=\"fastspel-0.1.0.tar.gz\""
+     }
+    ]
+   },
+   {
+    "title": "Install",
+    "shell": "tar -xzf fastspel-0.1.0.tar.gz\ncd fastspel-0.1.0\npip install .",
+    "explanation": "The install commands from the download page. It also gives pip install -e . for an editable install.",
+    "source_ids": [
+     "@download-page"
+    ],
+    "source_locator": "download page: Installation",
+    "quotes": [
+     {
+      "source": "@download-page",
+      "text": "tar -xzf fastspel-0.1.0.tar.gz\ncd fastspel-0.1.0\npip install ."
+     },
+     {
+      "source": "@download-page",
+      "text": "FastSpel requires numpy, scipy, pandas, and h5py packages, which will be installed automatically."
+     }
+    ]
+   },
+   {
+    "title": "Predict intensities",
+    "shell": "generate -o I_pred.tsv FastSpel_root/examples/input.csv",
+    "explanation": "The generate command from the download page, run on the example input that ships with the package. FastSpel_root is the unpacked package folder. Add -n 10 to use ten processors.",
+    "source_ids": [
+     "@download-page"
+    ],
+    "source_locator": "download page: Spectral library generation",
+    "quotes": [
+     {
+      "source": "@download-page",
+      "text": "generate -o I_pred.tsv FastSpel_root/examples/input.csv"
+     },
+     {
+      "source": "@download-page",
+      "text": "generate -o I_pred.tsv -n 10 FastSpel_root/examples/input.csv"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "I_pred.tsv, a tab-separated file of the precursors with their non-zero predicted intensities and the matching m/z values."
+  ],
+  "limitations": [
+   "These commands were read from the download page and have not been executed by Rewire.",
+   "The page says collision energy calibration is available with the -t option but does not recommend it before library generation; it is not part of these steps.",
+   "FastSpel_root is the folder created by unpacking the tarball; the page uses that placeholder rather than a real path."
+  ],
+  "source_ids": [
+   "@download-page",
+   "@ftp-listing"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "fastspel-0.1.0",
+   "parameters": null,
+   "context_length": 30,
+   "context_unit": "residues",
+   "code_licence": null,
+   "weights_licence": null,
+   "code_url": "https://www.ncbi.nlm.nih.gov/CBBresearch/Yu/downloads/fastspel.html",
+   "weights_url": "https://ftp.ncbi.nlm.nih.gov/pub/qmbp/qmbp_ms/FastSpel/fastspel-0.1.0.tar.gz",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The PT-train data contain peptides of lengths between 7 and 30, charges between 1 and 6, and intensities obtained using 6 collision energies that are 20, 23, 25, 28, 30, and 35."
+    },
+    {
+     "source": "@ftp-listing",
+     "text": "href=\"fastspel-0.1.0.tar.gz\""
+    },
+    {
+     "source": "@download-page",
+     "text": "tar -xzf fastspel-0.1.0.tar.gz"
+    }
+   ]
+  }
+ ],
+ "notes": "FastSpel has a real release of its own, a Python package on the authors' NCBI group site, so no stub was written. There is no code host and no stated licence, so both licence facts are unreported and the source licence field is left off the download page and the FTP listing. context_length is recorded as 30 residues, the top of the trained peptide length range, not an architectural limit. The record's description gives about 50K parameters, which is PepSpecBench's figure for the model it retrained; the model's own sources give no parameter count, so structured.parameters is null."
+}
