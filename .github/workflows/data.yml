@@ -103,6 +103,16 @@ jobs:
           SCRIPT: ${{ github.event_name == 'pull_request' && 'test:fast' || 'test' }}
         run: npm run "$SCRIPT" -- --shard="${SHARD#tests-}/6"
 
+  # The rebuilt core (docs/rebuild.md): load the whole store into one database, read every record
+  # back and compare it with the original, then load the curation files and build the views.
+  kb:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 kb/migrate.py --check
+      - run: python3 kb/curate.py
+
   release:
     runs-on: ubuntu-latest
     outputs:

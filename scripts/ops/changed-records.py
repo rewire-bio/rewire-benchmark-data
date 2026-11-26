@@ -12,7 +12,8 @@ import subprocess
 import sys
 
 RECORDS = ("data/entities/", "data/evidence/")
-HARMLESS = ("data/provenance/", "data/omics/", "docs/")
+# kb/ is the rebuilt core (docs/rebuild.md). It reads the store and never writes it, and has its own job.
+HARMLESS = ("data/provenance/", "data/omics/", "docs/", "kb/")
 FULL = ("data/omics/release-config.json",)
 ID = re.compile(r'^[+-]\{"id":"([^"]+)"')
 
