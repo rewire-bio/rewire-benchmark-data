@@ -1,10 +1,14 @@
 name: Build and publish a knowledge-graph bundle
-# On demand only. Data releases build and publish their bundle themselves (release.yml), because
-# the prepared SQLite file serves the bundle's inferred discrepancies. Use this to publish a bundle
-# for a release cut before that change, or to check that a published bundle reproduces: it rebuilds
-# the bundle (inference, checks, SHACL) for a published release, verifies its format with rdf-kg-mcp
-# and publishes it as `kg/<release id>`. An existing bundle is never replaced.
+# Every night, and on demand. A data release builds and publishes its own bundle (release.yml)
+# unless everything that changed since the last bundle was descriptive content; it then serves
+# that bundle's discrepancies and leaves the bundle to this workflow. The nightly run builds the
+# bundle (inference, checks, SHACL) for the newest published release if it has none, verifies its
+# format with rdf-kg-mcp, checks that its discrepancies are the ones the release serves, and
+# publishes it as `kg/<release id>`. Run by hand it also rebuilds a named release's bundle, to
+# check that a published bundle reproduces. An existing bundle is never replaced.
 on:
+  schedule:
+    - cron: "37 1 * * *"
   workflow_dispatch:
     inputs:
       release_id:
@@ -40,26 +44,58 @@ jobs:
           echo "id=$id" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "Release $id, published from $sha"
+          # The nightly run has nothing to do when the newest release already has its bundle.
+          if [ "$GITHUB_EVENT_NAME" = schedule ] && gh release view "kg/$id" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            echo "kg/$id is already published"
+          else
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.release.outputs.build == 'true'
         with:
           ref: ${{ steps.release.outputs.sha }}
       - uses: actions/setup-node@v4
+        if: steps.release.outputs.build == 'true'
         with:
           node-version: 24
           cache: npm
       - uses: astral-sh/setup-uv@v6
+        if: steps.release.outputs.build == 'true'
       - run: npm ci
+        if: steps.release.outputs.build == 'true'
       - name: Rebuild the release's catalogue and confirm it matches the receipt
+        if: steps.release.outputs.build == 'true'
         env:
           RELEASE: ${{ steps.release.outputs.id }}
         run: |
           npm run omics:release
           cmp public/omics/manifest.json "data/omics/releases/$RELEASE.json"
       - name: Build the bundle and check its format
+        if: steps.release.outputs.build == 'true'
         run: |
           npm run kg:bundle
           npm run kg:verify
+      # A release that reused an earlier bundle's discrepancies records their hash in its serving
+      # receipt. A different hash here means scripts/release/content-only.py let through a change
+      # the discrepancy rules can see: the site is serving stale discrepancies until the next
+      # full release, and that script needs the case added.
+      - name: Check the discrepancies are the ones the release serves
+        if: steps.release.outputs.build == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE: ${{ steps.release.outputs.id }}
+        run: |
+          gh release download "serving/$RELEASE" --repo "$GITHUB_REPOSITORY" --pattern "catalogue-$RELEASE.json" --dir "$RUNNER_TEMP/receipt"
+          served=$(node -p "require('$RUNNER_TEMP/receipt/catalogue-$RELEASE.json').discrepancies_sha256 || ''")
+          built=$(sha256sum public/kg/discrepancies.json | cut -d' ' -f1)
+          echo "Served $served, built $built"
+          if [ -n "$served" ] && [ "$served" != "$built" ]; then
+            echo "::error::The discrepancies release $RELEASE serves differ from the ones its graph derives."
+            exit 1
+          fi
       - name: Publish it (never replaces an existing asset)
+        if: steps.release.outputs.build == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TARGET_SHA: ${{ steps.release.outputs.sha }}
