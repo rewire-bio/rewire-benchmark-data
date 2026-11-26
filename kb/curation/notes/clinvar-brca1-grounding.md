@@ -1,3 +1,5 @@
+Status: written by one agent on 26 November 2026 from the record fields. No second agent has verified it. Verify before any lead that rests on it is raised with authors.
+
 # Grounding notes: ClinVar and BRCA1 slice
 
 472 observations grounded, one line each in grounding.jsonl. 141 have a system key ending in `-unspecified`; none has an unspecified subset or adaptation. 110 distinct system keys. 15 lines are low confidence (all from PhyloGPN Table 1 rows whose class does not clearly match a Lu et al. panel). ground.py does the work with ordered rules over system_name, system_version, system_checkpoint, parameters_text, metric_qualifier and source_locator.
