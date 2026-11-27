@@ -132,12 +132,29 @@ jobs:
 
       # Minted here rather than at the top, because an installation token is valid for 60
       # minutes and the hydrate and upload above can take most of this job's 90.
-      # A registry row repeats its object's source ids, and a test holds the two equal. A fetch
-      # that finds a new source pinning an object already held changes the manifest row, so the
-      # registry follows here, in the same commit.
-      - name: Carry changed source ids into the layer registry
+      # Two generated files follow the manifest and tests hold them to it: the layer registry
+      # (data/omics/layers) and the span resolution figures (maintenance/reports). Both need every
+      # object's bytes, so the cache is completed from the bucket first. The rebuilt registry is
+      # compared with the committed one: pdftotext output can differ between versions, and a
+      # rebuild that rewrites existing rows is refused instead of committed.
+      - name: Rebuild the layer registry and the span figures
         if: ${{ !inputs.dry_run }}
-        run: python3 scripts/omics/layers/sync-source-ids.py
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          if [ -z "$(git status --porcelain data/archive/objects)" ]; then echo "The manifest did not change."; exit 0; fi
+          sudo apt-get install -y -q poppler-utils >/dev/null
+          pdftotext -v 2>&1 | head -1
+          npm run -s archive -- pull --from r2 --json > "$RUNNER_TEMP/pull-r2.json" || true
+          cp data/omics/layers/registry.jsonl "$RUNNER_TEMP/registry.before.jsonl"
+          npm run -s layers -- build | tail -8
+          python3 scripts/omics/layers/compare-registry.py "$RUNNER_TEMP/registry.before.jsonl"
+          npm run -s spans -- measure | tail -6
+          npm run -s spans -- retag
+          npx vitest run tests/omics-report-drift.test.ts tests/omics-layer-registry.test.ts tests/archive-cache-gate.test.ts --pool=forks --poolOptions.forks.singleFork
 
       - name: Token for the rewire-bot app
         id: app
@@ -160,18 +177,18 @@ jobs:
           # them. The release commit is pushed the same way.
           TOKEN: ${{ steps.app.outputs.token }}
         run: |
-          # Only the manifest moves. The cache is gitignored and nothing else in the tree is
-          # touched by an upload, so a diff anywhere else means something unexpected ran.
-          if [ -z "$(git status --porcelain data/archive/objects data/omics/audits data/omics/layers)" ]; then
+          # The manifest, the fetch receipts and the two generated files that follow the manifest
+          # move. A diff anywhere else means something unexpected ran.
+          if [ -z "$(git status --porcelain data/archive/objects data/omics/audits data/omics/layers maintenance/reports)" ]; then
             echo "No manifest row changed: every object the cache holds was already in the bucket."
             exit 0
           fi
-          unexpected=$(git status --porcelain | grep -vE '^ M data/archive/objects/|^ M data/omics/layers/registry\.jsonl$|^\?\? data/omics/audits/[0-9-]+-archive-fetch\.receipts\.jsonl$|^ M data/omics/audits/[0-9-]+-archive-fetch\.receipts\.jsonl$' || true)
+          unexpected=$(git status --porcelain | grep -vE '^( M|\?\?) (data/archive/objects/|data/omics/layers/|data/omics/audits/[0-9-]+-archive-fetch\.receipts\.jsonl$|maintenance/reports/span-resolution|docs/adr/0002-claim-extraction\.html$)' || true)
           if [ -n "$unexpected" ]; then echo "::error::An upload changed more than the manifest:"; echo "$unexpected"; exit 1; fi
           git config user.name "rewire-release-bot"
           git config user.email "rewire-release-bot@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:$TOKEN@github.com/$GITHUB_REPOSITORY"
-          git add data/archive/objects data/omics/audits data/omics/layers/registry.jsonl
+          git add data/archive/objects data/omics/audits data/omics/layers maintenance/reports docs/adr/0002-claim-extraction.html
           git commit -m "Record newly fetched sources and R2 as the home of the uploaded objects [skip ci]"
           # A pull request merged while this ran moves main on. Rebase onto it and push again;
           # the manifest is one line per object keyed on a hash, so a rebase conflicts only with
