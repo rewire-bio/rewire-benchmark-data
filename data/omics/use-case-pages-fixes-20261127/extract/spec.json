@@ -1,0 +1,114 @@
+{
+ "withdraw": {
+  "use_case": "use-case-genomic-sequence-element-annotation",
+  "reason": "Not genomic element annotation, read test by test after the first pass: expression level, 3D genome structure, and species or viral lineage classification answer other questions. The classification tasks move to use-case-viral-microbial-sequence-classification.",
+  "protocols": [
+   "lit-genomics-20261011-genbench-protocol-bulk-rna-expression",
+   "lit-genomics-20261011-genbench-protocol-genome-structure-h1-esc",
+   "lit-genomics-20261011-genbench-protocol-genome-structure-hff",
+   "lit-genomics-20261011-genbench-protocol-long-species-classification",
+   "lit-genomics-20261011-genbench-protocol-short-human-vs-worm",
+   "lit-genomics-20261011-genbench-protocol-short-virus-covid-variant-classification"
+  ]
+ },
+ "regrade": {
+  "use_case": "use-case-genomic-sequence-element-annotation",
+  "to": "proxy",
+  "reason": "Drosophila enhancer activity is the measured activity level of an element (STARR-seq), not an element label: the same models and recipe on a regression, so proxy, as GUANinE's propensity tasks are.",
+  "protocols": [
+   "lit-genomics-20261011-genbench-protocol-drosophila-enhancer-activity-dev",
+   "lit-genomics-20261011-genbench-protocol-drosophila-enhancer-activity-hk",
+   "lit-genomics-20261011-genbench-protocol-drosophila-enhancer-activity-mean"
+  ]
+ },
+ "add_exclusion": {
+  "use_case": "use-case-genomic-sequence-element-annotation",
+  "text": "Gene expression level, three-dimensional genome structure, and classifying a sequence's species or viral lineage, which answer other questions"
+ },
+ "add_links": [
+  {
+   "use_case": "use-case-single-cell-data-integration",
+   "protocol": "gfm-guides-20261014-kedzierska2025-protocol-cell-embedding",
+   "relevance": "direct",
+   "reason": "scIB batch-correction and biological-conservation metrics computed on each model's full cell embedding, dataset by dataset: the use case's endpoint, from a second study."
+  },
+  {
+   "use_case": "use-case-single-cell-data-integration",
+   "protocol": "gfm-guides-20261014-kedzierska2025-protocol-umap-embedding",
+   "relevance": "proxy",
+   "reason": "The same scIB metrics after a UMAP projection, which distorts distances: informative about the embedding, not how an analyst would integrate."
+  },
+  {
+   "use_case": "use-case-viral-microbial-sequence-classification",
+   "protocol": "gfm2-20261011-buzkova2026-protocol-acc-33",
+   "relevance": "direct",
+   "reason": "Assigning viral sequences to one of 33 RVDB classes by nearest-neighbour retrieval over each model's embeddings: taxonomic assignment, the use case's endpoint."
+  },
+  {
+   "use_case": "use-case-viral-microbial-sequence-classification",
+   "protocol": "gfm2-20261011-buzkova2026-protocol-long",
+   "relevance": "direct",
+   "reason": "Viral classification of long sequences into 16 classes: taxonomic assignment on longer inputs."
+  },
+  {
+   "use_case": "use-case-viral-microbial-sequence-classification",
+   "protocol": "gfm2-20261011-buzkova2026-protocol-blast-compare",
+   "relevance": "direct",
+   "reason": "The best frozen-embedding configuration against BLAST on the same viral classification: the only comparison in the store of a language model with an alignment baseline for this question."
+  },
+  {
+   "use_case": "use-case-viral-microbial-sequence-classification",
+   "protocol": "lit-genomics-20261011-genbench-protocol-short-virus-covid-variant-classification",
+   "relevance": "direct",
+   "reason": "Classifying SARS-CoV-2 sequences by variant: lineage assignment from sequence, the use case's endpoint below species level."
+  },
+  {
+   "use_case": "use-case-viral-microbial-sequence-classification",
+   "protocol": "lit-genomics-20261011-genbench-protocol-long-species-classification",
+   "relevance": "direct",
+   "reason": "Assigning long genomic sequences to their species: taxonomic assignment from sequence."
+  },
+  {
+   "use_case": "use-case-viral-microbial-sequence-classification",
+   "protocol": "lit-genomics-20261011-genbench-protocol-short-human-vs-worm",
+   "relevance": "proxy",
+   "reason": "Telling human from worm sequence: a two-species origin task, much easier than assignment among related taxa."
+  }
+ ],
+ "new_use_case": {
+  "slug": "viral-microbial-sequence-classification",
+  "name": "Classify viral and microbial sequences by taxon",
+  "question": "Which method assigns a viral or microbial DNA sequence to the right taxon or lineage, including when it is unlike anything in the reference?",
+  "area": "microbes-communities",
+  "intended_users": [
+   "Virologists assigning taxonomy or lineage to new viral sequences",
+   "Researchers classifying sequences from a metagenomic survey"
+  ],
+  "decision": "Choose a classifier, and decide whether a language model's embedding adds anything over an alignment search.",
+  "inputs": [
+   "Sequences to classify, with their length",
+   "The reference database and its version",
+   "Whether the taxa of interest are in the reference"
+  ],
+  "output": "Classification accuracy or F1 at each taxonomic level, with an alignment baseline on the same sequences where one was run.",
+  "setting": "Research virology and metagenomics. Clinical pathogen identification from patient samples has its own use cases.",
+  "exclusions": [
+   "Clinical DNA and RNA pathogen detection from patient samples, which have their own use cases",
+   "Metagenome assembly and binning"
+  ],
+  "evidence_gaps": [
+   "The linked evidence rests on two studies: Bůžková et al. 2026's RVDB viral classification, which also compares the best embedding with BLAST, and GenBench's species and SARS-CoV-2 variant tasks. Neither holds out whole genera, so 'unlike anything in the reference' is not tested.",
+   "ViroBench, which does hold out genera and deposit dates, is in the store, but its source carries an open evidence concern, so it is not linked. CAMI's protocol records are not reviewed.",
+   "Automated source review only. No human scientific review."
+  ],
+  "search_terms": [
+   "viral taxonomy classification",
+   "metagenomic classification",
+   "DNA language model virus",
+   "RVDB",
+   "ViroBench",
+   "CAMI"
+  ]
+ },
+ "integration_gap": "The linked evidence rests on two studies: the HyCell technical report, which scores frozen embeddings of eleven pretrained models and PCA on seven held-out atlases, and Kedzierska et al. 2025, which scores zero-shot embeddings of single-cell foundation models with scIB metrics. Both evaluate frozen embeddings, not integration methods run on the data."
+}

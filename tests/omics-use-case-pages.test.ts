@@ -20,6 +20,10 @@ describe("new use cases (2026-11-27)", () => {
 
   it("adds nine research-only use cases, each citing sources and stating how many studies it rests on", () => {
     expect(cases.map((c) => c.attributes.slug).sort()).toEqual([...SLUGS].sort());
+    const fixes = batchRecords("data/omics/use-case-pages-fixes-20261127");
+    expect(fixes.filter((r) => r.kind === "use_case").map((r) => r.attributes.slug)).toEqual(["viral-microbial-sequence-classification"]);
+    for (const claim of fixes.filter((r) => r.kind === "claim"))
+      expect(inputs.mappings.find((m) => m.id === claim.id)?.lifecycle, String(claim.id)).toBe("active");
     for (const entry of cases) {
       const published = inputs.use_cases.find((u) => u.slug === entry.attributes.slug);
       expect(published, String(entry.id)).toBeDefined();
@@ -35,9 +39,12 @@ describe("new use cases (2026-11-27)", () => {
     }
   });
 
-  it("activates every judgement it adds, with pins and eligible evaluations", () => {
+  it("activates every judgement it adds that was not later withdrawn, with pins and eligible evaluations", () => {
     expect(claims).toHaveLength(254);
-    for (const claim of claims) {
+    const withdrawn = claims.filter((c) => c.status === "excluded");
+    expect(withdrawn).toHaveLength(6);
+    for (const claim of withdrawn) expect(inputs.mappings.some((m) => m.id === claim.id), String(claim.id)).toBe(false);
+    for (const claim of claims.filter((c) => c.status !== "excluded")) {
       const mapping = inputs.mappings.find((m) => m.id === claim.id);
       expect(mapping, String(claim.id)).toBeDefined();
       expect(mapping!.lifecycle, String(claim.id)).toBe("active");
@@ -57,6 +64,9 @@ describe("new use cases (2026-11-27)", () => {
       ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-guanine-protocol-cons30"],
       ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-guanine-protocol-clinvar-snv"],
       ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-guanine-protocol-gpra-c"],
+      // Expression, 3D structure and taxonomic classification are not element annotation.
+      ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-genbench-protocol-bulk-rna-expression"],
+      ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-genbench-protocol-short-virus-covid-variant-classification"],
       // The RNA structure use case excludes attention-map secondary structure in as many words.
       ["use-case-rna-structure-prediction", "lit-rna-20261011-rnalm-zeroshot-protocol-t4-mcc-mean"],
       // Folding stability of substitutions is the protein stability question; throughput is a cost.
