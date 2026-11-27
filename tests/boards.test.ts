@@ -12,7 +12,7 @@ function file(): BoardsFile {
     schema_version: 1, release_id: release, released_at: "2026-11-27T11:48:36.000Z", method: "m",
     boards: [{
       use_case: "brca", use_case_id: "use-case-brca", title: "BRCA", release_id: release, released_at: "2026-11-27T11:48:36.000Z",
-      method: "m", summary: "Ranks 2 models.",
+      method: "m", summary: "Orders 2 models.",
       counts: { studies: 2, groups: 4, models: 3, ranked: 2, one_study: 1, not_a_model: 0, not_connected: 0, too_few: 0 },
       rows: [row("a", [1, 2], 0.7), row("b", [1, 2], 0.6)],
       not_ranked: [{ model_id: "c", name: "C", reason: "one study", study_ids: ["s1"] }],
