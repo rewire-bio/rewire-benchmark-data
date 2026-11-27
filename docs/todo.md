@@ -97,36 +97,44 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 
 ## Running things
 
-18. **Run guides tried: 4 completed of 18.** [run-guide-trials.md](run-guide-trials.md)
-    runs a guide on a clean GitHub runner with no credentials and returns a receipt. SAFFRON,
-    GPN-Promoter, MutBERT and ESM-1b (after its correction) completed. Guides missing an install
-    line or with a wrong path were corrected, and those whose sources fail on a clean machine now
-    say so ([trial 2 review](reviews/2026-11-27-run-guide-trial-2.md), which also holds draft
-    reports to developers). Next: rerun CARP, MIF, MIF-ST and Stack, and try the rest of the
-    candidates.
-19. **Run guide status.** The schema has one status, `source_reviewed_not_executed`. An executed
+18. **Run guides: 4 of 16 complete; 5 more pass every step up to one that needs the reader's own
+    data or a missing dependency.** [run-guide-trials.md](run-guide-trials.md) runs a guide on a
+    clean GitHub runner with no credentials and returns a receipt. 16 guides have had 26 runs.
+    Complete: SAFFRON, GPN-Promoter, MutBERT and ESM-1b. Up to their last step: MIF and MIF-ST
+    (missing tqdm), MSA Transformer (missing pandas), GPN-MSA and DNALONGBENCH (the reader's own
+    data). Those three install lines are now corrected, and CARP's and Stack's commands too, all
+    untested since. Five guides fail because of their own sources, and say so; draft reports to
+    developers are in the [trial 2 review](reviews/2026-11-27-run-guide-trial-2.md) and the
+    [trial 4 review](reviews/2026-11-27-run-guide-trial-4.md). Next: rerun CARP, MIF, MIF-ST,
+    MSA Transformer and Stack, and try the rest of the candidates.
+19. **Check a guide's imports before a trial.** Trials of CARP, MIF and MSA Transformer each
+    failed on one missing package per run, because their packages declare no dependencies. A
+    `trial.py imports <record id>` command should fetch, at the guide's pinned commit, the scripts
+    the steps run and the package they import. It should parse them without running them, and list
+    every third-party import that no install line covers. The trial 4 review did this by hand.
+20. **Run guide status.** The schema has one status, `source_reviewed_not_executed`. An executed
     guide needs a second, with a receipt: commands, versions, hardware, output hash, time.
-20. **Recipes.** A model can be rerun through `rewirebench` only when it has a registered adapter.
+21. **Recipes.** A model can be rerun through `rewirebench` only when it has a registered adapter.
     Ten pretrained models have one; six were written from run guides on 27 November and each ran
     on a GitHub runner with a verified receipt (`docs/adapters.md` in rewire-benchmarks). Those
     runs are small checks, not benchmark results. First step: full-protocol recipes for the six,
     then more adapters. Of about 70 models surveyed, 23 have non-commercial or gated weights and
     20 state no weights licence; whether to adapt non-commercial weights is the owner's decision.
-21. **GPU work is parked** until the value is shown. Nothing here needs it.
+22. **GPU work is parked** until the value is shown. Nothing here needs it.
 
 ## Pipeline
 
-22. **Agents still read the graph.** Every read has a database version, tested equal. Six steps
+23. **Agents still read the graph.** Every read has a database version, tested equal. Six steps
     remain before the intake agent can switch ([agents-off-the-graph.md](agents-off-the-graph.md)).
     The owner is told before the switch.
-23. **The serving file still comes from the old builder.** Step 5 of the rebuild: the new core
+24. **The serving file still comes from the old builder.** Step 5 of the rebuild: the new core
     writes the file the website reads.
-24. **Merge to live is about 25 minutes.** The website's adoption step is the longest stage.
-25. **Schedules to confirm.** The nightly full check (00:47 UTC) and the nightly archive run
+25. **Merge to live is about 25 minutes.** The website's adoption step is the longest stage.
+26. **Schedules to confirm.** The nightly full check (00:47 UTC) and the nightly archive run
     (02:17 UTC) were added on 26 and 27 November and have not yet been seen to fire.
-26. **Layers for the archive.** Rows made in CI use a different pdftotext version from the rows
+27. **Layers for the archive.** Rows made in CI use a different pdftotext version from the rows
     made earlier. Each row records its version. A pinned version in CI would remove the split.
-27. **Deletion.** The graph build on the release path is gone. The graph code, the per-batch
+28. **Deletion.** The graph build on the release path is gone. The graph code, the per-batch
     scripts and the compatibility export stay until the agents have switched and the nightly
     comparison has passed across several releases that change results. The owner is told first.
 
