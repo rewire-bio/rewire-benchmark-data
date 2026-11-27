@@ -1,0 +1,695 @@
+{
+ "record_id": "lit-otheromics-20261011-msgwild-model-molforge",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "knu-lcbc/MolForge README.md at commit 775bba46",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/knu-lcbc/MolForge/775bba46f135f54f2285d5d6d098b3109054d346/README.md",
+   "url": "https://github.com/knu-lcbc/MolForge",
+   "version": "git commit 775bba46f135f54f2285d5d6d098b3109054d346",
+   "media_type": "text/markdown",
+   "sha256": "5f4c0f5241b7340813d4a98e216987cae8706561149e34e8ba84a8932339f0a8",
+   "retrieved_at": "2026-11-27T02:33:09Z",
+   "store_bytes": false
+  },
+  {
+   "key": "license",
+   "name": "knu-lcbc/MolForge LICENSE.md at commit 775bba46",
+   "description": "Licence file of the official repository (CC BY-NC-SA 4.0 text), pinned to a commit.",
+   "file": "artifacts/license.md",
+   "artifact_url": "https://raw.githubusercontent.com/knu-lcbc/MolForge/775bba46f135f54f2285d5d6d098b3109054d346/LICENSE.md",
+   "url": "https://github.com/knu-lcbc/MolForge",
+   "version": "git commit 775bba46f135f54f2285d5d6d098b3109054d346",
+   "media_type": "text/markdown",
+   "sha256": "3262aa78c9e248559ecefdfb3432db57f0dc7ed4dc96af71da2f0995bbf459c8",
+   "retrieved_at": "2026-11-27T02:33:12Z",
+   "store_bytes": false
+  },
+  {
+   "key": "paper",
+   "name": "Ucak, Ashyrmamatov and Lee 2023, Reconstruction of lossless molecular representations from fingerprints, J Cheminform 15:26, PMC9948316 full text",
+   "description": "Full-text JATS XML of the MolForge paper from NCBI PMC (open access, CC BY 4.0).",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=9948316&rettype=xml",
+   "url": "https://doi.org/10.1186/s13321-023-00693-0",
+   "version": "PMC9948316 as served on 2026-11-27",
+   "media_type": "application/xml",
+   "sha256": "9e18299caebe9c10ac27210cd1f4f250eec55abdec813e67cb9ce82aba81b763",
+   "retrieved_at": "2026-11-27T02:33:24Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "neo",
+   "name": "arXiv 2508.04180 abstract page (Neo et al. 2025, MIST + MolForge)",
+   "description": "arXiv abstract page of the paper that paired a MIST encoder with a MolForge decoder for de novo generation from spectra.",
+   "file": "artifacts/neo2025-abs.html",
+   "artifact_url": "https://arxiv.org/abs/2508.04180",
+   "url": "https://arxiv.org/abs/2508.04180",
+   "version": "arXiv 2508.04180, latest version as served on 2026-11-27",
+   "media_type": "text/html",
+   "sha256": "4c3a9cbb7b4e692bbdb38d93193c785b64e1886e6d79bc395f4fe383e4288e5d",
+   "retrieved_at": "2026-11-27T02:33:24Z",
+   "licence": "CC BY-NC-ND 4.0",
+   "store_bytes": false
+  },
+  {
+   "key": "msgwild",
+   "name": "MassSpecGym in the Wild, arXiv 2606.19624v1, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of the MassSpecGym in the Wild paper, which retrained MIST + MolForge decoders.",
+   "file": "artifacts/msgwild-v1.txt",
+   "artifact_url": "https://arxiv.org/pdf/2606.19624v1",
+   "url": "https://arxiv.org/abs/2606.19624v1",
+   "version": "arXiv 2606.19624v1",
+   "media_type": "text/plain",
+   "sha256": "90139d4bf7f7bc38f7b01df0194ae4207b9a805723322b5a6d82edf25d6a7701",
+   "retrieved_at": "2026-11-27T02:24:43Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "MolForge is a set of transformer models that translate a molecular fingerprint back into a molecule, written as SMILES or SELFIES. The input is the list of set bits of a structural fingerprint (for example ECFP4) and the output is a decoded molecular string. In mass spectrometry work it is used as the second stage of de novo structure generation: a spectrum encoder such as MIST predicts a fingerprint, and MolForge decodes it into candidate structures.",
+  "summary_source_ids": [
+   "@readme",
+   "@paper",
+   "@neo"
+  ],
+  "summary_source_locator": "README.md: introduction and Prediction & Demo; paper Model overview; Neo et al. abstract",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "this study exploits the resolution and robustness of unique molecular representations, i.e., SMILES and SELFIES (SELF-referencIng Embedded strings), reconstructed from a set of structural fingerprints"
+   },
+   {
+    "source": "@readme",
+    "text": "`--input` : Bit number of the fingerprint (`--fp`)."
+   },
+   {
+    "source": "@neo",
+    "text": "In our work, we adopt MIST (Goldman et. al., 2023) as the encoder and MolForge (Ucak et. al., 2023) as the decoder"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "MolForge treats fingerprint-to-molecule conversion as translation. The fingerprint's set bits are tokens on the source side and SMILES or SELFIES tokens on the target side, each with its own vocabulary file (ECFP4_vocab_sp and smiles_vocab_sp in the README demo). A later paper that reuses MolForge describes its SMILES tokenizer as SentencePiece. The model is a standard encoder-decoder Transformer: six encoder and six decoder layers with eight attention heads, 512-dimensional attention and 2048-dimensional feed-forward layers, with layer normalisation before each sub-layer. Each fingerprint and output representation pair is a separate model, trained with a negative log-likelihood loss on two GPUs for up to 500 K steps. Decoding is greedy or beam search.",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@msgwild"
+    ],
+    "source_locator": "Paper: Model overview, Training; README.md: Prediction & Demo",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we employed a translation-based system, namely the transformer architecture, to decode fingerprints accurately into lossless molecular representations."
+     },
+     {
+      "source": "@paper",
+      "text": "The encoder and decoder used a stack of six identical layers consisting of eight heads with a 512 dimensional multi-head attention mechanism, followed by a 2048 dimensional fully connected feed-forward layer."
+     },
+     {
+      "source": "@paper",
+      "text": "Each model was trained with two GPUs up to a 500 K step"
+     },
+     {
+      "source": "@paper",
+      "text": "A negative log-likelihood function was used as the loss function."
+     },
+     {
+      "source": "@readme",
+      "text": "src_sp_prefix : /home/tmp/MolForge/data/sp/ECFP4_vocab_sp"
+     },
+     {
+      "source": "@readme",
+      "text": "`--decode`: Decoding algorithm (either `'greedy'` or `'beam'`), (by default: `greedy`)"
+     },
+     {
+      "source": "@readme",
+      "text": "trg_sp_prefix : /home/tmp/MolForge/data/sp/smiles_vocab_sp"
+     },
+     {
+      "source": "@msgwild",
+      "text": "decoded into SMILES with the SentencePiece tokenizer trained in the original MolForge repository"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The authors trained one model per fingerprint and output representation; the README's results table covers 15 fingerprint encodings including MACCS, Avalon, RDK4, atom pairs, topological torsions, ECFP0 to ECFP4, FCFP2, FCFP4 and atomic environments. Checkpoints are shared as two Google Drive archives: the top-performing models and all other models. The demo loads saved_models/ECFP4_smiles_checkpoint.pth. A result should name the fingerprint, the output representation (smiles or selfies), the checkpoint and the decoding method.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Prediction & Demo, Result",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "First, checkpoint files ([top-performing](https://drive.google.com/uc?id=1zl6HBdwYsnA4JcnOi1o6OmcrRDB5iySK) or [all the oher models](https://drive.google.com/uc?id=1jCtbc9lMacCyiZ3iZFEtFgOfOQYtWEuD)) should be downloaded and extracted."
+     },
+     {
+      "source": "@readme",
+      "text": "checkpoint : saved_models/ECFP4_smiles_checkpoint.pth"
+     },
+     {
+      "source": "@readme",
+      "text": "| MACCS | Avalon | RDK4 | RDK4_L | HashAP | TT | HashTT | ECFP0 | ECFP2 | ECFP4 | FCFP2 | FCFP4 | AEs | ECFP2* | ECFP4* |"
+     }
+    ]
+   },
+   {
+    "title": "Use with mass spectra and in benchmarks",
+    "body": "Neo et al. (2025) paired a MIST spectrum encoder with a MolForge decoder, thresholded fingerprint bit probabilities, and reported top-1 31% and top-10 40% on MassSpecGym. The MassSpecGym in the Wild paper (an existing source on this record) retrained MolForge decoders on 2.5M, 10M and 50M molecule corpora with the public MolForge code and a 4096-bit Morgan fingerprint preset, paired with a freshly trained MIST encoder. It reports that the earlier MIST + MolForge results were inflated by a batched-inference problem with a reused MIST checkpoint: top-1 accuracy was 31.75% with batch size 24 and 10.73% after correction, and it marks the inflated figures as not valid.",
+    "source_ids": [
+     "@neo",
+     "@msgwild",
+     "lit-otheromics-20261011-msgwild-source-liu2026"
+    ],
+    "source_locator": "Neo et al. abstract; MassSpecGym in the Wild: Appendix (MolForge Training and Inference Configuration), Section 6.1.2, Table 4",
+    "quotes": [
+     {
+      "source": "@neo",
+      "text": "generating top-1 31% / top-10 40% of molecular structures correctly from mass spectra in MassSpecGym"
+     },
+     {
+      "source": "@msgwild",
+      "text": "We use the public MolForge implementation released by the authors: https://github.com/knu-lcbc/ molforge."
+     },
+     {
+      "source": "@msgwild",
+      "text": "We use the 4096-bit Morgan-fingerprint-to-SMILES preset"
+     },
+     {
+      "source": "@msgwild",
+      "text": "this erroneous MIST checkpoint has been reused in several de novo generation pipelines, including MIST + MolForge [42]"
+     },
+     {
+      "source": "@msgwild",
+      "text": "MIST + MolForge† (corrected) MIST + MolForge† (inflated, batch size=24)"
+     },
+     {
+      "source": "@msgwild",
+      "text": "10.73% 31.75%"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Supervised sequence-to-sequence model that translates a structural fingerprint into a molecular string (fingerprint-to-molecule decoder).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Model overview",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "to decode fingerprints accurately into lossless molecular representations."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Encoder-decoder Transformer: 6 encoder and 6 decoder layers, 8 heads, 512-dimensional attention, 2048-dimensional feed-forward, pre-layer normalisation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Training",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The encoder and decoder used a stack of six identical layers consisting of eight heads with a 512 dimensional multi-head attention mechanism"
+     },
+     {
+      "source": "@paper",
+      "text": "we used a normalization layer before each sub-layer"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "The set bit indices of a fingerprint (for example ECFP4), given as a space-separated list, with the fingerprint name and output type.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Prediction & Demo",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python predict.py --fp='ECFP4' --model_type='smiles' --input='1 80 94 114 237"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "A SMILES or SELFIES string, printed as space-separated tokens.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: sample output",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Result: C C O C 1 = C ( C = C ( C = C 1 ) C ( C ( C ) ( C ) C ) N ) O C C"
+     },
+     {
+      "source": "@readme",
+      "text": "`--model_type` : Molecular representation e.g. 'smiles' or 'selfies'"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported as a count in the sources read.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper; README.md",
+    "quotes": []
+   },
+   {
+    "label": "Training data",
+    "value": "About 5,050,000 small and medium molecules: ChEMBL (2.08 M) extended with PubChem compounds chosen to maximise atom-type variety; molecules of about 50 heavy atoms or less.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Model overview, Figure caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we selected the ChEMBL ["
+     },
+     {
+      "source": "@paper",
+      "text": "(2.08 M) dataset and extended it to include PubChem ["
+     },
+     {
+      "source": "@paper",
+      "text": "This resulted in 5,050,000 small- and me"
+     },
+     {
+      "source": "@paper",
+      "text": "The training dataset consisted of five million small- and medium-sized molecules of approximately 50 heavy atoms or less"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One model per fingerprint and representation pair; checkpoints in two archives (top-performing, and all other models). No versioned releases are described.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Prediction & Demo",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "[top-performing](https://drive.google.com/uc?id=1zl6HBdwYsnA4JcnOi1o6OmcrRDB5iySK)"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "130 target tokens and 104 source tokens in the ECFP4 to SMILES demo; training molecules have about 50 heavy atoms or less.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: sample output; paper figure caption",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "src_seq_len : 104"
+     },
+     {
+      "source": "@readme",
+      "text": "trg_seq_len : 130"
+     },
+     {
+      "source": "@paper",
+      "text": "approximately 50 heavy atoms or less"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated separately. The repository states conflicting licences: a CC BY-NC 4.0 badge, a CC BY-SA 4.0 License section, and a LICENSE.md with the CC BY-NC-SA 4.0 text.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README.md: badge and License section; LICENSE.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "[![License: CC BY-NC 4.0]"
+     },
+     {
+      "source": "@readme",
+      "text": "[Creative Commons Attribution-ShareAlike 4.0 International License][cc-by-sa]"
+     },
+     {
+      "source": "@license",
+      "text": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "CC BY-NC-SA 4.0 in LICENSE.md, but the README also shows a CC BY-NC 4.0 badge and a CC BY-SA 4.0 License section; the sources do not resolve this.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE.md; README.md",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International"
+     },
+     {
+      "source": "@readme",
+      "text": "[![License: CC BY-NC 4.0]"
+     },
+     {
+      "source": "@readme",
+      "text": "This work is licensed under a"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/knu-lcbc/MolForge. Checkpoints: Google Drive links in the README (https://drive.google.com/uc?id=1zl6HBdwYsnA4JcnOi1o6OmcrRDB5iySK for the top-performing models). Paper: https://doi.org/10.1186/s13321-023-00693-0.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@msgwild"
+    ],
+    "source_locator": "README.md; MassSpecGym in the Wild appendix",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "https://drive.google.com/uc?id=1zl6HBdwYsnA4JcnOi1o6OmcrRDB5iySK"
+     },
+     {
+      "source": "@readme",
+      "text": "https://doi.org/10.1186/s13321-023-00693-0"
+     },
+     {
+      "source": "@msgwild",
+      "text": "https://github.com/knu-lcbc/"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Covers many fingerprint types and both SMILES and SELFIES outputs, with checkpoints shared for each.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "four structural fingerprints, extended connectivity, topological torsion, atom pairs, and atomic environments can be used as inputs and outputs of chemical NLP applications."
+     }
+    ]
+   },
+   {
+    "text": "The authors report high reconstruction accuracy for ECFP4 to SMILES (the README table gives Tanimoto exactness between 90.8% and 96.6% for ECFP4 to SMILES across the encodings measured; the authors' figures).",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Result table",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Each cell shows the Tanimoto exactness (%) of selected fingerprint transformation to SMILES"
+     },
+     {
+      "source": "@readme",
+      "text": "| ECFP4 | 95.1 | 92.6 | 95.7 | 95.7 | 90.8 | 92.4 | 92.4 | 93.5 | 93.1 | 92.1 | 93.3 | 92.4 | 93.1 | 96.6 | 94.8 |"
+     }
+    ]
+   },
+   {
+    "text": "Simple and fast to retrain: the MassSpecGym in the Wild authors chose it because the decoder is simple, fast to retrain and modular.",
+    "source_ids": [
+     "@msgwild"
+    ],
+    "source_locator": "MassSpecGym in the Wild appendix",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "MolForge is well suited for this leakage audit because the decoder is simple, fast to retrain across many corpus variants, and modular"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Licence terms conflict across the README badge, README text and LICENSE.md, and two of the three are non-commercial.",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README.md; LICENSE.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "[![License: CC BY-NC 4.0]"
+     },
+     {
+      "source": "@license",
+      "text": "Attribution-NonCommercial-ShareAlike"
+     }
+    ]
+   },
+   {
+    "text": "MolForge only decodes fingerprints; for spectra it needs a separate encoder such as MIST, and its performance depends on that encoder. MassSpecGym in the Wild found the widely reported MIST + MolForge results were inflated.",
+    "source_ids": [
+     "@neo",
+     "@msgwild"
+    ],
+    "source_locator": "Neo et al. abstract; MassSpecGym in the Wild Section 6.1.2",
+    "quotes": [
+     {
+      "source": "@neo",
+      "text": "encoding mass spectra into molecular fingerprints, followed by (2) decoding these fingerprints into molecular structures"
+     },
+     {
+      "source": "@msgwild",
+      "text": "replacing batched inference settings with single-spectrum settings sharply reduces downstream MIST + MolForge performance back to an expected range."
+     }
+    ]
+   },
+   {
+    "text": "Trained decoders can memorise fingerprint and molecule pairs close to the test set when test compounds are excluded only by exact InChIKey match.",
+    "source_ids": [
+     "@msgwild"
+    ],
+    "source_locator": "MassSpecGym in the Wild Section 4",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "These decoders are typically trained on large unlabeled molecular datasets with test compounds excluded only by exact 2D InChIKey matches"
+     }
+    ]
+   },
+   {
+    "text": "Checkpoints are on Google Drive with no versioning or checksums in the README; the code is tested on Linux only.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Requirements, Prediction & Demo",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The source code is tested on Linux operating systems."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "MolForge in a spectrum-to-structure pipeline",
+   "steps": [
+    "MS/MS spectrum",
+    "Spectrum encoder (for example MIST)",
+    "Predicted fingerprint bits",
+    "MolForge Transformer decoder",
+    "SMILES or SELFIES candidates"
+   ],
+   "caption": "MolForge itself covers the last two steps; the encoder is a separate model.",
+   "source_ids": [
+    "@neo",
+    "@readme"
+   ],
+   "source_locator": "Neo et al. abstract; README.md",
+   "quotes": [
+    {
+     "source": "@neo",
+     "text": "In our work, we adopt MIST (Goldman et. al., 2023) as the encoder and MolForge (Ucak et. al., 2023) as the decoder"
+    },
+    {
+     "source": "@readme",
+     "text": "reconstructed from a set of structural fingerprints"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Parameter counts are not given in the sources read.",
+   "Which licence governs the checkpoints is unclear from the repository.",
+   "The MIST-MolForge integration repository named in MassSpecGym in the Wild was not read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read README.md and LICENSE.md of knu-lcbc/MolForge at commit 775bba46f135f54f2285d5d6d098b3109054d346, the PMC9948316 full-text XML, the arXiv 2508.04180 abstract page and the MassSpecGym in the Wild arXiv 2606.19624v1 text layer, all on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install MolForge, download the top-performing checkpoints and decode the README's example ECFP4 fingerprint into SMILES.",
+  "prerequisites": [
+   "Linux (the code is tested on Linux).",
+   "conda.",
+   "The checkpoints are on Google Drive and must be downloaded by hand.",
+   "Licence: the repository states non-commercial terms in two of three places."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://github.com/knu-lcbc/MolForge.git\ncd MolForge\ngit checkout --detach 775bba46f135f54f2285d5d6d098b3109054d346",
+    "explanation": "Clone the repository and pin the reviewed commit. These lines are added by Rewire; the README says to clone the repository first.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Requirements",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "After cloning the repository, we recommend creating a new conda environment and install the package locally."
+     }
+    ]
+   },
+   {
+    "title": "Install",
+    "shell": "conda env create --name MolForge_env --file=environment.yml\nconda activate MolForge_env\npython -m pip install .",
+    "explanation": "Create the environment and install the package, as the README gives it.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Requirements",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda env create --name MolForge_env --file=environment.yml conda activate MolForge_env python -m pip install ."
+     }
+    ]
+   },
+   {
+    "title": "Download checkpoints",
+    "shell": "# Download https://drive.google.com/uc?id=1zl6HBdwYsnA4JcnOi1o6OmcrRDB5iySK (top-performing models),\n# extract it, and place the checkpoint files in ./saved_models/",
+    "explanation": "The README gives Google Drive links and a target folder but no download command, so this step is a manual instruction.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Prediction & Demo",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The checkpoints files should be placed in `./saved_models/` directory."
+     }
+    ]
+   },
+   {
+    "title": "Decode an example fingerprint",
+    "shell": "python predict.py --fp='ECFP4' --model_type='smiles' --input='1 80 94 114 237 241 255 294 392 411 425 695 743 747 786 875 1057 1171 1238 1365 1380 1452 1544 1750 1773 1853 1873 1970'",
+    "explanation": "Runs greedy decoding with saved_models/ECFP4_smiles_checkpoint.pth.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Example prediction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python predict.py --fp='ECFP4' --model_type='smiles' --input='1 80 94 114 237 241 255 294 392 411 425 695 743 747 786 875 1057 1171 1238 1365 1380 1452 1544 1750 1773 1853 1873 1970'"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "The run settings, the vocabulary sizes and the decoded SMILES, shown in the README as: Result: C C O C 1 = C ( C = C ( C = C 1 ) C ( C ( C ) ( C ) C ) N ) O C C."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The README's sample output shows the device as cuda; whether CPU inference works is not stated.",
+   "This decodes a fingerprint only; going from a spectrum needs a separate encoder."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "MolForge top-performing models (Google Drive archive)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": null,
+   "weights_licence": null,
+   "code_url": "https://github.com/knu-lcbc/MolForge",
+   "weights_url": "https://drive.google.com/uc?id=1zl6HBdwYsnA4JcnOi1o6OmcrRDB5iySK",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "https://drive.google.com/uc?id=1zl6HBdwYsnA4JcnOi1o6OmcrRDB5iySK"
+    }
+   ]
+  },
+  {
+   "checkpoint": "MolForge all other models (Google Drive archive)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": null,
+   "weights_licence": null,
+   "code_url": "https://github.com/knu-lcbc/MolForge",
+   "weights_url": "https://drive.google.com/uc?id=1jCtbc9lMacCyiZ3iZFEtFgOfOQYtWEuD",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "https://drive.google.com/uc?id=1jCtbc9lMacCyiZ3iZFEtFgOfOQYtWEuD"
+    }
+   ]
+  }
+ ],
+ "notes": "Licence conflict worth a human look: README badge CC BY-NC 4.0, README License section CC BY-SA 4.0, LICENSE.md CC BY-NC-SA 4.0; structured licences are left null. The record describes MolForge as used with a MIST encoder; MIST + MolForge is a pipeline from Neo et al. (arXiv 2508.04180), and MassSpecGym in the Wild marks its own MIST + MolForge as a reimplementation. The MSGWild PDF splits the GitHub URL across a line, so the quote shows 'https://github.com/knu-lcbc/ molforge'."
+}

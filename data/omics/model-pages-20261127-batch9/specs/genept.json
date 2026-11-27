@@ -1,0 +1,561 @@
+{
+  "record_id": "lit-cells-networks-20261011-chen2026-model-genept",
+  "sources": [
+    {
+      "key": "readme",
+      "name": "yiqunchen/GenePT README.md at commit 3602699e",
+      "description": "Official repository README, pinned to a commit.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/yiqunchen/GenePT/3602699e7425a7be577771f8f07e218db6c79b9f/README.md",
+      "url": "https://github.com/yiqunchen/GenePT",
+      "version": "git commit 3602699e7425a7be577771f8f07e218db6c79b9f",
+      "media_type": "text/markdown",
+      "sha256": "8740cf98377f964131399de818db5de938db4d9e6abe20fac3cd0354887a99c2",
+      "retrieved_at": "2026-11-27T02:33:15Z",
+      "store_bytes": false
+    },
+    {
+      "key": "repo-contents",
+      "name": "yiqunchen/GenePT root directory listing at commit 3602699e",
+      "description": "GitHub API listing of the repository root at the pinned commit.",
+      "file": "artifacts/repo-contents.json",
+      "artifact_url": "https://api.github.com/repos/yiqunchen/GenePT/contents?ref=3602699e7425a7be577771f8f07e218db6c79b9f",
+      "url": "https://github.com/yiqunchen/GenePT",
+      "version": "git commit 3602699e7425a7be577771f8f07e218db6c79b9f",
+      "media_type": "application/json",
+      "sha256": "7ab4fff611bac588e6ad15425449c084d61dc0a2fd0433e345d1c4b0d9fa2d68",
+      "retrieved_at": "2026-11-27T02:33:14Z",
+      "store_bytes": true
+    },
+    {
+      "key": "notebook",
+      "name": "yiqunchen/GenePT aorta_data_analysis.ipynb at commit 3602699e",
+      "description": "Example notebook that builds cell embeddings, pinned to a commit.",
+      "file": "artifacts/aorta-notebook.ipynb",
+      "artifact_url": "https://raw.githubusercontent.com/yiqunchen/GenePT/3602699e7425a7be577771f8f07e218db6c79b9f/aorta_data_analysis.ipynb",
+      "url": "https://github.com/yiqunchen/GenePT",
+      "version": "git commit 3602699e7425a7be577771f8f07e218db6c79b9f",
+      "media_type": "application/x-ipynb+json",
+      "sha256": "426d15a5a630e8ba74577343e50d9149762e21186b1cf28d035c20904e22deca",
+      "retrieved_at": "2026-11-27T02:33:37Z",
+      "store_bytes": false
+    },
+    {
+      "key": "zenodo",
+      "name": "Zenodo record 10833191, Gene embeddings used in GenePT, as served on 2026-11-27",
+      "description": "Zenodo API response: licence, publication date, description and file list of the released embeddings.",
+      "file": "artifacts/zenodo-api.json",
+      "artifact_url": "https://zenodo.org/api/records/10833191",
+      "url": "https://zenodo.org/records/10833191",
+      "version": "Zenodo record 10833191 as served on 2026-11-27",
+      "media_type": "application/json",
+      "sha256": "229f456ae5023db60296197fee508c75b679cc885f65799fd4937be399a7499e",
+      "retrieved_at": "2026-11-27T02:33:24Z",
+      "store_bytes": true
+    },
+    {
+      "key": "paper",
+      "name": "Chen and Zou, GenePT: A Simple But Effective Foundation Model for Genes and Cells Built From ChatGPT, bioRxiv preprint v2 (PMC10614824)",
+      "description": "Full text of the preprint as NCBI PMC XML.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=10614824&rettype=xml",
+      "url": "https://doi.org/10.1101/2023.10.16.562533",
+      "version": "PMC10614824, preprint version 2",
+      "media_type": "application/xml",
+      "sha256": "917bc9906cd34317373043d9994bcf6208bc1a77e7a8c2a65bc86b38a25d44df",
+      "retrieved_at": "2026-11-27T02:33:22Z",
+      "licence": "CC BY-NC-ND 4.0",
+      "store_bytes": false
+    }
+  ],
+  "profile": {
+    "summary": "GenePT builds gene and cell embeddings from text instead of training on expression data. Each gene's NCBI summary is embedded with an OpenAI text embedding model; a cell embedding is then either the expression-weighted average of its gene embeddings (GenePT-w) or the text embedding of the cell's gene names ordered by expression (GenePT-s). The embeddings feed gene-level and cell-level tasks such as gene property and cell type classification.",
+    "summary_source_ids": [
+      "@readme",
+      "@paper"
+    ],
+    "summary_source_locator": "README.md: What is GenePT?; paper Methods 3.1",
+    "summary_quotes": [
+      {
+        "source": "@readme",
+        "text": "GenePT offers a complementary approach by using NCBI text descriptions of individual genes combined with GPT-3.5 to generate gene embeddings."
+      },
+      {
+        "source": "@readme",
+        "text": "(i) by averaging the gene embeddings, weighted by each gene’s expression level; or (ii) by creating a sentence embedding for each cell, using gene names ordered by expression level."
+      },
+      {
+        "source": "@paper",
+        "text": "we developed two distinct approaches: GenePT-w (w for weighted) and GenePT-s (s for sentence)"
+      }
+    ],
+    "sections": [
+      {
+        "title": "How it works",
+        "body": "About 33,000 genes were taken from the scGPT and Geneformer vocabularies and genes in the downstream datasets. Each gene's NCBI summary was embedded with text-embedding-ada-002, giving a 1,536-dimensional gene vector. For cells, counts are normalised to 10,000 per cell and log(1 + x) transformed. GenePT-w takes the expression-weighted average of the gene vectors and scales it to unit length. GenePT-s writes the expressed gene names in descending order of expression as a sentence and embeds that sentence. No model is trained on expression data.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper Methods 3.1; README.md",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "totalling around 33,000 genes"
+          },
+          {
+            "source": "@paper",
+            "text": "embeddings were obtained for the summaries for each gene (mean: 73 words; interquartile range: 25–116)"
+          },
+          {
+            "source": "@paper",
+            "text": "Each embedding has a dimension of 1,536, which serves as gene representations"
+          },
+          {
+            "source": "@paper",
+            "text": "we row-normalize the count matrix so that each cell has 10,000 observed RNA transcripts, followed by a log(1 +"
+          },
+          {
+            "source": "@paper",
+            "text": "To construct GenePT-w embeddings, we first take a weighted average of the GenePT gene embeddings, where the weight is determined by the normalized expressions of each gene, and then normalize the embedding to have unit"
+          },
+          {
+            "source": "@paper",
+            "text": "the sequence is ordered by descending normalized expression levels, omitting genes with zero counts"
+          },
+          {
+            "source": "@readme",
+            "text": "Without the need for dataset curation and additional pre-training"
+          }
+        ]
+      },
+      {
+        "title": "Versions and reproducibility",
+        "body": "The released artefact is a set of precomputed gene embeddings on Zenodo (record 10833191, one zip file). In March 2024 the authors added embeddings that include UniProt protein summaries and embeddings from the newer text-embedding-3-large model, alongside the original text-embedding-ada-002 ones. A result should state which summary file and which embedding model were used, since GenePT-w results depend on that choice.",
+        "source_ids": [
+          "@readme",
+          "@zenodo"
+        ],
+        "source_locator": "README.md: News; Zenodo record",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "We've uploaded new GenePT embeddings with 1. additional protein information and 2. newer text embedding models"
+          },
+          {
+            "source": "@zenodo",
+            "text": "GenePT_gene_embedding_ada_text.pickle"
+          },
+          {
+            "source": "@zenodo",
+            "text": "GenePT_gene_protein_embedding_model_3_text.pickle"
+          },
+          {
+            "source": "@zenodo",
+            "text": "\"key\": \"GenePT_emebdding_v2.zip\""
+          }
+        ]
+      },
+      {
+        "title": "Intended uses",
+        "body": "Gene-level prediction tasks, gene-gene interaction analysis, cell type annotation and batch effect assessment, all shown as example notebooks.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Tutorials and Use",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "1. Gene-level prediction tasks"
+          },
+          {
+            "source": "@readme",
+            "text": "3. Cell-level biological data annotation"
+          },
+          {
+            "source": "@readme",
+            "text": "4. Batch effect removal (Cardiomyocyte dataset; Aorta dataset)"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Model type",
+        "value": "Text-derived gene and cell embeddings presented by the authors as a single-cell foundation model; no expression-trained network.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: What is GenePT?",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "is a single-cell foundation model"
+          },
+          {
+            "source": "@readme",
+            "text": "leverages ChatGPT embeddings to address gene-level and cell-level biology tasks"
+          }
+        ]
+      },
+      {
+        "label": "Architecture",
+        "value": "No trained architecture of its own. Gene vectors come from OpenAI text embedding models (text-embedding-ada-002, later also text-embedding-3-large); cell vectors are an expression-weighted average (GenePT-w) or a sentence embedding (GenePT-s).",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@zenodo"
+        ],
+        "source_locator": "Paper Methods 3.1; Zenodo description",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "embeddings were obtained for the summaries for each gene (mean: 73 words; interquartile range: 25–116)"
+          },
+          {
+            "source": "@zenodo",
+            "text": "text-embedding-ada-002 and text-embedding-3-large"
+          }
+        ]
+      },
+      {
+        "label": "Inputs",
+        "value": "A scRNA-seq count matrix with gene names; GenePT-s also needs calls to the OpenAI API for each cell sentence.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper Methods 3.1; README.md",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we row-normalize the count matrix"
+          },
+          {
+            "source": "@readme",
+            "text": "Note that this requires a valid registration of the OpenAI API"
+          }
+        ]
+      },
+      {
+        "label": "Outputs",
+        "value": "1,536-dimensional gene embeddings (ada-002) and cell embeddings normalised to unit length (GenePT-w).",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Methods 3.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Each embedding has a dimension of 1,536"
+          },
+          {
+            "source": "@paper",
+            "text": "and then normalize the embedding to have unit"
+          }
+        ]
+      },
+      {
+        "label": "Parameters",
+        "value": "Not applicable: GenePT trains no model of its own. The parameter counts of the OpenAI embedding models are not given.",
+        "status": "inapplicable",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Methods 3.1",
+        "quotes": []
+      },
+      {
+        "label": "Training data",
+        "value": "No training. The inputs to the embeddings are NCBI gene summaries (and UniProt summaries in the 2024 files) for about 33,000 genes.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@zenodo"
+        ],
+        "source_locator": "Paper Methods 3.1; Zenodo description",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For each gene, we extracted its information from the NCBI gene database’s summary section"
+          },
+          {
+            "source": "@zenodo",
+            "text": "NCBI_UniProt_summary_of_genes.json"
+          }
+        ]
+      },
+      {
+        "label": "Known versions",
+        "value": "Zenodo record 10833191 (published 2024-03-18) holds GenePT_gene_embedding_ada_text.pickle (text-embedding-ada-002) and GenePT_gene_protein_embedding_model_3_text.pickle (text-embedding-3-large), plus NCBI and NCBI-plus-UniProt summary files. The description says both pickles embed the NCBI summaries in file 1, while the second file name mentions protein; the record does not explain this. Cell embeddings in two variants, GenePT-w and GenePT-s.",
+        "status": "source_checked",
+        "source_ids": [
+          "@zenodo",
+          "@paper"
+        ],
+        "source_locator": "Zenodo description; paper",
+        "quotes": [
+          {
+            "source": "@zenodo",
+            "text": "GenePT_gene_embedding_ada_text.pickle"
+          },
+          {
+            "source": "@zenodo",
+            "text": "GenePT_gene_protein_embedding_model_3_text.pickle"
+          },
+          {
+            "source": "@zenodo",
+            "text": "text-embedding-3-large embeddings of the summary in 1. are the values"
+          },
+          {
+            "source": "@zenodo",
+            "text": "\"publication_date\": \"2024-03-18\""
+          },
+          {
+            "source": "@paper",
+            "text": "GenePT-w (w for weighted) and GenePT-s (s for sentence)"
+          }
+        ]
+      },
+      {
+        "label": "Training cutoff",
+        "value": "Not stated. The date the NCBI summaries were downloaded is not given.",
+        "status": "unreported",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Methods 3.1",
+        "quotes": []
+      },
+      {
+        "label": "Context limits",
+        "value": "Not stated for GenePT-w. The example notebook truncates GenePT-s sentences to 1000 genes.",
+        "status": "source_checked",
+        "source_ids": [
+          "@notebook"
+        ],
+        "source_locator": "aorta_data_analysis.ipynb",
+        "quotes": [
+          {
+            "source": "@notebook",
+            "text": "N_TRUNC_GENE = 1000"
+          }
+        ]
+      },
+      {
+        "label": "Weights licence",
+        "value": "CC BY 4.0 for the released embeddings, as declared on the Zenodo record.",
+        "status": "source_checked",
+        "source_ids": [
+          "@zenodo"
+        ],
+        "source_locator": "Zenodo API response",
+        "quotes": [
+          {
+            "source": "@zenodo",
+            "text": "\"id\": \"cc-by-4.0\""
+          }
+        ]
+      },
+      {
+        "label": "Code licence",
+        "value": "Not stated. The repository has no LICENSE file in its root listing and the README names no licence.",
+        "status": "unreported",
+        "source_ids": [
+          "@repo-contents",
+          "@readme"
+        ],
+        "source_locator": "GitHub root listing",
+        "quotes": []
+      },
+      {
+        "label": "Access",
+        "value": "Notebooks: https://github.com/yiqunchen/GenePT. Embeddings and gene summaries: https://doi.org/10.5281/zenodo.10833191.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "https://doi.org/10.5281/zenodo.10833191"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "No pre-training on expression data and no dataset curation; a cell embedding is a weighted average of precomputed gene vectors.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Without the need for dataset curation and additional pre-training, GenePT is efficient and user-friendly."
+          }
+        ]
+      },
+      {
+        "text": "Precomputed gene embeddings and the gene summaries are public under CC BY 4.0.",
+        "source_ids": [
+          "@zenodo"
+        ],
+        "source_locator": "Zenodo record",
+        "quotes": [
+          {
+            "source": "@zenodo",
+            "text": "\"id\": \"cc-by-4.0\""
+          }
+        ]
+      },
+      {
+        "text": "The authors report performance comparable to, and often better than, single-cell foundation models on gene property and cell type classification (authors' claim).",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "GenePT achieves comparable, and often superior, performance to existing single-cell foundation models"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Relies only on existing gene summaries, so poorly documented gene functions are missed, and the embeddings are not specific to a tissue or cell type (authors' own limitations).",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Discussion",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the current GenePT framework only makes use of available gene summaries and descriptions. This may overlook the intricacies of lesser-known functionalities not documented in databases like NCBI."
+          },
+          {
+            "source": "@paper",
+            "text": "GenePT embeddings might not be optimal for specific tissues and cell types"
+          }
+        ]
+      },
+      {
+        "text": "Making new gene embeddings, and every GenePT-s cell embedding, needs a registered OpenAI API account; the README links to OpenAI's pricing details.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Breakdown of analysis files",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Note that this requires a valid registration of the OpenAI API"
+          },
+          {
+            "source": "@readme",
+            "text": "see instructions and pricing details at https://openai.com/blog/openai-api"
+          }
+        ]
+      },
+      {
+        "text": "No code licence is stated.",
+        "source_ids": [
+          "@repo-contents"
+        ],
+        "source_locator": "GitHub root listing",
+        "quotes": [
+          {
+            "source": "@repo-contents",
+            "text": "\"name\":\"README.md\""
+          }
+        ]
+      },
+      {
+        "text": "Quality is bounded by the language model used, according to the authors.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Discussion",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the effectiveness of the embeddings is inherently constrained by the language models employed, i.e., GPT-3.5"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "GenePT workflow",
+      "steps": [
+        "NCBI gene summaries",
+        "OpenAI text embedding per gene",
+        "Normalised scRNA-seq counts",
+        "Expression-weighted average (GenePT-w) or ranked gene sentence (GenePT-s)",
+        "Cell embedding"
+      ],
+      "caption": "Gene vectors come from text; cell vectors combine them using expression.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper Methods 3.1",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "For each gene, we extracted its information from the NCBI gene database’s summary section"
+        },
+        {
+          "source": "@paper",
+          "text": "we first take a weighted average of the GenePT gene embeddings"
+        },
+        {
+          "source": "@paper",
+          "text": "We then pass this sentence representation for each cell to GPT-3.5 to obtain GenePT-s embeddings"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "No code licence is stated.",
+      "The NCBI download date is not given.",
+      "There is no packaged tool; use is through analysis notebooks."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the yiqunchen/GenePT README, root listing and aorta_data_analysis.ipynb at commit 3602699e7425a7be577771f8f07e218db6c79b9f, the Zenodo API record 10833191, and the PMC10614824 preprint full-text XML, on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": null,
+  "no_run_guide_reason": "GenePT has no installable package or command-line entry point. The repository provides Jupyter notebooks for the paper's analyses and the embeddings are a Zenodo download; the README gives no install or run commands.",
+  "structured": [
+    {
+      "checkpoint": "GenePT gene embeddings (Zenodo 10833191)",
+      "parameters": null,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": null,
+      "weights_licence": "CC-BY-4.0",
+      "code_url": "https://github.com/yiqunchen/GenePT",
+      "weights_url": "https://zenodo.org/records/10833191",
+      "gated": false,
+      "released": "2024-03-18",
+      "quotes": [
+        {
+          "source": "@zenodo",
+          "text": "\"publication_date\": \"2024-03-18\""
+        },
+        {
+          "source": "@zenodo",
+          "text": "\"id\": \"cc-by-4.0\""
+        }
+      ]
+    }
+  ],
+  "notes": "The record's reported name is GenePT-w, one of the two cell embedding variants; this page covers GenePT as a whole. scELMo (09-scelmo) is a related text-embedding method with its own repository and paper; the two records are not duplicates. The paper read is preprint v2 in PMC; the published version, if any, was not checked."
+}

@@ -1,0 +1,616 @@
+{
+ "record_id": "uc20260930-model-flare",
+ "sources": [
+  {
+   "key": "space-readme",
+   "name": "HassounLab/FLARE Space README.md at revision e7dfae25",
+   "description": "README of the official Hugging Face Space, which holds the code and the released checkpoint, pinned to a revision.",
+   "file": "artifacts/hf-space-readme.md",
+   "artifact_url": "https://huggingface.co/spaces/HassounLab/FLARE/raw/e7dfae2595b90703394527d985b5fab4b6a36806/README.md",
+   "url": "https://huggingface.co/spaces/HassounLab/FLARE",
+   "version": "Hugging Face Space revision e7dfae2595b90703394527d985b5fab4b6a36806",
+   "media_type": "text/markdown",
+   "sha256": "ce0285e1be8a2e6e806feca145fc8bd3001a55b7728e48824553bcb949abb780",
+   "retrieved_at": "2026-11-27T02:35:40Z",
+   "store_bytes": false
+  },
+  {
+   "key": "run-readme",
+   "name": "HassounLab/FLARE run_scripts/README.md at revision e7dfae25",
+   "description": "Paper reproduction recipes in the official Space, pinned to a revision.",
+   "file": "artifacts/run-scripts-readme.md",
+   "artifact_url": "https://huggingface.co/spaces/HassounLab/FLARE/raw/e7dfae2595b90703394527d985b5fab4b6a36806/run_scripts/README.md",
+   "url": "https://huggingface.co/spaces/HassounLab/FLARE",
+   "version": "Hugging Face Space revision e7dfae2595b90703394527d985b5fab4b6a36806",
+   "media_type": "text/markdown",
+   "sha256": "34f59f7f54c058b3660849df1e4d90b25438a04debe43b5143684c0560e1e088",
+   "retrieved_at": "2026-11-27T02:35:44Z",
+   "store_bytes": false
+  },
+  {
+   "key": "space-api",
+   "name": "Hugging Face API metadata for the HassounLab/FLARE Space, as served on 2026-11-27",
+   "description": "Hugging Face Space API response: revision, dates, SDK and the list of files in the Space.",
+   "file": "artifacts/hf-space-api.json",
+   "artifact_url": "https://huggingface.co/api/spaces/HassounLab/FLARE",
+   "url": "https://huggingface.co/spaces/HassounLab/FLARE",
+   "version": "As served on 2026-11-27; the response may change",
+   "media_type": "application/json",
+   "sha256": "d00d0a63f459d32dc2e572569c87835a24473e58b10e0d9078e6ebbf76e48504",
+   "retrieved_at": "2026-11-27T02:35:33Z",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Chen, Rushing and Hassoun 2026, FLARE, bioRxiv 2026.01.27.702086, PMC12873900 full text",
+   "description": "Full-text JATS XML of the FLARE bioRxiv preprint as deposited in NCBI PMC (CC BY 4.0).",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12873900&rettype=xml",
+   "url": "https://doi.org/10.64898/2026.01.27.702086",
+   "version": "PMC12873900 (preprint) as served on 2026-11-27",
+   "media_type": "application/xml",
+   "sha256": "ff3f316c77336a43235956d0a264cd963fd802ada6f7e4769b97ceea81b7101e",
+   "retrieved_at": "2026-11-27T02:35:16Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "msalign",
+   "name": "MSAlign arXiv 2605.19752v2, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of the MSAlign benchmark paper, which ran FLARE as a retrieval baseline.",
+   "file": "artifacts/msalign-v2.txt",
+   "artifact_url": "https://arxiv.org/pdf/2605.19752v2",
+   "url": "https://arxiv.org/abs/2605.19752v2",
+   "version": "arXiv 2605.19752v2",
+   "media_type": "text/plain",
+   "sha256": "f2b751f0a1b0afed84274843277ebc0a6de90c2496fce3007023d72e71d7c9a7",
+   "retrieved_at": "2026-11-27T02:21:56Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "FLARE (Fine-grained Learning for Alignment of spectra-molecule REpresentations) annotates metabolites from tandem mass spectra by retrieval. It embeds an MS/MS spectrum, written as chemical formulas for each peak, and candidate molecular graphs in a shared space, then ranks the candidates by similarity. The similarity is built from peak-to-atom and atom-to-peak matches, so the matches can be inspected.",
+  "summary_source_ids": [
+   "@space-readme",
+   "@paper"
+  ],
+  "summary_source_locator": "Space README: Overview; paper abstract",
+  "summary_quotes": [
+   {
+    "source": "@space-readme",
+    "text": "FLARE learns a joint embedding space for **MS/MS spectra** (represented as **per-peak chemical formulas** from a subformula assigner) and **molecular graphs**."
+   },
+   {
+    "source": "@space-readme",
+    "text": "**Retrieval**: rank a list of candidate SMILES for each query spectrum (MassSpecGym-style evaluation)."
+   },
+   {
+    "source": "@paper",
+    "text": "FLARE computes similarity via maxima over peak-to-atom and atom-to-peak interactions, capturing chemically meaningful local correspondences and enabling interpretable spectra–molecule matching."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Peaks are first given chemical formulas by a MIST-style subformula assigner. Each formula peak is projected by a shallow MLP and contextualised by a transformer encoder, giving one embedding per peak. The molecule is a graph whose nodes carry atom features, encoded by a graph convolutional network into node embeddings. Training uses a fine-grained contrastive loss (filipContrastive): the similarity of a spectrum and a molecule averages the maximum peak-to-node and node-to-peak cosine similarities, with a temperature-scaled loss. At test time candidates are ranked by this similarity.",
+    "source_ids": [
+     "@paper",
+     "@space-readme"
+    ],
+    "source_locator": "Paper Methods; Space README: Overview, Model (default stack)",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Each peak is first projected through a shallow multilayer perceptron (MLP) to obtain a dense latent representation. These embeddings are subsequently processed by a transformer encoder"
+     },
+     {
+      "source": "@paper",
+      "text": "The molecular encoder is implemented as a standard graph convolutional network (GCN)["
+     },
+     {
+      "source": "@paper",
+      "text": "The spectra-molecule similarity is obtained by averaging the maximum node-to-peak similarities (not shown) and peak-to-node similarities."
+     },
+     {
+      "source": "@space-readme",
+      "text": "The default publication model uses **fine-grained contrastive learning** (`filipContrastive`): similarity between spectrum tokens and graph nodes, with a temperature-scaled loss."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "Code and the released checkpoint (pretrained_models/flare.ckpt) are distributed in the Hugging Face Space HassounLab/FLARE, which the paper names as the code location; no separate GitHub repository is named. Paper recipes are in run_scripts: the main FLARE model with candidates by mass or by formula, a global pooling baseline, and an evaluation with msbuddy-predicted formulas. The evaluation scripts use the released checkpoint by default. The Space was last modified on 2026-10-22. A result should name the Space revision, the candidate setting (mass or formula) and the formula source (ground-truth subformulae or msbuddy predictions).",
+    "source_ids": [
+     "@paper",
+     "@space-api",
+     "@run-readme"
+    ],
+    "source_locator": "Space README; run_scripts/README.md; Space API; paper Code Availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "including code for training new models, loading the pretrained models, and visualizing peak-to-node correspondence, are publicly available at"
+     },
+     {
+      "source": "@space-api",
+      "text": "\"rfilename\":\"pretrained_models/flare.ckpt\""
+     },
+     {
+      "source": "@run-readme",
+      "text": "**Default eval path:** released checkpoint in `pretrained_models/` (override with `FLARE_CHECKPOINT`)."
+     },
+     {
+      "source": "@run-readme",
+      "text": "| [`msgym_cand_by_mass_msbuddy_pred_form/`](msgym_cand_by_mass_msbuddy_pred_form/) | FLARE + msbuddy formulas |"
+     },
+     {
+      "source": "@space-api",
+      "text": "\"lastModified\":\"2026-10-22T02:15:47.000Z\""
+     }
+    ]
+   },
+   {
+    "title": "Use in benchmarks",
+    "body": "The MSAlign benchmark paper (an existing source on this record) ran FLARE as a retrieval baseline and describes it as a follow-up to MVP with a stronger spectrum encoder that uses subformula peak annotation and a richer, more interpretable similarity. MSAlign groups baselines by whether they need the target's molecular formula; the record description says FLARE does.",
+    "source_ids": [
+     "@msalign",
+     "uc20260930-source-msalign-v2"
+    ],
+    "source_locator": "MSAlign arXiv 2605.19752v2 Section 5.1-5.2",
+    "quotes": [
+     {
+      "source": "@msalign",
+      "text": "FLARE [13] is a direct follow-up work that considers a stronger spectra encoder leveraging peak annotation with subformulas and a more interpretable, richer similarity."
+     },
+     {
+      "source": "@msalign",
+      "text": "We note that some baselines require the molecular formula of the target to be provided."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Contrastive retrieval model that embeds MS/MS spectra and molecular graphs in a shared space.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Space README: Overview; paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a contrastive learning framework that leverages bidirectional peak-node alignment under learned weak supervision."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Spectrum encoder: MLP plus transformer over formula-annotated peaks (Transformer_Formula). Molecule encoder: GCN (DGL and dgllife) giving node embeddings. Loss: fine-grained contrastive (filipContrastive).",
+    "status": "source_checked",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Space README: Model (default stack)",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "| Spectrum encoder | `Transformer_Formula` |"
+     },
+     {
+      "source": "@space-readme",
+      "text": "| Molecule encoder | `GNN` (DGL + dgllife GCN), node embeddings for FLARE |"
+     },
+     {
+      "source": "@space-readme",
+      "text": "| Training objective | `filipContrastive` — masked fine-grained loss, temperature `contr_temp` |"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "MS/MS spectra (MassSpecGym TSV), per-spectrum subformula JSON files, and a candidate list JSON (by mass or by formula).",
+    "status": "source_checked",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Space README: Data",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "data/MassSpecGym.tsv data/MassSpecGym_retrieval_candidates_mass.json data/MassSpecGym_retrieval_candidates_formula.json data/subformulae_default/ # one JSON file per spectrum id"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Embeddings used to rank candidate molecules for each spectrum (results written as a pickle and scored by eval.py), and peak-to-node correspondence plots in the Streamlit app.",
+    "status": "source_checked",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Space README: Model, Testing, Streamlit app",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "| Output | Embeddings for cosine / fine-grained similarity at test time |"
+     },
+     {
+      "source": "@space-readme",
+      "text": "python eval.py /path/to/result_*.pkl --ci --mces"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported in the sources read; the paper defers architecture details and parameter values to its supplement, which was not read.",
+    "status": "unextracted",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Detailed architectural specifications, parameter values, and"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "MassSpecGym spectra and candidate lists.",
+    "status": "source_checked",
+    "source_ids": [
+     "@space-readme",
+     "@paper"
+    ],
+    "source_locator": "Space README: Data; paper Results",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "Download MassSpecGym from the [MassSpecGym](https://github.com/pluskal-lab/MassSpecGym) project."
+     },
+     {
+      "source": "@paper",
+      "text": "We assess FLARE on the MassSpecGym benchmark ["
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One released checkpoint, pretrained_models/flare.ckpt, in the Space. A global pooling baseline can be trained from the same code.",
+    "status": "source_checked",
+    "source_ids": [
+     "@space-api",
+     "@run-readme"
+    ],
+    "source_locator": "Space API file list; run_scripts/README.md",
+    "quotes": [
+     {
+      "source": "@space-api",
+      "text": "\"rfilename\":\"pretrained_models/flare.ckpt\""
+     },
+     {
+      "source": "@run-readme",
+      "text": "| [`msgym_global/`](msgym_global/) | Global contrastive (`contrastive`) |"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@space-readme"
+    ],
+    "source_locator": "Paper; Space README",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated as a model limit. The subformula preparation example sets MAX_FORMULAE=60.",
+    "status": "unreported",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Space README: Subformula preparation",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "export MAX_FORMULAE=60"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated separately; the Space README says the project is released under the MIT License, but no LICENSE file is in the Space file list at this revision.",
+    "status": "unreported",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Space README: License and citation; Space API file list",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "This project is released under the [MIT License](LICENSE)."
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, as the Space README states; the LICENSE file the README links to is not in the Space file list at revision e7dfae25.",
+    "status": "source_checked",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Space README: License and citation; Space API",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "This project is released under the [MIT License](LICENSE)."
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code and checkpoint: https://huggingface.co/spaces/HassounLab/FLARE (Streamlit Space). Paper: bioRxiv 10.64898/2026.01.27.702086.",
+    "status": "source_checked",
+    "source_ids": [
+     "@space-readme",
+     "@paper"
+    ],
+    "source_locator": "Paper Code Availability; Space README: Setup",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "git clone https://huggingface.co/spaces/HassounLab/FLARE"
+     },
+     {
+      "source": "@paper",
+      "text": "https://huggingface.co/spaces/HassounLab/FLARE"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Peak-to-atom matching makes rankings inspectable, and the Space includes an app that plots peak-to-node correspondence.",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Paper abstract; Space README",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "**Interpretation**: the Streamlit app visualizes **peak-to-node** correspondence for a single spectrum–molecule pair."
+     }
+    ]
+   },
+   {
+    "text": "A released checkpoint and per-experiment recipes for the paper's MassSpecGym results are provided.",
+    "source_ids": [
+     "@run-readme"
+    ],
+    "source_locator": "run_scripts/README.md",
+    "quotes": [
+     {
+      "source": "@run-readme",
+      "text": "Each top-level folder under `run_scripts/` is one paper setting."
+     }
+    ]
+   },
+   {
+    "text": "The authors report 43.15% rank@1 with candidates by mass and 22.66% by formula on MassSpecGym (the authors' figures).",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "It achieves state-of-the-art results on MassSpecGym, with 43.15% rank@1 (mass-based) and 22.66% (formula-based)"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Needs per-peak subformula annotations, which depend on a molecular formula; the authors show failures caused by wrong or ambiguous subformula annotations.",
+    "source_ids": [
+     "@paper",
+     "@space-readme"
+    ],
+    "source_locator": "Paper Results; Space README",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "often arising from incorrect or ambiguous subformula annotations."
+     },
+     {
+      "source": "@space-readme",
+      "text": "`SpecFormula` — formula peaks from JSON in `subformula_dir_pth`"
+     }
+    ]
+   },
+   {
+    "text": "The code is distributed only as a Hugging Face Space; its README refers to environment.yml, LICENSE and CITATION.cff, which are not in the Space file list at this revision, so the conda route in the README may fail.",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Space README: Setup; Space API",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "conda env create -f environment.yml"
+     },
+     {
+      "source": "@space-readme",
+      "text": "| `LICENSE`, `CITATION.cff` | License and citation metadata |"
+     }
+    ]
+   },
+   {
+    "text": "The default configuration expects a GPU.",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Space README: Hardware notes",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "default YAML uses `accelerator: gpu`, `devices: [0]`"
+     }
+    ]
+   },
+   {
+    "text": "Evaluated by its authors on MassSpecGym; the paper read is a preprint (bioRxiv, deposited in PMC as a preprint).",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "PMC metadata; paper Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "pmc-prop-preprint</meta-name><meta-value>yes"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "FLARE workflow",
+   "steps": [
+    "MS/MS spectrum",
+    "Subformula per peak",
+    "Transformer peak embeddings",
+    "GCN atom embeddings of candidates",
+    "Max peak-atom similarity",
+    "Ranked candidates"
+   ],
+   "caption": "Similarity averages the best peak-to-atom and atom-to-peak matches.",
+   "source_ids": [
+    "@paper",
+    "@space-readme"
+   ],
+   "source_locator": "Paper Figure 1 caption; Space README",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Peak representations are linearly projected and encoded with a transformer encoder. Node representations are embedded using a graph neural network (GNN)."
+    },
+    {
+     "source": "@space-readme",
+     "text": "rank a list of candidate SMILES for each query spectrum"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Parameter counts and detailed hyperparameters are in the paper's supplement, which was not read.",
+   "No LICENSE file is present in the Space at the reviewed revision, although the README states MIT.",
+   "The params YAML files were not read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read README.md and run_scripts/README.md of the HassounLab/FLARE Hugging Face Space at revision e7dfae2595b90703394527d985b5fab4b6a36806, the Space API response, the PMC12873900 full-text XML of the bioRxiv preprint and the MSAlign arXiv 2605.19752v2 text layer, all on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Clone the FLARE Space, install the Python requirements and start the Streamlit app, which loads the released checkpoint and plots peak-to-node correspondence for a spectrum and molecule pair.",
+  "prerequisites": [
+   "Python 3.11 with conda.",
+   "A CUDA-matched PyTorch and DGL build may be needed; the README gives a DGL wheel example for CUDA 11.8.",
+   "Retrieval evaluation additionally needs the MassSpecGym files placed under data/."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://huggingface.co/spaces/HassounLab/FLARE\ncd FLARE\ngit checkout --detach e7dfae2595b90703394527d985b5fab4b6a36806",
+    "explanation": "Clone the Space and pin the reviewed revision. The checkout line is added by Rewire.",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Space README: Setup",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "git clone https://huggingface.co/spaces/HassounLab/FLARE cd FLARE"
+     }
+    ]
+   },
+   {
+    "title": "Install",
+    "shell": "conda create -n flare python=3.11\nconda activate flare\npip install -r requirements.txt",
+    "explanation": "The README's alternative install route; the first route needs environment.yml, which is not in the Space file list.",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Space README: Setup",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "conda create -n flare python=3.11 conda activate flare"
+     },
+     {
+      "source": "@space-readme",
+      "text": "pip install -r requirements.txt"
+     }
+    ]
+   },
+   {
+    "title": "Run the app",
+    "shell": "streamlit run app.py",
+    "explanation": "Starts the peak-to-node visualisation app with flare/params/params.yaml and pretrained_models/flare.ckpt by default.",
+    "source_ids": [
+     "@space-readme"
+    ],
+    "source_locator": "Space README: Streamlit app",
+    "quotes": [
+     {
+      "source": "@space-readme",
+      "text": "streamlit run app.py"
+     },
+     {
+      "source": "@space-readme",
+      "text": "weights from `FLARE_CHECKPOINT` (default `pretrained_models/flare.ckpt`)."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A local Streamlit app showing peak-to-node correspondence for a single spectrum and molecule pair."
+  ],
+  "limitations": [
+   "These commands were read from the Space and have not been executed by Rewire.",
+   "Reproducing retrieval results uses the run_scripts recipes, for example bash run_scripts/msgym_main/1_run_test_cand_by_mass.sh, after the MassSpecGym files are in data/.",
+   "Whether the checkpoint is stored with Git LFS, and so needs git-lfs to clone, is not stated."
+  ],
+  "source_ids": [
+   "@space-readme",
+   "@run-readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "flare.ckpt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "MIT",
+   "weights_licence": null,
+   "code_url": "https://huggingface.co/spaces/HassounLab/FLARE",
+   "weights_url": "https://huggingface.co/spaces/HassounLab/FLARE/blob/e7dfae2595b90703394527d985b5fab4b6a36806/pretrained_models/flare.ckpt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@space-api",
+     "text": "\"rfilename\":\"pretrained_models/flare.ckpt\""
+    }
+   ]
+  }
+ ],
+ "notes": "No GitHub repository for FLARE was found; the paper's Code Availability names only the Hugging Face Space. The Space README says MIT and links LICENSE, but the Space file list has no LICENSE, environment.yml or CITATION.cff. The bioRxiv preprint was read from its PMC copy (PMC12873900), not from bioRxiv. The weights_url in structured is the Space file path built from the revision and the file list."
+}

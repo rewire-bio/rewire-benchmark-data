@@ -1,0 +1,635 @@
+{
+  "record_id": "lit-cells-networks-20261011-chen2026-model-scgpt-spatial",
+  "sources": [
+    {
+      "key": "readme",
+      "name": "bowang-lab/scGPT-spatial README.md at commit f9442d77",
+      "description": "Official repository README, pinned to a commit.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/bowang-lab/scGPT-spatial/f9442d777ba47cd3dcac8253833a233ff5bf7262/README.md",
+      "url": "https://github.com/bowang-lab/scGPT-spatial",
+      "version": "git commit f9442d777ba47cd3dcac8253833a233ff5bf7262",
+      "media_type": "text/markdown",
+      "sha256": "e233cee5a475fd503410b708f736b6c7826bb1a52e51c9847dff524f6da29cba",
+      "retrieved_at": "2026-11-27T02:34:44Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "license",
+      "name": "bowang-lab/scGPT-spatial LICENSE at commit f9442d77",
+      "description": "Licence file of the official repository, pinned to a commit.",
+      "file": "artifacts/license.txt",
+      "artifact_url": "https://raw.githubusercontent.com/bowang-lab/scGPT-spatial/f9442d777ba47cd3dcac8253833a233ff5bf7262/LICENSE",
+      "url": "https://github.com/bowang-lab/scGPT-spatial",
+      "version": "git commit f9442d777ba47cd3dcac8253833a233ff5bf7262",
+      "media_type": "text/plain",
+      "sha256": "06f7aa544520c1cfc436e38f263101bbd5f23279c7bb994f86560ab92092b025",
+      "retrieved_at": "2026-11-27T02:34:47Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "tutorial",
+      "name": "bowang-lab/scGPT-spatial tutorials/Multi_Modal_Integration_Demo.ipynb at commit f9442d77",
+      "description": "Official zero-shot inference tutorial, pinned to a commit.",
+      "file": "artifacts/tutorial.ipynb",
+      "artifact_url": "https://raw.githubusercontent.com/bowang-lab/scGPT-spatial/f9442d777ba47cd3dcac8253833a233ff5bf7262/tutorials/Multi_Modal_Integration_Demo.ipynb",
+      "url": "https://github.com/bowang-lab/scGPT-spatial",
+      "version": "git commit f9442d777ba47cd3dcac8253833a233ff5bf7262",
+      "media_type": "application/x-ipynb+json",
+      "sha256": "67f685abd0acea45de4af25ed803c46e5cda54009dde1e67a333da65615f56e8",
+      "retrieved_at": "2026-11-27T02:35:14Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "figshare",
+      "name": "Figshare metadata for article 28356068, scGPT-spatial V1 Model Weights, as served on 2026-11-27",
+      "description": "Figshare API response: licence, version, publication date, file list and description of the weights archive.",
+      "file": "artifacts/figshare-weights.json",
+      "artifact_url": "https://api.figshare.com/v2/articles/28356068",
+      "url": "https://figshare.com/articles/software/scGPT-spatial_V1_Model_Weights/28356068",
+      "version": "Figshare article 28356068 version 1, as served on 2026-11-27",
+      "media_type": "application/json",
+      "sha256": "0b2ce8683476048cbdce5466fa74d6c9920abb9eb0a7d62d41eefb881c290348",
+      "retrieved_at": "2026-11-27T02:34:58Z",
+      "store_bytes": true
+    },
+    {
+      "key": "abstract",
+      "name": "Europe PMC record PPR975768: abstract of the scGPT-spatial preprint (doi 10.1101/2025.02.05.636714)",
+      "description": "Europe PMC search API response holding the preprint's title and abstract.",
+      "file": "artifacts/paper-abstract-epmc.json",
+      "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:PPR975768%20AND%20SRC:PPR&format=json&resultType=core",
+      "url": "https://europepmc.org/article/PPR/PPR975768",
+      "version": "Europe PMC core record as served on 2026-11-27",
+      "media_type": "application/json",
+      "sha256": "cafd3a395e09a9e1a68eba626ee3f3362512e8533344374d6ec3f933a86a3102",
+      "retrieved_at": "2026-11-27T02:35:13Z",
+      "store_bytes": false
+    }
+  ],
+  "profile": {
+    "summary": "scGPT-spatial is a foundation model for spatial transcriptomics, made by continuing the pre-training of the scGPT single-cell model on 30 million spatial profiles. It takes spatial transcriptomic data from imaging or sequencing protocols (Visium, Visium HD, Xenium, MERFISH) and outputs zero-shot cell or spot embeddings for multi-slide and multi-modal integration; the authors report that the model also supports cell-type deconvolution and missing gene imputation.",
+    "summary_source_ids": [
+      "@abstract",
+      "@readme"
+    ],
+    "summary_source_locator": "Preprint abstract; README.md: Highlights",
+    "summary_quotes": [
+      {
+        "source": "@abstract",
+        "text": "a specialized foundation model for spatial transcriptomics continually pretrained on our previously published scGPT scRNA-seq foundation model"
+      },
+      {
+        "source": "@abstract",
+        "text": "comprising of 30 million spatial transcriptomic profiles, encompassing both imaging- and sequencing-based protocols"
+      },
+      {
+        "source": "@readme",
+        "text": "Visium, Visium HD, Xenium, MERFISH"
+      },
+      {
+        "source": "@abstract",
+        "text": "effectively supports cell-type deconvolution and contextualized missing gene expression imputation"
+      },
+      {
+        "source": "@readme",
+        "text": "Check out our zero-shot inference"
+      }
+    ],
+    "sections": [
+      {
+        "title": "How it works",
+        "body": "scGPT-spatial starts from the published scGPT model and continues pre-training on the SpatialHuman30M corpus. It adds a Mixture of Experts decoder that routes each sample to protocol-aware decoding of gene expression, samples training data in a spatially aware way, and uses a neighbourhood-based reconstruction objective to capture which cell states co-locate in tissue. At inference, embed_data returns an embedding per cell or spot.",
+        "source_ids": [
+          "@abstract",
+          "@tutorial"
+        ],
+        "source_locator": "Preprint abstract; tutorial",
+        "quotes": [
+          {
+            "source": "@abstract",
+            "text": "scGPT-spatial introduces a novel MoE (Mixture of Experts) decoder that adaptively routes samples for protocol-aware decoding of gene expression profiles"
+          },
+          {
+            "source": "@abstract",
+            "text": "employs a spatially-aware sampling strategy and a novel neighborhood-based training objective"
+          },
+          {
+            "source": "@tutorial",
+            "text": "You can simply call the `scgpt_spatial.tasks.embed_data()` function below to generate zero-shot embeddings for cells/spots."
+          }
+        ]
+      },
+      {
+        "title": "Versions and reproducibility",
+        "body": "One release, scGPT-spatial V1, is on Figshare (article 28356068, version 1) as scGPT_spatial_v1.zip. The archive holds best_model.pt, args.json, vocab.json, batch_mapping_dict.json and all_dict_mean_std.csv, and the tutorial says all of these must sit in the checkpoint folder. A result should name V1 and the repository commit.",
+        "source_ids": [
+          "@figshare",
+          "@tutorial"
+        ],
+        "source_locator": "Figshare API response; tutorial",
+        "quotes": [
+          {
+            "source": "@figshare",
+            "text": "\"name\": \"scGPT_spatial_v1.zip\""
+          },
+          {
+            "source": "@figshare",
+            "text": "\"version\": 1"
+          },
+          {
+            "source": "@figshare",
+            "text": "1) model weights (best_model.pt)"
+          },
+          {
+            "source": "@figshare",
+            "text": "2) model config file (args.json)"
+          },
+          {
+            "source": "@tutorial",
+            "text": "Make sure all the downloaded `.json` and `.csv` files are also in the checkpoint folder - not just model weights!"
+          }
+        ]
+      },
+      {
+        "title": "Intended uses",
+        "body": "Zero-shot embedding of spatial data for integration across slides and protocols. The authors report that the model also supports cell-type deconvolution and missing gene imputation; the sources read do not say whether these use the embeddings. Only the zero-shot integration tutorial is released; the README says more code is coming.",
+        "source_ids": [
+          "@readme",
+          "@abstract"
+        ],
+        "source_locator": "README.md: Highlights; Setup and Tutorials; Abstract",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Multi-modal and multi-slide integration"
+          },
+          {
+            "source": "@readme",
+            "text": "Check out our zero-shot inference [tutorial](https://github.com/bowang-lab/scGPT-spatial/tree/main/tutorials) on github! More code coming soon."
+          },
+          {
+            "source": "@abstract",
+            "text": "effectively supports cell-type deconvolution and contextualized missing gene expression imputation"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Model type",
+        "value": "Spatial transcriptomics foundation model, continually pre-trained from scGPT.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme",
+          "@abstract"
+        ],
+        "source_locator": "README.md: title; abstract",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Continual Pretraining of Single-Cell Foundation Model for Spatial Transcriptomics"
+          },
+          {
+            "source": "@abstract",
+            "text": "continually pretrained on our previously published scGPT scRNA-seq foundation model"
+          }
+        ]
+      },
+      {
+        "label": "Architecture",
+        "value": "scGPT backbone, continually pre-trained, with Mixture of Experts decoders; details are in args.json inside the weights archive, which was not read.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme",
+          "@abstract"
+        ],
+        "source_locator": "Abstract; README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Novel MoE (Mixture of Experts) decoders"
+          },
+          {
+            "source": "@abstract",
+            "text": "continually pretrained on our previously published scGPT scRNA-seq foundation model"
+          }
+        ]
+      },
+      {
+        "label": "Inputs",
+        "value": "An AnnData of spatial transcriptomic profiles with a gene name column; the tutorial uses feature_name.",
+        "status": "source_checked",
+        "source_ids": [
+          "@tutorial"
+        ],
+        "source_locator": "Tutorial",
+        "quotes": [
+          {
+            "source": "@tutorial",
+            "text": "gene_col = 'feature_name'"
+          },
+          {
+            "source": "@tutorial",
+            "text": "ref_embed_adata = scgpt_spatial.tasks.embed_data("
+          }
+        ]
+      },
+      {
+        "label": "Outputs",
+        "value": "Zero-shot embeddings for cells or spots, returned as a new AnnData.",
+        "status": "source_checked",
+        "source_ids": [
+          "@tutorial"
+        ],
+        "source_locator": "Tutorial",
+        "quotes": [
+          {
+            "source": "@tutorial",
+            "text": "to generate zero-shot embeddings for cells/spots"
+          },
+          {
+            "source": "@tutorial",
+            "text": "return_new_adata=True,"
+          }
+        ]
+      },
+      {
+        "label": "Parameters",
+        "value": "Not stated in the sources read.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme",
+          "@abstract"
+        ],
+        "source_locator": "README.md; abstract",
+        "quotes": []
+      },
+      {
+        "label": "Training data",
+        "value": "SpatialHuman30M: 30 million spatial transcriptomic profiles from imaging- and sequencing-based protocols (Visium, Visium HD, Xenium, MERFISH). The data source table is on Figshare; processed data are promised on publication.",
+        "status": "source_checked",
+        "source_ids": [
+          "@abstract",
+          "@readme"
+        ],
+        "source_locator": "Abstract; README.md: SpatialHuman30M",
+        "quotes": [
+          {
+            "source": "@abstract",
+            "text": "We also curate SpatialHuman30M, a comprehensive spatial transcriptomics dataset comprising of 30 million spatial transcriptomic profiles"
+          },
+          {
+            "source": "@readme",
+            "text": "Processed data will be available upon publication given permission under license of the original data source."
+          }
+        ]
+      },
+      {
+        "label": "Known versions",
+        "value": "scGPT-spatial V1 (Figshare article 28356068, version 1).",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme",
+          "@figshare"
+        ],
+        "source_locator": "Figshare API response; README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "scGPT-spatial V1 weights on [figshare]"
+          },
+          {
+            "source": "@figshare",
+            "text": "\"title\": \"scGPT-spatial V1 Model Weights\""
+          }
+        ]
+      },
+      {
+        "label": "Training cutoff",
+        "value": "Not stated.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": []
+      },
+      {
+        "label": "Context limits",
+        "value": "Not stated in the sources read.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme",
+          "@tutorial"
+        ],
+        "source_locator": "README.md; tutorial",
+        "quotes": []
+      },
+      {
+        "label": "Weights licence",
+        "value": "CC BY 4.0, as declared on the Figshare record that holds the weights.",
+        "status": "source_checked",
+        "source_ids": [
+          "@figshare"
+        ],
+        "source_locator": "Figshare API response",
+        "quotes": [
+          {
+            "source": "@figshare",
+            "text": "\"name\": \"CC BY 4.0\""
+          }
+        ]
+      },
+      {
+        "label": "Code licence",
+        "value": "MIT, from the repository LICENSE file (copyright 2025 WangLab @ U of T).",
+        "status": "source_checked",
+        "source_ids": [
+          "@license"
+        ],
+        "source_locator": "LICENSE",
+        "quotes": [
+          {
+            "source": "@license",
+            "text": "MIT License"
+          },
+          {
+            "source": "@license",
+            "text": "Copyright (c) 2025 WangLab @ U of T"
+          }
+        ]
+      },
+      {
+        "label": "Access",
+        "value": "Code: https://github.com/bowang-lab/scGPT-spatial. Weights: https://figshare.com/articles/software/scGPT-spatial_V1_Model_Weights/28356068.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "`git clone https://github.com/bowang-lab/scGPT-spatial`"
+          },
+          {
+            "source": "@readme",
+            "text": "figshare.com/articles/software/scGPT-spatial_V1_Model_Weights/28356068"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Built for spatial data from several protocols, with protocol-aware decoding.",
+        "source_ids": [
+          "@abstract"
+        ],
+        "source_locator": "Abstract",
+        "quotes": [
+          {
+            "source": "@abstract",
+            "text": "adaptively routes samples for protocol-aware decoding of gene expression profiles"
+          }
+        ]
+      },
+      {
+        "text": "Weights (CC BY 4.0) and code (MIT) are openly licensed, and the weights archive is 204,377,153 bytes.",
+        "source_ids": [
+          "@figshare",
+          "@license"
+        ],
+        "source_locator": "Figshare API response; LICENSE",
+        "quotes": [
+          {
+            "source": "@figshare",
+            "text": "\"size\": 204377153"
+          },
+          {
+            "source": "@figshare",
+            "text": "\"name\": \"CC BY 4.0\""
+          },
+          {
+            "source": "@license",
+            "text": "MIT License"
+          }
+        ]
+      },
+      {
+        "text": "Zero-shot embeddings: the tutorial integrates Visium and Xenium data without fine-tuning.",
+        "source_ids": [
+          "@tutorial"
+        ],
+        "source_locator": "Tutorial",
+        "quotes": [
+          {
+            "source": "@tutorial",
+            "text": "Zero-shot Multi-modal Integration with Pre-trained scGPT-spatial"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Environment setup is delegated to the scGPT repository; this repository gives no install commands.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Setup and Tutorials",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "for environment setup please follow [instructions](https://github.com/bowang-lab/scGPT) there"
+          }
+        ]
+      },
+      {
+        "text": "Only one tutorial is released; code for the other tasks is not yet published.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "More code coming soon."
+          }
+        ]
+      },
+      {
+        "text": "The processed pre-training corpus is not yet available.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Processed data will be available upon publication"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "scGPT-spatial workflow",
+      "steps": [
+        "Spatial transcriptomics (Visium, Xenium, MERFISH)",
+        "scGPT backbone, continually pre-trained",
+        "MoE protocol-aware decoder and neighbourhood objective",
+        "Cell or spot embeddings"
+      ],
+      "caption": "Continual pre-training adapts scGPT to spatial data; embeddings are used zero-shot.",
+      "source_ids": [
+        "@abstract",
+        "@tutorial"
+      ],
+      "source_locator": "Abstract; tutorial",
+      "quotes": [
+        {
+          "source": "@abstract",
+          "text": "continually pretrained on our previously published scGPT scRNA-seq foundation model"
+        },
+        {
+          "source": "@abstract",
+          "text": "novel neighborhood-based training objective"
+        },
+        {
+          "source": "@tutorial",
+          "text": "zero-shot embeddings for cells/spots"
+        }
+      ]
+    },
+    "coverage": "limited",
+    "gaps": [
+      "The preprint full text was not read: it is on bioRxiv only and no PMC copy was found. Only the Europe PMC abstract was read.",
+      "Parameter count, context length and architecture details (args.json in the weights archive) are not given in the sources read.",
+      "Environment requirements live in the scGPT repository, which was not reviewed."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the bowang-lab/scGPT-spatial README, LICENSE and tutorials/Multi_Modal_Integration_Demo.ipynb at commit f9442d777ba47cd3dcac8253833a233ff5bf7262, the Figshare API record for article 28356068, and the Europe PMC abstract record PPR975768, on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Clone the repository, download the V1 weights archive and compute zero-shot embeddings for an AnnData with the tutorial's embed_data call.",
+    "prerequisites": [
+      "A Python environment set up following the scGPT repository's instructions (not reviewed here).",
+      "The scGPT_spatial_v1.zip archive from Figshare, unpacked with all .json and .csv files kept beside best_model.pt.",
+      "An AnnData of spatial profiles with a gene name column."
+    ],
+    "steps": [
+      {
+        "title": "Get the code",
+        "shell": "git clone https://github.com/bowang-lab/scGPT-spatial\ncd scGPT-spatial\ngit checkout --detach f9442d777ba47cd3dcac8253833a233ff5bf7262",
+        "explanation": "The README's clone command; the checkout line is added by Rewire to pin the reviewed commit.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Setup and Tutorials",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "git clone https://github.com/bowang-lab/scGPT-spatial"
+          }
+        ]
+      },
+      {
+        "title": "Download the weights",
+        "shell": "# Download scGPT_spatial_v1.zip from https://figshare.com/articles/software/scGPT-spatial_V1_Model_Weights/28356068 and unpack it to checkpoints/scGPT_spatial_v1",
+        "explanation": "The README gives only a Figshare link; the tutorial reads the checkpoint from ../checkpoints/scGPT_spatial_v1 relative to the tutorials folder.",
+        "source_ids": [
+          "@figshare",
+          "@tutorial"
+        ],
+        "source_locator": "README.md: Model Weights; tutorial",
+        "quotes": [
+          {
+            "source": "@figshare",
+            "text": "\"name\": \"scGPT_spatial_v1.zip\""
+          },
+          {
+            "source": "@tutorial",
+            "text": "model_dir = '../checkpoints/scGPT_spatial_v1'"
+          }
+        ]
+      },
+      {
+        "title": "Embed cells or spots",
+        "shell": "cd tutorials\npython - <<'EOF'\nimport sys\nimport scanpy as sc\nsys.path.insert(0, \"../\")\nimport scgpt_spatial\n\nadata = sc.read_h5ad('../data/processed_fetal_lung_visium_xenium.h5ad')\nmodel_dir = '../checkpoints/scGPT_spatial_v1'\ngene_col = 'feature_name'\ncell_type_col = 'celltype'\nref_embed_adata = scgpt_spatial.tasks.embed_data(\n    adata,\n    model_dir,\n    gene_col=gene_col,\n    obs_to_save=cell_type_col, \n    batch_size=64,\n    return_new_adata=True,\n)\nEOF",
+        "explanation": "Lines from the tutorial notebook, wrapped in a shell heredoc by Rewire and run from the tutorials folder. The demo data file is not in the repository; substitute your own AnnData and gene column.",
+        "source_ids": [
+          "@tutorial"
+        ],
+        "source_locator": "tutorials/Multi_Modal_Integration_Demo.ipynb",
+        "quotes": [
+          {
+            "source": "@tutorial",
+            "text": "sys.path.insert(0, \\\"../\\\")"
+          },
+          {
+            "source": "@tutorial",
+            "text": "import scgpt_spatial"
+          },
+          {
+            "source": "@tutorial",
+            "text": "adata = sc.read_h5ad('../data/processed_fetal_lung_visium_xenium.h5ad')"
+          },
+          {
+            "source": "@tutorial",
+            "text": "model_dir = '../checkpoints/scGPT_spatial_v1'"
+          },
+          {
+            "source": "@tutorial",
+            "text": "obs_to_save=cell_type_col,"
+          },
+          {
+            "source": "@tutorial",
+            "text": "batch_size=64,"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "ref_embed_adata: a new AnnData whose X holds one zero-shot embedding per cell or spot, with the cell type column carried over."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "The environment depends on scGPT's install instructions, not reviewed here.",
+      "The tutorial's demo dataset is not shipped in the repository."
+    ],
+    "source_ids": [
+      "@readme",
+      "@tutorial"
+    ]
+  },
+  "structured": [
+    {
+      "checkpoint": "scGPT-spatial V1",
+      "parameters": null,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "MIT",
+      "weights_licence": "CC-BY-4.0",
+      "code_url": "https://github.com/bowang-lab/scGPT-spatial",
+      "weights_url": "https://figshare.com/articles/software/scGPT-spatial_V1_Model_Weights/28356068",
+      "gated": false,
+      "released": "2025-02-06",
+      "quotes": [
+        {
+          "source": "@figshare",
+          "text": "\"published_date\": \"2025-02-06T02:25:38Z\""
+        },
+        {
+          "source": "@figshare",
+          "text": "\"version\": 1"
+        }
+      ]
+    }
+  ],
+  "notes": "The preprint's only open copy found is on bioRxiv: https://www.biorxiv.org/content/10.1101/2025.02.05.636714v1 (PDF not requested). The Europe PMC record gives the abstract licence as cc by-nc-nd. The Figshare record is at version 1, so its published date is taken as the release date."
+}

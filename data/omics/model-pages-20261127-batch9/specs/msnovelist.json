@@ -1,0 +1,526 @@
+{
+ "record_id": "lit-otheromics-20261011-msgwild-model-msnovelist",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "meowcat/MSNovelist README.md at commit c6381308",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/meowcat/MSNovelist/c638130cc3e0802982d28ef75e8b346e21de53d2/README.md",
+   "url": "https://github.com/meowcat/MSNovelist",
+   "version": "git commit c638130cc3e0802982d28ef75e8b346e21de53d2",
+   "media_type": "text/markdown",
+   "sha256": "5ed306e5512c083b568b9d54f5747aebe1d0e83a1de269e0da2d343ef849230c",
+   "retrieved_at": "2026-11-27T02:57:33Z",
+   "store_bytes": false
+  },
+  {
+   "key": "license",
+   "name": "meowcat/MSNovelist LICENSE.txt at commit c6381308",
+   "description": "Licence file of the official repository (GNU AGPL v3), pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/meowcat/MSNovelist/c638130cc3e0802982d28ef75e8b346e21de53d2/LICENSE.txt",
+   "url": "https://github.com/meowcat/MSNovelist",
+   "version": "git commit c638130cc3e0802982d28ef75e8b346e21de53d2",
+   "media_type": "text/plain",
+   "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0",
+   "retrieved_at": "2026-11-27T02:57:44Z",
+   "store_bytes": false
+  },
+  {
+   "key": "repo-api",
+   "name": "GitHub API fields for meowcat/MSNovelist, as served on 2026-11-27",
+   "description": "Projection (licence SPDX id, default branch, URL, archive flag) of the GitHub repository API response, made with gh api --jq.",
+   "file": "artifacts/repo-api.json",
+   "artifact_url": "https://api.github.com/repos/meowcat/MSNovelist",
+   "url": "https://github.com/meowcat/MSNovelist",
+   "version": "As served on 2026-11-27; the response may change",
+   "media_type": "application/json",
+   "sha256": "72ab481536682aadb6c1222339f88d76b1b41a9c25ea7f8611927767fb683681",
+   "retrieved_at": "2026-11-27T02:58:37Z",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Stravs et al. 2022, MSNovelist: de novo structure generation from mass spectra, Nature Methods 19, PMC9262714 full text",
+   "description": "Full-text JATS XML of the MSNovelist paper from NCBI PMC (open access, CC BY 4.0).",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=9262714&rettype=xml",
+   "url": "https://doi.org/10.1038/s41592-022-01486-3",
+   "version": "PMC9262714 as served on 2026-11-27",
+   "media_type": "application/xml",
+   "sha256": "924ee841140f92f6f90b8fce515ab54d969580ee9c6fea920d5c61a577c29d7c",
+   "retrieved_at": "2026-11-27T02:57:45Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "msgwild",
+   "name": "MassSpecGym in the Wild, arXiv 2606.19624v1, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of the MassSpecGym in the Wild paper, which lists MIST + MSNovelist in its de novo leaderboard.",
+   "file": "artifacts/msgwild-v1.txt",
+   "artifact_url": "https://arxiv.org/pdf/2606.19624v1",
+   "url": "https://arxiv.org/abs/2606.19624v1",
+   "version": "arXiv 2606.19624v1",
+   "media_type": "text/plain",
+   "sha256": "90139d4bf7f7bc38f7b01df0194ae4207b9a805723322b5a6d82edf25d6a7701",
+   "retrieved_at": "2026-11-27T02:24:43Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "MSNovelist generates candidate molecular structures de novo from a tandem mass spectrum. SIRIUS and CSI:FingerID first predict the molecular formula and a molecular fingerprint from the spectrum; an encoder-decoder recurrent neural network then writes SMILES strings that fit the fingerprint and formula, and candidates are ranked by how well they match the predicted fingerprint. The authors now point users to SIRIUS 6, where MSNovelist is integrated.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper abstract and Results; README.md",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We present MSNovelist, which combines fingerprint prediction with an encoder–decoder neural network to generate structures de novo solely from tandem mass spectrometry (MS"
+   },
+   {
+    "source": "@paper",
+    "text": "These data were used as input to an encoder–decoder RNN model with LSTM architecture to predict a SMILES sequence. Finally, candidate structures were ranked by modified Platt score"
+   },
+   {
+    "source": "@readme",
+    "text": "finally, with the **release of SIRIUS 6, MSNovelist was integrated into SIRIUS**."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "MSNovelist splits the problem in two. CSI:FingerID maps the spectrum to a high-dimensional molecular fingerprint, and SIRIUS predicts the formula. Instead of searching a database with the fingerprint, an RNN generates structures: the fingerprint and formula are encoded into a starting state, and a three-layer LSTM decoder writes the SMILES character by character, in analogy to image captioning. Because the generator learns from structures rather than spectra, it was trained on 1,232,184 structures from HMDB, COCONUT and DSSTox, with simulated fingerprint errors added. Candidates are ranked by a modified Platt score against the predicted fingerprint.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Results and Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We first use CSI:FingerID"
+     },
+     {
+      "source": "@paper",
+      "text": "Here, we substitute the database search with an RNN generative m"
+     },
+     {
+      "source": "@paper",
+      "text": "The decoder is a three-layer long short-term memory (LSTM) RNN"
+     },
+     {
+      "source": "@paper",
+      "text": "we exploited the analogy between writing a SMILES code based on a chemical fingerprint and image captioning"
+     },
+     {
+      "source": "@paper",
+      "text": "the RNN model was trained on a dataset of 1,232,184 chemical structures compiled from the databases HMDB (4.0)"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The published version depended on SIRIUS 4.4.29, whose backend no longer runs, so the Docker workflow in the README is marked obsolete. MSNovelist was integrated into SIRIUS 6 and retrained there on new SIRIUS 6 data; the repository is mostly that backend and cannot be used directly without retraining on other fingerprint data. A mist branch, merged into the repository, has early work on using predicted 4096-bit Morgan fingerprints. A result should say whether it used the published model, the SIRIUS 6 version, or a retrained model on another fingerprint (such as MIST + MSNovelist).",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The published version of MSNovelist relied on an old version of SIRIUS for which the backend is not running anymore."
+     },
+     {
+      "source": "@readme",
+      "text": "and was retrained on the new data from SIRIUS 6. Unfortunately, this means you cannot use this repo directly"
+     },
+     {
+      "source": "@readme",
+      "text": "The *mist* branch (also merged here) contains some work on getting MSNovelist to run with predicted Morgan 4096-bit fingerprints"
+     }
+    ]
+   },
+   {
+    "title": "Use in the benchmark source",
+    "body": "MassSpecGym in the Wild (an existing source on this record) lists MIST + MSNovelist, a pairing of a MIST fingerprint encoder with the MSNovelist generator, in its updated MassSpecGym de novo leaderboard with 0.00% top-1 accuracy.",
+    "source_ids": [
+     "@msgwild",
+     "lit-otheromics-20261011-msgwild-source-liu2026"
+    ],
+    "source_locator": "MassSpecGym in the Wild Table 9",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "MIST + MSNovelist Spec2Mol MIST + Neuraldecipher"
+     },
+     {
+      "source": "@msgwild",
+      "text": "0.00% 0.00% 0.00% 1.31%"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Generative model (encoder-decoder RNN) for de novo structure generation from MS/MS, conditioned on a predicted fingerprint and formula.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "combines fingerprint prediction with an encoder–decoder neural network"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Encoder of fingerprint and formula into a starting state; three-layer LSTM decoder over SMILES; ranking by modified Platt score.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The decoder is a three-layer long short-term memory (LSTM) RNN"
+     },
+     {
+      "source": "@paper",
+      "text": "candidate structures were ranked by modified Platt score"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "MS/MS spectra (MGF or SIRIUS .ms) processed by SIRIUS and CSI:FingerID into a molecular formula and fingerprint; in the published Docker version, SIRIUS 4.4.29 workspaces.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Command line interface; paper",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This works with `*.mgf` and `*.ms` (SIRIUS format) files."
+     },
+     {
+      "source": "@paper",
+      "text": "a molecular fingerprint and a molecular formula were predicted."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Ranked candidate structures (SMILES) per spectrum, written to a CSV and pickle in the published version.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The MSNovelist results are stored in `$DATAFOLDER/results-RUNID/decode-RUNID.csv` and `.pkl`."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported as a count in the sources read.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper",
+    "quotes": []
+   },
+   {
+    "label": "Training data",
+    "value": "1,232,184 molecules (1,048,512 distinct by InChIKey2D) from HMDB 4.0, COCONUT and DSSTox, with evaluation structures removed and ten structure-disjoint folds; simulated fingerprints with added error.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Finally, the training set contained 1,232,184 molecules with 1,048,512 distinct structures (by InChIKey2D), and was split into ten structure–disjoint folds."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Published version (SIRIUS 4.4.29, Docker image stravsm/msnovelist, now obsolete); the version integrated in SIRIUS 6 and retrained on SIRIUS 6 data; an experimental mist branch for Morgan fingerprints.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`docker pull stravsm/msnovelist`"
+     },
+     {
+      "source": "@readme",
+      "text": "# obsolete:"
+     },
+     {
+      "source": "@readme",
+      "text": "was retrained on the new data from SIRIUS 6"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "No sequence length limit is stated for the model. The training set was filtered to SMILES of at most 127 characters, molecular weight up to 1,000 Da, no formal charge, at most seven rings and the elements C, H, N, O, P, S, Br, Cl, I and F. The model is trained for positive-mode data only.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Methods and Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "SMILES codes longer than 127 characters, disconnected SMILES codes (containing a dot), molecular weight larger than 1,000 Da, a formal charge, more than seven rings (as specified in SMILES) or elements other than C, H, N, O, P, S, Br, Cl, I and F"
+     },
+     {
+      "source": "@paper",
+      "text": "MSNovelist is currently only trained for positive-mode data."
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated separately; the published model was distributed inside the Docker container, and the repository is AGPL-3.0.",
+    "status": "unreported",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "README.md; LICENSE.txt",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "GNU AFFERO GENERAL PUBLIC LICENSE"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "AGPL-3.0, per LICENSE.txt and GitHub licence detection.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@repo-api"
+    ],
+    "source_locator": "LICENSE.txt; GitHub API",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007"
+     },
+     {
+      "source": "@repo-api",
+      "text": "\"license\":\"AGPL-3.0\""
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/meowcat/MSNovelist. Current use: through SIRIUS 6 (https://bio.informatik.uni-jena.de/software/sirius/). Paper: https://doi.org/10.1038/s41592-022-01486-3.",
+    "status": "source_checked",
+    "source_ids": [
+     "@repo-api",
+     "@readme"
+    ],
+    "source_locator": "README.md; GitHub API",
+    "quotes": [
+     {
+      "source": "@repo-api",
+      "text": "\"html_url\":\"https://github.com/meowcat/MSNovelist\""
+     },
+     {
+      "source": "@readme",
+      "text": "https://bio.informatik.uni-jena.de/software/sirius/"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Trains the generator on millions of structures rather than scarce spectra, because the spectrum is first reduced to a fingerprint.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "interpretation from structure generation, allowing us to train the generative model with millions of structures"
+     }
+    ]
+   },
+   {
+    "text": "The authors report 25% of GNPS structures correct at first rank and 26% on CASMI 2016, without having seen the structures in training (the authors' figures, with CSI:FingerID fingerprints).",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "MSNovelist predicted 25% of structures correctly on first rank"
+     },
+     {
+      "source": "@paper",
+      "text": "for the CASMI 2016 challenge, MSNovelist correctly predicted 26%"
+     }
+    ]
+   },
+   {
+    "text": "Maintained for users as part of SIRIUS 6, with a GUI and an API.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You can now use MSNovelist de novo structure suggestions directly with the SIRIUS GUI"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The standalone published version no longer works because the SIRIUS backend it relied on is shut down; the repository cannot be used directly without retraining.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The published version of MSNovelist relied on an old version of SIRIUS for which the backend is not running anymore."
+     },
+     {
+      "source": "@readme",
+      "text": "this means you cannot use this repo directly"
+     }
+    ]
+   },
+   {
+    "text": "Depends on fingerprint quality; with MIST fingerprints on MassSpecGym, MassSpecGym in the Wild lists 0.00% top-1 accuracy.",
+    "source_ids": [
+     "@msgwild"
+    ],
+    "source_locator": "MassSpecGym in the Wild Table 9",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "MIST + MSNovelist"
+     }
+    ]
+   },
+   {
+    "text": "Positive-mode spectra only.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "MSNovelist is currently only trained for positive-mode data."
+     }
+    ]
+   },
+   {
+    "text": "Licensed AGPL-3.0, which is outside the common permissive licences; check its terms before reuse.",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE.txt",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "GNU AFFERO GENERAL PUBLIC LICENSE"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "MSNovelist workflow",
+   "steps": [
+    "MS/MS spectrum",
+    "SIRIUS formula and CSI:FingerID fingerprint",
+    "Encoder to start state",
+    "LSTM decoder writes SMILES",
+    "Rank by modified Platt score"
+   ],
+   "caption": "Published pipeline; the SIRIUS 6 integration retrains the generator on newer fingerprint data.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper Results",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Using the existing SIRIUS and CSI:FingerID approach, a molecular fingerprint and a molecular formula were predicted."
+    },
+    {
+     "source": "@paper",
+     "text": "Finally, candidate structures were ranked by modified Platt score"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count is given in the sources read.",
+   "SIRIUS 6 documentation on its MSNovelist integration was not read.",
+   "How MIST + MSNovelist was built for the MassSpecGym leaderboard is not described in the sources read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read README.md and LICENSE.txt of meowcat/MSNovelist at commit c638130cc3e0802982d28ef75e8b346e21de53d2, GitHub API fields for the repository, the PMC9262714 full-text XML and the MassSpecGym in the Wild arXiv 2606.19624v1 text layer, all on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "The README marks the documented Docker workflow as obsolete because the SIRIUS 4.4.29 backend it depends on no longer runs, and says the repository cannot be used directly without retraining; users are directed to SIRIUS 6, whose instructions were not among the sources read.",
+ "structured": [
+  {
+   "checkpoint": "MSNovelist (published version, Docker image stravsm/msnovelist)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "AGPL-3.0",
+   "weights_licence": null,
+   "code_url": "https://github.com/meowcat/MSNovelist",
+   "weights_url": null,
+   "gated": null,
+   "released": null,
+   "quotes": []
+  }
+ ],
+ "notes": "The README marks the standalone Docker workflow obsolete and points to SIRIUS 6, so no run guide was written. The record calls MSNovelist 'de novo structure generation from fingerprints'; the benchmark row is MIST + MSNovelist, whose construction is not described in the sources read. AGPL-3.0 is outside the brief's short licence list, so repository files are not stored."
+}

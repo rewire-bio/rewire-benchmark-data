@@ -1,0 +1,650 @@
+{
+  "record_id": "hycell-20261106-model-transcriptformer",
+  "sources": [
+    {
+      "key": "readme",
+      "name": "czi-ai/transcriptformer README.md at commit 2ce3b4aa",
+      "description": "Official repository README, pinned to a commit.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/czi-ai/transcriptformer/2ce3b4aa071192202ae30cbc9f91b33c6d8be2ed/README.md",
+      "url": "https://github.com/czi-ai/transcriptformer",
+      "version": "git commit 2ce3b4aa071192202ae30cbc9f91b33c6d8be2ed",
+      "media_type": "text/markdown",
+      "sha256": "15d1a28e0af8565e2337ef8fda144444b9c0518f1fb4f8bb66e3da8aac7431f0",
+      "retrieved_at": "2026-11-27T02:52:19Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "license",
+      "name": "czi-ai/transcriptformer LICENSE.md at commit 2ce3b4aa",
+      "description": "Licence file of the official repository, pinned to a commit.",
+      "file": "artifacts/license.txt",
+      "artifact_url": "https://raw.githubusercontent.com/czi-ai/transcriptformer/2ce3b4aa071192202ae30cbc9f91b33c6d8be2ed/LICENSE.md",
+      "url": "https://github.com/czi-ai/transcriptformer",
+      "version": "git commit 2ce3b4aa071192202ae30cbc9f91b33c6d8be2ed",
+      "media_type": "text/markdown",
+      "sha256": "aaf473b176a223eeccd843bad7d5453501d826f6f939d44f8957b8f6f2e5cc81",
+      "retrieved_at": "2026-11-27T02:52:22Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "test-data",
+      "name": "czi-ai/transcriptformer test/data directory listing at commit 2ce3b4aa",
+      "description": "GitHub API listing of the test data folder used by the README's inference examples.",
+      "file": "artifacts/test-data-listing.json",
+      "artifact_url": "https://api.github.com/repos/czi-ai/transcriptformer/contents/test/data?ref=2ce3b4aa071192202ae30cbc9f91b33c6d8be2ed",
+      "url": "https://github.com/czi-ai/transcriptformer",
+      "version": "git commit 2ce3b4aa071192202ae30cbc9f91b33c6d8be2ed",
+      "media_type": "application/json",
+      "sha256": "c01b00be39be14f0b1ce56c51552e0c3d8279267862a658485304be539f7fb03",
+      "retrieved_at": "2026-11-27T02:53:15Z",
+      "store_bytes": true
+    },
+    {
+      "key": "abstract",
+      "name": "Europe PMC record PPR1011608: abstract of the TranscriptFormer preprint (doi 10.1101/2025.04.25.650731)",
+      "description": "Europe PMC search API response holding the preprint's title and abstract.",
+      "file": "artifacts/paper-abstract-epmc.json",
+      "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:PPR1011608%20AND%20SRC:PPR&format=json&resultType=core",
+      "url": "https://europepmc.org/article/PPR/PPR1011608",
+      "version": "Europe PMC core record as served on 2026-11-27",
+      "media_type": "application/json",
+      "sha256": "cdcded12a19a297f258e7fbc4ae0979945894476a7a45317987d5155f7e5c484",
+      "retrieved_at": "2026-11-27T02:53:15Z",
+      "store_bytes": false
+    }
+  ],
+  "profile": {
+    "summary": "TranscriptFormer is a family of generative single-cell foundation models trained on up to 112 million cells from 12 species. It reads a cell's raw counts (genes by Ensembl ID) and models gene identities and expression levels jointly; its cell embeddings are used for cross-species cell type classification, disease state identification and transfer of annotations, and the generative model can be prompted for cell type-specific transcription factors and gene-gene interactions.",
+    "summary_source_ids": [
+      "@abstract",
+      "@readme"
+    ],
+    "summary_source_locator": "Preprint abstract; README.md: Description",
+    "summary_quotes": [
+      {
+        "source": "@abstract",
+        "text": "a family of generative foundation models trained on up to 112 million cells spanning 1.53 billion years of evolution across 12 species"
+      },
+      {
+        "source": "@abstract",
+        "text": "By jointly modeling gene identities and expression levels using a novel generative architecture"
+      },
+      {
+        "source": "@readme",
+        "text": "The model expects unnormalized count data (raw counts)"
+      },
+      {
+        "source": "@abstract",
+        "text": "TranscriptFormer can be prompted to predict cell type-specific transcription factors and gene-gene interactions"
+      }
+    ],
+    "sections": [
+      {
+        "title": "How it works",
+        "body": "TranscriptFormer is a generative autoregressive joint model over genes and their expression levels in a cell, built on a transformer with coupled gene and transcript heads, expression-aware multi-head self-attention, causal masking and a count likelihood. The README says the non-trainable parameters come from frozen pretrained embeddings, that each model comes with protein embeddings for its training species, and that protein embeddings for new species can be generated with ESM-2. Cell embeddings are mean-pooled over the genes of a cell; contextual gene embeddings are the per-gene transformer outputs.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Description, Generating Protein Embeddings, Command-line Options",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "It employs a generative autoregressive joint model over genes and their expression levels per cell across species"
+          },
+          {
+            "source": "@readme",
+            "text": "including a novel coupling between gene and transcript heads, expression-aware multi-head self-attention, causal masking, and a count likelihood"
+          },
+          {
+            "source": "@readme",
+            "text": "non-trainable parameters (from frozen pretrained embeddings)"
+          },
+          {
+            "source": "@readme",
+            "text": "Models come with their respective training species embeddings."
+          },
+          {
+            "source": "@readme",
+            "text": "you can generate protein embeddings using the ESM-2 models"
+          },
+          {
+            "source": "@readme",
+            "text": "Use `cell` for mean-pooled cell embeddings or `cge` for contextual gene embeddings."
+          }
+        ]
+      },
+      {
+        "title": "Versions and reproducibility",
+        "body": "Three models are released: TF-Metazoa (12 species, 112 million cells), TF-Exemplar (human and four model organisms, 110 million cells) and TF-Sapiens (57 million human cells). They differ in trainable parameters and vocabulary size. Weights are downloaded from AWS S3 with the transcriptformer download command; no checksum or version label is given for them in the README. A result should name the model, the package version and the commit.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Description; Downloading Model Weights",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "**TF-Metazoa**: Trained on 112 million cells spanning all twelve species."
+          },
+          {
+            "source": "@readme",
+            "text": "**TF-Exemplar**: Trained on 110 million cells from human and four model organisms"
+          },
+          {
+            "source": "@readme",
+            "text": "**TF-Sapiens**: Trained on 57 million human-only cells."
+          },
+          {
+            "source": "@readme",
+            "text": "Use the CLI to download model weights and artifacts from AWS S3:"
+          }
+        ]
+      },
+      {
+        "title": "Intended uses",
+        "body": "Zero-shot cell type classification in and across species, disease state identification in human cells, annotation transfer, and prompting for transcription factors and gene-gene relations. Out-of-distribution species can be embedded with protein embeddings for 24 species provided, or new ones generated with ESM-2.",
+        "source_ids": [
+          "@abstract",
+          "@readme"
+        ],
+        "source_locator": "Abstract; README.md",
+        "quotes": [
+          {
+            "source": "@abstract",
+            "text": "TranscriptFormer can also perform zero-shot disease state identification in human cells and accurately transfers cell state annotations across species boundaries"
+          },
+          {
+            "source": "@readme",
+            "text": "Out of the box, there are 24 species with protein embeddings available for download"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Model type",
+        "value": "Generative single-cell foundation model family (cross-species).",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Description",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "TranscriptFormer is a family of generative foundation models representing a cross-species generative cell atlas"
+          }
+        ]
+      },
+      {
+        "label": "Architecture",
+        "value": "Autoregressive transformer over genes and expression with coupled gene and transcript heads, expression-aware attention, causal masking and a count likelihood; the non-trainable parameters come from frozen pretrained embeddings.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Description",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "including a novel coupling between gene and transcript heads, expression-aware multi-head self-attention, causal masking, and a count likelihood"
+          },
+          {
+            "source": "@readme",
+            "text": "non-trainable parameters (from frozen pretrained embeddings)"
+          }
+        ]
+      },
+      {
+        "label": "Inputs",
+        "value": "An h5ad file of raw counts with an ensembl_id column in var; counts are clipped at 30 by default, as in training.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Input Data Format and Preprocessing",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "The `var` dataframe must contain an `ensembl_id` column with Ensembl gene identifiers"
+          },
+          {
+            "source": "@readme",
+            "text": "Count values are clipped at 30 by default (as was done in training)"
+          }
+        ]
+      },
+      {
+        "label": "Outputs",
+        "value": "embeddings.h5ad with cell embeddings in obsm['embeddings'] and log-likelihoods in uns['llh'] when available; or contextual gene embeddings in uns.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Output Format",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Cell embeddings are stored in `obsm['embeddings']`"
+          },
+          {
+            "source": "@readme",
+            "text": "Log-likelihood scores (if available) are stored in `uns['llh']`"
+          },
+          {
+            "source": "@readme",
+            "text": "Contextual gene embeddings are stored in `uns['cge_embeddings']`"
+          }
+        ]
+      },
+      {
+        "label": "Parameters",
+        "value": "368M to 542M trainable, by model. TF-Metazoa 444 million trainable and 633 million non-trainable; TF-Exemplar 542 million trainable and 282 million non-trainable; TF-Sapiens 368 million trainable and 61 million non-trainable.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Description",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "The model includes 444 million trainable parameters and 633 million non-trainable"
+          },
+          {
+            "source": "@readme",
+            "text": "Total trainable parameters: 542 million; non-trainable: 282 million."
+          },
+          {
+            "source": "@readme",
+            "text": "This model has 368 million trainable parameters and 61 million non-trainable parameters."
+          }
+        ]
+      },
+      {
+        "label": "Training data",
+        "value": "Up to 112 million cells across 12 species (TF-Metazoa); 110 million cells from human, mouse, zebrafish, fruit fly and C. elegans (TF-Exemplar); 57 million human cells (TF-Sapiens). The download-data command fetches datasets from CellxGene Discover.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Description; Downloading Training Datasets",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Trained on 112 million cells spanning all twelve species."
+          },
+          {
+            "source": "@readme",
+            "text": "Trained on 57 million human-only cells."
+          },
+          {
+            "source": "@readme",
+            "text": "Use the CLI to download single-cell RNA sequencing datasets from the CellxGene Discover portal:"
+          }
+        ]
+      },
+      {
+        "label": "Known versions",
+        "value": "TF-Metazoa, TF-Exemplar and TF-Sapiens.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Description",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "The models include three distinct versions:"
+          }
+        ]
+      },
+      {
+        "label": "Training cutoff",
+        "value": "Not stated.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": []
+      },
+      {
+        "label": "Context limits",
+        "value": "Not stated in the sources read.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": []
+      },
+      {
+        "label": "Weights licence",
+        "value": "Not stated. The README describes the S3 download but names no licence for the weights.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Downloading Model Weights",
+        "quotes": []
+      },
+      {
+        "label": "Code licence",
+        "value": "MIT, from the repository LICENSE.md (copyright 2025 Chan Zuckerberg Initiative).",
+        "status": "source_checked",
+        "source_ids": [
+          "@license"
+        ],
+        "source_locator": "LICENSE.md",
+        "quotes": [
+          {
+            "source": "@license",
+            "text": "MIT License"
+          },
+          {
+            "source": "@license",
+            "text": "Copyright (c) 2025 Chan Zuckerberg Initiative"
+          }
+        ]
+      },
+      {
+        "label": "Access",
+        "value": "Code: https://github.com/czi-ai/transcriptformer (PyPI package transcriptformer). Weights: downloaded from AWS S3 by the transcriptformer download command.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "uv pip install transcriptformer"
+          },
+          {
+            "source": "@readme",
+            "text": "transcriptformer download tf-sapiens"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Cross-species: trained on 12 species, with protein embeddings for 24 species and a route to add more.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Out of the box, there are 24 species with protein embeddings available for download"
+          }
+        ]
+      },
+      {
+        "text": "Command-line tool covers weight download, data download and inference, including multi-GPU.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Using the TranscriptFormer CLI",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "provides easy access to download model artifacts, download training datasets, and run inference"
+          }
+        ]
+      },
+      {
+        "text": "Runs on a 16GB GPU with small batches, according to the README.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Hardware Requirements",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Can also use a GPU with a lower amount of VRAM (16GB) by setting the inference batch size to 1-4."
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "A GPU is recommended (A100 40GB for efficient inference).",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Hardware Requirements",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "GPU (A100 40GB recommended) for efficient inference and embedding extraction."
+          }
+        ]
+      },
+      {
+        "text": "PyTorch must be 2.5.1 or older; newer versions may cause pickle errors.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Requirements",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "PyTorch (<=2.5.1, as 2.6.0+ may cause pickle errors)"
+          }
+        ]
+      },
+      {
+        "text": "No weights licence is stated in the README.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Use the CLI to download model weights and artifacts from AWS S3:"
+          }
+        ]
+      },
+      {
+        "text": "Requires Python 3.11 or newer.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Installation",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Transcriptformer requires Python >=3.11."
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "TranscriptFormer workflow",
+      "steps": [
+        "Raw counts (Ensembl IDs)",
+        "Gene tokens",
+        "Autoregressive transformer over genes and counts",
+        "Mean-pooled cell embedding or contextual gene embeddings"
+      ],
+      "caption": "A generative model whose pooled outputs serve as cell embeddings.",
+      "source_ids": [
+        "@readme"
+      ],
+      "source_locator": "README.md",
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "It employs a generative autoregressive joint model over genes and their expression levels per cell across species"
+        },
+        {
+          "source": "@readme",
+          "text": "Use `cell` for mean-pooled cell embeddings"
+        }
+      ]
+    },
+    "coverage": "limited",
+    "gaps": [
+      "The preprint full text was not read: it is on bioRxiv only and no PMC copy was found; only the Europe PMC abstract was read.",
+      "Context length and weights licence are not stated in the README.",
+      "No model card exists; weights come from S3 without a published checksum."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the czi-ai/transcriptformer README.md, LICENSE.md and test/data listing at commit 2ce3b4aa071192202ae30cbc9f91b33c6d8be2ed and the Europe PMC abstract record PPR1011608, on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Install transcriptformer, download the TF-Sapiens weights and embed the repository's human test file.",
+    "prerequisites": [
+      "Python 3.11 or newer and the uv package manager.",
+      "A GPU (A100 40GB recommended; 16GB works with batch size 1-4).",
+      "PyTorch 2.5.1 or older."
+    ],
+    "steps": [
+      {
+        "title": "Get the code and install",
+        "shell": "git clone https://github.com/czi-ai/transcriptformer.git\ncd transcriptformer\ngit checkout --detach 2ce3b4aa071192202ae30cbc9f91b33c6d8be2ed\nuv venv --python=3.11\nsource .venv/bin/activate\nuv pip install -e .",
+        "explanation": "The README's install from source; the checkout line is added by Rewire to pin the reviewed commit. Installing from source gives the test data used below.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Install from source",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "git clone https://github.com/czi-ai/transcriptformer.git"
+          },
+          {
+            "source": "@readme",
+            "text": "uv venv --python=3.11"
+          },
+          {
+            "source": "@readme",
+            "text": "uv pip install -e ."
+          }
+        ]
+      },
+      {
+        "title": "Download weights",
+        "shell": "transcriptformer download tf-sapiens",
+        "explanation": "Downloads and extracts the TF-Sapiens weights to ./checkpoints/tf_sapiens/.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Downloading Model Weights",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "transcriptformer download tf-sapiens"
+          },
+          {
+            "source": "@readme",
+            "text": "`./checkpoints/tf_sapiens/`: Sapiens model weights"
+          }
+        ]
+      },
+      {
+        "title": "Run inference",
+        "shell": "transcriptformer inference \\\n  --checkpoint-path ./checkpoints/tf_sapiens \\\n  --data-file test/data/human_val.h5ad \\\n  --output-path ./inference_results \\\n  --batch-size 8",
+        "explanation": "The README's basic inference example on the human test file shipped in test/data.",
+        "source_ids": [
+          "@readme",
+          "@test-data"
+        ],
+        "source_locator": "README.md: Running Inference; test/data listing",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "--checkpoint-path ./checkpoints/tf_sapiens"
+          },
+          {
+            "source": "@readme",
+            "text": "--data-file test/data/human_val.h5ad"
+          },
+          {
+            "source": "@readme",
+            "text": "--output-path ./inference_results"
+          },
+          {
+            "source": "@test-data",
+            "text": "\"name\":\"human_val.h5ad\""
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "./inference_results/embeddings.h5ad with cell embeddings in obsm['embeddings'] and log-likelihoods in uns['llh'] when available."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "Download sizes for the weights are not stated."
+    ],
+    "source_ids": [
+      "@readme"
+    ]
+  },
+  "structured": [
+    {
+      "checkpoint": "TF-Metazoa",
+      "parameters": 444000000,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "MIT",
+      "weights_licence": null,
+      "code_url": "https://github.com/czi-ai/transcriptformer",
+      "weights_url": null,
+      "gated": false,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "The model includes 444 million trainable parameters"
+        }
+      ]
+    },
+    {
+      "checkpoint": "TF-Exemplar",
+      "parameters": 542000000,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "MIT",
+      "weights_licence": null,
+      "code_url": "https://github.com/czi-ai/transcriptformer",
+      "weights_url": null,
+      "gated": false,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "Total trainable parameters: 542 million"
+        }
+      ]
+    },
+    {
+      "checkpoint": "TF-Sapiens",
+      "parameters": 368000000,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "MIT",
+      "weights_licence": null,
+      "code_url": "https://github.com/czi-ai/transcriptformer",
+      "weights_url": null,
+      "gated": false,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "This model has 368 million trainable parameters"
+        }
+      ]
+    }
+  ],
+  "notes": "Structured parameters are trainable counts only; non-trainable (frozen embedding) counts are in the Parameters fact. weights_url is null because the weights come from an S3 location the README does not print. The preprint is on bioRxiv only (https://www.biorxiv.org/content/10.1101/2025.04.25.650731v2, not requested)."
+}

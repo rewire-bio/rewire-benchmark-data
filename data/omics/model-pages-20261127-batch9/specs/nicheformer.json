@@ -1,0 +1,615 @@
+{
+ "record_id": "lit-cells-networks-20261011-chen2026-model-nicheformer",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "theislab/nicheformer README.md at commit 485cadbc",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/theislab/nicheformer/485cadbc5caa15119adfd54228f8a8af835fcabc/README.md",
+   "url": "https://github.com/theislab/nicheformer",
+   "version": "git commit 485cadbc5caa15119adfd54228f8a8af835fcabc",
+   "media_type": "text/markdown",
+   "sha256": "c26c0de71a4da0b7ce76610441aa762e9442a38ab38c4f125c9e720cc1a9ca94",
+   "retrieved_at": "2026-11-27T02:36:17Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "theislab/nicheformer LICENSE at commit 485cadbc",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/theislab/nicheformer/485cadbc5caa15119adfd54228f8a8af835fcabc/LICENSE",
+   "url": "https://github.com/theislab/nicheformer",
+   "version": "git commit 485cadbc5caa15119adfd54228f8a8af835fcabc",
+   "media_type": "text/plain",
+   "sha256": "11d465ea4dbfe82ed5a767760a1df9c91a86705e179a21d0bfb67d92577d4d71",
+   "retrieved_at": "2026-11-27T02:36:21Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "notebooks-readme",
+   "name": "theislab/nicheformer notebooks/README.md at commit 485cadbc",
+   "description": "README of the repository's notebooks folder, pinned to a commit.",
+   "file": "artifacts/notebooks-readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/theislab/nicheformer/485cadbc5caa15119adfd54228f8a8af835fcabc/notebooks/README.md",
+   "url": "https://github.com/theislab/nicheformer",
+   "version": "git commit 485cadbc5caa15119adfd54228f8a8af835fcabc",
+   "media_type": "text/markdown",
+   "sha256": "7be01e5ef95172f65d7d32fec1a57b1940568f57a4e56b797e3aa950d8e81af5",
+   "retrieved_at": "2026-11-27T02:36:41Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "mendeley-api",
+   "name": "Mendeley Data public API response for dataset 87gm9hrgm8, as served on 2026-11-27",
+   "description": "Response to a public API request for the weights dataset linked from the README.",
+   "file": "artifacts/mendeley-api.json",
+   "artifact_url": "https://data.mendeley.com/public-api/datasets/87gm9hrgm8",
+   "url": "https://data.mendeley.com/datasets/87gm9hrgm8",
+   "version": "As served on 2026-11-27",
+   "media_type": "application/json",
+   "sha256": "74753a52e2bc49bf0a0e7bb1a409e8196895ccdf733c936be2bbc1653bf3cac1",
+   "retrieved_at": "2026-11-27T02:36:41Z",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Schaar, Tejada-Lapuerta et al. 2025, Nicheformer: a foundation model for single-cell and spatial omics, Nature Methods (PMC12695652)",
+   "description": "Full text of the published article as NCBI PMC XML.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12695652&rettype=xml",
+   "url": "https://doi.org/10.1038/s41592-025-02814-z",
+   "version": "PMC12695652",
+   "media_type": "application/xml",
+   "sha256": "89e21fc7a417ec62d16040f9a996482f0a16bebadf6d350950eddd6f7fda48f0",
+   "retrieved_at": "2026-11-27T02:36:29Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "Nicheformer is a transformer foundation model trained on both dissociated single-cell and image-based spatial transcriptomics from human and mouse. It turns each cell's expression into a ranked sequence of gene tokens, with tokens for species, modality and assay, and outputs a 512-dimensional cell embedding that can be fine-tuned or linearly probed to predict spatial labels and spatial composition.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper Abstract and Results",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "we compiled SpatialCorpus-110M, a large curated collection of single-cell and spatial transcriptomics datasets"
+   },
+   {
+    "source": "@paper",
+    "text": "By incorporating contextual information through modality, organism and assay tokens"
+   },
+   {
+    "source": "@paper",
+    "text": "generating a 512-dimensional embedding"
+   },
+   {
+    "source": "@paper",
+    "text": "both fine-tuned Nicheformer and a linear-probing model trained on the Nicheformer embedding"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Genes from human and mouse are merged into one vocabulary of 20,310 gene tokens, covering orthologous protein-coding genes and species-specific ones. Each cell's expression vector becomes a sequence of gene tokens ranked by expression, plus metadata tokens. A 12-layer transformer encoder with 16 attention heads, a feed-forward size of 1,024 and a 1,500-token context is pre-trained to predict masked tokens. The cell embedding is an aggregate of the gene token outputs. Spatial coordinates are not used in pre-training.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Results and Fig. 1 legend; Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "totaling 20,310 gene tokens"
+     },
+     {
+      "source": "@paper",
+      "text": "Each single-cell expression vector is converted into a ranked sequence of gene tokens"
+     },
+     {
+      "source": "@paper",
+      "text": "ses a 1,500-token context length as input to an architecture with 12 transformer encoder units with 16 attention heads per layer and a feed-forward network size of 1,024"
+     },
+     {
+      "source": "@paper",
+      "text": "The tokenized cells serve as input for the Nicheformer transformer block to predict masked tokens. Finally, the Nicheformer embedding is generated by aggregating the gene tokens"
+     },
+     {
+      "source": "@paper",
+      "text": "Nicheformer does not explicitly incorporate the physical location of a cell during pretraining"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The README links one set of pre-training weights on Mendeley Data through a preview link. The link's URL is a Mendeley Data preview address (data.mendeley.com/preview/...). A request to https://data.mendeley.com/public-api/datasets/87gm9hrgm8, an address Rewire formed from the preview ID, returned 'error - dataset not found'. No version label or checkpoint list is given. A result should name the repository commit and how the weights were obtained.",
+    "source_ids": [
+     "@readme",
+     "@mendeley-api"
+    ],
+    "source_locator": "README.md: Pretraining weights; Mendeley Data API response",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We provide the Nicheformer pretraining weights on Mendeley data"
+     },
+     {
+      "source": "@mendeley-api",
+      "text": "error - dataset not found"
+     }
+    ]
+   },
+   {
+    "title": "Intended uses",
+    "body": "Spatial cell-type, niche and region label prediction and spatial composition prediction, by fine-tuning or by linear probing of the embedding. The repository's notebooks reproduce the paper's results and show how to tokenise datasets.",
+    "source_ids": [
+     "@paper",
+     "@notebooks-readme"
+    ],
+    "source_locator": "Paper Methods; notebooks/README.md",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Spatial cell-type, niche and region label prediction"
+     },
+     {
+      "source": "@notebooks-readme",
+      "text": "We provide examplary notebooks for tokenizing inidividual datasets used in the Nicheformer model."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Transformer foundation model for single-cell and spatial omics.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Nicheformer: a foundation model for single-cell and spatial omics"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Transformer encoder: 12 layers, 16 attention heads per layer, feed-forward size 1,024, 512-dimensional embedding; masked token prediction.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "12 transformer encoder units with 16 attention heads per layer and a feed-forward network size of 1,024, generating a 512-dimensional embedding"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Gene expression of a single cell (dissociated or spatial), tokenised by gene rank, with species, modality and assay tokens. Vocabulary of 20,310 gene tokens.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Each cell’s gene expression profile and metadata are fed into a gene-rank tokenizer"
+     },
+     {
+      "source": "@paper",
+      "text": "totaling 20,310 gene tokens"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "A 512-dimensional cell embedding; fine-tuned heads for spatial label and composition prediction.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "generating a 512-dimensional embedding"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "49.3 million, as stated in the paper.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "resulting in a total of 49.3 million parameters"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "SpatialCorpus-110M: over 110 million cells from human and mouse across 73 organs and tissues, including 53.83 million cells measured by image-based spatial technologies.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "spanning over 110 million cells, including 53.83 million cells that were measured using image-based spatial technologies, from both human and mouse from 73 different organs and tissues"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One set of pre-training weights is linked from the README; no versions are listed.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Pretraining weights",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We provide the Nicheformer pretraining weights on Mendeley data"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "CZ CellXGene Discover Census v.2023-07-15 for the dissociated CellXGene portion; other sources are not dated in the passages read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "v.2023-07-15 and its Python API to download the latest batch of all data available on the census"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "1,500 tokens per cell.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "ses a 1,500-token context length as input"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated. The README links the weights through a Mendeley Data preview URL and no file read states a licence for them.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme",
+     "@mendeley-api"
+    ],
+    "source_locator": "README.md; Mendeley Data API response",
+    "quotes": [
+     {
+      "source": "@mendeley-api",
+      "text": "error - dataset not found"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "BSD-3-Clause, from the repository LICENSE file (copyright 2024 Theislab).",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "BSD 3-Clause License"
+     },
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2024, Theislab"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/theislab/nicheformer. Weights: Mendeley Data preview link https://data.mendeley.com/preview/87gm9hrgm8?a=d95a6dde-e054-4245-a7eb-0522d6ea7dff.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/theislab/nicheformer.git"
+     },
+     {
+      "source": "@readme",
+      "text": "https://data.mendeley.com/preview/87gm9hrgm8?a=d95a6dde-e054-4245-a7eb-0522d6ea7dff"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Trained jointly on dissociated and image-based spatial data, with tokens marking modality, species and assay.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Nicheformer is able to learn a joint representation of single-cell and spatial genomics"
+     }
+    ]
+   },
+   {
+    "text": "Covers human and mouse in one gene vocabulary.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "totaling 20,310 gene tokens"
+     },
+     {
+      "source": "@paper",
+      "text": "from both human and mouse"
+     }
+    ]
+   },
+   {
+    "text": "Code is BSD-3-Clause and the paper is open access under CC BY 4.0.",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE; paper",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "BSD 3-Clause License"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Performance depends on how abundant and diverse the cells are in the training corpus; the authors found undertrained tissues such as liver.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Discussion and Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Firstly, Nicheformer performance depends on the data abundance and transcriptional diversity of the cells under study."
+     },
+     {
+      "source": "@paper",
+      "text": "Extended pretraining on liver data improved performance, suggesting undertrained tissues can benefit"
+     }
+    ]
+   },
+   {
+    "text": "Spatial coordinates are not used in pre-training.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Nicheformer does not explicitly incorporate the physical location of a cell during pretraining"
+     }
+    ]
+   },
+   {
+    "text": "Weights are only behind a preview link with no stated licence or version.",
+    "source_ids": [
+     "@readme",
+     "@mendeley-api"
+    ],
+    "source_locator": "README.md; Mendeley Data API response",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "they can be downloaded from [here]"
+     },
+     {
+      "source": "@mendeley-api",
+      "text": "error - dataset not found"
+     }
+    ]
+   },
+   {
+    "text": "The README gives no inference example; users must follow the tokenisation notebooks.",
+    "source_ids": [
+     "@notebooks-readme"
+    ],
+    "source_locator": "notebooks/README.md",
+    "quotes": [
+     {
+      "source": "@notebooks-readme",
+      "text": "To tokenize your data, please first follow the data notebooks and deposit model weights and technology specific mean vectors into the data subdirectory."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Nicheformer workflow",
+   "steps": [
+    "Dissociated or spatial expression profile",
+    "Gene-rank tokenizer plus species, modality, assay tokens",
+    "12-layer transformer, masked token prediction",
+    "Aggregate gene tokens",
+    "512-dimensional cell embedding"
+   ],
+   "caption": "Cells become ranked gene token sequences; the embedding aggregates the encoder outputs.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper Fig. 1 legend; Results",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each cell’s gene expression profile and metadata are fed into a gene-rank tokenizer"
+    },
+    {
+     "source": "@paper",
+     "text": "the Nicheformer embedding is generated by aggregating the gene tokens"
+    },
+    {
+     "source": "@paper",
+     "text": "generating a 512-dimensional embedding"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The weights licence and checkpoint version are not documented; the Mendeley Data preview could not be read.",
+   "The README has no inference example and the tokenisation notebooks were not read.",
+   "Inference hardware needs are not stated; the paper reports pre-training on 12 A100 40GB GPUs for about 10 days."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the theislab/nicheformer README, LICENSE and notebooks/README.md at commit 485cadbc5caa15119adfd54228f8a8af835fcabc, a Mendeley Data public API response, and the PMC12695652 full-text XML of the Nature Methods paper, on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Create an environment, install Nicheformer from the repository and download the pre-training weights; the sources give no inference command.",
+  "prerequisites": [
+   "Python 3.9 or newer; the README recommends Mambaforge.",
+   "The pre-training weights downloaded from the Mendeley Data preview link."
+  ],
+  "steps": [
+   {
+    "title": "Create an environment",
+    "shell": "mamba create -n nicheformer_env python=3.9\nmamba activate nicheformer_env",
+    "explanation": "The README's environment commands.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "mamba create -n nicheformer_env python=3.9"
+     },
+     {
+      "source": "@readme",
+      "text": "mamba activate nicheformer_env"
+     }
+    ]
+   },
+   {
+    "title": "Install from the repository",
+    "shell": "git clone https://github.com/theislab/nicheformer.git\ncd nicheformer\ngit checkout --detach 485cadbc5caa15119adfd54228f8a8af835fcabc\npip install -e .",
+    "explanation": "The README's development install; the checkout line is added by Rewire to pin the reviewed commit.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/theislab/nicheformer.git"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install -e ."
+     }
+    ]
+   },
+   {
+    "title": "Download the weights",
+    "shell": "# Download the weights from https://data.mendeley.com/preview/87gm9hrgm8?a=d95a6dde-e054-4245-a7eb-0522d6ea7dff into the data subdirectory",
+    "explanation": "The README gives a browser link; the notebooks README says to put model weights and technology-specific mean vectors in the data subdirectory.",
+    "source_ids": [
+     "@readme",
+     "@notebooks-readme"
+    ],
+    "source_locator": "README.md: Pretraining weights; notebooks/README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "https://data.mendeley.com/preview/87gm9hrgm8?a=d95a6dde-e054-4245-a7eb-0522d6ea7dff"
+     },
+     {
+      "source": "@notebooks-readme",
+      "text": "deposit model weights and technology specific mean vectors into the data subdirectory"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "An installed nicheformer package and local weights. The sources read do not give a command that produces embeddings; the tokenisation and experiment notebooks are the next step."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "No inference command is documented in the README.",
+   "The weights link is a Mendeley Data preview URL."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "Nicheformer pretraining weights",
+   "parameters": 49300000,
+   "context_length": 1500,
+   "context_unit": "tokens",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": null,
+   "code_url": "https://github.com/theislab/nicheformer",
+   "weights_url": "https://data.mendeley.com/preview/87gm9hrgm8?a=d95a6dde-e054-4245-a7eb-0522d6ea7dff",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "resulting in a total of 49.3 million parameters"
+    },
+    {
+     "source": "@paper",
+     "text": "ses a 1,500-token context length as input"
+    }
+   ]
+  }
+ ],
+ "notes": "The README still cites the bioRxiv preprint; the paper read is the Nature Methods version in PMC. The weights link is a Mendeley Data preview URL; check whether a published dataset or Hugging Face copy exists before treating access as stable."
+}

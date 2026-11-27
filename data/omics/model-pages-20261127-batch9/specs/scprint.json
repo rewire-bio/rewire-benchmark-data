@@ -1,0 +1,805 @@
+{
+  "record_id": "lit-cells-networks-20261011-ye2026grn-model-scprint",
+  "sources": [
+    {
+      "key": "readme",
+      "name": "cantinilab/scPRINT README.md at commit e7c60766",
+      "description": "Official repository README, pinned to a commit.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/cantinilab/scPRINT/e7c60766cbff58bb7280a1c8fe4b7461b1af1911/README.md",
+      "url": "https://github.com/cantinilab/scPRINT",
+      "version": "git commit e7c60766cbff58bb7280a1c8fe4b7461b1af1911",
+      "media_type": "text/markdown",
+      "sha256": "2fe2d4d4a8542a2a1b4752f3c2458cd4a698122b7d062f66f1e5ae50694efac3",
+      "retrieved_at": "2026-11-27T02:26:13Z",
+      "store_bytes": false
+    },
+    {
+      "key": "license",
+      "name": "cantinilab/scPRINT LICENSE at commit e7c60766",
+      "description": "Licence file of the official repository, pinned to a commit.",
+      "file": "artifacts/license.txt",
+      "artifact_url": "https://raw.githubusercontent.com/cantinilab/scPRINT/e7c60766cbff58bb7280a1c8fe4b7461b1af1911/LICENSE",
+      "url": "https://github.com/cantinilab/scPRINT",
+      "version": "git commit e7c60766cbff58bb7280a1c8fe4b7461b1af1911",
+      "media_type": "text/plain",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "retrieved_at": "2026-11-27T02:26:16Z",
+      "store_bytes": false
+    },
+    {
+      "key": "hf-api",
+      "name": "Hugging Face metadata for jkobject/scPRINT, as served on 2026-11-27",
+      "description": "Hugging Face API response: revision, licence field, gating, file list and creation date.",
+      "file": "artifacts/hf-api.json",
+      "artifact_url": "https://huggingface.co/api/models/jkobject/scPRINT?expand[]=safetensors&expand[]=sha&expand[]=cardData&expand[]=gated&expand[]=siblings&expand[]=createdAt",
+      "url": "https://huggingface.co/jkobject/scPRINT",
+      "version": "As served on 2026-11-27; the response may change",
+      "media_type": "application/json",
+      "sha256": "c0f1401610ddcab442d27468d604bae1e11502159ba6d55832c6347664131ffc",
+      "retrieved_at": "2026-11-27T02:26:28Z",
+      "store_bytes": true
+    },
+    {
+      "key": "hf-card",
+      "name": "jkobject/scPRINT model card at revision 8e1ad1a1",
+      "description": "Hugging Face model card, pinned to a revision.",
+      "file": "artifacts/hf-card.md",
+      "artifact_url": "https://huggingface.co/jkobject/scPRINT/raw/8e1ad1a1bc40c1fc2f4f1700fe27923eea9a2bed/README.md",
+      "url": "https://huggingface.co/jkobject/scPRINT",
+      "version": "Hugging Face revision 8e1ad1a1bc40c1fc2f4f1700fe27923eea9a2bed",
+      "media_type": "text/markdown",
+      "sha256": "b86b2d8822a5b5d76c8ef196beea780e5f1624fdc1b2e28c79b13d6301ead6b8",
+      "retrieved_at": "2026-11-27T02:26:33Z",
+      "store_bytes": true
+    },
+    {
+      "key": "paper",
+      "name": "Kalfon et al. 2025, scPRINT: pre-training on 50 million cells allows robust gene network predictions (PMC12003772)",
+      "description": "Full text of the published article as NCBI PMC XML.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12003772&rettype=xml",
+      "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12003772/",
+      "version": "PMC12003772, pmc-version 1",
+      "media_type": "application/xml",
+      "sha256": "4380381d45be0a96727dc750370c3bf6d6c6b24b446454ed4bf6c2a5d711aaaa",
+      "retrieved_at": "2026-11-27T02:26:41Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "scPRINT is a transformer model for single-cell RNA-seq data, built mainly to infer gene networks. It takes the raw counts of a cell and can, without fine-tuning, denoise expression, produce a cell embedding, predict labels such as cell type, disease, sequencer, sex and ethnicity, and output a cell-specific gene network.",
+    "summary_source_ids": [
+      "@readme"
+    ],
+    "summary_source_locator": "README.md: introduction; FAQ; paper Abstract",
+    "summary_quotes": [
+      {
+        "source": "@readme",
+        "text": "scPRINT is a large transformer model built for the inference of gene networks"
+      },
+      {
+        "source": "@readme",
+        "text": "predict the cell type, disease, sequencer, sex, and ethnicity of your cells"
+      },
+      {
+        "source": "@readme",
+        "text": "scPRINT takes raw count as inputs, so please don't use integrated data."
+      },
+      {
+        "source": "@readme",
+        "text": "scPRINT can be used to perform the following analyses in a zero-shot mode:"
+      }
+    ],
+    "sections": [
+      {
+        "title": "How it works",
+        "body": "Each gene in a cell is represented by the sum of three embeddings: its identity, its expression and its genomic location. The identity embedding is the ESM2 protein embedding of the gene's most common protein product. The paper says these gene embeddings can be frozen during training or used only for initialisation. A bidirectional transformer encodes the cell. Pre-training adds three losses together: denoising (recover a profile from a downsampled one), bottleneck learning (regenerate the expression profile from the cell embedding alone) and hierarchical label prediction. scPRINT generates a gene network by selecting and combining attention heads into a gene by gene matrix.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Results: scPRINT; Fig. 1 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "scPRINT encodes the gene IDs using protein embeddings."
+          },
+          {
+            "source": "@paper",
+            "text": "amino-acid embedding of its most common protein product"
+          },
+          {
+            "source": "@paper",
+            "text": "scPRINT’s pretraining is composed of three tasks which loss are added and optimized together: a denoising task, a bottleneck learning task, and a label prediction task."
+          },
+          {
+            "source": "@paper",
+            "text": "denoising task whose goal is to recover the known transcriptomic profile from a purposefully downsampled expression profile. Bottleneck learning reconstructs the expression of requested genes using only their cell embedding."
+          },
+          {
+            "source": "@paper",
+            "text": "These three embeddings are summed and then concatenated across the genes expressed in a cell"
+          },
+          {
+            "source": "@paper",
+            "text": "scPRINT also generates a Gene Network by selecting and combining various attention heads into a gene by gene matrix."
+          },
+          {
+            "source": "@paper",
+            "text": "scPRINT can effectively be retrained with any set of gene embeddings, which can be frozen during training or used only for initialization"
+          }
+        ]
+      },
+      {
+        "title": "Versions and reproducibility",
+        "body": "The Hugging Face repository jkobject/scPRINT holds the checkpoints small-v1, small-v2, medium-v1, medium-v1.5 and large-v1, plus cell-transformer, esm-ft and many run-ID checkpoints under other_ckpts. The README uses medium-v1.5 in its examples. To reproduce the paper the README asks for version tag 1.6.4. The authors have since released scPRINT-2 in a separate repository. A result should name the checkpoint file, the Hugging Face revision and the package version.",
+        "source_ids": [
+          "@hf-api",
+          "@readme"
+        ],
+        "source_locator": "Hugging Face API response; README.md: Usage, Reproducibility, scPRINT-2",
+        "quotes": [
+          {
+            "source": "@hf-api",
+            "text": "{\"rfilename\":\"small-v1.ckpt\"},{\"rfilename\":\"small-v2.ckpt\"}"
+          },
+          {
+            "source": "@hf-api",
+            "text": "{\"rfilename\":\"large-v1.ckpt\"}"
+          },
+          {
+            "source": "@hf-api",
+            "text": "{\"rfilename\":\"medium-v1.5.ckpt\"},{\"rfilename\":\"medium-v1.ckpt\"}"
+          },
+          {
+            "source": "@readme",
+            "text": "To reproduce the paper please use the version / tag `1.6.4`"
+          },
+          {
+            "source": "@readme",
+            "text": "The scPRINT-2 model has now been released"
+          }
+        ]
+      },
+      {
+        "title": "Intended uses",
+        "body": "Zero-shot expression denoising, cell embedding, cell label prediction and gene network inference on human or mouse scRNA-seq, and fine-tuning for other analyses. The README says it can be used on organisms with a similar gene set; very different organisms need new gene embeddings and retraining.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: introduction; FAQ",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "It is a foundation model and can be fine-tuned to perform any other analysis"
+          },
+          {
+            "source": "@readme",
+            "text": "scPRINT has been pretrained on both humans and mouse, and can be used on any organism with a similar gene set."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Model type",
+        "value": "Single-cell foundation model (a large transformer) for gene network inference and zero-shot single-cell analyses.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: introduction",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "scPRINT is a large transformer model built for the inference of gene networks"
+          }
+        ]
+      },
+      {
+        "label": "Architecture",
+        "value": "Bidirectional transformer encoder with gene identity (ESM2 protein embedding), expression and genomic location embeddings, and a gene expression decoder; optional flashattention2 through triton.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper Fig. 1 caption; README.md: Use scPRINT",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Schematic representation of scPRINT with its bidirectional encoder, gene expression embedding, gene location encoding, matched ESM2 protein embedding, and gene expression decoder."
+          },
+          {
+            "source": "@readme",
+            "text": "If you want to be using flashattention2, know that it only supports triton 2.0"
+          }
+        ]
+      },
+      {
+        "label": "Inputs",
+        "value": "Raw counts in an AnnData file whose obs holds the organism ontology ID and whose var names are Ensembl IDs or HUGO symbols. Pre-training used 2200 randomly selected expressed genes per cell.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "README.md: FAQ; paper Results",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "your anndata only needs to contain the species ontology id in its obs['organism_ontology_term_id']"
+          },
+          {
+            "source": "@readme",
+            "text": "contain .var_names or .var.index with gene ids defined as ENSEMBL_IDs or HUGO_SYMBOL."
+          },
+          {
+            "source": "@paper",
+            "text": "scPRINT is pretrained using 2200 randomly selected expressed genes in a cell profile."
+          }
+        ]
+      },
+      {
+        "label": "Outputs",
+        "value": "Denoised expression, cell embeddings, predicted cell labels (cell type, disease, sequencer, sex, ethnicity) and cell-specific gene networks, written as h5ad files by the command line tool.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: introduction and Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "predict the cell type, disease, sequencer, sex, and ethnicity of your cells"
+          },
+          {
+            "source": "@readme",
+            "text": "generate a gene network from any cell or cell cluster in your scRNAseq dataset"
+          },
+          {
+            "source": "@readme",
+            "text": "--output_filename denoised.h5ad"
+          }
+        ]
+      },
+      {
+        "label": "Parameters",
+        "value": "2 M to 100 M across the trained scales. Per-checkpoint counts are in the paper's Supplementary Table S2, which was not read.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We train scPRINT at various scales (from 2 M to 100 M parameters)"
+          }
+        ]
+      },
+      {
+        "label": "Training data",
+        "value": "More than 50 million cells from the cellxgene database, from several species, diseases and ethnicities (around 80 billion tokens); human and mouse according to the README.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper Abstract and Results; README.md: FAQ",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "pre-trained on more than 50 million cells from the cellxgene database"
+          },
+          {
+            "source": "@paper",
+            "text": "representing around 80 billion tokens"
+          },
+          {
+            "source": "@readme",
+            "text": "scPRINT has been pretrained on both humans and mouse"
+          }
+        ]
+      },
+      {
+        "label": "Known versions",
+        "value": "small-v1, small-v2, medium-v1, medium-v1.5 and large-v1 checkpoints on Hugging Face, plus cell-transformer, esm-ft and run-ID checkpoints under other_ckpts. scPRINT-2 is a separate, later model.",
+        "status": "source_checked",
+        "source_ids": [
+          "@hf-api",
+          "@readme"
+        ],
+        "source_locator": "Hugging Face API response; README.md",
+        "quotes": [
+          {
+            "source": "@hf-api",
+            "text": "{\"rfilename\":\"small-v1.ckpt\"},{\"rfilename\":\"small-v2.ckpt\"}"
+          },
+          {
+            "source": "@hf-api",
+            "text": "{\"rfilename\":\"large-v1.ckpt\"}"
+          },
+          {
+            "source": "@hf-api",
+            "text": "{\"rfilename\":\"medium-v1.5.ckpt\"},{\"rfilename\":\"medium-v1.ckpt\"}"
+          },
+          {
+            "source": "@hf-api",
+            "text": "{\"rfilename\":\"cell-transformer.ckpt\"}"
+          },
+          {
+            "source": "@readme",
+            "text": "The scPRINT-2 model has now been released"
+          }
+        ]
+      },
+      {
+        "label": "Training cutoff",
+        "value": "cellxgene's mid-2023 release (800+ datasets), as stated in the Methods; no exact date is given.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "samples cells amongst the 800+ datasets of cellxgene’s mid-2023 release"
+          }
+        ]
+      },
+      {
+        "label": "Context limits",
+        "value": "2200 genes per cell during pre-training; the paper says the model can take longer gene lists at inference.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "A context of 2200 genes, while not genome-wide, captures all the expressed genes in more than 80% of the cell profiles in the cellxgene database."
+          },
+          {
+            "source": "@paper",
+            "text": "We also show that scPRINT can make predictions on much larger sequences of genes at inference time"
+          }
+        ]
+      },
+      {
+        "label": "Weights licence",
+        "value": "Apache-2.0, as declared in the Hugging Face model card metadata.",
+        "status": "source_checked",
+        "source_ids": [
+          "@hf-card",
+          "@hf-api"
+        ],
+        "source_locator": "Model card front matter; Hugging Face API response",
+        "quotes": [
+          {
+            "source": "@hf-card",
+            "text": "license: apache-2.0"
+          },
+          {
+            "source": "@hf-api",
+            "text": "\"cardData\":{\"license\":\"apache-2.0\""
+          }
+        ]
+      },
+      {
+        "label": "Code licence",
+        "value": "GPL-3.0 (GNU General Public License version 3), from the repository LICENSE file.",
+        "status": "source_checked",
+        "source_ids": [
+          "@license"
+        ],
+        "source_locator": "LICENSE",
+        "quotes": [
+          {
+            "source": "@license",
+            "text": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007"
+          }
+        ]
+      },
+      {
+        "label": "Access",
+        "value": "Code: https://github.com/cantinilab/scPRINT (also on PyPI as scprint). Weights: https://huggingface.co/jkobject/scPRINT (not gated). A Docker image and a Colab notebook are linked from the README.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme",
+          "@hf-api"
+        ],
+        "source_locator": "README.md; Hugging Face API response",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "uv pip install scprint"
+          },
+          {
+            "source": "@readme",
+            "text": "https://huggingface.co/jkobject/scPRINT/"
+          },
+          {
+            "source": "@hf-api",
+            "text": "\"gated\":false"
+          },
+          {
+            "source": "@readme",
+            "text": "docker pull jkobject/scprint:1.2.0"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "One pretrained model gives several zero-shot outputs: denoising, embeddings, label prediction and gene networks.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: introduction",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "scPRINT can be used to perform the following analyses in a zero-shot mode:"
+          }
+        ]
+      },
+      {
+        "text": "The authors report modest compute: an A40 GPU for 48 h to train the medium model, and inference on 1 CPU and 1 GPU with 10GB of memory.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Results and Discussion",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "only requiring an A40 GPU for 48 h to train our medium model"
+          },
+          {
+            "source": "@paper",
+            "text": "commodity hardware (1 CPU, 1 GPU with 10GB of memory and 16GB of memory)"
+          }
+        ]
+      },
+      {
+        "text": "Gene identities come from protein embeddings, which the authors say can apply to unseen genes and species.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the model learns to leverage representations that can potentially apply to unseen genes and species"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The code is GPL-3.0, while the weights card says Apache-2.0; derived code must follow GPL terms.",
+        "source_ids": [
+          "@license",
+          "@hf-card"
+        ],
+        "source_locator": "LICENSE; model card",
+        "quotes": [
+          {
+            "source": "@license",
+            "text": "GNU GENERAL PUBLIC LICENSE"
+          },
+          {
+            "source": "@hf-card",
+            "text": "license: apache-2.0"
+          }
+        ]
+      },
+      {
+        "text": "It needs a lamin.ai instance with populated ontologies before it runs.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: To know: lamin.ai",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "To use scPRINT, you will need to use [lamin.ai](https://lamin.ai/)."
+          },
+          {
+            "source": "@readme",
+            "text": "you will also need to populate your ontologies"
+          }
+        ]
+      },
+      {
+        "text": "It runs without a GPU but slowly; flashattention2 needs triton 2.0 and torch 2.0.0, and CPU loading of a flashattention checkpoint needs transformer=\"normal\".",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: pytorch and GPUs",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "scPRINT can run on machines without GPUs, but it will be slow."
+          },
+          {
+            "source": "@readme",
+            "text": "you will need to specify `transformer=\"normal\"` in the `load_from_checkpoint` function"
+          }
+        ]
+      },
+      {
+        "text": "Tested only with Python 3.10 on MacOS and Linux, and the authors now point users to scPRINT-2.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Use scPRINT",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "scPRINT has been tested on MacOS and Linux (Ubuntu 20.04) with Python 3.10."
+          },
+          {
+            "source": "@readme",
+            "text": "You can now checkout and use also the"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "scPRINT workflow",
+      "steps": [
+        "Raw counts (AnnData)",
+        "Gene ID (ESM2), expression and location embeddings",
+        "Bidirectional transformer",
+        "Denoising, bottleneck and label losses",
+        "Embeddings, labels, denoised counts, gene networks"
+      ],
+      "caption": "One encoder is trained with three summed losses and then used zero-shot for several outputs.",
+      "source_ids": [
+        "@paper",
+        "@readme"
+      ],
+      "source_locator": "Paper Fig. 1 caption and Results",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "These three embeddings are summed"
+        },
+        {
+          "source": "@paper",
+          "text": "a denoising task, a bottleneck learning task, and a label prediction task"
+        },
+        {
+          "source": "@readme",
+          "text": "scPRINT can be used to perform the following analyses in a zero-shot mode:"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "Per-checkpoint parameter counts and resource tables are in the paper's supplementary tables, which were not fetched.",
+      "The exact cellxgene release date is not given; the Methods say mid-2023.",
+      "The README is read at the head of main; the paper's results used tag 1.6.4, which was not separately reviewed."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the cantinilab/scPRINT README and LICENSE at commit e7c60766cbff58bb7280a1c8fe4b7461b1af1911, the jkobject/scPRINT model card at revision 8e1ad1a1bc40c1fc2f4f1700fe27923eea9a2bed and its Hugging Face API response, and the PMC12003772 full-text XML, on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Install scprint, set up a lamin.ai instance, download the medium-v1.5 checkpoint and compute embeddings and label predictions for an AnnData file.",
+    "prerequisites": [
+      "Python 3.10 (the version the README says was tested) and uv or pip.",
+      "A GPU is highly recommended; CPU works but is slow.",
+      "An AnnData file of raw counts with obs['organism_ontology_term_id'] and Ensembl IDs or HUGO symbols as var names.",
+      "Disk space for the lamin storage directory, which the README warns can get large."
+    ],
+    "steps": [
+      {
+        "title": "Create an environment and install",
+        "shell": "uv venv <env-name> --python 3.10\nsource <env-name>/bin/activate\nuv pip install scprint",
+        "explanation": "The README's install commands; replace <env-name>. This installs the current PyPI release, not the reviewed commit.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: install",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "uv venv <env-name> --python 3.10"
+          },
+          {
+            "source": "@readme",
+            "text": "source <env-name>/bin/activate"
+          },
+          {
+            "source": "@readme",
+            "text": "uv pip install scprint"
+          }
+        ]
+      },
+      {
+        "title": "Set up lamin and ontologies",
+        "shell": "lamin init --storage ./testdb --name test --modules bionty\nscdataloader populate all",
+        "explanation": "Creates a local lamin.ai instance and fills the ontologies scPRINT uses for its labels. The README says warnings here are fine.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: install",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "lamin init --storage ./testdb --name test --modules bionty"
+          },
+          {
+            "source": "@readme",
+            "text": "`scdataloader populate all`"
+          }
+        ]
+      },
+      {
+        "title": "Download a checkpoint",
+        "shell": "hf download jkobject/scPRINT medium-v1.5.ckpt --local-dir .",
+        "explanation": "Downloads the medium-v1.5 checkpoint from Hugging Face.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "$ hf download jkobject/scPRINT medium-v1.5.ckpt --local-dir ."
+          }
+        ]
+      },
+      {
+        "title": "Embed and classify cells",
+        "shell": "scprint embed --adata my_human_anndata.h5ad --ckpt_path medium-v1.5.ckpt --species \"NCBITaxon:9606\" --output_filename embedded.h5ad",
+        "explanation": "Replace my_human_anndata.h5ad with your file. The README warns this runs PCA and UMAP and may need a lot of RAM.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "$ scprint embed --adata my_human_anndata.h5ad --ckpt_path medium-v1.5.ckpt --species \"NCBITaxon:9606\" --output_filename embedded.h5ad"
+          },
+          {
+            "source": "@readme",
+            "text": "the current version implies doing a PCA and Umap so it might need a lot of RAM if run as is"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "embedded.h5ad holding the cell embeddings and label predictions. The denoise and gninfer subcommands write denoised.h5ad and grn.h5ad in the same way."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "uv pip install scprint takes the latest PyPI release; the README asks for tag 1.6.4 to reproduce the paper.",
+      "Run time and memory for a given dataset are not stated beyond the paper's commodity hardware remark."
+    ],
+    "source_ids": [
+      "@readme"
+    ]
+  },
+  "structured": [
+    {
+      "checkpoint": "small-v1.ckpt",
+      "parameters": null,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "GPL-3.0",
+      "weights_licence": "Apache-2.0",
+      "code_url": "https://github.com/cantinilab/scPRINT",
+      "weights_url": "https://huggingface.co/jkobject/scPRINT",
+      "gated": false,
+      "released": "2024-07-28",
+      "quotes": [
+        {
+          "source": "@hf-api",
+          "text": "\"createdAt\":\"2024-07-28T20:33:31.000Z\""
+        },
+        {
+          "source": "@hf-api",
+          "text": "{\"rfilename\":\"small-v1.ckpt\"}"
+        }
+      ]
+    },
+    {
+      "checkpoint": "small-v2.ckpt",
+      "parameters": null,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "GPL-3.0",
+      "weights_licence": "Apache-2.0",
+      "code_url": "https://github.com/cantinilab/scPRINT",
+      "weights_url": "https://huggingface.co/jkobject/scPRINT",
+      "gated": false,
+      "released": "2024-07-28",
+      "quotes": [
+        {
+          "source": "@hf-api",
+          "text": "\"createdAt\":\"2024-07-28T20:33:31.000Z\""
+        },
+        {
+          "source": "@hf-api",
+          "text": "{\"rfilename\":\"small-v2.ckpt\"}"
+        }
+      ]
+    },
+    {
+      "checkpoint": "medium-v1.ckpt",
+      "parameters": null,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "GPL-3.0",
+      "weights_licence": "Apache-2.0",
+      "code_url": "https://github.com/cantinilab/scPRINT",
+      "weights_url": "https://huggingface.co/jkobject/scPRINT",
+      "gated": false,
+      "released": "2024-07-28",
+      "quotes": [
+        {
+          "source": "@hf-api",
+          "text": "\"createdAt\":\"2024-07-28T20:33:31.000Z\""
+        },
+        {
+          "source": "@hf-api",
+          "text": "{\"rfilename\":\"medium-v1.ckpt\"}"
+        }
+      ]
+    },
+    {
+      "checkpoint": "medium-v1.5.ckpt",
+      "parameters": null,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "GPL-3.0",
+      "weights_licence": "Apache-2.0",
+      "code_url": "https://github.com/cantinilab/scPRINT",
+      "weights_url": "https://huggingface.co/jkobject/scPRINT",
+      "gated": false,
+      "released": "2024-07-28",
+      "quotes": [
+        {
+          "source": "@hf-api",
+          "text": "\"createdAt\":\"2024-07-28T20:33:31.000Z\""
+        },
+        {
+          "source": "@hf-api",
+          "text": "{\"rfilename\":\"medium-v1.5.ckpt\"}"
+        }
+      ]
+    },
+    {
+      "checkpoint": "large-v1.ckpt",
+      "parameters": null,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "GPL-3.0",
+      "weights_licence": "Apache-2.0",
+      "code_url": "https://github.com/cantinilab/scPRINT",
+      "weights_url": "https://huggingface.co/jkobject/scPRINT",
+      "gated": false,
+      "released": "2024-07-28",
+      "quotes": [
+        {
+          "source": "@hf-api",
+          "text": "\"createdAt\":\"2024-07-28T20:33:31.000Z\""
+        },
+        {
+          "source": "@hf-api",
+          "text": "{\"rfilename\":\"large-v1.ckpt\"}"
+        }
+      ]
+    }
+  ],
+  "notes": "Released dates are the Hugging Face repository creation date, shared by all checkpoints in jkobject/scPRINT. The paper gives a 2200-gene pre-training context but does not tie it to each checkpoint, so structured context_length is null. The README and LICENSE are GPL-3.0, so store_bytes is false for them. scPRINT-2 (cantinilab/scPRINT-2) is a separate model and should not be merged into this record."
+}

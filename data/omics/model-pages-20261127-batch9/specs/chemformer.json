@@ -1,0 +1,599 @@
+{
+ "record_id": "lit-otheromics-20261011-msgwild-model-chemformer",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "MolecularAI/Chemformer README.md at commit 53a28190",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/MolecularAI/Chemformer/53a2819076bd16f36131839c7fb88157cfc2ce92/README.md",
+   "url": "https://github.com/MolecularAI/Chemformer",
+   "version": "git commit 53a2819076bd16f36131839c7fb88157cfc2ce92",
+   "media_type": "text/markdown",
+   "sha256": "bc1c7cb7f6cd54b62c285a1e90badab03ec8e7446daa19543503475c0ee9d592",
+   "retrieved_at": "2026-11-27T02:51:02Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "MolecularAI/Chemformer LICENSE at commit 53a28190",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/MolecularAI/Chemformer/53a2819076bd16f36131839c7fb88157cfc2ce92/LICENSE",
+   "url": "https://github.com/MolecularAI/Chemformer",
+   "version": "git commit 53a2819076bd16f36131839c7fb88157cfc2ce92",
+   "media_type": "text/plain",
+   "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+   "retrieved_at": "2026-11-27T02:51:05Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Irwin et al. 2022, Chemformer: a pre-trained transformer for computational chemistry, Mach. Learn.: Sci. Technol. 3 015022, text layer",
+   "description": "Text layer extracted with pdftotext from the open-access IOP PDF (CC BY 4.0), with the publisher's per-download IP stamp line removed for privacy.",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://iopscience.iop.org/article/10.1088/2632-2153/ac3ffb/pdf",
+   "url": "https://doi.org/10.1088/2632-2153/ac3ffb",
+   "version": "Published version, 31 January 2022",
+   "media_type": "text/plain",
+   "sha256": "2fd4db041b607afa5ec2fabed06b75e16b4b3b8805357f18f97fc72fbc3ec21b",
+   "retrieved_at": "2026-11-27T02:51:14Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "msgwild",
+   "name": "MassSpecGym in the Wild, arXiv 2606.19624v1, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of the MassSpecGym in the Wild paper, which used a frozen ChemFormer encoder in a shortcut-learning experiment.",
+   "file": "artifacts/msgwild-v1.txt",
+   "artifact_url": "https://arxiv.org/pdf/2606.19624v1",
+   "url": "https://arxiv.org/abs/2606.19624v1",
+   "version": "arXiv 2606.19624v1",
+   "media_type": "text/plain",
+   "sha256": "90139d4bf7f7bc38f7b01df0194ae4207b9a805723322b5a6d82edf25d6a7701",
+   "retrieved_at": "2026-11-27T02:24:43Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "Chemformer is a BART-style transformer language model for chemistry that reads and writes SMILES strings. It is pretrained to reconstruct original SMILES from corrupted or randomised ones, and then fine-tuned for sequence-to-sequence tasks such as reaction and retrosynthesis prediction or for property prediction. Inputs are SMILES strings; outputs are predicted SMILES or property values.",
+  "summary_source_ids": [
+   "@readme",
+   "@paper"
+  ],
+  "summary_source_locator": "README.md introduction; paper abstract and Section 2",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "The Chemformer project aimed to pre-train a BART transformer language model [[4]](#4) on molecular SMILES strings [[5]](#5) by optimising a de-noising objective."
+   },
+   {
+    "source": "@paper",
+    "text": "In this work we present the Chemformer model—a Transformer-based model which can be quickly applied to both sequence-to-sequence and discriminative cheminformatics tasks."
+   },
+   {
+    "source": "@readme",
+    "text": "The pre-trained model was tested on downstream tasks such as reaction prediction, retrosynthetic prediction, molecular optimisation and molecular property prediction"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Each molecule is written as a non-canonical SMILES string, randomly modified, tokenised and embedded with sinusoidal positions. A bidirectional encoder reads the modified string and an autoregressive decoder is trained with cross-entropy to output the original SMILES. After pretraining, the weights are fine-tuned for each task. Chemformer (base) uses the original Transformer sizes: model dimension 512, feed-forward 2048, 6 layers, 8 heads, about 45M parameters. Chemformer-Large has about 230M.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Sections 2 and 2.1-2.4, Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The pre-training procedure begins by converting each molecule in the batch to a non-canonical SMILES form, which corresponds to the given molecule."
+     },
+     {
+      "source": "@paper",
+      "text": "encoder, while the autoregressive decoder is asked to predict the original SMILES sequence, given the same sequence right-shifted."
+     },
+     {
+      "source": "@paper",
+      "text": "Model dimension Feed-forward Layers Attention heads Parameters Chemformer Chemformer-Large 512 2048 6 8 45M"
+     },
+     {
+      "source": "@paper",
+      "text": "contains approximately 45 million learnable weights, whereas the Chemformer-Large model expands this to 230 million weights."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The repository holds the code for three Chemformer papers and has been replaced by AiZynthModels, which includes an updated Chemformer. Public pretrained models and datasets are on a Box share; checkpoints from older versions need a key renamed (vocab_size to vocabulary_size) before use with the current code. The paper pretrained base and Large models on about 100 million ZINC-15 SMILES. A result should name the checkpoint file and the code version.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md introduction; paper Section 2.1",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This repository has been replaced by [AiZynthModels](https://github.com/MolecularAI/aizynthmodels). Among other things, AiZynthModels includes an updated Chemformer model."
+     },
+     {
+      "source": "@readme",
+      "text": "The public models and datasets available [here](https://az.box.com/s/7eci3nd9vy0xplqniitpk02rbg9q2zcq)."
+     },
+     {
+      "source": "@readme",
+      "text": "model[\"hyper_parameters\"][\"vocabulary_size\"] = model[\"hyper_parameters\"].pop(\"vocab_size\")"
+     },
+     {
+      "source": "@paper",
+      "text": "An unlabelled dataset of approximately 100 million SMILES strings was used to pre-train the models."
+     }
+    ]
+   },
+   {
+    "title": "Use in the benchmark source",
+    "body": "MassSpecGym in the Wild (an existing source on this record) did not evaluate Chemformer as a spectrum model. It built a two-stage retrieval pipeline on a frozen ChemFormer BART encoder (d = 512, 6 layers, 8 heads, 523-token vocabulary) paired with a trained spectrum encoder, and showed that it reached over 63% hit rate@1 by exploiting a SMILES canonicalisation difference between true molecules and decoys in the MassSpecGym candidates.",
+    "source_ids": [
+     "@msgwild",
+     "lit-otheromics-20261011-msgwild-source-liu2026"
+    ],
+    "source_locator": "MassSpecGym in the Wild Section 5.1 and Appendix A.4",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "The molecular encoder is a frozen ChemFormer encoder (BART architecture: d = 512, 6 layers, 8 heads, vocabulary size 523 SMILES tokens)"
+     },
+     {
+      "source": "@msgwild",
+      "text": "that cascades into Stage 2 to achieve over 63% hit rate@1."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Pretrained sequence-to-sequence chemical language model (BART) over SMILES, fine-tuned for synthesis, retrosynthesis, optimisation and property tasks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md; paper abstract",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pre-train a BART transformer language model"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "BART encoder-decoder transformer. Base: d_model 512, feed-forward 2048, 6 layers, 8 heads. Large: d_model 1024.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Model dimension Feed-forward Layers Attention heads Parameters Chemformer Chemformer-Large 512 2048 6 8 45M 1024"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "SMILES strings (for synthesis prediction, a tab-separated file with products, reactants and set columns).",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Notes on running retrosynthesis predictions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "is assumed to be a tab-separated .csv file containing the columns `products` (SMILES), `reactants` (SMILES) and `set`"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Predicted SMILES (sampled with beam search) and scores such as top-N accuracy, or property predictions after fine-tuning.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`molbart/predict.py` predict products given input reactants"
+     },
+     {
+      "source": "@readme",
+      "text": "top-N accuracy (stored in `metrics.csv`)"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "About 45M (Chemformer) and about 230M (Chemformer-Large), per the paper.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 2 and Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "contains approximately 45 million learnable weights, whereas the Chemformer-Large model expands this to 230 million weights."
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "About 100 million SMILES sampled from roughly 1.5 billion ZINC-15 molecules (reactive, purchasability annotated, molecular weight up to 500 Da, LogP up to 5); 99% training.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 2.1.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "These molecules were randomly selected from roughly 1.5 billion molecules available from the publicly accessible ZINC-15 dataset [30]"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Chemformer and Chemformer-Large (paper); public checkpoints and datasets on Box; the repository is superseded by AiZynthModels.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper; README.md",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we pre-trained both a base model, Chemformer, and a larger model, Chemformer-Large."
+     },
+     {
+      "source": "@readme",
+      "text": "This repository has been replaced by"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated beyond the use of ZINC-15.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 2.1.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "ZINC-15 dataset [30]"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated in the sources read. Pretraining molecules were limited to molecular weight up to 500 Daltons.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 2.1.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "molecular weight ⩽500 Daltons"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated; the README links the public models on Box without a separate licence.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The public models and datasets available"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0, per the LICENSE file.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Apache License Version 2.0, January 2004"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/MolecularAI/Chemformer (superseded by https://github.com/MolecularAI/aizynthmodels). Models and datasets: https://az.box.com/s/7eci3nd9vy0xplqniitpk02rbg9q2zcq. Paper: https://doi.org/10.1088/2632-2153/ac3ffb.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md; paper",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "https://az.box.com/s/7eci3nd9vy0xplqniitpk02rbg9q2zcq"
+     },
+     {
+      "source": "@paper",
+      "text": "https://github.com/MolecularAI/Chemformer"
+     },
+     {
+      "source": "@paper",
+      "text": "https://doi.org/10.1088/2632-2153/ac3ffb"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "One pretrained model serves both sequence-to-sequence and property prediction tasks; the authors report pretraining speeds up convergence on downstream tasks.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we show that self-supervised pre-training can improve performance and significantly speed up convergence on downstream tasks."
+     }
+    ]
+   },
+   {
+    "text": "Apache-2.0 code with scripts for pretraining, fine-tuning, inference and a FastAPI service.",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE; README.md: Scripts",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Apache License"
+     },
+     {
+      "source": "@readme",
+      "text": "* `molbart/pretrain.py` runs the pre-training"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The repository is superseded by AiZynthModels; this code is not where development continues.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This repository has been replaced by [AiZynthModels](https://github.com/MolecularAI/aizynthmodels)."
+     }
+    ]
+   },
+   {
+    "text": "Checkpoints are on a Box share with no stated licence and must be updated before use with the current code.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "To run these models with the new version, you first need to update the checkpoint"
+     }
+    ]
+   },
+   {
+    "text": "It is a molecule language model, not a mass spectrometry model; MassSpecGym in the Wild showed a ChemFormer-based retrieval model exploiting SMILES formatting rather than spectra.",
+    "source_ids": [
+     "@msgwild"
+    ],
+    "source_locator": "MassSpecGym in the Wild Appendix A.4",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "Stage 1 inflates the pre-retrieved candidate pool by exploiting the canonicalization artifact in the InfoNCE training signal."
+     }
+    ]
+   },
+   {
+    "text": "The environment targets Python 3.7.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Prerequisites",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "with python 3.7"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Chemformer pretraining and fine-tuning",
+   "steps": [
+    "SMILES string",
+    "Random modification (masking or augmentation)",
+    "BART encoder",
+    "Autoregressive decoder recovers original SMILES",
+    "Fine-tune for a downstream task"
+   ],
+   "caption": "After pretraining, the encoder-decoder is fine-tuned per task; property prediction uses a feed-forward head.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper Section 2.1.2 and Figure 1",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "SMILES strings are then randomly modified, tokenised and embedded into a sequence of vectors."
+    },
+    {
+     "source": "@paper",
+     "text": "An illustration of the pre-training and fine-tuning procedures for downstream tasks."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The Box share contents were not listed, so the exact checkpoint files are not named.",
+   "No licence for the checkpoints is stated.",
+   "AiZynthModels, which now holds the updated Chemformer, was not read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read README.md and LICENSE of MolecularAI/Chemformer at commit 53a2819076bd16f36131839c7fb88157cfc2ce92, the open-access IOP PDF text layer of Irwin et al. 2022, and the MassSpecGym in the Wild arXiv 2606.19624v1 text layer, all on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install Chemformer, download a pretrained model and dataset from the Box share, and run backward (retrosynthesis) inference with scoring, following the README.",
+  "prerequisites": [
+   "conda with Python 3.7, and poetry.",
+   "A pretrained or fine-tuned Chemformer checkpoint and a dataset from the Box share, downloaded by hand.",
+   "Checkpoints from older code versions need the vocab_size key renamed, as the README shows."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://github.com/MolecularAI/Chemformer.git\ncd Chemformer\ngit checkout --detach 53a2819076bd16f36131839c7fb88157cfc2ce92",
+    "explanation": "Clone and pin the reviewed commit; these lines are added by Rewire, the README says to clone the repository first.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "First clone the repository using Git."
+     }
+    ]
+   },
+   {
+    "title": "Install",
+    "shell": "conda env create -f env-dev.yml\nconda activate chemformer\npoetry install",
+    "explanation": "As the README gives it, run in the repository root.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda env create -f env-dev.yml conda activate chemformer poetry install"
+     }
+    ]
+   },
+   {
+    "title": "Download a model and data",
+    "shell": "# Download a model (e.g. ../models/pre-trained/combined.ckpt) and a dataset from\n# https://az.box.com/s/7eci3nd9vy0xplqniitpk02rbg9q2zcq",
+    "explanation": "The README gives a Box link and example paths but no download command.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: User guide",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Download a pre-trained Chemformer model and store it locally (e.g ../models/pre-trained/combined.ckpt)."
+     }
+    ]
+   },
+   {
+    "title": "Run backward inference and scoring",
+    "shell": "python -m molbart.inference_score data_path=data.csv output_score_data=metrics.csv output_sampled_smiles=sampled_smiles.json dataset_type=synthesis",
+    "explanation": "The README's example; it also needs additional arguments (shown in the README as <additional_args>), such as the model path, set as described in molbart/config/.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Notes on running retrosynthesis predictions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python -m molbart.inference_score data_path=data.csv output_score_data=metrics.csv output_sampled_smiles=sampled_smiles.json dataset_type=synthesis <additional_args>"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "metrics.csv with top-N accuracy and sampled_smiles.json with the predicted SMILES."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The README's inference example leaves the model path and other arguments to the user.",
+   "The README notes a possible GLIBCXX error that is fixed by adding the conda environment's lib folder to LD_LIBRARY_PATH."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "Chemformer (base)",
+   "parameters": 45000000,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "Apache-2.0",
+   "weights_licence": null,
+   "code_url": "https://github.com/MolecularAI/Chemformer",
+   "weights_url": "https://az.box.com/s/7eci3nd9vy0xplqniitpk02rbg9q2zcq",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "contains approximately 45 million learnable weights"
+    }
+   ]
+  },
+  {
+   "checkpoint": "Chemformer-Large",
+   "parameters": 230000000,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "Apache-2.0",
+   "weights_licence": null,
+   "code_url": "https://github.com/MolecularAI/Chemformer",
+   "weights_url": null,
+   "gated": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "the Chemformer-Large model expands this to 230 million weights."
+    }
+   ]
+  }
+ ],
+ "notes": "The IOP PDF carries a per-download stamp with the requesting IP address; that line was removed from the saved text layer and the PDF itself is kept locally but not cited. Parameter counts in structured are the paper's approximate figures. Whether Chemformer-Large weights are on the Box share is not stated in the sources read. The benchmark source used a frozen ChemFormer encoder but does not name the checkpoint."
+}

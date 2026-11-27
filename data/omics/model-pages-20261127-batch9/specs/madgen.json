@@ -1,0 +1,691 @@
+{
+ "record_id": "lit-otheromics-20261011-msgwild-model-madgen",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "HassounLab/MADGEN README.md at commit 0099dcbd",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/HassounLab/MADGEN/0099dcbd34cb177b493b177537bf41f6e3f3b41c/README.md",
+   "url": "https://github.com/HassounLab/MADGEN",
+   "version": "git commit 0099dcbd34cb177b493b177537bf41f6e3f3b41c",
+   "media_type": "text/markdown",
+   "sha256": "10c401635a66eff0cb6c70b1f665117b395c5e49d715ed596700fa20731d0011",
+   "retrieved_at": "2026-11-27T02:54:13Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "HassounLab/MADGEN LICENSE at commit 0099dcbd",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/HassounLab/MADGEN/0099dcbd34cb177b493b177537bf41f6e3f3b41c/LICENSE",
+   "url": "https://github.com/HassounLab/MADGEN",
+   "version": "git commit 0099dcbd34cb177b493b177537bf41f6e3f3b41c",
+   "media_type": "text/plain",
+   "sha256": "e1263bbed4abb00648bca09069029c96fa820823f51a7491d7a342a593a9bc3a",
+   "retrieved_at": "2026-11-27T02:54:17Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 17115068 (MADGEN checkpoints and data), API response",
+   "description": "Zenodo API response for the record the README names for pretrained checkpoints and retrieval data.",
+   "file": "artifacts/zenodo-17115068.json",
+   "artifact_url": "https://zenodo.org/api/records/17115068",
+   "url": "https://zenodo.org/records/17115068",
+   "version": "Zenodo record 17115068, as served on 2026-11-27",
+   "media_type": "application/json",
+   "sha256": "f9d0b276521f2414d350a3811c4051bdeb3ee6ce453703593818db09f6284b6a",
+   "retrieved_at": "2026-11-27T02:54:26Z",
+   "licence": "CC-BY-4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper-abs",
+   "name": "arXiv 2501.01950 abstract page (Wang et al., MADGEN)",
+   "description": "arXiv abstract page of the MADGEN paper.",
+   "file": "artifacts/paper-abs.html",
+   "artifact_url": "https://arxiv.org/abs/2501.01950",
+   "url": "https://arxiv.org/abs/2501.01950",
+   "version": "arXiv 2501.01950, latest version as served on 2026-11-27",
+   "media_type": "text/html",
+   "sha256": "5dd4d515fddcddd5492771480b0eb24958d570f3d6cc6a806215416c2f18ae32",
+   "retrieved_at": "2026-11-27T02:54:26Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "arXiv 2501.01950v4 full text, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of MADGEN (v4, 29 Apr 2025; ICLR 2025).",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2501.01950",
+   "url": "https://arxiv.org/abs/2501.01950",
+   "version": "arXiv 2501.01950v4",
+   "media_type": "text/plain",
+   "sha256": "00e5ac105a5fef7e9482c4ecab50f3b26ada999efd3470fac753178d9274edbf",
+   "retrieved_at": "2026-11-27T02:54:30Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "msgwild",
+   "name": "MassSpecGym in the Wild, arXiv 2606.19624v1, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of the MassSpecGym in the Wild paper, which lists MADGEN in its de novo leaderboard.",
+   "file": "artifacts/msgwild-v1.txt",
+   "artifact_url": "https://arxiv.org/pdf/2606.19624v1",
+   "url": "https://arxiv.org/abs/2606.19624v1",
+   "version": "arXiv 2606.19624v1",
+   "media_type": "text/plain",
+   "sha256": "90139d4bf7f7bc38f7b01df0194ae4207b9a805723322b5a6d82edf25d6a7701",
+   "retrieved_at": "2026-11-27T02:24:43Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "MADGEN (Mass-spec Attends to De Novo Molecular GENeration) generates molecular structures from a tandem mass spectrum in two stages. First it retrieves the molecule's core scaffold (its Murcko ring framework) by ranking candidate scaffolds against the spectrum; then a spectrum-guided generative model adds the remaining atoms and bonds, using the chemical formula to fix which atoms are present. It outputs sampled candidate molecules.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "arXiv 2501.01950v4 abstract and Section 3",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "a scaffold-based method for de novo molecular structure generation guided by mass spectrometry data. MADGEN operates in two stages: scaffold retrieval and spectra-conditioned molecular generation starting with the scaffold."
+   },
+   {
+    "source": "@paper",
+    "text": "Since the atom set V can be directly inferred from the chemical formula, the task of molecular generation involves determining the appropriate edge set"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Stage 1 treats scaffold retrieval as ranking: contrastive learning aligns spectra (with their formula) with candidate Murcko scaffolds, and the top-ranked scaffold is chosen; an oracle retriever that is given the true scaffold is used to measure stage 2 alone. Stage 2 starts from the scaffold and the formula's atoms and generates the missing bonds with a Markov bridge process adapted from RetroBridge, using attention to bring spectral information into every step. The generator is a 5-layer graph transformer. The paper gives 50 diffusion steps in one passage and a 100-step Markov bridge in its training details; the README samples with --n_steps 100.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper abstract and Sections 3.1-3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we formulate scaffold retrieval as a ranking problem and employ contrastive learning to align mass spectra with candidate molecular scaffolds."
+     },
+     {
+      "source": "@paper",
+      "text": "MADGEN employs Murcko scaffolds (Bemis"
+     },
+     {
+      "source": "@paper",
+      "text": "RetroBridge is adapted for MADGEN’s second step, where we aim to model the joint distribution of scaffolds and target molecules"
+     },
+     {
+      "source": "@paper",
+      "text": "starting from the retrieved scaffold, we employ the MS/MS spectrum to guide an attention-based generative model to generate the final molecule."
+     },
+     {
+      "source": "@paper",
+      "text": "The model was trained using a graph transformer with 5 layers and 50 diffusion steps."
+     },
+     {
+      "source": "@paper",
+      "text": "A Markov bridge process with 100 steps is employed during training"
+     },
+     {
+      "source": "@readme",
+      "text": "--n_steps 100"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "Two pretrained generators are released on Zenodo record 17115068 (CC-BY-4.0): msgym.ckpt (MassSpecGym) and canopus.ckpt (CANOPUS), together with processed data, predicted scaffold rankings and scaffold-retrieval datasets. The NIST23 model and data are not public because NIST is licensed. The paper read is arXiv v4 (29 Apr 2025), published at ICLR 2025. A result should say whether the predictive or the oracle scaffold retriever was used, because the gap is large.",
+    "source_ids": [
+     "@zenodo",
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Pre-trained Models, Data Preparation; Zenodo record; paper",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"msgym.ckpt\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"canopus.ckpt\""
+     },
+     {
+      "source": "@readme",
+      "text": "The NIST dataset is commercially available and requires separate licensing."
+     },
+     {
+      "source": "@paper",
+      "text": "arXiv:2501.01950v4 [cs.LG] 29 Apr 2025"
+     }
+    ]
+   },
+   {
+    "title": "Use in the benchmark source",
+    "body": "MassSpecGym in the Wild (an existing source on this record) lists MADGEN in its updated MassSpecGym de novo leaderboard with 1.31% top-1 accuracy, the same figure the MADGEN paper reports for MassSpecGym with its predictive scaffold retriever.",
+    "source_ids": [
+     "@msgwild",
+     "@paper",
+     "lit-otheromics-20261011-msgwild-source-liu2026"
+    ],
+    "source_locator": "MassSpecGym in the Wild Table 9; MADGEN paper Section 3.2.3",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "MADGEN MS-BART DiffMS"
+     },
+     {
+      "source": "@msgwild",
+      "text": "0.00% 0.00% 0.00% 1.31% 1.07%"
+     },
+     {
+      "source": "@paper",
+      "text": "the predictive retriever yields a top-1 accuracy of 4.6%, while for CANOPUS and MassSpecGym, the top-1 accuracies is 2.10 % and 1.31%."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Two-stage de novo structure generator from MS/MS: contrastive scaffold retrieval plus spectrum-conditioned graph generation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "MADGEN operates in two stages: scaffold retrieval and spectra-conditioned molecular generation starting with the scaffold."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Contrastive scaffold ranker; graph transformer generator (5 layers; the paper gives 50 diffusion steps in one passage and a 100-step Markov bridge in its training details) with a Markov bridge from scaffold to molecule and attention over the spectrum.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Sections 3.1-3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a graph transformer with 5 layers and 50 diffusion steps."
+     },
+     {
+      "source": "@paper",
+      "text": "RetroBridge is adapted for MADGEN’s second step"
+     },
+     {
+      "source": "@paper",
+      "text": "A Markov bridge process with 100 steps is employed during training"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "An MS/MS spectrum and its chemical formula; candidate scaffolds for the retrieval stage.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Denote an MS/MS spectrum and its chemical formulate as X = (X ms , X cf )."
+     },
+     {
+      "source": "@paper",
+      "text": "Given a set of scaffold candidates S,"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Sampled candidate molecules written to a results table (SMILES), evaluated by top-K accuracy and Tanimoto similarity.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Sampling, Evaluation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`--table_name`: Output table name for results"
+     },
+     {
+      "source": "@readme",
+      "text": "`pred`: Predicted SMILES string"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported as a count in the sources read.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper; README.md",
+    "quotes": []
+   },
+   {
+    "label": "Training data",
+    "value": "MassSpecGym, CANOPUS and NIST23, each with its own model; processed MassSpecGym and CANOPUS data are on Zenodo.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper abstract; README.md",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We evaluate MADGEN on three datasets (NIST23, CANOPUS, and MassSpecGym)"
+     },
+     {
+      "source": "@readme",
+      "text": "The processed datasets are available in our Zenodo repository"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "msgym.ckpt and canopus.ckpt on Zenodo record 17115068; paper versions up to arXiv v4.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo",
+     "@paper"
+    ],
+    "source_locator": "Zenodo record; paper",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"msgym.ckpt\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"canopus.ckpt\""
+     },
+     {
+      "source": "@paper",
+      "text": "arXiv:2501.01950v4"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated as a limit; generation is restricted to the atoms given by the formula and starts from a Murcko scaffold.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Since the atom set V can be directly inferred from the chemical formula"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "CC-BY-4.0, as declared on Zenodo record 17115068, which holds the checkpoints.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record metadata",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, per the LICENSE file.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2025 Hassoun Lab"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/HassounLab/MADGEN. Checkpoints: https://zenodo.org/records/17115068. Processed data: https://zenodo.org/records/15036069. Paper: https://openreview.net/forum?id=78tc3EiUrN.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Pre-trained model checkpoints are available at: [MADGEN Checkpoints](https://zenodo.org/records/17115068)"
+     },
+     {
+      "source": "@readme",
+      "text": "[MADGEN Data](https://zenodo.org/records/15036069)"
+     },
+     {
+      "source": "@readme",
+      "text": "https://openreview.net/forum?id=78tc3EiUrN"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "With the true scaffold given (oracle retriever) the authors report top-1 accuracy of 49.0% on NIST23, 18.7% on CANOPUS and 10.5% on MassSpecGym (the authors' figures), showing the generator works when the scaffold is right.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 3.2.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "On NIST23, MADGEN achieves a top-1 accuracy of 49.0% and a top-10 accuracy of 65.5%"
+     },
+     {
+      "source": "@paper",
+      "text": "with top-1 accuracies of 18.7% and 10.5%,"
+     }
+    ]
+   },
+   {
+    "text": "MIT code and CC-BY-4.0 checkpoints and data for MassSpecGym and CANOPUS.",
+    "source_ids": [
+     "@license",
+     "@zenodo"
+    ],
+    "source_locator": "LICENSE; Zenodo",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+     }
+    ]
+   },
+   {
+    "text": "The scaffold stage gives partial structural information (the molecular backbone) even when the full structure is wrong.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Conclusion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "can provide partial insight in regard to the molecular backbone of the measured spectra."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "End-to-end accuracy is limited by scaffold retrieval: with the predictive retriever, top-1 accuracy is 2.10% on CANOPUS and 1.31% on MassSpecGym (the authors' figures).",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 3.2.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the low scaffold prediction accuracy of the predictive retriever constrains molecular generation performance."
+     }
+    ]
+   },
+   {
+    "text": "Needs the chemical formula, which fixes the atom set.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Since the atom set V can be directly inferred from the chemical formula"
+     }
+    ]
+   },
+   {
+    "text": "The README's sampling command sets CUDA_VISIBLE_DEVICES and a CUDA-compatible GPU is recommended.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Prerequisites, Sampling",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "CUDA-compatible GPU (recommended)"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "MADGEN workflow",
+   "steps": [
+    "MS/MS spectrum and formula",
+    "Contrastive scaffold ranking",
+    "Retrieved Murcko scaffold",
+    "Spectrum-guided graph generation",
+    "Candidate molecules"
+   ],
+   "caption": "An oracle retriever can replace the ranking step to test the generator alone.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper abstract",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "MADGEN operates in two stages: scaffold retrieval and spectra-conditioned molecular generation starting with the scaffold."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Parameter counts are not stated in the sources read.",
+   "The configs were not read.",
+   "The README's example checkpoint paths (checkpoints/msgym_best.pt) differ from the Zenodo file names (msgym.ckpt); the sources do not explain the difference."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read README.md and LICENSE of HassounLab/MADGEN at commit 0099dcbd34cb177b493b177537bf41f6e3f3b41c, Zenodo record 17115068, the arXiv 2501.01950 abstract page and v4 PDF text layer, and the MassSpecGym in the Wild arXiv 2606.19624v1 text layer, all on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install MADGEN, download the processed MassSpecGym data and the MassSpecGym checkpoint, and sample candidate molecules for the test set.",
+  "prerequisites": [
+   "conda with Python 3.9 and RDKit 2023.09.5.",
+   "A CUDA-compatible GPU is recommended.",
+   "wget for the Zenodo downloads."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://github.com/HassounLab/MADGEN.git\ncd MADGEN\ngit checkout --detach 0099dcbd34cb177b493b177537bf41f6e3f3b41c",
+    "explanation": "Clone and pin the reviewed commit; these lines are added by Rewire.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Our code is available at https://github.com/HassounLab/MADGEN"
+     }
+    ]
+   },
+   {
+    "title": "Install",
+    "shell": "conda create --name madgen python=3.9 rdkit=2023.09.5 -c conda-forge -y\nconda activate madgen\npip install -r requirements.txt",
+    "explanation": "As the README gives it.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create --name madgen python=3.9 rdkit=2023.09.5 -c conda-forge -y conda activate madgen"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install -r requirements.txt"
+     }
+    ]
+   },
+   {
+    "title": "Download data",
+    "shell": "wget https://zenodo.org/records/15036069/files/msgym.pkl?download=1 -O ./data/msgym/raw/msgym.pkl",
+    "explanation": "Downloads the processed MassSpecGym data.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: MSGym Dataset",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "wget https://zenodo.org/records/15036069/files/msgym.pkl?download=1 -O ./data/msgym/raw/msgym.pkl"
+     }
+    ]
+   },
+   {
+    "title": "Download the checkpoint",
+    "shell": "# Download msgym.ckpt from https://zenodo.org/records/17115068",
+    "explanation": "The README links the checkpoint record but gives no download command.",
+    "source_ids": [
+     "@readme",
+     "@zenodo"
+    ],
+    "source_locator": "README.md: Pre-trained Models",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Pre-trained model checkpoints are available at:"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"msgym.ckpt\""
+     }
+    ]
+   },
+   {
+    "title": "Sample molecules",
+    "shell": "python sample.py \\\n    --config configs/msgym.yaml \\\n    --checkpoint {checkpoint_path} \\\n    --samples samples \\\n    --model Madgen \\\n    --mode test \\\n    --n_samples 50 \\\n    --n_steps 100 \\\n    --table_name {table_name} \\\n    --sampling_seed 42",
+    "explanation": "The README's sampling template with the dataset set to msgym; replace {checkpoint_path} with the downloaded msgym.ckpt and {table_name} with an output name. The README prefixes it with CUDA_VISIBLE_DEVICES=1.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Basic Sampling Command",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "CUDA_VISIBLE_DEVICES=1 python sample.py \\ --config configs/{dataset_name}.yaml \\ --checkpoint {checkpoint_path} \\ --samples samples \\ --model Madgen \\ --mode test \\ --n_samples 50 \\ --n_steps 100 \\ --table_name {table_name} \\ --sampling_seed 42"
+     },
+     {
+      "source": "@readme",
+      "text": "`configs/msgym.yaml` - MSGym dataset configuration"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A results table of generated SMILES; python evaluation_generation.py --file_path <csv> computes top-K accuracy, maximum Tanimoto similarity and scaffold coverage."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "Whether sampling uses predicted scaffolds or needs the scaffold-retrieval step first (scaffold_retrieval/ and preprocess_rank.py) is not stated clearly in the README."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "msgym.ckpt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "MIT",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/HassounLab/MADGEN",
+   "weights_url": "https://zenodo.org/records/17115068/files/msgym.ckpt",
+   "gated": false,
+   "released": "2025-01-28",
+   "quotes": [
+    {
+     "source": "@zenodo",
+     "text": "\"key\": \"msgym.ckpt\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2025-01-28\""
+    }
+   ]
+  },
+  {
+   "checkpoint": "canopus.ckpt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "MIT",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/HassounLab/MADGEN",
+   "weights_url": "https://zenodo.org/records/17115068/files/canopus.ckpt",
+   "gated": false,
+   "released": "2025-01-28",
+   "quotes": [
+    {
+     "source": "@zenodo",
+     "text": "\"key\": \"canopus.ckpt\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2025-01-28\""
+    }
+   ]
+  }
+ ],
+ "notes": "The Zenodo record gives publication_date 2025-01-28 and created 2025-09-14T03:42:47; the structured released date uses the publication date. The sources do not explain the difference. The MSGWild leaderboard figure for MADGEN (1.31%) matches the paper's predictive-retriever MassSpecGym result."
+}
