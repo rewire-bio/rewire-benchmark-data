@@ -6,6 +6,8 @@ models' records, {model: {"name", "kind", "status"}}, as read_groups returns the
 """
 from __future__ import annotations
 
+import json
+import sqlite3
 import sys
 import unittest
 from pathlib import Path
@@ -187,6 +189,74 @@ class Rules(unittest.TestCase):
         self.assertEqual(counts["models"], sum(counts[k] for k in ("ranked", "one_study", "not_a_model", "not_connected", "too_few")))
         self.assertEqual(counts["studies"], 5)
         self.assertEqual(counts["groups"], 6)
+
+
+
+class Conditions(unittest.TestCase):
+    def test_structured_conditions_drop_submission_configuration_and_counts(self):
+        a = "\x00" + json.dumps({"round": "CASP16", "target": "T1201", "submission": "T1201TS425_1", "participant_id": "425s"})
+        b = "\x00" + json.dumps({"target": "T1201", "round": "CASP16", "submission": "T1201TS388_1", "participant_id": "388s"})
+        self.assertEqual(board.condition_key(a), board.condition_key(b))
+        c = "\x00" + json.dumps({"tp": "23", "fp": "1", "fn": "365", "threshold": "0.5"})
+        d = "\x00" + json.dumps({"tp": "0", "fp": "0", "fn": "2003", "threshold": "0.5"})
+        self.assertEqual(board.condition_key(c), board.condition_key(d))
+
+    def test_conditions_that_change_the_test_stay_apart(self):
+        a = "\x00" + json.dumps({"threshold": "0.01", "submission": "x"})
+        b = "\x00" + json.dumps({"threshold": "0.02", "submission": "y"})
+        self.assertNotEqual(board.condition_key(a), board.condition_key(b))
+        self.assertNotEqual(board.condition_key("\x00" + json.dumps({"adaptation": "fine-tuned"})),
+                            board.condition_key("\x00" + json.dumps({"adaptation": "ridge fitting"})))
+
+    def test_plain_or_malformed_conditions_are_compared_as_written(self):
+        self.assertEqual(board.condition_key("held-out chromosomes"), "held-out chromosomes")
+        self.assertIsNone(board.condition_key(None))
+        self.assertEqual(board.condition_key("\x00not json"), "\x00not json")
+
+
+def store(judgements, rows):
+    """A minimal kb.sqlite: one use case linked to tests, a judgement per link, and results."""
+    db = sqlite3.connect(":memory:")
+    db.executescript("""
+        CREATE TABLE record (id TEXT PRIMARY KEY, kind TEXT, status TEXT);
+        CREATE TABLE link (from_id TEXT, position INTEGER, relation TEXT, to_id TEXT, extra TEXT);
+        CREATE TABLE claim (id TEXT PRIMARY KEY, field TEXT, value TEXT, previous_value TEXT, target_id TEXT, relevance TEXT, rationale TEXT, source_locator TEXT);
+        CREATE TABLE observation_v (id TEXT, study_id TEXT, assessment_id TEXT, metric TEXT, unit TEXT, metric_qualifier TEXT,
+            aggregation TEXT, scoring_conditions TEXT, evaluation_id TEXT, root_id TEXT, root_name TEXT, direction TEXT,
+            value REAL, status TEXT, origin TEXT);
+    """)
+    for i, (test, relevance, status) in enumerate(judgements):
+        db.execute("INSERT INTO link VALUES ('uc', ?, 'assessed_by', ?, NULL)", (i, test))
+        db.execute("INSERT INTO record VALUES (?, 'claim', ?)", (f"j-{test}", status))
+        db.execute("INSERT INTO claim VALUES (?, ?, ?, NULL, NULL, ?, NULL, NULL)", (f"j-{test}", f"links:assessed_by:{test}", test, relevance))
+        db.execute("INSERT INTO link VALUES (?, 0, 'subject', 'uc', NULL)", (f"j-{test}",))
+    for n, (test, study, root, value, conditions) in enumerate(rows):
+        db.execute("INSERT OR IGNORE INTO record VALUES (?, 'model', 'source_checked')", (root,))
+        db.execute("INSERT INTO observation_v VALUES (?, ?, ?, 'auroc', NULL, NULL, NULL, ?, ?, ?, ?, 'higher', ?, 'source_checked', 'author_reported')",
+                   (f"r{n}", study, test, conditions, f"e{n}", root, root, value))
+    return db
+
+
+class Grades(unittest.TestCase):
+    def groups(self, judgements, rows):
+        db = store(judgements, rows)
+        self.addCleanup(db.close)
+        return board.read_groups(db, "uc")[0]
+
+    rows = [("t1", "s1", "a", 0.9, None), ("t1", "s1", "b", 0.8, None),
+            ("t2", "s2", "a", 0.7, None), ("t2", "s2", "b", 0.6, None)]
+
+    def test_outside_scope_and_withdrawn_tests_do_not_feed_the_board(self):
+        groups = self.groups([("t1", "proxy", "source_checked"), ("t2", "outside_scope", "source_checked")], self.rows)
+        self.assertEqual({key[1][0] for key in groups}, {"t1"})
+        groups = self.groups([("t1", "direct", "source_checked"), ("t2", "proxy", "excluded")], self.rows)
+        self.assertEqual({key[1][0] for key in groups}, {"t1"})
+
+    def test_submissions_with_the_same_conditions_form_one_group(self):
+        rows = [("t1", "s1", root, value, "\x00" + json.dumps({"round": "R61", "submission": f"T_{root}"}))
+                for root, value in (("a", 0.9), ("b", 0.8), ("c", 0.7))]
+        groups = self.groups([("t1", "proxy", "source_checked")], rows)
+        self.assertEqual([len(v) for v in groups.values()], [3])
 
 
 if __name__ == "__main__":
