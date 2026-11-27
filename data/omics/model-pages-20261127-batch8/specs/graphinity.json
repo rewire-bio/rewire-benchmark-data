@@ -1,0 +1,888 @@
+{
+ "record_id": "lit-interactions-20261011-mochibind-model-graphinity",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "oxpig/Graphinity README.md at commit 281a72fd",
+   "description": "Official repository README, pinned to a commit. Holds the abstract, the synthetic dataset sizes, the environment setup and the inference and training commands.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/oxpig/Graphinity/281a72fde123d89bf29a50a73fc787f5d355e1b9/README.md",
+   "url": "https://github.com/oxpig/Graphinity",
+   "version": "git commit 281a72fde123d89bf29a50a73fc787f5d355e1b9",
+   "media_type": "text/markdown",
+   "sha256": "f72d6f20ce41dad2a6e4611be905a2cd09b26e5d3507594879632133d8c800d9",
+   "retrieved_at": "2026-11-27T00:46:15Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "oxpig/Graphinity LICENSE at commit 281a72fd",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/oxpig/Graphinity/281a72fde123d89bf29a50a73fc787f5d355e1b9/LICENSE",
+   "url": "https://github.com/oxpig/Graphinity",
+   "version": "git commit 281a72fde123d89bf29a50a73fc787f5d355e1b9",
+   "media_type": "text/plain",
+   "sha256": "2a78bb68a761db26ed166ed5b14a612cf214f2c73b892e1909663ee216a04ad5",
+   "retrieved_at": "2026-11-27T00:46:18Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "repo-tree",
+   "name": "GitHub listing of oxpig/Graphinity at commit 281a72fd",
+   "description": "Recursive GitHub API listing of the repository, read for the shipped model weight files and their sizes.",
+   "file": "artifacts/repo-tree.json",
+   "artifact_url": "https://api.github.com/repos/oxpig/Graphinity/git/trees/281a72fde123d89bf29a50a73fc787f5d355e1b9?recursive=1",
+   "url": "https://github.com/oxpig/Graphinity",
+   "version": "git commit 281a72fde123d89bf29a50a73fc787f5d355e1b9",
+   "media_type": "application/json",
+   "sha256": "36421f310d147b289c5e369402ddf8cc67540593a4730ffe8670cc5606b65bcc",
+   "retrieved_at": "2026-11-27T03:22:00Z",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Hummer et al. 2025, Nature Computational Science, full text (PMC12374841)",
+   "description": "Full text of the Graphinity paper as NCBI PMC JATS XML. Holds the architecture, the training settings and the data volume results.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12374841&rettype=xml",
+   "url": "https://doi.org/10.1038/s43588-025-00823-8",
+   "version": "PMC12374841 as served by NCBI on 2026-11-27",
+   "media_type": "application/xml",
+   "sha256": "dbc10de05aca40ef199eb790367bf9d14e06eaf28c51879f9effcbcfae6a3885",
+   "retrieved_at": "2026-11-27T03:22:30Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "Graphinity predicts the change in antibody-antigen binding affinity caused by a mutation, the quantity written as delta delta G. It takes the structures of the wild-type complex and of the mutant, builds an atomic graph around the mutated site in each, passes both through an equivariant graph neural network, subtracts the two embeddings and reads out one number. The authors report Pearson correlations up to 0.87 on 645 experimental single-point mutations, then show that this reflects overtraining on a few hundred data points rather than a generalisable model. To find out how much data would be needed they built synthetic sets of 942,723 FoldX and 20,829 Rosetta Flex ddG values, and conclude that orders of magnitude more experimental data are likely required, with diversity mattering as well as volume.",
+  "summary_source_ids": [
+   "@readme",
+   "@paper"
+  ],
+  "summary_source_locator": "README: title, Abstract and Synthetic ddG Datasets; paper: Methods, EGNN architecture",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "Here we present Graphinity, an equivariant graph neural network architecture built directly from antibody–antigen structures that achieves test Pearson’s correlations of up to 0.87 on experimental change in binding affinity (ΔΔG) prediction."
+   },
+   {
+    "source": "@readme",
+    "text": "However, our model, like previous methods, appears to be overtraining on the few hundred experimental data points available and performance is not robust to train–test cut-offs."
+   },
+   {
+    "source": "@readme",
+    "text": "We generated synthetic ∆∆G datasets by mutating the interfaces of structurally-resolved complexes from SAbDab (Dunbar et al., 2014; Schneider et al., 2021) using FoldX (942,723 mutations; Schymkowitz et al., 2005) and Rosetta Flex ddG (20,829 mutations; Barlow et al., 2018)."
+   },
+   {
+    "source": "@paper",
+    "text": "For ΔΔ<italic toggle=\"yes\">G</italic> prediction, we generated and aggregated graphs of the WT and mutant structures. Both graphs were fed through the three <italic toggle=\"yes\">E</italic>(<italic toggle=\"yes\">n</italic>) EGC layers and the resulting embeddings subtracted from one another (WT − Mutant) before the last linear layer."
+   },
+   {
+    "source": "@readme",
+    "text": "Our results indicate that there are currently insufficient experimental data to accurately and robustly predict ΔΔG, with orders of magnitude more likely needed."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "A structure goes in as a PDB file and becomes an atomic graph: non-hydrogen atoms are nodes, pairs of atoms less than 4 angstroms apart are edges, node features are a one-hot LibMolGrid atom type and edge features say whether the edge is within one binding partner or between the two. The graph is cut down to the neighbourhood of the mutated site: atoms on the mutated chain within 4 angstroms of the mutated residue, plus atoms on the partner chain within 4 angstroms of those. The network is three E(n) equivariant graph convolutional layers with a hidden dimension of 128. For a delta delta G prediction, the wild-type and mutant graphs are each passed through those layers and the embeddings subtracted, wild type minus mutant, before a final linear layer. Training used mean squared error, Adam at learning rate 0.001, batch size 32, dropout 0.2 on edges, weight decay 1e-16 and global max pooling as readout, for 500 epochs except on the large FoldX set where 10 epochs were used for cost.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Methods, EGNN architecture",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Our model is composed of three <italic toggle=\"yes\">E</italic>(<italic toggle=\"yes\">n</italic>) equivariant graph convolutional (EGC) layers<sup><xref ref-type=\"bibr\" rid=\"CR23\">23</xref></sup> with a hidden dimension of 128."
+     },
+     {
+      "source": "@paper",
+      "text": "generates an atomic-resolution graph with nodes representing non-hydrogen atoms and edges representing interactions between nodes &lt;4 Å apart."
+     },
+     {
+      "source": "@paper",
+      "text": "The node features are a one-hot encoded vector describing the LibMolGrid atom type"
+     },
+     {
+      "source": "@paper",
+      "text": "The models were trained with mean squared error loss."
+     },
+     {
+      "source": "@paper",
+      "text": "optimizer, Adam; learning rate, 0.001; batch size, 32; dropout, 0.2"
+     },
+     {
+      "source": "@paper",
+      "text": "Models were trained using PyTorch Lightning for 500 epochs, with the exception of the synthetic FoldX ΔΔ<italic toggle=\"yes\">G</italic> dataset models, which, due to the high computational costs, were trained for 10 epochs."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "There is no single released Graphinity model. The repository ships eight checkpoints from the data volume experiment, under example/ddg_synthetic/FoldX/varying_dataset_size/model_weights, each about 4.3 MB and named by the number of FoldX training examples it saw: subset_580, subset_900, subset_4500, subset_9000, subset_45000, subset_90000, subset_450000 and full_848597. They are illustrations of the data scaling question rather than a production predictor, so a result must name the checkpoint. The repository also keeps the experimental delta delta G datasets with their ten-fold cross-validation splits at CDR sequence identity cut-offs of 100, 90 and 70 per cent and a random split, under data/ddg_experimental. The environment is pinned hard, to Python 3.7.10, PyTorch 1.8.0 and PyTorch Geometric 1.6.3, with and without CUDA 10.2.",
+    "source_ids": [
+     "@repo-tree",
+     "@readme"
+    ],
+    "source_locator": "repository listing: model_weights and results folders; README: Requirements",
+    "quotes": [
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"example/ddg_synthetic/FoldX/varying_dataset_size/model_weights/Graphinity-varying_dataset_size-full_848597.ckpt\""
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"example/ddg_synthetic/FoldX/varying_dataset_size/model_weights/Graphinity-varying_dataset_size-subset_580.ckpt\""
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"size\":4322275"
+     },
+     {
+      "source": "@readme",
+      "text": "conda create --name graphinity_env_cuda102 python=3.7.10"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install torch-geometric==1.6.3 --no-cache-dir"
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"data/ddg_experimental/Experimental_ddG_645/cdr_seqid_cutoffs/Experimental_ddG_645_+Reverse_Mutations_+Non_Binders/Experimental_ddG_645_+Reverse_Mutations_+Non_Binders-cutoff_100-10foldcv.csv\""
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Supervised regression model for change in antibody-antigen binding affinity, built as an equivariant graph neural network over atomic structure.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: title and Abstract; paper: Methods, EGNN architecture",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "## Graphinity: Equivariant Graph Neural Network Architecture for Predicting Change in Antibody-Antigen Binding Affinity"
+     },
+     {
+      "source": "@paper",
+      "text": "We developed a deep learning EGNN architecture to predict change in antibody–antigen binding affinity"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Three E(n) equivariant graph convolutional layers with hidden dimension 128, global max pooling and a final linear layer, applied to wild-type and mutant graphs whose embeddings are subtracted. The authors call it modular and easily adapted to other tasks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Methods, EGNN architecture and Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "three <italic toggle=\"yes\">E</italic>(<italic toggle=\"yes\">n</italic>) equivariant graph convolutional (EGC) layers"
+     },
+     {
+      "source": "@paper",
+      "text": "with a hidden dimension of 128"
+     },
+     {
+      "source": "@paper",
+      "text": "graph readout, global_max_pool over nodes"
+     },
+     {
+      "source": "@paper",
+      "text": "The architecture is modular and easily adapted for regr"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Two structures as PDB files, the wild-type complex and the mutant complex, from which graphs of the mutation site neighbourhood are built. Runs are driven by a YAML configuration file that lists the inputs.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: Methods, EGNN architecture; README: Example inference",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The model takes the three-dimensional coordinates of a protein complex structure (PDB file) as input"
+     },
+     {
+      "source": "@paper",
+      "text": "The graphs represent the mutation site neighborhood"
+     },
+     {
+      "source": "@readme",
+      "text": "python3 src/ddg_regression/graphinity_inference.py -c example/ddg_synthetic/FoldX/example_test/configs/config-example_test.yaml"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "One predicted delta delta G value per mutation, written to a CSV of predictions. The bundled five-mutation test writes preds_Graphinity-example_test.csv.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Example inference",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The expected outputs are included in example/ddg_synthetic/FoldX/example_test/outputs/preds_Graphinity-example_test.csv."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not stated as a count. The architecture is three equivariant graph convolutional layers of hidden dimension 128, and each shipped checkpoint file is about 4.3 MB, the largest being 4,322,403 bytes.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@repo-tree"
+    ],
+    "source_locator": "paper: Methods, EGNN architecture; repository listing: model_weights sizes",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "with a hidden dimension of 128"
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"size\":4322403"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Experimental models: the AB-Bind dataset of 645 single-point mutations from 29 complexes, called Experimental_ddG_645, with variants including and excluding reverse mutations and non-binders. The repository also carries a second experimental set of 608 mutations. Synthetic models: 942,723 FoldX delta delta G values and 20,829 Rosetta Flex ddG values, generated by mutating the interfaces of structurally resolved complexes from SAbDab. The checkpoint named full_848597 reflects the subset actually used for its training run.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@repo-tree"
+    ],
+    "source_locator": "paper: Introduction; README: Synthetic ddG Datasets; repository listing: model_weights",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "on the AB-Bind dataset<sup><xref ref-type=\"bibr\" rid=\"CR20\">20</xref></sup> of 645 single-point mutations"
+     },
+     {
+      "source": "@readme",
+      "text": "using FoldX (942,723 mutations; Schymkowitz et al., 2005) and Rosetta Flex ddG (20,829 mutations; Barlow et al., 2018)"
+     },
+     {
+      "source": "@repo-tree",
+      "text": "Graphinity-varying_dataset_size-full_848597.ckpt"
+     },
+     {
+      "source": "@paper",
+      "text": "which contains 645 single-point mutations from 29 complexes"
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"data/ddg_experimental/Experimental_ddG_608/Experimental_ddG_608.csv\""
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Eight checkpoints from the data volume experiment, named subset_580, subset_900, subset_4500, subset_9000, subset_45000, subset_90000, subset_450000 and full_848597. The sources read name no single production model.",
+    "status": "source_checked",
+    "source_ids": [
+     "@repo-tree"
+    ],
+    "source_locator": "repository listing: model_weights",
+    "quotes": [
+     {
+      "source": "@repo-tree",
+      "text": "Graphinity-varying_dataset_size-subset_4500.ckpt"
+     },
+     {
+      "source": "@repo-tree",
+      "text": "Graphinity-varying_dataset_size-subset_450000.ckpt"
+     },
+     {
+      "source": "@repo-tree",
+      "text": "Graphinity-varying_dataset_size-full_848597.ckpt"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated. The sources read name SAbDab and AB-Bind as the sources of structures and measurements but give no snapshot date for either.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Synthetic ddG Datasets; paper: Introduction",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "Set by the graph construction rather than a sequence length: only atoms within 4 angstroms of the mutated residue on its own chain, plus atoms on the partner chain within 4 angstroms of those, enter the graph. Whole complexes are not embedded.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Methods, EGNN architecture",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Graphs are limited to the neighborhood around the mutated site."
+     },
+     {
+      "source": "@paper",
+      "text": "atoms on the same chain as the mutated residue within 4 Å of the mutated residue (local neighborhood) and atoms on the binding partner chain within 4 Å of these local neighborhood atoms)"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "No separate weights licence is stated. The checkpoints are committed inside the repository, whose LICENSE file is the BSD 3-Clause licence, copyright 2023 Alissa Hummer, so those terms are what cover them.",
+    "status": "unreported",
+    "source_ids": [
+     "@repo-tree",
+     "@license"
+    ],
+    "source_locator": "repository listing: model_weights; LICENSE header",
+    "quotes": [
+     {
+      "source": "@repo-tree",
+      "text": "Graphinity-varying_dataset_size-full_848597.ckpt"
+     },
+     {
+      "source": "@license",
+      "text": "BSD 3-Clause License Copyright (c) 2023, Alissa Hummer"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "BSD 3-Clause, as the repository LICENSE file holds.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE header",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "BSD 3-Clause License"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code and the eight checkpoints at https://github.com/oxpig/Graphinity, no gate. Synthetic dataset structures at https://doi.org/10.5281/zenodo.15384945 and in full at https://opig.stats.ox.ac.uk/data/downloads/affinity_dataset/, where the FoldX mutant archive alone is 195 GB compressed. No PyPI package and no hosted service in the sources read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@repo-tree"
+    ],
+    "source_locator": "README: Synthetic ddG Datasets; repository listing: model_weights",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The PDBs can be downloaded from https://doi.org/10.5281/zenodo.15384945"
+     },
+     {
+      "source": "@readme",
+      "text": "Mutant: synthetic_foldx_ddg_mutated_pdbs.tar.gz (195 GB compressed; 768 GB uncompressed)"
+     },
+     {
+      "source": "@repo-tree",
+      "text": "Graphinity-varying_dataset_size-subset_900.ckpt"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Small and quick to run: the bundled five-mutation test takes under 20 seconds, and the authors state Graphinity can be run without a GPU.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Requirements and Example inference",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This test took less than 20 seconds to run with 1 CPU (on Linux and Mac) and 1 GPU + 1 CPU (on Linux)."
+     },
+     {
+      "source": "@readme",
+      "text": "Graphinity can also be run without a GPU."
+     }
+    ]
+   },
+   {
+    "text": "The authors report the negative result rather than the headline: they show their own 0.87 correlation came from overtraining and is not robust to train-test cut-offs.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Abstract; paper: Introduction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "appears to be overtraining on the few hundred experimental data points available and performance is not robust to train–test cut-offs"
+     },
+     {
+      "source": "@paper",
+      "text": "further investigation indicated that this high performance stemmed from model overtraining and was not generalizable"
+     }
+    ]
+   },
+   {
+    "text": "The data scaling experiment is reproducible: checkpoints trained on 580 up to 848,597 synthetic examples ship with the code, together with example configurations for inference and training.",
+    "source_ids": [
+     "@repo-tree",
+     "@readme"
+    ],
+    "source_locator": "repository listing: model_weights; README: Example inference and Example training",
+    "quotes": [
+     {
+      "source": "@repo-tree",
+      "text": "Graphinity-varying_dataset_size-subset_580.ckpt"
+     },
+     {
+      "source": "@readme",
+      "text": "Example configuration and input files to train Graphinity are included in example/ddg_synthetic/FoldX/example_train/."
+     }
+    ]
+   },
+   {
+    "text": "The input is only local geometry around the mutation, with no alignment and no sequence model, so a prediction needs nothing beyond the two structures.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Methods, EGNN architecture",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The model takes the three-dimensional coordinates of a protein complex structure (PDB file) as input"
+     },
+     {
+      "source": "@paper",
+      "text": "Graphs are limited to the neighborhood around the mutated site."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The authors' own conclusion is that the task is not yet solvable with available data: they say there are currently insufficient experimental data to predict delta delta G accurately and robustly, and that orders of magnitude more are likely needed.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Abstract",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Our results indicate that there are currently insufficient experimental data to accurately and robustly predict ΔΔG, with orders of magnitude more likely needed."
+     }
+    ]
+   },
+   {
+    "text": "The shipped checkpoints come from a data volume study and were trained on FoldX-generated values, not experimental measurements, so they are not a ready-made experimental delta delta G predictor.",
+    "source_ids": [
+     "@repo-tree",
+     "@readme"
+    ],
+    "source_locator": "repository listing: model_weights; README: Synthetic ddG Datasets",
+    "quotes": [
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"example/ddg_synthetic/FoldX/varying_dataset_size/model_weights/Graphinity-varying_dataset_size-subset_45000.ckpt\""
+     },
+     {
+      "source": "@readme",
+      "text": "We generated synthetic ∆∆G datasets by mutating the interfaces of structurally-resolved complexes from SAbDab"
+     }
+    ]
+   },
+   {
+    "text": "A mutant structure is required as well as the wild type, so a prediction depends on modelling the mutant first, by FoldX or similar.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: Methods, EGNN architecture; README: Synthetic ddG Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we generated and aggregated graphs of the WT and mutant structures"
+     },
+     {
+      "source": "@readme",
+      "text": "Mutant: synthetic_foldx_ddg_mutated_pdbs.tar.gz (195 GB compressed; 768 GB uncompressed)"
+     }
+    ]
+   },
+   {
+    "text": "The software stack is old and pinned: Python 3.7.10, PyTorch 1.8.0, CUDA 10.2 and PyTorch Geometric 1.6.3, and the authors warn that building the environment from the YAML file can take several hours.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Requirements",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Installing the environment from the yaml file can take up to several hours."
+     },
+     {
+      "source": "@readme",
+      "text": "conda install pytorch==1.8.0 cudatoolkit=10.2 -c pytorch"
+     }
+    ]
+   },
+   {
+    "text": "The full synthetic dataset is impractical for most users: the FoldX mutant structures alone are 195 GB compressed and 768 GB uncompressed.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Synthetic ddG Datasets",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "(195 GB compressed; 768 GB uncompressed)"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Graphinity delta delta G workflow",
+   "steps": [
+    "Wild-type and mutant complex structures as PDB files",
+    "Atomic graphs of the mutation site neighbourhood, edges under 4 angstroms",
+    "Three E(n) equivariant graph convolutional layers, hidden dimension 128",
+    "Wild-type embedding minus mutant embedding, then a linear layer",
+    "Predicted delta delta G per mutation in a CSV"
+   ],
+   "caption": "Both structures are embedded by the same network and the difference of the embeddings is read out, so the prediction depends on local geometry around the mutated residue.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "paper: Methods, EGNN architecture; README: Example inference",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The model takes the three-dimensional coordinates of a protein complex structure (PDB file) as input"
+    },
+    {
+     "source": "@paper",
+     "text": "the resulting embeddings subtracted from one another (WT − Mutant) before the last linear layer"
+    },
+    {
+     "source": "@readme",
+     "text": "preds_Graphinity-example_test.csv"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count is published; only the layer shape and the checkpoint file sizes.",
+   "No checkpoint trained on experimental measurements is shipped, so the 0.87 correlation cannot be reproduced from the repository weights alone.",
+   "What distinguishes the full_848597 checkpoint's training set from the stated 942,723 FoldX mutations is not explained in the sources read.",
+   "No release dates for the checkpoints, and no snapshot versions for SAbDab or AB-Bind."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read on 2026-11-27: the README, LICENSE and the recursive GitHub listing of oxpig/Graphinity at commit 281a72fde123d89bf29a50a73fc787f5d355e1b9, and the paper full text as PMC12374841. No command was executed and no human review is claimed."
+  }
+ },
+ "structured": [
+  {
+   "checkpoint": "Graphinity-varying_dataset_size-full_848597.ckpt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": null,
+   "code_url": "https://github.com/oxpig/Graphinity",
+   "weights_url": "https://github.com/oxpig/Graphinity/blob/281a72fde123d89bf29a50a73fc787f5d355e1b9/example/ddg_synthetic/FoldX/varying_dataset_size/model_weights/Graphinity-varying_dataset_size-full_848597.ckpt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@repo-tree",
+     "text": "Graphinity-varying_dataset_size-full_848597.ckpt"
+    },
+    {
+     "source": "@license",
+     "text": "BSD 3-Clause License"
+    }
+   ]
+  },
+  {
+   "checkpoint": "Graphinity-varying_dataset_size-subset_450000.ckpt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": null,
+   "code_url": "https://github.com/oxpig/Graphinity",
+   "weights_url": "https://github.com/oxpig/Graphinity/blob/281a72fde123d89bf29a50a73fc787f5d355e1b9/example/ddg_synthetic/FoldX/varying_dataset_size/model_weights/Graphinity-varying_dataset_size-subset_450000.ckpt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@repo-tree",
+     "text": "Graphinity-varying_dataset_size-subset_450000.ckpt"
+    },
+    {
+     "source": "@license",
+     "text": "BSD 3-Clause License"
+    }
+   ]
+  },
+  {
+   "checkpoint": "Graphinity-varying_dataset_size-subset_90000.ckpt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": null,
+   "code_url": "https://github.com/oxpig/Graphinity",
+   "weights_url": "https://github.com/oxpig/Graphinity/blob/281a72fde123d89bf29a50a73fc787f5d355e1b9/example/ddg_synthetic/FoldX/varying_dataset_size/model_weights/Graphinity-varying_dataset_size-subset_90000.ckpt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@repo-tree",
+     "text": "Graphinity-varying_dataset_size-subset_90000.ckpt"
+    },
+    {
+     "source": "@license",
+     "text": "BSD 3-Clause License"
+    }
+   ]
+  },
+  {
+   "checkpoint": "Graphinity-varying_dataset_size-subset_45000.ckpt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": null,
+   "code_url": "https://github.com/oxpig/Graphinity",
+   "weights_url": "https://github.com/oxpig/Graphinity/blob/281a72fde123d89bf29a50a73fc787f5d355e1b9/example/ddg_synthetic/FoldX/varying_dataset_size/model_weights/Graphinity-varying_dataset_size-subset_45000.ckpt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@repo-tree",
+     "text": "Graphinity-varying_dataset_size-subset_45000.ckpt"
+    },
+    {
+     "source": "@license",
+     "text": "BSD 3-Clause License"
+    }
+   ]
+  },
+  {
+   "checkpoint": "Graphinity-varying_dataset_size-subset_9000.ckpt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": null,
+   "code_url": "https://github.com/oxpig/Graphinity",
+   "weights_url": "https://github.com/oxpig/Graphinity/blob/281a72fde123d89bf29a50a73fc787f5d355e1b9/example/ddg_synthetic/FoldX/varying_dataset_size/model_weights/Graphinity-varying_dataset_size-subset_9000.ckpt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@repo-tree",
+     "text": "Graphinity-varying_dataset_size-subset_9000.ckpt"
+    },
+    {
+     "source": "@license",
+     "text": "BSD 3-Clause License"
+    }
+   ]
+  },
+  {
+   "checkpoint": "Graphinity-varying_dataset_size-subset_4500.ckpt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": null,
+   "code_url": "https://github.com/oxpig/Graphinity",
+   "weights_url": "https://github.com/oxpig/Graphinity/blob/281a72fde123d89bf29a50a73fc787f5d355e1b9/example/ddg_synthetic/FoldX/varying_dataset_size/model_weights/Graphinity-varying_dataset_size-subset_4500.ckpt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@repo-tree",
+     "text": "Graphinity-varying_dataset_size-subset_4500.ckpt"
+    },
+    {
+     "source": "@license",
+     "text": "BSD 3-Clause License"
+    }
+   ]
+  },
+  {
+   "checkpoint": "Graphinity-varying_dataset_size-subset_900.ckpt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": null,
+   "code_url": "https://github.com/oxpig/Graphinity",
+   "weights_url": "https://github.com/oxpig/Graphinity/blob/281a72fde123d89bf29a50a73fc787f5d355e1b9/example/ddg_synthetic/FoldX/varying_dataset_size/model_weights/Graphinity-varying_dataset_size-subset_900.ckpt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@repo-tree",
+     "text": "Graphinity-varying_dataset_size-subset_900.ckpt"
+    },
+    {
+     "source": "@license",
+     "text": "BSD 3-Clause License"
+    }
+   ]
+  },
+  {
+   "checkpoint": "Graphinity-varying_dataset_size-subset_580.ckpt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": null,
+   "code_url": "https://github.com/oxpig/Graphinity",
+   "weights_url": "https://github.com/oxpig/Graphinity/blob/281a72fde123d89bf29a50a73fc787f5d355e1b9/example/ddg_synthetic/FoldX/varying_dataset_size/model_weights/Graphinity-varying_dataset_size-subset_580.ckpt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@repo-tree",
+     "text": "Graphinity-varying_dataset_size-subset_580.ckpt"
+    },
+    {
+     "source": "@license",
+     "text": "BSD 3-Clause License"
+    }
+   ]
+  }
+ ],
+ "run_guide": {
+  "summary": "Build the pinned conda environment and run the bundled five-mutation inference example.",
+  "prerequisites": [
+   "Conda, and Python 3.7.10 as the environment recipe pins it.",
+   "No GPU required: the authors state Graphinity can be run without one and give a CUDA-free environment recipe.",
+   "Linux or Mac, the platforms the authors say it has been tested on. Their paper results used one NVIDIA RTX 6000 GPU and four CPUs.",
+   "BSD 3-Clause terms for the code. The checkpoints are committed in the same repository, with no separate licence statement."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/oxpig/Graphinity.git\ncd Graphinity\ngit checkout --detach 281a72fde123d89bf29a50a73fc787f5d355e1b9",
+    "explanation": "The clone and checkout lines are added here to pin the commit that was read. The README's commands are run from the repository root, and the clone brings the example configuration, the inputs and the checkpoints.",
+    "source_ids": [
+     "@readme",
+     "@repo-tree"
+    ],
+    "source_locator": "README: Example inference; repository listing: model_weights",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "A small test (5 mutations, example/ddg_synthetic/FoldX/example_test/) can be run from the root directory via the following commands:"
+     },
+     {
+      "source": "@repo-tree",
+      "text": "Graphinity-varying_dataset_size-subset_580.ckpt"
+     }
+    ]
+   },
+   {
+    "title": "Create the environment",
+    "shell": "conda create --name graphinity_env_no_cuda python=3.7.10\nconda activate graphinity_env_no_cuda\n\nconda install pytorch==1.8.0 -c pytorch\n\npip install torch-scatter==2.0.8 --no-cache-dir\npip install torch-sparse==0.6.12 --no-cache-dir\npip install torch-geometric==1.6.3 --no-cache-dir\npip install torch-cluster==1.5.9 --no-cache-dir\npip install torch-spline-conv==1.2.1 --no-cache-dir\n\nconda install conda-forge::openbabel\npip install biopython\npip install numpy\npip install pandas\npip install pyarrow\npip install pyyaml\npip install biopandas\npip install pytorch-lightning==1.2.10\npip install tqdm\npip install wandb",
+    "explanation": "The README's CPU-only recipe, used here because it needs no CUDA. The CUDA 10.2 variant and the YAML file route are the other two options the README gives, and it warns the YAML route can take hours.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Requirements",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create --name graphinity_env_no_cuda python=3.7.10\nconda activate graphinity_env_no_cuda"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install torch-geometric==1.6.3 --no-cache-dir"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install pytorch-lightning==1.2.10"
+     }
+    ]
+   },
+   {
+    "title": "Run the five-mutation example",
+    "shell": "python3 src/ddg_regression/graphinity_inference.py -c example/ddg_synthetic/FoldX/example_test/configs/config-example_test.yaml",
+    "explanation": "The README's CPU-only inference command. It writes predictions for the five example mutations, which can be compared with the expected output file in the repository.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Example inference",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python3 src/ddg_regression/graphinity_inference.py -c example/ddg_synthetic/FoldX/example_test/configs/config-example_test.yaml"
+     },
+     {
+      "source": "@readme",
+      "text": "The expected outputs are included in example/ddg_synthetic/FoldX/example_test/outputs/preds_Graphinity-example_test.csv."
+     }
+    ]
+   },
+   {
+    "title": "Optional: train on the example set",
+    "shell": "python3 src/ddg_regression/train.py -c example/ddg_synthetic/FoldX/example_train/configs/config-example_train.yaml",
+    "explanation": "The README's CPU-only training command, with a GPU variant alongside it that the authors recommend.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Example training",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python3 src/ddg_regression/train.py -c example/ddg_synthetic/FoldX/example_train/configs/config-example_train.yaml"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A CSV of predicted delta delta G values, one row per mutation, matching the expected file shipped in the example outputs folder."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The example runs on FoldX-generated structures; predicting for your own mutation means producing a mutant structure first and writing a configuration file for it.",
+   "The pinned stack is old, so the install may fail on current hardware or CUDA versions; the README gives a reinstall order for the PyTorch Geometric packages when it does."
+  ],
+  "source_ids": [
+   "@readme",
+   "@repo-tree"
+  ]
+ },
+ "notes": "The record came from the antibody-antigen affinity evaluation framework (existing source lit-interactions-20261011-mochibind-source-isci2026). Graphinity is as much a study of data requirements as a model: the shipped weights are the data volume experiment's checkpoints, trained on FoldX-generated values, and the authors' own conclusion is that the available experimental data are insufficient for a generalisable predictor. Anyone citing a Graphinity number should say which checkpoint and which train-test cut-off, since the paper's own headline correlation of 0.87 is presented as evidence of overtraining. The repository holds the experimental datasets with their ten-fold cross-validation splits, and prediction CSVs for the synthetic data volume runs, but no checkpoint trained on experimental data. No saved file states a licence for the committed checkpoints, so weights_licence is null; the repository itself is BSD 3-Clause."
+}

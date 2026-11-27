@@ -1,0 +1,705 @@
+{
+ "record_id": "intake-405-20261126-model-all-atom-structure-tokenizer",
+ "sources": [
+  {
+   "key": "hf-card",
+   "name": "Scinetics-ai/all-atom-structure-tokenizer model card at revision 4c231da2",
+   "description": "Model card and only documentation of the released reference implementation, pinned to a revision.",
+   "file": "artifacts/hf-card.md",
+   "url": "https://huggingface.co/Scinetics-ai/all-atom-structure-tokenizer",
+   "version": "Hugging Face revision 4c231da23f4d3be880d9e0b9ab8a62e49d8477bd",
+   "media_type": "text/markdown",
+   "store_bytes": false,
+   "artifact_url": "https://huggingface.co/Scinetics-ai/all-atom-structure-tokenizer/raw/4c231da23f4d3be880d9e0b9ab8a62e49d8477bd/README.md",
+   "retrieved_at": "2026-11-27T00:49:24Z",
+   "sha256": "623a54ff676560853bca22a92c5b9f417e11268c199c82f2ae70a415537aa04d"
+  },
+  {
+   "key": "hf-api",
+   "name": "Hugging Face metadata for Scinetics-ai/all-atom-structure-tokenizer, as served on 2026-11-27",
+   "description": "Hugging Face API response: revision, card metadata and gating. It carries no licence field and no parameter count.",
+   "file": "artifacts/hf-api.json",
+   "url": "https://huggingface.co/Scinetics-ai/all-atom-structure-tokenizer",
+   "version": "As served on 2026-11-27; the response may change",
+   "media_type": "application/json",
+   "store_bytes": true,
+   "artifact_url": "https://huggingface.co/api/models/Scinetics-ai/all-atom-structure-tokenizer?expand[]=safetensors&expand[]=sha&expand[]=cardData&expand[]=gated",
+   "retrieved_at": "2026-11-27T00:49:20Z",
+   "sha256": "4e2934fda475dbb47efc803544e19723b604c8300ceae099a8e630d94557ac83"
+  },
+  {
+   "key": "pyproject",
+   "name": "Scinetics-ai/all-atom-structure-tokenizer pyproject.toml at revision 4c231da2",
+   "description": "Package definition of the released code: name, version, Python requirement, dependencies and console script.",
+   "file": "artifacts/pyproject.toml",
+   "url": "https://huggingface.co/Scinetics-ai/all-atom-structure-tokenizer",
+   "version": "Hugging Face revision 4c231da23f4d3be880d9e0b9ab8a62e49d8477bd",
+   "media_type": "text/plain",
+   "store_bytes": false,
+   "artifact_url": "https://huggingface.co/Scinetics-ai/all-atom-structure-tokenizer/raw/4c231da23f4d3be880d9e0b9ab8a62e49d8477bd/pyproject.toml",
+   "retrieved_at": "2026-11-27T00:49:27Z",
+   "sha256": "0e4ac312dbb957af769485efe6732cbb7cbc875104cad02bc6f703faf06eeab0"
+  },
+  {
+   "key": "example",
+   "name": "Scinetics-ai/all-atom-structure-tokenizer examples/peptide_ligand.json at revision 4c231da2",
+   "description": "The example assembly shipped with the code, which defines the input schema in practice.",
+   "file": "artifacts/example-peptide-ligand.json",
+   "url": "https://huggingface.co/Scinetics-ai/all-atom-structure-tokenizer",
+   "version": "Hugging Face revision 4c231da23f4d3be880d9e0b9ab8a62e49d8477bd",
+   "media_type": "application/json",
+   "store_bytes": false,
+   "artifact_url": "https://huggingface.co/Scinetics-ai/all-atom-structure-tokenizer/raw/4c231da23f4d3be880d9e0b9ab8a62e49d8477bd/examples/peptide_ligand.json",
+   "retrieved_at": "2026-11-27T01:04:50Z",
+   "sha256": "32710ff3ea47913e873e04d61bcfb2caf177fad0bbac98d53dfc6174710ffc4d"
+  }
+ ],
+ "profile": {
+  "summary": "The All-Atom Structure Tokenizer turns a three dimensional biomolecular structure into a short list of integers and back again. Its encoder reads an assembly of heavy atoms, with its chemical graph, and emits one integer per chemical unit (a protein residue, a nucleotide, or a single ligand atom or ion) from a vocabulary of 8,192 identifiers. A separate coordinate decoder takes those integers, the chemical inventory of the assembly and Gaussian noise and reconstructs atomic coordinates. It is published as a PyTorch reference implementation of the tokenizer described in a Scinetics technical report on AtomLM-9b; the authors' trained checkpoints are not distributed, so the released code starts from random parameters.",
+  "summary_source_ids": [
+   "@hf-card"
+  ],
+  "summary_source_locator": "Model card: opening paragraphs and Architecture table",
+  "summary_quotes": [
+   {
+    "source": "@hf-card",
+    "text": "The encoder converts a heavy-atom assembly to one integer per chemical unit. The coordinate decoder reconstructs an assembly from those integers, its chemical inventory and Gaussian noise."
+   },
+   {
+    "source": "@hf-card",
+    "text": "A PyTorch reference implementation of the tokenizer described in the Scinetics *AtomLM-9b for Biomolecular Structure Prediction* technical report."
+   },
+   {
+    "source": "@hf-card",
+    "text": "This release contains source code, an example and tests. Training starts from randomly initialized parameters."
+   },
+   {
+    "source": "@hf-card",
+    "text": "Protein residues and nucleotides each form one unit. Each ligand heavy atom and ion forms its own unit."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The atom graph joins all covalent bonds plus up to 32 intramolecular and 16 intermolecular spatial neighbours per receiver within 12 angstroms. An atom encoder of 8 scalar and vector blocks (256 scalar and 64 vector channels) feeds a unit encoder that pools inside each unit and then runs 4 full-assembly attention layers at width 512. An invariant readout projects scalars, vector norms, inner products and ordered signed volumes from 512 down to 5 values, and finite scalar quantisation with levels (8, 8, 8, 4, 4) maps those to mixed-radix identifiers 0 to 8191, trained with a straight-through estimator. The coordinate decoder is 12 unit transformer layers at width 768 plus 4 equivariant atom blocks at scalar width 256, and samples coordinates from centred Gaussian noise with 50 Heun steps by default. Decoding an identifier recovers the five discrete levels exactly, but the step from levels to coordinates is learned and stochastic.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Architecture table and the paragraph below it",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "| Atom graph | All covalent bonds plus up to 32 intramolecular and 16 intermolecular spatial neighbors per receiver within 12 Å |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "| Atom encoder | 8 scalar/vector blocks, 256 scalar and 64 vector channels |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "| Unit encoder | Attention pooling inside each unit, followed by 4 full-assembly attention layers at width 512 |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "| FSQ | Levels (8, 8, 8, 4, 4), straight-through training, mixed-radix IDs 0–8191 |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "| Coordinate decoder | 12 unit transformer layers at width 768 and 4 equivariant atom blocks at scalar width 256 |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Decoding an ID first recovers five discrete scalar levels exactly. Conversion from these levels to atomic coordinates is learned and stochastic."
+     }
+    ]
+   },
+   {
+    "title": "What the input must look like",
+    "body": "An assembly is a JSON record with three ordered arrays: units, each with a kind (protein, dna, rna, ligand, ion or modified), a component name, chain, molecule and chain-relative position; atoms, each with a unit index, element and atom-role name, and optional charge, aromatic flag and xyz coordinates in angstroms; and bonds, listed once each as a pair of atom indices with a bond order, where 4 means aromatic. The card is explicit that standardisation is the user's job: biological assembly expansion from PDB or mmCIF, ligand bond perception and chemical component dictionary standardisation are upstream preprocessing steps. Atom and unit ordering must be preserved between encoding and decoding, and the command line tool stores a fingerprint of the chemical records with the identifiers and checks it before decoding. A unit with no observed atoms gets the sentinel -1 from the encoder and needs a valid identifier supplied before sampling.",
+    "source_ids": [
+     "@hf-card",
+     "@example"
+    ],
+    "source_locator": "Model card: Molecular inputs; examples/peptide_ligand.json",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Each unit has a `kind` (`protein`, `dna`, `rna`, `ligand`, `ion` or `modified`), component `name`, `chain`, `molecule` and integer chain-relative `position`."
+     },
+     {
+      "source": "@hf-card",
+      "text": "List each covalent bond once as `[atom_index_a, atom_index_b, bond_order]`."
+     },
+     {
+      "source": "@hf-card",
+      "text": "PDB/mmCIF biological assembly expansion, ligand bond perception and CCD standardization are upstream preprocessing steps."
+     },
+     {
+      "source": "@hf-card",
+      "text": "An entirely unobserved unit receives the sentinel `-1` from `encode`."
+     },
+     {
+      "source": "@example",
+      "text": "\"kind\": \"ligand\","
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The package is version 0.1.0 and requires Python 3.10 or later with torch 2.4 or later; its only console script is atomtoken. This page read Hugging Face revision 4c231da23f4d3be880d9e0b9ab8a62e49d8477bd. No trained checkpoint is published, and the card warns that identifiers produced by different checkpoints need not have the same structural meaning, so a token list is only comparable within one checkpoint. The card also states that the repository does not reproduce the report's benchmark scores. Two training profiles are selectable, tiny and report, the latter being the default; a result must therefore name the profile, the checkpoint file and the decoder seed, since decoding is stochastic and deterministic only with a fixed noise seed.",
+    "source_ids": [
+     "@pyproject",
+     "@hf-card",
+     "@hf-api"
+    ],
+    "source_locator": "pyproject.toml: project table; Model card: opening paragraphs, Run an example and tests paragraph; Hugging Face API response",
+    "quotes": [
+     {
+      "source": "@pyproject",
+      "text": "version = \"0.1.0\""
+     },
+     {
+      "source": "@pyproject",
+      "text": "requires-python = \">=3.10\"\ndependencies = [\"torch>=2.4\"]"
+     },
+     {
+      "source": "@hf-card",
+      "text": "The repository does not distribute the authors' trained checkpoints or reproduce the report's benchmark scores. IDs produced by different checkpoints need not have the same structural meaning."
+     },
+     {
+      "source": "@hf-card",
+      "text": "To train the report-size architecture, select `--profile report` (the default), supply training records after `train`, and set `--device cuda` on a machine with CUDA PyTorch."
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"sha\":\"4c231da23f4d3be880d9e0b9ab8a62e49d8477bd\""
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Discrete structure tokenizer with a generative coordinate decoder, released as a reference implementation without trained weights.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: opening paragraphs",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "A PyTorch reference implementation of the tokenizer described in the Scinetics *AtomLM-9b for Biomolecular Structure Prediction* technical report."
+     },
+     {
+      "source": "@hf-card",
+      "text": "This release contains source code, an example and tests."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Equivariant atom encoder (8 blocks, 256 scalar and 64 vector channels), unit encoder with 4 assembly attention layers at width 512, invariant readout to 5 values, finite scalar quantisation with levels (8, 8, 8, 4, 4) giving 8,192 identifiers, and a flow-matching coordinate decoder of 12 transformer layers at width 768 with 4 equivariant atom blocks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Architecture table",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "| Invariant readout | Scalars, vector norms, inner products and ordered signed volumes, projected from 512 to 5 |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "| FSQ | Levels (8, 8, 8, 4, 4), straight-through training, mixed-radix IDs 0–8191 |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "| Coordinate decoder | 12 unit transformer layers at width 768 and 4 equivariant atom blocks at scalar width 256 |"
+     },
+     {
+      "source": "@hf-card",
+      "text": "| Training | Proper-rotation augmentation, proper-rotation Kabsch coupling, masked flow matching, bond, angle, clash, chirality, distance and marginal usage terms |"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A JSON assembly of standardised heavy-atom records: ordered units, atoms with element, role name and optional coordinates in angstroms, and covalent bonds with orders, including inter-chain links.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@example"
+    ],
+    "source_locator": "Model card: Molecular inputs; examples/peptide_ligand.json",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Supply standardized heavy-atom records with a resolved conformer, the desired biological assembly and an explicit chemical graph."
+     },
+     {
+      "source": "@example",
+      "text": "\"atoms\": ["
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "One integer identifier per chemical unit, from 0 to 8191, from the encoder; reconstructed atomic coordinates in angstroms from the decoder. The shipped example yields five token identifiers and twelve reconstructed coordinates.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Architecture table and Run an example",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "It yields five token IDs and twelve reconstructed coordinates in ångströms."
+     },
+     {
+      "source": "@hf-card",
+      "text": "mixed-radix IDs 0–8191"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not stated. The card gives layer counts and widths for the report configuration but no parameter count, and the Hugging Face metadata carries none because no weights are stored.",
+    "status": "unreported",
+    "source_ids": [
+     "@hf-card",
+     "@hf-api"
+    ],
+    "source_locator": "Model card: Architecture table; Hugging Face API response"
+   },
+   {
+    "label": "Training data",
+    "value": "Not stated for this release. The code trains from randomly initialised parameters on training records the user supplies, and the card names no dataset; the authors' training data is in the technical report, which was not read.",
+    "status": "unreported",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: opening paragraphs and Run an example"
+   },
+   {
+    "label": "Known versions",
+    "value": "Package version 0.1.0, at Hugging Face revision 4c231da23f4d3be880d9e0b9ab8a62e49d8477bd. Two architecture profiles are selectable, tiny and report (the default). No trained checkpoints are published.",
+    "status": "source_checked",
+    "source_ids": [
+     "@pyproject",
+     "@hf-card",
+     "@hf-api"
+    ],
+    "source_locator": "pyproject.toml: project table; Model card: Run an example; Hugging Face API response",
+    "quotes": [
+     {
+      "source": "@pyproject",
+      "text": "version = \"0.1.0\""
+     },
+     {
+      "source": "@hf-card",
+      "text": "To train the report-size architecture, select `--profile report` (the default)"
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"sha\":\"4c231da23f4d3be880d9e0b9ab8a62e49d8477bd\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not applicable: no pretrained weights are released, so there is no training cutoff. Training starts from randomly initialised parameters.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: opening paragraphs",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Training starts from randomly initialized parameters."
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "No fixed limit is stated, but cost grows with size: atom search is quadratic in the number of atoms and unit attention uses memory quadratic in the number of units, and the card advises cropped assemblies when memory is limited. The command line tool processes one assembly per optimisation step.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Implementation details",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Atom search costs O(N²) time, and unit attention uses O(L²) memory for N atoms and L units. Use cropped assemblies when memory is limited."
+     },
+     {
+      "source": "@hf-card",
+      "text": "The CLI processes one assembly per optimization step."
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "No weights are released, so no weights licence applies. The card states the authors' trained checkpoints are not distributed.",
+    "status": "unavailable",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: opening paragraphs",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "The repository does not distribute the authors' trained checkpoints or reproduce the report's benchmark scores."
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Not stated. The model card prints no licence and the Hugging Face metadata for the repository carries tags but no licence field, so the terms are unknown.",
+    "status": "unreported",
+    "source_ids": [
+     "@hf-api",
+     "@hf-card",
+     "@pyproject"
+    ],
+    "source_locator": "Hugging Face API response: cardData; Model card; pyproject.toml"
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://huggingface.co/Scinetics-ai/all-atom-structure-tokenizer, not gated. No weights URL: trained checkpoints are not distributed.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-api",
+     "@hf-card"
+    ],
+    "source_locator": "Hugging Face API response; Model card: opening paragraphs",
+    "quotes": [
+     {
+      "source": "@hf-api",
+      "text": "\"id\":\"Scinetics-ai/all-atom-structure-tokenizer\""
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"gated\":false"
+     },
+     {
+      "source": "@hf-card",
+      "text": "This release contains source code, an example and tests."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The input schema is defined precisely, down to bond orders, formal charges, missing coordinates and the handling of inter-chain links, and a worked example file ships with the code.",
+    "source_ids": [
+     "@hf-card",
+     "@example"
+    ],
+    "source_locator": "Model card: Molecular inputs; examples/peptide_ligand.json",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "`examples/peptide_ligand.json` specifies the complete input schema."
+     },
+     {
+      "source": "@example",
+      "text": "\"bonds\": ["
+     }
+    ]
+   },
+   {
+    "text": "It is not protein-only: units may be protein residues, DNA, RNA, ligand atoms, ions or modified components, so a mixed assembly can be tokenised in one pass.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Molecular inputs",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Each unit has a `kind` (`protein`, `dna`, `rna`, `ligand`, `ion` or `modified`)"
+     }
+    ]
+   },
+   {
+    "text": "The released tests cover the discrete bottleneck in detail, including all 8,192 identifiers, rotation and translation behaviour, chirality signs, missing coordinates and deterministic decoding with a fixed seed.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Implementation details",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "The tests cover all 8,192 FSQ IDs, geometry under proper rotations and translations, the sign of local chiral volumes, edge types and caps, missing coordinates, gradient flow through the discrete bottleneck, and deterministic decoding with a fixed noise seed."
+     }
+    ]
+   },
+   {
+    "text": "A short end-to-end example runs on the shipped data: train for two steps on the tiny profile, then encode and decode with that checkpoint.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Run an example",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "This short run exercises the code path. Use the same checkpoint for both commands."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "There are no trained weights. Anything useful requires training the tokenizer yourself, and the card says the release does not reproduce the report's benchmark scores.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: opening paragraphs",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Training starts from randomly initialized parameters. The repository does not distribute the authors' trained checkpoints or reproduce the report's benchmark scores."
+     }
+    ]
+   },
+   {
+    "text": "Token identifiers are not a shared vocabulary: the card states that identifiers from different checkpoints need not have the same structural meaning, so tokens cannot be compared across training runs.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: opening paragraphs",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "IDs produced by different checkpoints need not have the same structural meaning."
+     }
+    ]
+   },
+   {
+    "text": "No licence is stated anywhere in the sources read, so the terms for reusing the code are unclear.",
+    "source_ids": [
+     "@hf-api",
+     "@hf-card"
+    ],
+    "source_locator": "Hugging Face API response: cardData; Model card",
+    "quotes": [
+     {
+      "source": "@hf-api",
+      "text": "\"cardData\":{\"tags\":[\"biology\",\"protein-structure\",\"structural-tokenization\",\"pytorch\"]}"
+     }
+    ]
+   },
+   {
+    "text": "Preparing the input is the user's work: the model needs a standardised heavy-atom record with an explicit chemical graph, and assembly expansion, bond perception and component standardisation are left to upstream tools.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Molecular inputs",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "PDB/mmCIF biological assembly expansion, ligand bond perception and CCD standardization are upstream preprocessing steps."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "All-Atom Structure Tokenizer workflow",
+   "steps": [
+    "standardised assembly JSON: units, atoms, bonds",
+    "atom graph from covalent bonds and spatial neighbours within 12 angstroms",
+    "atom encoder and unit encoder with assembly attention",
+    "invariant readout to five values and finite scalar quantisation",
+    "one integer identifier per unit, 0 to 8191",
+    "flow-matching decoder with 50 Heun steps from Gaussian noise",
+    "reconstructed atomic coordinates in angstroms"
+   ],
+   "caption": "Encoder and decoder path as the model card's architecture table describes it.",
+   "source_ids": [
+    "@hf-card"
+   ],
+   "source_locator": "Model card: Architecture table and Python API",
+   "quotes": [
+    {
+     "source": "@hf-card",
+     "text": "| Sampling | Centered Gaussian noise, joint assembly coordinates, 50 Heun steps by default |"
+    },
+    {
+     "source": "@hf-card",
+     "text": "ids = model.encode(chem, xyz, observed)"
+    },
+    {
+     "source": "@hf-card",
+     "text": "sample = model.decode(chem, ids, generator=torch.Generator().manual_seed(7))"
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "The technical report was not read. Its only open copy is a bioRxiv preprint, and this run does not request anything from bioRxiv, so training data, benchmark numbers and the AtomLM-9b language model that uses these tokens are not described here.",
+   "No licence is stated in any source read, so the code licence is recorded as not stated rather than guessed.",
+   "No parameter count, runtime or memory figure is published, so hardware needs for the report-size profile cannot be given.",
+   "The AtomLM-9b backbone, ranker and benchmark runners are separate components and are not part of this release, so nothing can be said here about structure prediction quality."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read on 2026-11-27: the Hugging Face model card, pyproject.toml and examples/peptide_ligand.json of Scinetics-ai/all-atom-structure-tokenizer at revision 4c231da23f4d3be880d9e0b9ab8a62e49d8477bd, and the Hugging Face API response for that repository. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the reference implementation, run its tests, then train a tiny model for two steps and use that checkpoint to encode and decode the shipped example assembly.",
+  "prerequisites": [
+   "Python 3.10 or later.",
+   "torch 2.4 or later, which the package declares as its only dependency; pytest for the test extra.",
+   "The repository contents, including examples/peptide_ligand.json.",
+   "For the report-size architecture: training records of your own and a machine with CUDA PyTorch, selected with --device cuda."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://huggingface.co/Scinetics-ai/all-atom-structure-tokenizer\ncd all-atom-structure-tokenizer\ngit checkout --detach 4c231da23f4d3be880d9e0b9ab8a62e49d8477bd",
+    "explanation": "The card's commands are run from the repository root, so the clone and the checkout of the revision this page read were added here. The remaining steps are copied from the card.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Run an example",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "From the repository root, install Python 3.10 or later and run:"
+     }
+    ]
+   },
+   {
+    "title": "Install and run the tests",
+    "shell": "python -m pip install -e \".[test]\"\npython -m pytest -q",
+    "explanation": "Installs the package in editable form with the test extra and runs the shipped test suite, which covers the quantisation, geometry and decoding behaviour.",
+    "source_ids": [
+     "@hf-card",
+     "@pyproject"
+    ],
+    "source_locator": "Model card: Run an example; pyproject.toml: optional-dependencies",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "python -m pip install -e \".[test]\"\npython -m pytest -q"
+     },
+     {
+      "source": "@pyproject",
+      "text": "test = [\"pytest>=7\"]"
+     }
+    ]
+   },
+   {
+    "title": "Train a tiny model for two steps",
+    "shell": "python -m atomtoken train examples/peptide_ligand.json --profile tiny --steps 2 --checkpoint tiny.pt",
+    "explanation": "There is no released checkpoint, so the example first trains two steps on the shipped assembly with the tiny profile and saves the configuration and weights to tiny.pt.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Run an example",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "python -m atomtoken train examples/peptide_ligand.json --profile tiny --steps 2 --checkpoint tiny.pt"
+     },
+     {
+      "source": "@hf-card",
+      "text": "It saves the model configuration and weights."
+     }
+    ]
+   },
+   {
+    "title": "Encode the example to token identifiers",
+    "shell": "python -m atomtoken encode examples/peptide_ligand.json --checkpoint tiny.pt --out tokens.json",
+    "explanation": "Writes one integer per chemical unit for the example assembly. The example has two peptide residues and three ligand heavy atoms, so five identifiers are produced.",
+    "source_ids": [
+     "@hf-card",
+     "@example"
+    ],
+    "source_locator": "Model card: Run an example; examples/peptide_ligand.json",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "python -m atomtoken encode examples/peptide_ligand.json --checkpoint tiny.pt --out tokens.json"
+     },
+     {
+      "source": "@hf-card",
+      "text": "The example contains two peptide residues and three ligand heavy atoms."
+     },
+     {
+      "source": "@example",
+      "text": "\"units\": ["
+     }
+    ]
+   },
+   {
+    "title": "Decode the identifiers back to coordinates",
+    "shell": "python -m atomtoken decode examples/peptide_ligand.json --checkpoint tiny.pt --tokens tokens.json --out reconstructed.json",
+    "explanation": "Reconstructs coordinates from the identifiers with the same checkpoint. The command line tool verifies the fingerprint of the chemical records before decoding.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Run an example and Molecular inputs",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "python -m atomtoken decode examples/peptide_ligand.json --checkpoint tiny.pt --tokens tokens.json --out reconstructed.json"
+     },
+     {
+      "source": "@hf-card",
+      "text": "The CLI stores a fingerprint of the chemical records alongside the IDs and verifies it before decoding."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "tiny.pt, holding the model configuration and weights of the two-step run.",
+   "tokens.json with five token identifiers for the example assembly.",
+   "reconstructed.json with twelve reconstructed coordinates in angstroms."
+  ],
+  "limitations": [
+   "These commands were read from the model card and have not been executed by Rewire.",
+   "They exercise the code path only: the card says this short run uses the tiny profile, and the released code has no trained weights to produce meaningful tokens.",
+   "Decoding is stochastic; the card gives a fixed generator seed in its Python example for a deterministic result."
+  ],
+  "source_ids": [
+   "@hf-card",
+   "@pyproject",
+   "@example"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "scinetics-all-atom-tokenizer 0.1.0 (reference implementation, no trained weights)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": null,
+   "weights_licence": null,
+   "code_url": "https://huggingface.co/Scinetics-ai/all-atom-structure-tokenizer",
+   "weights_url": null,
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@pyproject",
+     "text": "version = \"0.1.0\""
+    },
+    {
+     "source": "@hf-api",
+     "text": "\"gated\":false"
+    },
+    {
+     "source": "@hf-card",
+     "text": "The repository does not distribute the authors' trained checkpoints"
+    }
+   ]
+  }
+ ],
+ "notes": "What is released is the tokenizer code, not the AtomLM-9b model the record's title mentions, and there are no trained weights, so nothing here describes structure prediction quality. The technical report's only open copy appears to be the bioRxiv preprint at https://www.biorxiv.org/content/10.64898/2026.11.03.763913v3 (PDF at https://www.biorxiv.org/content/10.64898/2026.11.03.763913v3.full.pdf); this run does not request anything from bioRxiv, and a PMC search for the DOI 10.64898/2026.11.03.763913 returned no record, so the paper was not read. No licence is stated for the code: a reviewer may want to ask the authors before the page claims any reuse terms."
+}

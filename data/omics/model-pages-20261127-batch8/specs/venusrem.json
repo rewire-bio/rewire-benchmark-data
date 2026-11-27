@@ -1,0 +1,730 @@
+{
+ "record_id": "uc20260930-model-venusrem",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "ai4protein/VenusREM README.md at commit 56a5d61a",
+   "description": "Official repository README, pinned to a commit. Holds the requirements, the data downloads and every command.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/ai4protein/VenusREM/56a5d61abdf574b41f57a8ac1f58cab3cabe7179/README.md",
+   "url": "https://github.com/ai4protein/VenusREM",
+   "version": "git commit 56a5d61abdf574b41f57a8ac1f58cab3cabe7179",
+   "media_type": "text/markdown",
+   "sha256": "9e5b37354128aecdebc4cc32fea6140e8f3e6c75e7da9c9369d60db88422a7e0",
+   "retrieved_at": "2026-11-27T00:45:21Z",
+   "store_bytes": false
+  },
+  {
+   "key": "license",
+   "name": "ai4protein/VenusREM LICENSE at commit 56a5d61a",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/ai4protein/VenusREM/56a5d61abdf574b41f57a8ac1f58cab3cabe7179/LICENSE",
+   "url": "https://github.com/ai4protein/VenusREM",
+   "version": "git commit 56a5d61abdf574b41f57a8ac1f58cab3cabe7179",
+   "media_type": "text/plain",
+   "sha256": "2041baa50c3d0f068b03c30d5fb28704faab1f42e7c6fd49f3abe9d4e231fee8",
+   "retrieved_at": "2026-11-27T00:45:24Z",
+   "store_bytes": false
+  },
+  {
+   "key": "script",
+   "name": "ai4protein/VenusREM compute_fitness.py at commit 56a5d61a",
+   "description": "The inference script of the official repository, read for the command line options and the model it loads by default.",
+   "file": "artifacts/compute_fitness.py",
+   "artifact_url": "https://raw.githubusercontent.com/ai4protein/VenusREM/56a5d61abdf574b41f57a8ac1f58cab3cabe7179/compute_fitness.py",
+   "url": "https://github.com/ai4protein/VenusREM",
+   "version": "git commit 56a5d61abdf574b41f57a8ac1f58cab3cabe7179",
+   "media_type": "text/x-python",
+   "sha256": "97fef594eca83e693d4e5f12589656178f0d185f3255b310106627dcb21aba84",
+   "retrieved_at": "2026-11-27T00:47:12Z",
+   "store_bytes": false
+  },
+  {
+   "key": "environment",
+   "name": "ai4protein/VenusREM environment.yml at commit 56a5d61a",
+   "description": "Conda environment file of the official repository, read for the Python version.",
+   "file": "artifacts/environment.yml",
+   "artifact_url": "https://raw.githubusercontent.com/ai4protein/VenusREM/56a5d61abdf574b41f57a8ac1f58cab3cabe7179/environment.yml",
+   "url": "https://github.com/ai4protein/VenusREM",
+   "version": "git commit 56a5d61abdf574b41f57a8ac1f58cab3cabe7179",
+   "media_type": "text/plain",
+   "sha256": "ff0630f04258d7eb7509bbb1bf08993fdbce5639dae12bccf30b7202831fc9a5",
+   "retrieved_at": "2026-11-27T00:48:01Z",
+   "store_bytes": false
+  },
+  {
+   "key": "paper",
+   "name": "Tan et al. 2025, Bioinformatics 41 Supplement_1, full text (PMC12261477)",
+   "description": "Full text of the VenusREM paper as NCBI PMC JATS XML.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12261477&rettype=xml",
+   "url": "https://doi.org/10.1093/bioinformatics/btaf189",
+   "version": "PMC12261477 as served by NCBI on 2026-11-27",
+   "media_type": "application/xml",
+   "sha256": "9eebd41ad16450a746ad43c2bb58319e9619a59b03d50cd5979b2c9f022890f0",
+   "retrieved_at": "2026-11-27T00:47:12Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "hf-api-prosst",
+   "name": "Hugging Face API record for AI4Protein/ProSST-2048",
+   "description": "Hugging Face API response for the pretrained language model the inference script loads by default, with its revision and parameter count.",
+   "file": "artifacts/hf-api-prosst.json",
+   "artifact_url": "https://huggingface.co/api/models/AI4Protein/ProSST-2048?expand[]=safetensors&expand[]=sha&expand[]=cardData&expand[]=gated",
+   "url": "https://huggingface.co/AI4Protein/ProSST-2048",
+   "version": "revision e94ffee7846d7f55c1bf5efa8ec7372a336ac4b8",
+   "media_type": "application/json",
+   "sha256": "41507e13965b238e6044364e51f806f42b5263bccbb9108f2c00040a326a8e99",
+   "retrieved_at": "2026-11-27T00:47:20Z",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "VenusREM predicts how single or multiple amino acid substitutions change a protein's fitness, without being trained on any measurements of the protein in question. It takes three inputs for the wild-type protein: its amino acid sequence, a structure in PDB format, and a set of homologous sequences found by alignment. A pretrained language model turns the sequence and the local structure around each residue into per-residue logits, a separate module turns the alignment into evolutionary logits, and the two are combined into one fitness score per mutant. The authors report Spearman correlations on 217 assays of the ProteinGym substitution benchmark and also test the model on a VHH antibody and on phi29 DNA polymerase mutants made in the laboratory.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "paper: Abstract, Section 2.1 Model overview, Section 2.4.3.1; README: Zero-shot Prediction for Mutants",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We present <sc>Venus</sc>REM, a retrieval-enhanced protein language model designed to capture local amino acid interactions in both spatial and temporal scales."
+   },
+   {
+    "source": "@paper",
+    "text": "REM receives three sets of inputs: sequence, structure, and homolog information"
+   },
+   {
+    "source": "@paper",
+    "text": "This subset encompasses 217 high-throughput assays, totaling more than 2.5 million mutations."
+   },
+   {
+    "source": "@paper",
+    "text": "we conducted a low-throughput post hoc analysis on more than 30 mutants to verify the model’s ability to improve the stability and binding affinity of a VHH antibody. We also validated the effectiveness of <sc>Venus</sc>REM by designing 10 novel mutants of a DNA polymerase and performing wet-lab experiments"
+   },
+   {
+    "source": "@readme",
+    "text": "|——aa_seq # amino acid sequences"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The sequence and the structure of the wild-type protein are first turned into tokens. The sequence uses a vocabulary of the 20 standard amino acids plus five special characters. For each residue the local structure, defined as up to 40 neighbouring residues within 10 angstroms, is embedded by a pretrained geometric vector perceptron trained as a denoising autoencoder on 4,735,677 local-structure graphs from CATH43-S40, and the resulting 256-dimensional vector is mapped by K-means into a codebook of 2048 structure tokens. A BERT-style protein language model combines the two token streams through disentangled multihead cross-attention to produce native logits for each residue and amino acid type. In parallel, homologous sequences retrieved by alignment are converted into evolutionary logits by a module that needs no extra training. A mutant's fitness score compares the logits of the mutant residues with those of the wild type, mixing the native and evolutionary terms; the mixing weight is the script's alpha option, which defaults to 0.8.",
+    "source_ids": [
+     "@paper",
+     "@script"
+    ],
+    "source_locator": "paper: Sections 2.2.1.1, 2.2.1.2, 2.3.1, 2.3.2, 2.3.3; compute_fitness.py: argument definitions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We construct a vocabulary for 20 standard AAs and 5 special characters"
+     },
+     {
+      "source": "@paper",
+      "text": "For each residue, we define its local structure by considering up to 40 neighboring residues within a 10 Å spatial radius."
+     },
+     {
+      "source": "@paper",
+      "text": "We train a six-layer GVP with 4, 735, 677 graphs of local structures from <bold>CATH43-S40</bold>"
+     },
+     {
+      "source": "@paper",
+      "text": "These 256-dimensional vectors in the continuous space are further mapped to a 2048-dimensional discrete space using K-means clustering"
+     },
+     {
+      "source": "@paper",
+      "text": "The native representation, i.e. the joint embeddings of protein sequences and structures, are obtained by a BERT-style PLM. The core propagation rule is based on disentangled multihead cross-attention"
+     },
+     {
+      "source": "@paper",
+      "text": "The evolutionary representations are determined by an alignment tokenization module without additional training workload and are integrated into the fitness evaluation of mutants in a plug-and-play fashion."
+     },
+     {
+      "source": "@paper",
+      "text": "For a given mutant, its fitness score is calculated by comparing the predicted logits of the mutant residues with those of the wild-type residues."
+     },
+     {
+      "source": "@script",
+      "text": "parser.add_argument(\"--alpha\", type=float, default=0.8, help=\"Alpha value for combining logits\",)"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "VenusREM is a scoring pipeline rather than a single downloadable checkpoint. The pretrained weights it loads are frozen and live in a separate Hugging Face repository, AI4Protein/ProSST-2048, which the inference script loads by default; a result should name that revision as well as the commit of this repository. The repository's news list records later work under the same name: VenusREM2 reported at 0.556 on the ProteinGym substitution leaderboard through a separate VenusREM-Harness repository in September 2026, and an integration into VenusFactory2 in April 2026. Neither is described here as a checkpoint of its own. The score also depends on which homology search produced the alignment, since the repository offers prepared EVcouplings a2m files and ColabFold a3m files for ProteinGym and a Jackhmmer route for new proteins.",
+    "source_ids": [
+     "@script",
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "compute_fitness.py: argument definitions; paper: Section 2.4.2; README: News and Downloads",
+    "quotes": [
+     {
+      "source": "@script",
+      "text": "parser.add_argument(\"--model_name\", type=str, default=[\"AI4Protein/ProSST-2048\"], nargs=\"+\", help=\"Model name\",)"
+     },
+     {
+      "source": "@paper",
+      "text": "We freeze the pretrained parameters for native representation calculation available at <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://huggingface.co/AI4Protein/ProSST-2048\" ext-link-type=\"uri\">https://huggingface.co/AI4Protein/ProSST-2048</ext-link>"
+     },
+     {
+      "source": "@readme",
+      "text": "[2026.09.30] VenusREM2 achieves **0.556** on ProteinGym substitution leaderboard by [VenusREM-Harness](https://github.com/ai4protein/VenusREM-Harness)."
+     },
+     {
+      "source": "@readme",
+      "text": "[2026.04.01] VenusREM has been integrated into [VenusFactory2](https://github.com/ai4protein/VenusFactory2)."
+     },
+     {
+      "source": "@readme",
+      "text": "- ProteinGym a2m homology sequences (EVCouplings): https://huggingface.co/datasets/AI4Protein/VenusREM/resolve/main/aa_seq_aln_a2m.tar.gz"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Zero-shot mutation effect predictor built on a protein language model with a retrieval-enhanced module for homologous sequences.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Abstract and Introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we propose a new pretrained PLM with a <italic toggle=\"yes\">R</italic>etrieval-<italic toggle=\"yes\">E</italic>nhanced <italic toggle=\"yes\">M</italic>odule, namely <sc>Venus</sc>REM"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "BERT-style protein language model over amino acid tokens and 2048 local-structure tokens, joined by disentangled multihead cross-attention, with an untrained alignment tokenisation module adding evolutionary logits at scoring time.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Sections 2.3.1 and 2.3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "sequence–structure embeddings are integrated through disentangled multihead cross-attention layers trained in a BERT-style manner"
+     },
+     {
+      "source": "@paper",
+      "text": "which constructs a codebook with 2048 dimensions to encode structural information effectively"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "For each protein: an amino acid sequence in FASTA, a PDB structure, a structure sequence derived from that PDB, homologous sequences as an a2m or a3m alignment, and a CSV listing the mutants to score.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@script"
+    ],
+    "source_locator": "README: Your own dataset, directory structure; compute_fitness.py: argument definitions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "|——aa_seq_aln_a2m # homology sequences of EVCouplings"
+     },
+     {
+      "source": "@readme",
+      "text": "|——substitutions # mutant files"
+     },
+     {
+      "source": "@script",
+      "text": "parser.add_argument(\"--struc_seq_dir\", type=str, default=None, help=\"Directory containing FASTA files of structure sequences\",)"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "A fitness score for each listed mutant, written to the directory given by --out_scores_dir, from which Spearman correlation against experimental scores can be computed.",
+    "status": "source_checked",
+    "source_ids": [
+     "@script",
+     "@paper"
+    ],
+    "source_locator": "compute_fitness.py: argument definitions; paper: Section 2.3.3",
+    "quotes": [
+     {
+      "source": "@script",
+      "text": "parser.add_argument(\"--out_scores_dir\", default=None, help=\"Directory to save scores\")"
+     },
+     {
+      "source": "@paper",
+      "text": "For a given mutant, its fitness score is calculated by comparing the predicted logits of the mutant residues with those of the wild-type residues."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "117,146,880 in the pretrained language model AI4Protein/ProSST-2048 that the inference script loads by default, as the Hugging Face API reports for that repository. The alignment module adds no trained parameters. No separate VenusREM checkpoint is published.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-api-prosst",
+     "@script",
+     "@paper"
+    ],
+    "source_locator": "Hugging Face API response: safetensors.total; compute_fitness.py: argument definitions; paper: Section 2.3.2",
+    "quotes": [
+     {
+      "source": "@hf-api-prosst",
+      "text": "\"safetensors\":{\"parameters\":{\"F32\":117146880},\"total\":117146880}"
+     },
+     {
+      "source": "@script",
+      "text": "default=[\"AI4Protein/ProSST-2048\"]"
+     },
+     {
+      "source": "@paper",
+      "text": "The evolutionary representations are determined by an alignment tokenization module without additional training workload"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "The language model was pretrained on sequences and structures from a Foldseek clustering of the AlphaFold2 database. The local structure autoencoder was trained on 4,735,677 local-structure graphs from CATH43-S40. No model weights are trained on deep mutational scanning data. The default retrieval method (EVcouplings) and the retrieval ratio of 0.8 were chosen on a validation subset made of 10% random samples from each of the 217 ProteinGym assays.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Sections 2.2.1.1 and 2.2.1.2; Section 3 Results (retrieval strategy ablation)",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The training set for the pretrained language model is from Foldseek, which clusters the AlphaFold2 database to retain the original PDB structures and AA sequences."
+     },
+     {
+      "source": "@paper",
+      "text": "We train a six-layer GVP with 4, 735, 677 graphs of local structures from <bold>CATH43-S40</bold>"
+     },
+     {
+      "source": "@paper",
+      "text": "The validation scores were assessed on a subset of ProteinGym with 10% random samples from each of the 217 assays."
+     },
+     {
+      "source": "@paper",
+      "text": "we set the default retrieval method for <sc>Venus</sc>REM to <monospace>EVcouplings</monospace> with a 0.8 retrieval ratio."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One published pipeline, with the frozen weights at AI4Protein/ProSST-2048. The repository's news list also names VenusREM2, scored through a separate VenusREM-Harness repository, and an integration into VenusFactory2. The sources read give no checkpoint files or version numbers for either.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@script"
+    ],
+    "source_locator": "README: News; compute_fitness.py: argument definitions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "[2026.09.30] VenusREM2 achieves **0.556** on ProteinGym substitution leaderboard by [VenusREM-Harness](https://github.com/ai4protein/VenusREM-Harness)."
+     },
+     {
+      "source": "@script",
+      "text": "parser.add_argument(\"--model_out_name\", type=str, default=[\"VenusREM\"], nargs=\"+\", help=\"Output model name\",)"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated. The sources read name the training sets (a Foldseek clustering of the AlphaFold2 database, CATH43-S40) but give no date at which they were taken.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Sections 2.2.1.1 and 2.2.1.2",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated. The sources read give no maximum sequence length, and no cap on the number of homologous sequences beyond the sampling options of the inference script.",
+    "status": "unreported",
+    "source_ids": [
+     "@script"
+    ],
+    "source_locator": "compute_fitness.py: argument definitions",
+    "quotes": []
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated for the weights themselves. The Hugging Face API record for AI4Protein/ProSST-2048 carries no licence field, and the repository's own licence covers the project rather than that separate weight repository.",
+    "status": "unreported",
+    "source_ids": [
+     "@hf-api-prosst"
+    ],
+    "source_locator": "Hugging Face API response: cardData",
+    "quotes": []
+   },
+   {
+    "label": "Code licence",
+    "value": "CC BY-NC-ND 4.0, as the README states and the repository LICENSE file spells out. That is a non-commercial licence with no derivatives, which is unusual for code and restrictive for industrial use.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README: License; LICENSE file header",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This project is licensed under the terms of the [CC-BY-NC-ND-4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode) license."
+     },
+     {
+      "source": "@license",
+      "text": "Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code at https://github.com/ai4protein/VenusREM (the paper gives the address https://github.com/tyang816/VenusREM; the README at ai4protein/VenusREM carries the same paper title and citation). Frozen weights at https://huggingface.co/AI4Protein/ProSST-2048, not gated. Prepared ProteinGym alignments and structures at https://huggingface.co/datasets/AI4Protein/VenusREM.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@hf-api-prosst"
+    ],
+    "source_locator": "paper: Section 2.4.2 and Availability; README: Downloads; Hugging Face API response: gated",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The official implementation of <sc>Venus</sc>REM is at <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://github.com/tyang816/VenusREM\" ext-link-type=\"uri\">https://github.com/tyang816/VenusREM</ext-link>"
+     },
+     {
+      "source": "@readme",
+      "text": "https://huggingface.co/datasets/AI4Protein/VenusREM/resolve/main/aa_seq_aln_a2m.tar.gz"
+     },
+     {
+      "source": "@hf-api-prosst",
+      "text": "\"gated\":false"
+     },
+     {
+      "source": "@readme",
+      "text": "# From high-throughput evaluation to wet-lab studies: advancing mutation effect prediction with a retrieval-enhanced model"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The homology part is added at scoring time and needs no training, so a new alignment can be swapped in without refitting anything.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Abstract and Introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The evolutionary representations are determined by an alignment tokenization module without additional training workload and are integrated into the fitness evaluation of mutants in a plug-and-play fashion."
+     }
+    ]
+   },
+   {
+    "text": "Inference does not need a forward pass per mutated position: the authors say their input preparation avoids mutating each position according to the DMS data or applying mask operations.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Section 2.2.1.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "our method does not rely on mutating each position according to the DMS data (<xref rid=\"btaf189-B23\" ref-type=\"bibr\">Notin <italic toggle=\"yes\">et al.</italic> 2022a</xref>) or applying mask operations"
+     }
+    ]
+   },
+   {
+    "text": "The hardware bar for inference is low by the authors' own account: they recommend at least 10 GB of graphics memory, such as an RTX 3080, and they ran the work on four of those cards.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Hardware; paper: Section 2.4.2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "For direct use of inference, we recommend at least 10G of graphics memory, such as RTX 3080"
+     },
+     {
+      "source": "@paper",
+      "text": "The model training and inference are performed on four NVIDIA 3080 GPUs with 10GB VRAM, using <monospace>PyTorch</monospace> version 2.4.1."
+     }
+    ]
+   },
+   {
+    "text": "The authors tested the predictions outside high-throughput benchmarks, on 31 VHH antibody mutants from the literature and on ten phi29 DNA polymerase mutants they made and measured.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Sections 2.4.3.2 and 2.5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We extracted the experimental data of 31 VHH antibody mutants"
+     },
+     {
+      "source": "@paper",
+      "text": "Single-point saturation mutations were scored, and the top 10 mutants with the highest scores were selected for experimental validation."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The code is released under CC BY-NC-ND 4.0, a non-commercial no-derivatives licence. Commercial use and modified redistribution are not permitted by it.",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README: License; LICENSE file header",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This project is licensed under the terms of the [CC-BY-NC-ND-4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode) license."
+     },
+     {
+      "source": "@license",
+      "text": "Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International"
+     }
+    ]
+   },
+   {
+    "text": "A structure is required as well as a sequence. For a protein with no experimental structure the authors point to prediction servers, and warn that wet-lab work needs the best structure available.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Get pdb files for your protein",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You can use [AlphaFold3 server](https://alphafoldserver.com/), [AlphaFold database](https://alphafold.ebi.ac.uk/download), [ESMFold](https://huggingface.co/facebook/esmfold_v1) and other tools to obtain structures."
+     },
+     {
+      "source": "@readme",
+      "text": "**For wet-lab experiments, please try to get high quality structures as possible as you can.**"
+     }
+    ]
+   },
+   {
+    "text": "An alignment is required too, and building one for a new protein means installing HMMER, EVcouplings and plmc and searching a UniRef100 download, with eight CPU cores recommended. The repository asks the user to repeat the search for every protein.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Conda Enviroment, Other Requirement, Hardware, Search homology sequences by JackHmmer",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "# We need HMMER and EVCouplings for MSA"
+     },
+     {
+      "source": "@readme",
+      "text": "Install plmc and change the path in `src/single_config_monomer.txt`"
+     },
+     {
+      "source": "@readme",
+      "text": "For searching homology sequences, 8 cores cpu."
+     },
+     {
+      "source": "@readme",
+      "text": "# ⚠ 👆 Repeat the searching process until all your proteins are done"
+     }
+    ]
+   },
+   {
+    "text": "Protein names must match the originals across all the input folders, so a renamed FASTA file will break a run.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: What you need at least",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Please make sure all your protein names are the same as the original protein names in the original fasta files."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "VenusREM scoring workflow",
+   "steps": [
+    "Wild-type sequence, PDB structure and homologous sequences",
+    "Sequence tokens and 2048-way local structure tokens",
+    "BERT-style language model with disentangled cross-attention gives native logits",
+    "Alignment tokenisation module gives evolutionary logits",
+    "Logits combined with weight alpha",
+    "Fitness score per mutant"
+   ],
+   "caption": "The pipeline of Figure 1 of the paper: sequence, structure and homologues are encoded separately, and the two sets of logits are mixed into one fitness score for each mutant.",
+   "source_ids": [
+    "@paper",
+    "@script"
+   ],
+   "source_locator": "paper: Figure 1 caption and Section 2.3.3; compute_fitness.py: argument definitions",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "(a) For a given template protein, <sc>Venus</sc>REM encodes structural, sequence, and MSA information to generate logits for each residue, which are used to calculate mutation fitness scores. (b) For each AA, its local structure is clustered into 2048 distinct structure tokens. (c) The vector representations of structural and sequence information are integrated using disentangled cross-attention through BERT-style pretraining. (d) Homologous information is retrieved via <monospace>Jackhmmer</monospace> and converted to a matrix representation of evolutionary logits."
+    },
+    {
+     "source": "@script",
+     "text": "help=\"Alpha value for combining logits\""
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count, licence or training description is published for VenusREM as such: the weights read here are those of the separate ProSST-2048 repository, whose Hugging Face record carries no licence.",
+   "VenusREM2 and the VenusREM-Harness repository are named in the README news list but were not fetched, so what differs between VenusREM and VenusREM2 is not described here.",
+   "No maximum sequence length is given anywhere in the sources read.",
+   "The benchmark numbers in the repository's results images were not read, because they are images."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read on 2026-11-27: the README, LICENSE, compute_fitness.py and environment.yml of ai4protein/VenusREM at commit 56a5d61abdf574b41f57a8ac1f58cab3cabe7179; the paper full text as PMC12261477; and the Hugging Face API record for AI4Protein/ProSST-2048 at revision e94ffee7846d7f55c1bf5efa8ec7372a336ac4b8. No command was executed and no human review is claimed."
+  }
+ },
+ "structured": [
+  {
+   "checkpoint": "VenusREM (pipeline with frozen AI4Protein/ProSST-2048 weights)",
+   "parameters": 117146880,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "CC-BY-NC-ND-4.0",
+   "weights_licence": null,
+   "code_url": "https://github.com/ai4protein/VenusREM",
+   "weights_url": "https://huggingface.co/AI4Protein/ProSST-2048",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@hf-api-prosst",
+     "text": "\"safetensors\":{\"parameters\":{\"F32\":117146880},\"total\":117146880}"
+    },
+    {
+     "source": "@hf-api-prosst",
+     "text": "\"gated\":false"
+    },
+    {
+     "source": "@readme",
+     "text": "This project is licensed under the terms of the [CC-BY-NC-ND-4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode) license."
+    }
+   ]
+  }
+ ],
+ "run_guide": {
+  "summary": "Build the conda environment from the repository, fetch the prepared ProteinGym sequences, alignments and structures, and score the substitution assays with the default settings.",
+  "prerequisites": [
+   "Anaconda3 or Miniconda3, as the README requires.",
+   "Python 3.9.20, the version pinned in environment.yml.",
+   "A GPU with at least 10 GB of graphics memory for inference, as the README recommends.",
+   "For new proteins rather than the prepared ProteinGym data: HMMER, EVcouplings and plmc, a UniRef100 download, a PDB structure, and eight CPU cores for the homology search.",
+   "The code is CC BY-NC-ND 4.0, so check the terms before any commercial or modified use."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/ai4protein/VenusREM.git\ncd VenusREM\ngit checkout --detach 56a5d61abdf574b41f57a8ac1f58cab3cabe7179",
+    "explanation": "The clone and checkout lines are added here to pin the commit that was read; the repository address is the one the README and the paper give.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: Section 2.4.2; README: Conda Enviroment",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "xlink:href=\"https://github.com/tyang816/VenusREM\" ext-link-type=\"uri\">https://github.com/tyang816/VenusREM</ext-link>"
+     },
+     {
+      "source": "@readme",
+      "text": "conda env create -f environment.yml"
+     }
+    ]
+   },
+   {
+    "title": "Create and activate the environment",
+    "shell": "conda env create -f environment.yml\nconda activate venusrem",
+    "explanation": "The two commands the README gives under Conda Enviroment. The extra HMMER, EVcouplings and plmc installs are only needed to build alignments for new proteins.",
+    "source_ids": [
+     "@readme",
+     "@environment"
+    ],
+    "source_locator": "README: Conda Enviroment; environment.yml: name and python",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda env create -f environment.yml\nconda activate venusrem"
+     },
+     {
+      "source": "@environment",
+      "text": "name: venusrem"
+     }
+    ]
+   },
+   {
+    "title": "Fetch and unpack the prepared ProteinGym inputs",
+    "shell": "cd data/proteingym_v1\nwget https://huggingface.co/datasets/AI4Protein/VenusREM/resolve/main/aa_seq_aln_a2m.tar.gz\ntar -xzf aa_seq_aln_a2m.tar.gz\ntar -xzf aa_seq.tar.gz\ntar -xzf pdbs.tar.gz\ntar -xzf struc_seq.tar.gz\ntar -xzf substitutions.tar.gz\ncd ../..",
+    "explanation": "The download and unpacking block from the README. The two cd lines are added here so the commands run from the repository root; the archives other than the alignments ship with the repository data folder.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Prepare for the processed data",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "cd data/proteingym_v1\nwget https://huggingface.co/datasets/AI4Protein/VenusREM/resolve/main/aa_seq_aln_a2m.tar.gz\n# unzip homology files\ntar -xzf aa_seq_aln_a2m.tar.gz\n# unzip fasta sequence files\ntar -xzf aa_seq.tar.gz\n# unzip pdb structure files\ntar -xzf pdbs.tar.gz\n# unzip structure sequence files\ntar -xzf struc_seq.tar.gz\n# unzip DMS substitution csv files\ntar -xzf substitutions.tar.gz"
+     }
+    ]
+   },
+   {
+    "title": "Score the mutants",
+    "shell": "protein_dir=proteingym_v1\npython compute_fitness.py \\\n    --base_dir data/$protein_dir \\\n    --out_scores_dir result/$protein_dir",
+    "explanation": "The inference command from the README. With no --model_name the script loads AI4Protein/ProSST-2048 from Hugging Face and mixes the two sets of logits with alpha 0.8.",
+    "source_ids": [
+     "@readme",
+     "@script"
+    ],
+    "source_locator": "README: Start inference; compute_fitness.py: argument definitions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "protein_dir=proteingym_v1\npython compute_fitness.py \\\n    --base_dir data/$protein_dir \\\n    --out_scores_dir result/$protein_dir"
+     },
+     {
+      "source": "@script",
+      "text": "parser.add_argument(\"--model_name\", type=str, default=[\"AI4Protein/ProSST-2048\"], nargs=\"+\", help=\"Model name\",)"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Score files for each protein under the directory given by --out_scores_dir.",
+   "Progress lines on the terminal naming the model being loaded and each protein as it is scored."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The step for a protein of your own is longer: an alignment must be built with EVcouplings and selected with src/data/select_msa.py, a PDB structure obtained elsewhere, and structure sequences generated with src/data/get_struc_seq.py.",
+   "The archives other than aa_seq_aln_a2m.tar.gz are unpacked from the repository's own data folder, so the order of the commands matters."
+  ],
+  "source_ids": [
+   "@readme",
+   "@script",
+   "@environment",
+   "@paper"
+  ]
+ },
+ "notes": "The paper gives the official repository as github.com/tyang816/VenusREM; the files here were fetched from ai4protein/VenusREM, whose README carries the same paper title and citation. No saved file states that one address redirects to the other. There is no Hugging Face model repository named AI4Protein/VenusREM (a request for its API record was refused); AI4Protein/VenusREM is a dataset repository holding the prepared ProteinGym inputs. All parameter and licence statements about the weights refer to AI4Protein/ProSST-2048, the frozen language model the script loads. VenusREM2 and its arXiv technical report were not fetched."
+}

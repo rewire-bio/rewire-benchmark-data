@@ -1,0 +1,763 @@
+{
+ "record_id": "lit-interactions-20261011-mochibind-model-mochibind",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "amazon-science/ab-binding-eval README.md at commit 0c693d81",
+   "description": "Official repository README for MochiBind and the evaluation framework, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "url": "https://github.com/amazon-science/ab-binding-eval",
+   "version": "git commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04",
+   "media_type": "text/markdown",
+   "licence": "CC BY-NC 4.0",
+   "store_bytes": false,
+   "artifact_url": "https://raw.githubusercontent.com/amazon-science/ab-binding-eval/0c693d815f7f0bf0a3dd5494205dca10fbc20c04/README.md",
+   "retrieved_at": "2026-11-27T00:51:57Z",
+   "sha256": "786b4a3c076243c3c1c9bbf5598d8d7175de444bff55fefce071f769dfe6c1f5"
+  },
+  {
+   "key": "license",
+   "name": "amazon-science/ab-binding-eval LICENSE at commit 0c693d81",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "url": "https://github.com/amazon-science/ab-binding-eval",
+   "version": "git commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04",
+   "media_type": "text/plain",
+   "licence": "CC BY-NC 4.0",
+   "store_bytes": false,
+   "artifact_url": "https://raw.githubusercontent.com/amazon-science/ab-binding-eval/0c693d815f7f0bf0a3dd5494205dca10fbc20c04/LICENSE",
+   "retrieved_at": "2026-11-27T00:52:01Z",
+   "sha256": "03fcbb002d8c250880896278284e03abe6bc4aa3343d3086d6e53af3d6810631"
+  },
+  {
+   "key": "requirements",
+   "name": "amazon-science/ab-binding-eval requirements.txt at commit 0c693d81",
+   "description": "Core dependency list of the official repository, pinned to a commit.",
+   "file": "artifacts/requirements.txt",
+   "url": "https://github.com/amazon-science/ab-binding-eval",
+   "version": "git commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04",
+   "media_type": "text/plain",
+   "licence": "CC BY-NC 4.0",
+   "store_bytes": false,
+   "artifact_url": "https://raw.githubusercontent.com/amazon-science/ab-binding-eval/0c693d815f7f0bf0a3dd5494205dca10fbc20c04/requirements.txt",
+   "retrieved_at": "2026-11-27T00:52:04Z",
+   "sha256": "d65c1f0cd46773d5135782d491320f6771cae8666c387fa2faceeaeb2dcddf88"
+  },
+  {
+   "key": "paper",
+   "name": "MochiBind paper, PMC13444443 full text (Li et al. 2026, iScience)",
+   "description": "Full text of the paper that introduces MochiBind, as served by the NCBI efetch API.",
+   "file": "artifacts/paper-pmc.xml",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13444443/",
+   "version": "As served on 2026-11-27; the response may change",
+   "media_type": "application/xml",
+   "licence": "CC BY-NC-ND 4.0",
+   "store_bytes": false,
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13444443&rettype=xml",
+   "retrieved_at": "2026-11-27T00:52:07Z",
+   "sha256": "1a25b1dcf262e3ab1d4dfaa30a825458cea26cbc2e385884c5e063234fe422df"
+  }
+ ],
+ "profile": {
+  "summary": "MochiBind predicts which of two antibodies binds a given antigen more strongly, from sequence alone. Antibody and antigen sequences are embedded with a pretrained protein language model, mean-pooled to one vector each, concatenated, projected into a shared latent space and scored by a small multilayer perceptron that outputs the relative binding strength of the pair. Pairwise scores for a large antibody pool are then turned into a global ranking, so the model is aimed at screening candidate antibodies rather than giving an absolute affinity. Because no structure is needed, it can be run over pools of thousands of antibodies on CPU.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Summary, Results introduction and STAR Methods, Method details",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We propose MochiBind, a sequence-only pairwise binding affinity predictor"
+   },
+   {
+    "source": "@paper",
+    "text": "The MochiBind approach encodes antibody and antigen sequences using a pretrained protein language model, projects them into a shared latent space, and predicts relative binding strength through a lightweight pairwise scoring module."
+   },
+   {
+    "source": "@paper",
+    "text": "the framework assesses both sequence-based and structure-based methods with pairwise learning, where the model is asked to compare two given antibodies of the same antigen and determine which antibody offers higher binding affinity"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Each residue of the antibody and antigen sequences is embedded by ESM-2 (esm2_t36_3B_UR50D) with embedding dimension 2560. Mean pooling over residues gives one fixed-length vector per sequence; the antigen and antibody vectors are concatenated into a 5120-dimensional representation. A learnable projection layer of dimension 1024 maps that into a shared latent space, and a multilayer perceptron head with layers [256, 128, 64] predicts the relative binding strength between the two antibodies of a pair. Training minimises a mean squared error loss, so the model is pushed to get both the sign and the size of the affinity difference right, with learning rate 0.001, batch size 32, dropout 0.3, the Adam optimiser and early stopping after five epochs without an improvement in holdout loss. Pairwise predictions are turned into a global ranking with the TrueSkill algorithm.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: STAR Methods, Method details and Key resources table",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "which used an embedding dimension of 2560 to represent each residue of antigen and antibody sequences"
+     },
+     {
+      "source": "@paper",
+      "text": "For each sequence, mean-pooling is applied over residue embeddings to obtain fixed-length representations"
+     },
+     {
+      "source": "@paper",
+      "text": "The antigen and antibody embeddings are subsequently concatenated, resulting in a combined representation of dimension 5120."
+     },
+     {
+      "source": "@paper",
+      "text": "We set the dimensions of the projection layer to 1024 and the MLP layers to [256, 128, 64]."
+     },
+     {
+      "source": "@paper",
+      "text": "Learning rate is set to 0.001, and batch size is set to 32."
+     },
+     {
+      "source": "@paper",
+      "text": "During training, MochiBind is optimized using a Mean Squared Error (MSE) loss"
+     }
+    ]
+   },
+   {
+    "title": "What it was trained on",
+    "body": "Training and evaluation use the AlphaBind dataset, which holds four antigen systems, each with thousands of experimentally characterised antibody candidates over a wide affinity range: AAB-PP489 (a single-chain variable fragment against human TIGIT), Pembrolizumab-scFv against PD-1, VHH72 (a camelid single-chain antibody against the SARS-CoV-1 receptor binding domain) and Trastuzumab-scFv against human HER2. The paper states that each antigen system contains approximately 30 000 antibody variants generated and validated with AlphaSeq. The released repository ships pretrained checkpoints for the four antigen systems, which the README lists as PEM, PP489, TRA and VHH72, together with sampled training, validation and test files from that data.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: STAR Methods, Data source and preprocessing; README.md: checkpoint and data directories",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This dataset contains four unique antigens, each with thousands of experimentally characterized antibody candidates covering a wide affinity range"
+     },
+     {
+      "source": "@paper",
+      "text": "Each antigen system contains approximately 30 000 antibody variants generated and validated using AlphaSeq."
+     },
+     {
+      "source": "@readme",
+      "text": "Contains pretrained MochiBind model checkpoints for the following antigen systems:"
+     },
+     {
+      "source": "@readme",
+      "text": "Contains sampled AlphaBind-derived data used for training, validation, and testing."
+     },
+     {
+      "source": "@readme",
+      "text": "- **PEM** - **PP489** - **TRA** - **VHH72**"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "There is one release, the code deposited with the paper, and four checkpoints, one per antigen system. The repository is deliberately frozen: it states that the code is released solely for academic and scientific reproducibility and that pull requests are not accepted so the code stays exactly as it was used in the paper. A result should therefore name the commit and which checkpoint was used; this page read commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04. Full training is not reproducible from the repository alone: it expects precomputed ESM mean embedding files under a data_processed_esm_mean directory, which the user generates first.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Release statement, Reproducibility notes and model_src; Paper: Data and code availability",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This code is being released solely for academic and scientific reproducibility purposes, in support of the methods and findings described in the associated publication."
+     },
+     {
+      "source": "@readme",
+      "text": "Pull requests are not being accepted in order to maintain the code exactly as it was used in the paper."
+     },
+     {
+      "source": "@readme",
+      "text": "Full training requires the expected precomputed ESM embedding directory, `data_processed_esm_mean/`."
+     },
+     {
+      "source": "@paper",
+      "text": "All original code has been deposited to"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Sequence-only pairwise ranking model for antibody-antigen binding affinity, built on a frozen protein language model with a small trained head.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Summary and Results introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We propose MochiBind, a sequence-only pairwise binding affinity predictor"
+     },
+     {
+      "source": "@paper",
+      "text": "predicts relative binding strength through a lightweight pairwise scoring module"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "ESM-2 (esm2_t36_3B_UR50D) residue embeddings of dimension 2560, mean-pooled per sequence, antigen and antibody vectors concatenated to 5120, a projection layer of dimension 1024, then an MLP head with layers [256, 128, 64].",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: STAR Methods, Method details",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The result displayed uses ESM-2"
+     },
+     {
+      "source": "@paper",
+      "text": "The antigen and antibody embeddings are subsequently concatenated, resulting in a combined representation of dimension 5120."
+     },
+     {
+      "source": "@paper",
+      "text": "We set the dimensions of the projection layer to 1024 and the MLP layers to [256, 128, 64]."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "The amino acid sequences of an antibody and an antigen, as a pair of antibodies to be compared for the same antigen. No structure is required.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: STAR Methods, Method details and Results introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The model takes as input the amino acid sequences of the antibody and antigen, which are embedded using pretrained protein language models."
+     },
+     {
+      "source": "@paper",
+      "text": "This sequence-only formulation eliminates dependence on structural models and allows evaluation across large and diverse antigen–antibody pools."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "A predicted relative binding strength for each antibody pair, which the framework turns into a global ranking of the antibody pool with the TrueSkill algorithm.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results introduction, Method details and Key resources table",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we use pairwise prediction to derive the global ranking within"
+     },
+     {
+      "source": "@paper",
+      "text": "while the TrueSkill algorithm takes about 76 s to produce the ranking"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not stated as a count. The trained part is small: a projection layer of dimension 1024 and MLP layers [256, 128, 64] on top of frozen ESM-2 embeddings. The paper gives no parameter total for the head or for the released checkpoints.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: STAR Methods, Method details"
+   },
+   {
+    "label": "Training data",
+    "value": "The AlphaBind dataset: four antigen systems (PP489 against TIGIT, Pembrolizumab-scFv against PD-1, VHH72 against the SARS-CoV-1 receptor binding domain, Trastuzumab-scFv against HER2), each with approximately 30 000 antibody variants measured by AlphaSeq.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: STAR Methods, Data source and preprocessing; README.md: data directory",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We use the AlphaBind dataset"
+     },
+     {
+      "source": "@paper",
+      "text": "Each antigen system contains approximately 30 000 antibody variants generated and validated using AlphaSeq."
+     },
+     {
+      "source": "@readme",
+      "text": "The `.csv` files include antibody/antigen sequence information and experimentally measured binding-affinity values."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One code release with four checkpoints, one per antigen system, which the README lists as PEM, PP489, TRA and VHH72; it gives no file names. This page read commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04; the repository is frozen at the state used in the paper.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: checkpoint directory and Pull requests",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Contains pretrained MochiBind model checkpoints for the following antigen systems:"
+     },
+     {
+      "source": "@readme",
+      "text": "These checkpoints are intended for evaluation and reproducibility checks."
+     },
+     {
+      "source": "@readme",
+      "text": "Pull requests are not being accepted in order to maintain the code exactly as it was used in the paper."
+     },
+     {
+      "source": "@readme",
+      "text": "- **PEM** - **PP489** - **TRA** - **VHH72**"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated as a date. The training data is the AlphaBind dataset released with Agarwal et al. 2025; no snapshot date is given in the sources read.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: STAR Methods, Data source and preprocessing; README.md: data directory"
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated. Sequences are mean-pooled to a fixed-length vector, so no sequence length limit is given in the sources read; the only size figure is throughput, 200,000 pairs from 5,000 antibodies scored in about 13 s on CPU.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: STAR Methods, Method details",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "At inference time, for 200,000 pairs derived from 5,000 antibodies, the MochiBind model requires approximately 13 s for scoring on CPU"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "CC BY-NC 4.0, the licence the repository declares for its contents, which include the four checkpoint files. The README calls this a non-commercial research release, permitted for academic and scientific reproducibility.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README.md: License; LICENSE",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This repository is released under the **Creative Commons Attribution-NonCommercial 4.0 International License (CC-BY-NC-4.0)**."
+     },
+     {
+      "source": "@readme",
+      "text": "This is a **non-commercial** research release."
+     },
+     {
+      "source": "@license",
+      "text": "Attribution-NonCommercial 4.0 International"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "CC BY-NC 4.0, as declared in the README and the LICENSE file. Note this is a content licence used for code, and it forbids commercial use.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README.md: License; LICENSE",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Use of this code is permitted for academic and scientific reproducibility purposes subject to the terms of CC-BY-NC-4.0."
+     },
+     {
+      "source": "@license",
+      "text": "Attribution-NonCommercial 4.0 International"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code and checkpoints: https://github.com/amazon-science/ab-binding-eval (checkpoints under checkpoint/, no separate weights host). Training data: the AlphaBind dataset at https://github.com/A-Alpha-Bio/alphabind.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Data and code availability; README.md: checkpoint and data directories",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "All original code has been deposited to"
+     },
+     {
+      "source": "@paper",
+      "text": "This paper analyzes existing, publicly available data, accessible at"
+     },
+     {
+      "source": "@readme",
+      "text": "├── checkpoint/          # Pretrained MochiBind checkpoints"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "No structures are needed, so large antibody pools can be screened: the paper reports scoring 200,000 pairs from 5,000 antibodies in about 13 s on CPU.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: STAR Methods, Method details",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "At inference time, for 200,000 pairs derived from 5,000 antibodies, the MochiBind model requires approximately 13 s for scoring on CPU"
+     }
+    ]
+   },
+   {
+    "text": "The trained part is small: a projection layer and a three-layer MLP on top of frozen language model embeddings, with an early stopping rule given in the paper.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: STAR Methods, Method details",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We set the dimensions of the projection layer to 1024 and the MLP layers to [256, 128, 64]."
+     },
+     {
+      "source": "@paper",
+      "text": "the training stops if the holdout loss does not decrease after 5 epochs"
+     }
+    ]
+   },
+   {
+    "text": "Checkpoints and the sampled data are shipped together with the evaluation code for the structure-based baselines, so the paper's comparison can be repeated.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Directory description and Reproducibility notes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The included checkpoints can be loaded for evaluation."
+     },
+     {
+      "source": "@readme",
+      "text": "The evaluation code supports pairwise accuracy and ranking/retrieval-style evaluation."
+     }
+    ]
+   },
+   {
+    "text": "The authors report that MochiBind matched or beat the structure-derived baselines they tested, Boltz-2, GeoDock and Graphinity, on pairwise accuracy and retrieval; that is their own claim about their own model.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Summary",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The results show that MochiBind achieves comparable or superior performance in pairwise accuracy and retrieval"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The licence is non-commercial: the repository, including the checkpoints, is CC BY-NC 4.0 and is described as released solely for academic and scientific reproducibility.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Release statement and License",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This is a **non-commercial** research release."
+     },
+     {
+      "source": "@readme",
+      "text": "This code is being released solely for academic and scientific reproducibility purposes, in support of the methods and findings described in the associated publication."
+     }
+    ]
+   },
+   {
+    "text": "It ranks rather than measures: the model predicts the relative binding strength within a pair for one antigen, not an absolute affinity, and the ranking comes from a separate TrueSkill step.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results introduction and Method details",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the model is asked to compare two given antibodies of the same antigen and determine which antibody offers higher binding affinity"
+     },
+     {
+      "source": "@paper",
+      "text": "while the TrueSkill algorithm takes about 76 s to produce the ranking"
+     }
+    ]
+   },
+   {
+    "text": "The released checkpoints are per antigen system (PEM, PP489, TRA, VHH72), and the training data covers four antigens only, so coverage outside those systems is not demonstrated by the sources read.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: checkpoint directory; Paper: Data source and preprocessing",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Contains pretrained MochiBind model checkpoints for the following antigen systems:"
+     },
+     {
+      "source": "@paper",
+      "text": "This dataset contains four unique antigens, each with thousands of experimentally characterized antibody candidates covering a wide affinity range"
+     }
+    ]
+   },
+   {
+    "text": "Training from scratch needs a precomputed ESM embedding directory that the repository does not ship, and the code is frozen, so fixes and pull requests are not accepted.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: model_src and Pull requests",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Note: full training expects precomputed ESM mean embedding files saved under `data_processed_esm_mean/`."
+     },
+     {
+      "source": "@readme",
+      "text": "Pull requests are not being accepted in order to maintain the code exactly as it was used in the paper."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "MochiBind workflow",
+   "steps": [
+    "antibody and antigen amino acid sequences",
+    "ESM-2 residue embeddings of dimension 2560",
+    "mean pooling per sequence, concatenation to 5120",
+    "projection layer of dimension 1024",
+    "MLP head [256, 128, 64] predicts the relative binding strength of the pair",
+    "TrueSkill turns pairwise scores into a ranking of the antibody pool"
+   ],
+   "caption": "The sequence-only path from two antibody sequences to a ranked pool, as the paper's method section describes it.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: STAR Methods, Method details",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The model takes as input the amino acid sequences of the antibody and antigen, which are embedded using pretrained protein language models."
+    },
+    {
+     "source": "@paper",
+     "text": "These representations are projected into a shared latent space through a learnable projection layer, after which a multilayer perceptron (MLP) head predicts the relative binding strength between antibody pairs."
+    },
+    {
+     "source": "@paper",
+     "text": "we use pairwise prediction to derive the global ranking within"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No single command for scoring a pair of sequences with a released checkpoint is given in the README: it documents training and points to notebooks for evaluation, so the run guide below stops at training.",
+   "The parameter count of the trained head and the file sizes of the four checkpoints are not stated in the sources read.",
+   "The README's two instructions for building embeddings differ, one naming generate_esm2_embedding.py and the other the command python data_processed_esm_mean.py, and the sources read do not resolve which is correct.",
+   "The paper reports accuracy and retrieval results in tables that were not extracted here, so no number is quoted on this page."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read on 2026-11-27: amazon-science/ab-binding-eval README.md, LICENSE and requirements.txt at commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04, and the full text of the paper from PMC13444443. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the repository's CPU environment, build the ESM mean embeddings and start MochiBind training on the shipped AlphaBind sample data.",
+  "prerequisites": [
+   "Conda, and Python 3.10 as the README specifies.",
+   "torch 2.0 or newer below 2.5 and transformers 4.30 or newer below 4.51, as pinned in requirements.txt, plus the other listed packages.",
+   "For GPU use: a PyTorch build matching the local CUDA version, installed before the remaining packages, as in requirements-gpu.txt.",
+   "Acceptance of the CC BY-NC 4.0 terms: academic and non-commercial use only."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/amazon-science/ab-binding-eval.git\ncd ab-binding-eval\ngit checkout --detach 0c693d815f7f0bf0a3dd5494205dca10fbc20c04",
+    "explanation": "The README gives no clone command, so the clone and the checkout of the commit this page read were added here. The remaining steps are copied from the README.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Repository structure",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This repository contains the training code for **MochiBind** and the evaluation framework used to benchmark baseline models"
+     }
+    ]
+   },
+   {
+    "title": "Create the environment",
+    "shell": "conda create -n mochibind python=3.10\nconda activate mochibind\n# for CPU only\npip install -r requirements.txt",
+    "explanation": "The README's CPU install. For GPU, it gives a separate environment using requirements-gpu.txt after installing a matching PyTorch build.",
+    "source_ids": [
+     "@readme",
+     "@requirements"
+    ],
+    "source_locator": "README.md: Installation and First Run; requirements.txt",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -n mochibind python=3.10\nconda activate mochibind\n# for CPU only\npip install -r requirements.txt"
+     },
+     {
+      "source": "@requirements",
+      "text": "torch>=2.0,<2.5"
+     }
+    ]
+   },
+   {
+    "title": "Create the ESM embeddings",
+    "shell": "python data_processed_esm_mean.py",
+    "explanation": "Copied from the README's Installation and First Run section. Training expects precomputed ESM mean embedding files under data_processed_esm_mean, and the README's directory description names generate_esm2_embedding.py for the same job, so check which script the checkout contains.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation and First Run, and model_src",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Create embeddings by running:\n```bash\npython data_processed_esm_mean.py\n```"
+     },
+     {
+      "source": "@readme",
+      "text": "These files are generated using `generate_esm2_embedding.py`."
+     }
+    ]
+   },
+   {
+    "title": "Train MochiBind",
+    "shell": "python model_src/main_mean.py",
+    "explanation": "The repository's main training entry point, run after the embeddings exist. The data directory already holds sampled AlphaBind training, validation and test files.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation and First Run, and model_src",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python model_src/main_mean.py"
+     },
+     {
+      "source": "@readme",
+      "text": "The main training entry point is in `model_src/main_mean.py`"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Precomputed ESM mean embedding files under data_processed_esm_mean, used by training.",
+   "A trained MochiBind model from the training entry point. The four shipped checkpoints under checkpoint/ can be loaded for evaluation instead."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "They train the model. The README documents evaluation through notebooks under evaluation_src, and gives no single inference command, so scoring a pair of sequences is not covered here.",
+   "The embedding step requires the ESM-2 esm2_t36_3B_UR50D model, a 3B parameter language model, which the README does not say how to obtain.",
+   "Use is restricted to academic and non-commercial purposes by the repository licence."
+  ],
+  "source_ids": [
+   "@readme",
+   "@requirements"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "PEM",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "CC-BY-NC-4.0",
+   "weights_licence": "CC-BY-NC-4.0",
+   "code_url": "https://github.com/amazon-science/ab-binding-eval",
+   "weights_url": "https://github.com/amazon-science/ab-binding-eval",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "This repository is released under the **Creative Commons Attribution-NonCommercial 4.0 International License (CC-BY-NC-4.0)**."
+    },
+    {
+     "source": "@readme",
+     "text": "Contains pretrained MochiBind model checkpoints for the following antigen systems:"
+    }
+   ]
+  },
+  {
+   "checkpoint": "PP489",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "CC-BY-NC-4.0",
+   "weights_licence": "CC-BY-NC-4.0",
+   "code_url": "https://github.com/amazon-science/ab-binding-eval",
+   "weights_url": "https://github.com/amazon-science/ab-binding-eval",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "- **PP489**"
+    }
+   ]
+  },
+  {
+   "checkpoint": "TRA",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "CC-BY-NC-4.0",
+   "weights_licence": "CC-BY-NC-4.0",
+   "code_url": "https://github.com/amazon-science/ab-binding-eval",
+   "weights_url": "https://github.com/amazon-science/ab-binding-eval",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "- **TRA**"
+    }
+   ]
+  },
+  {
+   "checkpoint": "VHH72",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "CC-BY-NC-4.0",
+   "weights_licence": "CC-BY-NC-4.0",
+   "code_url": "https://github.com/amazon-science/ab-binding-eval",
+   "weights_url": "https://github.com/amazon-science/ab-binding-eval",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "- **VHH72**"
+    }
+   ]
+  }
+ ],
+ "notes": "The repository amazon-science/ab-binding-eval is both the MochiBind release and the evaluation framework for its baselines (Graphinity, GeoDock, Boltz-2), so the same source serves several records in this database. Its README title is MochiBind. Licence terms are non-commercial (CC BY-NC 4.0) for code and checkpoints, and the paper itself is CC BY-NC-ND 4.0, so none of these files are stored as bytes here. The README gives two different names for the embedding script; a reviewer may want to check the checkout. The four checkpoints are per antigen system, and the paper gives no parameter count, so the structured rows carry no numbers."
+}

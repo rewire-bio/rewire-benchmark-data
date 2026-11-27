@@ -1,0 +1,67 @@
+{
+  "format_version": 1,
+  "model": "RFD4-Proteina",
+  "native_namespace": "rfproteina",
+  "weights": "EMA",
+  "bundle_revision": "cf31b93509df5af854c7f6ad704f5c83c77c0698",
+  "bundle_sha256": "5b549dd61adb2f6c6b5cb95bda13f40f5e31556b4e6c755edc0ca6f011c68fb0",
+  "bundle_config_sha256": "154ea927ab8005b7eac2d047a792147fb4606ab4878e496aa8414b6b40dad368",
+  "stored_parameters": 435622465,
+  "latent_dim": 32,
+  "residue_vocabulary_classes": 147,
+  "checkpoints": {
+    "flow_checkpoints/rfd4_proteina_flow-ema.ckpt": {
+      "source": "rfd4-proteina-flow-release-2026-10-19.ckpt",
+      "sha256": "c1c8b7068e87c41a334ec5b77e7d7cdda30bd31ed4504909d93bd72f7742afe4",
+      "size_bytes": 1751488703,
+      "training_state_stripped": true,
+      "full_checkpoint_sha256": "82eafb85ee7a9ee0d516a7913fd33795e5f77360da6c3a7a798049e4ed65d016",
+      "full_checkpoint_size_bytes": 3511389403
+    },
+    "flow_checkpoints/rfd4_proteina_flow_pretrain-ema.ckpt": {
+      "source": "rfd4-proteina-flow-pretrain-release-2026-10-19.ckpt",
+      "sha256": "561bbbe3e97f37ded11ddc934ff2184adcd98038396f7aa1f16e6f9d57f0f8b2",
+      "size_bytes": 1743470486,
+      "training_state_stripped": true,
+      "full_checkpoint_sha256": "6c1003ea7c319af001016c92439470b145ac7d7547d330ab775706b5a8090d7d",
+      "full_checkpoint_size_bytes": 4211265195
+    },
+    "ae_checkpoints/rfd4_proteina_ae-ema.ckpt": {
+      "source": "rfd4-proteina-ae-release-2026-10-19.ckpt",
+      "sha256": "24536372f3fc9a5083b6b813baa80630d2287a5d61fbf2f126c9735802e1d21a",
+      "size_bytes": 1029340246,
+      "training_state_stripped": true,
+      "full_checkpoint_sha256": "d57c5beffffa0697113de7cd2bf305ebe367184fb62a23fb63ecace78f40bd86",
+      "full_checkpoint_size_bytes": 3095456721
+    }
+  },
+  "supersedes": {
+    "flow_checkpoints/rfd4_proteina_flow-ema.ckpt": "2026_10_15_hero_s43_c512_80k-ema.ckpt",
+    "ae_checkpoints/rfd4_proteina_ae-ema.ckpt": "2026_10_15_unified_ae_s43_400k-ema.ckpt"
+  },
+  "bundles": {
+    "model.safetensors": {
+      "description": "Release model, LoRA merged into the base",
+      "sha256": "5b549dd61adb2f6c6b5cb95bda13f40f5e31556b4e6c755edc0ca6f011c68fb0",
+      "size_bytes": 1742660596,
+      "config_sha256": "154ea927ab8005b7eac2d047a792147fb4606ab4878e496aa8414b6b40dad368",
+      "stored_parameters": 435622465
+    },
+    "base/model.safetensors": {
+      "description": "Base (pretrain, step 320000) model",
+      "sha256": "10e90a76e3b09c94a700d2f67e89ed660af7f3018e3f2209b5d52f24d00fbd39",
+      "size_bytes": 1742660596,
+      "config_sha256": "b070b5efe62ac4e4f76b3738ac9431179e6bde1175485025eb3a00454efa58fa",
+      "stored_parameters": 435622465
+    }
+  },
+  "adapters": {
+    "adapter/adapter_model.safetensors": {
+      "description": "PEFT LoRA adapter (r=32; to_qkv, to_out_node) for the base bundle or base checkpoint",
+      "sha256": "3b0762a73b543dfd88958267ba93a729fd91b31f2e18dba2d34c302260f50402",
+      "size_bytes": 8264360,
+      "config_sha256": "5fc8cfa226a40ac9cde554e15ea5f520089c3d7869b0a0a048fa1803d3c44fed"
+    }
+  },
+  "policy": "Stable filenames select the current release pair. The flow model and autoencoder are matched and must be used together; this release changes the latent dimension (16 -> 32) and residue vocabulary (33 -> 147 classes), so its components are not interchangeable with the previous release's. Pin a Hugging Face commit or retain this manifest and verify SHA-256 for reproducibility. Published checkpoints carry EMA weights and hyperparameters only: the duplicate SimpleEMA shadow copy, optimizer, scheduler and loop state are removed, so they initialize weights and do not resume a training run. Weight tensors are bit-identical to the full training checkpoints, whose digests are recorded here."
+}

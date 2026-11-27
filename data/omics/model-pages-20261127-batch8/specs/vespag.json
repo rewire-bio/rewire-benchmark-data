@@ -1,0 +1,843 @@
+{
+ "record_id": "uc20260930-model-vespag",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "JSchlensok/VespaG README.md at commit 3d475825",
+   "description": "Official repository README, pinned to a commit. Holds the method summary, the install and the command line options.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/JSchlensok/VespaG/3d4758252dbd423249e694d6f7d195c707f72a92/README.md",
+   "url": "https://github.com/JSchlensok/VespaG",
+   "version": "git commit 3d4758252dbd423249e694d6f7d195c707f72a92",
+   "media_type": "text/markdown",
+   "sha256": "eb7d46ab03a47220163eb70a34a88ccf878158683cedff7395683a5fa2a1d723",
+   "retrieved_at": "2026-11-27T00:45:27Z",
+   "store_bytes": false
+  },
+  {
+   "key": "license",
+   "name": "JSchlensok/VespaG LICENSE at commit 3d475825",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/JSchlensok/VespaG/3d4758252dbd423249e694d6f7d195c707f72a92/LICENSE",
+   "url": "https://github.com/JSchlensok/VespaG",
+   "version": "git commit 3d4758252dbd423249e694d6f7d195c707f72a92",
+   "media_type": "text/plain",
+   "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+   "retrieved_at": "2026-11-27T00:45:30Z",
+   "store_bytes": false
+  },
+  {
+   "key": "pyproject",
+   "name": "JSchlensok/VespaG pyproject.toml at commit 3d475825",
+   "description": "Package definition: name, version, licence, Python range, dependencies and the command line entry point.",
+   "file": "artifacts/pyproject.toml",
+   "artifact_url": "https://raw.githubusercontent.com/JSchlensok/VespaG/3d4758252dbd423249e694d6f7d195c707f72a92/pyproject.toml",
+   "url": "https://github.com/JSchlensok/VespaG",
+   "version": "git commit 3d4758252dbd423249e694d6f7d195c707f72a92",
+   "media_type": "text/plain",
+   "sha256": "607f764a302c42695a45c3631a0627243616dda506b67fec7218e85c5cdac276",
+   "retrieved_at": "2026-11-27T00:53:10Z",
+   "store_bytes": false
+  },
+  {
+   "key": "utils",
+   "name": "JSchlensok/VespaG vespag/utils/utils.py at commit 3d475825",
+   "description": "Source file holding the default architecture, the default embedding type and the model version the command line loads.",
+   "file": "artifacts/utils-defaults.py",
+   "artifact_url": "https://raw.githubusercontent.com/JSchlensok/VespaG/3d4758252dbd423249e694d6f7d195c707f72a92/vespag/utils/utils.py",
+   "url": "https://github.com/JSchlensok/VespaG",
+   "version": "git commit 3d4758252dbd423249e694d6f7d195c707f72a92",
+   "media_type": "text/x-python",
+   "sha256": "69fe51a78e9df272c038dafae8996c3152fcbe3f68bd113dafb6fc115d09f076",
+   "retrieved_at": "2026-11-27T00:58:40Z",
+   "store_bytes": false
+  },
+  {
+   "key": "weights-tree",
+   "name": "GitHub listing of the model_weights folder of JSchlensok/VespaG at commit 3d475825",
+   "description": "GitHub API listing of the trained weight files shipped in the repository, with sizes.",
+   "file": "artifacts/weights-tree.json",
+   "artifact_url": "https://api.github.com/repos/JSchlensok/VespaG/git/trees/3d4758252dbd423249e694d6f7d195c707f72a92:model_weights?recursive=1",
+   "url": "https://github.com/JSchlensok/VespaG",
+   "version": "git commit 3d4758252dbd423249e694d6f7d195c707f72a92",
+   "media_type": "application/json",
+   "sha256": "18ad3fce59c290d2ff734c9a837891a9c6e5cbf4a89030461ea936308cd951ce",
+   "retrieved_at": "2026-11-27T00:54:30Z",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Marquet et al. 2024, Bioinformatics 40(11) btae621, full text (PMC11588025)",
+   "description": "Full text of the VespaG paper as NCBI PMC JATS XML.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=11588025&rettype=xml",
+   "url": "https://doi.org/10.1093/bioinformatics/btae621",
+   "version": "PMC11588025 as served by NCBI on 2026-11-27",
+   "media_type": "application/xml",
+   "sha256": "d8c788720da7cab61c8405c7ccfb6029ce716b3bff1941eca81d9cc83b04bccc",
+   "retrieved_at": "2026-11-27T00:53:07Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "VespaG predicts the effect of missense single amino acid substitutions in a protein from its sequence alone. It embeds the sequence with the protein language model ESM-2 and passes the per-residue embedding through a feed-forward network with one hidden layer of 256 units, which outputs a score for each of the 20 amino acids at each position. Because experimental variant data is scarce, the network was not trained on measurements: it was trained to reproduce the scores of the alignment-based predictor GEMME on 39 million variants of the human proteome. The authors report a mean Spearman correlation of 0.48 plus or minus 0.02 on the 217 assays of the ProteinGym substitution benchmark, and say the whole mutational landscape of a proteome can be predicted in under 30 minutes on a 12-core laptop with 16 GB of memory.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "paper: Abstract and Section 3; README: header paragraphs",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We introduce VespaG, a blazingly fast missense amino acid variant effect predictor, leveraging protein language model (pLM) embeddings as input to a minimal deep learning model."
+   },
+   {
+    "source": "@paper",
+    "text": "The method introduced in this work, VespaG, is a feed-forward neural network (FNN) with one hidden layer with 256 hidden units solely inputting sequence embeddings from the protein language model (pLM) ESM-2"
+   },
+   {
+    "source": "@paper",
+    "text": "we created a dataset of 39 million single amino acid variants from the human proteome applying the multiple sequence alignment-based effect predictor GEMME as a pseudo standard-of-truth"
+   },
+   {
+    "source": "@paper",
+    "text": "VespaG achieved a mean Spearman correlation of 0.48 ± 0.02, matching top-performing methods evaluated on the same data."
+   },
+   {
+    "source": "@paper",
+    "text": "predicting all mutational landscapes of all proteins in proteomes such as <italic toggle=\"yes\">Homo sapiens</italic> or <italic toggle=\"yes\">Drosophila melanogaster</italic> in under 30 min on a consumer laptop (12-core CPU, 16 GB RAM)"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The input sequence is embedded by a frozen protein language model. The default is ESM-2, specifically esm2_t36_3B_UR50D as the README names it; the pretrained language models were used as is, without fine tuning. Each residue's embedding goes through a feed-forward network with one hidden layer, 256 hidden units and dropout of 0.2, which outputs a substitution score for every amino acid at that position. The training target was not experimental data. For about 5000 human proteins, homologous sequences were aligned with the MMseqs2-based strategy of ColabFold, GEMME was run on each alignment to produce a complete substitution matrix of size L by 20 with scores from minus 10 to 2, and the network was trained to map embeddings to those scores. The authors describe this as a student learning from an expert teacher, and compared the one-hidden-layer network against a linear regression, a two-layer network and a small convolutional network before settling on it.",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@utils"
+    ],
+    "source_locator": "paper: Sections 2.1, 2.2 Model specifications and 3; README: header and predict options; utils.py: DEFAULT_MODEL_PARAMETERS",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Path to pre-computed ESM2 (`esm2_t36_3B_UR50D`) input embeddings."
+     },
+     {
+      "source": "@paper",
+      "text": "We used the pre-trained pLMs as is, without fine-tuning their weights"
+     },
+     {
+      "source": "@utils",
+      "text": "\"model_parameters\": {\"hidden_dims\": [256], \"dropout_rate\": 0.2},"
+     },
+     {
+      "source": "@paper",
+      "text": "We trained VespaG on a set of about 5000 human proteins to learn a mapping between the input pLM embeddings and the evolutionary scores computed by GEMME."
+     },
+     {
+      "source": "@paper",
+      "text": "GEMME outputs a complete substitution matrix of dimension <italic toggle=\"yes\">L</italic> × 20, with <italic toggle=\"yes\">L</italic> being the length (in residue) of the input query protein sequence. GEMME scores range from −10 to 2."
+     },
+     {
+      "source": "@paper",
+      "text": "We built the predictors with the following architectures: (1) Linear regression, i.e. a feed-forward neural network (FNN, <xref rid=\"btae621-B26\" ref-type=\"bibr\">LeCun <italic toggle=\"yes\">et al.</italic> 2015</xref>) without any hidden layer, dubbed <italic toggle=\"yes\">LinReg</italic>; (2) FNN with one dense hidden layer, called <italic toggle=\"yes\">VespaG</italic>"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The weights ship inside the repository, not on a model hub. At the commit read here model_weights holds three files: v1/esm2.pt, v2/esm2.pt and v2/prott5.pt. The code sets the model version to v2 and loads model_weights/v2/<embedding type>.pt, with esm2 as the default embedding type, so a plain run uses v2/esm2.pt. The package version in pyproject.toml is 0.1.0. A result should therefore name the commit, the weight version folder and the embedding type, and also the language model used for the embeddings, since embeddings are either supplied by the user or generated at run time. What differs between v1 and v2 is not stated in the sources read. Retraining is possible: the repository drives it with DVC and offers precomputed embeddings and GEMME scores on Zenodo.",
+    "source_ids": [
+     "@weights-tree",
+     "@utils",
+     "@pyproject",
+     "@readme"
+    ],
+    "source_locator": "model_weights listing; utils.py: MODEL_VERSION and load_model; pyproject.toml: version; README: Re-training VespaG",
+    "quotes": [
+     {
+      "source": "@weights-tree",
+      "text": "\"path\":\"v1/esm2.pt\""
+     },
+     {
+      "source": "@weights-tree",
+      "text": "\"path\":\"v2/prott5.pt\""
+     },
+     {
+      "source": "@utils",
+      "text": "MODEL_VERSION = \"v2\""
+     },
+     {
+      "source": "@utils",
+      "text": "checkpoint_file = checkpoint_file or Path.cwd() / f\"model_weights/{MODEL_VERSION}/{embedding_type.value}.pt\""
+     },
+     {
+      "source": "@pyproject",
+      "text": "name = \"vespag\"\nversion = \"0.1.0\""
+     },
+     {
+      "source": "@readme",
+      "text": "you can also download pre-computed embeddings and GEMME scores from [our Zenodo repository](https://doi.org/10.5281/zenodo.11085958)"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Supervised missense variant effect predictor on top of frozen protein language model embeddings, trained against GEMME scores rather than experimental measurements.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We introduce VespaG, a blazingly fast missense amino acid variant effect predictor, leveraging protein language model (pLM) embeddings as input to a minimal deep learning model."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Feed-forward neural network with one hidden layer of 256 units and dropout 0.2, taking per-residue embeddings from a frozen language model as input.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@utils"
+    ],
+    "source_locator": "paper: Section 3; utils.py: DEFAULT_MODEL_PARAMETERS",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "VespaG, is a feed-forward neural network (FNN) with one hidden layer with 256 hidden units"
+     },
+     {
+      "source": "@utils",
+      "text": "\"architecture\": Architecture.fnn,"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A FASTA file of one or more protein sequences. Optionally precomputed ESM-2 (esm2_t36_3B_UR50D) embeddings, and optionally a CSV of specific mutations to score as rows of protein_id,mutation_id.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Quick Start, predict options",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`--input/-i`: Path to FASTA-formatted file containing protein sequence(s)."
+     },
+     {
+      "source": "@readme",
+      "text": "`--mutation-file`: CSV file specifying specific mutations to score (expects rows of `protein_id,mutation_id`)."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "A score for each requested substitution, or for the whole single-site mutational landscape when no mutation file is given, written as a CSV per protein, optionally one CSV for all proteins or an HDF5 file, and optionally rescaled to the interval 0 to 1.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Quick Start, predict options",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "If not provided, the whole single-site mutational landscape of all input proteins will be scored."
+     },
+     {
+      "source": "@readme",
+      "text": "`--h5-output`: Whether a file containing predictions in HDF5 format should be created."
+     },
+     {
+      "source": "@readme",
+      "text": "`--normalize`: Whether to transform predicted scores to [0, 1] interval"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "About 660,000 trainable parameters, as the paper states (\"660k free parameters\"), for a network with one hidden layer of 256 units on 2560-dimensional ESM-2 embeddings. The frozen ESM-2 model that makes the embeddings has 3 billion parameters and is a separate download. The shipped files are 2,644,593 bytes for v2/esm2.pt and 1,071,729 bytes for v2/prott5.pt.",
+    "status": "source_checked",
+    "source_ids": [
+     "@weights-tree",
+     "@paper"
+    ],
+    "source_locator": "paper: Introduction and Figure 1 caption, Section 2.2.2; model_weights listing: size fields",
+    "quotes": [
+     {
+      "source": "@weights-tree",
+      "text": "\"path\":\"v2/esm2.pt\",\"mode\":\"100644\",\"type\":\"blob\",\"sha\":"
+     },
+     {
+      "source": "@weights-tree",
+      "text": "\"size\":2644593"
+     },
+     {
+      "source": "@weights-tree",
+      "text": "\"size\":1071729"
+     },
+     {
+      "source": "@paper",
+      "text": "one hidden layer with 256 hidden units"
+     },
+     {
+      "source": "@paper",
+      "text": "we trained a comparatively shallow (660k free parameters) neural network on top of a pretrained pLM"
+     },
+     {
+      "source": "@paper",
+      "text": "computed by the pretrained protein language model (pLM) ESM-2 with 3 billion parameters"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "39 million single amino acid variants from the human proteome, labelled with GEMME scores rather than experiments, taken from about 5000 human proteins. Proteins shorter than 25 or longer than 1024 residues were removed, the set was redundancy reduced against the test data and against itself, and split 80/20 into training and validation. Further sets for Drosophila melanogaster, Escherichia coli and viruses were also built.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Abstract and Section 2.1 Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we created a dataset of 39 million single amino acid variants from the human proteome"
+     },
+     {
+      "source": "@paper",
+      "text": "We trained VespaG on a set of about 5000 human proteins"
+     },
+     {
+      "source": "@paper",
+      "text": "removing any proteins of less than 25 or more than 1024 residues"
+     },
+     {
+      "source": "@paper",
+      "text": "We redundancy reduced the training data in two steps, firstly against the test data to prevent data leakage and secondly against themselves"
+     },
+     {
+      "source": "@paper",
+      "text": "additional sets representing diverse origins, namely <italic toggle=\"yes\">Drosophila melanogaster</italic>, <italic toggle=\"yes\">Escherichia coli</italic>, as well as all viruses"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Two weight versions ship in the repository: v1 with an ESM-2 checkpoint, and v2 with an ESM-2 and a ProtT5 checkpoint. The code loads v2 by default with the ESM-2 embedding type. The Python package is version 0.1.0.",
+    "status": "source_checked",
+    "source_ids": [
+     "@weights-tree",
+     "@utils",
+     "@pyproject"
+    ],
+    "source_locator": "model_weights listing; utils.py: MODEL_VERSION; pyproject.toml: version",
+    "quotes": [
+     {
+      "source": "@weights-tree",
+      "text": "\"path\":\"v1/esm2.pt\""
+     },
+     {
+      "source": "@weights-tree",
+      "text": "\"path\":\"v2/esm2.pt\""
+     },
+     {
+      "source": "@weights-tree",
+      "text": "\"path\":\"v2/prott5.pt\""
+     },
+     {
+      "source": "@utils",
+      "text": "MODEL_VERSION = \"v2\""
+     },
+     {
+      "source": "@pyproject",
+      "text": "version = \"0.1.0\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated as a date. The sources read say the training proteomes came from UniProt reference proteomes, with the UniProt Consortium 2023 citation, but give no release or cutoff date.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Section 2.1 Datasets",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "No length limit at inference: the paper says \"There is no length restriction for either pLM at inference, so proteins were processed in full.\" The training set was filtered to proteins of 25 to 1024 residues.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Section 2.2.1 Datasets and Section 2.2.2 Model specifications",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "There is no length restriction for either pLM at inference, so proteins were processed in full."
+     },
+     {
+      "source": "@paper",
+      "text": "removing any proteins of less than 25 or more than 1024 residues"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "No separate weights licence is stated. The weight files are committed in the repository, whose licence is GPL-3.0 (declared in pyproject.toml, with the GNU General Public License version 3 as the LICENSE file).",
+    "status": "unreported",
+    "source_ids": [
+     "@weights-tree",
+     "@pyproject",
+     "@license"
+    ],
+    "source_locator": "model_weights listing; pyproject.toml: license; LICENSE header",
+    "quotes": [
+     {
+      "source": "@weights-tree",
+      "text": "\"path\":\"v2/esm2.pt\""
+     },
+     {
+      "source": "@pyproject",
+      "text": "license = \"GPL-3.0\""
+     },
+     {
+      "source": "@license",
+      "text": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "GPL-3.0, as declared in pyproject.toml, with the full GNU General Public License version 3 as the repository LICENSE file. GPL-3.0 is a copyleft licence, so derived distributed work must carry the same terms.",
+    "status": "source_checked",
+    "source_ids": [
+     "@pyproject",
+     "@license"
+    ],
+    "source_locator": "pyproject.toml: license; LICENSE header",
+    "quotes": [
+     {
+      "source": "@pyproject",
+      "text": "license = \"GPL-3.0\""
+     },
+     {
+      "source": "@license",
+      "text": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code and weights at https://github.com/JSchlensok/VespaG, with the weights committed in the model_weights folder and the package installable as vespag from PyPI. Training data and predictions at https://doi.org/10.5281/zenodo.11085958. No sign-in or gate.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@weights-tree"
+    ],
+    "source_locator": "paper: Availability and implementation; README: Installation and Re-training VespaG; model_weights listing",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "VespaG is available freely at <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://github.com/jschlensok/vespag\" ext-link-type=\"uri\">https://github.com/jschlensok/vespag</ext-link>"
+     },
+     {
+      "source": "@readme",
+      "text": "`pip install vespag` or `uv pip install vespag`"
+     },
+     {
+      "source": "@readme",
+      "text": "[our Zenodo repository](https://doi.org/10.5281/zenodo.11085958)"
+     },
+     {
+      "source": "@weights-tree",
+      "text": "\"path\":\"v2/esm2.pt\""
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Fast and light once embeddings exist: the authors report predicting all mutational landscapes of a proteome in under 30 minutes on a 12-core laptop with 16 GB of memory.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "VespaG has the advantage of being orders of magnitude faster, predicting all mutational landscapes of all proteins in proteomes such as <italic toggle=\"yes\">Homo sapiens</italic> or <italic toggle=\"yes\">Drosophila melanogaster</italic> in under 30 min on a consumer laptop (12-core CPU, 16 GB RAM)."
+     }
+    ]
+   },
+   {
+    "text": "Prediction needs no alignment at run time. The alignments were used only to make the GEMME training labels.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: header and predict options; paper: Section 2.1 Datasets",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`--input/-i`: Path to FASTA-formatted file containing protein sequence(s)."
+     },
+     {
+      "source": "@paper",
+      "text": "for each protein from the training set, we retrieved and aligned a set of homologous sequences with the MMseqs2-based multiple sequence alignment (MSA) generation strategy implemented in ColabFold"
+     }
+    ]
+   },
+   {
+    "text": "The authors say the setup is easily retrainable with a new or updated language model, and the repository ships a DVC pipeline plus Zenodo embeddings and GEMME scores so that retraining can be repeated.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: Abstract; README: Re-training VespaG",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This setup increases interpretability compared to the baseline pLM and is easily retrainable with novel or updated pLMs."
+     },
+     {
+      "source": "@readme",
+      "text": "There is a `dvc.yaml` file in place that contains stages for generating pLM embeddings from FASTA files"
+     }
+    ]
+   },
+   {
+    "text": "The evaluation can be rerun from the repository: an eval subcommand downloads the ProteinGym reference and score files and computes Spearman correlation per assay.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Evaluation, ProteinGym217",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You can reproduce our evaluation using the `eval` subcommand, which pre-processes data into a format usable by VespaG, runs `predict`, and computes performance metrics."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "GPL-3.0 is copyleft. Code that includes VespaG and is distributed must carry the same licence, which matters for closed products.",
+    "source_ids": [
+     "@pyproject",
+     "@license"
+    ],
+    "source_locator": "pyproject.toml: license; LICENSE header",
+    "quotes": [
+     {
+      "source": "@pyproject",
+      "text": "license = \"GPL-3.0\""
+     },
+     {
+      "source": "@license",
+      "text": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007"
+     }
+    ]
+   },
+   {
+    "text": "The predictions are only as good as the teacher: the labels are GEMME scores, not measurements, and the authors flagged landscapes built from fewer than a couple of hundred homologous sequences as low confidence.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Section 2.1 Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we flagged the mutational landscapes derived from fewer than a couple hundred homologous sequences as lowly confident"
+     },
+     {
+      "source": "@paper",
+      "text": "GEMME as a pseudo standard-of-truth"
+     }
+    ]
+   },
+   {
+    "text": "The speed claim assumes the ESM-2 embeddings already exist. If none are supplied they are generated first, and the README warns that generating them on CPU can be slow.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Quick Start, embeddings option",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Embeddings will be generated from scratch if no path is provided and saved in `./output`. Please note that embedding generation on CPU can be slow."
+     }
+    ]
+   },
+   {
+    "text": "The authors warn about the state of the codebase themselves: it began as a Bachelor's thesis and they say design choices were never fixed, although the project is still supported.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation disclaimer",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This codebase started out as a Bachelor's thesis, so naturally a lot of suboptimal design choices were made and never fixed for lack of time."
+     }
+    ]
+   },
+   {
+    "text": "It scores missense single amino acid substitutions. The sources read describe no handling of insertions or deletions.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: Abstract; README: Quick Start",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a blazingly fast missense amino acid variant effect predictor"
+     },
+     {
+      "source": "@readme",
+      "text": "the whole single-site mutational landscape of all input proteins will be scored"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "VespaG prediction workflow",
+   "steps": [
+    "Protein sequence in FASTA",
+    "ESM-2 embedding per residue",
+    "Feed-forward network, one hidden layer of 256 units",
+    "Score for every amino acid at every position",
+    "CSV or HDF5 output"
+   ],
+   "caption": "At prediction time only the sequence is needed: the language model embeds it and a small network trained on GEMME scores turns each residue embedding into substitution scores.",
+   "source_ids": [
+    "@readme",
+    "@paper"
+   ],
+   "source_locator": "README: header and Quick Start; paper: Section 3",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "leveraging embeddings of the protein language model [ESM-2](https://github.com/facebookresearch/esm) ([Lin et al. 2022](https://www.science.org/doi/abs/10.1126/science.ade2574)) as input to a minimal deep learning model"
+    },
+    {
+     "source": "@paper",
+     "text": "a feed-forward neural network (FNN) with one hidden layer with 256 hidden units solely inputting sequence embeddings"
+    },
+    {
+     "source": "@readme",
+     "text": "Path for saving created CSV and/or H5 files. Defaults to `./output`."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "What differs between the v1 and v2 weight folders, and whether the published results used v1 or v2, is not stated in the sources read.",
+   "The Zenodo deposit with the training data and precomputed embeddings was not fetched, so its licence is not recorded here."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read on 2026-11-27: the README, LICENSE, pyproject.toml and vespag/utils/utils.py of JSchlensok/VespaG at commit 3d4758252dbd423249e694d6f7d195c707f72a92, the GitHub listing of its model_weights folder at that commit, and the paper full text as PMC11588025. No command was executed and no human review is claimed."
+  }
+ },
+ "structured": [
+  {
+   "checkpoint": "v2/esm2.pt",
+   "parameters": 660000,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "GPL-3.0",
+   "weights_licence": null,
+   "code_url": "https://github.com/JSchlensok/VespaG",
+   "weights_url": "https://github.com/JSchlensok/VespaG/blob/3d4758252dbd423249e694d6f7d195c707f72a92/model_weights/v2/esm2.pt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@weights-tree",
+     "text": "\"path\":\"v2/esm2.pt\""
+    },
+    {
+     "source": "@pyproject",
+     "text": "license = \"GPL-3.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "we trained a comparatively shallow (660k free parameters) neural network on top of a pretrained pLM"
+    }
+   ]
+  },
+  {
+   "checkpoint": "v2/prott5.pt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "GPL-3.0",
+   "weights_licence": null,
+   "code_url": "https://github.com/JSchlensok/VespaG",
+   "weights_url": "https://github.com/JSchlensok/VespaG/blob/3d4758252dbd423249e694d6f7d195c707f72a92/model_weights/v2/prott5.pt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@weights-tree",
+     "text": "\"path\":\"v2/prott5.pt\""
+    },
+    {
+     "source": "@pyproject",
+     "text": "license = \"GPL-3.0\""
+    }
+   ]
+  },
+  {
+   "checkpoint": "v1/esm2.pt",
+   "parameters": 660000,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "GPL-3.0",
+   "weights_licence": null,
+   "code_url": "https://github.com/JSchlensok/VespaG",
+   "weights_url": "https://github.com/JSchlensok/VespaG/blob/3d4758252dbd423249e694d6f7d195c707f72a92/model_weights/v1/esm2.pt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@weights-tree",
+     "text": "\"path\":\"v1/esm2.pt\""
+    },
+    {
+     "source": "@pyproject",
+     "text": "license = \"GPL-3.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "we trained a comparatively shallow (660k free parameters) neural network on top of a pretrained pLM"
+    }
+   ]
+  }
+ ],
+ "run_guide": {
+  "summary": "Install the package, clone the repository for its weights and example data, and score the example FASTA file.",
+  "prerequisites": [
+   "Python 3.10 or newer, as pyproject.toml requires.",
+   "A virtual environment, which the README asks for as step 0.",
+   "Enough patience or a GPU for the ESM-2 embedding step if no precomputed embeddings are supplied: the README warns that CPU embedding is slow.",
+   "GPL-3.0 applies to the code. The weights are committed in the same repository, with no separate licence statement."
+  ],
+  "steps": [
+   {
+    "title": "Clone the repository at the pinned commit",
+    "shell": "git clone https://github.com/jschlensok/vespag.git\ncd vespag\ngit checkout --detach 3d4758252dbd423249e694d6f7d195c707f72a92",
+    "explanation": "The clone line is the README's step 1; the checkout line is added here to pin the commit that was read. The clone is needed because the weights in model_weights and the example FASTA file come with the repository.",
+    "source_ids": [
+     "@readme",
+     "@utils"
+    ],
+    "source_locator": "README: Installation; utils.py: load_model",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`git clone https://github.com/jschlensok/vespag.git`"
+     },
+     {
+      "source": "@utils",
+      "text": "Path.cwd() / f\"model_weights/{MODEL_VERSION}/{embedding_type.value}.pt\""
+     }
+    ]
+   },
+   {
+    "title": "Install the package",
+    "shell": "python3 -m venv .venv\n. .venv/bin/activate\npip install vespag",
+    "explanation": "The README's install step is pip install vespag. The two virtual environment lines stand for its step 0, create virtual environment, which the README does not spell out as a command.",
+    "source_ids": [
+     "@readme",
+     "@pyproject"
+    ],
+    "source_locator": "README: Installation; pyproject.toml: requires-python and scripts",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`pip install vespag` or `uv pip install vespag`"
+     },
+     {
+      "source": "@pyproject",
+      "text": "requires-python = \">=3.10\""
+     },
+     {
+      "source": "@pyproject",
+      "text": "vespag = \"vespag.__main__:app\""
+     }
+    ]
+   },
+   {
+    "title": "Score the example sequences",
+    "shell": "vespag predict -i data/example/example.fasta",
+    "explanation": "The README's first example. With no embeddings given they are generated from the ESM-2 model and saved under ./output, and with no mutation file the whole single-site landscape of each sequence is scored using the v2 ESM-2 weights.",
+    "source_ids": [
+     "@readme",
+     "@utils"
+    ],
+    "source_locator": "README: Examples; utils.py: MODEL_VERSION and DEFAULT_MODEL_PARAMETERS",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`vespag predict -i data/example/example.fasta`. This will save a CSV file for each sequence in the folder `./output`"
+     },
+     {
+      "source": "@utils",
+      "text": "MODEL_VERSION = \"v2\""
+     },
+     {
+      "source": "@utils",
+      "text": "\"embedding_type\": EmbeddingType.esm2,"
+     }
+    ]
+   },
+   {
+    "title": "Reuse embeddings for a second run",
+    "shell": "vespag predict -i data/example/example.fasta -e output/esm2_embeddings.h5 --single-csv",
+    "explanation": "The README's second example, which skips embedding generation by pointing at the embeddings written by the previous run and puts all proteins in one CSV.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Examples",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`vespag predict -i data/example/example.fasta -e output/esm2_embeddings.h5 --single-csv`. This will save a single CSV file for all sequences in the folder `./output`"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "One CSV of scores per input protein under ./output, or a single CSV for all proteins with --single-csv.",
+   "The generated ESM-2 embeddings, saved under ./output when none were supplied.",
+   "With --h5-output, the predictions also in HDF5 format."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The predict command looks for the weights under model_weights relative to the working directory, so it must be run from the cloned repository unless a checkpoint file is passed.",
+   "Reproducing the ProteinGym evaluation is a separate subcommand, vespag eval proteingym, which downloads the benchmark files."
+  ],
+  "source_ids": [
+   "@readme",
+   "@pyproject",
+   "@utils",
+   "@paper"
+  ]
+ },
+ "notes": "The repository address is written github.com/jschlensok/vespag in the paper and README and JSchlensok/VespaG by GitHub; they are the same repository and the pinned raw files use the GitHub spelling. The weights are committed in the repository rather than on a model hub; the repository licence is GPL-3.0 and there is no separate weights licence statement, so weights_licence is null. The paper gives 660k parameters for the ESM-2 network without naming the weight folder; v1/esm2.pt and v2/esm2.pt have the same size, so both carry that count. The difference between the v1 and v2 weight folders is not documented in the sources read, and the paper does not say which folder produced its numbers. The Zenodo deposit of training data was not fetched."
+}
