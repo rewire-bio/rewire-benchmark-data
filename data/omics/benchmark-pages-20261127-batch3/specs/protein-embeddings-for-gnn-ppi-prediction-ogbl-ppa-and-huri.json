@@ -1,0 +1,727 @@
+{
+ "record_id": "lit-interactions-20261011-ppiemb-benchmark-ppi-embedding-gnn-comparison",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Balbi et al. 2026 PPI embedding comparison, PMC full-text XML (PMC13280947)",
+   "description": "NCBI PMC full-text XML of Balbi, Sousa, Cotovio and Pesquita, The role of protein embeddings for protein-protein interaction prediction with graph neural networks, Briefings in Bioinformatics 27(3), 2026, fetched through E-utilities efetch.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13280947",
+   "url": "https://doi.org/10.1093/bib/bbag313",
+   "version": "PMC13280947.1, Briefings in Bioinformatics 2026, bbag313",
+   "media_type": "application/xml",
+   "sha256": "901c640460f4ab4c7137e041c44cdfc17cc4435fe023a64808fc571c8a48901f",
+   "retrieved_at": "2026-11-27T02:42:11Z",
+   "licence": "CC BY-NC 4.0",
+   "store_bytes": false
+  },
+  {
+   "key": "ogb",
+   "name": "Open Graph Benchmark link property prediction page, ogbl-ppa section",
+   "description": "The official OGB documentation page for the link property prediction datasets, saved for the ogbl-ppa dataset's split rule, metric definition and licence, which the paper itself does not restate.",
+   "file": "artifacts/ogb-linkprop.html",
+   "artifact_url": "https://ogb.stanford.edu/docs/linkprop/",
+   "url": "https://ogb.stanford.edu/docs/linkprop/",
+   "version": "page as retrieved 2026-11-27",
+   "media_type": "text/html",
+   "sha256": "b33122e0280c841f03fc734e893b9524931a56028f6df8916dcc5e6231c2ab92",
+   "retrieved_at": "2026-11-27T02:43:57Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "This is one review paper's own comparison, not a released suite. It asks how much a graph neural network for protein interaction prediction gains from protein-level node features, and which kind of protein information helps most. Nine protein embedding methods, three each from sequence, structure and function, are used in two ways on two link prediction benchmarks (OGBl-ppa and HuRI): on their own in a protein-only multilayer perceptron, and as node features for six graph neural network configurations, against the same networks with randomly initialised node features. It is useful to someone deciding whether to attach protein language model, inverse folding or knowledge graph embeddings to a PPI link predictor.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract; Experimental design",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "The experimental setup evaluates three types of protein-level representations"
+   },
+   {
+    "source": "@paper",
+    "text": "Our results indicate that hybrid methods have improved performance, with function-driven representations emerging as the most informative protein-level representations for PPI prediction."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Link prediction on a protein interaction network: given the known edges of an interactome, score candidate protein pairs. The comparison is set up around three questions. Whether adding biologically informative node features to a graph neural network improves it over random features. Which source of node features, sequence, structure or function, works best. And whether combining network topology with protein representations beats using protein representations alone. The third question is answered by an ablation in which the task is reformulated as binary classification over concatenated protein embeddings with a multilayer perceptron and no network at all.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Comparative analysis, research questions; Experimental design",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Does adding informative node features to GNNs for PPI prediction significantly improve their performance?"
+     },
+     {
+      "source": "@paper",
+      "text": "an ablation study reformulated PPI prediction as a binary classification task using concatenated protein embeddings with an MLP, with random embeddings as baselines, isolating the contribution of protein-level features independent of network structure"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Two existing benchmarks are reused, chosen to differ in species coverage and in how negatives are made: OGBl-ppa, a multi-species benchmark with randomly sampled negatives under a closed-world assumption, and HuRI, a human dataset with experimentally validated true negatives. The paper reports graph sizes of 576 289 nodes and 30 326 273 edges for the OGBl-ppa interaction graph and 8248 nodes and 51 813 edges for HuRI. Protein identifiers were mapped to UniProt, sequences taken from UniRef50 and then mapped to PDB identifiers through CATH for structures. The function embeddings come from a biomedical knowledge graph built by linking the proteins of the interaction graph to the Gene Ontology classes that describe them, using a STRING release matched to the one OGB uses and a 2020-06-01 Gene Ontology Annotation release, converted to a directed labelled RDF graph; the paper reports 620 555 nodes and 5 989 238 edges for the OGBl-ppa knowledge graph and 52 513 nodes and 321 259 edges for the HuRI one.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data; Table 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "OGBL-ppa, a widely adopted multi-species benchmark with randomly sampled negatives that assumes a closed-world setting, and HuRI, a human-specific dataset with experimentally validated true negatives that supports evaluation under more realistic conditions"
+     },
+     {
+      "source": "@paper",
+      "text": "All protein identifiers were mapped to UniProt using the portal"
+     },
+     {
+      "source": "@paper",
+      "text": "Protein sequences were retrieved from UniRef50"
+     },
+     {
+      "source": "@paper",
+      "text": "<td rowspan=\"1\" colspan=\"1\">576 289</td>"
+     },
+     {
+      "source": "@paper",
+      "text": "30 326 273"
+     },
+     {
+      "source": "@paper",
+      "text": "<td rowspan=\"1\" colspan=\"1\">51 813</td>"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Each benchmark keeps its own task and evaluation protocol; the paper reproduces the OGBl-ppa leaderboard hyperparameters so that its numbers are comparable with that leaderboard. Two metrics are reported for every cell, Hits@100 and accuracy, both higher is better. On the OGB side, Hits@100 means ranking each positive validation or test edge against 3,000,000 randomly sampled negative edges and counting the fraction ranked in the top 100. Every embedding and network combination is compared against the same network with randomly initialised node features, which is the control that answers the first question. A majority-vote ensemble over the different representations is reported as an eleventh column. The results tables mark the best score per method and per table, bold the cells where a biological embedding beats random features, and give a maximum standard deviation for the table rather than per cell: 0.0711 for OGBl-ppa and 0.0928 for HuRI.",
+    "source_ids": [
+     "@paper",
+     "@ogb"
+    ],
+    "source_locator": "Paper: Experimental design; Tables 5 and 6 footnote; OGB page: ogbl-ppa prediction task",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Randomly initialized GNNs served as baselines, reproducing leaderboard hyperparameters (OGBl-ppa) to ensure comparability."
+     },
+     {
+      "source": "@paper",
+      "text": "The best score is underlined for each ML method. Best overall double underlined. Bold when biological embeddings outperform random node features. Maximum Standard deviation value of 0.0711 for OGBl-ppa and of 0.0928 for HuRI."
+     },
+     {
+      "source": "@ogb",
+      "text": "we rank each positive edge in the validation/test set against 3,000,000 randomly-sampled negative edges, and count the ratio of positive edges that are ranked at K-th place or above (Hits@K)"
+     }
+    ]
+   },
+   {
+    "title": "What the comparison found",
+    "body": "Function-derived embeddings were strongest. The paper reports gains over the random-feature baselines such as ESM-2 with GraphSAGE on OGBl-ppa and NGNN combined with SEAL on HuRI for sequence features; structural embeddings improved on the baselines in both tasks, with the largest gain for NGNN with a GraphSAGE branch; and knowledge graph embeddings gave the largest improvements overall. Functional representations beat sequence and structure consistently, while no consistent difference appeared between sequence and structure. The majority-vote ensemble often beat individual sequence or structure embeddings but usually lost to the functional ones. The protein-only multilayer perceptron ablation reaches performance close to the simpler graph baselines with knowledge graph features alone, which the authors read as evidence that network structure and protein features are complementary.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results and discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Structural embeddings generally outperformed baselines across both tasks, with the largest improvements observed for NGNN-GS (+7.4% for OGBl-ppa, +14.9% for HuRI in Hits@100)."
+     },
+     {
+      "source": "@paper",
+      "text": "Ensemble strategies aggregating different representations via majority voting frequently surpassed individual sequence or structure embeddings but typically underperformed functional embeddings, except for TransE."
+     },
+     {
+      "source": "@paper",
+      "text": "KG-derived functional information alone achieves performance close to simpler GNN baselines, demonstrating that combining network structure with protein-level features maximizes predictive capability (RQ3)"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Two link prediction benchmarks and the knowledge graphs built over them. OGBl-ppa: interaction graph of 576 289 nodes and 30 326 273 edges, with a knowledge graph of 620 555 nodes and 5 989 238 edges. HuRI: interaction graph of 8248 nodes and 51 813 edges, with a knowledge graph of 52 513 nodes and 321 259 edges. A Gene Ontology graph of 44 266 nodes and 71 515 edges is listed beside them. The paper gives no test-set size for either task.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Summary of graph composition for the proposed link prediction tasks."
+     },
+     {
+      "source": "@paper",
+      "text": "<td rowspan=\"1\" colspan=\"1\">576 289</td>"
+     },
+     {
+      "source": "@paper",
+      "text": "30 326 273"
+     },
+     {
+      "source": "@paper",
+      "text": "<td rowspan=\"1\" colspan=\"1\">620 555</td>"
+     },
+     {
+      "source": "@paper",
+      "text": "5 989 238"
+     },
+     {
+      "source": "@paper",
+      "text": "<td rowspan=\"1\" colspan=\"1\">51 813</td>"
+     },
+     {
+      "source": "@paper",
+      "text": "<td rowspan=\"1\" colspan=\"1\">52 513</td>"
+     },
+     {
+      "source": "@paper",
+      "text": "<td rowspan=\"1\" colspan=\"1\">44 266</td>"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Each benchmark's own split is used and the paper does not restate it. For OGBl-ppa the OGB documentation describes a biological throughput split: training edges are associations measured by high-throughput technology or obtained computationally, while validation and test edges are associations that can only be measured by low-throughput laboratory experiments. The negatives differ between the two tasks, which the paper treats as the important difference: OGBl-ppa samples negatives at random under a closed-world assumption, HuRI carries experimentally validated true negatives. No split rule is given for HuRI.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@ogb"
+    ],
+    "source_locator": "Paper: Data; Results and discussion; OGB page: ogbl-ppa dataset splitting",
+    "quotes": [
+     {
+      "source": "@ogb",
+      "text": "We provide a biological throughput split of the edges into training/validation/test edges."
+     },
+     {
+      "source": "@ogb",
+      "text": "In contrast, validation and test edges contain protein associations that can only be measured by low-throughput, resource-intensive experiments performed in laboratories."
+     },
+     {
+      "source": "@paper",
+      "text": "Part of this difference may stem from negative sampling: HuRI includes experimentally validated true negatives, whereas OGBl-ppa uses randomly sampled negatives under a closed-world assumption, which can introduce false negatives and blur model decision boundaries."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Hits@100 (Table 5) and accuracy (Table 6), both higher is better, reported for every combination of node feature source and model on both datasets. Hits@100 is the OGB ranking metric: the fraction of positive test edges ranked in the top 100 against 3,000,000 randomly sampled negative edges. No other metric is reported in the two result tables.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@ogb"
+    ],
+    "source_locator": "Paper: Tables 5 and 6 captions; OGB page: ogbl-ppa prediction task",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "PPI prediction performance (Hits@100) in the OGBl-ppa and HuRI benchmarks"
+     },
+     {
+      "source": "@paper",
+      "text": "PPI prediction performance (Accuracy) in the OGBl-ppa and HuRI benchmarks"
+     },
+     {
+      "source": "@ogb",
+      "text": "count the ratio of positive edges that are ranked at K-th place or above (Hits@K)"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "The same graph neural networks with randomly initialised node features are the reference point, run with the leaderboard hyperparameters for OGBl-ppa. The models are GCN, GraphSAGE, NGNN with a GCN or a GraphSAGE branch, each of those two combined with SEAL, and a multilayer perceptron; a majority-vote ensemble over the representations is reported as well. The protein-only multilayer perceptron with random embeddings is the baseline for the ablation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Experimental design; Tables 5 and 6",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "GNN models included GCN ["
+     },
+     {
+      "source": "@paper",
+      "text": "Randomly initialized GNNs served as baselines, reproducing leaderboard hyperparameters (OGBl-ppa) to ensure comparability."
+     },
+     {
+      "source": "@paper",
+      "text": "where N-GCN/GS corresponds to testing NGNN with GCN and GraphSAGE, respectively, and N-GCN/GS+S corresponds to testing NGNN with GCN and GraphSAGE combined with SEAL, respectively"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "None of the study's own. The comparison relies on the two benchmarks' own splits, and the authors name homology-based partitioning as future work rather than something they did. Two further sources of leakage are acknowledged but not controlled: the protein embedding models are pretrained on public sequence, structure and annotation data that overlap these proteins, and the functional embeddings come from a Gene Ontology knowledge graph whose annotation coverage favours well-studied proteins. The paper quantifies the coverage: in OGBl-ppa 10.6 per cent (61 352) of proteins are not annotated, of which 7.8 per cent are also test proteins, while HuRI proteins are fully annotated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results and discussion; Conclusions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "An important direction for future work would be to complement this analysis with an assessment of robustness and generalizability using sequence homology-based partitioning"
+     },
+     {
+      "source": "@paper",
+      "text": "10.6% (61 352) of proteins are not annotated, of which 7.8% are also test proteins"
+     },
+     {
+      "source": "@paper",
+      "text": "Annotation bias can favor well-studied proteins, potentially limiting generalizability to understudied proteins and non-model organisms."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "A single maximum standard deviation per dataset, given in the footnote of both result tables: 0.0711 for OGBl-ppa and 0.0928 for HuRI. No per-cell standard deviation, no confidence interval and no statistical test between cells is reported, and the number of repeated runs behind those figures is not stated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Tables 5 and 6 footnote",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Maximum Standard deviation value of 0.0711 for OGBl-ppa and of 0.0928 for HuRI."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One example is a candidate edge between two proteins: a protein pair that the model must score as interacting or not. The nodes carrying the features are individual proteins, each represented by a 1024-dimensional sequence or structure embedding or a 128-dimensional function embedding.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Comparative analysis; Experimental design",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Sequence embeddings (1024-d) were generated using PLMs ESM-2 ["
+     },
+     {
+      "source": "@paper",
+      "text": "structure embeddings (1024-d) used inverse folding methods ESM-IF1, PiFold, and ProtT5; and function embeddings (128-d) were obtained via KG embedding methods TransE, ComplEx, and RDF2Vec."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Multi-species for OGBl-ppa and human only for HuRI. The paper's degree figure covers 55 species in OGBl-ppa across eight kingdoms (Pseudomonadati, Bacillati, Fungi, Metazoa, Viridiplantae, Discoba, Amoebozoa and Alveolata), while the OGB documentation describes the dataset's nodes as proteins from 58 different species. HuRI is described as a human-specific dataset.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@ogb"
+    ],
+    "source_locator": "Paper: Figure 5 caption; Data; OGB page: ogbl-ppa graph",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Each boxplot pertains to one of 55 species, sorted by median degree and colored by kingdom"
+     },
+     {
+      "source": "@paper",
+      "text": "HuRI, a human-specific dataset with experimentally validated true negatives"
+     },
+     {
+      "source": "@ogb",
+      "text": "Nodes represent proteins from 58 different species"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "The labels are experimental interaction evidence carried by the two source benchmarks, not measurements made for this study. For OGBl-ppa the edges are biologically meaningful protein associations from STRING, including physical interactions, co-expression, homology and genomic neighbourhood, and the split separates high-throughput from low-throughput evidence. HuRI supplies experimentally validated true negatives as well as positives. The paper describes no assay protocol itself.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@ogb"
+    ],
+    "source_locator": "Paper: Data; Results and discussion; OGB page: ogbl-ppa graph and splitting",
+    "quotes": [
+     {
+      "source": "@ogb",
+      "text": "edges indicate biologically meaningful associations between proteins, e.g., physical interactions, co-expression, homology or genomic neighborhood"
+     },
+     {
+      "source": "@ogb",
+      "text": "Training edges are protein associations that are measured experimentally by a high-throughput technology"
+     },
+     {
+      "source": "@paper",
+      "text": "HuRI includes experimentally validated true negatives"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "The interaction network plus one protein-level representation per node. Three sources are allowed, one at a time: sequence, from the protein language models ESM-2, ProtTrans and ProGen2 over UniRef50 sequences; structure, from the inverse folding models ESM-IF1, PiFold and ProstT5 over PDB structures reached through CATH; and function, from the knowledge graph embedding methods TransE, ComplEx and RDF2Vec over a Gene Ontology and STRING knowledge graph. The random-feature baselines read the topology alone, and the ablation reads the embeddings alone.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Experimental design; Data",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Sequence embeddings (1024-d) were generated using PLMs ESM-2 ["
+     },
+     {
+      "source": "@paper",
+      "text": "structure embeddings (1024-d) used inverse folding methods ESM-IF1, PiFold, and ProtT5; and function embeddings (128-d) were obtained via KG embedding methods TransE, ComplEx, and RDF2Vec."
+     },
+     {
+      "source": "@paper",
+      "text": "both (i) as standalone protein representations in a protein-only baseline and (ii) as node features injected into standard GNN approaches for PPI prediction"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "The protein embeddings are precomputed once from released models and injected as fixed node features; the graph neural networks are trained on each task, reproducing the OGBl-ppa leaderboard hyperparameters. No protein embedding model is fine-tuned on the interaction task. The ablation trains only a multilayer perceptron on concatenated embeddings.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Experimental design",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "as node features injected into standard GNN approaches for PPI prediction, to quantify the combined contribution of protein and network representations"
+     },
+     {
+      "source": "@paper",
+      "text": "Randomly initialized GNNs served as baselines, reproducing leaderboard hyperparameters (OGBl-ppa) to ensure comparability."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The three sources of protein information are compared under one framework with three representative methods each, and every combination is run against the same network with random node features, so the gain attributable to the features can be read directly.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Experimental design; Tables 5 and 6",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The experimental setup evaluates three types of protein-level representations"
+     },
+     {
+      "source": "@paper",
+      "text": "Bold when biological embeddings outperform random node features."
+     }
+    ]
+   },
+   {
+    "text": "The two datasets were chosen to differ in a way that matters for interpretation: one is multi-species with randomly sampled negatives, the other single-species with experimentally validated negatives, and the authors use that contrast to explain part of the performance gap.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data; Results and discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "OGBL-ppa, a widely adopted multi-species benchmark with randomly sampled negatives that assumes a closed-world setting, and HuRI, a human-specific dataset with experimentally validated true negatives that supports evaluation under more realistic conditions"
+     }
+    ]
+   },
+   {
+    "text": "The confound behind the winning feature type is reported rather than hidden: the authors measure annotation coverage in OGBl-ppa and note that annotation bias favours well-studied proteins.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results and discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "10.6% (61 352) of proteins are not annotated, of which 7.8% are also test proteins"
+     },
+     {
+      "source": "@paper",
+      "text": "Annotation bias can favor well-studied proteins, potentially limiting generalizability to understudied proteins and non-model organisms."
+     }
+    ]
+   },
+   {
+    "text": "A protein-only ablation with no network is run alongside the hybrid models, which separates the contribution of the embeddings from the contribution of the topology.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Experimental design",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "an ablation study reformulated PPI prediction as a binary classification task using concatenated protein embeddings with an MLP, with random embeddings as baselines, isolating the contribution of protein-level features independent of network structure"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Uncertainty is reported as one maximum standard deviation per dataset with no per-cell figure, and no test is applied between cells. Several of the differences the paper discusses are smaller than those maxima (0.0711 for OGBl-ppa and 0.0928 for HuRI), so individual rankings cannot be separated from run-to-run variation.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Tables 5 and 6 footnote; Results and discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Maximum Standard deviation value of 0.0711 for OGBl-ppa and of 0.0928 for HuRI."
+     },
+     {
+      "source": "@paper",
+      "text": "such as ESM-2 with GraphSAGE (+6% Hits@100) for OGBl-ppa, and NGNN-GCN+SEAL and NGNN-GS+SEAL (+3% and +2%, respectively) for HuRI"
+     }
+    ]
+   },
+   {
+    "text": "There is no control for homology or for pretraining overlap. The embedding models are pretrained on the same public sequence, structure and annotation resources the test proteins come from, and the authors themselves list homology-based partitioning as work still to be done.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Conclusions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "An important direction for future work would be to complement this analysis with an assessment of robustness and generalizability using sequence homology-based partitioning"
+     }
+    ]
+   },
+   {
+    "text": "The winning feature type depends on annotation availability rather than on the protein itself, which limits how far the conclusion carries: the functional embeddings read Gene Ontology annotations, and the authors say the advantage comes with greater dependence on annotation availability and quality and that broader evaluation on weakly annotated benchmarks is needed.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results and discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "although this advantage comes with greater dependence on annotation availability and quality"
+     },
+     {
+      "source": "@paper",
+      "text": "Broader evaluation on more weakly annotated benchmarks is needed to assess robustness more directly."
+     }
+    ]
+   },
+   {
+    "text": "The text and the tables do not agree on one method. The results text reports a gain for GraphSAGE with DistMult on HuRI, but the knowledge graph columns of Tables 5 and 6 are TransE, ComplEx and RDF2Vec, with no DistMult column.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results and discussion; Tables 5 and 6 column headers",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "GraphSAGE with DistMult (+38% Hits@100 for HuRI)"
+     },
+     {
+      "source": "@paper",
+      "text": "structure embeddings (1024-d) used inverse folding methods ESM-IF1, PiFold, and ProtT5; and function embeddings (128-d) were obtained via KG embedding methods TransE, ComplEx, and RDF2Vec."
+     }
+    ]
+   },
+   {
+    "text": "Nothing executable is published with the paper. The code and the dataset sources are listed in supplementary tables rather than in the article, so the comparison cannot be rerun from the text, and the article itself is under a non-commercial licence.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data availability; licence statement",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "All data sources and code are publicly available and listed in"
+     },
+     {
+      "source": "@paper",
+      "text": "which permits non-commercial re-use, distribution, and reproduction in any medium"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Protein embedding and GNN comparison workflow",
+   "steps": [
+    "interactome: OGBl-ppa or HuRI",
+    "protein embedding per node: sequence, structure or function",
+    "node features injected into a GNN, or used alone in an MLP",
+    "link prediction scored by Hits@100 and accuracy",
+    "compared with the same model on random node features"
+   ],
+   "caption": "Each of the nine embedding methods is run both as a standalone protein representation and as node features for six network configurations, always against a random-feature control.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Experimental design; Tables 5 and 6",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "both (i) as standalone protein representations in a protein-only baseline and (ii) as node features injected into standard GNN approaches for PPI prediction"
+    },
+    {
+     "source": "@paper",
+     "text": "Bold when biological embeddings outperform random node features."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No test-set size is given for either task: the paper prints graph node and edge counts only.",
+   "The number of repeated runs behind the reported maximum standard deviations is not stated, and no per-cell variance is given.",
+   "The code and the per-dataset sources and licences are in supplementary tables S1, S4 and S8, which are served through a download gate and were not retrieved, so no code address is recorded here.",
+   "The split rule for HuRI is not described in the article, and the OGBl-ppa split had to be read from the OGB documentation rather than from the paper.",
+   "Hyperparameters for the embedding methods and the networks are in supplementary tables S3 and S5 to S7, which were not retrieved."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the PMC full-text XML of PMC13280947 (Briefings in Bioinformatics 2026, bbag313, doi 10.1093/bib/bbag313), including Tables 4 to 6, and the Open Graph Benchmark link property prediction documentation page for the ogbl-ppa split, metric and licence, on 2026-11-27. The supplementary material was not retrieved. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "The article gives no commands, no repository address and no entry point: it states only that all data sources and code are listed in supplementary tables S1, S4 and S8, and the supplementary archive is served through a download gate that was not followed. Nothing in the saved sources supports a runnable sequence of steps.",
+ "structured": [
+  {
+   "task": "OGBl-ppa PPI link prediction, Hits@100",
+   "dataset": "OGBl-ppa PPI graph",
+   "size": 30326273,
+   "size_unit": "edges in the whole PPI graph",
+   "split": "biological throughput split of the edges into training, validation and test",
+   "primary_metric": "Hits@100",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://ogb.stanford.edu/docs/linkprop/",
+   "data_licence": "CC0-1.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "PPI prediction performance (Hits@100) in the OGBl-ppa and HuRI benchmarks"
+    },
+    {
+     "source": "@paper",
+     "text": "30 326 273"
+    },
+    {
+     "source": "@ogb",
+     "text": "We provide a biological throughput split of the edges into training/validation/test edges."
+    },
+    {
+     "source": "@ogb",
+     "text": "The task is to predict new association edges given the training edges."
+    },
+    {
+     "source": "@ogb",
+     "text": "License: CC-0"
+    }
+   ]
+  },
+  {
+   "task": "OGBl-ppa PPI link prediction, Accuracy",
+   "dataset": "OGBl-ppa PPI graph",
+   "size": 30326273,
+   "size_unit": "edges in the whole PPI graph",
+   "split": "biological throughput split of the edges into training, validation and test",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://ogb.stanford.edu/docs/linkprop/",
+   "data_licence": "CC0-1.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "PPI prediction performance (Accuracy) in the OGBl-ppa and HuRI benchmarks"
+    },
+    {
+     "source": "@paper",
+     "text": "30 326 273"
+    },
+    {
+     "source": "@ogb",
+     "text": "We provide a biological throughput split of the edges into training/validation/test edges."
+    },
+    {
+     "source": "@ogb",
+     "text": "License: CC-0"
+    }
+   ]
+  },
+  {
+   "task": "HuRI PPI link prediction, Hits@100",
+   "dataset": "HuRI PPI graph",
+   "size": 51813,
+   "size_unit": "edges in the whole PPI graph",
+   "split": "not stated; experimentally validated true negatives",
+   "primary_metric": "Hits@100",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "PPI prediction performance (Hits@100) in the OGBl-ppa and HuRI benchmarks"
+    },
+    {
+     "source": "@paper",
+     "text": "<td rowspan=\"1\" colspan=\"1\">51 813</td>"
+    },
+    {
+     "source": "@paper",
+     "text": "HuRI includes experimentally validated true negatives"
+    }
+   ]
+  },
+  {
+   "task": "HuRI PPI link prediction, Accuracy",
+   "dataset": "HuRI PPI graph",
+   "size": 51813,
+   "size_unit": "edges in the whole PPI graph",
+   "split": "not stated; experimentally validated true negatives",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "PPI prediction performance (Accuracy) in the OGBl-ppa and HuRI benchmarks"
+    },
+    {
+     "source": "@paper",
+     "text": "<td rowspan=\"1\" colspan=\"1\">51 813</td>"
+    },
+    {
+     "source": "@paper",
+     "text": "HuRI, a human-specific dataset with experimentally validated true negatives"
+    }
+   ]
+  }
+ ],
+ "notes": "The record is one review paper's own comparison, not a released suite: no leaderboard, no repository address in the article and no code licence, so those fields are null. The sizes in the structured entries are whole-graph edge counts from Table 4, labelled as such, because the paper prints no test-set size for either task; they must not be read as test sizes. The OGBl-ppa split rule, the Hits@100 definition and the CC0 data licence come from the Open Graph Benchmark documentation page, not from the paper, and are attributed there. Two points for a reviewer: the results text reports a GraphSAGE with DistMult gain on HuRI but no DistMult column exists in Tables 5 or 6, and the species count differs between sources (the paper's Figure 5 covers 55 species, the OGB page says 58). The paper also names ProtT5 in the experimental design list of structure embedding methods while Tables 5 and 6 label that column ProstT5. The article is CC BY-NC, so the saved XML is not redistributable and its store_bytes is false."
+}

@@ -1,0 +1,819 @@
+{
+ "record_id": "ucc-docking-cluspro-bm5-2020-benchmark",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Vajda group 2020 ClusPro BM5 study, PMC full-text XML (PMC7484347)",
+   "description": "NCBI PMC full-text XML of Performance and its limits in rigid body protein-protein docking, fetched through E-utilities efetch.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=7484347",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7484347/",
+   "version": "PMC7484347.1",
+   "media_type": "application/xml",
+   "sha256": "ac5123d83a59477eed7f73371cfdd1a2be14f8c0d165a8cc9764df785b55eecf",
+   "retrieved_at": "2026-11-27T03:16:30Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "This is one 2020 study's evaluation, not a released suite: the docking server ClusPro was run on all 230 target complexes of Protein Docking Benchmark 5.0 from their unbound component structures, and the top 30 models per target were scored with DockQ. A model counts as good at DockQ 0.23 or above, and success rates are reported in the top 1, 5, 10 and 30 predictions, broken down by target type (enzyme-containing, antibody-antigen and other) and by docking difficulty (rigid, medium, difficult). Three of the 230 targets could not be scored, so the percentages rest on 227. It is useful as a reference point for how far a rigid-body Fourier-transform docking method gets on a standard benchmark, which is what the paper sets out to measure.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Summary; Results, Performance on the protein docking benchmark; Table 1",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "The component proteins of all 230 target complexes were directly downloaded from BM5 and docked using ClusPro."
+   },
+   {
+    "source": "@paper",
+    "text": "The top 30 models (centers of the 30 largest clusters) were evaluated using the DockQ program."
+   },
+   {
+    "source": "@paper",
+    "text": "In this paper we use a well-established protein-protein docking benchmark set to evaluate the results of these limitations by focusing on the performance of the docking server ClusPro, which implements one of the best rigid body methods."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether a rigid-body docking method, given the two unbound component structures of a complex, produces a near-native model of the complex, and whether it ranks that model highly enough to be found. The two questions are kept apart deliberately: success is reported at several cut-offs in the ranked list, because the authors note that docking methods rarely put the best model first and that five or ten models can be passed on for refinement, which is also how the CAPRI experiment has handled submissions. The study's wider aim is to find the limits of the approach, so it also compares cluster-based with energy-based model selection and compares against flexible docking.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Summary; Results, Performance on the protein docking benchmark",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Although the methods perform “soft” docking, which allows for some overlap of component proteins, the rigid body assumption clearly introduces limitations on accuracy and reliability."
+     },
+     {
+      "source": "@paper",
+      "text": "First, as will be shown, docking methods rarely identify the best model as the top 1 prediction, but 5 or 10 models can be subjected to further refinement and rescoring."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "The target set is not the authors' own: it is Protein Docking Benchmark 5.0, described as a non-redundant and fairly diverse set of complexes in which each entry has the structure of the complex and of one or both unbound components. It holds 40 antibody-antigen, 88 enzyme-containing and 102 other complexes, and classifies them by docking difficulty into 151 rigid-body (easy), 45 medium and 34 difficult targets. The study downloaded the component proteins directly from the benchmark and docked all 230. Table 1 splits the antibody-antigen targets further into 26 with an unbound antibody structure and 12 whose antibody structure comes from the complex.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Quantification and statistical analysis, Protein Docking Benchmark Version 5.0; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Benchmark set 5.0 (BM5) is a nonredundant and fairly diverse set of protein complexes for testing protein-protein docking algorithms. For each complex the 3D structures of the complex and one or both unbound components are available."
+     },
+     {
+      "source": "@paper",
+      "text": "The set includes 40 antibody-antigen, 88 enzyme-containing and 102 “others” complexes. In terms of docking difficulty, the complexes are classified into the following groups: 151 rigid-body (easy), 45 medium difficulty and 34 difficult targets."
+     },
+     {
+      "source": "@paper",
+      "text": "Targets with the antibody structure from the complex"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "For each complex the 1000 lowest-energy models were kept and the centres of the 30 largest clusters were scored with DockQ against the native complex. DockQ is a continuous score from 0 to 1 that combines the three CAPRI measures (the fraction of native contacts, interface RMSD and ligand RMSD), with 0.23 or above acceptable, 0.49 or above medium and 0.80 or above high accuracy; the paper treats it as a higher-resolution version of the CAPRI classification. A target counts as solved when an acceptable or better model appears within the chosen cut-off, and rates are given for the top 1, 5, 10 and 30. ClusPro was run per target type with the setting the server recommends for it, the balanced coefficient set for enzymes, antibody mode for antibodies and the others mode for the rest, and those coefficient choices were themselves cross-validated on the earlier benchmark version rather than tuned on BM5.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Quantification and statistical analysis, Evaluating Prediction Accuracy Using DOCKQ and the coefficient validation section",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For each complex, the 1000 lowest energy models were retained."
+     },
+     {
+      "source": "@paper",
+      "text": "a continuous score called DockQ was developed that encapsulated the three measures Fnat, iRMSD, and LRMSD"
+     },
+     {
+      "source": "@paper",
+      "text": "is able to score predictions between 0 and 1 where ≥ 0.23 is acceptable, ≥ 0.49 is medium and ≥ 0.80 is high accuracy"
+     },
+     {
+      "source": "@paper",
+      "text": "Unless otherwise noted, all figures of ClusPro’s results show with balanced coefficient set for enzymes, antibody mode for antibodies, and “others” mode for “other” type complexes"
+     },
+     {
+      "source": "@paper",
+      "text": "In both cases we performed 5-fold cross-validation on the proteins in BM4, and also applied the selected parameters sets to the 55 targets in BM5 that were not part of BM4."
+     }
+    ]
+   },
+   {
+    "title": "What the study found",
+    "body": "In the top 10 predictions ClusPro produced an acceptable or better model for 51 of the 88 enzyme-containing complexes (57.95 per cent), 19 of the 38 scored antibody-antigen complexes (50 per cent, split in Table 1 into 12 of 26 unbound and 7 of 12 bound-antibody targets) and 27 of the 101 scored other complexes (26.73 per cent), giving 97 of 227 overall (42.73 per cent). Going to the top 30 adds eight enzyme, five antibody and nine other targets, for 119 of 227 (52.42 per cent). Difficulty matters more than type: 51.68 per cent of rigid targets are solved in the top 10 against 31.82 per cent medium and 17.65 per cent difficult, rising to 63.09, 36.36 and 26.47 per cent in the top 30, and every high-accuracy prediction in the antibody and enzyme sets came from the rigid category.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Performance on the protein docking benchmark; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Indeed, 51 of the 88 such complexes (57.9%) had acceptable or better models in the top 10 predictions, compared to 19 of the 40 antibody-antigen complexes (50%)"
+     },
+     {
+      "source": "@paper",
+      "text": "In total, 42.7% of the benchmark set had acceptable or better solutions in the top 10 predictions, which increases to 52.4% in the top 30."
+     },
+     {
+      "source": "@paper",
+      "text": "ClusPro solves 51.7% of rigid (easy) targets compared to 31.8% for intermediate and 17.6% for flexible (difficult) targets in the top 10 (T10) predictions."
+     },
+     {
+      "source": "@paper",
+      "text": "All high accuracy predictions were from the rigid category in both antibody and enzyme containing cases."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Protein Docking Benchmark 5.0: 230 target complexes, of which 40 antibody-antigen, 88 enzyme-containing and 102 other, classified by difficulty into 151 rigid-body, 45 medium and 34 difficult. Three targets could not be scored, two antibody-antigen ones because of their size and one other, so all percentages rest on 227 targets: 88 enzyme, 38 antibody-antigen (26 with an unbound antibody structure and 12 with the antibody structure taken from the complex) and 101 other. The study adds no data of its own; a separate section reviews ClusPro's results in seven CAPRI and CAPRI/CASP rounds, which is a different set.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Protein Docking Benchmark Version 5.0; Results; Table 1; Table 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The set includes 40 antibody-antigen, 88 enzyme-containing and 102 “others” complexes. In terms of docking difficulty, the complexes are classified into the following groups: 151 rigid-body (easy), 45 medium difficulty and 34 difficult targets."
+     },
+     {
+      "source": "@paper",
+      "text": "note that only 38 of the 40 were evaluated successfully as DockQ failed to evaluate the predictions for 2 targets because of their large size"
+     },
+     {
+      "source": "@paper",
+      "text": "only 101 of the 102 were evaluated successfully by DockQ"
+     },
+     {
+      "source": "@paper",
+      "text": "ClusPro’s performance in top 10 and top 30 predictions for 227 targets in benchmark 5.0 (BM5)"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "No training or test split: every one of the 230 targets is docked and scored. The only partitions are descriptive, by target type and by docking difficulty. Where a parameter choice had to be made, it was made on the previous benchmark version rather than on BM5: five-fold cross-validation on BM4 complexes selected the energy coefficient sets, which were then applied to the 55 BM5 targets that were not in BM4.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Validation of energy weight coefficient sets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In both cases we performed 5-fold cross-validation on the proteins in BM4, and also applied the selected parameters sets to the 55 targets in BM5 that were not part of BM4."
+     },
+     {
+      "source": "@paper",
+      "text": "The 71 enzyme-containing complexes in BM4 were shuffled randomly with a python script and divided into 5 sets."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "DockQ, higher is better, on a 0 to 1 scale, with the bands 0.23 or above acceptable, 0.49 or above medium and 0.80 or above high accuracy; a model at 0.23 or above is called a good solution. The reported quantity is a success rate: the percentage of targets with at least one good model within the top 1, 5, 10 or 30 predictions, with the counts of high and medium accuracy models given alongside. DockQ combines the three CAPRI measures, the fraction of native contacts, interface RMSD and ligand RMSD (lower is better for the two RMSD measures), whose own thresholds are also stated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; The CAPRI Criteria of Prediction Accuracy; Evaluating Prediction Accuracy Using DOCKQ",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a DockQ result of 0.23 and above (acceptable or better) will be termed as a good solution"
+     },
+     {
+      "source": "@paper",
+      "text": "In many cases we also list the success rates (i.e., the percentages of targets with acceptable, medium, or high accuracy models) in the top 1, top 5, top 10, and top 30 predictions"
+     },
+     {
+      "source": "@paper",
+      "text": "CAPRI uses three related parameters for assessing a model: Fnat, iRMSD, and LRMSD"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "The study is about one method, ClusPro, with its PIPER docking engine, so there is no baseline in the usual sense. Three comparisons stand in for one: cluster-based against energy-based model selection within ClusPro, a comparison with flexible docking algorithms, and a review of the historical performance of three servers (ClusPro, HADDOCK and SwarmDock) over seven CAPRI and CAPRI/CASP rounds, where the totals of good predictions are 53, 43 and 33 respectively based on the top 10 models per target.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Summary; Table 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Furthermore, we explore the theoretical limits of accuracy when using established energy terms for scoring, provide comparison to flexible docking algorithms, and review the historical performance of servers in the CAPRI docking experiment."
+     },
+     {
+      "source": "@paper",
+      "text": "Performance of three servers in CAPRI and CAPRI/CASP"
+     },
+     {
+      "source": "@paper",
+      "text": "Number of targets with “good” (acceptable or better) predictions, among them predictions with high (***) and medium (**) accuracy, based on the top 10 models for each target"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "One, and only for the parameter choice: the energy coefficient sets were selected by five-fold cross-validation on the earlier BM4 complexes and then applied to the BM5 targets, including the 55 that were not in BM4, so the weights were not fitted on the reported targets. There is no control of the kind a learned method would need: the benchmark is described as non-redundant but no sequence identity cut-off, time split or held-out family is applied for this evaluation, and the docking method is a physics-based scoring function rather than a trained model.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Validation of energy weight coefficient sets; Protein Docking Benchmark Version 5.0",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In both cases we performed 5-fold cross-validation on the proteins in BM4, and also applied the selected parameters sets to the 55 targets in BM5 that were not part of BM4."
+     },
+     {
+      "source": "@paper",
+      "text": "Benchmark set 5.0 (BM5) is a nonredundant and fairly diverse set of protein complexes for testing protein-protein docking algorithms."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Unreported. The results are counts and percentages of targets with no interval, no repeated run and no statistical test between settings; docking is deterministic given the inputs and settings, and the paper does not discuss variability. The only error-like quantity reported is the number of targets DockQ could not score.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Table 1"
+   },
+   {
+    "label": "Entity type",
+    "value": "One example is a protein-protein complex: the two unbound component structures are the input and the deposited complex is the reference. The unit of scoring within a target is a docked model, the centre of one of the 30 largest clusters, and a target is counted once according to its best model within the cut-off.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Protein Docking Benchmark Version 5.0",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For each complex the 3D structures of the complex and one or both unbound components are available."
+     },
+     {
+      "source": "@paper",
+      "text": "The top 30 models (centers of the 30 largest clusters) were evaluated using the DockQ program."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Unreported. The targets are Protein Docking Benchmark 5.0 complexes, grouped by functional type and docking difficulty; no species composition is given anywhere in the paper.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Protein Docking Benchmark Version 5.0"
+   },
+   {
+    "label": "Assays",
+    "value": "None. The reference is the experimentally determined structure of each complex, taken from the benchmark, and every reported quantity is a geometric comparison with it. No binding or activity measurement is involved.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Protein Docking Benchmark Version 5.0; The CAPRI Criteria of Prediction Accuracy",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Interface RMSD (iRMSD) is defined as the RMSD of all interface backbone atoms once superposed on the native structure"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "The unbound component structures of the complex, downloaded directly from the benchmark, plus the knowledge of which type of complex it is, since the run uses the coefficient set recommended for that type (balanced for enzymes, antibody mode for antibodies, others mode for the rest). For antibodies that mode uses a special parameterisation. No information from the native complex enters the docking.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Evaluating Prediction Accuracy Using DOCKQ, coefficient sets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The component proteins of all 230 target complexes were directly downloaded from BM5 and docked using ClusPro."
+     },
+     {
+      "source": "@paper",
+      "text": "In addition, special parameterization is used for “other” type complexes (03), and also for antibody-antigen targets."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "No training. ClusPro is a rigid-body Fourier-transform docking method with fixed energy terms; the only fitted quantities are the weights of those terms, chosen among four published coefficient sets by cross-validation on the earlier benchmark. The paper describes the method as working only with energy expressions that can be written as sums of correlation functions, which is part of the limitation it sets out to measure.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Summary; Validation of energy weight coefficient sets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In addition, the method can work only with energy expressions represented by sums of correlation functions."
+     },
+     {
+      "source": "@paper",
+      "text": "As described, ClusPro currently generates results using four different sets of energy weights"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The target set is an external standard rather than a selection: all 230 complexes of Protein Docking Benchmark 5.0 were docked from their unbound components, with no filtering by the authors.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Performance on the protein docking benchmark",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The component proteins of all 230 target complexes were directly downloaded from BM5 and docked using ClusPro."
+     }
+    ]
+   },
+   {
+    "text": "Success is reported at four cut-offs in the ranked list rather than only at the top, which separates the ability to produce a near-native model from the ability to rank it first, and the authors explain why that distinction matters in practice.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Performance on the protein docking benchmark",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In many cases we also list the success rates (i.e., the percentages of targets with acceptable, medium, or high accuracy models) in the top 1, top 5, top 10, and top 30 predictions"
+     },
+     {
+      "source": "@paper",
+      "text": "docking methods rarely identify the best model as the top 1 prediction, but 5 or 10 models can be subjected to further refinement and rescoring"
+     }
+    ]
+   },
+   {
+    "text": "The breakdown by target type and by docking difficulty, with the number of targets in each cell, lets a reader see that the overall rate is carried by the 151 rigid targets rather than treating it as uniform.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The overall success rate still reaches 42.7% because 151 of the 230 targets are classified as rigid body."
+     },
+     {
+      "source": "@paper",
+      "text": "Total/easy/medium/difficult targets"
+     }
+    ]
+   },
+   {
+    "text": "The scoring tool is external and standard: DockQ, which reproduces the CAPRI accuracy classes and is cited as having been used in the official evaluation of a CAPRI round, with its code address given.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Evaluating Prediction Accuracy Using DOCKQ",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Therefore DockQ has been widely accepted and was even implemented in the official evaluations of the latest CAPRI round."
+     }
+    ]
+   },
+   {
+    "text": "The per-target results are published with the paper rather than summarised only: the number of acceptable, medium and high accuracy predictions for each BM5 target at each cut-off is given in a supplementary data file.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Data and Code Availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The published article includes all datasets generated during this study in the file <xref rid=\"SD1\" ref-type=\"supplementary-material\">Data S1</xref>."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Author-reported, for one method: the group that develops ClusPro ran it, chose the per-type settings and scored the results. The comparisons with other servers come from published CAPRI rounds rather than from runs made here.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Summary; Table 2 footnote",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "focusing on the performance of the docking server ClusPro, which implements one of the best rigid body methods"
+     },
+     {
+      "source": "@paper",
+      "text": "Year of the publication reporting the results"
+     }
+    ]
+   },
+   {
+    "text": "Three of the 230 targets are missing from every percentage because DockQ could not score them, two antibody-antigen complexes for their size and one other complex, so the denominator is 227 and the antibody set is 38 rather than 40.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Performance on the protein docking benchmark",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "note that only 38 of the 40 were evaluated successfully as DockQ failed to evaluate the predictions for 2 targets because of their large size"
+     },
+     {
+      "source": "@paper",
+      "text": "(Note that all percentages are based on the 227 successfully evaluated targets)"
+     }
+    ]
+   },
+   {
+    "text": "The run is not a blind one and not fully method-agnostic: each target type is docked with the coefficient set the authors recommend for that type, so a user who does not know the type of their complex would not reproduce these conditions.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Unless otherwise noted, all figures of ClusPro’s results show with balanced coefficient set for enzymes, antibody mode for antibodies, and “others” mode for “other” type complexes"
+     }
+    ]
+   },
+   {
+    "text": "No uncertainty is attached to any figure, so small differences between cells, including between the unbound and bound antibody subsets of 26 and 12 targets, cannot be separated from noise.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Targets with “good” (acceptable or better) predictions"
+     }
+    ]
+   },
+   {
+    "text": "This is a 2020 evaluation of a rigid-body method on a benchmark of unbound structures, and the record should not be read against modern co-folding results: the paper itself frames the exercise as finding the limits imposed by the rigid-body assumption.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Summary",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the rigid body assumption clearly introduces limitations on accuracy and reliability"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "ClusPro BM5 evaluation workflow",
+   "steps": [
+    "unbound components of each of the 230 BM5 targets",
+    "ClusPro docking with the coefficient set for that target type",
+    "keep the 1000 lowest-energy models, cluster them",
+    "score the centres of the 30 largest clusters with DockQ",
+    "count targets with a model at DockQ 0.23 or above in the top 1, 5, 10 and 30"
+   ],
+   "caption": "The success rate is a per-target count: a target is solved when any model within the cut-off reaches the acceptable band.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Results, Performance on the protein docking benchmark",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For each complex, the 1000 lowest energy models were retained. The top 30 models (centers of the 30 largest clusters) were evaluated using the DockQ program."
+    },
+    {
+     "source": "@paper",
+     "text": "a DockQ result of 0.23 and above (acceptable or better) will be termed as a good solution"
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "The paper is the only source read: the benchmark itself (Protein Docking Benchmark 5.0), the ClusPro server and the DockQ program were not fetched, so their own versions, terms and current state are not recorded here.",
+   "The per-target results in the supplementary data file were not retrieved, so only the aggregate Table 1 figures are recorded.",
+   "The top 1 and top 5 success rates are described in the text as reported but their values sit in figures that were not transcribed.",
+   "No licence statement was found in the saved XML, so the article's bytes are kept but not treated as redistributable.",
+   "No species information is given for any target."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the PMC full-text XML of PMC7484347, including the Results, the Star Methods and Tables 1 and 2, on 2026-11-27. The benchmark set, the ClusPro server and the supplementary data file were not fetched. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "The paper gives no commands. Docking was run through the ClusPro web server, whose address it states is free for academic and governmental use, and scoring used the external DockQ program; no script, parameter file or command line is published, and the only released artefact is a supplementary results file. Nothing in the saved source supports a runnable sequence of steps.",
+ "structured": [
+  {
+   "task": "Enzyme-containing complexes, top 10 predictions",
+   "dataset": "Protein Docking Benchmark 5.0 enzyme-containing targets",
+   "size": 88,
+   "size_unit": "evaluated targets",
+   "split": "no split; all targets docked from unbound components, coefficient set chosen for the type",
+   "primary_metric": "success rate, DockQ at least 0.23 in the top 10",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://zlab.umassmed.edu/benchmark/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Indeed, 51 of the 88 such complexes (57.9%) had acceptable or better models in the top 10 predictions"
+    },
+    {
+     "source": "@paper",
+     "text": "a DockQ result of 0.23 and above (acceptable or better) will be termed as a good solution"
+    },
+    {
+     "source": "@paper",
+     "text": "Protein Docking Benchmark</td><td align=\"left\" valign=\"top\" rowspan=\"1\" colspan=\"1\"><xref rid=\"R51\" ref-type=\"bibr\">Vreven,et al., 2015</xref></td><td align=\"left\" valign=\"top\" rowspan=\"1\" colspan=\"1\"><ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://zlab.umassmed.edu/benchmark/\">https://zlab.umassmed.edu/benchmark"
+    }
+   ]
+  },
+  {
+   "task": "Enzyme-containing complexes, top 30 predictions",
+   "dataset": "Protein Docking Benchmark 5.0 enzyme-containing targets",
+   "size": 88,
+   "size_unit": "evaluated targets",
+   "split": "no split; all targets docked from unbound components, coefficient set chosen for the type",
+   "primary_metric": "success rate, DockQ at least 0.23 in the top 30",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://zlab.umassmed.edu/benchmark/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Increasing the number of predictions from top 10 to top 30, eight more enzyme containing complexes, five more antibody-antigen complexes, and nine more “other” type complexes had acceptable or better solutions."
+    },
+    {
+     "source": "@paper",
+     "text": "ClusPro’s performance in top 10 and top 30 predictions for 227 targets in benchmark 5.0 (BM5)"
+    },
+    {
+     "source": "@paper",
+     "text": "Protein Docking Benchmark</td><td align=\"left\" valign=\"top\" rowspan=\"1\" colspan=\"1\"><xref rid=\"R51\" ref-type=\"bibr\">Vreven,et al., 2015</xref></td><td align=\"left\" valign=\"top\" rowspan=\"1\" colspan=\"1\"><ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://zlab.umassmed.edu/benchmark/\">https://zlab.umassmed.edu/benchmark"
+    }
+   ]
+  },
+  {
+   "task": "Antibody-antigen complexes with unbound antibody, top 10 predictions",
+   "dataset": "Protein Docking Benchmark 5.0 unbound-antibody targets",
+   "size": 26,
+   "size_unit": "evaluated targets",
+   "split": "no split; subset of the 38 scored antibody-antigen targets, antibody mode used",
+   "primary_metric": "success rate, DockQ at least 0.23 in the top 10",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://zlab.umassmed.edu/benchmark/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Unbound antibody"
+    },
+    {
+     "source": "@paper",
+     "text": "note that only 38 of the 40 were evaluated successfully as DockQ failed to evaluate the predictions for 2 targets because of their large size"
+    },
+    {
+     "source": "@paper",
+     "text": "a DockQ result of 0.23 and above (acceptable or better) will be termed as a good solution"
+    }
+   ]
+  },
+  {
+   "task": "Antibody-antigen complexes with unbound antibody, top 30 predictions",
+   "dataset": "Protein Docking Benchmark 5.0 unbound-antibody targets",
+   "size": 26,
+   "size_unit": "evaluated targets",
+   "split": "no split; subset of the 38 scored antibody-antigen targets, antibody mode used",
+   "primary_metric": "success rate, DockQ at least 0.23 in the top 30",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://zlab.umassmed.edu/benchmark/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Unbound antibody"
+    },
+    {
+     "source": "@paper",
+     "text": "ClusPro’s performance in top 10 and top 30 predictions for 227 targets in benchmark 5.0 (BM5)"
+    },
+    {
+     "source": "@paper",
+     "text": "a DockQ result of 0.23 and above (acceptable or better) will be termed as a good solution"
+    }
+   ]
+  },
+  {
+   "task": "Antibody-antigen complexes with the antibody from the complex, top 10 predictions",
+   "dataset": "Protein Docking Benchmark 5.0 bound-antibody targets",
+   "size": 12,
+   "size_unit": "evaluated targets",
+   "split": "no split; subset of the 38 scored antibody-antigen targets whose antibody structure comes from the complex",
+   "primary_metric": "success rate, DockQ at least 0.23 in the top 10",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://zlab.umassmed.edu/benchmark/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Targets with the antibody structure from the complex"
+    },
+    {
+     "source": "@paper",
+     "text": "a DockQ result of 0.23 and above (acceptable or better) will be termed as a good solution"
+    },
+    {
+     "source": "@paper",
+     "text": "ClusPro’s performance in top 10 and top 30 predictions for 227 targets in benchmark 5.0 (BM5)"
+    }
+   ]
+  },
+  {
+   "task": "Antibody-antigen complexes with the antibody from the complex, top 30 predictions",
+   "dataset": "Protein Docking Benchmark 5.0 bound-antibody targets",
+   "size": 12,
+   "size_unit": "evaluated targets",
+   "split": "no split; subset of the 38 scored antibody-antigen targets whose antibody structure comes from the complex",
+   "primary_metric": "success rate, DockQ at least 0.23 in the top 30",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://zlab.umassmed.edu/benchmark/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Targets with the antibody structure from the complex"
+    },
+    {
+     "source": "@paper",
+     "text": "ClusPro’s performance in top 10 and top 30 predictions for 227 targets in benchmark 5.0 (BM5)"
+    },
+    {
+     "source": "@paper",
+     "text": "a DockQ result of 0.23 and above (acceptable or better) will be termed as a good solution"
+    }
+   ]
+  },
+  {
+   "task": "Other complexes, top 10 predictions",
+   "dataset": "Protein Docking Benchmark 5.0 other targets",
+   "size": 101,
+   "size_unit": "evaluated targets",
+   "split": "no split; others mode used; 101 of the 102 targets could be scored",
+   "primary_metric": "success rate, DockQ at least 0.23 in the top 10",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://zlab.umassmed.edu/benchmark/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "and 27 of the 102 “other” type complexes (26.7%) (only 101 of the 102 were evaluated successfully by DockQ)"
+    },
+    {
+     "source": "@paper",
+     "text": "a DockQ result of 0.23 and above (acceptable or better) will be termed as a good solution"
+    }
+   ]
+  },
+  {
+   "task": "Other complexes, top 30 predictions",
+   "dataset": "Protein Docking Benchmark 5.0 other targets",
+   "size": 101,
+   "size_unit": "evaluated targets",
+   "split": "no split; others mode used; 101 of the 102 targets could be scored",
+   "primary_metric": "success rate, DockQ at least 0.23 in the top 30",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://zlab.umassmed.edu/benchmark/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "only 101 of the 102 were evaluated successfully by DockQ"
+    },
+    {
+     "source": "@paper",
+     "text": "ClusPro’s performance in top 10 and top 30 predictions for 227 targets in benchmark 5.0 (BM5)"
+    },
+    {
+     "source": "@paper",
+     "text": "a DockQ result of 0.23 and above (acceptable or better) will be termed as a good solution"
+    }
+   ]
+  },
+  {
+   "task": "All targets, top 10 predictions",
+   "dataset": "Protein Docking Benchmark 5.0, successfully scored targets",
+   "size": 227,
+   "size_unit": "evaluated targets",
+   "split": "no split; all 230 targets docked, 227 scored",
+   "primary_metric": "success rate, DockQ at least 0.23 in the top 10",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://zlab.umassmed.edu/benchmark/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "In total, 42.7% of the benchmark set had acceptable or better solutions in the top 10 predictions, which increases to 52.4% in the top 30."
+    },
+    {
+     "source": "@paper",
+     "text": "(Note that all percentages are based on the 227 successfully evaluated targets)"
+    },
+    {
+     "source": "@paper",
+     "text": "a DockQ result of 0.23 and above (acceptable or better) will be termed as a good solution"
+    }
+   ]
+  },
+  {
+   "task": "All targets, top 30 predictions",
+   "dataset": "Protein Docking Benchmark 5.0, successfully scored targets",
+   "size": 227,
+   "size_unit": "evaluated targets",
+   "split": "no split; all 230 targets docked, 227 scored",
+   "primary_metric": "success rate, DockQ at least 0.23 in the top 30",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://zlab.umassmed.edu/benchmark/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "That amounts to 97 and 119 good solutions in the top 10 and in the top 30, respectively."
+    },
+    {
+     "source": "@paper",
+     "text": "(Note that all percentages are based on the 227 successfully evaluated targets)"
+    },
+    {
+     "source": "@paper",
+     "text": "a DockQ result of 0.23 and above (acceptable or better) will be termed as a good solution"
+    }
+   ]
+  }
+ ],
+ "notes": "One 2020 author-reported study, not a released suite, so results_url and code_url are null; the data_url is the benchmark's own address as the paper's resources table prints it, and no licence is stated for the benchmark, the server or the article in the saved source. Sizes: 230 targets were docked but only 227 could be scored, and every published percentage uses 227, so the structured entries carry the evaluated counts (88 enzyme, 26 unbound antibody, 12 bound antibody, 101 other, 227 total) and not the nominal 40 and 102. The antibody-antigen figure quoted in the Results text as 19 of 40 (50 per cent) is stated by the same paragraph to rest on 38 scored targets, and Table 1 splits those 38 into the unbound and bound subsets recorded here; the 40 must not be used as a denominator. The record's own description called this a study on 227 DockQ-evaluable BM5 targets, which the paper supports. CAPRI results in Table 2 are a separate historical review of three servers over seven rounds and are not represented in the structured entries."
+}

@@ -1,0 +1,544 @@
+{
+ "record_id": "torchcraft-20261115-benchmark-cyclic-peptide-8-target",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Text layer of the TorchCraft paper, arXiv 2609.19770v1",
+   "description": "Text extracted with pdftotext -layout from the arXiv PDF of 'TorchCraft: Unified binder design by inverting an all-atom structure predictor', TorchCraft Team, Changping Laboratory. The PDF is kept beside it as artifacts/paper.pdf. Appendix A.4 holds the benchmark settings, the pass criteria and the supplementary target tables.",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2609.19770v1",
+   "url": "https://arxiv.org/abs/2609.19770v1",
+   "version": "arXiv v1, 17 September 2026",
+   "media_type": "text/plain",
+   "sha256": "90f1da5f8a936766087beba0ade3f038f5b69504b9f581b42f2391f5640c5e6b",
+   "retrieved_at": "2026-11-27T03:28:11Z",
+   "store_bytes": false
+  },
+  {
+   "key": "readme",
+   "name": "Mingchenchen/TorchX README.md at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+   "description": "README of the code repository the paper names, pinned to the head of its default branch main. Lists the modules and the entry points for folding, scoring and design.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/Mingchenchen/TorchX/ebf9dc6676ecb1be505bc72f87de408995f0d8fd/README.md",
+   "url": "https://github.com/Mingchenchen/TorchX",
+   "version": "git commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+   "media_type": "text/markdown",
+   "sha256": "88da821dfed6d76a6d1d2efd1e3e124a18f35c07d6fdf45a8e374fc2c35fccf0",
+   "retrieved_at": "2026-11-27T03:43:42Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "licence",
+   "name": "Mingchenchen/TorchX LICENSE at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+   "description": "The licence file of the code repository, the Apache License version 2.0.",
+   "file": "artifacts/licence.txt",
+   "artifact_url": "https://raw.githubusercontent.com/Mingchenchen/TorchX/ebf9dc6676ecb1be505bc72f87de408995f0d8fd/LICENSE",
+   "url": "https://github.com/Mingchenchen/TorchX",
+   "version": "git commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+   "media_type": "text/plain",
+   "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+   "retrieved_at": "2026-11-27T03:43:42Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "This is the in silico cyclic peptide design comparison published with TorchCraft. Eight target systems, listed with PDB entries, crops, hotspots and a peptide length range of 12 to 18 residues in Supplementary Table S6, are designed against by BoltzGen, RFpeptides and TorchCraft, with 100 designs per method per target in the head-to-tail cyclisation setting; TorchCraft is also run in a disulfide-linked setting. A design passes only if its predicted structure forms the intended cycle without chain breaks and its TorchScore pLDDT exceeds 70 and ipTM exceeds 0.5. Figure 4c prints the pass rates per target. The question it answers is which design method produces cyclic peptides that satisfy both the cyclisation geometry and a confidence threshold.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Section 2.4 and Figure 4c; Appendix A.4.3.3; Supplementary Table S6",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We compared cyclic-peptide designs for eight target systems with outputs from RFpeptides and BoltzGen using the structural and confidence criteria defined in Appendix A.4 (Figure 4c). Performance depended on both the target and cyclization mode. Disulfide-linked TorchCraft designs showed higher computational pass rates in several settings, including PD-L1 and GABARAP, whereas head-to-tail designs displayed a different target-dependent profile. Optional ProteinMPNN redesign improved pass rates in several comparisons."
+   },
+   {
+    "source": "@paper",
+    "text": "A cyclic-peptide design passed the computational criterion only if the predicted structure formed the intended cycle without chain breaks and satisfied TorchScore pLDDT > 70 and ipTM > 0.5."
+   },
+   {
+    "source": "@paper",
+    "text": "In the head-to-tail cyclization benchmark, each method generated 100 designs per target using its default settings."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Two things at once, which is what makes this panel different from the others: whether the predicted peptide is actually cyclic and intact, and whether the predictor is confident about the complex. The authors evaluate two cyclisation parameterisations, head-to-tail, which uses cyclic relative positional encoding so the termini are adjacent in sequence space, and disulfide-linked, which keeps linear encoding and fixes the two cysteine positions that define the linkage. Predicted structures are classified by whether they satisfy the intended cyclisation and the backbone-integrity criteria, with the breakdown of cyclised, intact but not cyclised and backbone-broken predictions reported in a supplementary figure.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.4; Supplementary Figure S6 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We next evaluated cyclic-peptide design computationally using two parameterizations (Figure 4a). Head-to-tail designs used cyclic relative positional encoding to represent sequence adjacency across the termini. Disulfide- linked designs retained linear positional encoding and fixed the cysteine positions defining the intended linkage."
+     },
+     {
+      "source": "@paper",
+      "text": "Figure S6 Cyclization outcomes for cyclic-peptide designs. Fractions of successfully cyclized, intact-but- not-cyclized, and backbone-broken predictions across cyclic-peptide benchmark targets for the head-to-tail and disulfide-linked TorchCraft settings."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "A target panel, not a dataset, and no split. Supplementary Table S6 lists eight target systems with a PDB entry, the target chains and residue crop, hotspot residues and a peptide length of 12 to 18 residues for each: MDM2, MCL-1, GABARAP, PD-L1, KEAP1, RagA:RagC, IL-23R and albumin, counted from its rows. In the head-to-tail benchmark each method generates 100 designs per target with its default settings. TorchCraft is additionally evaluated in the disulfide-linked setting, where all positions except the two cysteines may be redesigned in the polished variant.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.3; Supplementary Table S6",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Table S6 Cyclic-peptide benchmark targets. Target PDB ID Target chain/residues Hotspots Peptide length MDM2 4hfz A26–108 A54,A58,A61 12–18 MCL-1 2pqk A172–197,A203–321 A224,A227,A231,A235,A249,A253,A263 12–18 GABARAP 7zkr A1–115 A48,A50,A51,A52,A62,A65 12–18 PD-L1 5o45 A17–132 A56,A115,A123 12–18 KEAP1 2flu A325–609 A334,A380,A382,A415,A483,A530 12–18 RagA:RagC 6s6d A4–303,B59–369 B80,B226 12–18 IL-23R 5mzv C24–C123 C67,C100 12–18 albumin 1bj5 A207–A385"
+     },
+     {
+      "source": "@paper",
+      "text": "In the head-to-tail cyclization benchmark, each method generated 100 designs per target using its default settings."
+     },
+     {
+      "source": "@paper",
+      "text": "For head-to-tail TorchCraft outputs, we evaluated raw designs scored directly with TorchScore and an optional ProteinMPNN-polished variant in which all peptide positions were redesigned eight times; the subsequent FlowPacker and TorchScore selection procedure was identical to that used for BoltzGen and RFpeptides. TorchCraft was also evaluated in a disulfide-linked cyclization setting. For this setting, raw outputs were scored directly, or all positions except the two cysteines were redesigned eight times with ProteinMPNN, followed by the same FlowPacker rebuilding and TorchScore selection protocol used for the head-to-tail setting."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "For BoltzGen and RFpeptides the full peptide sequence of each generated structure is redesigned eight times with ProteinMPNN without fixing residues, each redesign is rebuilt with FlowPacker and scored with TorchScore, and the redesign with the highest pLDDT plus 100 times ipTM becomes that original design's score. TorchCraft head-to-tail outputs are scored raw and, optionally, after redesigning all peptide positions eight times with the same rebuild and selection procedure. In the disulfide-linked setting raw outputs are scored directly, or all positions except the two cysteines are redesigned eight times and then rebuilt and selected in the same way. The pass criterion has three parts that must all hold: the intended cycle must be formed, the backbone must have no chain breaks, and TorchScore pLDDT must exceed 70 with ipTM above 0.5. Rosetta interface scores for the same panel are reported separately as an orthogonal assessment.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.3; Supplementary Figure S7 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For cyclic-peptide design, we compared BoltzGen, RFpeptides, and TorchCraft. In the head-to-tail cyclization benchmark, each method generated 100 designs per target using its default settings. For BoltzGen and RFpeptides, the full peptide sequence of each generated structure was redesigned eight times with ProteinMPNN without fixing any residue. Each redesigned sequence was rebuilt with FlowPacker, scored with TorchScore, and the redesign with the highest pLDDT + 100 × ipTM was selected as the final structure and score for that original design."
+     },
+     {
+      "source": "@paper",
+      "text": "For head-to-tail TorchCraft outputs, we evaluated raw designs scored directly with TorchScore and an optional ProteinMPNN-polished variant in which all peptide positions were redesigned eight times; the subsequent FlowPacker and TorchScore selection procedure was identical to that used for BoltzGen and RFpeptides. TorchCraft was also evaluated in a disulfide-linked cyclization setting. For this setting, raw outputs were scored directly, or all positions except the two cysteines were redesigned eight times with ProteinMPNN, followed by the same FlowPacker rebuilding and TorchScore selection protocol used for the head-to-tail setting."
+     },
+     {
+      "source": "@paper",
+      "text": "A cyclic-peptide design passed the computational criterion only if the predicted structure formed the intended cycle without chain breaks and satisfied TorchScore pLDDT > 70 and ipTM > 0.5."
+     },
+     {
+      "source": "@paper",
+      "text": "Figure S7 Rosetta interface-score benchmark for cyclic-peptide designs. The cyclic-peptide benchmark from Figure 4c evaluated using Rosetta interface score as an orthogonal assessment of predicted target-binding quality."
+     }
+    ]
+   },
+   {
+    "title": "What TorchScore is",
+    "body": "The scorer every pass rate in this panel depends on is worth stating plainly, because it is not an independent evaluator. TorchScore is a score-only loading of the same TorchFold implementation used for design: given input coordinates it skips the diffusion structure module and runs the confidence pathway, returning pLDDT, pTM and ipTM. No separate scoring network is trained, and in this study it used the pretrained AlphaFold 3 weights, the same checkpoint the designs were optimised against. Sequences rebuilt with FlowPacker are scored from those coordinates and are not refolded from sequence.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "TorchScore is a score-only loading of the TorchFold implementation.[21] Given input coordinates, it bypasses the diffusion-based structure module and evaluates the complex through the confidence pathway, returning predictor-derived scores including pLDDT, pTM, and ipTM. No separate scoring network is trained."
+     },
+     {
+      "source": "@paper",
+      "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "One target panel, not a dataset: eight target systems with PDB entries, crops, hotspots and a peptide length of 12 to 18 residues in Supplementary Table S6, with 100 designs per method per target in the head-to-tail setting.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Supplementary Table S6; Appendix A.4.3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Table S6 Cyclic-peptide benchmark targets. Target PDB ID Target chain/residues Hotspots Peptide length MDM2 4hfz A26–108 A54,A58,A61 12–18 MCL-1 2pqk A172–197,A203–321 A224,A227,A231,A235,A249,A253,A263 12–18 GABARAP 7zkr A1–115 A48,A50,A51,A52,A62,A65 12–18 PD-L1 5o45 A17–132 A56,A115,A123 12–18 KEAP1 2flu A325–609 A334,A380,A382,A415,A483,A530 12–18 RagA:RagC 6s6d A4–303,B59–369 B80,B226 12–18 IL-23R 5mzv C24–C123 C67,C100 12–18 albumin 1bj5 A207–A385"
+     },
+     {
+      "source": "@paper",
+      "text": "In the head-to-tail cyclization benchmark, each method generated 100 designs per target using its default settings."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Inapplicable. A design panel evaluated in silico, with no train, validation or test partition. The division that exists is by cyclisation mode, head-to-tail and disulfide-linked.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.4; Appendix A.4.3.3"
+   },
+   {
+    "label": "Metrics",
+    "value": "One pass rate, higher is better, under a three-part criterion: the predicted structure must form the intended cycle, have no chain breaks, and reach TorchScore pLDDT above 70 and ipTM above 0.5. The cyclisation outcomes themselves are also reported as fractions of cyclised, intact but not cyclised and backbone-broken predictions, and Rosetta interface scores are given separately.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.3; Supplementary Figures S6 and S7 captions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "A cyclic-peptide design passed the computational criterion only if the predicted structure formed the intended cycle without chain breaks and satisfied TorchScore pLDDT > 70 and ipTM > 0.5."
+     },
+     {
+      "source": "@paper",
+      "text": "Figure S6 Cyclization outcomes for cyclic-peptide designs. Fractions of successfully cyclized, intact-but- not-cyclized, and backbone-broken predictions across cyclic-peptide benchmark targets for the head-to-tail and disulfide-linked TorchCraft settings."
+     },
+     {
+      "source": "@paper",
+      "text": "Figure S7 Rosetta interface-score benchmark for cyclic-peptide designs. The cyclic-peptide benchmark from Figure 4c evaluated using Rosetta interface score as an orthogonal assessment of predicted target-binding quality."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Two other design methods, run by the TorchCraft authors with their default settings: BoltzGen and RFpeptides. TorchCraft appears raw and ProteinMPNN-polished in the head-to-tail setting and again in a disulfide-linked setting.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.4; Appendix A.4.3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We compared cyclic-peptide designs for eight target systems with outputs from RFpeptides and BoltzGen using the structural and confidence criteria defined in Appendix A.4 (Figure 4c). Performance depended on both the target and cyclization mode. Disulfide-linked TorchCraft designs showed higher computational pass rates in several settings, including PD-L1 and GABARAP, whereas head-to-tail designs displayed a different target-dependent profile. Optional ProteinMPNN redesign improved pass rates in several comparisons."
+     },
+     {
+      "source": "@paper",
+      "text": "For head-to-tail TorchCraft outputs, we evaluated raw designs scored directly with TorchScore and an optional ProteinMPNN-polished variant in which all peptide positions were redesigned eight times; the subsequent FlowPacker and TorchScore selection procedure was identical to that used for BoltzGen and RFpeptides. TorchCraft was also evaluated in a disulfide-linked cyclization setting. For this setting, raw outputs were scored directly, or all positions except the two cysteines were redesigned eight times with ProteinMPNN, followed by the same FlowPacker rebuilding and TorchScore selection protocol used for the head-to-tail setting."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "None, and none is needed in the train and test sense: no model is trained here and the panel has no labels to hold out. What the sources do describe is a dependency that runs the other way, which the authors state plainly: TorchScore uses the same pretrained AlphaFold 3 weights that TorchCraft optimised against, so the scorer is not independent of the designer.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.2; Figure 4c caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+     },
+     {
+      "source": "@paper",
+      "text": "All designs reported in this study used pretrained AF3 weights."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "None reported. The panel prints no replicate runs, seeds, confidence intervals or standard errors; the spread that is shown is the distribution over the fixed number of designs per target, 100 per method per target in the head-to-tail setting.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In the head-to-tail cyclization benchmark, each method generated 100 designs per target using its default settings."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One designed cyclic peptide for one target: a peptide of 12 to 18 residues with its predicted complex, scored as one original design after the eight-way redesign selection where that applies.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.3; Supplementary Table S6",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For cyclic-peptide design, we compared BoltzGen, RFpeptides, and TorchCraft. In the head-to-tail cyclization benchmark, each method generated 100 designs per target using its default settings. For BoltzGen and RFpeptides, the full peptide sequence of each generated structure was redesigned eight times with ProteinMPNN without fixing any residue. Each redesigned sequence was rebuilt with FlowPacker, scored with TorchScore, and the redesign with the highest pLDDT + 100 × ipTM was selected as the final structure and score for that original design."
+     },
+     {
+      "source": "@paper",
+      "text": "Table S6 Cyclic-peptide benchmark targets. Target PDB ID Target chain/residues Hotspots Peptide length MDM2 4hfz A26–108 A54,A58,A61 12–18 MCL-1 2pqk A172–197,A203–321 A224,A227,A231,A235,A249,A253,A263 12–18 GABARAP 7zkr A1–115 A48,A50,A51,A52,A62,A65 12–18 PD-L1 5o45 A17–132 A56,A115,A123 12–18 KEAP1 2flu A325–609 A334,A380,A382,A415,A483,A530 12–18 RagA:RagC 6s6d A4–303,B59–369 B80,B226 12–18 IL-23R 5mzv C24–C123 C67,C100 12–18 albumin 1bj5 A207–A385"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Not stated as such. The eight target systems are named proteins with PDB entries in Supplementary Table S6, but species are not given.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Supplementary Table S6",
+    "quotes": []
+   },
+   {
+    "label": "Assays",
+    "value": "None in this panel. Every criterion is computed by a predictor. The paper reports wet-lab binding measurements elsewhere in the study, for minibinders and VHHs against four targets each, but those campaigns are separate from this comparison.",
+    "status": "unavailable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Figure 4c caption"
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "The target crop and hotspots from Supplementary Table S6, the peptide length range, and the cyclisation parameterisation: cyclic relative positional encoding for head-to-tail designs, or linear encoding with the two cysteine positions fixed for disulfide-linked designs.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.4; Appendix A.4.1; Supplementary Table S6",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We next evaluated cyclic-peptide design computationally using two parameterizations (Figure 4a). Head-to-tail designs used cyclic relative positional encoding to represent sequence adjacency across the termini. Disulfide- linked designs retained linear positional encoding and fixed the cysteine positions defining the intended linkage."
+     },
+     {
+      "source": "@paper",
+      "text": "The target structures, crop regions, and hotspot residues used in the wet-lab validation campaigns and computational benchmarks are summarized in Supplementary Tables S2–S6."
+     },
+     {
+      "source": "@paper",
+      "text": "Table S6 Cyclic-peptide benchmark targets. Target PDB ID Target chain/residues Hotspots Peptide length MDM2 4hfz A26–108 A54,A58,A61 12–18 MCL-1 2pqk A172–197,A203–321 A224,A227,A231,A235,A249,A253,A263 12–18 GABARAP 7zkr A1–115 A48,A50,A51,A52,A62,A65 12–18 PD-L1 5o45 A17–132 A56,A115,A123 12–18 KEAP1 2flu A325–609 A334,A380,A382,A415,A483,A530 12–18 RagA:RagC 6s6d A4–303,B59–369 B80,B226 12–18 IL-23R 5mzv C24–C123 C67,C100 12–18 albumin 1bj5 A207–A385"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "No training or fine-tuning. Each method runs with its default settings, and TorchCraft optimises sequence logits through frozen pretrained AlphaFold 3 weights; the paper states that all designs reported in the study used pretrained AF3 weights.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Appendix A",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "that optimizes sequence logits through a frozen all-atom predictor"
+     },
+     {
+      "source": "@paper",
+      "text": "All designs reported in this study used pretrained AF3 weights."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The criterion includes a geometric check that cannot be gamed by confidence alone: a design fails unless the predicted structure actually forms the intended cycle with an unbroken backbone.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "A cyclic-peptide design passed the computational criterion only if the predicted structure formed the intended cycle without chain breaks and satisfied TorchScore pLDDT > 70 and ipTM > 0.5."
+     }
+    ]
+   },
+   {
+    "text": "Cyclisation outcomes are reported in their own right, as fractions of cyclised, intact but not cyclised and backbone-broken predictions, so the failure modes are visible rather than folded into one rate.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Supplementary Figure S6 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Figure S6 Cyclization outcomes for cyclic-peptide designs. Fractions of successfully cyclized, intact-but- not-cyclized, and backbone-broken predictions across cyclic-peptide benchmark targets for the head-to-tail and disulfide-linked TorchCraft settings."
+     }
+    ]
+   },
+   {
+    "text": "Both cyclisation parameterisations are described concretely, down to the positional encoding and the fixed cysteines, and both are evaluated.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We next evaluated cyclic-peptide design computationally using two parameterizations (Figure 4a). Head-to-tail designs used cyclic relative positional encoding to represent sequence adjacency across the termini. Disulfide- linked designs retained linear positional encoding and fixed the cysteine positions defining the intended linkage."
+     }
+    ]
+   },
+   {
+    "text": "An orthogonal assessment of the same panel is published alongside, with Rosetta interface scores reported for the designs of Figure 4c.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Supplementary Figure S7 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Figure S7 Rosetta interface-score benchmark for cyclic-peptide designs. The cyclic-peptide benchmark from Figure 4c evaluated using Rosetta interface score as an orthogonal assessment of predicted target-binding quality."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Author-built and author-run: the developers of TorchCraft chose the eight targets, the criterion and the comparators and ran every method themselves.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.4; Appendix A.4.3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We compared cyclic-peptide designs for eight target systems with outputs from RFpeptides and BoltzGen using the structural and confidence criteria defined in Appendix A.4 (Figure 4c). Performance depended on both the target and cyclization mode. Disulfide-linked TorchCraft designs showed higher computational pass rates in several settings, including PD-L1 and GABARAP, whereas head-to-tail designs displayed a different target-dependent profile. Optional ProteinMPNN redesign improved pass rates in several comparisons."
+     },
+     {
+      "source": "@paper",
+      "text": "For cyclic-peptide design, we compared BoltzGen, RFpeptides, and TorchCraft. In the head-to-tail cyclization benchmark, each method generated 100 designs per target using its default settings. For BoltzGen and RFpeptides, the full peptide sequence of each generated structure was redesigned eight times with ProteinMPNN without fixing any residue. Each redesigned sequence was rebuilt with FlowPacker, scored with TorchScore, and the redesign with the highest pLDDT + 100 × ipTM was selected as the final structure and score for that original design."
+     }
+    ]
+   },
+   {
+    "text": "The scorer shares its weights with the designer. TorchScore is the confidence pathway of the same pretrained AlphaFold 3 checkpoint TorchCraft optimises against, scoring supplied coordinates without refolding.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+     },
+     {
+      "source": "@paper",
+      "text": "Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates"
+     }
+    ]
+   },
+   {
+    "text": "A pass is predictor-derived, not experimental. No binding or stability measurement enters this panel.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.2 and A.4.3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "TorchScore is a score-only loading of the TorchFold implementation.[21] Given input coordinates, it bypasses the diffusion-based structure module and evaluates the complex through the confidence pathway, returning predictor-derived scores including pLDDT, pTM, and ipTM. No separate scoring network is trained."
+     },
+     {
+      "source": "@paper",
+      "text": "A cyclic-peptide design passed the computational criterion only if the predicted structure formed the intended cycle without chain breaks and satisfied TorchScore pLDDT > 70 and ipTM > 0.5."
+     }
+    ]
+   },
+   {
+    "text": "The results are printed only as the chart of Figure 4c, with no per-target numbers and no uncertainty, so no value can be recorded. The disulfide-linked TorchCraft arm also has no comparator: BoltzGen and RFpeptides are run head-to-tail only.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Figure 4c; Appendix A.4.3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "(c) Computational pass rates across eight target systems: MCL-1, MDM2, PD-L1, IL-23R, albumin, KEAP1, GABARAP, and RagA:RagC. BoltzGen, RFpeptides, and TorchCraft designs were compared using the structural and confidence criteria defined in Appendix A.4."
+     },
+     {
+      "source": "@paper",
+      "text": "For head-to-tail TorchCraft outputs, we evaluated raw designs scored directly with TorchScore and an optional ProteinMPNN-polished variant in which all peptide positions were redesigned eight times; the subsequent FlowPacker and TorchScore selection procedure was identical to that used for BoltzGen and RFpeptides. TorchCraft was also evaluated in a disulfide-linked cyclization setting. For this setting, raw outputs were scored directly, or all positions except the two cysteines were redesigned eight times with ProteinMPNN, followed by the same FlowPacker rebuilding and TorchScore selection protocol used for the head-to-tail setting."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "TorchCraft 8-target cyclic peptide comparison",
+   "steps": [
+    "8 target systems with crops, hotspots and 12 to 18 residue peptides from Supplementary Table S6",
+    "head-to-tail or disulfide-linked parameterisation",
+    "100 designs per method per target, default settings",
+    "comparators: 8 ProteinMPNN redesigns, FlowPacker rebuild, best pLDDT plus 100 times ipTM kept",
+    "TorchCraft scored raw and, separately, polished",
+    "pass when the cycle is formed, the backbone is unbroken, pLDDT is above 70 and ipTM above 0.5",
+    "pass rates per target in Figure 4c"
+   ],
+   "caption": "The panel as the main text, the figure caption and Appendix A.4.3 describe it.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Appendix A.4.3.3",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For cyclic-peptide design, we compared BoltzGen, RFpeptides, and TorchCraft. In the head-to-tail cyclization benchmark, each method generated 100 designs per target using its default settings. For BoltzGen and RFpeptides, the full peptide sequence of each generated structure was redesigned eight times with ProteinMPNN without fixing any residue. Each redesigned sequence was rebuilt with FlowPacker, scored with TorchScore, and the redesign with the highest pLDDT + 100 × ipTM was selected as the final structure and score for that original design."
+    },
+    {
+     "source": "@paper",
+     "text": "A cyclic-peptide design passed the computational criterion only if the predicted structure formed the intended cycle without chain breaks and satisfied TorchScore pLDDT > 70 and ipTM > 0.5."
+    },
+    {
+     "source": "@paper",
+     "text": "(c) Computational pass rates across eight target systems: MCL-1, MDM2, PD-L1, IL-23R, albumin, KEAP1, GABARAP, and RagA:RagC. BoltzGen, RFpeptides, and TorchCraft designs were compared using the structural and confidence criteria defined in Appendix A.4."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The pass rates exist only as the chart of Figure 4c, so no numeric result could be read.",
+   "The number of designs in the disulfide-linked TorchCraft setting is not stated; the 100 per target figure is given for the head-to-tail benchmark.",
+   "Species are not given for the eight target systems, only PDB entries and crops.",
+   "No runner or scoring script for this panel is published."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Written from the pdftotext -layout text layer of arXiv:2609.19770v1 and from the README and LICENSE of Mingchenchen/TorchX at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd, all retrieved 27 November 2026. The main text, the figure caption, Appendix A.4.2 and A.4.3 and the supplementary target table were read directly. Nothing was reproduced: no design was generated and no score was recomputed. No human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "No scoring harness for this panel is published. The code repository the paper names holds the design and score entry points, but nothing that reproduces the figure's pass rates from a set of designs, and the target crops and hotspots live in supplementary tables rather than in a machine-readable manifest.",
+ "structured": [
+  {
+   "task": "Cyclic peptide computational pass rate under cyclisation and TorchScore confidence",
+   "dataset": "Eight target systems of the cyclic peptide design benchmark, Supplementary Table S6",
+   "size": 8,
+   "size_unit": "target systems, each with 100 designs per method in the head-to-tail setting",
+   "split": null,
+   "primary_metric": "Computational pass rate, intended cycle formed without chain breaks and TorchScore pLDDT above 70 with ipTM above 0.5",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/Mingchenchen/TorchX",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We compared cyclic-peptide designs for eight target systems with outputs from RFpeptides and BoltzGen using the structural and confidence criteria defined in Appendix A.4 (Figure 4c). Performance depended on both the target and cyclization mode. Disulfide-linked TorchCraft designs showed higher computational pass rates in several settings, including PD-L1 and GABARAP, whereas head-to-tail designs displayed a different target-dependent profile. Optional ProteinMPNN redesign improved pass rates in several comparisons."
+    },
+    {
+     "source": "@paper",
+     "text": "A cyclic-peptide design passed the computational criterion only if the predicted structure formed the intended cycle without chain breaks and satisfied TorchScore pLDDT > 70 and ipTM > 0.5."
+    },
+    {
+     "source": "@paper",
+     "text": "In the head-to-tail cyclization benchmark, each method generated 100 designs per target using its default settings."
+    },
+    {
+     "source": "@readme",
+     "text": "Released under the Apache License 2.0."
+    }
+   ]
+  }
+ ],
+ "notes": "The pass rates are printed only as the chart of Figure 4c, so no result value is recorded. The structured size is the number of target systems, eight, counted from the rows of Supplementary Table S6; the 100 designs figure is per method per target and is stated for the head-to-tail setting only, with no count given for the disulfide-linked TorchCraft arm. That arm also has no comparator. The paper states no licence for itself; the code repository is Apache-2.0. The same paper is the source for four other records in this batch."
+}

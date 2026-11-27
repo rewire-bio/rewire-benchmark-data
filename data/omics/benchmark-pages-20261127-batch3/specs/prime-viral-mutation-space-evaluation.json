@@ -1,0 +1,902 @@
+{
+ "record_id": "lit-protein-20261011-prime-benchmark-prime",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "PRIME paper, PMC full-text XML (PMC13425921)",
+   "description": "NCBI PMC full-text XML of Gibson, Li, Li et al., PRIME: An evaluation framework for protein representation inference and generalization in viral mutation space, BMC Genomics 2026, fetched through E-utilities efetch.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13425921",
+   "url": "https://doi.org/10.1186/s12864-026-12976-5",
+   "version": "PMC13425921.1, BMC Genomics 2026, doi 10.1186/s12864-026-12976-5",
+   "media_type": "application/xml",
+   "sha256": "0952da0aeed5d456371cc6b852d63799e81c7fe2211a9f9984dd386dfea16bdf",
+   "retrieved_at": "2026-11-27T02:59:02Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "readme",
+   "name": "lanl/prime README.md at commit d940c51a",
+   "description": "Official repository readme, pinned to a commit. Holds the installation steps, the model inventory and the command-line flags.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/lanl/prime/d940c51aa0f475b8945789e89761fab0687d5b74/README.md",
+   "url": "https://github.com/lanl/prime",
+   "version": "git commit d940c51aa0f475b8945789e89761fab0687d5b74",
+   "media_type": "text/markdown",
+   "sha256": "35a8c35aad87c03f8a5afcb66dd1b6477ff7ab187e77d5951503773d7dfbc896",
+   "retrieved_at": "2026-11-27T02:59:35Z",
+   "store_bytes": true
+  },
+  {
+   "key": "split-script",
+   "name": "lanl/prime random_vs_stratified_split/split_comparison.py at commit d940c51a",
+   "description": "The script that compares the random and position-stratified splits, read to check what it does rather than relying on the readme.",
+   "file": "artifacts/split-comparison.py",
+   "artifact_url": "https://raw.githubusercontent.com/lanl/prime/d940c51aa0f475b8945789e89761fab0687d5b74/random_vs_stratified_split/split_comparison.py",
+   "url": "https://github.com/lanl/prime/tree/main/random_vs_stratified_split",
+   "version": "git commit d940c51aa0f475b8945789e89761fab0687d5b74",
+   "media_type": "text/x-python",
+   "sha256": "ad5d2d4e612e79781d68dfcaaba01f0a79a8720ba4eb571126cb1a3b689d9542",
+   "retrieved_at": "2026-11-27T02:59:50Z",
+   "store_bytes": true
+  },
+  {
+   "key": "licence",
+   "name": "lanl/prime LICENSE.md at commit d940c51a",
+   "description": "Repository licence file, pinned to a commit: a Los Alamos National Laboratory government-contract notice followed by a permissive grant in the wording of the MIT licence.",
+   "file": "artifacts/licence.md",
+   "artifact_url": "https://raw.githubusercontent.com/lanl/prime/d940c51aa0f475b8945789e89761fab0687d5b74/LICENSE.md",
+   "url": "https://github.com/lanl/prime/blob/main/LICENSE.md",
+   "version": "git commit d940c51aa0f475b8945789e89761fab0687d5b74",
+   "media_type": "text/markdown",
+   "sha256": "1a852d32b1c472babd61e142e4c3674ac971112bd438a8f3eb006af752390c9a",
+   "retrieved_at": "2026-11-27T02:59:38Z",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "PRIME is an evaluation framework for protein language models on a single viral protein: the SARS-CoV-2 spike receptor binding domain. Frozen embeddings from five protein language models, with and without domain-specific fine-tuning on 347,432 outbreak RBD sequences, feed a small multi-task network that predicts two deep mutational scanning phenotypes, ACE2 binding affinity and protein expression. The point of the framework is the split: because viral sequences are near-identical, a random split lets mutations at the same residue appear in training and test, so PRIME holds out whole residue positions instead and shows that the random-split numbers are inflated. It is useful to anyone reading reported fitness-prediction accuracy on viral proteins.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Background; Methods, Data collection and curation; Position-stratified validation protocol",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "This homology leads to “data leakage” in standard random validation splits, yielding inflated performance metrics that fail to translate into real-world biosurveillance utility."
+   },
+   {
+    "source": "@paper",
+    "text": "Unlike random splits, where mutations at the same site can appear in both training and test sets, position-stratified splitting ensures that all mutations at a specific residue position are held out together."
+   },
+   {
+    "source": "@paper",
+    "text": "Frozen embeddings from the last hidden layer (or mean embeddings where indicated) served as input to a multi-task FCN to jointly predict binding affinity and expression."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Two things. First, how well a protein language model's representation of an RBD sequence predicts a measured phenotype: ACE2 binding affinity and expression level from yeast display deep mutational scanning. Second, and the reason the framework exists, how much of that apparent accuracy comes from homology leakage. The same embeddings and the same regression head are evaluated under two split rules, a random split and a position-stratified split that holds out all mutations at a residue position together, and the gap between them is the measurement. The framework also tracks whether domain-specific fine-tuning on outbreak sequences recovers predictive signal, and whether the embeddings separate known viral lineages.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Background; Results, Scaling and fine-tuning overcome the generalization gap",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "where all mutations at specific residue positions are held out from the training set to measure genuine biological generalization."
+     },
+     {
+      "source": "@paper",
+      "text": "Our results demonstrate that performance metrics from random splits are highly inflated due to data leakage."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Three datasets. The outbreak dataset is 347,432 unique SARS-CoV-2 RBD sequences (spike residues 319 to 541) curated from GISAID and the Sequence Read Archive as of 3 February 2023, with duplicates and ambiguous sequences removed; it is used for fine-tuning and for lineage analysis, and is dominated by Omicron (52.70 per cent) and Delta (35.71 per cent). The DMS dataset supplies the labels: 116,257 unique RBD sequences with measured ACE2 binding affinity and 105,525 with quantified expression, from a published yeast display experiment. The betaCov dataset is 75 RBD sequences from diverse Sarbecovirus members, used for cross-species analysis rather than for the regression benchmark.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data collection and curation; Results, Benchmark data collection",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This dataset comprises 347,432 unique SARS-CoV-2 RBD sequences (amino acids 319"
+     },
+     {
+      "source": "@paper",
+      "text": "containing 116,257 unique RBD sequences with measured ACE2 binding affinities and 105,525 unique RBD sequences with quantified expression levels from yeast in vitro experiments"
+     },
+     {
+      "source": "@paper",
+      "text": "containing 75 RBD sequences from diverse Sarbecovirus members"
+     },
+     {
+      "source": "@paper",
+      "text": "with Omicron (52.70%), Delta (35.71%), and Alpha (7.20%) variants accounting for 95.61% of the sequences"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Frozen embeddings, taken from the last hidden layer or mean-pooled over residues, are fed to a fully connected network of five layers whose hidden size follows the embedding size, with ReLU activations, no dropout and mean squared error loss, predicting binding and expression jointly. Evaluation is 5-fold cross-validation over residue positions: positions are randomly partitioned into five subsets and a sequence joins the training or test side according to whether its mutated positions fall exclusively in that subset. Within each fold the network is reinitialised, trained for 1000 epochs at a learning rate of 1e-5, and scored on the fold's test set; the coefficient of determination and RMSE are computed per fold and averaged. The stratified evaluation was repeated under three fold-assignment seeds (0, 1 and 2) to check that results do not depend on the fold construction.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Position-stratified validation protocol and Input features",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The FCN consisted of 5 fully connected layers with hidden dimensions determined by the ESM embedding size"
+     },
+     {
+      "source": "@paper",
+      "text": "Residue positions were randomly partitioned into five subsets, and sequences were assigned to training or testing sets based on whether their mutated positions belonged exclusively to those subsets."
+     },
+     {
+      "source": "@paper",
+      "text": "the model was reinitialized, trained for 1000 epochs with a learning rate of 1e"
+     },
+     {
+      "source": "@paper",
+      "text": "To assess sensitivity to fold definition, we repeated the stratified evaluation across three independent random seeds (seeds 0, 1, 2) for fold assignment."
+     }
+    ]
+   },
+   {
+    "title": "What the comparison found",
+    "body": "The random split flatters every model. For ESM-C 600M with mean embeddings, a random split gives a coefficient of determination of 0.7711 for binding affinity, while the same base model under the position-stratified split has no predictive signal at all and a negative value of -0.1050. Fine-tuning on the outbreak dataset restores part of it: for the same model the stratified binding figure rises to 0.1823 plus or minus 0.2149 with mean embeddings and 0.2087 plus or minus 0.1451 with sequence-level CLS embeddings. Table 1 reports both splits, both phenotypes, both embedding methods and the fine-tuned and non-fine-tuned conditions for all five models; many of the stratified values are negative. Separately, fine-tuning raised masked language modelling accuracy on RBD sequences from 5.06 per cent to 96.33 per cent for ESM-2 8M, while a BERT model trained from scratch on RBD sequences alone reached 94.09 per cent but failed on rare residues.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Scaling and fine-tuning overcome the generalization gap; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a random split yielded a deceptively high R"
+     },
+     {
+      "source": "@paper",
+      "text": "fine-tuning improved stratified binding affinity R"
+     },
+     {
+      "source": "@paper",
+      "text": "The original ESM-2 8 M model, without fine-tuning, achieved only 5.06% accuracy in masked language modeling (MLM) tasks."
+     },
+     {
+      "source": "@paper",
+      "text": "While BERT-RBD reached 94.09% MLM accuracy"
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "The repository installs as a Python package into a conda environment, with two requirement sets because the authors moved to newer GPUs during revision. Masked language modelling is run by calling the relevant lightning script, and the transfer-learning models take flags for the target phenotype, the learning rate, the number of epochs and the path to a pretrained masked language model checkpoint; the readme ships SLURM examples because the work was done in a SLURM environment. The split comparison lives in its own directory: reading split_comparison.py, it wraps the multi-task fully connected head from the package, sets torch and numpy seeds, trains with Adam under a summed binding and expression mean squared error loss, and uses scikit-learn's KFold and train_test_split to build the two partitions. Its docstring warns that this random split is not the one used originally, so its values do not match the published random-split numbers.",
+    "source_ids": [
+     "@readme",
+     "@split-script"
+    ],
+    "source_locator": "README: Installation, Usage; split_comparison.py",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -n blackwell_prime python=3.13.12 -y"
+     },
+     {
+      "source": "@readme",
+      "text": "`--binding_or_expression`: Set 'binding' or 'expression' as target; type=str, default=\"binding\""
+     },
+     {
+      "source": "@split-script",
+      "text": "To isolate the impact of data partitioning, we compared a standard random split \nand a position-stratified split generated within the same evaluation framework \nusing frozen ESM embeddings and an identical regression head. Note, this random \nsplit is different from how we originally random split the data, so the values \ndo NOT match!"
+     },
+     {
+      "source": "@split-script",
+      "text": "from sklearn.model_selection import KFold"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Three. The DMS dataset carries the benchmark labels: 116,257 unique RBD sequences with measured ACE2 binding affinity and 105,525 with quantified expression, from a published yeast display experiment. The outbreak dataset is 347,432 unique SARS-CoV-2 RBD sequences (spike residues 319 to 541) from GISAID and the Sequence Read Archive as of 3 February 2023, used for fine-tuning and lineage analysis; 99.75 per cent of its sequences are 223 amino acids long. The betaCov dataset is 75 Sarbecovirus RBD sequences used for cross-species analysis.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data collection and curation; Results, Benchmark data collection",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "containing 116,257 unique RBD sequences with measured ACE2 binding affinities and 105,525 unique RBD sequences with quantified expression levels from yeast in vitro experiments"
+     },
+     {
+      "source": "@paper",
+      "text": "This dataset comprises 347,432 unique SARS-CoV-2 RBD sequences (amino acids 319"
+     },
+     {
+      "source": "@paper",
+      "text": "containing 75 RBD sequences from diverse Sarbecovirus members"
+     },
+     {
+      "source": "@paper",
+      "text": "Sequence length distribution was highly uniform, with 99.75% of the sequences consisting of 223 amino acids."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Two regimes over the same DMS data, both as 5-fold cross-validation rather than a fixed test set. The position-stratified split partitions residue positions into five subsets and assigns a sequence to training or test according to whether its mutated positions fall exclusively in that subset, so all mutations at a position are held out together. The random split is the comparison condition, in which mutations at the same site can appear on both sides. No per-fold test size is reported. Fold assignment was repeated under three seeds.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Position-stratified validation protocol",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Unlike random splits, where mutations at the same site can appear in both training and test sets, position-stratified splitting ensures that all mutations at a specific residue position are held out together."
+     },
+     {
+      "source": "@paper",
+      "text": "Residue positions were randomly partitioned into five subsets, and sequences were assigned to training or testing sets based on whether their mutated positions belonged exclusively to those subsets."
+     },
+     {
+      "source": "@paper",
+      "text": "Residue positions were randomly partitioned into five subsets"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "The coefficient of determination (higher is better, and negative values mean worse than predicting the mean) and RMSE (lower is better), computed per fold and averaged across folds, for each of the two phenotypes. The masked language modelling experiments report residue prediction accuracy instead, and the lineage analysis reports the Adjusted Rand Index against established lineage assignments.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Input features; Table 1; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Performance metrics, including R"
+     },
+     {
+      "source": "@paper",
+      "text": "Benchmarking PRIME across different model scales and validation regimes for mutated RBD binding and expression"
+     },
+     {
+      "source": "@paper",
+      "text": "resulting in a negative correlation coefficient (R"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Five protein language models across two families, each with and without domain-specific fine-tuning, and each with CLS and mean embeddings: ESM-2 at 8M (6 layers), 150M (30 layers) and 650M (33 layers), and ESM-C at 300M and 600M. A BERT model trained from scratch on RBD sequences with a 320-dimensional embedding space (BERT-RBD) serves as a domain-specific control. The fine-tuned ESM-2 8M model is called ESM-RBD. The repository also lists other transfer-learning heads (BLSTM and GCN, single-task and multi-task) that the benchmark tables do not use.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, Model architecture and scale; README: Models",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we benchmarked five PLM architectures spanning two architectures: ESM-2 ["
+     },
+     {
+      "source": "@paper",
+      "text": "A BERT-based model was trained from scratch with a 320-dimensional embedding space as a domain-specific control."
+     },
+     {
+      "source": "@readme",
+      "text": "Note: We used the 8M parameter ESM2 model in our training."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "The position-stratified split is the control, and it is the point of the paper: all mutations at a given residue position are held out together, so a model cannot see another mutation at the same site during training. The paper is explicit that this measures generalisation to unseen positions rather than to unseen mutants. No sequence identity cut-off, clustering step or time split is applied, and the pretrained models' own training corpora are not screened against the DMS sequences. The 347,432-sequence outbreak set used for fine-tuning is drawn from the same protein as the test data by design.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Background; Methods, Leakage control",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Unlike random splits, where mutations at the same site can appear in both training and test sets, position-stratified splitting ensures that all mutations at a specific residue position are held out together."
+     },
+     {
+      "source": "@paper",
+      "text": "where all mutations at specific residue positions are held out from the training set to measure genuine biological generalization."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Values are means across the five cross-validation folds with a standard deviation, which Table 1 prints for every cell. The spreads are large next to the differences being discussed: the fine-tuned ESM-C 600M stratified binding figure is 0.1823 plus or minus 0.2149. Fold-construction sensitivity was checked by repeating the stratified evaluation under three independent seeds, and the paper reports that the mutation count distributions stay consistent across seeds and folds. No bootstrap interval or statistical test between models is reported.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Cross-validation and Input features; Results; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Performance metrics, including R"
+     },
+     {
+      "source": "@paper",
+      "text": "Supplementary Fig. 10 confirms that mutation count distributions across partitions remain consistent across seeds and folds, indicating that reported performance metrics are not sensitive to the specific fold construction."
+     },
+     {
+      "source": "@paper",
+      "text": "0.1823 ± 0.2149"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One example is a mutated SARS-CoV-2 RBD sequence, 223 amino acids long for almost all of the outbreak data, with two continuous phenotype labels. The unit that the stratified split holds out is not the sequence but the residue position, so a fold is defined by positions and the sequences follow from them.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data collection and curation and Position-stratified validation protocol",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Sequence length distribution was highly uniform, with 99.75% of the sequences consisting of 223 amino acids."
+     },
+     {
+      "source": "@paper",
+      "text": "Residue positions were randomly partitioned into five subsets"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "One virus for the benchmark itself: SARS-CoV-2, the receptor binding domain of its spike protein. The cross-species betaCov analysis adds Sarbecovirus members including SARS-CoV-1, MERS-CoV, a pangolin virus and bat coronaviruses, whose RBDs target several mammalian hosts (bat, pangolin, civet, camel and human). The phenotype measurements come from yeast display, so yeast is the measurement host.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data collection and curation; Results, Benchmark data collection",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This dataset represents RBD sequences targeting different mammalian hosts, including bat, pangolin, civet, camel, and human"
+     },
+     {
+      "source": "@paper",
+      "text": "quantified expression levels from yeast in vitro experiments"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Deep mutational scanning by yeast display, from a published study: ACE2 binding affinity for 116,257 sequences and protein expression level for 105,525. No assay was run for this work; the outbreak and betaCov sequences carry no phenotype measurement at all.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, DMS dataset",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we utilized experimental Deep Mutational Scanning (DMS) data containing 116,257 unique RBD sequences with measured ACE2 binding affinities"
+     },
+     {
+      "source": "@paper",
+      "text": "quantified expression levels from yeast in vitro experiments"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "The amino acid sequence of the RBD alone. The model sees it as a frozen embedding, either the last hidden layer or a mean over residues, and nothing else: no structure, no alignment and no metadata enters the regression head.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Input features",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Frozen embeddings from the last hidden layer (or mean embeddings where indicated) served as input to a multi-task FCN to jointly predict binding affinity and expression."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Two settings per model, reported side by side. Without fine-tuning, the released checkpoint's embeddings are frozen and only the regression head is trained, which makes it a linear-probe-style evaluation. With fine-tuning, the model is first adapted to RBD sequences by masked language modelling on the outbreak dataset (15 per cent of residues masked, AdamW, learning rate 1e-5, 100 epochs for ESM-RBD 8M and 15 epochs for the scaling tests, effective batch size 512 across eight A100 GPUs), and its embeddings are then frozen for the same head. BERT-RBD is trained from scratch as a control.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Domain-specific fine-tuning and Input features",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Fine-tuning was performed using a Masked Language Modeling (MLM) objective."
+     },
+     {
+      "source": "@paper",
+      "text": "Fine-tuning was conducted over 100 epochs at a learning rate of 1 × 10"
+     },
+     {
+      "source": "@paper",
+      "text": "The effective batch size was 512, or 64 sequences per GPU across eight A100 GPUs using Distributed Data Parallel."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The leakage effect is isolated properly: the same frozen embeddings and the same regression head are run under both split rules, so the difference between them cannot be attributed to a different model or a different training recipe.",
+    "source_ids": [
+     "@paper",
+     "@split-script"
+    ],
+    "source_locator": "Paper: Results; split_comparison.py docstring",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Our results demonstrate that performance metrics from random splits are highly inflated due to data leakage."
+     },
+     {
+      "source": "@split-script",
+      "text": "we compared a standard random split \nand a position-stratified split generated within the same evaluation framework \nusing frozen ESM embeddings and an identical regression head"
+     }
+    ]
+   },
+   {
+    "text": "The split rule is the right shape for a viral protein: holding out whole residue positions blocks the specific shortcut that near-identical viral sequences create, where another mutation at the same site is already in training.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Background; Methods, Leakage control",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This homology leads to “data leakage” in standard random validation splits, yielding inflated performance metrics that fail to translate into real-world biosurveillance utility."
+     },
+     {
+      "source": "@paper",
+      "text": "position-stratified splitting ensures that all mutations at a specific residue position are held out together"
+     }
+    ]
+   },
+   {
+    "text": "Sensitivity to the fold construction is tested rather than assumed: the stratified evaluation is repeated under three independent fold-assignment seeds and the mutation count distributions are shown to stay consistent.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Cross-validation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To assess sensitivity to fold definition, we repeated the stratified evaluation across three independent random seeds (seeds 0, 1, 2) for fold assignment."
+     }
+    ]
+   },
+   {
+    "text": "The code is published, including the split comparison as its own directory, and the licence file grants permissive reuse in the wording of the MIT licence.",
+    "source_ids": [
+     "@readme",
+     "@licence"
+    ],
+    "source_locator": "README: Random vs Position-Stratified Split; LICENSE.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "### Random vs Position-Stratified Split"
+     },
+     {
+      "source": "@licence",
+      "text": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "One protein and two phenotypes. Everything here is the SARS-CoV-2 spike receptor binding domain scored for ACE2 binding and expression, so the numbers say nothing directly about other proteins or other fitness measures.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data collection and curation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This dataset comprises 347,432 unique SARS-CoV-2 RBD sequences (amino acids 319"
+     },
+     {
+      "source": "@paper",
+      "text": "we utilized experimental Deep Mutational Scanning (DMS) data containing 116,257 unique RBD sequences with measured ACE2 binding affinities"
+     }
+    ]
+   },
+   {
+    "text": "Author-reported: the PRIME authors ran every model and also contribute the fine-tuned ESM-RBD models, which are the rows that recover predictive signal under the strict split.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Scaling and fine-tuning overcome the generalization gap",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Domain-specific fine-tuning on the outbreak dataset significantly restored predictive power in the stratified context."
+     },
+     {
+      "source": "@paper",
+      "text": "This highlights a key advantage of the PRIME framework: fine-tuning a pre-trained foundation model leverages broad, evolutionarily informed representations of protein sequence patterns"
+     }
+    ]
+   },
+   {
+    "text": "The surviving signal is weak and the spread is wide. The best stratified binding figure quoted in the text is 0.2087 plus or minus 0.1451, and many Table 1 cells are negative, meaning worse than predicting the mean.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "0.2087 ± 0.1451"
+     },
+     {
+      "source": "@paper",
+      "text": "the base foundation model (without domain-specific fine-tuning) failed to provide any predictive signal, resulting in a negative correlation coefficient (R"
+     }
+    ]
+   },
+   {
+    "text": "The published split comparison does not reproduce the paper's own random-split numbers. The script's docstring states that its random split differs from the one used originally and that the values do not match, so the two sets of random-split figures are not interchangeable.",
+    "source_ids": [
+     "@split-script"
+    ],
+    "source_locator": "split_comparison.py docstring",
+    "quotes": [
+     {
+      "source": "@split-script",
+      "text": "Note, this random \nsplit is different from how we originally random split the data, so the values \ndo NOT match!"
+     }
+    ]
+   },
+   {
+    "text": "The underlying sequence data cannot simply be downloaded: the outbreak sequences are identified by a GISAID data set identifier, which requires GISAID access rather than an open file, so a third party cannot rebuild the fine-tuning corpus from the repository alone.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "All genome sequences and associated metadata in the outbreak dataset are published in GISAID’s EpiCoV database with the GISAID identifier: EPI_SET_240219yp."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "PRIME evaluation workflow",
+   "steps": [
+    "RBD sequence from the DMS dataset",
+    "frozen embedding from a protein language model, optionally fine-tuned on outbreak sequences",
+    "multi-task fully connected head predicts binding and expression",
+    "5-fold cross-validation over residue positions, and a random split for comparison",
+    "coefficient of determination and RMSE averaged over folds"
+   ],
+   "caption": "The only difference between the two reported regimes is how the folds are drawn: by residue position, or at random.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Methods, Position-stratified validation protocol and Input features",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Frozen embeddings from the last hidden layer (or mean embeddings where indicated) served as input to a multi-task FCN to jointly predict binding affinity and expression."
+    },
+    {
+     "source": "@paper",
+     "text": "Residue positions were randomly partitioned into five subsets, and sequences were assigned to training or testing sets based on whether their mutated positions belonged exclusively to those subsets."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No per-fold test size is reported for either regime, so the number of sequences behind each value is not known.",
+   "Table 1 was read but only the values quoted here are recorded; the full grid of five models, two embedding methods, two fine-tuning conditions and two splits was not transcribed.",
+   "The supplementary figures and tables, including the fold-sensitivity check and the betaCov sequence list, were not retrieved.",
+   "The outbreak sequences are behind a GISAID data set identifier rather than an open download, so the fine-tuning corpus cannot be rebuilt from the saved sources.",
+   "The repository licence is a Los Alamos government-contract notice followed by MIT wording and carries no SPDX identifier, so the code licence is recorded as a custom permissive grant."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the PMC full-text XML of PMC13425921 (BMC Genomics 2026, doi 10.1186/s12864-026-12976-5), including the Methods and Table 1, and the README.md, LICENSE.md and random_vs_stratified_split/split_comparison.py of lanl/prime at commit d940c51aa0f475b8945789e89761fab0687d5b74, on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the PRIME package, fine-tune a protein language model on RBD sequences by masked language modelling, and train the transfer-learning head that predicts a DMS phenotype.",
+  "prerequisites": [
+   "conda, and one of the two requirement sets the repository ships: a newer one for Blackwell-generation GPUs and the original one.",
+   "An NVIDIA GPU is recommended, and the readme's examples assume a SLURM cluster with several GPUs.",
+   "The DMS phenotype data and the outbreak RBD sequences; the outbreak sequences come from GISAID under a data set identifier rather than an open download.",
+   "The licence file grants permissive reuse in the wording of the MIT licence, under a Los Alamos government-contract notice."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/lanl/prime\ncd prime\ngit checkout --detach d940c51aa0f475b8945789e89761fab0687d5b74",
+    "explanation": "The readme says to clone the repository without giving the command. These lines were added so the steps below run against the same commit as the saved readme and script.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "1) Git clone the repo."
+     }
+    ]
+   },
+   {
+    "title": "Create the environment and install the package",
+    "shell": "conda create -n blackwell_prime python=3.13.12 -y\nconda activate blackwell_prime\npip install -r requirements/blackwell_prime_requirements.txt\npip install -e .",
+    "explanation": "The readme's newer environment, used for the revision experiments on Blackwell GPUs. The older environment is the same three steps with python=3.11.5 and requirements/prime_requirements.txt. The final line installs the pnlp package the scripts import.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation, Blackwell env",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -n blackwell_prime python=3.13.12 -y"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install -r requirements/blackwell_prime_requirements.txt"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install -e ."
+     }
+    ]
+   },
+   {
+    "title": "Fine-tune a model on RBD sequences",
+    "shell": "cd src/pnlp/ESM_MLM\npython lightning-esm.py --esm2_model esm2_8m",
+    "explanation": "Runs the masked language modelling fine-tuning that produces an ESM-RBD checkpoint. The readme states that the model flag defaults to the smallest available model and that batch size may need adjusting for larger ones; for ESM-C the script is lightning-esmc.py. The directory change follows the repository layout.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage, ESM MLM or BERT MLM",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "srun python lightning-esm.py --esm2_model esm2_8m"
+     },
+     {
+      "source": "@readme",
+      "text": "By default, the `--esm2_model` or `--esmc_model` flag is set to the smallest available model; otherwise, you can choose which model you want."
+     }
+    ]
+   },
+   {
+    "title": "Train the phenotype head on frozen embeddings",
+    "shell": "cd ../ESM_TL\npython lightning-esm_mlm_fcn_be.py \\\n--num_epochs 20 \\\n--lr 1e-4 \\\n--from_esm_mlm best_model-epoch=73.val_loss=0.0022.val_accuracy=99.6612.ckpt",
+    "explanation": "The readme's example for the multi-task fully connected head, which predicts binding and expression together, loading the fine-tuned masked language model checkpoint. The readme's version runs it under srun on SLURM and notes it can be run directly without that prefix. The single-task scripts take a --binding_or_expression flag instead.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage, ESM TL or BERT TL",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "srun python lightning-esm_mlm_fcn_be.py \\\n--num_epochs 20 \\\n--lr 1e-4 \\\n--from_esm_mlm best_model-epoch=73.val_loss=0.0022.val_accuracy=99.6612.ckpt"
+     },
+     {
+      "source": "@readme",
+      "text": "You could also run this from the command line without SLURM as well, without using the `srun` part of the command."
+     },
+     {
+      "source": "@readme",
+      "text": "`--binding_or_expression`: Set 'binding' or 'expression' as target; type=str, default=\"binding\""
+     }
+    ]
+   },
+   {
+    "title": "Compare the two split rules",
+    "shell": "cd ../../../random_vs_stratified_split\npython split_comparison.py --emb_file ESM2_8M_base",
+    "explanation": "The split comparison lives in its own directory. The readme only links that directory and gives no command, so this invocation was read from the script itself, which parses its arguments with argparse and defaults to the ESM2_8M_base embedding file. Reading the script, it trains the multi-task fully connected head on frozen embeddings with a fixed seed and a summed binding and expression mean squared error loss, and builds the partitions with scikit-learn's KFold and train_test_split. Its docstring warns that its random split differs from the paper's original one, so the values do not match the published random-split numbers.",
+    "source_ids": [
+     "@readme",
+     "@split-script"
+    ],
+    "source_locator": "README: Random vs Position-Stratified Split; split_comparison.py",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "### Random vs Position-Stratified Split"
+     },
+     {
+      "source": "@split-script",
+      "text": "from sklearn.model_selection import train_test_split\nfrom sklearn.model_selection import KFold"
+     },
+     {
+      "source": "@split-script",
+      "text": "loss = self.loss_fn(pred_b, ybatch_b) + self.loss_fn(pred_e, ybatch_e)"
+     },
+     {
+      "source": "@split-script",
+      "text": "Note, this random \nsplit is different from how we originally random split the data, so the values \ndo NOT match!"
+     },
+     {
+      "source": "@split-script",
+      "text": "parser = argparse.ArgumentParser(description=\"Run comparison of random vs position-stratified split.\")"
+     },
+     {
+      "source": "@split-script",
+      "text": "parser.add_argument(\"--emb_file\", type=str, choices=list(EMB_FILES.keys()), default=\"ESM2_8M_base\","
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A fine-tuned masked language model checkpoint, selected on the highest validation masked-language-modelling accuracy. The readme points to a model_weights location for the 8M model, but that link is a local filesystem path rather than a downloadable file, and only one checkpoint file name appears in the saved sources, in the readme's example command.",
+   "Trained phenotype heads and their per-fold metrics for binding and expression.",
+   "From the split comparison, metrics for the same head under a random and a position-stratified partition, which do not reproduce the paper's original random-split values."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The directory changes and the clone line were added to make the readme's examples runnable in order; the readme gives the commands without them.",
+   "The readme's examples are written for a SLURM environment with eight GPUs and say the work was done that way, so single-machine runs may need batch size changes.",
+   "The outbreak sequences needed for fine-tuning come from GISAID under a data set identifier, not an open download, so this sequence cannot be completed from public files alone."
+  ],
+  "source_ids": [
+   "@readme",
+   "@split-script"
+  ]
+ },
+ "structured": [
+  {
+   "task": "ACE2 binding affinity regression, position-stratified split",
+   "dataset": "SARS-CoV-2 RBD deep mutational scanning, binding",
+   "size": 116257,
+   "size_unit": "unique RBD sequences in the whole labelled dataset",
+   "split": "5-fold cross-validation over residue positions, all mutations at a position held out together",
+   "primary_metric": "R2",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/lanl/prime",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "custom-permissive",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "containing 116,257 unique RBD sequences with measured ACE2 binding affinities"
+    },
+    {
+     "source": "@paper",
+     "text": "Residue positions were randomly partitioned into five subsets, and sequences were assigned to training or testing sets based on whether their mutated positions belonged exclusively to those subsets."
+    },
+    {
+     "source": "@paper",
+     "text": "Performance metrics, including R"
+    },
+    {
+     "source": "@licence",
+     "text": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction"
+    }
+   ]
+  },
+  {
+   "task": "ACE2 binding affinity regression, random split",
+   "dataset": "SARS-CoV-2 RBD deep mutational scanning, binding",
+   "size": 116257,
+   "size_unit": "unique RBD sequences in the whole labelled dataset",
+   "split": "random split over sequences, so mutations at the same site can appear on both sides",
+   "primary_metric": "R2",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/lanl/prime",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "custom-permissive",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "containing 116,257 unique RBD sequences with measured ACE2 binding affinities"
+    },
+    {
+     "source": "@paper",
+     "text": "Unlike random splits, where mutations at the same site can appear in both training and test sets"
+    },
+    {
+     "source": "@paper",
+     "text": "a random split yielded a deceptively high R"
+    },
+    {
+     "source": "@licence",
+     "text": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction"
+    }
+   ]
+  },
+  {
+   "task": "RBD expression regression, position-stratified split",
+   "dataset": "SARS-CoV-2 RBD deep mutational scanning, expression",
+   "size": 105525,
+   "size_unit": "unique RBD sequences in the whole labelled dataset",
+   "split": "5-fold cross-validation over residue positions, all mutations at a position held out together",
+   "primary_metric": "R2",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/lanl/prime",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "custom-permissive",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "105,525 unique RBD sequences with quantified expression levels from yeast in vitro experiments"
+    },
+    {
+     "source": "@paper",
+     "text": "Residue positions were randomly partitioned into five subsets, and sequences were assigned to training or testing sets based on whether their mutated positions belonged exclusively to those subsets."
+    },
+    {
+     "source": "@paper",
+     "text": "Performance metrics, including R"
+    },
+    {
+     "source": "@licence",
+     "text": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction"
+    }
+   ]
+  },
+  {
+   "task": "RBD expression regression, random split",
+   "dataset": "SARS-CoV-2 RBD deep mutational scanning, expression",
+   "size": 105525,
+   "size_unit": "unique RBD sequences in the whole labelled dataset",
+   "split": "random split over sequences, so mutations at the same site can appear on both sides",
+   "primary_metric": "R2",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/lanl/prime",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "custom-permissive",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "105,525 unique RBD sequences with quantified expression levels from yeast in vitro experiments"
+    },
+    {
+     "source": "@paper",
+     "text": "Unlike random splits, where mutations at the same site can appear in both training and test sets"
+    },
+    {
+     "source": "@paper",
+     "text": "Our results demonstrate that performance metrics from random splits are highly inflated due to data leakage."
+    },
+    {
+     "source": "@licence",
+     "text": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction"
+    }
+   ]
+  }
+ ],
+ "notes": "One paper's framework, not a released suite: no leaderboard, so results_url is null. The sizes in the structured entries are the whole labelled dataset counts (116,257 binding and 105,525 expression sequences) because evaluation is 5-fold cross-validation and no per-fold test size is published; they must not be read as test-set sizes, and the two phenotypes have different counts. data_url is null: the outbreak sequences are behind a GISAID data set identifier and the DMS data come from a cited external study, with no open download address printed. The code licence is a Los Alamos government-contract notice followed by a grant in the exact wording of the MIT licence, and GitHub does not recognise it as a standard licence, so it is recorded as custom-permissive rather than MIT. One point for a reviewer: the published split_comparison.py says in its docstring that its random split differs from the paper's original random split and that the values do not match, so the repository cannot reproduce the published random-split column. The fine-tuned ESM-RBD models the paper reports as recovering signal are the authors' own contribution."
+}

@@ -1,0 +1,946 @@
+{
+ "record_id": "lit-otheromics-20261011-pepspecbench-benchmark-pepspecbench",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Text layer of the PepSpecBench paper, arXiv 2605.01945v1",
+   "description": "Text extracted with pdftotext -layout from the arXiv PDF of Yang, Liu, Li, Zhong and Xia, PepSpecBench: A Unified Evaluation Benchmark for Peptide Tandem Mass Spectrometry Prediction. The PDF is kept beside it as artifacts/paper.pdf.",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2605.01945v1",
+   "url": "https://arxiv.org/abs/2605.01945v1",
+   "version": "arXiv v1, 3 May 2026",
+   "media_type": "text/plain",
+   "sha256": "2aea1cde907edfca20fdf843b4a1d53c20439d77d862660191b6a9471e7677fc",
+   "retrieved_at": "2026-11-27T02:55:04Z",
+   "store_bytes": false
+  },
+  {
+   "key": "hf",
+   "name": "Hugging Face dataset API response for Chris-young-2004/PepSpecBench",
+   "description": "Hugging Face API record for the published dataset, giving its configurations, splits, licence tag and dataset DOI.",
+   "file": "artifacts/hf-dataset.json",
+   "artifact_url": "https://huggingface.co/api/datasets/Chris-young-2004/PepSpecBench",
+   "url": "https://huggingface.co/datasets/Chris-young-2004/PepSpecBench",
+   "version": "revision af9137c80d576b6f591780e5e420424d24769702",
+   "media_type": "application/json",
+   "sha256": "0202af6f737ceda2120e75b97a663bfa5e2804083fa23f59a430811bbf64855b",
+   "retrieved_at": "2026-11-27T02:55:23Z",
+   "licence": "MIT",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "PepSpecBench is a benchmark for predicting peptide tandem mass spectra: given a modified peptide sequence, a precursor charge and a normalised collision energy, a model must predict the fragment-ion intensity pattern. It harmonises two public spectral libraries, PROSPECT and MassIVE-KB, into matched 500k/50k/50k train, validation and test subsets under one scope (peptide length 6 to 40, charge 1 to 6, three PTMs), splits them so that no peptide backbone appears in two partitions, and projects every model's output into one 234-dimensional canonical ion space so that architectures with different native outputs can be compared. It adds a seven-subset cross-species suite of 20k spectra each, evaluated zero-shot, and metadata perturbation probes. Six models were retrained by the authors on these splits.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract; Sections 3.1 to 3.3",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "enforces a strict backbone-disjoint splitting strategy to eliminate sequence leakage"
+   },
+   {
+    "source": "@paper",
+    "text": "PepSpecBench restricts evaluation to peptides of length L ∈ [6, 40], precursor charge z ∈ [1, 6], and three common PTMs (acetylation, carbamidomethylation, and oxidation)"
+   },
+   {
+    "source": "@paper",
+    "text": "Both sources are normalized to the shared physical scope and reconstructed into standardized 500k/50k/50k train/validation/test subsets."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "How well a model reproduces the measured fragment-intensity pattern of a peptide's MS/MS spectrum, and how far that ability survives three stresses. First, fair comparison: all models are scored in one canonical ion space rather than in their own output formats. Second, leakage: whether apparent accuracy depends on seeing the same peptide backbone in training, tested by comparing three split rules under one model and one data source. Third, robustness: whether a model trained on human libraries transfers zero-shot to other species and to a cancer cell line, and whether it uses collision energy and precursor charge in a physically sensible way, probed by perturbing that metadata.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Sections 4.1 to 4.3; Section 5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "It further introduces a comprehensive multi-species evaluation suite and physically grounded metadata perturbation probes to assess model robustness and instrument awareness."
+     },
+     {
+      "source": "@paper",
+      "text": "Our experiments show that naive random splits overestimate generalization, in-domain leaderboards do not reliably predict cross-species robustness, and high aggregate accuracy does not guarantee physically grounded use of collision energy or precursor charge."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Two in-domain sources are combined under one scope: PROSPECT, a curated spectral library with broad PTM coverage and several collision energies per peptide, and MassIVE-KB, a larger community-curated human library. Both are filtered to peptides of length 6 to 40, charge 1 to 6 and the UNIMOD 1, 4 and 35 modifications, and reconstructed into 500k train, 50k validation and 50k test spectra each; the appendix names these PROSPECT-Mini and MassIVE-KB-Mini. Because MassIVE-KB mixes heterogeneous sources, a single default normalised collision energy of 25 is applied to all its spectra. The cross-species suite is seven subsets drawn from ProteomeXchange studies, each truncated to 20k spectra after the same filtering, covering human reference and HeLa, yeast, two E. coli subsets, C. elegans and A. thaliana, identified with MaxQuant at 1 per cent false discovery rate.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.1, Table 1; Appendix A, Composition and Collection",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "(1) PROSPECT-Mini: 500k/50k/50k spectra (train/val/test) from ProteomeTools, balanced Unmod/PTM. (2) MassIVE-KB-Mini: 500k/50k/50k from MassIVE-KB v1 human subset, natural PTM distribution. (3) PepSpecBench-OOD: 7 subsets × 20k spectra covering five species (human, yeast, E. coli, C. elegans, A. thaliana)."
+     },
+     {
+      "source": "@paper",
+      "text": "we apply a unified default Normalized Collision Energy (NCE) value of 25 for all spectra in this dataset"
+     },
+     {
+      "source": "@paper",
+      "text": "OOD data from ProteomeXchange with MaxQuant [1] 0.01 FDR."
+     },
+     {
+      "source": "@paper",
+      "text": "Each external subset is truncated to 20k spectra after applying the same filtering rules as the in-domain sources."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "A submission is an intensity prediction for an input triplet of modified sequence, precursor charge and normalised collision energy. Because the six baselines have different native output spaces, each has a projection into one shared canonical ion space that enumerates every combination of cleavage position, b or y ion type and fragment charge up to a maximum; with a reference length of 40 and maximum fragment charge 3 this space has 234 dimensions. Prediction and ground truth are both projected, a validity mask is built, and three metrics are computed over the masked positions: spectral angle (SA), where lower is better and the range is 0 to 1, spectral angle similarity (1 minus SA), and Pearson correlation. Results are aggregated as medians with bootstrap confidence intervals. All six baselines were retrained by the authors on the benchmark splits.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 3.1 to 3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In the present benchmark, Lref = 40 and zfrag = 3, yielding dim(C) = 234."
+     },
+     {
+      "source": "@paper",
+      "text": "where SA ∈ [0, 1] and lower is better. Spectral Angle Similarity (SAS) = 1 − SA."
+     },
+     {
+      "source": "@paper",
+      "text": "aggregate via medians with bootstrap confidence intervals"
+     },
+     {
+      "source": "@paper",
+      "text": "All baselines are retrained on the benchmark data under the Backbone-Disjoint splits described above."
+     }
+    ]
+   },
+   {
+    "title": "The split rule and what it is worth",
+    "body": "A partition is backbone-disjoint when the sets of unmodified amino-acid sequences in any two partitions are mutually exclusive, which blocks both exact sequence reuse and the same backbone appearing with different modifications. PROSPECT is split by deterministic hashing of the backbone; for MassIVE-KB the official disjoint splits are kept, filtered within each partition, and checked for zero backbone overlap. The benefit is measured rather than asserted: with Prosit and PROSPECT held fixed, a naive random split lowers median SA from 0.1376 to 0.1254 and raises Pearson correlation from 0.8921 to 0.9099, while a modified-sequence split stays close to backbone-disjoint (SA 0.1392, correlation 0.8895). The authors read this as exact backbone reuse being the dominant leakage path, and state in their limitations that backbone disjointness does not remove higher-order sequence homology.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.1, Backbone-Disjoint Split; Section 4.2, Table 3; Section 5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "A partition {Dtrain , Dval , Dtest } is Backbone-Disjoint if the backbone sets of any two partitions are mutually exclusive. This blocks both exact-sequence reuse and PTM-variant overlap across splits."
+     },
+     {
+      "source": "@paper",
+      "text": "For PROSPECT, we enforce backbone disjointness by deterministic hashing of the peptide backbone into train/validation/test partitions. For MassIVE-KB, we preserve the official disjoint splits"
+     },
+     {
+      "source": "@paper",
+      "text": "Naive random splitting inflates apparent accuracy. It artificially reduces median SA from 0.1376 (under Backbone-Disjoint) to 0.1254 and increases PCC from 0.8921 to 0.9099."
+     },
+     {
+      "source": "@paper",
+      "text": "Although backbone-disjoint splitting removes backbone overlap, it does not eliminate all higher-order sequence homology, motivating future homology-aware partitioning."
+     }
+    ]
+   },
+   {
+    "title": "What the comparison found",
+    "body": "The in-domain ranking depends on the source: Prosit Transformer has the best median SA on MassIVE-KB (0.0977 against 0.0995 for Prosit), while Prosit leads on PROSPECT (0.1376 against 0.1419), which the authors attribute to MassIVE-KB holding longer peptides and higher charges. Mid-tier models are less stable: UniSpec beats PredFull on PROSPECT but collapses on MassIVE-KB to SA 0.3369 with near-zero correlation, while PredFull holds at SA 0.1673. The in-domain ranking does not survive transfer: under MassIVE-KB training, PredFull beats both Prosit models on all five out-of-distribution testbeds, and the appendix shows the Prosit models reaching negative median correlation on several subsets. Under PROSPECT training the picture splits again, with Prosit best on C. elegans and A. thaliana and PredFull on E. coli and yeast. The authors note that one apparent out-of-distribution advantage is a Simpson's paradox caused by covariate shift.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 4.1 and 4.3; Tables 2 and 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "On PROSPECT, the top ranking flips: Prosit leads with SA 0.1376, ahead of Prosit Transformer (0.1419) by 0.0043."
+     },
+     {
+      "source": "@paper",
+      "text": "whereas on MassIVE-KB UniSpec deteriorates sharply to SA 0.3369 with near-zero PCC (0.048), while PredFull remains substantially stronger (SA 0.1673, PCC 0.830)"
+     },
+     {
+      "source": "@paper",
+      "text": "Although Prosit and Prosit Transformer are the top models, PredFull dominantly outperforms them across all five OOD testbeds."
+     },
+     {
+      "source": "@paper",
+      "text": "We note that the apparent OOD advantage of Prosit on A. thaliana (SA 0.094 vs. ID 0.138) is a Simpson’s paradox caused by covariate shift"
+     }
+    ]
+   },
+   {
+    "title": "How to get the data",
+    "body": "The dataset is published on Hugging Face under the MIT licence, with a dataset DOI. Its configurations mirror the benchmark components: massive_kb and prospect, each in a native representation with the original mass-to-charge and intensity arrays and in the canonical 234-dimensional representation, each with train, validation and test splits; an ood configuration in both representations with a test split only; and a small sample configuration. No evaluation code, model code or leaderboard address is given in the paper.",
+    "source_ids": [
+     "@paper",
+     "@hf"
+    ],
+    "source_locator": "Paper: Data Availability; Hugging Face dataset record",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The dataset is publicly available at https://huggingface.co/datasets/Chris-young-2004/"
+     },
+     {
+      "source": "@hf",
+      "text": "\"tags\":[\"license:mit\""
+     },
+     {
+      "source": "@hf",
+      "text": "\"config_name\":\"ood_canonical\",\"data_files\":[{\"split\":\"test\",\"path\":\"data/ood_canonical/*.parquet\"}"
+     },
+     {
+      "source": "@hf",
+      "text": "canonical: A processed representation in a standardized 234-dimensional space"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Two in-domain components of 500k train, 50k validation and 50k test spectra each: PROSPECT-Mini, from ProteomeTools, balanced 50 per cent unmodified and 50 per cent modified in every split, and MassIVE-KB-Mini, from the MassIVE-KB v1 human subset at its natural modification rate (unmodified 75.40, 72.83 and 72.09 per cent in train, validation and test). Plus PepSpecBench-OOD, seven subsets of 20k spectra each: human reference, human HeLa, yeast, E. coli reference, E. coli enriched, C. elegans and A. thaliana. All components share the same length, charge and PTM scope.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 1; Appendix A, Composition and Distribution",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "(1) PROSPECT-Mini: 500k/50k/50k spectra (train/val/test) from ProteomeTools, balanced Unmod/PTM. (2) MassIVE-KB-Mini: 500k/50k/50k from MassIVE-KB v1 human subset, natural PTM distribution. (3) PepSpecBench-OOD: 7 subsets × 20k spectra covering five species (human, yeast, E. coli, C. elegans, A. thaliana)."
+     },
+     {
+      "source": "@paper",
+      "text": "MassIVE-KB-Mini preserves the natural distribution (Train/Val/Test Unmod = 75.40%/72.83%/72.09%)"
+     },
+     {
+      "source": "@paper",
+      "text": "All components share the same peptide-length, charge, and PTM scope."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Backbone-disjoint train, validation and test splits for both in-domain sources: the unmodified amino-acid backbone sets of any two partitions are mutually exclusive, so neither an exact sequence nor another modified form of it can cross the boundary. PROSPECT is partitioned by deterministic hashing of the backbone; MassIVE-KB keeps its official disjoint splits, scope-filtered within each partition and verified to have zero backbone overlap. The seven cross-species subsets are test-only and used zero-shot. Two weaker rules, a naive random split and a modified-sequence split, are run as a controlled ablation for comparison.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.1, Backbone-Disjoint Split; Section 4.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "A partition {Dtrain , Dval , Dtest } is Backbone-Disjoint if the backbone sets of any two partitions are mutually exclusive."
+     },
+     {
+      "source": "@paper",
+      "text": "For PROSPECT, we enforce backbone disjointness by deterministic hashing of the peptide backbone into train/validation/test partitions. For MassIVE-KB, we preserve the official disjoint splits"
+     },
+     {
+      "source": "@paper",
+      "text": "All cross-species evaluation is conducted in a zero-shot setting: models are trained exclusively on in-domain data and evaluated on cross-species subsets without any fine-tuning or adaptation."
+     },
+     {
+      "source": "@paper",
+      "text": "We contrast this protocol with two weaker alternatives: Naive Random Split"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Three metrics over the masked positions of the canonical space, the same for every task. Spectral angle (SA) is the primary one: the angular distance between the normalised predicted and observed intensity vectors, in the range 0 to 1, and lower is better. Spectral angle similarity is 1 minus SA, so higher is better. Pearson correlation measures whether relative intensity rankings are preserved, higher being better. All values are reported as medians with bootstrap confidence intervals.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.3; Tables 2 and 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "where SA ∈ [0, 1] and lower is better. Spectral Angle Similarity (SAS) = 1 − SA."
+     },
+     {
+      "source": "@paper",
+      "text": "PCC captures whether relative intensity rankings are preserved, complementing the angular geometry measured by SA."
+     },
+     {
+      "source": "@paper",
+      "text": "aggregate via medians with bootstrap confidence intervals"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Six models, all retrained by the authors on the benchmark splits. Sequence-centric, predicting b and y ion intensities by cleavage position and fragment charge: Prosit (GRU encoder-decoder, about 2.5M parameters), Prosit Transformer (about 86M) and AlphaPeptDeep (modular Transformer, about 1.8M). Full-spectrum or dictionary models projected into the canonical space: PredFull (residual CNN with squeeze-excitation, about 8.2M) and UniSpec (attention-based dictionary model, about 12M). FastSpel, a linear model of about 50K parameters, serves as a lower-bound reference.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We integrate six representative baselines that span the principal architectural families in MS/MS prediction."
+     },
+     {
+      "source": "@paper",
+      "text": "Lightweight: FastSpel [3] (∼50K parameters) is a linear model whose output is projected to the canonical layout, serving as a lower-bound reference."
+     },
+     {
+      "source": "@paper",
+      "text": "All baselines are retrained on the benchmark data under the Backbone-Disjoint splits described above."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "The backbone-disjoint split is the benchmark's central control: no unmodified peptide backbone may appear in two partitions, which blocks exact reuse and PTM-variant overlap. Its effect is quantified by the split ablation, and residual similarity is measured in the appendix as the minimum Levenshtein edit distance from each test backbone to the nearest training backbone. The authors state the limit plainly: backbone disjointness does not eliminate higher-order sequence homology, and their own biases note says the backbone split does not eliminate homology-level leakage. Cross-species evaluation is an additional, stronger control, since those subsets come from different organisms and are used zero-shot.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.1; Section 4.2; Appendix A, Biases; Appendix B.1; Section 5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This blocks both exact-sequence reuse and PTM-variant overlap across splits."
+     },
+     {
+      "source": "@paper",
+      "text": "To quantify residual homology-level leakage under our backbone-disjoint split, we compute the minimum Levenshtein edit distance from each test backbone to the nearest train backbone."
+     },
+     {
+      "source": "@paper",
+      "text": "Human-centric training data; instrumentation bias (Q Exactive family dominant); backbone split does not eliminate homology-level leakage"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Metric values are medians with bootstrap confidence intervals, reported in the appendix for the in-domain results; the main tables print the medians only. No training replicate or seed variation is reported: each baseline is retrained once per source under the benchmark split.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.3; Tables 2 and 4; Section 4.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "aggregate via medians with bootstrap confidence intervals"
+     },
+     {
+      "source": "@paper",
+      "text": "Best per source in bold. Bootstrap CIs in Appendix F.4."
+     },
+     {
+      "source": "@paper",
+      "text": "In-domain bootstrap confidence intervals are in Appendix F.4."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One example is a single tandem mass spectrum, scored as the intensity vector of its fragment ions. The input is a triplet of modified peptide sequence, precursor charge state and normalised collision energy, and the target is the measured fragment-intensity pattern projected into the 234-dimensional canonical ion space.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "where s is a modified peptide sequence, z ∈ Z+ is the precursor charge state, and e ∈ R+ is the normalized collision energy (NCE)"
+     },
+     {
+      "source": "@paper",
+      "text": "The benchmark target I(c) is the experimentally observed fragment-intensity pattern projected to the same space C."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human for both in-domain sources, and five species across the cross-species suite: human (a reference proteome subset and a HeLa cancer cell subset), yeast, E. coli (two subsets), C. elegans and A. thaliana. The authors describe the training data as human-centric.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 1; Appendix A, Composition and Biases",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "(3) PepSpecBench-OOD: 7 subsets × 20k spectra covering five species (human, yeast, E. coli, C. elegans, A. thaliana)."
+     },
+     {
+      "source": "@paper",
+      "text": "Human-centric training data; instrumentation bias (Q Exactive family dominant)"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Tandem mass spectrometry. The in-domain labels come from two public spectral libraries, PROSPECT (built on ProteomeTools, with several collision energy settings per peptide) and MassIVE-KB v1, a community-curated library of human measurements. The cross-species spectra come from ProteomeXchange studies and were identified with MaxQuant at a 1 per cent false discovery rate. The authors note that the instrumentation is dominated by the Q Exactive family.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.1; Appendix A, Collection and Biases",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "PROSPECT and MassIVE-KB are public spectral libraries; we apply filtering (L ∈ [6, 40], z ∈ [1, 6], UNIMOD 1/4/35) and backbone-level splitting."
+     },
+     {
+      "source": "@paper",
+      "text": "OOD data from ProteomeXchange with MaxQuant [1] 0.01 FDR."
+     },
+     {
+      "source": "@paper",
+      "text": "instrumentation bias (Q Exactive family dominant)"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Three things and no more: the modified peptide sequence, the precursor charge state and the normalised collision energy. No structure, alignment or spectrum is given at prediction time. The benchmark restricts the scope to peptide length 6 to 40, charge 1 to 6 and the UNIMOD 1, 4 and 35 modifications, and a model's output may be in its own native format as long as a projection into the canonical space is defined.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 3.1 and 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Let x = (s, z, e) denote an input triplet for peptide tandem mass spectrometry (MS/MS) prediction"
+     },
+     {
+      "source": "@paper",
+      "text": "PepSpecBench restricts evaluation to peptides of length L ∈ [6, 40], precursor charge z ∈ [1, 6], and three common PTMs (acetylation, carbamidomethylation, and oxidation)"
+     },
+     {
+      "source": "@paper",
+      "text": "The projection Πm is model-specific at the input side, adapting to each model’s native output format, but unified at the output side"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Training from scratch on the benchmark's own training split: all six baselines are retrained on the benchmark data under the backbone-disjoint splits, separately for each in-domain source, with per-model adaptations and hyperparameters documented in the appendix. The cross-species evaluation is strictly zero-shot, with no fine-tuning or adaptation on the out-of-distribution subsets.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 3.1 and 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "All baselines are retrained on the benchmark data under the Backbone-Disjoint splits described above."
+     },
+     {
+      "source": "@paper",
+      "text": "models are trained exclusively on in-domain data and evaluated on cross-species subsets without any fine-tuning or adaptation"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The shared 234-dimensional canonical ion space lets models with different native outputs, from sequence-indexed ion ladders to binned full spectra and fragment dictionaries, be scored on the same footing, and every metric is computed only in that space.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.2, Shared Canonical Evaluation Space",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We address this by defining a protocolized projection that maps every model’s output to a single shared canonical evaluation space; all benchmark metrics are computed exclusively in this space."
+     },
+     {
+      "source": "@paper",
+      "text": "In the present benchmark, Lref = 40 and zfrag = 3, yielding dim(C) = 234."
+     }
+    ]
+   },
+   {
+    "text": "The value of the strict split is measured rather than asserted: with the model and data source held fixed, a naive random split is shown to flatter the model by 0.012 median SA, while a modified-sequence split is shown to make little difference.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4.2, Table 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Naive random splitting inflates apparent accuracy. It artificially reduces median SA from 0.1376 (under Backbone-Disjoint) to 0.1254 and increases PCC from 0.8921 to 0.9099."
+     },
+     {
+      "source": "@paper",
+      "text": "To ensure a fair comparison, both the data source and training recipe remain strictly consistent across all tests."
+     }
+    ]
+   },
+   {
+    "text": "Out-of-distribution transfer is tested separately for models trained on each in-domain source, which separates architectural robustness from training-source bias and shows that the in-domain ranking does not predict the transfer ranking.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we evaluate this cross-species transfer separately for models trained on MassIVE-KB and PROSPECT to disentangle architectural robustness from training-data bias"
+     },
+     {
+      "source": "@paper",
+      "text": "MassIVE-KB-trained rankings fail to predict OOD robustness."
+     }
+    ]
+   },
+   {
+    "text": "The data are released on Hugging Face under the MIT licence, in both a native representation with the original mass-to-charge and intensity arrays and the canonical representation used for scoring, with a dataset DOI.",
+    "source_ids": [
+     "@paper",
+     "@hf"
+    ],
+    "source_locator": "Paper: Data Availability; Hugging Face dataset record",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The dataset is publicly available at https://huggingface.co/datasets/Chris-young-2004/"
+     },
+     {
+      "source": "@hf",
+      "text": "\"tags\":[\"license:mit\""
+     },
+     {
+      "source": "@hf",
+      "text": "native: The complete, benchmark-ready full-spectrum representation with original m/z and intensity arrays."
+     },
+     {
+      "source": "@hf",
+      "text": "\"doi:10.57967/hf/8646\""
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Every number is produced by the benchmark's authors, who retrained all six baselines themselves rather than using published checkpoints, so the comparison depends on their training recipes and per-model adaptations.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "All baselines are retrained on the benchmark data under the Backbone-Disjoint splits described above."
+     },
+     {
+      "source": "@paper",
+      "text": "Model-specific adaptations, hyperparameters, and hardware settings are documented in Appendix E and Appendix F."
+     }
+    ]
+   },
+   {
+    "text": "The leakage control stops at exact backbones. The authors state that backbone-disjoint splitting does not eliminate higher-order sequence homology and list that as a remaining bias, so residual similarity between training and test peptides remains.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 5; Appendix A, Biases",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Although backbone-disjoint splitting removes backbone overlap, it does not eliminate all higher-order sequence homology, motivating future homology-aware partitioning."
+     },
+     {
+      "source": "@paper",
+      "text": "backbone split does not eliminate homology-level leakage (see Limitations)"
+     }
+    ]
+   },
+   {
+    "text": "The scope is deliberately narrow and partly homogenised: three modifications only, one peptide length and charge window, instrumentation dominated by one family, and a single default collision energy of 25 imposed on all MassIVE-KB spectra, which removes real variation from that source.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 3.1 and 5; Appendix A, Biases",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we apply a unified default Normalized Collision Energy (NCE) value of 25 for all spectra in this dataset"
+     },
+     {
+      "source": "@paper",
+      "text": "Future versions should expand to rarer modifications, broader instrument families, and additional acquisition settings."
+     },
+     {
+      "source": "@paper",
+      "text": "instrumentation bias (Q Exactive family dominant)"
+     }
+    ]
+   },
+   {
+    "text": "No evaluation code, projection implementation or leaderboard is published with the paper: only the dataset is released, so a third party cannot reproduce the canonical projections or the reported medians without reimplementing them from the appendix.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data Availability; Section 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The dataset is publicly available at https://huggingface.co/datasets/Chris-young-2004/"
+     },
+     {
+      "source": "@paper",
+      "text": "Per-model projection details are provided in Appendix D."
+     }
+    ]
+   },
+   {
+    "text": "Comparisons across the out-of-distribution subsets need care: the authors show that one apparent transfer advantage is a Simpson's paradox created by covariate shift in collision energy and modification state, and that they cannot causally attribute the source effect because the two sources differ in distribution.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We note that the apparent OOD advantage of Prosit on A. thaliana (SA 0.094 vs. ID 0.138) is a Simpson’s paradox caused by covariate shift"
+     },
+     {
+      "source": "@paper",
+      "text": "While we cannot causally attribute this solely to source identity due to confound-"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "PepSpecBench workflow",
+   "steps": [
+    "PROSPECT and MassIVE-KB harmonised to one length, charge and PTM scope",
+    "backbone-disjoint partition into 500k/50k/50k",
+    "six models retrained per source",
+    "outputs projected into the 234-dimensional canonical ion space",
+    "median SA, SAS and Pearson correlation with bootstrap intervals",
+    "zero-shot evaluation on seven 20k cross-species subsets"
+   ],
+   "caption": "The same canonical projection and the same three metrics are used for the in-domain test splits and for the cross-species suite, which is scored zero-shot.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Figure 1 caption; Sections 3.1 to 3.3",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The pipeline is systematically designed to ensure fair and diagnostic evaluation through four key stages: (1) standardized data integration, harmonizing PROSPECT and MassIVE-KB under a shared preprocessing scope; (2) leakage-aware data partitioning, enforcing a strict backbone-disjoint splitting strategy; (3) protocolized output projection"
+    },
+    {
+     "source": "@paper",
+     "text": "Each external subset is truncated to 20k spectra after applying the same filtering rules as the in-domain sources."
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "No code is released, so the canonical projections, the masking rule and the metric aggregation cannot be inspected beyond what the appendices describe.",
+   "This is an arXiv v1 preprint and no peer-reviewed version was found; no licence is stated on the PDF, so its bytes are not redistributable here.",
+   "The per-model projection details (Appendix D), the training recipes and hardware (Appendices E and F), the bootstrap confidence intervals (Appendix F.4) and the stratified analyses (Appendix F.6) were not transcribed, so only the medians quoted here are recorded.",
+   "The metadata perturbation probe results (collision energy and charge sensitivity) are summarised in the paper's own text but their tables were not transcribed.",
+   "The Hugging Face record gives configurations and splits but no per-split row counts, so the split sizes come from the paper, not from the dataset card."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the text layer of the arXiv PDF of 2605.01945v1, including Sections 1 to 5 and Appendices A and B, and the Hugging Face dataset API record for Chris-young-2004/PepSpecBench at revision af9137c80d576b6f591780e5e420424d24769702, on 2026-11-27. The parquet files were not downloaded. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "Only the dataset is released. The paper gives no repository, no installation step and no scoring command: the canonical projection, the masking and the metric code are described in appendices but not published, and the Hugging Face record holds parquet data files rather than code. Nothing in the saved sources supports a runnable sequence of steps.",
+ "structured": [
+  {
+   "task": "In-domain fragment intensity prediction, PROSPECT",
+   "dataset": "PROSPECT-Mini",
+   "size": 50000,
+   "size_unit": "test spectra",
+   "split": "backbone-disjoint by deterministic hashing of the peptide backbone, 500k train and 50k validation spectra",
+   "primary_metric": "median spectral angle",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/Chris-young-2004/PepSpecBench",
+   "data_licence": "MIT",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "(1) PROSPECT-Mini: 500k/50k/50k spectra (train/val/test) from ProteomeTools, balanced Unmod/PTM."
+    },
+    {
+     "source": "@paper",
+     "text": "For PROSPECT, we enforce backbone disjointness by deterministic hashing of the peptide backbone into train/validation/test partitions."
+    },
+    {
+     "source": "@paper",
+     "text": "where SA ∈ [0, 1] and lower is better."
+    },
+    {
+     "source": "@hf",
+     "text": "\"tags\":[\"license:mit\""
+    },
+    {
+     "source": "@paper",
+     "text": "The dataset is publicly available at https://huggingface.co/datasets/Chris-young-2004/"
+    }
+   ]
+  },
+  {
+   "task": "In-domain fragment intensity prediction, MassIVE-KB",
+   "dataset": "MassIVE-KB-Mini",
+   "size": 50000,
+   "size_unit": "test spectra",
+   "split": "official MassIVE-KB disjoint splits, scope filtered within each partition and verified to have zero backbone overlap; 500k train and 50k validation spectra",
+   "primary_metric": "median spectral angle",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/Chris-young-2004/PepSpecBench",
+   "data_licence": "MIT",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "(2) MassIVE-KB-Mini: 500k/50k/50k from MassIVE-KB v1 human subset, natural PTM distribution."
+    },
+    {
+     "source": "@paper",
+     "text": "For MassIVE-KB, we preserve the official disjoint splits, apply the same scope filtering within each partition, and empirically verify that the resulting train/validation/test sets maintain strict zero backbone overlap."
+    },
+    {
+     "source": "@paper",
+     "text": "where SA ∈ [0, 1] and lower is better."
+    },
+    {
+     "source": "@hf",
+     "text": "\"tags\":[\"license:mit\""
+    }
+   ]
+  },
+  {
+   "task": "Cross-species out-of-distribution evaluation, human reference",
+   "dataset": "PepSpecBench-OOD human reference subset",
+   "size": 20000,
+   "size_unit": "test spectra",
+   "split": "test only, zero-shot; ProteomeXchange spectra at MaxQuant 1% FDR, same scope filters as the in-domain sources",
+   "primary_metric": "median spectral angle",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/Chris-young-2004/PepSpecBench",
+   "data_licence": "MIT",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each external subset is truncated to 20k spectra after applying the same filtering rules as the in-domain sources."
+    },
+    {
+     "source": "@paper",
+     "text": "Human reference           14.03 / 13.0"
+    },
+    {
+     "source": "@paper",
+     "text": "OOD data from ProteomeXchange with MaxQuant [1] 0.01 FDR."
+    },
+    {
+     "source": "@hf",
+     "text": "\"tags\":[\"license:mit\""
+    }
+   ]
+  },
+  {
+   "task": "Cross-species out-of-distribution evaluation, human HeLa",
+   "dataset": "PepSpecBench-OOD human HeLa subset",
+   "size": 20000,
+   "size_unit": "test spectra",
+   "split": "test only, zero-shot; intra-species domain shift case, 36.01 per cent of spectra carry a PTM",
+   "primary_metric": "median spectral angle",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/Chris-young-2004/PepSpecBench",
+   "data_licence": "MIT",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each external subset is truncated to 20k spectra after applying the same filtering rules as the in-domain sources."
+    },
+    {
+     "source": "@paper",
+     "text": "Human HeLa                21.01 / 19.0"
+    },
+    {
+     "source": "@paper",
+     "text": "36.01% in the HeLa trypsin enriched subset"
+    },
+    {
+     "source": "@hf",
+     "text": "\"tags\":[\"license:mit\""
+    }
+   ]
+  },
+  {
+   "task": "Cross-species out-of-distribution evaluation, yeast",
+   "dataset": "PepSpecBench-OOD yeast subset",
+   "size": 20000,
+   "size_unit": "test spectra",
+   "split": "test only, zero-shot; ProteomeXchange spectra at MaxQuant 1% FDR",
+   "primary_metric": "median spectral angle",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/Chris-young-2004/PepSpecBench",
+   "data_licence": "MIT",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each external subset is truncated to 20k spectra after applying the same filtering rules as the in-domain sources."
+    },
+    {
+     "source": "@paper",
+     "text": "Yeast                     18.33 / 17.0"
+    },
+    {
+     "source": "@hf",
+     "text": "\"tags\":[\"license:mit\""
+    }
+   ]
+  },
+  {
+   "task": "Cross-species out-of-distribution evaluation, E. coli reference",
+   "dataset": "PepSpecBench-OOD E. coli reference subset",
+   "size": 20000,
+   "size_unit": "test spectra",
+   "split": "test only, zero-shot; ProteomeXchange spectra at MaxQuant 1% FDR",
+   "primary_metric": "median spectral angle",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/Chris-young-2004/PepSpecBench",
+   "data_licence": "MIT",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each external subset is truncated to 20k spectra after applying the same filtering rules as the in-domain sources."
+    },
+    {
+     "source": "@paper",
+     "text": "E. coli reference         15.50 / 14.0"
+    },
+    {
+     "source": "@hf",
+     "text": "\"tags\":[\"license:mit\""
+    }
+   ]
+  },
+  {
+   "task": "Cross-species out-of-distribution evaluation, E. coli enriched",
+   "dataset": "PepSpecBench-OOD E. coli enriched subset",
+   "size": 20000,
+   "size_unit": "test spectra",
+   "split": "test only, zero-shot; ProteomeXchange spectra at MaxQuant 1% FDR",
+   "primary_metric": "median spectral angle",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/Chris-young-2004/PepSpecBench",
+   "data_licence": "MIT",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each external subset is truncated to 20k spectra after applying the same filtering rules as the in-domain sources."
+    },
+    {
+     "source": "@paper",
+     "text": "E. coli enriched         19.53 / 17.0"
+    },
+    {
+     "source": "@hf",
+     "text": "\"tags\":[\"license:mit\""
+    }
+   ]
+  },
+  {
+   "task": "Cross-species out-of-distribution evaluation, C. elegans",
+   "dataset": "PepSpecBench-OOD C. elegans subset",
+   "size": 20000,
+   "size_unit": "test spectra",
+   "split": "test only, zero-shot; ProteomeXchange spectra at MaxQuant 1% FDR",
+   "primary_metric": "median spectral angle",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/Chris-young-2004/PepSpecBench",
+   "data_licence": "MIT",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each external subset is truncated to 20k spectra after applying the same filtering rules as the in-domain sources."
+    },
+    {
+     "source": "@paper",
+     "text": "C. elegans                15.25 / 14.0"
+    },
+    {
+     "source": "@hf",
+     "text": "\"tags\":[\"license:mit\""
+    }
+   ]
+  },
+  {
+   "task": "Cross-species out-of-distribution evaluation, A. thaliana",
+   "dataset": "PepSpecBench-OOD A. thaliana subset",
+   "size": 20000,
+   "size_unit": "test spectra",
+   "split": "test only, zero-shot; ProteomeXchange spectra at MaxQuant 1% FDR",
+   "primary_metric": "median spectral angle",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/Chris-young-2004/PepSpecBench",
+   "data_licence": "MIT",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each external subset is truncated to 20k spectra after applying the same filtering rules as the in-domain sources."
+    },
+    {
+     "source": "@paper",
+     "text": "A. thaliana               15.40 / 14.0"
+    },
+    {
+     "source": "@hf",
+     "text": "\"tags\":[\"license:mit\""
+    }
+   ]
+  }
+ ],
+ "notes": "Preprint only (arXiv v1, 3 May 2026); no peer-reviewed version was found, and the PDF states no licence, so its text layer is kept but not redistributable. Sizes: each in-domain entry carries the 50k test split, not the 500k training split or the 600k total, and each cross-species entry carries its own 20k subset; the seven subsets are listed separately because the paper reports E. coli aggregated over its two sources in Table 4 while Table 1 lists them separately. code_url and results_url are null: no code repository or leaderboard is named anywhere in the saved sources, only the Hugging Face dataset. released is null on purpose: the Hugging Face record carries only createdAt and lastModified timestamps, which are not a stated release date. The store's dataset names use the Mini suffix, which matches the paper's Appendix A naming."
+}

@@ -1,0 +1,1290 @@
+{
+ "record_id": "hyplm-flash-20261106-benchmark-report-evaluation",
+ "sources": [
+  {
+   "key": "report",
+   "name": "Text layer of the HyPLM Technical Report (Hyra Team, 2026-10-12)",
+   "description": "Text extracted with pdftotext -layout from the technical report PDF in the Tencent-Hunyuan/Hyra-results repository at commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a. The PDF is kept beside it as artifacts/report.pdf.",
+   "file": "artifacts/report.txt",
+   "artifact_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hyra-results/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyplm_flash/HyPLM_Technical_Report.pdf",
+   "url": "https://github.com/Tencent-Hunyuan/Hyra-results/blob/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyplm_flash/HyPLM_Technical_Report.pdf",
+   "version": "report dated 2026-10-12, git commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a",
+   "media_type": "text/plain",
+   "sha256": "f33684ea943f32412567b239e5d4fd6b6688605c7375db4d791e565fee312fa5",
+   "retrieved_at": "2026-11-27T02:31:17Z",
+   "store_bytes": false
+  },
+  {
+   "key": "readme",
+   "name": "Tencent-Hunyuan/Hyra-results AI4Science/hyplm_flash/README.md at commit 0dcc533c",
+   "description": "Official repository file for the HyPLM-Flash package, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hyra-results/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyplm_flash/README.md",
+   "url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyplm_flash",
+   "version": "git commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a",
+   "media_type": "text/markdown",
+   "sha256": "db6ab273ef190a40199a5a8d17c474a2809fd9cedac6013c45ec7c06642542a3",
+   "retrieved_at": "2026-11-27T02:31:14Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "licence",
+   "name": "Tencent-Hunyuan/Hyra-results AI4Science/hyplm_flash/LICENSE at commit 0dcc533c",
+   "description": "Licence file of the HyPLM-Flash package, pinned to a commit.",
+   "file": "artifacts/licence.txt",
+   "artifact_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hyra-results/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyplm_flash/LICENSE",
+   "url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyplm_flash",
+   "version": "git commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a",
+   "media_type": "text/plain",
+   "sha256": "a0a9dc95e81d7a1374275195bccb72442e0126be826919b13ff67f52eb64a031",
+   "retrieved_at": "2026-11-27T02:31:17Z",
+   "licence": "MIT",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "This is the protein language model evaluation reported in the HyPLM technical report, not a released suite. HyPLM-Flash and 28 public checkpoints from 13 model families (29 models in all) are run through the same evaluation code in BF16 on 32 tasks: zero-shot variant scoring from the masked-language-model head on ProteinGym, masked-residue likelihood on two held-out panels, and linear probes on frozen representations for structure, function, localisation, interaction and fitness. It is useful to someone choosing a protein encoder for embeddings or variant scoring, with the caveat that the developer of one of the models chose the tasks, wrote the adapters and ran every baseline.",
+  "summary_source_ids": [
+   "@report"
+  ],
+  "summary_source_locator": "Report: Section 4; Appendix A",
+  "summary_quotes": [
+   {
+    "source": "@report",
+    "text": "We compare HyPLM-Flash with 28 public checkpoints from 13 model families, from ESM-2 8M to ESM-2 15B (29 models in all), on 32 tasks. All models run through the same evaluation code in BF16. Zero-shot scores come from the masked-language-model head, and every supervised task fits a linear probe on frozen representations from the layer, among six relative depths, that performs best on validation data."
+   },
+   {
+    "source": "@report",
+    "text": "Baselines are public checkpoints run in BF16 through thin adapters around their reference implementations"
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Three capabilities of a protein encoder, each read without fine-tuning the encoder. First, zero-shot variant effect: each substitution is scored by the masked-marginal log-likelihood ratio and the score is correlated with an experimental fitness measurement. Second, how well the model models protein sequence at all, as the negative log-likelihood of masked residues under identical masks. Third, what its frozen representations contain, probed by linear or bilinear heads for secondary structure, residue contacts, fold, enzyme and Gene Ontology annotation, subcellular localisation, metal-ion binding, human protein interaction, and fitness or property regression. Throughput on one GPU is measured beside the accuracy so that models can be placed on an accuracy against speed plot. That plot does not compare like with like on precision: HyPLM-Flash is timed on its INT8 engine and the baselines in their reference implementations, while all accuracy figures are BF16 runs.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Sections 3 and 4.1 to 4.3; Figure 1 caption; Appendix A, Probes and Throughput",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "We score each substitution by the masked-marginal log-likelihood ratio (Meier et al., 2021) and report the Spearman correlation over the 217 substitution assays of ProteinGym v1.3 (Notin et al., 2023) with the benchmark’s official aggregation."
+     },
+     {
+      "source": "@report",
+      "text": "Following TAPE (Rao et al., 2019) and Rao et al. (2020), we probe frozen representations with a linear per-residue probe for secondary structure, a 32-dimensional bilinear head on residue pairs for contacts, and linear probes on mean-pooled representations for all other tasks (Table 2)."
+     },
+     {
+      "source": "@report",
+      "text": "For the speed comparison (Figure 1a), all models embed the same 2,048 held-out proteins (639,806 residues) in length-sorted batches of at most 16,384 tokens on one H20, using the fastest attention kernel each implementation supports"
+     },
+     {
+      "source": "@report",
+      "text": "Throughput is measured with the INT8 engine for HyPLM-Flash and with the reference implementations for the baselines."
+     },
+     {
+      "source": "@report",
+      "text": "Accuracy in this report is evaluated with BF16 arithmetic."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "The tasks are taken from existing benchmarks rather than built afresh: ProteinGym v1.3 for zero-shot substitutions, TAPE for secondary structure, ProteinNet contacts, remote homology, fluorescence and stability, CASP14 and CASP15 evaluation domains for contacts, the SaProt and DeepFRI splits for enzyme commission and Gene Ontology terms, DGEB for prokaryotic enzyme classification and archaeal retrieval, DeepLoc through PEER for localisation, PEER for human protein interaction, and FLIP and FLIP2 for AAV, GB1, Meltome, amylase and a cross-protein hydrolase split. Each row of the task table prints the number of proteins in the train, validation and test splits, and where a row groups several tasks the sizes are those of the first. Two panels are the authors' own: 479 proteins from their held-out UniRef split, and 887 recently released PDB chains, clustered at 50 per cent identity with MMseqs2 after removing exact matches to the training corpus.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Table 4; Section 4.3",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Table 4: Evaluation tasks. Split sizes in proteins (ProteinGym: assays; CASP: domains)."
+     },
+     {
+      "source": "@report",
+      "text": "Where a row groups several tasks, sizes are for the first."
+     },
+     {
+      "source": "@report",
+      "text": "479 proteins from our held-out UniRef split, and 887 PDB chains released after 2\nSeptember 2026, later than the training data of every model evaluated, clustered at 50% identity with\nMMseqs2 (Steinegger and Söding, 2017) after removing exact matches to our training corpus."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Every model is run in BF16 through a thin adapter around its reference implementation, and inputs longer than a model's window are processed in windows with 50 per cent overlap whose residue representations are averaged. For the probes, sequence-level tasks use representations mean-pooled over residues without special tokens and per-residue tasks use the residue representations; for every task and model six layers at relative depths 0.25, 0.5, 0.625, 0.75, 0.875 and 1.0 are evaluated and the layer and the regularisation strength are selected on the validation split, or by 5-fold cross-validation on the training split where a task has none. Regression probes are closed-form ridge regressions, classification probes are L2-regularised logistic regressions fitted with L-BFGS, multi-label tasks fit one output per term and report Fmax, and the contact head is a symmetric bilinear form on 32-dimensional projections trained with AdamW on up to 8,000 ProteinNet proteins. A ProteinGym score is the sum over a variant's substitutions of the log probability of the mutant minus that of the wild type, with each position masked on its own, aggregated by the benchmark's official procedure. Confidence intervals come from 5,000 bootstrap replicates over assays, proteins, queries, sequences or pairs, with identical resamples for paired differences.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Appendix A, Models, Probes, Zero-shot scores and likelihood, Statistics",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Inputs longer than a model’s window are processed in windows with 50% overlap whose residue representations are averaged."
+     },
+     {
+      "source": "@report",
+      "text": "For every task and model we evaluate six layers at relative depths 0.25, 0.5, 0.625, 0.75, 0.875 and 1.0 and select the layer and the regularization strength on the validation split, or by 5-fold cross-validation on the training split where a task has none (DGEB EC)."
+     },
+     {
+      "source": "@report",
+      "text": "Regression probes are closed-form ridge regressions and classification probes are L2-regularized logistic regressions fitted with L-BFGS"
+     },
+     {
+      "source": "@report",
+      "text": "Confidence intervals use 5,000 bootstrap replicates over assays (recomputing the official aggregation for each replicate), proteins (structure and likelihood), queries (retrieval), or sequences or pairs; paired differences use identical resamples."
+     }
+    ]
+   },
+   {
+    "title": "Reproduction checks and withheld results",
+    "body": "The authors state that their runs of eight published ESM-2 and ESM C checkpoints reproduce the ProteinGym leaderboard to within 0.0025. They withhold the zero-shot and likelihood results of xTrimoPGLM because their runs fall 0.07 to 0.09 below the leaderboard and its likelihood is implausibly high, which they attribute to an incompatibility between their adapter and that model's masked-language-model head; its embedding results are kept. Models without a suitable masked-language-model head (ProtT5, Ankh, Ankh3) are left out of the zero-shot and likelihood panels. ESM3-open and SaProt are evaluated from sequence alone although their published ProteinGym results also use structure inputs, and E1-600M is run on the query sequence alone although it is trained to use retrieved homologues. Three regression splits (GB1 two-vs-rest and three-vs-rest and the FLIP2 cross-protein hydrolase split) are reported but excluded from the summary statistics, because their validation data come from the training distribution while the test sets are strongly shifted and numerically equivalent runs of the same model differ by up to 0.2.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4.1; Appendix A, Statistics and Deviations",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Our runs of eight published ESM-2 and ESM C checkpoints reproduce the leaderboard to within 0.0025."
+     },
+     {
+      "source": "@report",
+      "text": "We could not reproduce the published ProteinGym scores of xTrimoPGLM: our runs fall 0.07 to 0.09 below the leaderboard, and its likelihood is implausibly high, which points to an incompatibility between our adapter and its masked-language-model head; we therefore withhold its zero-shot and likelihood results, while its embedding-based results are unaffected."
+     },
+     {
+      "source": "@report",
+      "text": "Three regression splits, GB1 two-vs-rest and three-vs- rest and the cross-protein hydrolase split of FLIP2, are reported in Tables 6 and 7 but left out of summary statistics"
+     },
+     {
+      "source": "@report",
+      "text": "E1 (Jain et al., 2025) is retrieval-augmented: it is trained with homologous sequences in its context and improves when they are supplied, at the cost of an external sequence database, a homology search for every query and longer inputs. As for every other model, we run E1-600M on the query sequence alone."
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "No evaluation harness, task packaging or scoring script is published, so the 32 tasks cannot be rerun from the release. The repository publishes the model and its inference engine: a download script for the weights, a pip install, an encode call that returns residue or mean-pooled representations from a chosen layer, and a logits call that masks a position so that a masked-marginal variant score can be computed. The README states that the INT8 default is within 0.01 of BF16 on zero-shot, structure, function-annotation and likelihood metrics, and recommends BF16 when training regressors on near-identical variants.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation; Usage; Precision",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "bash weights/download.sh     # needs curl; set GITHUB_TOKEN only if you hit API rate limits\npip install -e .             # torch, safetensors, triton, flash-attn"
+     },
+     {
+      "source": "@readme",
+      "text": "Under INT8, zero-shot, structure, function-annotation and likelihood metrics are within 0.01 of BF16."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "32 tasks, drawn from published benchmarks except for two likelihood panels of the authors' own, the held-out UniRef split and the PDB time split. The task table lists ProteinGym v1.3 substitutions (217 assays), a held-out UniRef panel (479 proteins) and a PDB time split (887 entries); TAPE secondary structure (8,678 train, 2,170 validation, 513 test on CB513, with TS115 and CASP12 grouped in the same row), ProteinNet contacts (25,299 / 224 / 40), CASP14 and CASP15 contact domains (82 and 95), TAPE remote homology (12,312 / 736 / 718); EC in two splits (13,090 / 1,465 / 1,604 for the first), GO-MF, GO-BP and GO-CC (26,225 / 2,904 / 3,350 for the first), DGEB EC (512 train, 128 test), DGEB Arch retrieval (2,343 queries), DeepLoc through PEER (8,743 / 2,190 / 2,745), metal-ion binding (5,068 / 662 / 665), HumanPPI (26,319 / 234 / 180); and FLIP, FLIP2 and TAPE regression splits for AAV (28,626 / 3,181 / 50,776 for two-vs-many), GB1 (381 / 43 / 8,309), Meltome (5,149 / 643 / 1,366), amylase (2,574 / 644 / 488), a cross-protein hydrolase split (11,970 / 2,993 / 9,972), fluorescence and stability (21,446 / 5,362 / 27,217 for the first) and thermostability (5,056 / 639 / 1,336).",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Table 4",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Secondary structure (Q3)                        accuracy                8,678 / 2,170 / 513 TAPE (Rao et al., 2019);"
+     },
+     {
+      "source": "@report",
+      "text": "Contacts, ProteinNet                            P@L/5 long               25,299 / 224 / 40 TAPE, ProteinNet CASP12"
+     },
+     {
+      "source": "@report",
+      "text": "Contacts, CASP14 / CASP15                       P@L/5 long                   – / – / 82, 95 CASP evaluation domains"
+     },
+     {
+      "source": "@report",
+      "text": "Remote homology                                 fold accuracy           12,312 / 736 / 718 TAPE (SCOP)"
+     },
+     {
+      "source": "@report",
+      "text": "EC (two splits)                                 Fmax                 13,090 / 1,465 / 1,604"
+     },
+     {
+      "source": "@report",
+      "text": "GO-MF, GO-BP, GO-CC                             Fmax                 26,225 / 2,904 / 3,350"
+     },
+     {
+      "source": "@report",
+      "text": "DGEB EC                                         macro F1                       512 / – / 128"
+     },
+     {
+      "source": "@report",
+      "text": "DGEB Arch retrieval                             MAP@5                         2,343 queries"
+     },
+     {
+      "source": "@report",
+      "text": "DeepLoc (10-class, binary)                      accuracy              8,743 / 2,190 / 2,745"
+     },
+     {
+      "source": "@report",
+      "text": "Metal-ion binding                               accuracy                 5,068 / 662 / 665"
+     },
+     {
+      "source": "@report",
+      "text": "HumanPPI                                        accuracy                26,319 / 234 / 180"
+     },
+     {
+      "source": "@report",
+      "text": "AAV (two-vs-many, low-vs-high)                  Spearman ρ          28,626 / 3,181 / 50,776"
+     },
+     {
+      "source": "@report",
+      "text": "GB1 (three splits)                              Spearman ρ                 381 / 43 / 8,309"
+     },
+     {
+      "source": "@report",
+      "text": "Meltome (human cell, mixed)                     Spearman ρ              5,149 / 643 / 1,366"
+     },
+     {
+      "source": "@report",
+      "text": "Amylase (one-to-many, by mutation count)        Spearman ρ                2,574 / 644 / 488"
+     },
+     {
+      "source": "@report",
+      "text": "Hydrolase to P06241                             Spearman ρ           11,970 / 2,993 / 9,972"
+     },
+     {
+      "source": "@report",
+      "text": "Fluorescence, stability                         Spearman ρ          21,446 / 5,362 / 27,217"
+     },
+     {
+      "source": "@report",
+      "text": "Thermostability                                 Spearman ρ              5,056 / 639 / 1,336"
+     },
+     {
+      "source": "@report",
+      "text": "ProteinGym substitutions                        Spearman ρ                       217 assays"
+     },
+     {
+      "source": "@report",
+      "text": "Held-out panel NLL – / – / 479 held-out UniRef split"
+     },
+     {
+      "source": "@report",
+      "text": "PDB time split NLL – / – / 887 RCSB PDB entries released 9"
+     },
+     {
+      "source": "@report",
+      "text": "on 32 tasks. All models run through the same evaluation code in BF16."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Each probed task keeps the train, validation and test split of its source benchmark, with the sizes printed in the task table. The validation split selects the layer and the regularisation strength; where a task has no validation split (DGEB EC) selection is by 5-fold cross-validation on the training split. The zero-shot tasks have no training split and are scored on all 217 ProteinGym assays. The two likelihood panels are test-only: 479 held-out UniRef proteins and 887 recent PDB entries. Three FLIP and FLIP2 regression splits are deliberately shifted between validation and test and are excluded from the summary statistics for that reason.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Table 4; Appendix A, Probes and Statistics",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "select the layer and the regularization strength on the validation split, or by 5-fold cross-validation on the training split where a task has none (DGEB EC)"
+     },
+     {
+      "source": "@report",
+      "text": "their validation data come from the training distribution while the test sets are strongly shifted, so probe selection on them is dominated by noise, and numerically equivalent runs of the same model differ by up to 0.2"
+     },
+     {
+      "source": "@report",
+      "text": "Held-out panel                                  NLL                              – / – / 479 held-out UniRef split"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "One primary metric per task, as the task table prints them. Spearman correlation for ProteinGym substitutions and for every fitness or property regression (higher is better); negative log-likelihood in nats, with perplexity beside it, for the two likelihood panels (lower is better); three-state accuracy for secondary structure, precision at L/5 over long-range pairs for contacts, fold accuracy for remote homology, Fmax for EC and the three Gene Ontology branches, macro F1 for DGEB EC, MAP@5 for DGEB Arch retrieval, and accuracy for localisation, metal-ion binding and HumanPPI (all higher is better). Contacts are residue pairs whose C-beta atoms, or C-alpha for ProteinNet, are closer than 8 angstroms, and long range means a sequence separation of at least 24. Embedding throughput in residues per second on one H20 is reported beside the accuracy. The speed figures are not a same-precision comparison: HyPLM-Flash is timed on its INT8 engine and the baselines in their reference implementations with the fastest attention kernel each supports, while every accuracy figure is a BF16 run.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Table 4; Table 3; Appendix A, Probes; Figure 1 caption; Section 3; Appendix A, Throughput",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Table 3: Masked-residue likelihood. Negative log-likelihood (NLL, nats) and perplexity (PPL) on held-out UniRef proteins and on PDB chains released after 2 September 2026. Lower is better."
+     },
+     {
+      "source": "@report",
+      "text": "Contacts are residue pairs whose Cβ atoms (Cα for ProteinNet) are closer than 8 Å, and long range means a sequence separation of at least 24."
+     },
+     {
+      "source": "@report",
+      "text": "Test metrics at the validation-selected layer: three-state accuracy on CB513 (SS), long-range contact precision at L/5 on ProteinNet, fold accuracy, Fmax for EC and GO molecular function, 10- class localization accuracy, and Spearman ρ for AAV (two-vs-many), amylase (one-to-many), fluorescence, Meltome (mixed split) and stability."
+     },
+     {
+      "source": "@report",
+      "text": "Throughput is measured with the INT8 engine for HyPLM-Flash and with the reference implementations for the baselines."
+     },
+     {
+      "source": "@report",
+      "text": "Accuracy in this report is evaluated with BF16 arithmetic."
+     },
+     {
+      "source": "@report",
+      "text": "using the fastest attention kernel each implementation supports"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "28 public checkpoints from 13 model families, from ESM-2 8M to ESM-2 15B, giving 29 models with HyPLM-Flash. The families named in the report are ESM-1b, ESM-2, ESM C, ESM3-open, E1, DPLM, SaProt, ProtBERT, ProtT5, Ankh, Ankh3, AMPLIFY and xTrimoPGLM. For the ProteinGym comparison the report also lists published leaderboard values for the top single-sequence entries, including the supervised predictors VespaG and VESPA.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4; Appendix A, Models; Table 5",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "We compare HyPLM-Flash with 28 public checkpoints from 13 model families, from ESM-2 8M to ESM-2 15B (29 models in all), on 32 tasks."
+     },
+     {
+      "source": "@report",
+      "text": "Hugging Face Transformers for ESM-1b, ESM-2, DPLM, SaProt, ProtBERT, ProtT5 and Ankh; the esm package for ESM C and ESM3; and the authors’ code for E1 (single-sequence mode, without retrieved context sequences), AMPLIFY and xTrimoPGLM."
+     },
+     {
+      "source": "@report",
+      "text": "† our evaluation; other rows are published leaderboard values (ProteinGym repository, commit 144fe22). VespaG and VESPA are supervised (Marquet et al., 2022; 2024)."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "One task-level control and no control over the baselines' own training data. The PDB likelihood panel holds entries released later than the training data of every model evaluated, clustered at 50 per cent identity with MMseqs2 after exact matches to the authors' training corpus were removed, and the UniRef panel is held out of HyPLM-Flash training. For the probed tasks the report relies on the source benchmarks' own splits and describes no further identity cut-off or time split, and it does not screen any public checkpoint's training data against the task test sets.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4.3; Table 4",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "887 PDB chains released after 2\nSeptember 2026, later than the training data of every model evaluated, clustered at 50% identity with\nMMseqs2 (Steinegger and Söding, 2017) after removing exact matches to our training corpus"
+     },
+     {
+      "source": "@report",
+      "text": "PDB time split                                  NLL                              – / – / 887 RCSB PDB entries released 9"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Paired bootstrap confidence intervals, 5,000 replicates, resampling the unit that matches the task: assays for ProteinGym with the official aggregation recomputed in each replicate, proteins for structure and likelihood, queries for retrieval, and sequences or pairs elsewhere; paired differences use identical resamples. The report prints 95 per cent intervals for the zero-shot differences between HyPLM-Flash and each comparable encoder. No seed replicates of the probe fitting are reported, but the report states that on the three excluded regression splits numerically equivalent runs of the same model differ by up to 0.2.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4.1; Appendix A, Statistics",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Confidence intervals use 5,000 bootstrap replicates over assays (recomputing the official aggregation for each replicate), proteins (structure and likelihood), queries (retrieval), or sequences or pairs; paired differences use identical resamples."
+     },
+     {
+      "source": "@report",
+      "text": "Its differences to ESM-2 650M (−0.006, 95% confidence interval [−0.025, 0.010]), ESM C 600M (+0.003, [−0.015, 0.019]), DPLM-650M (−0.001, [−0.019, 0.015]) and E1-600M (−0.011, [−0.029, 0.005]) are not significant"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "A protein sequence in most tasks, with the unit of scoring varying by task: an assay of substitutions for ProteinGym (217 assays, scored one variant at a time and correlated within the assay), a protein for the likelihood panels and the sequence-level probes, a residue for secondary structure, a residue pair for contacts, a query for DGEB Arch retrieval, and a protein pair for HumanPPI.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Table 4; Appendix A, Probes",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Split sizes in proteins (ProteinGym: assays; CASP: domains)."
+     },
+     {
+      "source": "@report",
+      "text": "the HumanPPI pair task uses the features"
+     },
+     {
+      "source": "@report",
+      "text": "DGEB Arch retrieval is zero-shot, by cosine similarity between mean-pooled representations."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Unreported as a composition. The report names the source benchmarks rather than the species they cover; the only organism-linked labels it prints are the human cell Meltome split, the human protein interaction task, and DGEB's prokaryotic enzyme classification and archaeal retrieval tasks.",
+    "status": "unreported",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Table 4"
+   },
+   {
+    "label": "Assays",
+    "value": "Experimental measurements enter only through the source benchmarks. The zero-shot task correlates model scores with the 217 substitution assays of ProteinGym v1.3, and the regression probes are fitted to FLIP, FLIP2 and TAPE measurements of AAV and GB1 fitness, amylase and hydrolase activity, melting temperature, fluorescence and stability. The report does not describe any assay protocol itself, and the structure, annotation and likelihood tasks involve no assay.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4.1; Table 4",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "report the Spearman correlation over the 217 substitution assays of ProteinGym v1.3 (Notin et al., 2023) with the benchmark’s official aggregation"
+     },
+     {
+      "source": "@report",
+      "text": "AAV (two-vs-many, low-vs-high)                  Spearman ρ          28,626 / 3,181 / 50,776    FLIP (Dallago et al., 2021)"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "The amino-acid sequence alone, for every model. Models that can read more are deliberately restricted: E1-600M is run on the query sequence without retrieved homologues, and ESM3-open and SaProt are evaluated from sequence alone although their published ProteinGym results also use structure inputs. Representations may be taken from any of six layer depths, selected on validation data.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4; Appendix A, Deviations",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "As for every other model, we run E1-600M on the query sequence alone."
+     },
+     {
+      "source": "@report",
+      "text": "ESM3-open and SaProt are evaluated from sequence alone, whereas their published ProteinGym results also use structure inputs."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Zero-shot and frozen probes only; no encoder is fine-tuned. Zero-shot scores come from the masked-language-model head, and every supervised task fits a linear probe, or a bilinear contact head, on cached frozen representations, with the layer and the regularisation strength chosen on validation data. Features are cached in FP16, or FP32 for the Ankh models. Every accuracy number is from a BF16 run of the model.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4; Appendix A, Probes",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Zero-shot scores come from the masked-language-model head, and every supervised task fits a linear probe on frozen representations from the layer, among six relative depths, that performs best on validation data."
+     },
+     {
+      "source": "@report",
+      "text": "Features are cached in FP16, or in FP32 for the Ankh models, whose activations exceed the FP16 range."
+     },
+     {
+      "source": "@report",
+      "text": "All models run through the same evaluation code in BF16."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Every model is run through one evaluation code path in the same precision, with the same probe family, the same six candidate layer depths and the same selection rule, so differences between models are not differences between published protocols.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4; Appendix A, Probes",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "All models run through the same evaluation code in BF16."
+     },
+     {
+      "source": "@report",
+      "text": "For every task and model we evaluate six layers at relative depths 0.25, 0.5, 0.625, 0.75, 0.875 and 1.0 and select the layer and the regularization strength on the validation split"
+     }
+    ]
+   },
+   {
+    "text": "The authors check their own pipeline against an external reference: runs of eight published ESM-2 and ESM C checkpoints reproduce the ProteinGym leaderboard to within 0.0025, and the one model they could not reproduce is named and its affected results withheld.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4.1; Appendix A, Deviations",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Our runs of eight published ESM-2 and ESM C checkpoints reproduce the leaderboard to within 0.0025."
+     },
+     {
+      "source": "@report",
+      "text": "we therefore withhold its zero-shot and likelihood results, while its embedding-based results are unaffected"
+     }
+    ]
+   },
+   {
+    "text": "Differences carry paired bootstrap intervals over the natural resampling unit, and the report reads small zero-shot gaps as ties rather than wins.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4.1; Appendix A, Statistics",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "are not significant, and neither are those to ESM-2 3B, ESM-2 15B and ESM C 6B, which were trained with 6 to 83 times more compute"
+     }
+    ]
+   },
+   {
+    "text": "The likelihood panel uses chains released later than the training data of every model evaluated, with exact matches to the authors' corpus removed, which is a time-based control rather than a random split.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4.3",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "later than the training data of every model evaluated, clustered at 50% identity with\nMMseqs2 (Steinegger and Söding, 2017) after removing exact matches to our training corpus"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The evaluation is run by the developer of one of the models under test: the authors chose the 32 tasks, wrote the adapters, selected the layers and ran every public checkpoint themselves.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4; Appendix A, Models",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "We compare HyPLM-Flash with 28 public checkpoints from 13 model families, from ESM-2 8M to ESM-2 15B (29 models in all), on 32 tasks."
+     },
+     {
+      "source": "@report",
+      "text": "Baselines are public checkpoints run in BF16 through thin adapters around their reference implementations"
+     }
+    ]
+   },
+   {
+    "text": "The probed tasks inherit whatever leakage their source splits carry: apart from the two likelihood panels the report describes no identity cut-off or time split of its own, and it does not check any public checkpoint's training data against the test sets.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Table 4; Section 4.3",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Secondary structure (Q3)                        accuracy                8,678 / 2,170 / 513 TAPE (Rao et al., 2019);"
+     },
+     {
+      "source": "@report",
+      "text": "479 proteins from our held-out UniRef split"
+     }
+    ]
+   },
+   {
+    "text": "Models are compared outside the setting they were built for in at least three cases, which the report states but which still limits the comparison: E1-600M is trained with retrieved homologues and is run without them, and ESM3-open and SaProt can read structure but are run from sequence alone.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 4; Appendix A, Deviations",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "it is trained with homologous sequences in its context and improves when they are supplied"
+     },
+     {
+      "source": "@report",
+      "text": "ESM3-open and SaProt are evaluated from sequence alone, whereas their published ProteinGym results also use structure inputs."
+     }
+    ]
+   },
+   {
+    "text": "Three of the regression splits are unreliable by the authors' own account and are dropped from the summary statistics while still being printed in the tables, so a reader comparing per-task values must know which splits the averages exclude.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Appendix A, Statistics",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Three regression splits, GB1 two-vs-rest and three-vs- rest and the cross-protein hydrolase split of FLIP2, are reported in Tables 6 and 7 but left out of summary statistics (Figure 1 and the regression average of Section 4.2)"
+     }
+    ]
+   },
+   {
+    "text": "Neither the evaluation code nor the task packaging is released, and the report publishes per-task values for HyPLM-Flash and twelve other encoders only, so the 29-model comparison cannot be rerun or inspected task by task.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Appendix B",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Table 5 lists the top of the ProteinGym leaderboard, and Tables 6 and 7 the primary metric of every task for HyPLM-Flash and twelve other encoders."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "HyPLM report evaluation workflow",
+   "steps": [
+    "29 checkpoints run in BF16 through one adapter layer",
+    "representations cached at six layer depths, or masked-language-model logits",
+    "linear or bilinear probe fitted, layer chosen on validation data",
+    "per-task metric on the test split",
+    "paired bootstrap difference between models"
+   ],
+   "caption": "Zero-shot tasks read the masked-language-model head directly; the supervised tasks fit a probe on frozen representations, with the layer selected on validation data before the test split is scored.",
+   "source_ids": [
+    "@report"
+   ],
+   "source_locator": "Report: Section 4; Appendix A",
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Zero-shot scores come from the masked-language-model head, and every supervised task fits a linear probe on frozen representations from the layer, among six relative depths, that performs best on validation data."
+    },
+    {
+     "source": "@report",
+     "text": "Confidence intervals use 5,000 bootstrap replicates over assays"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No evaluation code, task packaging or result file is released, so nothing here can be rerun by a third party.",
+   "Per-task values are printed for HyPLM-Flash and twelve other encoders only, although 29 models were run.",
+   "The report prints no accuracy value for the INT8 engine that the release defaults to; every accuracy number is a BF16 run, and the only INT8 statement is the README's claim that the metrics are within 0.01 of BF16.",
+   "The task table gives one train, validation and test triple per row, so for the grouped rows (secondary structure, EC, Gene Ontology, AAV, GB1, fluorescence and stability) the sizes of the tasks other than the first are not printed.",
+   "The report does not state the species composition of any task."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the text layer of the HyPLM technical report PDF (report dated 2026-10-12) and the hyplm_flash README.md and LICENSE, all from Tencent-Hunyuan/Hyra-results at commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a, on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the released HyPLM-Flash engine and produce the two kinds of output the evaluation reads: frozen representations for the probes, and masked-position logits for zero-shot variant scoring. The evaluation code itself is not released.",
+  "prerequisites": [
+   "A CUDA GPU (the README recommends Hopper GPUs such as the H20 or H100) and Python 3.10 or later.",
+   "2.6 GB of FP32 weights, released as two shards in the repository's GitHub Releases and fetched by the download script; curl is needed.",
+   "torch, safetensors, triton and flash-attn, installed by the pip step.",
+   "The package is released under the MIT licence."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/Tencent-Hunyuan/Hyra-results\ncd Hyra-results\ngit checkout --detach 0dcc533cc9f8f76c90ecbfe944df816b6672328a\ncd AI4Science/hyplm_flash",
+    "explanation": "The README does not give a clone command. These lines were added so the steps below run against the same commit as the saved README, and the final path is the package directory in the repository tree.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Layout",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`weights/`: model config and `download.sh`; the FP32 weights (safetensors, 2.61 GB) are fetched from the\n  GitHub Release"
+     }
+    ]
+   },
+   {
+    "title": "Download the weights and install",
+    "shell": "bash weights/download.sh\npip install -e .",
+    "explanation": "The script fetches, merges and verifies the two weight shards; the pip step installs the package and its dependencies. The README notes that a GITHUB_TOKEN is only needed if the API rate limit is reached.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "bash weights/download.sh     # needs curl; set GITHUB_TOKEN only if you hit API rate limits\npip install -e .             # torch, safetensors, triton, flash-attn"
+     }
+    ]
+   },
+   {
+    "title": "Extract frozen representations",
+    "shell": "python - <<'PY'\nfrom hyplm import HyPLMEncoder\n\nencoder = HyPLMEncoder.from_pretrained(\"weights\")\nsequences = [\"MKTAYIAKQRQISFVKSHFSRQ\", \"ACDEFGHIKLMNPQRSTVWY\"]\n\nresidue = encoder.encode(sequences)\npooled = encoder.encode(sequences, pooling=\"mean\")\nlayer16 = encoder.encode(sequences, layer=16)\nPY",
+    "explanation": "The README's Python example, wrapped in a shell heredoc so it runs as one command. Mean-pooled vectors are what the report's sequence-level probes read, and the layer argument is how a particular depth is taken; the report selects among six relative depths on validation data.",
+    "source_ids": [
+     "@readme",
+     "@report"
+    ],
+    "source_locator": "README.md: Usage; Report: Appendix A, Probes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "residue = encoder.encode(sequences)                     # list of [L, 1280]\npooled = encoder.encode(sequences, pooling=\"mean\")      # list of [1280]\nlayer16 = encoder.encode(sequences, layer=16)           # output of block 16"
+     },
+     {
+      "source": "@report",
+      "text": "Sequence-level tasks use representations mean-pooled over residues without special tokens; per-residue tasks use the residue representations."
+     }
+    ]
+   },
+   {
+    "title": "Score one substitution zero-shot",
+    "shell": "python - <<'PY'\nfrom hyplm import HyPLMEncoder\n\nencoder = HyPLMEncoder.from_pretrained(\"weights\")\nsequence = \"MKTAYIAKQRQISFVKSHFSRQ\"\nlogits = encoder.logits(sequence, masks=[2])[0]\nlog_probs = logits[2].log_softmax(-1)\ntokens = encoder.tokenizer.tokens\nscore = log_probs[tokens.index(\"V\")] - log_probs[tokens.index(\"T\")]\nprint(score)\nPY",
+    "explanation": "The README's masked-marginal example, wrapped in a shell heredoc. It gives the log probability of the mutant minus that of the wild type at a masked position, which is the per-substitution quantity the report sums for a ProteinGym variant.",
+    "source_ids": [
+     "@readme",
+     "@report"
+    ],
+    "source_locator": "README.md: Usage; Report: Appendix A, Zero-shot scores and likelihood",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "score = log_probs[tokens.index(\"V\")] - log_probs[tokens.index(\"T\")]   # masked-marginal score of T3V"
+     },
+     {
+      "source": "@report",
+      "text": "A variant’s ProteinGym score is the sum over its substitutions of log p(mutant) − log p(wild type), with each position masked on its own in the wild-type sequence"
+     }
+    ]
+   },
+   {
+    "title": "Choose the precision for the task",
+    "shell": "python - <<'PY'\nfrom hyplm import HyPLMEncoder\n\nencoder = HyPLMEncoder.from_pretrained(\"weights\", precision=\"bf16\")\nprint(encoder.encode([\"MKTAYIAKQRQISFVKSHFSRQ\"], pooling=\"mean\")[0].shape)\nPY",
+    "explanation": "INT8 is the default. The README recommends bf16 when fitting regressors on near-identical variants, such as the AAV and GB1 splits of FLIP, because INT8 representations of variants of one protein differ by about 1 per cent. The keyword is the one named in the README's precision table.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Precision",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| `precision=\"bf16\"` | about 90,000 | training supervised regressors on near-identical variants (e.g. AAV and GB1 in FLIP) |"
+     },
+     {
+      "source": "@readme",
+      "text": "Representations of variants of the same protein differ by only about 1%, so BF16 is recommended when\ntraining regressors on such data."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Lists of CPU FP32 tensors in input order, without the leading and trailing special tokens: one [L, 1280] tensor per sequence for residue representations, or one [1280] vector per sequence when mean-pooled.",
+   "An [L, 33] logits array from the logits call, from which a masked-marginal substitution score is computed.",
+   "No task metric: the probes, the task data and the scoring of the report are not released."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "They cover running the model only. None of the 32 tasks, the probe fitting or the bootstrap statistics is published, so the reported numbers cannot be reproduced from the release.",
+   "The report's accuracy numbers are BF16 runs while the release defaults to the INT8 engine; the README states the metrics agree to within 0.01 but prints no per-task INT8 value.",
+   "A single sequence may be up to 8,190 residues, and invalid characters raise an error."
+  ],
+  "source_ids": [
+   "@readme",
+   "@report"
+  ]
+ },
+ "structured": [
+  {
+   "task": "ProteinGym substitutions, zero-shot",
+   "dataset": "ProteinGym v1.3",
+   "size": 217,
+   "size_unit": "substitution assays",
+   "split": "all 217 assays, zero-shot, official aggregation",
+   "primary_metric": "Spearman",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "report the Spearman correlation over the 217 substitution assays of ProteinGym v1.3 (Notin et al., 2023) with the benchmark’s official aggregation"
+    }
+   ]
+  },
+  {
+   "task": "Masked-residue likelihood, held-out panel",
+   "dataset": "Held-out UniRef split",
+   "size": 479,
+   "size_unit": "test proteins",
+   "split": "test only, held out of HyPLM-Flash training",
+   "primary_metric": "NLL",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Held-out panel                                  NLL                              – / – / 479 held-out UniRef split"
+    },
+    {
+     "source": "@report",
+     "text": "Negative log-likelihood (NLL, nats) and perplexity (PPL) on held-out UniRef proteins and on PDB chains released after 2 September 2026. Lower is better."
+    }
+   ]
+  },
+  {
+   "task": "Masked-residue likelihood, PDB time split",
+   "dataset": "Recent RCSB PDB entries",
+   "size": 887,
+   "size_unit": "test entries",
+   "split": "time split, entries released later than the training data of every model, clustered at 50% identity",
+   "primary_metric": "NLL",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "PDB time split                                  NLL                              – / – / 887 RCSB PDB entries released 9"
+    },
+    {
+     "source": "@report",
+     "text": "later than the training data of every model evaluated, clustered at 50% identity with\nMMseqs2 (Steinegger and Söding, 2017) after removing exact matches to our training corpus"
+    }
+   ]
+  },
+  {
+   "task": "Secondary structure (Q3)",
+   "dataset": "TAPE secondary structure, CB513",
+   "size": 513,
+   "size_unit": "test proteins",
+   "split": "TAPE split, 8,678 train and 2,170 validation proteins",
+   "primary_metric": "three-state accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Secondary structure (Q3)                        accuracy                8,678 / 2,170 / 513 TAPE (Rao et al., 2019);"
+    },
+    {
+     "source": "@report",
+     "text": "Where a row groups several tasks, sizes are for the first."
+    }
+   ]
+  },
+  {
+   "task": "Contacts, ProteinNet",
+   "dataset": "TAPE ProteinNet CASP12 contacts",
+   "size": 40,
+   "size_unit": "test proteins",
+   "split": "TAPE split, 25,299 train and 224 validation proteins",
+   "primary_metric": "precision at L/5, long range",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Contacts, ProteinNet                            P@L/5 long               25,299 / 224 / 40 TAPE, ProteinNet CASP12"
+    },
+    {
+     "source": "@report",
+     "text": "Contacts are residue pairs whose Cβ atoms (Cα for ProteinNet) are closer than 8 Å, and long range means a sequence separation of at least 24."
+    }
+   ]
+  },
+  {
+   "task": "Contacts, CASP14",
+   "dataset": "CASP14 evaluation domains",
+   "size": 82,
+   "size_unit": "test domains",
+   "split": "test only",
+   "primary_metric": "precision at L/5, long range",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Contacts, CASP14 / CASP15                       P@L/5 long                   – / – / 82, 95 CASP evaluation domains"
+    }
+   ]
+  },
+  {
+   "task": "Contacts, CASP15",
+   "dataset": "CASP15 evaluation domains",
+   "size": 95,
+   "size_unit": "test domains",
+   "split": "test only",
+   "primary_metric": "precision at L/5, long range",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Contacts, CASP14 / CASP15                       P@L/5 long                   – / – / 82, 95 CASP evaluation domains"
+    }
+   ]
+  },
+  {
+   "task": "Remote homology",
+   "dataset": "TAPE remote homology (SCOP)",
+   "size": 718,
+   "size_unit": "test proteins",
+   "split": "TAPE split, 12,312 train and 736 validation proteins",
+   "primary_metric": "fold accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Remote homology                                 fold accuracy           12,312 / 736 / 718 TAPE (SCOP)"
+    }
+   ]
+  },
+  {
+   "task": "EC annotation",
+   "dataset": "SaProt EC split",
+   "size": 1604,
+   "size_unit": "test proteins",
+   "split": "SaProt EC split, 13,090 train and 1,465 validation proteins; sizes are for the first of the two EC splits",
+   "primary_metric": "Fmax",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "EC (two splits)                                 Fmax                 13,090 / 1,465 / 1,604"
+    },
+    {
+     "source": "@report",
+     "text": "Where a row groups several tasks, sizes are for the first."
+    }
+   ]
+  },
+  {
+   "task": "GO molecular function",
+   "dataset": "DeepFRI GO split as packaged by SaProt",
+   "size": 3350,
+   "size_unit": "test proteins",
+   "split": "DeepFRI GO split, 26,225 train and 2,904 validation proteins; sizes are for GO-MF, the first of the three branches",
+   "primary_metric": "Fmax",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "GO-MF, GO-BP, GO-CC                             Fmax                 26,225 / 2,904 / 3,350"
+    },
+    {
+     "source": "@report",
+     "text": "Where a row groups several tasks, sizes are for the first."
+    }
+   ]
+  },
+  {
+   "task": "DGEB EC classification",
+   "dataset": "DGEB EC",
+   "size": 128,
+   "size_unit": "test proteins",
+   "split": "512 training proteins, no validation split; selection by 5-fold cross-validation on the training split",
+   "primary_metric": "macro F1",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "DGEB EC                                         macro F1                       512 / – / 128"
+    },
+    {
+     "source": "@report",
+     "text": "or by 5-fold cross-validation on the training split where a task has none (DGEB EC)"
+    }
+   ]
+  },
+  {
+   "task": "DGEB Arch retrieval",
+   "dataset": "DGEB Arch retrieval",
+   "size": 2343,
+   "size_unit": "queries",
+   "split": "zero-shot retrieval by cosine similarity between mean-pooled representations",
+   "primary_metric": "MAP@5",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "DGEB Arch retrieval                             MAP@5                         2,343 queries"
+    },
+    {
+     "source": "@report",
+     "text": "DGEB Arch retrieval is zero-shot, by cosine similarity between mean-pooled representations."
+    }
+   ]
+  },
+  {
+   "task": "DeepLoc localisation, 10-class",
+   "dataset": "DeepLoc 1.0 via PEER",
+   "size": 2745,
+   "size_unit": "test proteins",
+   "split": "PEER packaging, 8,743 train and 2,190 validation proteins; sizes are for the 10-class task, the first in the row",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "DeepLoc (10-class, binary)                      accuracy              8,743 / 2,190 / 2,745"
+    },
+    {
+     "source": "@report",
+     "text": "Where a row groups several tasks, sizes are for the first."
+    }
+   ]
+  },
+  {
+   "task": "Metal-ion binding",
+   "dataset": "Metal-ion binding as packaged by SaProt",
+   "size": 665,
+   "size_unit": "test proteins",
+   "split": "5,068 train and 662 validation proteins",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Metal-ion binding                               accuracy                 5,068 / 662 / 665     as packaged by SaProt"
+    }
+   ]
+  },
+  {
+   "task": "HumanPPI",
+   "dataset": "HumanPPI via PEER",
+   "size": 180,
+   "size_unit": "test protein pairs",
+   "split": "PEER split, 26,319 train and 234 validation pairs",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "HumanPPI                                        accuracy                26,319 / 234 / 180     PEER"
+    }
+   ]
+  },
+  {
+   "task": "AAV fitness, two-vs-many",
+   "dataset": "FLIP AAV",
+   "size": 50776,
+   "size_unit": "test sequences",
+   "split": "FLIP two-vs-many split, 28,626 train and 3,181 validation sequences",
+   "primary_metric": "Spearman",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "AAV (two-vs-many, low-vs-high)                  Spearman ρ          28,626 / 3,181 / 50,776    FLIP (Dallago et al., 2021)"
+    },
+    {
+     "source": "@report",
+     "text": "Where a row groups several tasks, sizes are for the first."
+    }
+   ]
+  },
+  {
+   "task": "Meltome, human cell mixed split",
+   "dataset": "FLIP Meltome",
+   "size": 1366,
+   "size_unit": "test sequences",
+   "split": "FLIP mixed split, 5,149 train and 643 validation sequences",
+   "primary_metric": "Spearman",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Meltome (human cell, mixed)                     Spearman ρ              5,149 / 643 / 1,366    FLIP"
+    }
+   ]
+  },
+  {
+   "task": "Amylase, one-to-many",
+   "dataset": "FLIP2 amylase",
+   "size": 488,
+   "size_unit": "test sequences",
+   "split": "FLIP2 one-to-many split, 2,574 train and 644 validation sequences; sizes are for the first of the two amylase splits",
+   "primary_metric": "Spearman",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Amylase (one-to-many, by mutation count)        Spearman ρ                2,574 / 644 / 488     FLIP2"
+    },
+    {
+     "source": "@report",
+     "text": "Where a row groups several tasks, sizes are for the first."
+    }
+   ]
+  },
+  {
+   "task": "Hydrolase to P06241, cross-protein",
+   "dataset": "FLIP2 hydrolase",
+   "size": 9972,
+   "size_unit": "test sequences",
+   "split": "FLIP2 cross-protein split, 11,970 train and 2,993 validation sequences; excluded from the summary statistics",
+   "primary_metric": "Spearman",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Hydrolase to P06241                             Spearman ρ           11,970 / 2,993 / 9,972    FLIP2 (cross-protein)"
+    },
+    {
+     "source": "@report",
+     "text": "Three regression splits, GB1 two-vs-rest and three-vs- rest and the cross-protein hydrolase split of FLIP2, are reported in Tables 6 and 7 but left out of summary statistics"
+    }
+   ]
+  },
+  {
+   "task": "Fluorescence",
+   "dataset": "TAPE fluorescence",
+   "size": 27217,
+   "size_unit": "test sequences",
+   "split": "TAPE split, 21,446 train and 5,362 validation sequences; sizes are for fluorescence, the first of the row's two tasks",
+   "primary_metric": "Spearman",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Fluorescence, stability                         Spearman ρ          21,446 / 5,362 / 27,217    TAPE"
+    },
+    {
+     "source": "@report",
+     "text": "Where a row groups several tasks, sizes are for the first."
+    }
+   ]
+  },
+  {
+   "task": "Thermostability",
+   "dataset": "Meltome human cell as packaged by SaProt",
+   "size": 1336,
+   "size_unit": "test sequences",
+   "split": "5,056 train and 639 validation sequences",
+   "primary_metric": "Spearman",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Thermostability                                 Spearman ρ              5,056 / 639 / 1,336    Meltome human cell as"
+    }
+   ]
+  }
+ ],
+ "notes": "The record is one technical report's evaluation, not a released suite: there is no leaderboard, no evaluation code and no task packaging, so results_url, code_url, data_url and the licence fields are null in every structured entry. The code_licence is left null deliberately: the MIT licence in the repository covers the hyplm_flash model package, not the unreleased evaluation code. One discrepancy a reviewer should check: Section 4.3 describes the likelihood time split as 887 PDB chains released after 2 September 2026, while Table 4 describes the same 887-entry panel as RCSB PDB entries released 9 Sep to 7 Oct 2026; the structured entry quotes the table and does not state a date range. The task table prints one size triple per row and says the sizes are for the first task of a grouped row, so the structured entries name which task each size belongs to and no size is repeated onto a sibling task. GB1 has a structured entry omitted on purpose: the row covers three splits, the report does not say which one the printed sizes belong to, and two of the three are excluded from its own summary statistics. The 29-model comparison is author-run throughout, by the developer of HyPLM-Flash."
+}

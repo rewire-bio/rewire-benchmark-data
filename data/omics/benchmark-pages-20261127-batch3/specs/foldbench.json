@@ -1,0 +1,1141 @@
+{
+ "record_id": "ucc-research-benchmark-foldbench",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "FoldBench paper, PMC full-text XML (PMC12800276)",
+   "description": "NCBI PMC full-text XML of Xu et al., Benchmarking all-atom biomolecular structure prediction with FoldBench, Nature Communications 2025, fetched through E-utilities efetch.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12800276",
+   "url": "https://doi.org/10.1038/s41467-025-67127-3",
+   "version": "PMC12800276.1, Nature Communications 2025, article 67127",
+   "media_type": "application/xml",
+   "sha256": "9f42cf43a4822ba099b01758be53b1547519c3b6e7590695e1583653abd3a467",
+   "retrieved_at": "2026-11-27T02:49:56Z",
+   "licence": "CC BY-NC-ND 4.0",
+   "store_bytes": false
+  },
+  {
+   "key": "readme",
+   "name": "BEAM-Labs/FoldBench README.md at commit 4273f687",
+   "description": "Official repository readme, pinned to a commit. Holds the target counts, the leaderboard and the evaluation commands.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/BEAM-Labs/FoldBench/4273f6877d82bd0b2fa476d1b2f34d121cbccc70/README.md",
+   "url": "https://github.com/BEAM-Labs/FoldBench",
+   "version": "git commit 4273f6877d82bd0b2fa476d1b2f34d121cbccc70",
+   "media_type": "text/markdown",
+   "sha256": "b8107c120633e20c43373c248f4c15a9f1df6b1855f6029bcfba9276651bb713",
+   "retrieved_at": "2026-11-27T02:50:11Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "evaluate",
+   "name": "BEAM-Labs/FoldBench evaluate.py at commit 4273f687",
+   "description": "The per-target scoring script the readme's first evaluation step runs, read to check what it does.",
+   "file": "artifacts/evaluate.py",
+   "artifact_url": "https://raw.githubusercontent.com/BEAM-Labs/FoldBench/4273f6877d82bd0b2fa476d1b2f34d121cbccc70/evaluate.py",
+   "url": "https://github.com/BEAM-Labs/FoldBench/blob/main/evaluate.py",
+   "version": "git commit 4273f6877d82bd0b2fa476d1b2f34d121cbccc70",
+   "media_type": "text/x-python",
+   "sha256": "3738fb541f15d354a728342adf7ca6108d9614ac8109853fad72816001b88862",
+   "retrieved_at": "2026-11-27T02:50:14Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "licence",
+   "name": "BEAM-Labs/FoldBench LICENSE at commit 4273f687",
+   "description": "Repository licence file, pinned to a commit.",
+   "file": "artifacts/licence.txt",
+   "artifact_url": "https://raw.githubusercontent.com/BEAM-Labs/FoldBench/4273f6877d82bd0b2fa476d1b2f34d121cbccc70/LICENSE",
+   "url": "https://github.com/BEAM-Labs/FoldBench/blob/main/LICENSE",
+   "version": "git commit 4273f6877d82bd0b2fa476d1b2f34d121cbccc70",
+   "media_type": "text/plain",
+   "sha256": "c3f1499802e196db2770717e5310336adac323fa8892dbba2d00eb360607507e",
+   "retrieved_at": "2026-11-27T02:50:17Z",
+   "licence": "MIT",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "FoldBench is a low-homology benchmark for all-atom biomolecular structure prediction: 1522 biological assemblies from the PDB, organised into nine tasks covering protein, RNA and DNA monomers and six interface types (protein-protein, antibody-antigen, protein-ligand, protein-peptide, protein-RNA and protein-DNA). Targets were deposited after the AlphaFold 3 validation cut-off of 13 January 2023 and filtered against a reproduction of the AlphaFold 3 training set, so a single benchmark can be used to compare co-folding models across molecule classes. Interfaces are scored by success rate (DockQ at least 0.23, or ligand RMSD below 2 angstroms with LDDT-PLI above 0.8 for ligands), monomers by LDDT. The targets, the evaluation code and reference results are published under the MIT licence.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Introduction; Methods, Data curation procedure; README: FoldBench Targets, Leaderboard",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "In this work, we present FoldBench, a unified, low-homology benchmark of 1522 biological assemblies spanning nine prediction tasks across proteins, nucleic acids, ligands, and diverse interfaces"
+   },
+   {
+    "source": "@readme",
+    "text": "FoldBench is a low-homology benchmark spanning proteins, nucleic acids, ligands, and six major interaction types, enabling assessments that were previously infeasible with task-specific datasets."
+   },
+   {
+    "source": "@readme",
+    "text": "**Evaluation Metrics:** Interface prediction tasks are evaluated by success rate, while monomer prediction tasks use LDDT (Local Distance Difference Test) scores."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether an all-atom co-folding model can build the correct structure of a whole biological assembly, and in particular the correct interface between its parts, on targets it is unlikely to have memorised. The nine tasks separate the question by molecule class and interaction type, because the authors treat antibody-antigen interfaces, protein-ligand complexes and nucleic acids as the hard cases. Beyond raw accuracy, the benchmark measures how accuracy depends on similarity to the training set: protein-ligand results are split into an unseen-protein subset and an unseen-ligand subset, and success rate is plotted against ligand similarity to the training data.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Introduction; Results, Benchmarking protein-ligand co-folding performance",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Antibody-antigen interfaces, protein-ligand complexes, and nucleic acids are widely considered hard cases because of their conformational flexibility and the limited number of experimental structures available."
+     },
+     {
+      "source": "@paper",
+      "text": "Here, “unseen protein” refers to proteins in the protein-ligand pairs that exhibit less than 40% sequence identity to any protein sequence in the training set."
+     },
+     {
+      "source": "@paper",
+      "text": "This trend indicates that models rely substantially on memorized ligand binding modes encountered during training."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "The authors first reproduced the AlphaFold 3 training set at its 2021-09-30 cut-off, then took PDB entries deposited after 13 January 2023 and before 1 November 2024. Entries must be non-NMR with resolution better than 4.5 angstroms, fewer than 300 polymer chains and between 10 and 2560 tokens under the AlphaFold 3 tokenisation, and the first bioassembly of each entry is the target. Assemblies are cleaned: water removed, chains with fewer than 4 resolved residues or all-unknown residues removed, protein chains with a C-alpha gap over 10 angstroms removed, and clashing chains dropped by a stated rule. Targets are then split into monomers (one polymer chain, below 40 per cent identity to the training set) and interfaces (chain pairs with any heavy atoms within 5 angstroms), each with its own homology rule: a polymer-polymer interface is dropped if both chains exceed 40 per cent identity to two chains of one training complex, protein-protein interfaces are further filtered with Foldseek-Multimer at TM-score below 0.5, a protein-ligand interface is dropped if the protein exceeds 40 per cent identity and the ligand exceeds 50 per cent Tanimoto similarity to a ligand in the same training complex, and protein-peptide interfaces require the protein below 40 per cent identity. What remains is clustered at 40 per cent identity for proteins and 100 per cent for nucleic acids and peptides, keeping the highest-resolution member, under per-task resolution limits.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data curation procedure",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To remove homology targets in the benchmark set, we first reproduced the training set of AlphaFold 3 (2021-09-30 cutoff)"
+     },
+     {
+      "source": "@paper",
+      "text": "To prevent potential data leakage, we collected the bioassemblies from PDB entries after 2023-01-13 (validation set cutoff of AlphaFold 3) and before 2024-11-01."
+     },
+     {
+      "source": "@paper",
+      "text": "Entry must be non-NMR and with a resolution of less than 4.5"
+     },
+     {
+      "source": "@paper",
+      "text": "Monomers: Monomer targets are bioassemblies that contain a single polymer (protein/DNA/RNA) chain, and have less than 40% sequence identity to the training set."
+     },
+     {
+      "source": "@paper",
+      "text": "For protein-protein interfaces, we further applied Foldseek-Multimer"
+     },
+     {
+      "source": "@paper",
+      "text": "The remaining low-homology assemblies were clustered (40 % identity for proteins; 100 % identity for nucleic acids and peptides)."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Inputs are generated once from the mmCIF of each bioassembly as AlphaFold 3 JSON, with bond information removed, and then converted to each model's own format. Every model predicts with a 5 by 5 sampling strategy, five seeds by five samples, with 10 recycles, and unless stated otherwise the reported result is the structure with the highest ranking score. Scoring uses OpenStructure v2.8 as the main tool, for LDDT, TM-score and GDT-TS on monomers and for DockQ on most protein interfaces; protein-nucleic acid interfaces are scored with the DockQ v2 program because OpenStructure does not support them. An interface counts as a success at DockQ at least 0.23, and DockQ is also binned into incorrect, acceptable, medium and high. Protein-ligand interfaces use binding-site superposed, symmetry-corrected ligand RMSD, with success defined as ligand RMSD below 2 angstroms and LDDT-PLI above 0.8. Antibody CDR H3 loop RMSD is computed separately after Chothia renumbering through AbNum and PyRosetta4. Monomer tasks report LDDT rather than a success rate. Inference ran on NVIDIA H800 80GB GPUs.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, Model Inference and Evaluation and metrics; README: Leaderboard note",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "each model performed predictions using a 5 × 5 sampling strategy (5 seeds × 5 samples) with 10 recycles to ensure thorough conformational space exploration"
+     },
+     {
+      "source": "@paper",
+      "text": "Unless otherwise specified, the results are based on the structure with the highest ranking score for each model."
+     },
+     {
+      "source": "@paper",
+      "text": "We used the widely adopted OpenStructure v2.8 as the main assessment tool to calculate the scores between the predicted results and the ground truth."
+     },
+     {
+      "source": "@paper",
+      "text": "the ligand docking success rate is defined as LRMSD &lt; 2 Å and LDDT-PLI &gt; 0.8"
+     },
+     {
+      "source": "@readme",
+      "text": "- Success is defined as:\n  - For protein–ligand interfaces: LRMSD < 2 Å and LDDT-PLI > 0.8\n  - For all other interfaces: DockQ ≥ 0.23"
+     }
+    ]
+   },
+   {
+    "title": "Leaderboard and the training cut-off problem",
+    "body": "The repository keeps a leaderboard with two target sets: the full set of targets released after 2023-01, and a subset released after 2024-01. On the full set AlphaFold 3 leads at 72.93 per cent on protein-protein, 47.90 per cent on antibody-antigen and 64.90 per cent on protein-ligand, with antibody-antigen the weakest task for every model. The readme marks Boltz-2 and RosettaFold3 with an asterisk because their training cut-off is later than FoldBench's reference date of 2023-01-13: the low-homology guarantee holds only against PDB data before that date, so those models may have seen the targets, and the readme says their results are for reference only and should not be compared directly with the valid models. Two further caveats are printed: nucleic acid monomer results are omitted from the 2024-01 set for want of targets, and one model's protein-RNA row is blank because of inference or evaluation errors.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Leaderboard and its footnotes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "*Models marked with * have a training cutoff later than FoldBench's reference date (2023-01-13)."
+     },
+     {
+      "source": "@readme",
+      "text": "Consequently, models trained on data released after this date may have observed these targets or their close homologs during training (potential data leakage), compromising the low-homology evaluation condition. Results for these models are provided for reference only and should not be directly compared with strictly valid models."
+     },
+     {
+      "source": "@readme",
+      "text": "| AlphaFold 3    | 72.93%          | 47.90% | 64.90%          |"
+     },
+     {
+      "source": "@readme",
+      "text": "**Nucleic acid monomer results are omitted due to insufficient target availability."
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "The repository is cloned, a conda environment is created from environment.yml, and scoring runs in two steps. The first, evaluate.py, reads a prediction_reference.csv for the named algorithm and, for each requested target type, merges the target table with the prediction table on PDB identifier and scores every prediction against its ground truth with OpenStructure; for the protein-DNA and protein-RNA interface types it additionally scores with DockQ v2. The second, task_score_summary.py, aggregates those per-target scores into success rates or LDDT per task and writes a summary table. Running on more than the bundled examples needs the target CSV files edited and the referenced ground-truth CIF files downloaded from a link the readme gives, and a model's predictions registered in prediction_reference.csv.",
+    "source_ids": [
+     "@readme",
+     "@evaluate"
+    ],
+    "source_locator": "README: Getting Started, Evaluation; evaluate.py",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda env create -f environment.yml\nconda activate foldbench"
+     },
+     {
+      "source": "@evaluate",
+      "text": "prediction_summary_path = f'{evaluation_dir}/prediction_reference.csv'"
+     },
+     {
+      "source": "@evaluate",
+      "text": "if target_type in  [\"interface_protein_dna\",\"interface_protein_rna\"]:\n            eval_by_dockqv2(target_df,target_type,evaluation_dir,args.ground_truth_dir)"
+     },
+     {
+      "source": "@readme",
+      "text": "* **Download ground truth CIF files:** A package containing the specific original CIF files referenced during the benchmark's creation is available for download here:"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "1522 biological assemblies from the PDB, in nine task sets. The paper's Methods give 334 protein monomers (after removing 7 de novo designed proteins), 14 DNA monomers, 15 RNA monomers, 558 protein-ligand interfaces, 172 antibody-antigen interfaces, 279 general protein-protein interfaces (antibody-antigen excluded), 51 protein-peptide interfaces, 70 protein-RNA interfaces and 330 protein-DNA interfaces. The repository readme lists the same counts except for protein monomers, where it says 330 structures. The protein-ligand set is further split into an unseen-protein subset of 76 targets and an unseen-ligand subset of 482 targets.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, final clustering and resolution cut-offs; Results, protein-ligand; README: FoldBench Targets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In this work, we present FoldBench, a unified, low-homology benchmark of 1522 biological assemblies spanning nine prediction tasks across proteins, nucleic acids, ligands, and diverse interfaces"
+     },
+     {
+      "source": "@paper",
+      "text": "Protein monomers: 334 targets (7 de novo designed proteins were removed)."
+     },
+     {
+      "source": "@paper",
+      "text": "DNA monomers: 14 targets."
+     },
+     {
+      "source": "@paper",
+      "text": "RNA monomers: 15 targets."
+     },
+     {
+      "source": "@paper",
+      "text": "Protein-ligand interfaces: 558 targets after additional ligand-quality filters"
+     },
+     {
+      "source": "@paper",
+      "text": "Antibody-antigen interfaces: 172 targets; resolution"
+     },
+     {
+      "source": "@paper",
+      "text": "General protein-protein interfaces: 279 targets (antibody-antigen complexes excluded); resolution"
+     },
+     {
+      "source": "@paper",
+      "text": "Protein-peptide interfaces: 51 targets; no further resolution constraint owing to limited data."
+     },
+     {
+      "source": "@paper",
+      "text": "Protein-RNA interfaces: 70 targets; resolution"
+     },
+     {
+      "source": "@paper",
+      "text": "Protein-DNA interfaces: 330 targets; resolution"
+     },
+     {
+      "source": "@paper",
+      "text": "the scores for the “unseen protein” subset (76 targets), and the scores for the “unseen ligand” set (482 targets)"
+     },
+     {
+      "source": "@readme",
+      "text": "* **Protein Monomers:** 330 structures"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Evaluation only: there is no training split, and every target is scored. The separation from training data is by deposition date and by homology to a reproduced AlphaFold 3 training set, with a per-task homology rule, followed by clustering at 40 per cent identity for proteins and 100 per cent for nucleic acids and peptides. The leaderboard reports two nested evaluation sets, targets released after 2023-01 (the full set) and the subset released after 2024-01, and the protein-ligand task is additionally reported on its unseen-protein and unseen-ligand subsets.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, Data curation procedure; README: Leaderboard",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To prevent potential data leakage, we collected the bioassemblies from PDB entries after 2023-01-13 (validation set cutoff of AlphaFold 3) and before 2024-11-01."
+     },
+     {
+      "source": "@paper",
+      "text": "The remaining low-homology assemblies were clustered (40 % identity for proteins; 100 % identity for nucleic acids and peptides)."
+     },
+     {
+      "source": "@readme",
+      "text": "### Results on targets released after 2024-01"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Interfaces are scored by success rate, higher is better: DockQ at least 0.23 for protein-protein, antibody-antigen, protein-peptide, protein-RNA and protein-DNA, and ligand RMSD below 2 angstroms together with LDDT-PLI above 0.8 for protein-ligand. Monomer tasks report LDDT, higher is better. DockQ is also binned as incorrect below 0.23, acceptable 0.23 to below 0.49, medium 0.49 to below 0.80, high 0.80 and above. Further measures reported beside these are TM-score and GDT-TS for monomers, LDDT-LP for the ligand pocket, and CDR H3 loop RMSD for antibodies, lower being better for the RMSD measures.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, Evaluation and metrics; README: Leaderboard note",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "**Evaluation Metrics:** Interface prediction tasks are evaluated by success rate, while monomer prediction tasks use LDDT (Local Distance Difference Test) scores."
+     },
+     {
+      "source": "@paper",
+      "text": "The DockQ success rate is the ratio of predictions achieving a DockQ score greater than or equal to 0.23"
+     },
+     {
+      "source": "@paper",
+      "text": "the ligand docking success rate is defined as LRMSD &lt; 2 Å and LDDT-PLI &gt; 0.8"
+     },
+     {
+      "source": "@paper",
+      "text": "For common monomer metrics such as LDDT, TM-score, and GDT-TS, we also used OpenStructure for calculations."
+     },
+     {
+      "source": "@paper",
+      "text": "We renumbered the antibody structures using the AbNum webserver"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "The paper evaluates five all-atom predictors: AlphaFold 3, Boltz-1, Chai-1, HelixFold 3 and Protenix. The repository leaderboard adds OpenFold 3 (preview) to the same set, and lists Boltz-2 and RosettaFold3 separately as models whose training cut-off is later than the benchmark's reference date. There is no classical docking or template-based reference method.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Introduction; README: Leaderboard",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We systematically evaluate five recent all-atom predictors (AlphaFold 3, Boltz-1, Chai-1, HelixFold 3, and Protenix)"
+     },
+     {
+      "source": "@readme",
+      "text": "| OpenFold 3 (preview)     | 69.96%          | 28.83% | 44.49%          |"
+     },
+     {
+      "source": "@readme",
+      "text": "| Boltz-2*       | 70.54%          | 25.00% | 53.90%          |"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "This is the benchmark's main design feature. Targets must be deposited after 13 January 2023, the AlphaFold 3 validation cut-off, and before 1 November 2024. The authors reproduced the AlphaFold 3 training set at its 2021-09-30 cut-off and filtered against it with a rule per task: monomers below 40 per cent sequence identity; a polymer-polymer interface removed when both chains exceed 40 per cent identity to two chains of one training complex; protein-protein interfaces additionally filtered by Foldseek-Multimer at TM-score below 0.5; a protein-ligand interface removed when the protein exceeds 40 per cent identity and the ligand exceeds 50 per cent Tanimoto similarity to a ligand in the same training complex; protein-peptide interfaces requiring the protein below 40 per cent identity. Remaining similarity is then measured rather than assumed, by reporting accuracy against training-set similarity. The limit is stated plainly in the readme: the guarantee holds against PDB data before 2023-01-13 only, so models with a later training cut-off are flagged and set aside. The readme also says the authors developed an algorithm to identify and prevent overfitting of models on FoldBench, without describing it.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, Data curation procedure; Results; README: Leaderboard footnotes",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To remove homology targets in the benchmark set, we first reproduced the training set of AlphaFold 3 (2021-09-30 cutoff)"
+     },
+     {
+      "source": "@paper",
+      "text": "Protein-ligand interface: If the protein has greater than 40% sequence identity with a chain in a training complex and the ligand has greater than 50% Tanimoto similarity to a ligand from the same complex, then the interface is filtered out."
+     },
+     {
+      "source": "@readme",
+      "text": "FoldBench targets are constructed to ensure **low homology specifically against the PDB data prior to 2023-01-13**."
+     },
+     {
+      "source": "@readme",
+      "text": "- We developed an algorithm to identify and prevent overfitting of models on FoldBench, ensuring fair and reliable evaluation."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Sampling variation is handled by generating 25 structures per target for every model (five seeds by five samples, 10 recycles) and reporting the one with the highest ranking score, with best-of-25 comparisons shown separately. Figures carry 95 per cent confidence intervals on mean success rates and mean DockQ scores, and box plots show medians and interquartile ranges. The leaderboard tables in the repository carry no interval.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, Model Inference; Figure 3 and Figure 4 captions; README: Leaderboard",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "each model performed predictions using a 5 × 5 sampling strategy (5 seeds × 5 samples) with 10 recycles to ensure thorough conformational space exploration"
+     },
+     {
+      "source": "@paper",
+      "text": "Each bar represents the mean success rate; error bars show 95% confidence intervals"
+     },
+     {
+      "source": "@paper",
+      "text": "Box plots show the median (center line), the interquartile range (box), and whiskers extending to the most extreme values within 1.5×interquartile range of LDDT-LP"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One example is either a single polymer chain (a protein, RNA or DNA monomer) or one interface, a pair of chains whose closest heavy atoms are within 5 angstroms, extracted from a predicted full biological assembly. For the protein-ligand task the example is a protein and ligand interface, with one interface chosen at random per ligand. Each target comes from the first bioassembly of a PDB entry.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data curation procedure",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We processed targets into two types, monomer and interface (pairs of chains with minimum heavy atom (i.e., non-hydrogen) separation less than 5"
+     },
+     {
+      "source": "@paper",
+      "text": "The first bioassembly of each entry is selected as the prediction target."
+     },
+     {
+      "source": "@paper",
+      "text": "For further filtering, we randomly selected a single interface as the target for each ligand."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Unreported. Targets are PDB biological assemblies selected by date, resolution, size and homology; the paper and the readme report molecule class, chain counts, token counts and oligomeric state but give no species composition.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Overview of the benchmark; Figure 2 caption"
+   },
+   {
+    "label": "Assays",
+    "value": "Experimental structure determination, with NMR excluded. Entries must be non-NMR with resolution better than 4.5 angstroms, and the per-task limits are tighter: below 2.0 angstroms for general protein-protein interfaces, below 2.5 angstroms for antibody-antigen, protein-RNA and protein-DNA interfaces, and no further limit for protein-peptide interfaces. No binding or activity assay is involved.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data curation procedure",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Entry must be non-NMR and with a resolution of less than 4.5"
+     },
+     {
+      "source": "@paper",
+      "text": "General protein-protein interfaces: 279 targets (antibody-antigen complexes excluded); resolution"
+     },
+     {
+      "source": "@paper",
+      "text": "Antibody-antigen interfaces: 172 targets; resolution"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "The full specification of the assembly: sequences and chemical components of every entity, generated from the mmCIF of the bioassembly as AlphaFold 3 JSON with bond information removed, then converted to each model's own input format. Each model uses its own multiple sequence alignment and template pipeline, which the paper notes is not uniform: AlphaFold 3 and HelixFold 3 search RNA alignments and templates locally while the other three do not, and the commit and alignment source of each method are listed in a supplementary table.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Model Inference",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "First, we generated the JSON inputs of AlphaFold 3 by parsing the mmCIF files of the bioassemblies using the"
+     },
+     {
+      "source": "@paper",
+      "text": "Note that AlphaFold 3 and HelixFold 3 include RNA MSA searching and template searching in their local searching pipeline, which differs slightly from the other three methods."
+     },
+     {
+      "source": "@paper",
+      "text": "shows the commit ID and MSA source of each method. Inference was made on NVIDIA H800 80GB GPUs."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Zero-shot inference from released checkpoints. No model is trained or fine-tuned for the benchmark; each is run at a pinned commit with the stated sampling strategy. The repository invites a contributor to submit an algorithm for the maintainers to run, through a packaging guide, rather than submitting scores.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, Model Inference; README: Integrating a New Model into FoldBench",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Unless otherwise specified, the results are based on the structure with the highest ranking score for each model."
+     },
+     {
+      "source": "@readme",
+      "text": "You can submit your algorithm for us to run the tests."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "One target set and one scoring pipeline cover nine tasks across proteins, nucleic acids and ligands, so results for different molecule classes come from the same construction rules rather than from separate task-specific datasets.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Introduction; Figure 1 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "have generally addressed a single task, covered a limited range of methods and targets, and often overlooked how prediction accuracy changes with similarity between test cases and training data."
+     },
+     {
+      "source": "@paper",
+      "text": "These are organized into nine distinct prediction tasks to enable broad, cross-domain assessment."
+     }
+    ]
+   },
+   {
+    "text": "The homology filter is explicit and per task, built against a reproduction of the AlphaFold 3 training set, and includes a structural filter (Foldseek-Multimer at TM-score below 0.5) for protein-protein interfaces rather than sequence identity alone.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data curation procedure",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For protein-protein interfaces, we further applied Foldseek-Multimer"
+     },
+     {
+      "source": "@paper",
+      "text": "Protein-ligand interface: If the protein has greater than 40% sequence identity with a chain in a training complex and the ligand has greater than 50% Tanimoto similarity to a ligand from the same complex, then the interface is filtered out."
+     }
+    ]
+   },
+   {
+    "text": "The benchmark reports how accuracy depends on similarity to training data instead of only reporting a single number, including a ligand-similarity breakdown that the authors read as evidence of memorised binding modes.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Benchmarking protein-ligand co-folding performance",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "examines the impact of ligand similarity to the training set on the modeling accuracy."
+     },
+     {
+      "source": "@paper",
+      "text": "This trend indicates that models rely substantially on memorized ligand binding modes encountered during training."
+     }
+    ]
+   },
+   {
+    "text": "Targets, evaluation code and reference results are released under the MIT licence, with a documented path for a new model to be run by the maintainers and a maintained leaderboard that is updated when new models are evaluated.",
+    "source_ids": [
+     "@readme",
+     "@licence",
+     "@paper"
+    ],
+    "source_locator": "README: Updates, License, Integrating a New Model; LICENSE; Paper: Code availability",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details."
+     },
+     {
+      "source": "@licence",
+      "text": "MIT License"
+     },
+     {
+      "source": "@readme",
+      "text": "+ **2025-12-31**: The evaluation results for RosettaFold3 (latest) have been updated."
+     },
+     {
+      "source": "@paper",
+      "text": "The FoldBench evaluation code can be found at"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The low-homology guarantee is dated. It holds only against PDB data before 2023-01-13, so any model trained after that date may have seen the targets; the readme flags Boltz-2 and RosettaFold3 on that ground and says their numbers should not be compared with the valid models.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Leaderboard footnotes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "FoldBench targets are constructed to ensure **low homology specifically against the PDB data prior to 2023-01-13**."
+     },
+     {
+      "source": "@readme",
+      "text": "Results for these models are provided for reference only and should not be directly compared with strictly valid models."
+     }
+    ]
+   },
+   {
+    "text": "Some tasks are too small to carry much weight: 14 DNA monomers, 15 RNA monomers and 51 protein-peptide interfaces, and the nucleic acid monomer results are omitted from the 2024-01 set altogether for want of targets.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, final counts; README: Leaderboard footnotes",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "DNA monomers: 14 targets."
+     },
+     {
+      "source": "@paper",
+      "text": "Protein-peptide interfaces: 51 targets; no further resolution constraint owing to limited data."
+     },
+     {
+      "source": "@readme",
+      "text": "**Nucleic acid monomer results are omitted due to insufficient target availability."
+     }
+    ]
+   },
+   {
+    "text": "The models are not run through identical pipelines. The authors had to modify several of them to get predictions at all, remove glycans for Boltz-1, drop modified residues for HelixFold 3, patch an AlphaFold 3 error and work around a Chai-1 token limit, and the alignment and template search differs between methods.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Model Inference",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For Boltz-1, glycans, which were formatted as multiple Chemical Component Dictionary (CCD) entries corresponding to a single chain ID—were removed from the bioassemblies, as Boltz-1 cannot process this input structure."
+     },
+     {
+      "source": "@paper",
+      "text": "Additionally, since HelixFold 3 cannot handle modifications, we removed them from the input."
+     },
+     {
+      "source": "@paper",
+      "text": "Note that in our assessment version of the Chai-1 model, it cannot infer biological assemblies with a token count exceeding 2048, which will hinder the evaluation of those targets."
+     }
+    ]
+   },
+   {
+    "text": "Not every model produces a score for every target, so the denominators differ: the final counts of predictable and assessable targets per task and model are given in a supplementary table, and one leaderboard cell is blank because of inference or evaluation errors.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, Evaluation and metrics; README: Leaderboard footnotes",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "shows the final counts of predictable and assessable targets across various tasks and models"
+     },
+     {
+      "source": "@readme",
+      "text": "^Results are not shown due to insufficient targets caused by errors during inference or evaluation stages."
+     }
+    ]
+   },
+   {
+    "text": "The two counts published for the protein monomer task do not agree: the paper's Methods give 334 targets, the repository readme 330 structures. Neither source explains the difference.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, final clustering and resolution cut-offs; README: Monomeric Structures",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Protein monomers: 334 targets (7 de novo designed proteins were removed)."
+     },
+     {
+      "source": "@readme",
+      "text": "* **Protein Monomers:** 330 structures"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "FoldBench construction and evaluation workflow",
+   "steps": [
+    "PDB entries deposited 2023-01-13 to 2024-11-01, non-NMR, resolution and size limits",
+    "assembly cleaning, then split into monomers and interfaces",
+    "homology filter per task against a reproduced AlphaFold 3 training set, then clustering",
+    "each model predicts 25 structures per target (5 seeds by 5 samples, 10 recycles)",
+    "OpenStructure and DockQ score the top-ranked structure",
+    "success rate per interface task, LDDT per monomer task"
+   ],
+   "caption": "Nine task sets come out of one curation pipeline; scoring is by success rate for interfaces and LDDT for monomers, and models with a training cut-off after 2023-01-13 are reported separately.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "Paper: Figure 2A; Methods; README: Leaderboard note",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Workflow illustrating the selection and processing steps applied to biological assemblies retrieved from the Protein Data Bank (PDB)."
+    },
+    {
+     "source": "@paper",
+     "text": "each model performed predictions using a 5 × 5 sampling strategy (5 seeds × 5 samples) with 10 recycles to ensure thorough conformational space exploration"
+    },
+    {
+     "source": "@readme",
+     "text": "- Interface prediction is evaluated by success rate.\n- Monomer prediction is evaluated by LDDT."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The per-model, per-task target counts and the full performance tables are in supplementary tables 1 to 3, which were not retrieved; only the readme leaderboard values and the figures described in the text are recorded here.",
+   "The ligand-quality filters behind the 558 protein-ligand targets are in Supplementary Note 3, which was not retrieved.",
+   "The overfitting-prevention algorithm the readme mentions is not described in either saved source.",
+   "The targets directory, the ground-truth CIF package (served from a Google Drive link) and the Zenodo code deposit were not downloaded.",
+   "No species composition is given for any task.",
+   "The 2024-01 leaderboard set has no published target count per task."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the PMC full-text XML of PMC12800276 (Nature Communications 2025, doi 10.1038/s41467-025-67127-3), including the Methods, and the README.md, evaluate.py and LICENSE of BEAM-Labs/FoldBench at commit 4273f6877d82bd0b2fa476d1b2f34d121cbccc70, on 2026-11-27. Supplementary tables and the Zenodo deposits were not retrieved. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Clone the benchmark, build its conda environment, score a model's predictions per target and aggregate them into success rates and LDDT per task.",
+  "prerequisites": [
+   "conda, to create the environment from the repository's environment.yml.",
+   "A model's predicted structures, registered in prediction_reference.csv for that algorithm with its ranking scores and file paths.",
+   "The ground-truth CIF files: the bundled examples come with four, and the full referenced set is a separate download the readme links.",
+   "The evaluation code is MIT licensed."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/BEAM-Labs/FoldBench.git\ncd FoldBench\ngit checkout --detach 4273f6877d82bd0b2fa476d1b2f34d121cbccc70",
+    "explanation": "The readme's clone command, with a checkout line added so the steps below run against the same commit as the saved readme and script.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Getting Started",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/BEAM-Labs/FoldBench.git\ncd FoldBench"
+     }
+    ]
+   },
+   {
+    "title": "Create the evaluation environment",
+    "shell": "conda env create -f environment.yml\nconda activate foldbench",
+    "explanation": "Builds the environment the scoring scripts need, which includes OpenStructure and DockQ.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Getting Started",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda env create -f environment.yml\nconda activate foldbench"
+     }
+    ]
+   },
+   {
+    "title": "Score each prediction against its ground truth",
+    "shell": "python evaluate.py \\\n  --targets_dir ./examples/targets \\\n  --evaluation_dir ./examples/outputs/evaluation \\\n  --algorithm_name Protenix \\\n  --ground_truth_dir ./examples/ground_truths",
+    "explanation": "The readme's first evaluation step, run here on the bundled Protenix example. Reading evaluate.py, it loads prediction_reference.csv from the algorithm's evaluation directory, and for each target type merges the target CSV with that table on pdb_id and scores it with OpenStructure, adding DockQ v2 scoring for the protein-DNA and protein-RNA interface types.",
+    "source_ids": [
+     "@readme",
+     "@evaluate"
+    ],
+    "source_locator": "README: Evaluation, Step 1; evaluate.py",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python evaluate.py \\\n  --targets_dir ./examples/targets \\\n  --evaluation_dir ./examples/outputs/evaluation \\\n  --algorithm_name Protenix \\\n  --ground_truth_dir ./examples/ground_truths"
+     },
+     {
+      "source": "@evaluate",
+      "text": "target_df = pd.merge(target_df,prediction_summary_df, on='pdb_id', how='left')"
+     },
+     {
+      "source": "@evaluate",
+      "text": "eval_by_ost(target_df,target_type,evaluation_dir,args.ground_truth_dir)"
+     }
+    ]
+   },
+   {
+    "title": "Aggregate the scores into the task table",
+    "shell": "python task_score_summary.py \\\n  --evaluation_dir ./examples/outputs/evaluation \\\n  --target_dir ./examples/targets \\\n  --output_path ./examples/summary_table.csv \\\n  --algorithm_names Protenix \\\n  --targets interface_protein_ligand interface_protein_dna monomer_protein \\\n  --metric_type rank",
+    "explanation": "The readme's second step. It summarises the per-target scores for the named models and task types into the final success rates and LDDT values and writes them to the given path.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Evaluation, Step 2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python task_score_summary.py \\\n  --evaluation_dir ./examples/outputs/evaluation \\\n  --target_dir ./examples/targets \\\n  --output_path ./examples/summary_table.csv \\\n  --algorithm_names Protenix \\\n  --targets interface_protein_ligand interface_protein_dna monomer_protein \\\n  --metric_type rank"
+     },
+     {
+      "source": "@readme",
+      "text": "The final results will be generated in `examples/summary_table.csv`."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Per-target score files under the algorithm's evaluation directory, as the bundled example's OpenStructure and DockQ v2 JSON files show.",
+   "A summary table at the path given to the second step, holding the success rate or LDDT per task for the named models."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "They score predictions only. Generating the predictions needs each model run separately, which the repository supports through per-algorithm containers rather than these steps.",
+   "Going beyond the bundled examples needs the target CSV files edited, the referenced ground-truth CIF package downloaded from an external link, and prediction_reference.csv updated by hand."
+  ],
+  "source_ids": [
+   "@readme",
+   "@evaluate"
+  ]
+ },
+ "structured": [
+  {
+   "task": "Protein monomer structure prediction",
+   "dataset": "FoldBench protein monomer targets",
+   "size": 334,
+   "size_unit": "targets",
+   "split": "evaluation only; single-chain assemblies below 40% identity to the reproduced AlphaFold 3 training set",
+   "primary_metric": "LDDT",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/BEAM-Labs/FoldBench",
+   "code_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_licence": "MIT",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Protein monomers: 334 targets (7 de novo designed proteins were removed)."
+    },
+    {
+     "source": "@paper",
+     "text": "Monomers: Monomer targets are bioassemblies that contain a single polymer (protein/DNA/RNA) chain, and have less than 40% sequence identity to the training set."
+    },
+    {
+     "source": "@readme",
+     "text": "**Evaluation Metrics:** Interface prediction tasks are evaluated by success rate, while monomer prediction tasks use LDDT (Local Distance Difference Test) scores."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details."
+    },
+    {
+     "source": "@paper",
+     "text": "All benchmark data and reference results can be accessed at"
+    }
+   ]
+  },
+  {
+   "task": "RNA monomer structure prediction",
+   "dataset": "FoldBench RNA monomer targets",
+   "size": 15,
+   "size_unit": "targets",
+   "split": "evaluation only; single-chain assemblies below 40% identity to the training set, clustered at 100% identity",
+   "primary_metric": "LDDT",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/BEAM-Labs/FoldBench",
+   "code_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_licence": "MIT",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "RNA monomers: 15 targets."
+    },
+    {
+     "source": "@paper",
+     "text": "The remaining low-homology assemblies were clustered (40 % identity for proteins; 100 % identity for nucleic acids and peptides)."
+    },
+    {
+     "source": "@readme",
+     "text": "- Monomer prediction is evaluated by LDDT."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details."
+    }
+   ]
+  },
+  {
+   "task": "DNA monomer structure prediction",
+   "dataset": "FoldBench DNA monomer targets",
+   "size": 14,
+   "size_unit": "targets",
+   "split": "evaluation only; single-chain assemblies below 40% identity to the training set, clustered at 100% identity",
+   "primary_metric": "LDDT",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/BEAM-Labs/FoldBench",
+   "code_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_licence": "MIT",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "DNA monomers: 14 targets."
+    },
+    {
+     "source": "@paper",
+     "text": "The remaining low-homology assemblies were clustered (40 % identity for proteins; 100 % identity for nucleic acids and peptides)."
+    },
+    {
+     "source": "@readme",
+     "text": "- Monomer prediction is evaluated by LDDT."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details."
+    }
+   ]
+  },
+  {
+   "task": "Protein-protein interface prediction",
+   "dataset": "FoldBench general protein-protein interface targets",
+   "size": 279,
+   "size_unit": "interfaces",
+   "split": "evaluation only; interfaces filtered at 40% sequence identity and Foldseek-Multimer TM-score below 0.5 against the training set; resolution below 2.0 angstroms",
+   "primary_metric": "DockQ success rate",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/BEAM-Labs/FoldBench",
+   "code_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_licence": "MIT",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "General protein-protein interfaces: 279 targets (antibody-antigen complexes excluded); resolution"
+    },
+    {
+     "source": "@paper",
+     "text": "For protein-protein interfaces, we further applied Foldseek-Multimer"
+    },
+    {
+     "source": "@paper",
+     "text": "The DockQ success rate is the ratio of predictions achieving a DockQ score greater than or equal to 0.23"
+    },
+    {
+     "source": "@readme",
+     "text": "This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details."
+    }
+   ]
+  },
+  {
+   "task": "Antibody-antigen interface prediction",
+   "dataset": "FoldBench antibody-antigen interface targets",
+   "size": 172,
+   "size_unit": "interfaces",
+   "split": "evaluation only; interfaces filtered at 40% identity against the training set; resolution below 2.5 angstroms",
+   "primary_metric": "DockQ success rate",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/BEAM-Labs/FoldBench",
+   "code_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_licence": "MIT",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Antibody-antigen interfaces: 172 targets; resolution"
+    },
+    {
+     "source": "@paper",
+     "text": "Polymer-polymer interface: If both polymers have greater than 40% sequence identity to two chains in the same complex in the training set, then this interface is filtered out."
+    },
+    {
+     "source": "@readme",
+     "text": "  - For all other interfaces: DockQ ≥ 0.23"
+    },
+    {
+     "source": "@readme",
+     "text": "This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details."
+    }
+   ]
+  },
+  {
+   "task": "Protein-ligand interface prediction",
+   "dataset": "FoldBench protein-ligand interface targets",
+   "size": 558,
+   "size_unit": "interfaces",
+   "split": "evaluation only; interface dropped when the protein exceeds 40% identity and the ligand exceeds 50% Tanimoto similarity to a ligand in the same training complex",
+   "primary_metric": "ligand success rate (LRMSD below 2 angstroms and LDDT-PLI above 0.8)",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/BEAM-Labs/FoldBench",
+   "code_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_licence": "MIT",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Protein-ligand interfaces: 558 targets after additional ligand-quality filters"
+    },
+    {
+     "source": "@paper",
+     "text": "Protein-ligand interface: If the protein has greater than 40% sequence identity with a chain in a training complex and the ligand has greater than 50% Tanimoto similarity to a ligand from the same complex, then the interface is filtered out."
+    },
+    {
+     "source": "@paper",
+     "text": "the ligand docking success rate is defined as LRMSD &lt; 2 Å and LDDT-PLI &gt; 0.8"
+    },
+    {
+     "source": "@readme",
+     "text": "This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details."
+    }
+   ]
+  },
+  {
+   "task": "Protein-peptide interface prediction",
+   "dataset": "FoldBench protein-peptide interface targets",
+   "size": 51,
+   "size_unit": "interfaces",
+   "split": "evaluation only; peptide below 16 residues and protein below 40% identity to the training set; no resolution limit",
+   "primary_metric": "DockQ success rate",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/BEAM-Labs/FoldBench",
+   "code_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_licence": "MIT",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Protein-peptide interfaces: 51 targets; no further resolution constraint owing to limited data."
+    },
+    {
+     "source": "@paper",
+     "text": "Protein-peptide interface: For interfaces between a protein and a peptide (less than 16 residues), the protein chain should have less than 40% sequence identity to the training set."
+    },
+    {
+     "source": "@readme",
+     "text": "  - For all other interfaces: DockQ ≥ 0.23"
+    },
+    {
+     "source": "@readme",
+     "text": "This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details."
+    }
+   ]
+  },
+  {
+   "task": "Protein-RNA interface prediction",
+   "dataset": "FoldBench protein-RNA interface targets",
+   "size": 70,
+   "size_unit": "interfaces",
+   "split": "evaluation only; interfaces filtered at 40% identity against the training set; resolution below 2.5 angstroms",
+   "primary_metric": "DockQ success rate",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/BEAM-Labs/FoldBench",
+   "code_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_licence": "MIT",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Protein-RNA interfaces: 70 targets; resolution"
+    },
+    {
+     "source": "@paper",
+     "text": "However, OpenStructure does not support the DockQ score of the protein-nucleic acid interface, so we used the DockQ v2 program"
+    },
+    {
+     "source": "@readme",
+     "text": "  - For all other interfaces: DockQ ≥ 0.23"
+    },
+    {
+     "source": "@readme",
+     "text": "This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details."
+    }
+   ]
+  },
+  {
+   "task": "Protein-DNA interface prediction",
+   "dataset": "FoldBench protein-DNA interface targets",
+   "size": 330,
+   "size_unit": "interfaces",
+   "split": "evaluation only; interfaces filtered at 40% identity against the training set; resolution below 2.5 angstroms",
+   "primary_metric": "DockQ success rate",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/BEAM-Labs/FoldBench",
+   "code_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_url": "https://github.com/BEAM-Labs/FoldBench",
+   "data_licence": "MIT",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Protein-DNA interfaces: 330 targets; resolution"
+    },
+    {
+     "source": "@paper",
+     "text": "However, OpenStructure does not support the DockQ score of the protein-nucleic acid interface, so we used the DockQ v2 program"
+    },
+    {
+     "source": "@readme",
+     "text": "  - For all other interfaces: DockQ ≥ 0.23"
+    },
+    {
+     "source": "@readme",
+     "text": "This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details."
+    }
+   ]
+  }
+ ],
+ "notes": "Sizes in the structured entries are the paper's Methods counts for the full target set, which the readme repeats except for protein monomers (334 in the paper, 330 in the readme); the disagreement is recorded as a limitation and no attempt is made to reconcile it. The leaderboard's 2024-01 set is a subset with no published per-task count, so none of these sizes applies to it. The protein-ligand subsets (76 unseen-protein, 482 unseen-ligand) are subsets of the 558 and are not given their own structured entry. The data and code licence is the repository's MIT licence, which covers the targets and the evaluation code; the article itself is CC BY-NC-ND, so its saved XML is not redistributable. The released field is null: no source prints a release date for the benchmark, and the readme's update lines are change notices rather than a release date. Supplementary tables 1 to 3, the ground-truth CIF package and the two Zenodo deposits (10.5281/zenodo.17180806 for the code) were not retrieved."
+}

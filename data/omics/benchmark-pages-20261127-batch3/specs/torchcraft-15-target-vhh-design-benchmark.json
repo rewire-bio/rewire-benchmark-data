@@ -1,0 +1,538 @@
+{
+  "record_id": "torchcraft-20261115-benchmark-vhh-15-target",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Text layer of the TorchCraft paper, arXiv 2609.19770v1",
+      "description": "Text extracted with pdftotext -layout from the arXiv PDF of 'TorchCraft: Unified binder design by inverting an all-atom structure predictor', TorchCraft Team, Changping Laboratory. The PDF is kept beside it as artifacts/paper.pdf. Appendix A.4 holds the benchmark settings, the pass criteria and the supplementary target tables.",
+      "file": "artifacts/paper.txt",
+      "artifact_url": "https://arxiv.org/pdf/2609.19770v1",
+      "url": "https://arxiv.org/abs/2609.19770v1",
+      "version": "arXiv v1, 17 September 2026",
+      "media_type": "text/plain",
+      "sha256": "90f1da5f8a936766087beba0ade3f038f5b69504b9f581b42f2391f5640c5e6b",
+      "retrieved_at": "2026-11-27T03:28:11Z",
+      "store_bytes": false
+    },
+    {
+      "key": "readme",
+      "name": "Mingchenchen/TorchX README.md at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+      "description": "README of the code repository the paper names, pinned to the head of its default branch main. Lists the modules and the entry points for folding, scoring and design.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/Mingchenchen/TorchX/ebf9dc6676ecb1be505bc72f87de408995f0d8fd/README.md",
+      "url": "https://github.com/Mingchenchen/TorchX",
+      "version": "git commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+      "media_type": "text/markdown",
+      "sha256": "88da821dfed6d76a6d1d2efd1e3e124a18f35c07d6fdf45a8e374fc2c35fccf0",
+      "retrieved_at": "2026-11-27T03:43:42Z",
+      "licence": "Apache-2.0",
+      "store_bytes": true
+    },
+    {
+      "key": "licence",
+      "name": "Mingchenchen/TorchX LICENSE at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+      "description": "The licence file of the code repository, the Apache License version 2.0.",
+      "file": "artifacts/licence.txt",
+      "artifact_url": "https://raw.githubusercontent.com/Mingchenchen/TorchX/ebf9dc6676ecb1be505bc72f87de408995f0d8fd/LICENSE",
+      "url": "https://github.com/Mingchenchen/TorchX",
+      "version": "git commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+      "media_type": "text/plain",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "retrieved_at": "2026-11-27T03:43:42Z",
+      "licence": "Apache-2.0",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "This is the in silico VHH, or nanobody, design comparison published with TorchCraft. Fifteen protein targets, each with a PDB entry, a crop and hotspot residues in Supplementary Table S5, are designed against by four methods, TorchCraft, RFantibody, BoltzGen and Germinal, over five nanobody frameworks, with 100 designs per method per framework per target and CDR lengths fixed at 8 residues for HCDR1 and HCDR2 and 9 to 21 for HCDR3. A design passes only if it clears two thresholds: a TorchScore ipTM above 0.7 and an ESM2-150M sequence perplexity below 6.31, the second standing in as an expression proxy. Figure 3i prints the pass rates per target and Supplementary Figure S5 splits them by framework.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Section 2.3 and Figure 3i; Appendix A.4.3.2; Supplementary Table S5",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "We compared TorchCraft with RFantibody, BoltzGen, and Germinal across 15 targets and five VHH frameworks 4 (Figure 3i; Supplementary Figure S5).[13, 18, 25] Designs were assessed using the joint TorchScore-confidence and ESM2-perplexity criterion described in Appendix A.4. TorchCraft achieved higher computational pass rates on many targets, with additional gains from optional AbMPNN redesign in several settings."
+      },
+      {
+        "source": "@paper",
+        "text": "A VHH design passed the computational criterion only when it satisfied both a structural-confidence criterion and an expression proxy: TorchScore ipTM had to exceed 0.7, and ESM2-150M perplexity had to be below 6.31."
+      },
+      {
+        "source": "@paper",
+        "text": "For each method, at each benchmark framework and for each target, 100 designs were first generated using the default settings of the corresponding method."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether a method can design nanobody CDR loops, on a fixed framework, that a structure predictor is confident bind the target and that a protein language model considers likely to express. The second part is unusual and deliberate: the pass criterion pairs a structural confidence threshold with a sequence perplexity threshold the authors calibrated against expression data. The framework-stratified figure asks a further question, how much the result depends on which of the five scaffolds is used, with the same target panel and criterion.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.3; Appendix A.4.3.2; Supplementary Figure S5 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "A VHH design passed the computational criterion only when it satisfied both a structural-confidence criterion and an expression proxy: TorchScore ipTM had to exceed 0.7, and ESM2-150M perplexity had to be below 6.31."
+          },
+          {
+            "source": "@paper",
+            "text": "Figure S5 Framework-stratified VHH benchmark across five nanobody scaffolds. TorchScore-based VHH design benchmark split by framework, showing how TorchCraft performance varies across five framework choices while using the same target panel and computational pass-rate criterion."
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "No dataset and no split: a target panel. Supplementary Table S5 lists fifteen targets with a PDB entry, the target chain and residue crop and hotspot residues for each: IL13, HNMT, 1433E, BHRF1, EFNA1, CCL2, IL20, CSF1, MZB1, LIF, XIAP, RSPO1, FCGR3B, UNG and DAF, counted from its rows. Its caption fixes the CDR lengths for all designs at HCDR1 of 8 residues, HCDR2 of 8 and HCDR3 of 9 to 21. Five nanobody frameworks are used, named in Appendix A.5.2.1 as 7EOW (caplacizumab), 8Z8V (ozoralizumab), 5JDS (envafolimab), 7XL0 (vobarilizumab) and 8COH (gefurulimab), the same five identifiers that label the per-framework panels of Supplementary Figures S3 and S5. For each method, each framework and each target, 100 designs are generated with that method's default settings. The expression proxy threshold was built separately: public nanobody expression measurements were combined with accumulated TorchCraft expression data, designs expressing at least 0.08 mg were labelled high expression, and ESM2-150M perplexity was swept as a one-dimensional classifier with the threshold chosen to maximise the Matthews correlation coefficient.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.2; Supplementary Table S5 and Figure S5 captions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Table S5 VHH benchmark targets. All designs used CDR length settings of HCDR1 = 8 aa, HCDR2 = 8 aa, and HCDR3 = 9–21 aa. Target PDB ID Target chain/residues Hotspots IL13 1ijz A1–113 A11,A14,A15,A101,A107,A108 HNMT 1jqd A5–292 A175,A221,A269,A280 1433E 2br9 A3–232 A176,A199,A219,A230 BHRF1 2wh6 A2–158 A65,A72,A81,A88,A107 EFNA1 3hei B18–149 B46,B90,B114 CCL2 4dn4 M9–69 M28,M39,M55,M61 IL20 4doh A24–176 A62,A68,A160,A167,A171 CSF1 4wrm B2–146 B10,B55,B56,B78,B86 MZB1 7aah A39–185 A71,A86,A144,A147 LIF 7n0a C10–181 C14,C20,C127,C135 XIAP 1g3f A263–343 A307,A323,A324 RSPO1 4bsp A40–126 A106,A110 FCGR3B 1fnl A3–175 A88,A90,A113 UNG 2hxm A82–304 A147,A158,A167 DAF 1h03 P5–129"
+          },
+          {
+            "source": "@paper",
+            "text": "For each method, at each benchmark framework and for each target, 100 designs were first generated using the default settings of the corresponding method."
+          },
+          {
+            "source": "@paper",
+            "text": "The perplexity threshold was obtained from a retrospective nanobody-expression analysis, in which public expression measurements were combined with accumulated TorchCraft expression data. Designs with total expression of at least 0.08 mg were classified as high-expression cases, ESM2-150M perplexity was swept as a one-dimensional classifier, and the operating threshold was selected by maximizing the Matthews correlation coefficient."
+          },
+          {
+            "source": "@paper",
+            "text": "Figure S5 Framework-stratified VHH benchmark across five nanobody scaffolds. TorchScore-based VHH design benchmark split by framework, showing how TorchCraft performance varies across five framework choices while using the same target panel and computational pass-rate criterion."
+          },
+          {
+            "source": "@paper",
+            "text": "VHH frameworks were randomly selected from 7EOW (caplacizumab), 8Z8V (ozoralizumab), 5JDS (envafolimab), 7XL0 (vobarilizumab), and 8COH (gefurulimab)."
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "The four methods are handled differently before scoring, and the paper sets out how. For BoltzGen and RFantibody the full designed sequence is redesigned eight times with AbMPNN without fixing residues; for Germinal the original pipeline is followed, fixing CDR residues that contact the interface and applying AbMPNN only outside the CDRs. Each redesigned sequence is rebuilt to all-atom side chains with FlowPacker, the eight rebuilt models are scored with TorchScore, and the one with the highest ipTM becomes that original design's score. TorchCraft is reported raw, scored directly without redesign, and in an MPNN-polished setting where its interface CDR residues are fixed and the rest redesigned eight times with AbMPNN before the same rebuild and selection. The pass criterion is both thresholds together: TorchScore ipTM above 0.7 and ESM2-150M perplexity below 6.31. Rosetta interface-score distributions are reported separately as an additional assessment.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.2; Section 2.3",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For VHH design, we compared BoltzGen, RFantibody, Germinal, and TorchCraft. For each method, at each benchmark framework and for each target, 100 designs were first generated using the default settings of the corresponding method. For BoltzGen and RFantibody, the full designed sequence was redesigned eight times with AbMPNN without fixing any residue. For Germinal, we followed the original pipeline by fixing CDR residues that contacted the target interface and applying AbMPNN redesign only to residues outside the CDR regions. Each redesigned sequence was rebuilt with FlowPacker to recover an all-atom side-chain structure. The eight rebuilt models were scored with TorchScore, and the redesign with the highest ipTM was selected as the final structure and score for that original design."
+          },
+          {
+            "source": "@paper",
+            "text": "For TorchCraft, we again evaluated raw and MPNN-polished settings separately. Raw TorchCraft outputs were scored directly with TorchScore without sequence redesign. In the MPNN-polished setting, interface 23 CDR residues designed by TorchCraft were fixed and all other positions were redesigned eight times with AbMPNN. The subsequent FlowPacker rebuilding and TorchScore-based selection were identical to those used for BoltzGen, RFantibody, and Germinal."
+          },
+          {
+            "source": "@paper",
+            "text": "A VHH design passed the computational criterion only when it satisfied both a structural-confidence criterion and an expression proxy: TorchScore ipTM had to exceed 0.7, and ESM2-150M perplexity had to be below 6.31."
+          },
+          {
+            "source": "@paper",
+            "text": "Rosetta interface-score distributions provide an additional assessment of the predicted complexes (Supplementary Figure S3)."
+          }
+        ]
+      },
+      {
+        "title": "What TorchScore is",
+        "body": "The scorer every pass rate in this panel depends on is worth stating plainly, because it is not an independent evaluator. TorchScore is a score-only loading of the same TorchFold implementation used for design: given input coordinates it skips the diffusion structure module and runs the confidence pathway, returning pLDDT, pTM and ipTM. No separate scoring network is trained, and in this study it used the pretrained AlphaFold 3 weights, the same checkpoint the designs were optimised against. Sequences rebuilt with FlowPacker are scored from those coordinates and are not refolded from sequence.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "TorchScore is a score-only loading of the TorchFold implementation.[21] Given input coordinates, it bypasses the diffusion-based structure module and evaluates the complex through the confidence pathway, returning predictor-derived scores including pLDDT, pTM, and ipTM. No separate scoring network is trained."
+          },
+          {
+            "source": "@paper",
+            "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "One target panel, not a dataset: fifteen protein targets with PDB entries, crops and hotspots in Supplementary Table S5, crossed with the five nanobody frameworks 7EOW, 8Z8V, 5JDS, 7XL0 and 8COH named in Appendix A.5.2.1, at 100 designs per method per framework per target. CDR lengths are fixed for all designs at HCDR1 of 8 residues, HCDR2 of 8 and HCDR3 of 9 to 21.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Supplementary Table S5; Appendix A.4.3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Table S5 VHH benchmark targets. All designs used CDR length settings of HCDR1 = 8 aa, HCDR2 = 8 aa, and HCDR3 = 9–21 aa. Target PDB ID Target chain/residues Hotspots IL13 1ijz A1–113 A11,A14,A15,A101,A107,A108 HNMT 1jqd A5–292 A175,A221,A269,A280 1433E 2br9 A3–232 A176,A199,A219,A230 BHRF1 2wh6 A2–158 A65,A72,A81,A88,A107 EFNA1 3hei B18–149 B46,B90,B114 CCL2 4dn4 M9–69 M28,M39,M55,M61 IL20 4doh A24–176 A62,A68,A160,A167,A171 CSF1 4wrm B2–146 B10,B55,B56,B78,B86 MZB1 7aah A39–185 A71,A86,A144,A147 LIF 7n0a C10–181 C14,C20,C127,C135 XIAP 1g3f A263–343 A307,A323,A324 RSPO1 4bsp A40–126 A106,A110 FCGR3B 1fnl A3–175 A88,A90,A113 UNG 2hxm A82–304 A147,A158,A167 DAF 1h03 P5–129"
+          },
+          {
+            "source": "@paper",
+            "text": "For each method, at each benchmark framework and for each target, 100 designs were first generated using the default settings of the corresponding method."
+          },
+          {
+            "source": "@paper",
+            "text": "VHH frameworks were randomly selected from 7EOW (caplacizumab), 8Z8V (ozoralizumab), 5JDS (envafolimab), 7XL0 (vobarilizumab), and 8COH (gefurulimab)."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Inapplicable. A design panel evaluated in silico, with no train, validation or test partition. The one stratification is by framework, in Supplementary Figure S5.",
+        "status": "inapplicable",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Supplementary Figure S5 caption"
+      },
+      {
+        "label": "Metrics",
+        "value": "One pass rate, higher is better, under a joint criterion: TorchScore ipTM above 0.7 and ESM2-150M perplexity below 6.31. Figure 3i reports it per target and Supplementary Figure S5 per framework. Rosetta interface scores are reported separately as an additional view, not as the criterion.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.2; Figure 3i caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "A VHH design passed the computational criterion only when it satisfied both a structural-confidence criterion and an expression proxy: TorchScore ipTM had to exceed 0.7, and ESM2-150M perplexity had to be below 6.31."
+          },
+          {
+            "source": "@paper",
+            "text": "(i) Computational pass rates for VHH design across 15 targets, comparing TorchCraft with RFantibody, BoltzGen, and Germinal under a joint TorchScore-confidence and ESM2-perplexity criterion. TorchScore scores supplied coordinates using the same pretrained AF3 weights used for design and does not refold sequences. A framework-stratified analysis is shown in Supplementary Figure S5."
+          },
+          {
+            "source": "@paper",
+            "text": "Rosetta interface-score distributions provide an additional assessment of the predicted complexes (Supplementary Figure S3)."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Three other design methods, run by the TorchCraft authors with their default settings: RFantibody, BoltzGen and Germinal. TorchCraft itself appears raw and MPNN-polished.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.3; Appendix A.4.3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We compared TorchCraft with RFantibody, BoltzGen, and Germinal across 15 targets and five VHH frameworks 4 (Figure 3i; Supplementary Figure S5).[13, 18, 25] Designs were assessed using the joint TorchScore-confidence and ESM2-perplexity criterion described in Appendix A.4. TorchCraft achieved higher computational pass rates on many targets, with additional gains from optional AbMPNN redesign in several settings."
+          },
+          {
+            "source": "@paper",
+            "text": "For TorchCraft, we again evaluated raw and MPNN-polished settings separately. Raw TorchCraft outputs were scored directly with TorchScore without sequence redesign. In the MPNN-polished setting, interface 23 CDR residues designed by TorchCraft were fixed and all other positions were redesigned eight times with AbMPNN. The subsequent FlowPacker rebuilding and TorchScore-based selection were identical to those used for BoltzGen, RFantibody, and Germinal."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "None, and none is needed in the train and test sense: no model is trained here and the panel has no labels to hold out. What the sources do describe is a dependency that runs the other way, which the authors state plainly: TorchScore uses the same pretrained AlphaFold 3 weights that TorchCraft optimised against, so the scorer is not independent of the designer.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.2; Figure 3i caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+          },
+          {
+            "source": "@paper",
+            "text": "All designs reported in this study used pretrained AF3 weights."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "None reported. The panel prints no replicate runs, seeds, confidence intervals or standard errors; the spread that is shown is the distribution over the fixed number of designs per target, 100 per method per framework per target.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For each method, at each benchmark framework and for each target, 100 designs were first generated using the default settings of the corresponding method."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "One designed VHH for one target on one framework: a designed CDR sequence set in a fixed framework with its predicted all-atom complex, scored as one original design after the eight-way redesign selection where that applies.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For VHH design, we compared BoltzGen, RFantibody, Germinal, and TorchCraft. For each method, at each benchmark framework and for each target, 100 designs were first generated using the default settings of the corresponding method. For BoltzGen and RFantibody, the full designed sequence was redesigned eight times with AbMPNN without fixing any residue. For Germinal, we followed the original pipeline by fixing CDR residues that contacted the target interface and applying AbMPNN redesign only to residues outside the CDR regions. Each redesigned sequence was rebuilt with FlowPacker to recover an all-atom side-chain structure. The eight rebuilt models were scored with TorchScore, and the redesign with the highest ipTM was selected as the final structure and score for that original design."
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Not stated as such. The fifteen targets are named proteins with PDB entries in Supplementary Table S5, including human interleukins and an Epstein-Barr virus protein, BHRF1, but the table gives PDB entries, chains and residue ranges rather than species.",
+        "status": "unreported",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Supplementary Table S5",
+        "quotes": []
+      },
+      {
+        "label": "Assays",
+        "value": "None in this panel. Every criterion is computed by a predictor. The paper reports wet-lab binding measurements elsewhere in the study, for minibinders and VHHs against four targets each, but those campaigns are separate from this comparison.",
+        "status": "unavailable",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Figure 3i caption"
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "The target crop and hotspots from Supplementary Table S5, the nanobody framework sequence, which is held fixed, and the CDR length settings. The paper states that the target structures, crop regions and hotspot residues for the computational benchmarks are summarised in Supplementary Tables S2 to S6.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.1; Supplementary Table S5",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The target structures, crop regions, and hotspot residues used in the wet-lab validation campaigns and computational benchmarks are summarized in Supplementary Tables S2–S6."
+          },
+          {
+            "source": "@paper",
+            "text": "Table S5 VHH benchmark targets. All designs used CDR length settings of HCDR1 = 8 aa, HCDR2 = 8 aa, and HCDR3 = 9–21 aa. Target PDB ID Target chain/residues Hotspots IL13 1ijz A1–113 A11,A14,A15,A101,A107,A108 HNMT 1jqd A5–292 A175,A221,A269,A280 1433E 2br9 A3–232 A176,A199,A219,A230 BHRF1 2wh6 A2–158 A65,A72,A81,A88,A107 EFNA1 3hei B18–149 B46,B90,B114 CCL2 4dn4 M9–69 M28,M39,M55,M61 IL20 4doh A24–176 A62,A68,A160,A167,A171 CSF1 4wrm B2–146 B10,B55,B56,B78,B86 MZB1 7aah A39–185 A71,A86,A144,A147 LIF 7n0a C10–181 C14,C20,C127,C135 XIAP 1g3f A263–343 A307,A323,A324 RSPO1 4bsp A40–126 A106,A110 FCGR3B 1fnl A3–175 A88,A90,A113 UNG 2hxm A82–304 A147,A158,A167 DAF 1h03 P5–129"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "No training or fine-tuning. Each method runs with its default settings, and TorchCraft optimises sequence logits through frozen pretrained AlphaFold 3 weights; the paper states that all designs reported in the study used pretrained AF3 weights.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Appendix A",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "that optimizes sequence logits through a frozen all-atom predictor"
+          },
+          {
+            "source": "@paper",
+            "text": "All designs reported in this study used pretrained AF3 weights."
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The pass criterion is two stated thresholds, and the second one was calibrated rather than asserted: the perplexity cut-off of 6.31 comes from a retrospective expression analysis with a stated labelling rule and selection objective.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "A VHH design passed the computational criterion only when it satisfied both a structural-confidence criterion and an expression proxy: TorchScore ipTM had to exceed 0.7, and ESM2-150M perplexity had to be below 6.31."
+          },
+          {
+            "source": "@paper",
+            "text": "The perplexity threshold was obtained from a retrospective nanobody-expression analysis, in which public expression measurements were combined with accumulated TorchCraft expression data. Designs with total expression of at least 0.08 mg were classified as high-expression cases, ESM2-150M perplexity was swept as a one-dimensional classifier, and the operating threshold was selected by maximizing the Matthews correlation coefficient."
+          }
+        ]
+      },
+      {
+        "text": "The framework dependence is reported, not averaged away: Supplementary Figure S5 splits the same panel and criterion across the five nanobody scaffolds.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Supplementary Figure S5 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Figure S5 Framework-stratified VHH benchmark across five nanobody scaffolds. TorchScore-based VHH design benchmark split by framework, showing how TorchCraft performance varies across five framework choices while using the same target panel and computational pass-rate criterion."
+          }
+        ]
+      },
+      {
+        "text": "Each comparator's redesign path is written out, including the Germinal-specific rule of fixing interface-contacting CDR residues, and TorchCraft is reported both raw and polished.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For VHH design, we compared BoltzGen, RFantibody, Germinal, and TorchCraft. For each method, at each benchmark framework and for each target, 100 designs were first generated using the default settings of the corresponding method. For BoltzGen and RFantibody, the full designed sequence was redesigned eight times with AbMPNN without fixing any residue. For Germinal, we followed the original pipeline by fixing CDR residues that contacted the target interface and applying AbMPNN redesign only to residues outside the CDR regions. Each redesigned sequence was rebuilt with FlowPacker to recover an all-atom side-chain structure. The eight rebuilt models were scored with TorchScore, and the redesign with the highest ipTM was selected as the final structure and score for that original design."
+          },
+          {
+            "source": "@paper",
+            "text": "For TorchCraft, we again evaluated raw and MPNN-polished settings separately. Raw TorchCraft outputs were scored directly with TorchScore without sequence redesign. In the MPNN-polished setting, interface 23 CDR residues designed by TorchCraft were fixed and all other positions were redesigned eight times with AbMPNN. The subsequent FlowPacker rebuilding and TorchScore-based selection were identical to those used for BoltzGen, RFantibody, and Germinal."
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Author-built and author-run: the developers of TorchCraft chose the targets, frameworks, criterion and comparators and ran all four methods themselves.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.3; Appendix A.4.3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We compared TorchCraft with RFantibody, BoltzGen, and Germinal across 15 targets and five VHH frameworks 4 (Figure 3i; Supplementary Figure S5).[13, 18, 25] Designs were assessed using the joint TorchScore-confidence and ESM2-perplexity criterion described in Appendix A.4. TorchCraft achieved higher computational pass rates on many targets, with additional gains from optional AbMPNN redesign in several settings."
+          },
+          {
+            "source": "@paper",
+            "text": "For VHH design, we compared BoltzGen, RFantibody, Germinal, and TorchCraft. For each method, at each benchmark framework and for each target, 100 designs were first generated using the default settings of the corresponding method. For BoltzGen and RFantibody, the full designed sequence was redesigned eight times with AbMPNN without fixing any residue. For Germinal, we followed the original pipeline by fixing CDR residues that contacted the target interface and applying AbMPNN redesign only to residues outside the CDR regions. Each redesigned sequence was rebuilt with FlowPacker to recover an all-atom side-chain structure. The eight rebuilt models were scored with TorchScore, and the redesign with the highest ipTM was selected as the final structure and score for that original design."
+          }
+        ]
+      },
+      {
+        "text": "The scorer shares its weights with the designer. TorchScore is the confidence pathway of the same pretrained AlphaFold 3 checkpoint TorchCraft optimises against, and scores supplied coordinates without refolding the sequence.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+          },
+          {
+            "source": "@paper",
+            "text": "Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates"
+          }
+        ]
+      },
+      {
+        "text": "The expression half of the criterion is a proxy with a calibration that is not public here: the threshold was fitted partly on accumulated TorchCraft expression data, which the paper does not release, so it cannot be re-derived independently.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The perplexity threshold was obtained from a retrospective nanobody-expression analysis, in which public expression measurements were combined with accumulated TorchCraft expression data. Designs with total expression of at least 0.08 mg were classified as high-expression cases, ESM2-150M perplexity was swept as a one-dimensional classifier, and the operating threshold was selected by maximizing the Matthews correlation coefficient."
+          }
+        ]
+      },
+      {
+        "text": "The results are printed only as figures. Neither Figure 3i nor Supplementary Figure S5 is accompanied by per-target numbers or any measure of uncertainty, so no value can be recorded from this panel.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Figure 3i and Supplementary Figure S5",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "(i) Computational pass rates for VHH design across 15 targets, comparing TorchCraft with RFantibody, BoltzGen, and Germinal under a joint TorchScore-confidence and ESM2-perplexity criterion. TorchScore scores supplied coordinates using the same pretrained AF3 weights used for design and does not refold sequences. A framework-stratified analysis is shown in Supplementary Figure S5."
+          },
+          {
+            "source": "@paper",
+            "text": "Figure S5 Framework-stratified VHH benchmark across five nanobody scaffolds. TorchScore-based VHH design benchmark split by framework, showing how TorchCraft performance varies across five framework choices while using the same target panel and computational pass-rate criterion."
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "TorchCraft 15-target VHH comparison",
+      "steps": [
+        "15 targets with crops and hotspots from Supplementary Table S5",
+        "five nanobody frameworks, CDR lengths fixed at 8, 8 and 9 to 21 residues",
+        "100 designs per method per framework per target, default settings",
+        "comparators: 8 AbMPNN redesigns, FlowPacker rebuild, best ipTM kept",
+        "TorchCraft scored raw and, separately, AbMPNN-polished",
+        "pass when TorchScore ipTM is above 0.7 and ESM2-150M perplexity below 6.31",
+        "pass rates per target in Figure 3i, per framework in Supplementary Figure S5"
+      ],
+      "caption": "The panel as the main text, the figure caption and Appendix A.4.3 describe it.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Appendix A.4.3.2",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "For VHH design, we compared BoltzGen, RFantibody, Germinal, and TorchCraft. For each method, at each benchmark framework and for each target, 100 designs were first generated using the default settings of the corresponding method. For BoltzGen and RFantibody, the full designed sequence was redesigned eight times with AbMPNN without fixing any residue. For Germinal, we followed the original pipeline by fixing CDR residues that contacted the target interface and applying AbMPNN redesign only to residues outside the CDR regions. Each redesigned sequence was rebuilt with FlowPacker to recover an all-atom side-chain structure. The eight rebuilt models were scored with TorchScore, and the redesign with the highest ipTM was selected as the final structure and score for that original design."
+        },
+        {
+          "source": "@paper",
+          "text": "A VHH design passed the computational criterion only when it satisfied both a structural-confidence criterion and an expression proxy: TorchScore ipTM had to exceed 0.7, and ESM2-150M perplexity had to be below 6.31."
+        },
+        {
+          "source": "@paper",
+          "text": "(i) Computational pass rates for VHH design across 15 targets, comparing TorchCraft with RFantibody, BoltzGen, and Germinal under a joint TorchScore-confidence and ESM2-perplexity criterion. TorchScore scores supplied coordinates using the same pretrained AF3 weights used for design and does not refold sequences. A framework-stratified analysis is shown in Supplementary Figure S5."
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The pass rates exist only as the bars of Figure 3i and Supplementary Figure S5, so no numeric result could be read.",
+      "Species are not given for the fifteen targets, only PDB entries and crops.",
+      "The expression data behind the perplexity threshold is partly unpublished, so the threshold cannot be checked."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Written from the pdftotext -layout text layer of arXiv:2609.19770v1 and from the README and LICENSE of Mingchenchen/TorchX at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd, all retrieved 27 November 2026. The main text, the figure caption, Appendix A.4.2 and A.4.3 and the supplementary target table were read directly. Nothing was reproduced: no design was generated and no score was recomputed. No human review is claimed."
+    }
+  },
+  "run_guide": null,
+  "no_run_guide_reason": "No scoring harness for this panel is published. The code repository the paper names holds the design and score entry points, but nothing that reproduces the figure's pass rates from a set of designs, and the target crops and hotspots live in supplementary tables rather than in a machine-readable manifest.",
+  "structured": [
+    {
+      "task": "VHH computational pass rate under TorchScore confidence and ESM2 perplexity",
+      "dataset": "Fifteen protein targets of the VHH design benchmark, Supplementary Table S5",
+      "size": 15,
+      "size_unit": "protein targets, each with 100 designs per method on each of five frameworks",
+      "split": null,
+      "primary_metric": "Computational pass rate, TorchScore ipTM above 0.7 and ESM2-150M perplexity below 6.31",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/Mingchenchen/TorchX",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We compared TorchCraft with RFantibody, BoltzGen, and Germinal across 15 targets and five VHH frameworks 4 (Figure 3i; Supplementary Figure S5).[13, 18, 25] Designs were assessed using the joint TorchScore-confidence and ESM2-perplexity criterion described in Appendix A.4. TorchCraft achieved higher computational pass rates on many targets, with additional gains from optional AbMPNN redesign in several settings."
+        },
+        {
+          "source": "@paper",
+          "text": "A VHH design passed the computational criterion only when it satisfied both a structural-confidence criterion and an expression proxy: TorchScore ipTM had to exceed 0.7, and ESM2-150M perplexity had to be below 6.31."
+        },
+        {
+          "source": "@paper",
+          "text": "For each method, at each benchmark framework and for each target, 100 designs were first generated using the default settings of the corresponding method."
+        },
+        {
+          "source": "@readme",
+          "text": "Released under the Apache License 2.0."
+        }
+      ]
+    }
+  ],
+  "notes": "The pass rates are printed only as figures, so no result value is recorded. The structured size is the number of targets, fifteen, counted from the rows of Supplementary Table S5; the 100 designs figure is per method, per framework and per target. The five frameworks the record's scope note lists are stated in the paper: Appendix A.5.2.1 names them as 7EOW (caplacizumab), 8Z8V (ozoralizumab), 5JDS (envafolimab), 7XL0 (vobarilizumab) and 8COH (gefurulimab), and the same five identifiers label the per-framework panels of Supplementary Figures S3 and S5. The comparison is not symmetric: BoltzGen and RFantibody get eight AbMPNN redesigns of the whole sequence, Germinal gets AbMPNN outside its interface CDRs, and raw TorchCraft is scored with no redesign at all. The paper states no licence for itself; the code repository is Apache-2.0. The same paper is the source for four other records in this batch."
+}

@@ -1,0 +1,741 @@
+{
+ "record_id": "uc-leadopt-20261022-benchmark-casp16-affinity",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "CASP16 protein-ligand assessment, PMC full-text XML (PMC12750038)",
+   "description": "NCBI PMC full-text XML of Gilson, Eberhardt, Skrinjar, Durairaj, Robin and Kryshtafovych, Assessment of Pharmaceutical Protein-Ligand Pose and Affinity Predictions in CASP16, Proteins 94(1), 2026, fetched through E-utilities efetch.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12750038",
+   "url": "https://doi.org/10.1002/prot.70061",
+   "version": "PMC12750038.1, Proteins 94(1):249-266, 2026",
+   "media_type": "application/xml",
+   "sha256": "b2ea83507b046a1d8f3ebe0676bc8408bdb418937c3b6da9d35889e0a6d2310e",
+   "retrieved_at": "2026-11-27T03:19:30Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "The CASP16 affinity component was a blind challenge: participants were given protein sequences and ligand SMILES from pharmaceutical discovery projects and asked to predict binding affinities before the measured values were released, then asked again in a second stage with the experimental complex structures in hand. 140 affinity targets were posed across two protein systems, human chymase (17) and autotaxin (123), and 28 groups submitted first-stage predictions. Scoring is a Kendall rank correlation within each system, weighted by the number of affinities submitted. The assessors also computed what a perfect method could achieve given experimental uncertainty, giving a ceiling of about 0.73 against a best achieved value of 0.39, which is the most useful number on this page.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract; Methods, Structure of the Challenge; Results, Affinity Predictions",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "Thirty research groups submitted predictions for 229 protein–ligand pose targets and 140 affinity targets across five protein systems."
+   },
+   {
+    "source": "@paper",
+    "text": "The CASP affinity predictions showed modest correlation with experimental data (maximum Kendall's <italic toggle=\"no\">τ</italic> = 0.42), well below the theoretical maximum possible given experimental uncertainty (~0.73)."
+   },
+   {
+    "source": "@paper",
+    "text": "We received Stage 1 affinity predictions from 28 groups, where Stage 1 implies predictions made before the experimental poses were made public in order to enable the Stage 2 challenge."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether a computational method can rank undisclosed drug-like compounds by their measured affinity for a pharmaceutical target, with no sight of the answer. The ranking framing is deliberate: submissions were accepted as absolute dissociation constants, as ratios to a reference ligand, or as plain rankings within a target set, and the scoring is a rank correlation. The second stage asks a different question: whether having the experimental complex structure helps, since in stage 2 the crystal structures were released before the affinity predictions were due. The assessors also measure the challenge's own resolving power, by asking what rank correlation a perfect predictor could reach given the experimental uncertainty of the measurements.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Structure of the Challenge; Results, Affinity Predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Affinity predictions were accepted in the form of “absolute” affinities (i.e., dissociation constants <italic toggle=\"yes\">K"
+     },
+     {
+      "source": "@paper",
+      "text": "we released experimental coordinates of protein–ligand complexes and asked modelers to predict binding affinities for each of them; note that in the first stage, the task was to predict affinities without the benefit of the experimental structures"
+     },
+     {
+      "source": "@paper",
+      "text": "In order to put these results into context, we computed the expectation values of Kendall's <italic toggle=\"yes\">τ</italic> for a perfect prediction method against experimental data subject to ~3× uncertainty in the measured IC50"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "The targets come from pharmaceutical discovery projects rather than from a public database: the five protein systems were contributed by Hoffmann-La Roche (chymase, cathepsin G and autotaxin) and Idorsia (the SARS-CoV-2 main protease), with a fifth from the Structural Genomics Consortium, and the data behind them are described in companion papers. Only two systems carried affinity targets: 17 chymase-ligand targets with both structures and affinities, and autotaxin with 93 pairs having both, 96 with structures only and 30 with affinities only, giving 123 autotaxin affinity targets. Each target was posted with a description, the protein sequence, the ligand SMILES with stereochemistry where available, a statement of what to predict and, for structures, a zero-filled template file. Targets for the first four systems were posted on 5 May 2024 with predictions due 21 July; stage 2 ran from 7 to 21 August; the fifth system arrived later and was re-released on 30 August after a SMILES error was found.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, The Challenges and Structure of the Challenge",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Further details of these molecular systems and the experiments used to generate the data are provided in the companion paper from the contributing groups at Hoffmann‐La Roche (L1000–L3000) and Idorsia Pharmaceuticals (L4000)"
+     },
+     {
+      "source": "@paper",
+      "text": "The challenge dataset contains 17 individual chymase–ligand targets with both structures and affinities to be predicted."
+     },
+     {
+      "source": "@paper",
+      "text": "The autotaxin dataset comprises 93 protein–ligand pairs with both structures and affinities to predict; 96 with only structures to predict; and 30 with only affinities to predict."
+     },
+     {
+      "source": "@paper",
+      "text": "The information needed for supertargets L1000–L4000 (chymase, cathepsin G, autotaxin, and Mpro) was posted May 5, 2024, and predictions were due by July 21, 2024."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Each group could submit up to five predictions per target, with Model 1 taken as their preferred one, and the assessment uses Model 1. Accuracy is Kendall's tau computed separately within each protein system and combined as an N-weighted average, where the weights are the numbers of affinities submitted for autotaxin (108) and chymase (14). The ceiling calculation resamples the experimental values under an assumed threefold uncertainty in the measured half-maximal inhibitory concentration and asks what a perfect method would score: 0.54 with a standard deviation of 0.11 for chymase and 0.76 with a standard deviation of 0.02 for autotaxin, which weight to 0.73. The assessors note that the chymase ceiling is lower because its measurements span a 400-fold range against 8700-fold for autotaxin, so the chymase challenge resolves accuracy less well. Baseline predictors are run for context: molecular weight, computed log P, a Gaussian process regressor with a Tanimoto kernel fitted per system on ChEMBL data, AutoDock Vina docking scores for stage 1, and Vina and GNINA scores on the released crystal structures for stage 2.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Structure of the Challenge and Binding Affinity Prediction; Results, Affinity Predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For each pose‐ or affinity‐prediction target, participants were permitted to submit up to five different predictions, termed Model 1 to Model 5, with the understanding that Model 1 would be considered their best or most favored prediction."
+     },
+     {
+      "source": "@paper",
+      "text": "We assessed the overall affinity prediction accuracy of groups in terms of the <italic toggle=\"yes\">N</italic>‐weighted Kendall's <italic toggle=\"yes\">τ</italic> across both sets of targets"
+     },
+     {
+      "source": "@paper",
+      "text": "For chymase, the mean resampled Kendall's <italic toggle=\"yes\">τ</italic> is 0.54 (SD: 0.11), and for autotaxin, the value is 0.76 (SD: 0.02)."
+     },
+     {
+      "source": "@paper",
+      "text": "Binding affinity predictions for Stage 1 from the CASP participants were compared to two commonly used baseline predictors: molecular weight (MolW) and the partition coefficient <italic toggle=\"yes\">P</italic> (Log<italic toggle=\"yes\">P</italic>), both calculated using RDKit"
+     }
+    ]
+   },
+   {
+    "title": "The disclosure problem and the final target counts",
+    "body": "During assessment the organisers rechecked whether the affinity data had been published elsewhere and found that it had, for 18 targets: chymase targets L1003 and L1010 in Roche patents, L1013 in another group's publication, and 15 named autotaxin targets in four Roche patents. Those were removed, so the assessed set is 122 affinity targets rather than 140, and a supplementary figure repeats the assessment on all 140 with results the paper says are much the same. For stage 2, structures were available for all 17 chymase targets, of which 14 were used after the removals, and for 93 of the autotaxin affinity targets, of which 89 undisclosed ones with cocrystal structures were usable. Submission counts differ between stages and systems: 21 stage 1 and 24 stage 2 submissions for autotaxin, 28 stage 1 and 27 stage 2 for chymase.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions, Assessment; Figure 8 and 9 captions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Therefore, in preparing the assessment below, we omitted these three of the 17 chymase affinity targets and these 15 of the 123 autotaxin affinity targets, so the total number of affinity targets became 122."
+     },
+     {
+      "source": "@paper",
+      "text": "However, for completeness, Figure <xref rid=\"prot70061-supitem-0001\" ref-type=\"supplementary-material\">S10</xref> in the SI provides an assessment based on all 17 chymase and 123 autotaxin targets, and the results are much the same as those computed without the previously disclosed cases."
+     },
+     {
+      "source": "@paper",
+      "text": "Structures were available for 93 of the original autotaxin affinity targets, and 89 undisclosed affinities with associated cocrystal structures were available for Stage 2."
+     },
+     {
+      "source": "@paper",
+      "text": "There were 21 Stage 1 and 24 Stage 2 submissions for autotaxin and 28 Stage 1 and 27 Stage 2 submissions for chymase."
+     }
+    ]
+   },
+   {
+    "title": "What the challenge found",
+    "body": "Most submissions correlated positively with experiment but quality varied widely. The best group reached an N-weighted Kendall's tau of 0.39, followed by four groups above 0.25; the abstract states the maximum observed tau as 0.42. The best affinity groups are not the best pose groups, and there was no significant correlation between a group's accuracy on autotaxin and on chymase, with one exception. Molecular weight alone correlates with experiment almost as well as the best CASP predictions, while computed log P correlates inversely. Releasing the experimental structures did not shift the distribution of accuracy in stage 2, which the assessors read as the scoring functions being the limiting factor rather than the structures. Against the 0.73 ceiling the best result leaves considerable room, and the assessors estimate the best method's effective uncertainty at about 2 kcal/mol in binding free energy.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Results, Affinity Predictions and Comparison With Baseline Affinity Predictors",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This is well above the maximum achieved value of 0.39 (Figure <xref rid=\"prot70061-fig-0009\" ref-type=\"fig\">9A</xref>), so there is still considerable room for improvement in this challenge component."
+     },
+     {
+      "source": "@paper",
+      "text": "The groups that provide the best affinity predictions are not the same as those that provide the best pose predictions"
+     },
+     {
+      "source": "@paper",
+      "text": "The MolW of the ligand correlates with experiment almost as well as the best CASP predictions (Figure <xref rid=\"prot70061-fig-0009\" ref-type=\"fig\">9</xref>), while cLogP has an inverse correlation."
+     },
+     {
+      "source": "@paper",
+      "text": "As seen in prior challenges, providing experimental structures did not improve affinity predictions in the second stage of the challenge, suggesting that the scoring functions used here are a key limiting factor."
+     },
+     {
+      "source": "@paper",
+      "text": "This suggests that the best affinity prediction method has an effective uncertainty of ~2 kcal/mol in binding free energy."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "140 affinity targets were posed across two of the five CASP16 protein-ligand systems: 17 for human chymase and 123 for autotaxin. After 18 targets whose affinities had been disclosed elsewhere were removed, the assessed set is 122, and the N-weighted scoring uses 108 autotaxin and 14 chymase affinities. For stage 2, 14 chymase targets and 89 autotaxin targets had usable undisclosed affinities with cocrystal structures. The wider CASP16 protein-ligand challenge also posed 229 pose targets across all five systems, which are outside this record. The autotaxin construct is a hybrid, mostly rat with human binding-site residues and a His tag.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Methods, The Challenges; Results, Affinity Predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Thirty research groups submitted predictions for 229 protein–ligand pose targets and 140 affinity targets across five protein systems."
+     },
+     {
+      "source": "@paper",
+      "text": "The affinity targets provided to CASP16 participants comprised 123 autotaxin cases and 17 chymase cases."
+     },
+     {
+      "source": "@paper",
+      "text": "so the total number of affinity targets became 122"
+     },
+     {
+      "source": "@paper",
+      "text": "The protein sequence is a hybrid construct, with most of the structure derived from rat, which is easier to crystallize, but with binding site residues from the human protein."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Not a split but a time-ordered blind challenge in two stages. Stage 1: affinities predicted from sequence and SMILES before any experimental structure or affinity was public, posted 5 May 2024 and due 21 July 2024 for the first four systems. Stage 2: the experimental complex structures were released and affinity predictions were re-submitted, 7 to 21 August 2024. The last system was shared on 9 August and re-released on 30 August with a 18 September deadline. There is no training set: each group brings its own method and its own training data.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Structure of the Challenge",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Stage 2 ran from August 7 to August 21."
+     },
+     {
+      "source": "@paper",
+      "text": "The information needed for supertargets L1000–L4000 (chymase, cathepsin G, autotaxin, and Mpro) was posted May 5, 2024, and predictions were due by July 21, 2024."
+     },
+     {
+      "source": "@paper",
+      "text": "re‐released it as L5001v1 on August 30, with the submission deadline of September 18, 2024"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Kendall's tau, higher is better, computed within each protein system on the group's Model 1 predictions and combined as an N-weighted average over the two systems, with weights 108 for autotaxin and 14 for chymase. No absolute error metric is used for affinity, because submissions may be rankings rather than values. Alongside the achieved values the assessors report the expected tau of a perfect predictor under threefold experimental uncertainty: 0.54 (standard deviation 0.11) for chymase, 0.76 (0.02) for autotaxin, 0.73 weighted. The pose component, outside this record, uses LDDT-PLI.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions; Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We assessed the overall affinity prediction accuracy of groups in terms of the <italic toggle=\"yes\">N</italic>‐weighted Kendall's <italic toggle=\"yes\">τ</italic> across both sets of targets"
+     },
+     {
+      "source": "@paper",
+      "text": "For chymase, the mean resampled Kendall's <italic toggle=\"yes\">τ</italic> is 0.54 (SD: 0.11), and for autotaxin, the value is 0.76 (SD: 0.02)."
+     },
+     {
+      "source": "@paper",
+      "text": "we obtain an expected mean best Kendall's <italic toggle=\"yes\">τ</italic> of 0.73"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Five, run by the assessors rather than submitted. For stage 1: ligand molecular weight, the computed octanol-water partition coefficient, both from RDKit, a Gaussian process regressor with a Tanimoto similarity kernel fitted separately per system on ChEMBL data (1110 chymase inhibition values from 0.3 nM to 570 micromolar, 450 autotaxin values from 10 pM to 1.25 millimolar), and AutoDock Vina docking scores. For stage 2, with the crystal structures available: GNINA v1.3 and AutoDock Vina scores after local minimisation. The finding that matters is that molecular weight nearly matches the best submitted predictions.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Binding Affinity Prediction; Results, Comparison With Baseline Affinity Predictors",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "These datasets contained 1110 IC50 values for human chymase, ranging from 0.3 nM to 570 μM, and 450 IC50 values for human autotaxin, ranging from 10 pM to 1.25 mM."
+     },
+     {
+      "source": "@paper",
+      "text": "For Stage 2, we used the scoring functions from GNINA"
+     },
+     {
+      "source": "@paper",
+      "text": "The MolW of the ligand correlates with experiment almost as well as the best CASP predictions (Figure <xref rid=\"prot70061-fig-0009\" ref-type=\"fig\">9</xref>), while cLogP has an inverse correlation."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "The design is the control: the data were unpublished pharmaceutical measurements and predictions were due before release. The organisers then checked that assumption and found it broken for 18 targets, whose affinities had appeared in Roche patents or another group's publication, and removed them, reporting the alternative assessment on all 140 in the supplement. The same checking was applied to the pose component, where five main protease targets turned out to have been in the PDB before the deadline and were dropped. A separate analysis uses Foldseek and a chemical overlap score to measure how similar a target's protein and ligand are to anything already in the PDB, so template availability can be related to accuracy. What is not controlled is each group's own training data beyond these disclosures.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions, Assessment; Methods, Assessing the Existence of Similar Protein-Ligand Structures in the PDB; Methods, The Challenges",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "during the assessment phase of this experiment, we rechecked the publication status of all of the protein–ligand data and discovered that chymase affinity data for chymase affinity targets L1003 and L1010 had been previously disclosed in Roche patents"
+     },
+     {
+      "source": "@paper",
+      "text": "we were informed on February 26, 2025, that the following five MPro structure targets had become available in the PDB well before the CASP 16 submission deadline"
+     },
+     {
+      "source": "@paper",
+      "text": "To assess whether the availability of similar protein structures in the PDB affected the performance of the prediction methods, we used Foldseek"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Handled on the experimental side rather than by replicating predictions. The assessors assume about threefold uncertainty in the measured half-maximal inhibitory concentrations, resample under it and report the resulting distribution of the best achievable tau, with standard deviations of 0.11 for chymase and 0.02 for autotaxin. They use the same approach in reverse to estimate the best method's effective uncertainty at about 2 kcal/mol. No interval is attached to any individual group's score, and each group submits once per stage, with Model 1 assessed.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For chymase, the mean resampled Kendall's <italic toggle=\"yes\">τ</italic> is 0.54 (SD: 0.11), and for autotaxin, the value is 0.76 (SD: 0.02)."
+     },
+     {
+      "source": "@paper",
+      "text": "Thus, if we assign an error of 30× in IC50 (2 kcal/mol in binding free energy), we obtain a mean expected best Kendall's <italic toggle=\"yes\">τ</italic> of 0.43 for autotaxin, which is similar to the best result in Figure <xref rid=\"prot70061-fig-0008\" ref-type=\"fig\">8A</xref>."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One example is a protein-ligand pair: a named target system plus one drug-like compound given as a SMILES string, for which an affinity is predicted. Scoring is within a system, because the metric is a rank correlation across that system's compounds, so a single pair has no score of its own.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Structure of the Challenge; Results, Affinity Predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "ligand SMILES string with any available stereochemical specifications"
+     },
+     {
+      "source": "@paper",
+      "text": "or ligand rankings within each supertarget dataset"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human targets, with one construct caveat. The affinity systems are human chymase and autotaxin, the latter supplied as a hybrid construct that is mostly rat with human binding-site residues and a His tag. The wider pose challenge adds human cathepsin G, human WDR55 and the SARS-CoV-2 main protease.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, The Challenges; Figure 1 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The protein sequence is a hybrid construct, with most of the structure derived from rat, which is easier to crystallize, but with binding site residues from the human protein."
+     },
+     {
+      "source": "@paper",
+      "text": "(A) human chymase, target L1001; (B) human cathepsin, target L2001; (C) human autotaxin"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Half-maximal inhibitory concentrations measured in the contributing companies' discovery projects, with the assay details given in companion papers rather than here. The assessors treat them as carrying about threefold uncertainty, and note that the chymase values span a 400-fold range while the autotaxin values span 8700-fold, which is why the two systems differ in how well they can resolve a method's accuracy. The ChEMBL data used for one baseline are also inhibition values.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions; Methods, The Challenges and Binding Affinity Prediction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The difference between these outcomes traces to the fact that the IC50s for chymase vary over a much smaller range (400×) than those for autotaxin (8700×), and a larger range makes the ranking more stable in the face of 3× experimental uncertainty."
+     },
+     {
+      "source": "@paper",
+      "text": "Further details of these molecular systems and the experiments used to generate the data are provided in the companion paper from the contributing groups at Hoffmann‐La Roche (L1000–L3000) and Idorsia Pharmaceuticals (L4000)"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "In stage 1, what the challenge website posted: a description of the data set, the protein sequence, the ligand SMILES with stereochemistry where available, and a statement of what was to be predicted. In stage 2, the experimental coordinates of the protein-ligand complexes as well. Anything else a group brings, including its own training data and templates from the PDB, is unrestricted, which is why the assessors measure template availability separately.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Structure of the Challenge",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The website provided the following information about each protein–ligand target: a brief description of the dataset; protein sequence; ligand SMILES string with any available stereochemical specifications; a statement of what was to be predicted"
+     },
+     {
+      "source": "@paper",
+      "text": "we released experimental coordinates of protein–ligand complexes and asked modelers to predict binding affinities for each of them"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Unrestricted and group-specific: each participant uses its own method, trained however it chooses. The paper names examples among the better affinity groups, including graph neural networks trained on PDBbind and a combination of deep docking methods, and the assessors' own baselines include a Gaussian process regressor fitted per target system on ChEMBL data. CASP's convention is one method per group registration, with a laboratory able to register several groups to test several methods.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions; Methods, Structure of the Challenge",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This method uses graph neural networks trained on the PDBbind"
+     },
+     {
+      "source": "@paper",
+      "text": "By default, CASP expects one laboratory to test one method."
+     },
+     {
+      "source": "@paper",
+      "text": "A separate GPR model was trained for each supertarget, chymase (L1000) and autotaxin (L3000), using the CHEMBL3691 and CHEMBL4068 datasets, respectively."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "It is genuinely blind on unpublished industrial data: the targets came from company discovery projects and predictions were due before the affinities or structures were released, which is a stronger condition than any retrospective benchmark can offer.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Methods, The Challenges and Structure of the Challenge",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "with a focus on drug‐like compounds from pharmaceutical discovery projects"
+     },
+     {
+      "source": "@paper",
+      "text": "note that in the first stage, the task was to predict affinities without the benefit of the experimental structures"
+     }
+    ]
+   },
+   {
+    "text": "The assessors publish the challenge's own ceiling. By resampling the measurements under their experimental uncertainty they show what a perfect method could score (0.73 weighted), which turns a bare correlation into a statement about how much room is left.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we obtain an expected mean best Kendall's <italic toggle=\"yes\">τ</italic> of 0.73"
+     },
+     {
+      "source": "@paper",
+      "text": "This is well above the maximum achieved value of 0.39 (Figure <xref rid=\"prot70061-fig-0009\" ref-type=\"fig\">9A</xref>), so there is still considerable room for improvement in this challenge component."
+     }
+    ]
+   },
+   {
+    "text": "Disclosure was audited after the fact and acted on: 18 affinity targets whose values had appeared in patents or a publication were removed, five pose targets found in the PDB were dropped, and the alternative assessment including the disclosed cases is published in the supplement.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions, Assessment; Methods, The Challenges",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Therefore, in preparing the assessment below, we omitted these three of the 17 chymase affinity targets and these 15 of the 123 autotaxin affinity targets, so the total number of affinity targets became 122."
+     },
+     {
+      "source": "@paper",
+      "text": "The statistics presented in this paper have been recomputed, relative to those presented at the CASP16 conference, with these targets omitted."
+     }
+    ]
+   },
+   {
+    "text": "Trivial baselines are run alongside the submissions, and the result is informative rather than decorative: ligand molecular weight ranks the compounds almost as well as the best submitted method.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Comparison With Baseline Affinity Predictors",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "First, as in D3R, we ranked compounds simply by MolW and log of the computed octanol–water partition coefficient (cLogP), with higher values considered conducive to binding."
+     },
+     {
+      "source": "@paper",
+      "text": "The MolW of the ligand correlates with experiment almost as well as the best CASP predictions"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Two protein systems only, and one of them barely resolves accuracy: the chymase measurements span a 400-fold range, which gives a perfect-method ceiling of 0.54, and the assessors warn that coming close to it on chymase does not mean the predictions were good.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Note that the fact that CASP participants came close to the theoretical maximum value of Kendall's <italic toggle=\"yes\">τ</italic> for chymase does not imply that these predictions were more successful, only that the chymase challenge is less capable of resolving levels of accuracy, due, again, to the small range of experimental data."
+     }
+    ]
+   },
+   {
+    "text": "The blind condition was partly compromised before assessment: the affinities of 18 of the 140 targets had already been disclosed in patents or a paper, and the organisers only discovered this during the assessment phase.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions, Assessment",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "during the assessment phase of this experiment, we rechecked the publication status of all of the protein–ligand data and discovered that chymase affinity data for chymase affinity targets L1003 and L1010 had been previously disclosed in Roche patents"
+     }
+    ]
+   },
+   {
+    "text": "The denominators move between the figures. 140 targets were posed, 122 assessed, the weighting uses 108 autotaxin and 14 chymase affinities, stage 2 uses 14 chymase and 89 autotaxin, and the number of submissions differs by stage and system, so any quoted tau has to be read with its own target set.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions; Figure 8 and 9 captions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "where <italic toggle=\"yes\">N"
+     },
+     {
+      "source": "@paper",
+      "text": "There were 21 Stage 1 and 24 Stage 2 submissions for autotaxin and 28 Stage 1 and 27 Stage 2 submissions for chymase."
+     },
+     {
+      "source": "@paper",
+      "text": "Structures were available for all 17 of the originally posed chymase targets, so 14 were used following the removal of three previously disclosed data points."
+     }
+    ]
+   },
+   {
+    "text": "The abstract and the results section give different maximum values: the abstract says the maximum Kendall's tau was 0.42, while the results state the maximum achieved value as 0.39 and name the best group at 0.39. A reader quoting a headline number should say which.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Results, Affinity Predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The CASP affinity predictions showed modest correlation with experimental data (maximum Kendall's <italic toggle=\"no\">τ</italic> = 0.42), well below the theoretical maximum possible given experimental uncertainty (~0.73)."
+     },
+     {
+      "source": "@paper",
+      "text": "This is well above the maximum achieved value of 0.39 (Figure <xref rid=\"prot70061-fig-0009\" ref-type=\"fig\">9A</xref>), so there is still considerable room for improvement in this challenge component."
+     }
+    ]
+   },
+   {
+    "text": "A group's score does not transfer between systems: the assessors found no significant correlation between accuracy on autotaxin and on chymase, with one exception, so ranking a method from this challenge says little about the next target.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Affinity Predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Interestingly, we observe no significant correlation between the accuracy of a group's predictions for autotaxin and those for chymase"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "CASP16 affinity challenge workflow",
+   "steps": [
+    "organisers post sequence, ligand SMILES and what to predict",
+    "groups submit up to five affinity predictions per target, Model 1 counted",
+    "stage 2: experimental complex structures released, affinities predicted again",
+    "disclosed targets removed after an audit",
+    "Kendall's tau per system, N-weighted across the two",
+    "compared with baseline predictors and with the resampled perfect-method ceiling"
+   ],
+   "caption": "The ceiling is computed from the experimental uncertainty of the measurements, which is what makes the achieved correlations interpretable.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Methods, Structure of the Challenge; Results, Affinity Predictions",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For each pose‐ or affinity‐prediction target, participants were permitted to submit up to five different predictions, termed Model 1 to Model 5, with the understanding that Model 1 would be considered their best or most favored prediction."
+    },
+    {
+     "source": "@paper",
+     "text": "In order to put these results into context, we computed the expectation values of Kendall's <italic toggle=\"yes\">τ</italic> for a perfect prediction method against experimental data subject to ~3× uncertainty in the measured IC50"
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "Per-group values are in Figures 8 and 9 and were not transcribed; only the best group's N-weighted tau and the stated thresholds are recorded.",
+   "The supplementary material, including the assessment on all 140 targets and the per-system scatter, was not retrieved.",
+   "The companion papers describing the assay conditions and the target chemistry were not fetched, so the assays behind the affinities are named but not described.",
+   "The Boltz-2 supplement, which the record cites for a model's results on this challenge, was not fetched for this page, so no model result is stated here.",
+   "The CASP16 website's own result tables were not retrieved; the address is recorded as the results address because the paper prints it."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the PMC full-text XML of PMC12750038 (Proteins 94(1):249-266, 2026, doi 10.1002/prot.70061), including the Methods and the affinity sections of the Results, on 2026-11-27. The supplementary material, the companion papers and the Boltz-2 supplement were not fetched. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "This is a blind community challenge with a fixed submission window in 2024, not a runnable suite: the targets were posted on the CASP website, predictions were due by stated deadlines, and the assessment was carried out by the organisers. No harness, scoring script or data download is published in the saved source, and the challenge cannot be rerun blind now that the answers are out.",
+ "structured": [
+  {
+   "task": "Stage 1 affinity prediction, both systems, N-weighted",
+   "dataset": "CASP16 affinity targets, assessed set",
+   "size": 122,
+   "size_unit": "assessed targets",
+   "split": "blind stage 1; predictions due before structures or affinities were released; 18 previously disclosed targets removed",
+   "primary_metric": "N-weighted Kendall tau",
+   "metric_direction": "higher",
+   "results_url": "https://predictioncenter.org/casp16",
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "so the total number of affinity targets became 122"
+    },
+    {
+     "source": "@paper",
+     "text": "We assessed the overall affinity prediction accuracy of groups in terms of the <italic toggle=\"yes\">N</italic>‐weighted Kendall's <italic toggle=\"yes\">τ</italic> across both sets of targets"
+    },
+    {
+     "source": "@paper",
+     "text": "Detailed information and submission instructions were provided via the CASP website (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://predictioncenter.org/casp16\" ext-link-type=\"uri\">https://predictioncenter.org/casp16"
+    }
+   ]
+  },
+  {
+   "task": "Stage 1 affinity prediction, autotaxin",
+   "dataset": "CASP16 autotaxin affinity targets",
+   "size": 108,
+   "size_unit": "affinities used in the weighting",
+   "split": "blind stage 1; 15 of the 123 posed autotaxin affinity targets removed as previously disclosed",
+   "primary_metric": "Kendall tau",
+   "metric_direction": "higher",
+   "results_url": "https://predictioncenter.org/casp16",
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "is the number of affinities submitted for autotaxin ("
+    },
+    {
+     "source": "@paper",
+     "text": "we omitted these three of the 17 chymase affinity targets and these 15 of the 123 autotaxin affinity targets"
+    },
+    {
+     "source": "@paper",
+     "text": "for autotaxin, the value is 0.76 (SD: 0.02)"
+    }
+   ]
+  },
+  {
+   "task": "Stage 1 affinity prediction, chymase",
+   "dataset": "CASP16 chymase affinity targets",
+   "size": 14,
+   "size_unit": "affinities used in the weighting",
+   "split": "blind stage 1; 3 of the 17 posed chymase affinity targets removed as previously disclosed",
+   "primary_metric": "Kendall tau",
+   "metric_direction": "higher",
+   "results_url": "https://predictioncenter.org/casp16",
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we omitted these three of the 17 chymase affinity targets"
+    },
+    {
+     "source": "@paper",
+     "text": "For chymase, the mean resampled Kendall's <italic toggle=\"yes\">τ</italic> is 0.54 (SD: 0.11)"
+    },
+    {
+     "source": "@paper",
+     "text": "Detailed information and submission instructions were provided via the CASP website (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://predictioncenter.org/casp16\" ext-link-type=\"uri\">https://predictioncenter.org/casp16"
+    }
+   ]
+  },
+  {
+   "task": "Stage 2 affinity prediction with experimental structures, autotaxin",
+   "dataset": "CASP16 autotaxin stage 2 targets",
+   "size": 89,
+   "size_unit": "targets with cocrystal structures",
+   "split": "stage 2; experimental complex structures released before the affinity predictions were due",
+   "primary_metric": "Kendall tau",
+   "metric_direction": "higher",
+   "results_url": "https://predictioncenter.org/casp16",
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Structures were available for 93 of the original autotaxin affinity targets, and 89 undisclosed affinities with associated cocrystal structures were available for Stage 2."
+    },
+    {
+     "source": "@paper",
+     "text": "It is evident from the histograms of Kendall's <italic toggle=\"yes\">τ</italic> values over all groups (Figure <xref rid=\"prot70061-fig-0008\" ref-type=\"fig\">8B,C</xref>) that knowledge of the structures did not lead to a shift toward greater accuracy."
+    }
+   ]
+  },
+  {
+   "task": "Stage 2 affinity prediction with experimental structures, chymase",
+   "dataset": "CASP16 chymase stage 2 targets",
+   "size": 14,
+   "size_unit": "targets with cocrystal structures",
+   "split": "stage 2; experimental complex structures released before the affinity predictions were due",
+   "primary_metric": "Kendall tau",
+   "metric_direction": "higher",
+   "results_url": "https://predictioncenter.org/casp16",
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Structures were available for all 17 of the originally posed chymase targets, so 14 were used following the removal of three previously disclosed data points."
+    },
+    {
+     "source": "@paper",
+     "text": "It is evident from the histograms of Kendall's <italic toggle=\"yes\">τ</italic> values over all groups (Figure <xref rid=\"prot70061-fig-0008\" ref-type=\"fig\">8B,C</xref>) that knowledge of the structures did not lead to a shift toward greater accuracy."
+    }
+   ]
+  }
+ ],
+ "notes": "Written from the CASP16 assessors' paper only. The record's other source, the Boltz-2 supplement with that model's results on this challenge, was not fetched here, so no model score appears on this page and the supplement's Table 14 is not represented in the structured entries. Sizes must be kept apart: 140 affinity targets were posed (17 chymase, 123 autotaxin), 122 were assessed after 18 previously disclosed targets were removed, the N-weighted metric uses 108 autotaxin and 14 chymase affinities, and stage 2 used 89 autotaxin and 14 chymase targets; none of these numbers substitutes for another. The 229 figure in the abstract is the pose component, not affinity. One internal discrepancy for a reviewer: the abstract gives the maximum Kendall's tau as 0.42 while the Results give the maximum achieved value as 0.39. results_url is the CASP16 website as the paper prints it; no code or data download is published, so those fields are null. The challenge ran to fixed 2024 deadlines and cannot be rerun blind, hence no run guide."
+}

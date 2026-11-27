@@ -1,0 +1,995 @@
+{
+ "record_id": "lit-structure-20261011-scaffoldlab-benchmark-scaffold-lab",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Scaffold-Lab paper, PMC full-text XML (PMC13225634)",
+   "description": "NCBI PMC full-text XML of Zheng et al., Scaffold-Lab: Critical evaluation and ranking of protein backbone generation methods in a unified framework, PLOS Computational Biology 2026, fetched through E-utilities efetch.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13225634",
+   "url": "https://doi.org/10.1371/journal.pcbi.1014290",
+   "version": "PMC13225634.1, PLOS Computational Biology 2026, doi 10.1371/journal.pcbi.1014290",
+   "media_type": "application/xml",
+   "sha256": "479d4f0e5ccea345685730de02b523d8727901a83bcde75e1ffcec8114c1a92f",
+   "retrieved_at": "2026-11-27T03:08:24Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "readme",
+   "name": "Immortals-33/Scaffold-Lab README.md at commit 74267afd",
+   "description": "Official repository readme, pinned to a commit. Holds the installation steps and the evaluation commands.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/Immortals-33/Scaffold-Lab/74267afd9f3c446129729f41e7d58f7c57da0a6f/README.md",
+   "url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "version": "git commit 74267afd9f3c446129729f41e7d58f7c57da0a6f",
+   "media_type": "text/markdown",
+   "sha256": "12d6c87f0661f0dc69b5b539305d165c8343b64379fcbc10e78c12fc8585584a",
+   "retrieved_at": "2026-11-27T03:08:48Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "config",
+   "name": "Immortals-33/Scaffold-Lab config/unconditional.yaml at commit 74267afd",
+   "description": "The configuration the unconditional refolding entry point reads, pinned to a commit. Read to check the defaults rather than relying on the readme.",
+   "file": "artifacts/unconditional.yaml",
+   "artifact_url": "https://raw.githubusercontent.com/Immortals-33/Scaffold-Lab/74267afd9f3c446129729f41e7d58f7c57da0a6f/config/unconditional.yaml",
+   "url": "https://github.com/Immortals-33/Scaffold-Lab/blob/main/config/unconditional.yaml",
+   "version": "git commit 74267afd9f3c446129729f41e7d58f7c57da0a6f",
+   "media_type": "text/yaml",
+   "sha256": "a9646bc55719c02f16f75a09dfe14bce1710643ea143801e271dbf74696bca71",
+   "retrieved_at": "2026-11-27T03:09:04Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "licence",
+   "name": "Immortals-33/Scaffold-Lab LICENSE at commit 74267afd",
+   "description": "Repository licence file, pinned to a commit.",
+   "file": "artifacts/licence.txt",
+   "artifact_url": "https://raw.githubusercontent.com/Immortals-33/Scaffold-Lab/74267afd9f3c446129729f41e7d58f7c57da0a6f/LICENSE",
+   "url": "https://github.com/Immortals-33/Scaffold-Lab/blob/main/LICENSE",
+   "version": "git commit 74267afd9f3c446129729f41e7d58f7c57da0a6f",
+   "media_type": "text/plain",
+   "sha256": "9af816fbbd2ab569613f3b679960fe596eec8907efbbcc0d0530787f0b1c0dbd",
+   "retrieved_at": "2026-11-27T03:08:52Z",
+   "licence": "MIT",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "Scaffold-Lab evaluates protein backbone generation methods in one pipeline. For the unconditional task a method generates 100 backbones at each evaluated length, ProteinMPNN designs 10 sequences for each backbone, ESMFold refolds them, and the backbones are scored for designability (a self-consistency TM-score above 0.5), novelty (the highest TM-score to any PDB structure), diversity (unique Foldseek clusters over total backbones) and efficiency (average seconds per backbone), with the four combined into a ranking by TOPSIS. Lengths are grouped short (50 and 100), medium (200 to 500) and long (600 to 1000), and each group holds only the methods that could be run at those lengths. It is useful to someone choosing a backbone generator and wanting the designability, diversity and runtime trade-off on one page.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Figure 1 caption; Evaluation metrics; Tables 2 and 3",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We generated 100 backbones with 10 sequences for each backbone to be evaluated."
+   },
+   {
+    "source": "@paper",
+    "text": "We employed the self-consistency TM-score (<italic toggle=\"yes\">sc-TM"
+   },
+   {
+    "source": "@paper",
+    "text": "We divided evaluation metrics into five categories, namely <italic toggle=\"yes\">designability, novelty, diversity, efficiency</italic> and <italic toggle=\"yes\">structural properties</italic>."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Four things about a set of generated backbones, plus a description of their physical plausibility. Designability asks whether any sequence folds into the backbone, read from refolding. Novelty asks how far the backbone is from everything already in the PDB. Diversity asks how varied a method's own output is, which matters because a generator that always produces the same fold gives few candidates to choose from. Efficiency is the runtime per backbone. Structural properties (secondary structure content, radius of gyration and MolProbity validity) are described rather than ranked. The first four are combined into a single ranking, because the authors treat the choice of method as a multi-criteria decision rather than a single score.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Evaluation metrics, Designability to Ranking",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Designability</italic> is the most critical metric for protein backbone generation tasks as it assesses whether there exists a sequence that can fold into the generated protein backbone."
+     },
+     {
+      "source": "@paper",
+      "text": "Novelty</italic> measures the structural difference between the generated protein backbones to all existing proteins."
+     },
+     {
+      "source": "@paper",
+      "text": "In the context of protein backbone generation, a method that exhibits greater diversity indicates that it can generate a broader range of structural topologies."
+     },
+     {
+      "source": "@paper",
+      "text": "The first four categories are quantitative that were used for ranking different methods<italic toggle=\"yes\">."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "There is no fixed target set: the data are generated by the methods under test. For each method and each evaluated length, 100 backbones are generated, and the lengths are grouped: short covers 50 and 100, medium covers 200, 300, 400 and 500, and long covers 600, 800 and 1000. Which methods appear in a group depends on what could be run there, so the short group holds Genie, FrameFlow, FrameDiff, Chroma and RFdiffusion, the medium group FrameDiff, Chroma and RFdiffusion, and the long group only Chroma and RFdiffusion. Seven methods are evaluated across the two tasks, with release dates from January to November 2023. The reference for novelty is the whole PDB, searched with Foldseek.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Tables 1 and 2; Figure 1 caption; Evaluation metrics, Novelty",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For unconditional generation, we generated 100 backbones at each unique evaluated length for each method."
+     },
+     {
+      "source": "@paper",
+      "text": "Short</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">50, 100</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Genie, FrameFlow, FrameDiff, Chroma, RFdiffusion"
+     },
+     {
+      "source": "@paper",
+      "text": "Medium</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">200, 300, 400, 500</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">FrameDiff, Chroma, RFdiffusion"
+     },
+     {
+      "source": "@paper",
+      "text": "Long</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">600, 800, 1000</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Chroma, RFdiffusion"
+     },
+     {
+      "source": "@paper",
+      "text": "We used Foldseek [<xref rid=\"pcbi.1014290.ref069\" ref-type=\"bibr\">69</xref>] to search for the nearest protein structure in the PDB database that matched the generated backbones."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Every method goes through the same refolding pipeline: ProteinMPNN designs 10 sequences per backbone, ESMFold predicts each sequence's structure, and the prediction is compared with the generated backbone. A backbone counts as designable when the self-consistency TM-score exceeds 0.5, which the authors prefer to the self-consistency RMSD below 2 angstroms used elsewhere because RMSD becomes less discriminative as proteins get longer; the RMSD criterion is kept for the motif-scaffolding task, where designs are typically under 150 residues. Rather than taking the single best sequence, the headline figure uses a top N strategy with N equal to 3: the mean score of the three best sequences must pass the threshold, on the argument that a backbone accommodating several sequences is more robust. The best-sequence success rate is reported alongside, and success is also plotted against a sweep of thresholds with the area under that curve reported, to avoid depending on one subjective cut-off. Novelty is the highest TM-score to any PDB structure, with a penalty added for backbones that are novel but undesignable. Diversity is unique Foldseek clusters at a TM-score threshold of 0.5 divided by the number of backbones in the group. Efficiency is the mean time per backbone over 100 backbones under identical hardware. The four are combined by TOPSIS, with the relative closeness value reported per length and averaged per group to give a rank.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Material and methods; Evaluation metrics",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "ProteinMPNN [<xref rid=\"pcbi.1014290.ref012\" ref-type=\"bibr\">12</xref>] was used as the sequence designer throughout the pipeline"
+     },
+     {
+      "source": "@paper",
+      "text": "We chose ESMFold as the standard refolding predictor due to its speed and competitive performance on long proteins"
+     },
+     {
+      "source": "@paper",
+      "text": "where a protein backbone is considered as designable if the refolded structures and the original backbones shares a TM-score ["
+     },
+     {
+      "source": "@paper",
+      "text": "Thus, we calculated the mean sc-TM (or sc-RMSD) of the top <inline-formula id=\"pcbi.1014290.e002\"><alternatives><graphic xmlns:xlink=\"http://www.w3.org/1999/xlink\" id=\"pcbi.1014290.e002g\" position=\"anchor\" orientation=\"portrait\" xlink:href=\"pcbi.1014290.e002.jpg\"/><mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" id=\"M2\" display=\"inline\" overflow=\"scroll\"><mml:mrow><mml:mrow><mml:mi>N</mml:mi></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula> sequences (with highest sc-TM or lowest sc-RMSD), defined as:"
+     },
+     {
+      "source": "@paper",
+      "text": "We used a clustering TM-Score threshold of 0.5 based on the aforementioned consensus"
+     },
+     {
+      "source": "@paper",
+      "text": "For the ranking of different methods, we used the widely recognized Technique for Order Preference by Similarity to Ideal Solution (TOPSIS)."
+     }
+    ]
+   },
+   {
+    "title": "What the ranking found",
+    "body": "Table 3 reports the four metrics and the TOPSIS closeness per length, with a mean closeness and a rank per group. In the short group FrameFlow ranks first (mean closeness 0.517), ahead of Genie (0.464), Chroma (0.403), FrameDiff (0.365) and RFdiffusion (0.238), although RFdiffusion has the highest designability at length 100 (0.956) and the lowest diversity at length 50 (0.12). In the medium group RFdiffusion ranks first (0.531) ahead of FrameDiff (0.399) and Chroma (0.296). The values show the trade-off the ranking is built to expose: designability falls with length for Chroma and FrameDiff while their diversity rises, and efficiency ranges from 0.11 seconds per backbone for FrameFlow at length 50 to several seconds for Genie and Chroma.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "C</mml:mi></mml:mrow></mml:mrow><mml:mrow><mml:mrow><mml:mi>i</mml:mi></mml:mrow></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula> denotes the calculated relative nearness value of TOPSIS results, where higher indicates better performances."
+     },
+     {
+      "source": "@paper",
+      "text": "FrameFlow"
+     },
+     {
+      "source": "@paper",
+      "text": "<td align=\"left\" rowspan=\"2\" colspan=\"1\"> <bold>0.517</bold> </td>"
+     },
+     {
+      "source": "@paper",
+      "text": "<td align=\"left\" rowspan=\"4\" colspan=\"1\"> <bold>0.531</bold> </td>"
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "The framework installs from its conda environment file and as a package, and needs a Foldseek PDB database built locally for the novelty and diversity steps. One command runs the unconditional evaluation on whatever backbones are pointed at. Reading config/unconditional.yaml, the defaults are the demo backbone directory, a local ProteinMPNN installation, an output directory, 10 sequences per backbone with a ProteinMPNN batch size of 10, ESMFold as the prediction method, a Foldseek cluster TM-score threshold of 0.5, a seed of 33 and a required Foldseek database path with no default. AlphaFold2 can be used instead of ESMFold through LocalColabFold, configured in the same file. Configuration is through Hydra, so any of these can be overridden on the command line.",
+    "source_ids": [
+     "@readme",
+     "@config"
+    ],
+    "source_locator": "README: Installation, Usage; config/unconditional.yaml",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python scaffold_lab/unconditional/refolding.py "
+     },
+     {
+      "source": "@readme",
+      "text": "You may also need to build a Foldseek database for diversity and novelty evaluation."
+     },
+     {
+      "source": "@config",
+      "text": "seq_per_sample: 10"
+     },
+     {
+      "source": "@config",
+      "text": "predict_method: [ESMFold]"
+     },
+     {
+      "source": "@config",
+      "text": "tmscore_threshold: 0.5 # `tmscore-threshold` parameter for Foldseek-Cluster"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "No fixed target set: the evaluated data are generated by the methods under test, 100 backbones per method per evaluated length, each with 10 ProteinMPNN sequences. Nine lengths are evaluated in three groups (50 and 100; 200, 300, 400 and 500; 600, 800 and 1000). The external reference data are the whole PDB, used through Foldseek for the novelty metric. The motif-scaffolding task, outside this record's scope, uses 24 benchmark cases with 100 backbones each.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Figure 1 caption; Table 2; Evaluation metrics, Novelty",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For unconditional generation, we generated 100 backbones at each unique evaluated length for each method."
+     },
+     {
+      "source": "@paper",
+      "text": "Short</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">50, 100</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Genie, FrameFlow, FrameDiff, Chroma, RFdiffusion"
+     },
+     {
+      "source": "@paper",
+      "text": "For motif-scaffolding, we generated 100 backbones for each of the 24 benchmark cases of different methods."
+     },
+     {
+      "source": "@paper",
+      "text": "by calculating the highest TM-score between generated protein backbones and all proteins in Protein Data Bank (PDB)"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Inapplicable: there is no training, validation or test division, because the benchmark scores freshly generated samples rather than held-out data. The only partition is by sequence length into the short, medium and long groups, and each group holds only the methods that could be run at those lengths, so the method sets differ between groups.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 2; Material and methods"
+   },
+   {
+    "label": "Metrics",
+    "value": "Four ranked metrics plus descriptive ones. Designability: the fraction of backbones whose mean self-consistency TM-score over the three best sequences exceeds 0.5, higher is better; the best-sequence rate and the area under a threshold sweep are reported beside it. Novelty: pdb-TM, the highest TM-score to any PDB structure, lower is better (more novel), with a penalty term added when the backbone is undesignable. Diversity: unique Foldseek clusters at a TM-score threshold of 0.5 divided by the number of backbones, higher is better. Efficiency: mean seconds per backbone over 100 backbones, lower is better. The TOPSIS closeness value aggregates the four, higher is better. Secondary structure content, radius of gyration and MolProbity validity are reported without ranking. The motif-scaffolding task uses self-consistency RMSD below 2.0 angstroms instead.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Evaluation metrics; Table 3 header",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Designability(↑)</th><th align=\"left\" rowspan=\"1\" colspan=\"1\">Novelty(↓)</th><th align=\"left\" rowspan=\"1\" colspan=\"1\">Diversity (↑)</th><th align=\"left\" rowspan=\"1\" colspan=\"1\">Efficiency"
+     },
+     {
+      "source": "@paper",
+      "text": "We use the success definition of sc-TM &gt; 0.5 for unconditional generation (protein length ranges from 50 to 1000)."
+     },
+     {
+      "source": "@paper",
+      "text": "by calculating the number of unique clusters divided by the total number of protein backbones each group"
+     },
+     {
+      "source": "@paper",
+      "text": "The efficiency is calculated as the average time usage‌‌ per backbone for generating 100 backbones."
+     },
+     {
+      "source": "@paper",
+      "text": "For evaluation on motif-scaffolding, we use sc-RMSD &lt; 2.0 Å since designed proteins here are typically under 150 residues"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Seven backbone generation methods across the two tasks, with their release dates and categories given: Genie (2023-01, diffusion), FrameDiff (2023-03, diffusion), RFdiffusion (2023-04, diffusion), TDS (2023-06, diffusion), GPDL (2023-10, ESM-based), FrameFlow (2023-10, flow-based) and Chroma (2023-11, diffusion). Of these, Genie and FrameDiff are evaluated on unconditional generation only, TDS and GPDL on the conditional task only, and RFdiffusion, FrameFlow and Chroma on both. The pipeline's own fixed components, ProteinMPNN and ESMFold, were themselves checked against alternatives (ESM-IF1 for sequence design, AlphaFold2 and OmegaFold for prediction).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 1; Material and methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Genie [<xref rid=\"pcbi.1014290.ref050\" ref-type=\"bibr\">50</xref>]</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">2023-01</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Diffusion-based"
+     },
+     {
+      "source": "@paper",
+      "text": "Chroma [<xref rid=\"pcbi.1014290.ref035\" ref-type=\"bibr\">35</xref>]</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">2023-11</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Diffusion-based"
+     },
+     {
+      "source": "@paper",
+      "text": "A comparison of ProteinMPNN to another state-of-the-art method, ESM-IF1 [<xref rid=\"pcbi.1014290.ref055\" ref-type=\"bibr\">55</xref>] in S1 Fig in <xref rid=\"pcbi.1014290.s001\" ref-type=\"supplementary-material\">S1 File</xref> indicated that ProteinMPNN outperformed ESM-IF1 in terms of refolding ability"
+     },
+     {
+      "source": "@paper",
+      "text": "github.com/aqlaboratory/genie</ext-link> </td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Unconditional"
+     },
+     {
+      "source": "@paper",
+      "text": "github.com/jasonkyuyim/se3_diffusion</ext-link> </td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Unconditional"
+     },
+     {
+      "source": "@paper",
+      "text": "github.com/blt2114/twisted_diffusion_sampler</ext-link> </td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Conditional"
+     },
+     {
+      "source": "@paper",
+      "text": "github.com/sirius777coder/GPDL</ext-link> </td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Conditional"
+     },
+     {
+      "source": "@paper",
+      "text": "github.com/microsoft/protein-frame-flow</ext-link> </td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Both"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "None, and the concept barely applies in the usual sense: the backbones are generated rather than held out, so there is no test set to leak. What the benchmark does instead is measure the related quantity directly, as novelty: every generated backbone is searched against the whole PDB with Foldseek and its highest TM-score reported, so a method that reproduces known folds is visible. The authors add a penalty so that a backbone cannot score as novel while being undesignable. There is no control over what the generators themselves were trained on.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Evaluation metrics, Novelty",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We followed the approach in FrameDiff [<xref rid=\"pcbi.1014290.ref053\" ref-type=\"bibr\">53</xref>] by calculating the highest TM-score between generated protein backbones and all proteins in Protein Data Bank (PDB"
+     },
+     {
+      "source": "@paper",
+      "text": "We also observed that some generated backbones, although novel, were undesignable. To address this, we introduced a penalty for poorly designable backbones when calculating the <italic toggle=\"yes\">novelty score"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Distributions rather than intervals. Each cell rests on 100 backbones and 10 sequences per backbone, and the paper reports the full distributions of self-consistency TM-score and pdb-TM as box plots with medians, plus an area under the threshold sweep so that a result does not hang on one cut-off. T-tests are used where two readings of the same group are compared, for example novelty with and without the designability penalty. No confidence interval is attached to the designability, diversity, efficiency or TOPSIS values in Table 3, and no repeated generation runs are reported.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Figure 2 caption; Table 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Stars on each data group indicate the differences between two types of data within the group, calculated using the T-test."
+     },
+     {
+      "source": "@paper",
+      "text": "Four metrics with arrows are shown as mean values within each group without data preprocessing."
+     },
+     {
+      "source": "@paper",
+      "text": "(A)</bold> Distribution of top 3 sc-TM. The number attached to each group denotes the proportion of backbones with top 3 sc-TM"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One example is a generated protein backbone, a single chain of a chosen length, carrying the 10 sequences designed for it and their predicted structures. Aggregation is per method and length group.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Material and methods; Figure 1 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Each of the generated backbone was evaluated with a refolding pipeline."
+     },
+     {
+      "source": "@paper",
+      "text": "Ten sequences were then designed with ProteinMPNN for each backbone and then predicted with ESMFold to calculate different metrics of each backbone."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Inapplicable: the backbones are generated de novo and belong to no organism. The only natural data involved is the PDB, used as the reference set for the novelty search, and no species composition is given for it.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Evaluation metrics, Novelty"
+   },
+   {
+    "label": "Assays",
+    "value": "None. Every metric is computed in silico from generated and predicted structures. The authors state that these are proxies for high-throughput in vitro experiments rather than measurements, and no wet-lab result is part of the benchmark.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Evaluation metrics",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "While most of the these are <italic toggle=\"yes\">in silico</italic> metrics, they serve as valuable proxies for high-throughput <italic toggle=\"yes\">in vitro</italic> experiments and provide valuable insights for selecting candidates in downstream applications of protein design."
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "For the generator, a target length and nothing else: unconditional generation is sampling a backbone of the requested size. For the scoring pipeline, the generated backbone coordinates, from which ProteinMPNN designs sequences; the configuration exposes a CA_only option, which is off by default. The motif-scaffolding task additionally supplies a motif placement specification.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@config"
+    ],
+    "source_locator": "Paper: Figure 1 caption; config/unconditional.yaml",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For unconditional generation, we generated 100 backbones at each unique evaluated length for each method."
+     },
+     {
+      "source": "@config",
+      "text": "CA_only: False"
+     },
+     {
+      "source": "@config",
+      "text": "backbone_pdb_dir: ./demo/unconditional/"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Released checkpoints run at their own settings, with nothing trained or fine-tuned by the benchmark. The fixed parts of the pipeline, ProteinMPNN for sequence design and ESMFold for refolding, are the same for every method, which is the point of the framework; the paper justifies each choice against an alternative.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Material and methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "ProteinMPNN [<xref rid=\"pcbi.1014290.ref012\" ref-type=\"bibr\">12</xref>] was used as the sequence designer throughout the pipeline"
+     },
+     {
+      "source": "@paper",
+      "text": "All experiments were conducted under the same hardware resources to maintain consistent comparisons."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Every method is scored through one refolding pipeline with the same sequence designer, the same structure predictor and the same hardware, so differences are not differences between each paper's own protocol.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Material and methods; Evaluation metrics, Efficiency",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "ProteinMPNN [<xref rid=\"pcbi.1014290.ref012\" ref-type=\"bibr\">12</xref>] was used as the sequence designer throughout the pipeline"
+     },
+     {
+      "source": "@paper",
+      "text": "All experiments were conducted under the same hardware resources to maintain consistent comparisons."
+     }
+    ]
+   },
+   {
+    "text": "The designability criterion is examined rather than inherited: the authors explain why they use a TM-score threshold instead of RMSD at long lengths, report both the top-three and best-sequence rates, and publish the area under a sweep of thresholds so a reader is not tied to one cut-off.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Evaluation metrics, Designability; Figure 2 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In this case, the original success definition of sc-RMSD &lt; 2.0 Å becomes less discriminative"
+     },
+     {
+      "source": "@paper",
+      "text": "We applied dynamic thresholds of sc-TM and sc-RMSD for success definitions and evaluated the trends in success rates across different methods. This approach provides a novel prospective on method performance without relying on subjective thresholds"
+     }
+    ]
+   },
+   {
+    "text": "Novelty cannot be gamed by producing unfoldable structures, because the novelty score carries an explicit penalty when the backbone's own designability falls below the threshold.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Evaluation metrics, Novelty",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "If the average sc-TM value for a sequence is greater than 0.5 (indicating it is designable), we retain the original pdb-TM value. Otherwise, a penalty is applied based on the shortfall between sc-TM and the 0.5 threshold."
+     }
+    ]
+   },
+   {
+    "text": "The framework is published and runnable: MIT licensed, installable from an environment file, with one command per task, a Hydra configuration for the parameters and a Colab notebook for a quick run.",
+    "source_ids": [
+     "@readme",
+     "@licence",
+     "@paper"
+    ],
+    "source_locator": "README: Installation, Usage; LICENSE; Paper: Data Availability",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda env create -f scaffold_lab.yml"
+     },
+     {
+      "source": "@licence",
+      "text": "MIT License"
+     },
+     {
+      "source": "@paper",
+      "text": "A Colab Notebook for easy-to-use evaluation is provided at"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The length groups do not hold the same methods, because each method was only run at the lengths it could handle: five methods in the short group, three in the medium, two in the long. A group ranking therefore cannot be read across groups.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 2; Table 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Short</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">50, 100</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Genie, FrameFlow, FrameDiff, Chroma, RFdiffusion"
+     },
+     {
+      "source": "@paper",
+      "text": "Long</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">600, 800, 1000</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Chroma, RFdiffusion"
+     }
+    ]
+   },
+   {
+    "text": "Nothing here is measured in a laboratory. Designability means that a structure predictor reproduces the backbone from a designed sequence, which the authors describe as a proxy for in vitro experiments.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Evaluation metrics",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "While most of the these are <italic toggle=\"yes\">in silico</italic> metrics, they serve as valuable proxies for high-throughput <italic toggle=\"yes\">in vitro</italic> experiments and provide valuable insights for selecting candidates in downstream applications of protein design."
+     }
+    ]
+   },
+   {
+    "text": "The headline ranking depends on choices the authors made and not only on the measurements: the top-three rather than best-sequence rule, the 0.5 TM-score thresholds for designability and for clustering, the novelty penalty weight set to 1, and the TOPSIS aggregation with its weighting.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Evaluation metrics, Designability, Novelty, Diversity and Ranking",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Here we chose <inline-formula id=\"pcbi.1014290.e005\"><alternatives><graphic xmlns:xlink=\"http://www.w3.org/1999/xlink\" id=\"pcbi.1014290.e005g\" position=\"anchor\" orientation=\"portrait\" xlink:href=\"pcbi.1014290.e005.jpg\"/><mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" id=\"M5\" display=\"inline\" overflow=\"scroll\"><mml:mrow><mml:mrow><mml:mi>N</mml:mi></mml:mrow><mml:mo>=</mml:mo><mml:mrow><mml:mn>3</mml:mn></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula> for evaluation and reported the distribution of sc-TM and the success rate by picking the best sequence as a fair comparison"
+     },
+     {
+      "source": "@paper",
+      "text": "A higher <inline-formula id=\"pcbi.1014290.e009\"><alternatives><graphic xmlns:xlink=\"http://www.w3.org/1999/xlink\" id=\"pcbi.1014290.e009g\" position=\"anchor\" orientation=\"portrait\" xlink:href=\"pcbi.1014290.e009.jpg\"/><mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" id=\"M9\" display=\"inline\" overflow=\"scroll\"><mml:mrow><mml:mrow><mml:mi>w</mml:mi></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula> imposes a more stringent penalty on backbones with less designability."
+     },
+     {
+      "source": "@paper",
+      "text": "This method is commonly combined with comprehensive factor weighting methods to improve the reliability of evaluation."
+     }
+    ]
+   },
+   {
+    "text": "The scores depend on two fixed tools whose own behaviour shapes the result. ProteinMPNN is the only sequence designer and ESMFold the only refolding predictor in the reported runs, and the paper's justification for each rests on supplementary comparisons on a subset.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Material and methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "A comparison of ProteinMPNN to another state-of-the-art method, ESM-IF1 [<xref rid=\"pcbi.1014290.ref055\" ref-type=\"bibr\">55</xref>] in S1 Fig in <xref rid=\"pcbi.1014290.s001\" ref-type=\"supplementary-material\">S1 File</xref> indicated that ProteinMPNN outperformed ESM-IF1 in terms of refolding ability"
+     },
+     {
+      "source": "@paper",
+      "text": "Additionally, a comparison of a subset of sequences between AlphaFold2 [<xref rid=\"pcbi.1014290.ref004\" ref-type=\"bibr\">4</xref>], ESMFold [<xref rid=\"pcbi.1014290.ref016\" ref-type=\"bibr\">16</xref>] and OmegaFold [<xref rid=\"pcbi.1014290.ref058\" ref-type=\"bibr\">58</xref>] revealed a relatively strong correlation among the three structure prediction methods."
+     }
+    ]
+   },
+   {
+    "text": "No repeated generation runs and no interval are reported for the ranked metrics, so a reader cannot tell how much of a small gap between two methods is sampling noise. Table 3 prints mean values without preprocessing.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 3 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Four metrics with arrows are shown as mean values within each group without data preprocessing."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Scaffold-Lab unconditional evaluation workflow",
+   "steps": [
+    "method generates 100 backbones at one length",
+    "ProteinMPNN designs 10 sequences per backbone",
+    "ESMFold predicts each sequence's structure",
+    "self-consistency TM-score over the top 3 sequences gives designability",
+    "Foldseek gives pdb-TM for novelty and clusters for diversity",
+    "TOPSIS combines designability, novelty, diversity and runtime into a rank"
+   ],
+   "caption": "The generator is the only thing that changes between columns: the sequence designer, the structure predictor, the thresholds and the hardware are fixed.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Figure 1 caption; Evaluation metrics",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Ten sequences were then designed with ProteinMPNN for each backbone and then predicted with ESMFold to calculate different metrics of each backbone."
+    },
+    {
+     "source": "@paper",
+     "text": "For the ranking of different methods, we used the widely recognized Technique for Order Preference by Similarity to Ideal Solution (TOPSIS)."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Only part of Table 3 is recorded here: the full grid of four metrics by method and length, and the long group's values, were not transcribed.",
+   "The distributions in Figure 2, the structural property analysis and the motif-scaffolding results are described in the text but their values sit in figures and supplementary files that were not retrieved.",
+   "The mathematical detail of the TOPSIS weighting is in the supplementary materials, which were not retrieved, so the weights behind the published ranking are not recorded.",
+   "The dataset and grouping details the paper defers to its supplementary materials were not retrieved.",
+   "No information is given about repeated generation runs, so the stability of the ranking is unknown."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the PMC full-text XML of PMC13225634 (PLOS Computational Biology 2026, doi 10.1371/journal.pcbi.1014290), including Tables 1 to 3 and the Evaluation metrics section, and the README.md, LICENSE and config/unconditional.yaml of Immortals-33/Scaffold-Lab at commit 74267afd9f3c446129729f41e7d58f7c57da0a6f, on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the framework, build the Foldseek database it needs, and run the unconditional refolding evaluation over a directory of generated backbones.",
+  "prerequisites": [
+   "conda, to create the environment from the repository's scaffold_lab.yml.",
+   "A Foldseek PDB database built locally, which the novelty and diversity steps need; the configuration leaves its path required with no default.",
+   "A local ProteinMPNN installation at the path the configuration names, and ESMFold weights for the default prediction method.",
+   "Generated backbones as PDB files in a directory; the repository ships a demo set.",
+   "The framework is MIT licensed."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/Immortals-33/Scaffold-Lab\ncd Scaffold-Lab\ngit checkout --detach 74267afd9f3c446129729f41e7d58f7c57da0a6f",
+    "explanation": "The readme does not give a clone command. These lines were added so the steps below run against the same commit as the saved readme and configuration.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data Availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The code for Scaffold-Lab evaluation framework is available at"
+     }
+    ]
+   },
+   {
+    "title": "Create the environment and install the package",
+    "shell": "conda env create -f scaffold_lab.yml\nsource activate scaffold_lab\npip install -e .",
+    "explanation": "The readme's installation block. The last line installs scaffold_lab as a package so the entry points resolve.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda env create -f scaffold_lab.yml\nsource activate scaffold_lab\n\n# Install scaffold_lab as a package.\npip install -e ."
+     }
+    ]
+   },
+   {
+    "title": "Run the unconditional evaluation",
+    "shell": "python scaffold_lab/unconditional/refolding.py",
+    "explanation": "The readme's one-line example, which evaluates the backbones in the demo directory. Reading config/unconditional.yaml, this uses the demo backbone directory, designs 10 sequences per backbone with ProteinMPNN at batch size 10, predicts with ESMFold, clusters with Foldseek at a TM-score threshold of 0.5 and writes to the outputs directory, with seed 33.",
+    "source_ids": [
+     "@readme",
+     "@config"
+    ],
+    "source_locator": "README: Usage, Unconditional Generation; config/unconditional.yaml",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python scaffold_lab/unconditional/refolding.py "
+     },
+     {
+      "source": "@readme",
+      "text": "This performs a simple refolding analysis for the proteins we put inside `demo/unconditional/`."
+     },
+     {
+      "source": "@config",
+      "text": "seq_per_sample: 10\n    mpnn_batch_size: 10"
+     },
+     {
+      "source": "@config",
+      "text": "output_dir: ./outputs/unconditional/"
+     }
+    ]
+   },
+   {
+    "title": "Point it at your own backbones and Foldseek database",
+    "shell": "python scaffold_lab/unconditional/refolding.py \\\n  inference.backbone_pdb_dir=<your_backbone_directory> \\\n  evaluation.foldseek_database=<foldseek_pdb_database_path>",
+    "explanation": "Hydra lets any configuration value be overridden on the command line; the readme shows this form for the Foldseek database on the motif-scaffolding entry point, and the two keys here are the ones config/unconditional.yaml defines for the backbone directory and the database. The database value has no default in the file and must be supplied.",
+    "source_ids": [
+     "@readme",
+     "@config"
+    ],
+    "source_locator": "README: Usage, Conditional Generation; Outline; config/unconditional.yaml",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python scaffold_lab/motif_scaffolding/motif_refolding.py evaluation.foldseek_database=<foldseek_pdb_database_path> # Specify the path of your Foldseek database directly"
+     },
+     {
+      "source": "@config",
+      "text": "backbone_pdb_dir: ./demo/unconditional/"
+     },
+     {
+      "source": "@config",
+      "text": "foldseek_database: ???"
+     }
+    ]
+   },
+   {
+    "title": "Use AlphaFold2 instead of ESMFold",
+    "shell": "python scaffold_lab/unconditional/refolding.py inference.af2.executive_colabfold_path='{LocalColabFold}/colabfold-conda-bin'",
+    "explanation": "The readme's command for switching the refolding predictor to the single-chain AlphaFold2 through LocalColabFold. The configuration file carries the matching af2 block, with 3 recycles, the alphafold2_ptm model type and one model by default.",
+    "source_ids": [
+     "@readme",
+     "@config"
+    ],
+    "source_locator": "README: Customize Methods for Structure Prediction; config/unconditional.yaml",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python scaffold_lab/unconditional/refolding.py inference.af2.executive_colabfold_path='{LocalColabFold}/colabfold-conda-bin'"
+     },
+     {
+      "source": "@config",
+      "text": "model_type: alphafold2_ptm"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Per-run outputs under the configured output directory, including the designability, novelty and diversity metrics; the readme describes a summary file plus an auxiliary metrics file for the motif task.",
+   "Optional visualisation figures and a PyMOL session, controlled by the visualize flag in the configuration."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "They score backbones. Generating them is a separate step: the repository collects the baseline methods' code under its baselines directory and recommends running each inside its own environment.",
+   "The novelty and diversity metrics need a locally built Foldseek PDB database, which the configuration requires and does not provide.",
+   "The published numbers come from runs on the authors' hardware; the efficiency metric is hardware dependent by construction."
+  ],
+  "source_ids": [
+   "@readme",
+   "@config",
+   "@paper"
+  ]
+ },
+ "structured": [
+  {
+   "task": "Unconditional backbone generation, short group",
+   "dataset": "Scaffold-Lab generated backbones, lengths 50 and 100",
+   "size": 100,
+   "size_unit": "generated backbones per method per length",
+   "split": "no split; 100 backbones generated at each of lengths 50 and 100, methods Genie, FrameFlow, FrameDiff, Chroma and RFdiffusion",
+   "primary_metric": "designability (top 3 sc-TM above 0.5)",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "code_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For unconditional generation, we generated 100 backbones at each unique evaluated length for each method."
+    },
+    {
+     "source": "@paper",
+     "text": "Short</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">50, 100</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Genie, FrameFlow, FrameDiff, Chroma, RFdiffusion"
+    },
+    {
+     "source": "@paper",
+     "text": "We use the success definition of sc-TM &gt; 0.5 for unconditional generation (protein length ranges from 50 to 1000)."
+    },
+    {
+     "source": "@licence",
+     "text": "MIT License"
+    },
+    {
+     "source": "@paper",
+     "text": "The code for Scaffold-Lab evaluation framework is available at"
+    }
+   ]
+  },
+  {
+   "task": "Unconditional backbone generation, medium group",
+   "dataset": "Scaffold-Lab generated backbones, lengths 200 to 500",
+   "size": 100,
+   "size_unit": "generated backbones per method per length",
+   "split": "no split; 100 backbones generated at each of lengths 200, 300, 400 and 500, methods FrameDiff, Chroma and RFdiffusion",
+   "primary_metric": "designability (top 3 sc-TM above 0.5)",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "code_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For unconditional generation, we generated 100 backbones at each unique evaluated length for each method."
+    },
+    {
+     "source": "@paper",
+     "text": "Medium</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">200, 300, 400, 500</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">FrameDiff, Chroma, RFdiffusion"
+    },
+    {
+     "source": "@paper",
+     "text": "We use the success definition of sc-TM &gt; 0.5 for unconditional generation (protein length ranges from 50 to 1000)."
+    },
+    {
+     "source": "@licence",
+     "text": "MIT License"
+    }
+   ]
+  },
+  {
+   "task": "Unconditional backbone generation, long group",
+   "dataset": "Scaffold-Lab generated backbones, lengths 600 to 1000",
+   "size": 100,
+   "size_unit": "generated backbones per method per length",
+   "split": "no split; 100 backbones generated at each of lengths 600, 800 and 1000, methods Chroma and RFdiffusion",
+   "primary_metric": "designability (top 3 sc-TM above 0.5)",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "code_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For unconditional generation, we generated 100 backbones at each unique evaluated length for each method."
+    },
+    {
+     "source": "@paper",
+     "text": "Long</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">600, 800, 1000</td><td align=\"left\" rowspan=\"1\" colspan=\"1\">Chroma, RFdiffusion"
+    },
+    {
+     "source": "@paper",
+     "text": "We use the success definition of sc-TM &gt; 0.5 for unconditional generation (protein length ranges from 50 to 1000)."
+    },
+    {
+     "source": "@licence",
+     "text": "MIT License"
+    }
+   ]
+  },
+  {
+   "task": "Unconditional backbone generation, novelty",
+   "dataset": "Scaffold-Lab generated backbones against the PDB",
+   "size": 100,
+   "size_unit": "generated backbones per method per length",
+   "split": "no split; every generated backbone searched against all PDB structures with Foldseek",
+   "primary_metric": "pdb-TM with designability penalty",
+   "metric_direction": "lower",
+   "results_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "code_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "by calculating the highest TM-score between generated protein backbones and all proteins in Protein Data Bank (PDB)"
+    },
+    {
+     "source": "@paper",
+     "text": "Designability(↑)</th><th align=\"left\" rowspan=\"1\" colspan=\"1\">Novelty(↓)</th><th align=\"left\" rowspan=\"1\" colspan=\"1\">Diversity (↑)</th><th align=\"left\" rowspan=\"1\" colspan=\"1\">Efficiency"
+    },
+    {
+     "source": "@paper",
+     "text": "we introduced a penalty for poorly designable backbones when calculating the <italic toggle=\"yes\">novelty score"
+    },
+    {
+     "source": "@licence",
+     "text": "MIT License"
+    }
+   ]
+  },
+  {
+   "task": "Unconditional backbone generation, diversity",
+   "dataset": "Scaffold-Lab generated backbones clustered by Foldseek",
+   "size": 100,
+   "size_unit": "generated backbones per method per length",
+   "split": "no split; backbones grouped by length and clustered with Foldseek-Cluster at a TM-score threshold of 0.5",
+   "primary_metric": "unique clusters divided by number of backbones",
+   "metric_direction": "higher",
+   "results_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "code_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We grouped the protein backbones by length and used Foldseek-Cluster [<xref rid=\"pcbi.1014290.ref070\" ref-type=\"bibr\">70</xref>] to cluster each group of protein backbones."
+    },
+    {
+     "source": "@paper",
+     "text": "We used a clustering TM-Score threshold of 0.5 based on the aforementioned consensus"
+    },
+    {
+     "source": "@paper",
+     "text": "by calculating the number of unique clusters divided by the total number of protein backbones each group"
+    },
+    {
+     "source": "@licence",
+     "text": "MIT License"
+    }
+   ]
+  },
+  {
+   "task": "Unconditional backbone generation, efficiency",
+   "dataset": "Scaffold-Lab generation runtime",
+   "size": 100,
+   "size_unit": "generated backbones per method per length",
+   "split": "no split; average time per backbone over 100 backbones under identical hardware",
+   "primary_metric": "seconds per backbone",
+   "metric_direction": "lower",
+   "results_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "code_url": "https://github.com/Immortals-33/Scaffold-Lab",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The efficiency is calculated as the average time usage‌‌ per backbone for generating 100 backbones."
+    },
+    {
+     "source": "@paper",
+     "text": "All experiments were conducted under the same hardware resources to maintain consistent comparisons."
+    },
+    {
+     "source": "@licence",
+     "text": "MIT License"
+    }
+   ]
+  }
+ ],
+ "notes": "The 100 in every structured entry is the number of backbones generated per method per evaluated length, which is the unit the paper states, not a total: the short group covers two lengths, the medium four and the long three, and the method sets differ between groups, so no single total applies. The 24-case figure in the Datasets fact belongs to the motif-scaffolding task, which is outside this record. There is no fixed data set to download, so data_url is null and data_licence is null; the MIT licence covers the evaluation code. released is null: Table 1 gives release dates for the methods under test, not for the benchmark. Splits and organisms are marked inapplicable because the evaluated backbones are generated rather than held out and belong to no organism. The repository readme carries a contact email address, which is deliberately not reproduced here."
+}
