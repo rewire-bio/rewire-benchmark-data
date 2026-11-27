@@ -1,0 +1,54 @@
+## Code to calibrate tools for clinical interpretation and generate summarized results
+
+This repository contains only the **code** relevant to the original paper. Due to large file sizes, data and intermediate result files are hosted [here](https://zenodo.org/record/8347415). Each of the files (`data.zip` and `results.zip`) contains a README that provides additional information on the data and results. Please refer to these and link the relevant files to the code provided in this repository so that the scripts and functions access the correct input files. All figures and tables reference the original paper. In addition, code for updated analyses and tools have been added here.
+
+### Repository structure
+
+The repository is organized as follows:
+```bash
+├── LICENSE
+├── README.md
+├── local_posterior_probability
+│   ├── get_all_thresholds.m
+│   ├── get_both_bootstrapped_posteriors.m
+│   ├── get_both_local_posteriors.m
+│   ├── get_discounted_thresholds.m
+│   ├── main.m
+│   ├── plot_both_posteriors.m
+│   ├── print_thresholds.m
+├── plotting
+│   ├── plot_both_posteriors_pub.m
+│   ├── plot_correlation.m
+│   ├── plot_heatmap_gnomad_set.m
+│   ├── plot_heatmap_lr_testset.m
+│   └── plot_posterior_wrapper.m
+└── results_postprocessing
+    ├── assess_default_thresholds.m
+    ├── calculate_coverage.m
+    ├── make_thr_table.m
+    └── add_3pt_thrs.m
+```
+
+#### 1. `local_posterior_probability`
+
+This directory contains the actual implementation of the algorithm to calculate local posterior probabilities (as described in Figure 2 of the paper). The script `main.m` serves as the wrapper that calls all the other functions in this directory.
+
+Note that `print_thresholds.m` and `plot_both_posteriors.m` functions are called in this wrapper mainly to present output immediately for testing and debugging purposes. More advanced, publication-ready versions of these functions can be found in the `plotting` and `results_postprocessing` directories.
+
+
+#### 2. `results_postprocessing`
+
+This directory contains scripts to post-process outputs from `local_posterior_probability` and/or generate additional statistics and tables for the results.
+* `make_thr_table.m` : script to generate and systematically print out the score thresholds in Table 2 (and Supplemental Table S1). Note that the format is not exactly as in the paper but it should be easy to update manually to align with the format in the paper.
+* `assess_default_thresholds.m` : script to generate Table 3.
+* `calculate_coverage.m` : script to generate Supplemental Table S2.
+* `add_3pt_thrs.m` : script to recalculate thresholds to include the 3-pt level (based on the ACMG/AMP points-based system). This should be run first before running any other code.
+
+#### 3. `plotting`
+
+This directory contains the code used to make the plots in the paper.
+* `plot_posterior_wrapper.m` : wrapper script to plot Figure 3. This script calls the function `plot_both_posteriors_pub.m`, which generates each individual local posterior probability plot, i.e., the function is called 26 times for each of the 26 subplots inside Figure 3.
+* `plot_both_posterior_pub.m` : function to plot a single publication-quality local posterior probability plot. Note that this more or less does the same thing that `plot_both_posteriors.m` in `local_posterior_probability` does but the resulting plot matches the look and feel of the ones in the paper. It is recommended that this function be used to visualize finalized results.
+* `plot_heatmap_lr_testset.m` : script to plot the heatmap summarizing interval-based likelihood ratios on the validation set (Figure 4A).
+* `plot_heatmap_gnomad_set.m` : script to plot the heatmap summarizing the fraction of gnomAD variants falling within each score interval (Figure 4B).
+* `plot_correlation.m` : script to plot correlation heatmap (Supplemental Figure S1).

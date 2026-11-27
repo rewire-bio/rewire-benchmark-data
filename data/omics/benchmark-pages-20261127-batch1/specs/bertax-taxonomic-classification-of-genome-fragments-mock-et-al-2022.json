@@ -1,0 +1,724 @@
+{
+ "record_id": "dna-pathogen-20261012-bertax-benchmark",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Mock et al. 2022, BERTax (PNAS 119:e2122636119), NCBI PMC full-text XML PMC9436379",
+   "description": "Full text of the published article fetched through NCBI E-utilities efetch (the store's existing source used the Europe PMC copy). The XML is quoted as it is.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=9436379&rettype=xml",
+   "url": "https://doi.org/10.1073/pnas.2122636119",
+   "version": "PMC version 1",
+   "media_type": "application/xml",
+   "retrieved_at": "2026-11-26T23:43:13Z",
+   "licence": "CC BY-NC-ND 4.0",
+   "store_bytes": false,
+   "sha256": "e4519d7bc9a999266cc6cca8fe4a44613bbb21a4a8fc78daccd73bd190b825e8"
+  },
+  {
+   "key": "readme",
+   "name": "f-kretschmer/bertax README.md at commit 8fdb010f",
+   "description": "Official tool repository named in the paper, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/f-kretschmer/bertax/8fdb010ffb3ede7fce758d5da92a4fcabd8283e7/README.md",
+   "url": "https://github.com/f-kretschmer/bertax",
+   "version": "git commit 8fdb010ffb3ede7fce758d5da92a4fcabd8283e7",
+   "media_type": "text/markdown",
+   "retrieved_at": "2026-11-26T23:46:19Z",
+   "store_bytes": false,
+   "sha256": "d7af02d7f626426566155beb4c1d2cf2450f53e439ab2520d049d05e0ac13fda"
+  },
+  {
+   "key": "licence",
+   "name": "f-kretschmer/bertax LICENSE at commit 8fdb010f",
+   "description": "Repository licence file (GNU GPL version 3), pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/f-kretschmer/bertax/8fdb010ffb3ede7fce758d5da92a4fcabd8283e7/LICENSE",
+   "url": "https://github.com/f-kretschmer/bertax",
+   "version": "git commit 8fdb010ffb3ede7fce758d5da92a4fcabd8283e7",
+   "media_type": "text/plain",
+   "retrieved_at": "2026-11-27T00:01:49Z",
+   "store_bytes": false,
+   "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+  },
+  {
+   "key": "osf",
+   "name": "OSF API record for project qg6mv (BERTax supplement)",
+   "description": "Metadata for the Open Science Framework project that the paper names for the training data.",
+   "file": "artifacts/osf-node.json",
+   "artifact_url": "https://api.osf.io/v2/nodes/qg6mv/",
+   "url": "https://doi.org/10.17605/OSF.IO/QG6MV",
+   "version": "retrieved 2026-11-27",
+   "media_type": "application/json",
+   "retrieved_at": "2026-11-27T00:01:50Z",
+   "store_bytes": false,
+   "sha256": "264319f579158b7d61f325e7a623ab2126dd79c2725afcd7e0e9df749efd0dd4"
+  }
+ ],
+ "profile": {
+  "summary": "The evaluation from the BERTax paper: assign 1,500 nt genome fragments to superkingdom, phylum and, in one dataset, genus. BERTax is compared with Kraken2, sourmash, MMseqs2, minimap2 and DeepMicrobes, all given the same reference or training data, on a closely related split and a genus-held-out split. It is for people choosing a taxonomic classifier, especially for sequences without close relatives in reference databases.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract; Comparison to Other Classification Approaches",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "Here we present BERTax, a deep neural network program based on natural language processing to precisely classify the superkingdom and phylum of DNA sequences taxonomically without the need for a known representative relative from a database."
+   },
+   {
+    "source": "@paper",
+    "text": "For each superkingdom, we extracted 1 million fragments of length 1,500 nt from the downloaded genomes at uniformly distributed starting positions."
+   },
+   {
+    "source": "@paper",
+    "text": "It has to be noted that all methods compared against have exactly the same reference or training data available as BERTax, to allow for a meaningful comparison. For approaches that normally include whole genomes in their reference data, this presents a necessary deviation from the designed use case for these methods."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "How well a method assigns the taxonomic origin of a DNA fragment when close relatives are, or are not, in the reference data. The distantly related dataset simulates unknown sequences by holding out whole genera.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Significance; Three Evaluation Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Here we present BERTax, a deep neural network program based on natural language processing to precisely classify the superkingdom and phylum of DNA sequences taxonomically without the need for a known representative relative from a database."
+     },
+     {
+      "source": "@paper",
+      "text": "For this purpose, a genus separation between training and test sets is employed; that is, for no sample in the test set does there exist a sample of the same genus in the training set"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Genomes of archaea, eukaryotes, bacteria and viruses were taken from NCBI, and 1 million 1,500 nt fragments per superkingdom were extracted, then clustered at 80% identity. Fine-tuning data keep phyla with at least 10,000 fragments: 30 phylum classes and 2,328,584 samples. The closely related dataset tests on 2,000 random samples per phylum; the distantly related dataset tests on whole held-out genera, balanced to 1,780 samples per phylum; the final model dataset adds 2 million eukaryotic and bacterial fragments and has 5 superkingdom, 44 phylum and 156 genus classes, split like the closely related dataset. In every case 95% of the rest is training and 5% validation.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Data, Pretraining Dataset, Preparing Data for Fine-Tuning, Three Evaluation Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Archaean and eukaryotic genomes were retrieved from NCBI using ncbi-genome-download"
+     },
+     {
+      "source": "@paper",
+      "text": "viral and bacterial genomes were downloaded from NCBI manually."
+     },
+     {
+      "source": "@paper",
+      "text": "For each superkingdom, we extracted 1 million fragments of length 1,500 nt from the downloaded genomes at uniformly distributed starting positions."
+     },
+     {
+      "source": "@paper",
+      "text": "we clustered fragments by sequence identity using MMseqs2-linclust version 11.e1a1c"
+     },
+     {
+      "source": "@paper",
+      "text": "This results in 30 phylum classes with 2,328,584 samples in total."
+     },
+     {
+      "source": "@paper",
+      "text": "The first evaluation dataset is called the closely related dataset. As a test set, we randomly select 2,000 samples per phylum. From the remaining samples, we select 95% of the samples of each phylum as the training set and use the remaining 5% as the validation set"
+     },
+     {
+      "source": "@paper",
+      "text": "For this purpose, a genus separation between training and test sets is employed; that is, for no sample in the test set does there exist a sample of the same genus in the training set"
+     },
+     {
+      "source": "@paper",
+      "text": "We keep 1,780 samples per phylum (according to the smallest subset)."
+     },
+     {
+      "source": "@paper",
+      "text": "With this, the number of classes per taxonomic rank is five for the rank superkingdom, 44 for phylum, and 156 for genera. We partition this dataset into training, validation, and test sets using closely related selection as described above"
+     },
+     {
+      "source": "@paper",
+      "text": "We selected only classes with at least 10,000 fragments."
+     },
+     {
+      "source": "@paper",
+      "text": "with a threshold of 80%"
+     },
+     {
+      "source": "@paper",
+      "text": "we extracted an additional 2 million fragments for those two superkingdoms"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Each tool is scored by macro average precision (AveP) at superkingdom and phylum, and at genus for the final dataset. Database tools get only the training partition as reference, default parameters are used, and MMseqs2 is also run with taxonomy parameters to obtain a confidence for precision-recall curves. DeepMicrobes is trained on the same data. The share of sequences each tool classifies is reported alongside, since database tools leave some unclassified.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Comparison to Other Classification Approaches; Table 1; Comparison to Other Tools",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Comparison of the macro AveP on all three datasets"
+     },
+     {
+      "source": "@paper",
+      "text": "Taxonomic classification ranks considered are superkingdom (Supk.), phylum (Phyl.), or genus (only final selection dataset)."
+     },
+     {
+      "source": "@paper",
+      "text": "It has to be noted that all methods compared against have exactly the same reference or training data available as BERTax, to allow for a meaningful comparison. For approaches that normally include whole genomes in their reference data, this presents a necessary deviation from the designed use case for these methods."
+     },
+     {
+      "source": "@paper",
+      "text": "For all tools, we used the default parameters."
+     },
+     {
+      "source": "@paper",
+      "text": "The DeepMicrobes models are trained on exactly the same data as BERTax."
+     },
+     {
+      "source": "@paper",
+      "text": "The proportion of classified sequences varies between 6.90% for sourmash and 92.69% for MMseqs2 taxonomy*. Neural network approaches like BERTax and DeepMicrobes always reach 100% due to their mode of operation without confidence thresholds."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Three: closely related (2,000 test samples per phylum), distantly related (1,780 test samples per phylum, held-out genera) and final model dataset (5 superkingdom, 44 phylum and 156 genus classes).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Three Evaluation Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The first evaluation dataset is called the closely related dataset. As a test set, we randomly select 2,000 samples per phylum. From the remaining samples, we select 95% of the samples of each phylum as the training set and use the remaining 5% as the validation set"
+     },
+     {
+      "source": "@paper",
+      "text": "For this purpose, a genus separation between training and test sets is employed; that is, for no sample in the test set does there exist a sample of the same genus in the training set"
+     },
+     {
+      "source": "@paper",
+      "text": "We keep 1,780 samples per phylum (according to the smallest subset)."
+     },
+     {
+      "source": "@paper",
+      "text": "With this, the number of classes per taxonomic rank is five for the rank superkingdom, 44 for phylum, and 156 for genera. We partition this dataset into training, validation, and test sets using closely related selection as described above"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Closely related: random test sample per phylum. Distantly related: genus held out between training and test. Final: as closely related. Remaining data split 95% training, 5% validation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Three Evaluation Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The first evaluation dataset is called the closely related dataset. As a test set, we randomly select 2,000 samples per phylum. From the remaining samples, we select 95% of the samples of each phylum as the training set and use the remaining 5% as the validation set"
+     },
+     {
+      "source": "@paper",
+      "text": "For this purpose, a genus separation between training and test sets is employed; that is, for no sample in the test set does there exist a sample of the same genus in the training set"
+     },
+     {
+      "source": "@paper",
+      "text": "With this, the number of classes per taxonomic rank is five for the rank superkingdom, 44 for phylum, and 156 for genera. We partition this dataset into training, validation, and test sets using closely related selection as described above"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Macro average precision (AveP); higher is better. Proportion of sequences classified is also reported.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In raw numbers (macro average precision [AveP]), the performance improvement gained with BERTax is most visible for sequences from unknown genera, where an increase from 76.91 to 87.57% on the level of superkingdoms and from 50.51 to 60.34% on the phylum level can be achieved, compared with DeepMicrobes, both in combination with MMseqs2."
+     },
+     {
+      "source": "@paper",
+      "text": "Comparison of the macro AveP on all three datasets"
+     },
+     {
+      "source": "@paper",
+      "text": "The proportion of classified sequences varies between 6.90% for sourmash and 92.69% for MMseqs2 taxonomy*. Neural network approaches like BERTax and DeepMicrobes always reach 100% due to their mode of operation without confidence thresholds."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Kraken2, sourmash, MMseqs2 (and MMseqs2 taxonomy*), minimap2 and DeepMicrobes; combinations of MMseqs2 with BERTax or DeepMicrobes.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Comparison to Other Tools",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "BERTax is compared against the state-of-the-art database taxonomic classification approaches Kraken2"
+     },
+     {
+      "source": "@paper",
+      "text": "As a state-of-the-art machine learning approach, we tested DeepMicrobes"
+     },
+     {
+      "source": "@paper",
+      "text": "Using this strategy, MMseqs2 + BERTax (99.33% and 94.84%) performs better than MMseqs2 + DeepMicrobes (99.33% and 93.67%)."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Duplicate samples between training and test are not allowed, and the distantly related set holds out whole genera. Homologous sequences between training and test were deliberately kept.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Comparison to Other Classification Approaches; Three Evaluation Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "duplicate samples in training and testing data are not permitted in this evaluation."
+     },
+     {
+      "source": "@paper",
+      "text": "For this purpose, a genus separation between training and test sets is employed; that is, for no sample in the test set does there exist a sample of the same genus in the training set"
+     },
+     {
+      "source": "@paper",
+      "text": "When creating the evaluation datasets, we did not exclude homologous sequences between the training and the test datasets. This is necessary for a realistic comparison with methods based on sequence similarity."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "None reported in the text read: single AveP values per tool and dataset, no replicates or intervals.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 1"
+   },
+   {
+    "label": "Entity type",
+    "value": "A 1,500 nt genome fragment.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Pretraining Dataset",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For each superkingdom, we extracted 1 million fragments of length 1,500 nt from the downloaded genomes at uniformly distributed starting positions."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Archaea, bacteria, eukaryotes and viruses from NCBI genomes.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Archaean and eukaryotic genomes were retrieved from NCBI using ncbi-genome-download"
+     },
+     {
+      "source": "@paper",
+      "text": "viral and bacterial genomes were downloaded from NCBI manually."
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "No assay: labels are the NCBI taxonomy of the source genome.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data; Preparing Data for Fine-Tuning",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Archaean and eukaryotic genomes were retrieved from NCBI using ncbi-genome-download"
+     },
+     {
+      "source": "@paper",
+      "text": "viral and bacterial genomes were downloaded from NCBI manually."
+     },
+     {
+      "source": "@paper",
+      "text": "we sorted the fragments from the pretraining dataset into classes according to the phylum the fragment originated from."
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "DNA sequence of the fragment; database tools use the training partition as their reference.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Comparison to Other Classification Approaches",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "It has to be noted that all methods compared against have exactly the same reference or training data available as BERTax, to allow for a meaningful comparison. For approaches that normally include whole genomes in their reference data, this presents a necessary deviation from the designed use case for these methods."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Training on the provided training split (BERTax fine-tuned, DeepMicrobes trained from the same data); database tools build references from it.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Comparison to Other Tools",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The DeepMicrobes models are trained on exactly the same data as BERTax."
+     },
+     {
+      "source": "@paper",
+      "text": "It has to be noted that all methods compared against have exactly the same reference or training data available as BERTax, to allow for a meaningful comparison. For approaches that normally include whole genomes in their reference data, this presents a necessary deviation from the designed use case for these methods."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "All tools get exactly the same reference or training data, which the authors state makes the comparison meaningful.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Comparison to Other Classification Approaches",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "It has to be noted that all methods compared against have exactly the same reference or training data available as BERTax, to allow for a meaningful comparison. For approaches that normally include whole genomes in their reference data, this presents a necessary deviation from the designed use case for these methods."
+     }
+    ]
+   },
+   {
+    "text": "The genus-held-out split tests classification of sequences without close relatives in the reference.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Three Evaluation Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For this purpose, a genus separation between training and test sets is employed; that is, for no sample in the test set does there exist a sample of the same genus in the training set"
+     }
+    ]
+   },
+   {
+    "text": "Covers all four superkingdoms, including viruses.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Archaean and eukaryotic genomes were retrieved from NCBI using ncbi-genome-download"
+     },
+     {
+      "source": "@paper",
+      "text": "viral and bacterial genomes were downloaded from NCBI manually."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Inputs are fragments cut from reference genomes, not sequencing reads or clinical samples.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Pretraining Dataset",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For each superkingdom, we extracted 1 million fragments of length 1,500 nt from the downloaded genomes at uniformly distributed starting positions."
+     }
+    ]
+   },
+   {
+    "text": "Database tools get only the training partition, not whole genomes; the authors call this a necessary deviation from those tools' designed use.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Comparison to Other Classification Approaches",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "It has to be noted that all methods compared against have exactly the same reference or training data available as BERTax, to allow for a meaningful comparison. For approaches that normally include whole genomes in their reference data, this presents a necessary deviation from the designed use case for these methods."
+     }
+    ]
+   },
+   {
+    "text": "Homologous sequences are kept across training and test, so the closely related set rewards remembering similar segments.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Three Evaluation Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "When creating the evaluation datasets, we did not exclude homologous sequences between the training and the test datasets. This is necessary for a realistic comparison with methods based on sequence similarity."
+     },
+     {
+      "source": "@paper",
+      "text": "The presence of homologous sequences allows the trained BERTax model to remember sequence segments."
+     }
+    ]
+   },
+   {
+    "text": "Classification stops at genus; the README recommends BERTax mainly for superkingdom and phylum. No licence is stated for the OSF data.",
+    "source_ids": [
+     "@readme",
+     "@osf"
+    ],
+    "source_locator": "README.md; OSF record",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Note: We recommend using BERTax only for super kingdom and phylum prediction, but genera are possible."
+     },
+     {
+      "source": "@osf",
+      "text": "containing the training data of all three datasets"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "BERTax evaluation workflow",
+   "steps": [
+    "NCBI genomes, four superkingdoms",
+    "1,500 nt fragments, clustered at 80%",
+    "Closely related or genus-held-out split",
+    "Same training data for every tool",
+    "Macro AveP per rank"
+   ],
+   "caption": "How the BERTax comparison was set up, as the paper describes it.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Materials and Methods; Results",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Archaean and eukaryotic genomes were retrieved from NCBI using ncbi-genome-download"
+    },
+    {
+     "source": "@paper",
+     "text": "For each superkingdom, we extracted 1 million fragments of length 1,500 nt from the downloaded genomes at uniformly distributed starting positions."
+    },
+    {
+     "source": "@paper",
+     "text": "we clustered fragments by sequence identity using MMseqs2-linclust version 11.e1a1c"
+    },
+    {
+     "source": "@paper",
+     "text": "The first evaluation dataset is called the closely related dataset. As a test set, we randomly select 2,000 samples per phylum. From the remaining samples, we select 95% of the samples of each phylum as the training set and use the remaining 5% as the validation set"
+    },
+    {
+     "source": "@paper",
+     "text": "For this purpose, a genus separation between training and test sets is employed; that is, for no sample in the test set does there exist a sample of the same genus in the training set"
+    },
+    {
+     "source": "@paper",
+     "text": "It has to be noted that all methods compared against have exactly the same reference or training data available as BERTax, to allow for a meaningful comparison. For approaches that normally include whole genomes in their reference data, this presents a necessary deviation from the designed use case for these methods."
+    },
+    {
+     "source": "@paper",
+     "text": "Comparison of the macro AveP on all three datasets"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "SI Appendix tables (S2, S5) and Dataset S1 were not read.",
+   "The OSF project files were not downloaded; only the project record was read.",
+   "Exact test set totals are not printed in the text read; only per-phylum counts, so structured sizes are null."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the PMC XML of the article (PMC9436379), f-kretschmer/bertax README.md and LICENSE at commit 8fdb010ffb3ede7fce758d5da92a4fcabd8283e7, and the OSF API record for project qg6mv, retrieved 2026-11-26 and 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "The BERTax README explains how to install and run the classifier on a FASTA file, not how to rebuild the evaluation datasets or score the comparison; the training code is in a separate repository (rnajena/bertax_training) that was not read.",
+ "structured": [
+  {
+   "task": "Taxonomic classification at superkingdom and phylum",
+   "dataset": "Closely related dataset",
+   "size": null,
+   "size_unit": null,
+   "split": "2,000 randomly selected samples per phylum as test",
+   "primary_metric": "macro AveP",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/f-kretschmer/bertax",
+   "data_url": "https://doi.org/10.17605/OSF.IO/QG6MV",
+   "data_licence": null,
+   "code_licence": "GPL-3.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The first evaluation dataset is called the closely related dataset. As a test set, we randomly select 2,000 samples per phylum. From the remaining samples, we select 95% of the samples of each phylum as the training set and use the remaining 5% as the validation set"
+    },
+    {
+     "source": "@paper",
+     "text": "Comparison of the macro AveP on all three datasets"
+    },
+    {
+     "source": "@paper",
+     "text": "Taxonomic classification ranks considered are superkingdom (Supk.), phylum (Phyl.), or genus (only final selection dataset)."
+    },
+    {
+     "source": "@paper",
+     "text": "https://github.com/f-kretschmer/bertax"
+    },
+    {
+     "source": "@paper",
+     "text": "10.17605/OSF.IO/QG6MV"
+    },
+    {
+     "source": "@licence",
+     "text": "GNU GENERAL PUBLIC LICENSE"
+    },
+    {
+     "source": "@licence",
+     "text": "Version 3, 29 June 2007"
+    },
+    {
+     "source": "@paper",
+     "text": "The closely related selection uses 2,000 randomly selected samples per phylum as a test set."
+    }
+   ]
+  },
+  {
+   "task": "Taxonomic classification at superkingdom and phylum",
+   "dataset": "Distantly related dataset",
+   "size": null,
+   "size_unit": null,
+   "split": "genus separation between training and test sets",
+   "primary_metric": "macro AveP",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/f-kretschmer/bertax",
+   "data_url": "https://doi.org/10.17605/OSF.IO/QG6MV",
+   "data_licence": null,
+   "code_licence": "GPL-3.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For this purpose, a genus separation between training and test sets is employed; that is, for no sample in the test set does there exist a sample of the same genus in the training set"
+    },
+    {
+     "source": "@paper",
+     "text": "We keep 1,780 samples per phylum (according to the smallest subset)."
+    },
+    {
+     "source": "@paper",
+     "text": "Comparison of the macro AveP on all three datasets"
+    },
+    {
+     "source": "@paper",
+     "text": "Taxonomic classification ranks considered are superkingdom (Supk.), phylum (Phyl.), or genus (only final selection dataset)."
+    },
+    {
+     "source": "@paper",
+     "text": "https://github.com/f-kretschmer/bertax"
+    },
+    {
+     "source": "@paper",
+     "text": "10.17605/OSF.IO/QG6MV"
+    },
+    {
+     "source": "@licence",
+     "text": "GNU GENERAL PUBLIC LICENSE"
+    },
+    {
+     "source": "@licence",
+     "text": "Version 3, 29 June 2007"
+    }
+   ]
+  },
+  {
+   "task": "Taxonomic classification at superkingdom and phylum, and genus",
+   "dataset": "Final model dataset",
+   "size": null,
+   "size_unit": null,
+   "split": "closely related selection",
+   "primary_metric": "macro AveP",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/f-kretschmer/bertax",
+   "data_url": "https://doi.org/10.17605/OSF.IO/QG6MV",
+   "data_licence": null,
+   "code_licence": "GPL-3.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "With this, the number of classes per taxonomic rank is five for the rank superkingdom, 44 for phylum, and 156 for genera. We partition this dataset into training, validation, and test sets using closely related selection as described above"
+    },
+    {
+     "source": "@paper",
+     "text": "Comparison of the macro AveP on all three datasets"
+    },
+    {
+     "source": "@paper",
+     "text": "Taxonomic classification ranks considered are superkingdom (Supk.), phylum (Phyl.), or genus (only final selection dataset)."
+    },
+    {
+     "source": "@paper",
+     "text": "https://github.com/f-kretschmer/bertax"
+    },
+    {
+     "source": "@paper",
+     "text": "10.17605/OSF.IO/QG6MV"
+    },
+    {
+     "source": "@licence",
+     "text": "GNU GENERAL PUBLIC LICENSE"
+    },
+    {
+     "source": "@licence",
+     "text": "Version 3, 29 June 2007"
+    }
+   ]
+  }
+ ],
+ "notes": "One paper's evaluation, not a maintained suite; no leaderboard. The paper is CC BY-NC-ND, so store_bytes is false. The OSF record gives no licence for the training data. The code repository holds the tool; the training code is in rnajena/bertax_training according to the README. Table 1 values were not transcribed into this page."
+}

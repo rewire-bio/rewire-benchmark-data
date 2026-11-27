@@ -1,0 +1,836 @@
+{
+ "record_id": "lit-rna-20261011-rnalm-zeroshot-benchmark-wang2026-zero-shot-rna-lm",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Wang et al. 2026, Zero-shot benchmarking of RNA language models in structural, functional, and evolutionary learning, Briefings in Bioinformatics (NCBI PMC full-text XML)",
+   "description": "Full-text JATS XML of the published article from NCBI E-utilities efetch (db=pmc, id=12963973).",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12963973&rettype=xml",
+   "url": "https://doi.org/10.1093/bib/bbag098",
+   "version": "PMC12963973 as retrieved",
+   "media_type": "application/xml",
+   "sha256": "f6578975eaa53402a50df8c898229a51d23e0de00a7dd0e72e403d07d0a1fe1e",
+   "retrieved_at": "2026-11-26T23:49:59Z",
+   "store_bytes": true,
+   "licence": "CC BY 4.0"
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 18218776 API response (version 4)",
+   "description": "Zenodo API JSON for the authors' code and data record cited in the paper's data availability statement.",
+   "file": "artifacts/zenodo-18218776.json",
+   "artifact_url": "https://zenodo.org/api/records/18218776",
+   "url": "https://zenodo.org/records/18218776",
+   "version": "Zenodo version 4",
+   "media_type": "application/json",
+   "sha256": "fed0761fd1d7e68cd047cc378c5efa72d734a8ef83bcfcce89e9153cf65603d0",
+   "retrieved_at": "2026-11-26T23:50:14Z",
+   "store_bytes": true,
+   "licence": "CC BY 4.0"
+  },
+  {
+   "key": "zenodo-old",
+   "name": "Zenodo record 14430869 API response (earlier version)",
+   "description": "Zenodo API JSON for the record that the data availability hyperlink points to; it is an earlier version of the same deposit.",
+   "file": "artifacts/zenodo-14430869.json",
+   "artifact_url": "https://zenodo.org/api/records/14430869",
+   "url": "https://zenodo.org/records/14430869",
+   "version": "Zenodo record 14430869",
+   "media_type": "application/json",
+   "sha256": "eb0d445bf1fcad93634e79b008ffd7767a60da5adee16a32ae2f9204e84da943",
+   "retrieved_at": "2026-11-26T23:50:14Z",
+   "store_bytes": true,
+   "licence": "CC BY 4.0"
+  },
+  {
+   "key": "zenodo-readme",
+   "name": "ReadMe.md from bib.zip in Zenodo record 18218776",
+   "description": "The ReadMe.md file extracted from the bib.zip archive of Zenodo record 18218776. The archive is kept as artifacts/zenodo-bib.zip.",
+   "file": "artifacts/zenodo-readme.md",
+   "artifact_url": "https://zenodo.org/api/records/18218776/files/bib.zip/content",
+   "url": "https://zenodo.org/records/18218776",
+   "version": "Zenodo version 4, bib.zip",
+   "media_type": "text/markdown",
+   "sha256": "edf23fb34e6ce5fb4eec407194d8f69d8ad3213287b4dc1b141526c0b70073cc",
+   "retrieved_at": "2026-11-26T23:50:39Z",
+   "store_bytes": true,
+   "licence": "CC BY 4.0"
+  }
+ ],
+ "profile": {
+  "summary": "This paper evaluates 21 RNA language models, with DNA language models as reference controls, on three zero-shot tasks: secondary structure prediction from attention maps, RNA family and type classification from embedding similarity, and mutational fitness prediction from sequence likelihoods. No model is fine-tuned. It helps researchers judge what structural, functional and evolutionary information a pretrained RNA model carries before choosing one.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "Here, we present a standardized zero-shot evaluation of 21 RNA LMs, with representative DNA LMs included as reference controls."
+   },
+   {
+    "source": "@paper",
+    "text": "are evaluated without downstream fine-tuning."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Each task reads a different part of the model. Secondary structure prediction reads attention weights, RNA classification reads embeddings, and fitness prediction reads token-level logits. Together they test whether a model has learned base pairing, functional similarity between RNAs, and the effect of mutations, without any task training.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Key Points; Data and methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "are selected to explicitly correspond to attention weights, embeddings, and token-level logits, respectively."
+     },
+     {
+      "source": "@paper",
+      "text": "All evaluations were conducted in a strictly zero-shot setting, without any task-specific fine-tuning or additional supervised training."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Secondary structure labels are base pairs from experimentally resolved 3D structures: a validation set VL1 (40 PDBs) and a test set TS (70 PDBs) curated in earlier work, with sequence identity below 80% and TM-score below 0.45 between them, and a TS-Hard subset (15 PDBs) with no shared Rfam family. RfamSample takes 10 sequences from each Rfam 14.0 family with more than 10 members, giving 561 families. ArchiveII-Nr is ArchiveII reduced with MMseqs2 at 80% identity to 1273 RNAs. Fitness uses 31 ncRNA deep mutational scanning assays from RNAGym with wild-type length up to 440 nucleotides. Models were included if released before 1 August 2025 with open weights; each task uses the models whose attention, embeddings or logits were available.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data and methods, Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We adopted a previously curated dataset comprising a validation set (VL1, 40 PDBs) and an independent test set (TS, 70 PDBs)"
+     },
+     {
+      "source": "@paper",
+      "text": "Redundancy was removed at both sequence and structural levels, with sequence identity capped below 80% and structural similarity (TM-score) below 0.45 between validation and test sets."
+     },
+     {
+      "source": "@paper",
+      "text": "This resulted in a strictly nonhomologous subset (TS-Hard, 15 PDBs), which was used to assess robustness under stringent homology exclusion."
+     },
+     {
+      "source": "@paper",
+      "text": "10 sequences (length ≤ 1024) were randomly sampled from each family containing more than 10 members, yielding a total of 561 families."
+     },
+     {
+      "source": "@paper",
+      "text": "was applied with a maximum sequence identity threshold of 80%, resulting in a nonredundant subset (ArchiveII-Nr) containing 1273 RNAs"
+     },
+     {
+      "source": "@paper",
+      "text": "We selected 31 ncRNA deep mutational scanning (DMS) assays with wild-type sequence lengths not exceeding 440 nucleotides, ensuring compatibility with all evaluated LMs."
+     },
+     {
+      "source": "@paper",
+      "text": "were published or publicly available within the past 3 years (before 1 August 2025)"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Structure: attention maps from every head and layer are symmetrised, corrected with average product correction and passed through a sigmoid; one head-layer and threshold are chosen on VL1 by F1 and applied unchanged to TS and TS-Hard, scored by MCC and F1. Classification: embeddings are reduced to fixed length with a Fourier transform (FFT) or taken from the CLS token, and cosine similarities of homologous and non-homologous pairs are compared by MCC, AUC and the overlap ratio (OR), reported as 1 - OR so that higher is better; 100,000 homologous and 100,000 non-homologous pairs are sampled from RfamSample. Fitness: variants are scored by wild-type conditioned log-likelihood ratio (WT-LLR) or pseudo-log-likelihood difference (PLL-D) and compared with assay values by MCC, AUC and absolute Spearman correlation. Metrics are averaged over repeated random samplings where applicable.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Zero-shot evaluation; Statistical analysis; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Attention matrices were symmetrized, corrected using average product correction (APC), and transformed into base-pairing probability matrices via sigmoid scaling."
+     },
+     {
+      "source": "@paper",
+      "text": "A single optimal head–layer and decision threshold was selected on the validation set (VL1) by maximizing the F1 score and then applied unchanged to the test sets (TS and TS-Hard)."
+     },
+     {
+      "source": "@paper",
+      "text": "A total of 100,000 homologous and 100,000 nonhomologous RNA sequence pairs were sampled from the RfamSample dataset"
+     },
+     {
+      "source": "@paper",
+      "text": "For consistency with MCC and AUC, the 1 – OR was reported, such that higher values indicate better performance."
+     },
+     {
+      "source": "@paper",
+      "text": "Two scoring schemes were considered: wild-type conditioned log-likelihood ratios (WT-LLR) and pseudo-log-likelihood differences (PLL-D), capturing local and global mutational effects, respectively."
+     },
+     {
+      "source": "@paper",
+      "text": "Performance metrics represent averages over multiple independent random samplings where applicable."
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "Download bib.zip from the Zenodo record, then in each task folder run the shell scripts and combine results with metric.py. The authors note that each language model needs its own Python environment and model path, set by the user, and that the scripts are an example for reference.",
+    "source_ids": [
+     "@zenodo-readme"
+    ],
+    "source_locator": "ReadMe.md",
+    "quotes": [
+     {
+      "source": "@zenodo-readme",
+      "text": "Please note that users must configure the Python environment for each RNA language model and set the model path themselves. This is merely an example provided for reference."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "VL1 (40 PDBs), TS (70 PDBs) and TS-Hard (15 PDBs) for structure; RfamSample (561 families) and ArchiveII-Nr (1273 RNAs) for classification; 31 RNAGym ncRNA DMS assays for fitness.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "(VL1, 40 PDBs) and an independent test set (TS, 70 PDBs)"
+     },
+     {
+      "source": "@paper",
+      "text": "(TS-Hard, 15 PDBs)"
+     },
+     {
+      "source": "@paper",
+      "text": "yielding a total of 561 families."
+     },
+     {
+      "source": "@paper",
+      "text": "(ArchiveII-Nr) containing 1273 RNAs"
+     },
+     {
+      "source": "@paper",
+      "text": "We selected 31 ncRNA deep mutational scanning (DMS) assays"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Structure uses VL1 to choose the head-layer and threshold and TS or TS-Hard to test. Classification and fitness have no training split: all data are evaluation data.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Zero-shot secondary structure prediction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "A single optimal head–layer and decision threshold was selected on the validation set (VL1) by maximizing the F1 score and then applied unchanged to the test sets (TS and TS-Hard)."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Structure: MCC and F1. Classification: MCC, AUC, F1 and 1 - OR. Fitness: MCC, AUC and absolute Spearman correlation. Higher is better for all as reported.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Zero-shot evaluation; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Model performance was quantified using Matthews correlation coefficient (MCC) and F1 score."
+     },
+     {
+      "source": "@paper",
+      "text": "Model performance was quantified using (i) MCC, (ii) AUC, and (iii) the absolute value of the Spearman correlation coefficient (SR) between predicted and experimental mutational effects."
+     },
+     {
+      "source": "@paper",
+      "text": "such that higher values indicate better performance."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "DNA language models as reference controls: DNABERT for structure; DNABERT, DNABERT-2 and NT among others for classification and fitness.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "was included as a reference control."
+     },
+     {
+      "source": "@paper",
+      "text": "DNA LMs (e.g. DNABERT [<xref rid=\"ref38\" ref-type=\"bibr\">38</xref>], DNABERT-2"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "For structure, VL1 and TS share under 80% sequence identity and TM-score under 0.45, and TS-Hard removes shared Rfam families. Overlap between test RNAs and model pretraining data is not checked.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: RNA secondary structure",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Redundancy was removed at both sequence and structural levels, with sequence identity capped below 80% and structural similarity (TM-score) below 0.45 between validation and test sets."
+     },
+     {
+      "source": "@paper",
+      "text": "overlap in Rfam family annotations between VL1 and TS was eliminated using Infernal-based homology detection"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Classification metrics are means over repeated random samplings of pairs and some are given with a standard deviation (for example 1 - OR = 0.878 ± 0.001 for RNA-FM). Structure and fitness results are reported as medians or means across structures or assays.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Statistical analysis; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Performance metrics represent averages over multiple independent random samplings where applicable."
+     },
+     {
+      "source": "@paper",
+      "text": "with a mean value of 1 − OR = 0.878 ± 0.001"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "Structure: an RNA sequence with a base-pair map. Classification: a pair of RNA sequences. Fitness: a mutant RNA sequence with a measured effect.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Zero-shot RNA classification by embedding similarity",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Cosine similarity distributions were computed for homologous and nonhomologous RNA sequence pairs sampled from RfamSample and ArchiveII-Nr datasets."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Unreported as a list: the datasets are drawn from PDB, Rfam, ArchiveII and RNAGym across many species.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Datasets"
+   },
+   {
+    "label": "Assays",
+    "value": "Experimentally resolved 3D RNA structures for structure labels, Rfam and ArchiveII annotations for classification, and deep mutational scanning for fitness.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we relied exclusively on base-pair annotations extracted from experimentally resolved 3D RNA structures"
+     },
+     {
+      "source": "@paper",
+      "text": "Zero-shot RNA fitness prediction was evaluated using experimental mutational datasets from the RNAGym benchmark"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Single RNA sequence, except RNA-MSM, which uses multiple sequence alignments.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the MSA-based RNA-MSM model, which outperforms single-sequence RNA LMs"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Zero-shot only; no fine-tuning or supervised training. Only the structure head-layer and threshold are selected on VL1.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Zero-shot evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "All evaluations were conducted in a strictly zero-shot setting, without any task-specific fine-tuning or additional supervised training."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "One protocol per task, applied to 21 RNA models and DNA controls, with code and data released on Zenodo under CC BY 4.0.",
+    "source_ids": [
+     "@paper",
+     "@zenodo"
+    ],
+    "source_locator": "Paper: Abstract; Zenodo record",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Here, we present a standardized zero-shot evaluation of 21 RNA LMs"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"id\": \"cc-by-4.0\""
+     }
+    ]
+   },
+   {
+    "text": "The structure test includes a homology-excluded TS-Hard set; the authors report a Spearman correlation of 0.99 between median MCC rankings on TS and TS-Hard.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The Spearman correlation coefficient between median MCC values on TS and TS-Hard was 0.99, indicating strong ranking consistency."
+     }
+    ]
+   },
+   {
+    "text": "Tests three separate model outputs (attention, embeddings, logits), so a model's strengths can be compared across them.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Key Points",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "are selected to explicitly correspond to attention weights, embeddings, and token-level logits, respectively."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Test sets are small: TS-Hard has 15 structures, and the authors refer to its limited size.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "despite the limited size of the hard test set."
+     }
+    ]
+   },
+   {
+    "text": "Models are included in a task only where their attention, embeddings or logits are available, so the model set differs between tasks.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Statistical analysis",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "which determined the inclusion of specific LMs in each zero-shot task."
+     }
+    ]
+   },
+   {
+    "text": "The run scripts need per-model environments and model paths set by the user; the authors call them an example for reference.",
+    "source_ids": [
+     "@zenodo-readme"
+    ],
+    "source_locator": "ReadMe.md",
+    "quotes": [
+     {
+      "source": "@zenodo-readme",
+      "text": "This is merely an example provided for reference."
+     }
+    ]
+   },
+   {
+    "text": "The data availability statement links to Zenodo record 14430869 but prints record 18218776; the two are different versions of the deposit.",
+    "source_ids": [
+     "@paper",
+     "@zenodo",
+     "@zenodo-old"
+    ],
+    "source_locator": "Paper: Data availability; both Zenodo records",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "xlink:href=\"https://zenodo.org/records/14430869\" ext-link-type=\"uri\">https://zenodo.org/records/18218776</ext-link>"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"version\": \"4\""
+     },
+     {
+      "source": "@zenodo-old",
+      "text": "\"publication_date\": \"2024-12-13\""
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Zero-shot RNA LM evaluation",
+   "steps": [
+    "Pretrained RNA or DNA LM",
+    "Extract attention, embeddings or logits",
+    "Structure: head-layer chosen on VL1, test on TS and TS-Hard",
+    "Classification: cosine similarity of sequence pairs",
+    "Fitness: WT-LLR or PLL-D against DMS",
+    "MCC, AUC, F1, 1 - OR, Spearman"
+   ],
+   "caption": "Three zero-shot tasks, each reading a different model output.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Zero-shot evaluation",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "are selected to explicitly correspond to attention weights, embeddings, and token-level logits, respectively."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Per-model results are in Supplementary Tables 4 to 11, held in a docx supplement that was not fetched (existing source lit-rna-20261011-rnalm-zeroshot-source-wang2026-supplement).",
+   "The number of random samplings behind the classification means is not stated in the main text.",
+   "The species composition of the datasets is not given in the main text."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read the NCBI PMC full-text XML of the article, the Zenodo API records 18218776 (version 4) and 14430869, and ReadMe.md inside bib.zip of record 18218776, all retrieved on 2026-11-26. The archive's scripts were listed but not read in full. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Download the authors' archive and run the secondary structure, classification and fitness scripts, then combine the results.",
+  "prerequisites": [
+   "A Python environment and local weights for each RNA language model, configured by the user; the authors give no install commands.",
+   "About 24 MB for the compressed archive (bib.zip)."
+  ],
+  "steps": [
+   {
+    "title": "Get the code and data",
+    "shell": "curl -L -o bib.zip https://zenodo.org/api/records/18218776/files/bib.zip/content\nunzip bib.zip\ncd bib",
+    "explanation": "Downloads bib.zip from the Zenodo record's file link and unpacks it. The curl and unzip lines are added by Rewire; the file link is from the Zenodo API record.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: files",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "https://zenodo.org/api/records/18218776/files/bib.zip/content"
+     }
+    ]
+   },
+   {
+    "title": "Secondary structure",
+    "shell": "cd Task_ss\nbash run.sh\nbash run_only_msm.sh\npython metric.py\ncd ..",
+    "explanation": "run.sh runs all models except RNA-MSM, run_only_msm.sh runs RNA-MSM, and metric.py combines the results. Set the model path inside the scripts first.",
+    "source_ids": [
+     "@zenodo-readme"
+    ],
+    "source_locator": "ReadMe.md: Zero-shot secondary structure prediction",
+    "quotes": [
+     {
+      "source": "@zenodo-readme",
+      "text": "bash run.sh bash run_only_msm.sh python metric.py"
+     },
+     {
+      "source": "@zenodo-readme",
+      "text": "-- run.sh: Run Models (Except RNA-MSM)"
+     }
+    ]
+   },
+   {
+    "title": "RNA classification",
+    "shell": "cd Task_class\nbash run_RfamSample.sh\nbash run_ArchiveII.sh\npython metric.py\ncd ..",
+    "explanation": "Runs embedding extraction and scoring on RfamSample and ArchiveII-Nr, then combines results.",
+    "source_ids": [
+     "@zenodo-readme"
+    ],
+    "source_locator": "ReadMe.md: Zero-shot RNA Classification",
+    "quotes": [
+     {
+      "source": "@zenodo-readme",
+      "text": "bash run_RfamSample.sh bash run_ArchiveII.sh python metric.py"
+     }
+    ]
+   },
+   {
+    "title": "Fitness prediction",
+    "shell": "cd Task_fit\nbash run_logsoftmax.sh\nbash run_softmax.sh\npython metric.py",
+    "explanation": "Scores the DMS assays with log-softmax and softmax logit normalisation, then combines results.",
+    "source_ids": [
+     "@zenodo-readme"
+    ],
+    "source_locator": "ReadMe.md: Zero-shot RNA Fitness Prediction",
+    "quotes": [
+     {
+      "source": "@zenodo-readme",
+      "text": "bash run_logsoftmax.sh bash run_softmax.sh python metric.py"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Unreported in the ReadMe beyond 'Combine Evaluation Results' for metric.py."
+  ],
+  "limitations": [
+   "These commands were read from the archive's ReadMe and have not been executed by Rewire.",
+   "The scripts contain the authors' own conda and model paths, which must be edited before they will run."
+  ],
+  "source_ids": [
+   "@zenodo-readme",
+   "@zenodo"
+  ]
+ },
+ "structured": [
+  {
+   "task": "Zero-shot secondary structure prediction",
+   "dataset": "TS",
+   "size": 70,
+   "size_unit": "test structures",
+   "split": "head-layer and threshold selected on VL1",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://zenodo.org/records/18218776",
+   "data_url": "https://zenodo.org/records/18218776",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": "CC-BY-4.0",
+   "released": "2026-01-12",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "an independent test set (TS, 70 PDBs)"
+    },
+    {
+     "source": "@paper",
+     "text": "selected on the validation set (VL1)"
+    },
+    {
+     "source": "@paper",
+     "text": "Model performance was quantified using Matthews correlation coefficient (MCC) and F1 score."
+    },
+    {
+     "source": "@paper",
+     "text": "https://zenodo.org/records/18218776"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"id\": \"cc-by-4.0\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2026-01-12\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "Codes and datasets for RNA secondary structure prediction"
+    }
+   ]
+  },
+  {
+   "task": "Zero-shot secondary structure prediction",
+   "dataset": "TS-Hard",
+   "size": 15,
+   "size_unit": "test structures",
+   "split": "strictly nonhomologous subset",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://zenodo.org/records/18218776",
+   "data_url": "https://zenodo.org/records/18218776",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": "CC-BY-4.0",
+   "released": "2026-01-12",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "This resulted in a strictly nonhomologous subset (TS-Hard, 15 PDBs)"
+    },
+    {
+     "source": "@paper",
+     "text": "Model performance was quantified using Matthews correlation coefficient (MCC) and F1 score."
+    },
+    {
+     "source": "@paper",
+     "text": "https://zenodo.org/records/18218776"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"id\": \"cc-by-4.0\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2026-01-12\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "Codes and datasets for RNA secondary structure prediction"
+    }
+   ]
+  },
+  {
+   "task": "Zero-shot RNA family classification",
+   "dataset": "RfamSample",
+   "size": 561,
+   "size_unit": "families",
+   "split": "zero-shot, no training split",
+   "primary_metric": "1 - OR",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://zenodo.org/records/18218776",
+   "data_url": "https://zenodo.org/records/18218776",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": "CC-BY-4.0",
+   "released": "2026-01-12",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "yielding a total of 561 families."
+    },
+    {
+     "source": "@paper",
+     "text": "For consistency with MCC and AUC, the 1 – OR was reported"
+    },
+    {
+     "source": "@paper",
+     "text": "All evaluations were conducted in a strictly zero-shot setting"
+    },
+    {
+     "source": "@paper",
+     "text": "https://zenodo.org/records/18218776"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"id\": \"cc-by-4.0\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2026-01-12\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "Codes and datasets for RNA secondary structure prediction"
+    }
+   ]
+  },
+  {
+   "task": "Zero-shot RNA type classification",
+   "dataset": "ArchiveII-Nr",
+   "size": 1273,
+   "size_unit": "RNAs",
+   "split": "zero-shot, no training split",
+   "primary_metric": "1 - OR",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://zenodo.org/records/18218776",
+   "data_url": "https://zenodo.org/records/18218776",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": "CC-BY-4.0",
+   "released": "2026-01-12",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "(ArchiveII-Nr) containing 1273 RNAs"
+    },
+    {
+     "source": "@paper",
+     "text": "For consistency with MCC and AUC, the 1 – OR was reported"
+    },
+    {
+     "source": "@paper",
+     "text": "All evaluations were conducted in a strictly zero-shot setting"
+    },
+    {
+     "source": "@paper",
+     "text": "https://zenodo.org/records/18218776"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"id\": \"cc-by-4.0\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2026-01-12\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "Codes and datasets for RNA secondary structure prediction"
+    }
+   ]
+  },
+  {
+   "task": "Zero-shot RNA fitness prediction",
+   "dataset": "RNAGym ncRNA DMS assays",
+   "size": 31,
+   "size_unit": "assays",
+   "split": "zero-shot, no training split",
+   "primary_metric": "Spearman",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://zenodo.org/records/18218776",
+   "data_url": "https://zenodo.org/records/18218776",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": "CC-BY-4.0",
+   "released": "2026-01-12",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We selected 31 ncRNA deep mutational scanning (DMS) assays"
+    },
+    {
+     "source": "@paper",
+     "text": "the absolute value of the Spearman correlation coefficient (SR) between predicted and experimental mutational effects"
+    },
+    {
+     "source": "@paper",
+     "text": "All evaluations were conducted in a strictly zero-shot setting"
+    },
+    {
+     "source": "@paper",
+     "text": "https://zenodo.org/records/18218776"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"id\": \"cc-by-4.0\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2026-01-12\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "Codes and datasets for RNA secondary structure prediction"
+    }
+   ]
+  }
+ ],
+ "notes": "This record is one paper's evaluation, with code and data on Zenodo. The data availability hyperlink targets record 14430869 (2024-12-13, an earlier version that still includes protein language models), while the printed address is 18218776 (version 4, 2026-01-12); this page uses 18218776, whose description matches the paper's three tasks. The Zenodo licence (cc-by-4.0) is recorded for both data and code because the deposit holds both. Supplementary Tables 4 to 11 (docx) were not fetched. The primary metric for the classification entries is written 1 - OR, the paper's own summary metric; the store also holds MCC, AUC and F1 protocols for them. The archive's run scripts carry the authors' local paths and Chinese comments."
+}

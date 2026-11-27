@@ -1,0 +1,853 @@
+{
+ "record_id": "gfm-guides-20261014-esm1b-benchmark-brandes2023-clinical-missense",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Brandes et al. 2023, Genome-wide prediction of disease variant effects with a deep protein language model, Nature Genetics (NCBI PMC full-text XML)",
+   "description": "Full-text JATS XML of the published article from NCBI E-utilities efetch (db=pmc, id=10484790).",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=10484790&rettype=xml",
+   "url": "https://doi.org/10.1038/s41588-023-01465-0",
+   "version": "PMC10484790 as retrieved",
+   "media_type": "application/xml",
+   "sha256": "fcaf6dd42b3cd0e808c04e399264e03a1011ad83cf93e135dc2b7a2c271416ae",
+   "retrieved_at": "2026-11-27T00:08:00Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "readme",
+   "name": "ntranoslab/esm-variants README.md at commit 0c33758a",
+   "description": "Official repository README for the paper's code and processed benchmarks, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/ntranoslab/esm-variants/0c33758a5073e5d6e673d9a16a40e5b0af46851d/README.md",
+   "url": "https://github.com/ntranoslab/esm-variants",
+   "version": "git commit 0c33758a5073e5d6e673d9a16a40e5b0af46851d",
+   "media_type": "text/markdown",
+   "sha256": "40f4b62c1a02b0656ce8682389b6ba6d1ae018c820735687a8263b6f35a5a78c",
+   "retrieved_at": "2026-11-27T00:08:41Z",
+   "licence": "MIT",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "These are the two clinical missense benchmarks from the ESM1b variant effect paper. One labels variants from ClinVar as pathogenic or benign; the other treats HGMD disease-causing variants as positives and gnomAD variants with allele frequency above 1% as negatives. Predictors are scored by a global ROC-AUC over all variants together, plus a class-balanced PRC-AUC, and only methods that avoid clinical-database training and allele frequency features are included in the main comparison.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Results, ESM1b outperforms other VEP methods; Methods, AUC metrics for pathogenicity classification",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "The first dataset contains pathogenic and benign variants annotated in ClinVar"
+   },
+   {
+    "source": "@paper",
+    "text": "benign variants from gnomAD (defined by allele frequency &gt;1%)"
+   },
+   {
+    "source": "@paper",
+    "text": "We treated the entire set of pathogenic and benign variants (from ClinVar"
+   },
+   {
+    "source": "@paper",
+    "text": "we primarily used ROC-AUC (Fig. "
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether a variant effect predictor separates harmful from harmless missense variants across the whole genome, not within one gene. The authors argue a global score matters because diagnosis means comparing variants in different genes, so the scores must be comparable between genes; they also report the gene-average ROC-AUC used by the EVE paper for contrast.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, AUC metrics for pathogenicity classification",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We treated the entire set of pathogenic and benign variants (from ClinVar"
+     },
+     {
+      "source": "@paper",
+      "text": "We argue that global ROC-AUC is usually more informative than gene-average ROC-AUC for VEP, as diagnosing genetic diseases often involves comparing variants across multiple genes, requiring well-calibrated scores."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "ClinVar labels come from ClinVar's variant summary file, with only high-confidence variants kept. In the ESM1b versus EVE comparison the ClinVar set has 19,925 pathogenic and 16,612 benign variants across 2,765 genes, and the HGMD and gnomAD set has 27,754 disease-causing and 2,743 common variants across 1,991 genes; the paper does not say whether the full sets are larger. A separate ClinVar benchmark with EVE scores came from the EVE portal. Predictions for most of the compared methods were downloaded from dbNSFP 4.3a, with VARITY and MTBAN added separately. HGMD is a private resource, so that half of the benchmark cannot be redistributed.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Results; Methods, Other VEP methods; Data availability; README.md: Data Availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "ROC-AUC) score of 0.905 for distinguishing between the 19,925 pathogenic and 16,612 benign variants in ClinVar (across 2,765 genes)"
+     },
+     {
+      "source": "@paper",
+      "text": "On HGMD/gnomAD (with 27,754 disease-causing and 2,743 common variants across 1,991 genes)"
+     },
+     {
+      "source": "@paper",
+      "text": "Only high-confidence variants were included ("
+     },
+     {
+      "source": "@paper",
+      "text": "We used the dbnsfp4.3a.zip file from the dbNSFP website"
+     },
+     {
+      "source": "@readme",
+      "text": "The HGMD dataset is a private resource owned by the Institute of Medical Genetics in Cardiff University."
+     },
+     {
+      "source": "@paper",
+      "text": "ClinVar labels for missense, indel and stop-gain variants were downloaded directly from ClinVar’s website"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Global ROC-AUC over the pooled variants is the main metric. The balanced PRC-AUC downsamples each dataset to an equal number of pathogenic and benign variants, taking 80% of the minority class, and averages over 100 such draws. Two comparison modes are reported: all 19 eligible methods on the variants that all of them score, and head-to-head comparisons where ESM1b is compared with each method on that method's own set of scored variants, with the percentage of variants used shown. Differences are tested by permutation, shuffling scores between variants over 2,000 iterations.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, AUC metrics and Testing for significant performance differences; Fig. 2 legend",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we randomly downsampled each dataset into an equal number of pathogenic and benign variants (80% of the variants in the minority class) and calculated the PRC-AUC over the balanced dataset"
+     },
+     {
+      "source": "@paper",
+      "text": "we repeated downsampling 100 times and calculated the average of the resulting PRC-AUC scores"
+     },
+     {
+      "source": "@paper",
+      "text": "Performance was evaluated on the sets of variants available for all 19 methods."
+     },
+     {
+      "source": "@paper",
+      "text": "the comparison against each other method is performed on the set of variants with effect predictions for that method"
+     },
+     {
+      "source": "@paper",
+      "text": "statistical significance was determined through permutation tests"
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "The repository holds the processed benchmark files with every method's predictions, except the HGMD variants, plus command line tools that score missense or multi-residue mutations with ESM1b. Install the dependencies, clone the repository, then run esm_score_missense_mutations.py on a FASTA file to get a score for every possible missense mutation.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Repository Contents, Installation, Usage",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "These files contain all benchmark data, VEP predictions used for performance evaluation, and results, except HGMD variants (see below)."
+     },
+     {
+      "source": "@readme",
+      "text": "pip3 install tqdm numpy pandas biopython torch fair-esm"
+     },
+     {
+      "source": "@readme",
+      "text": "python3 esm_score_missense_mutations.py --input-fasta-file /path/to/input.fasta --output-csv-file /path/to/output.csv"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Two sets, ClinVar and HGMD with gnomAD. The paper gives counts for the variants in the ESM1b versus EVE comparison (Fig. 2b): ClinVar, 19,925 pathogenic and 16,612 benign missense variants in 2,765 genes (36,537 in total); HGMD and gnomAD, 27,754 disease-causing and 2,743 common variants in 1,991 genes (30,497 in total). The paper does not state whether the full sets are larger.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Fig. 2 legend",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "ROC-AUC) score of 0.905 for distinguishing between the 19,925 pathogenic and 16,612 benign variants in ClinVar (across 2,765 genes)"
+     },
+     {
+      "source": "@paper",
+      "text": "On HGMD/gnomAD (with 27,754 disease-causing and 2,743 common variants across 1,991 genes)"
+     },
+     {
+      "source": "@paper",
+      "text": "as labeled by ClinVar (36,537 variants in 2,765 unique genes)"
+     },
+     {
+      "source": "@paper",
+      "text": "or HGMD/gnomAD (30,497 variants in 1,991 unique genes)"
+     },
+     {
+      "source": "@paper",
+      "text": "Comparison between ESM1b and EVE in their capacity to distinguish between pathogenic and benign variants"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "No split: both sets are evaluation data only, and the compared predictors are external published methods.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Other VEP methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Predicted effect scores for most VEP methods were taken from dbNSFP"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Global ROC-AUC across all variants pooled (higher is better) and a class-balanced PRC-AUC averaged over 100 downsamplings (higher is better). A gene-average ROC-AUC is reported for contrast.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, AUC metrics for pathogenicity classification",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we primarily used ROC-AUC (Fig. "
+     },
+     {
+      "source": "@paper",
+      "text": "we also used a balanced version of the PRC-AUC metric, which considers the tradeoff between precision and recall"
+     },
+     {
+      "source": "@paper",
+      "text": "Averaging across these genes gave the gene-average ROC-AUC."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "46 variant effect predictors were collected, mostly from dbNSFP 4.3a, with VARITY (two versions) and MTBAN added. Of these, 19 including ESM1b and EVE qualify for the clinical benchmarks. LINSIGHT and three cell-line versions of fitCons were excluded.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Other VEP methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Of the 46 VEP methods, 19 meet the criteria for evaluation on clinical benchmarks for missense variants (ClinVar and HGMD/gnomAD)"
+     },
+     {
+      "source": "@paper",
+      "text": "We further included two other recent state-of-the-art methods not reported in dbNSFP—VARITY (consisting of the following two versions: VARITY_R and VARITY_ER)"
+     },
+     {
+      "source": "@paper",
+      "text": "We excluded LINSIGHT (which had too few variants for reliable evaluation)"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Eligibility rules rather than data filtering: a method may enter the clinical comparison only if it was not trained on clinical databases such as ClinVar or HGMD, does not use features from methods trained on such data, and does not use allele frequency, since allele frequency is used to curate variants as benign. Results for the excluded methods are still reported in Supplementary Table 2.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Methods, Other VEP methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we only considered methods that (1) were not trained on clinical databases such as ClinVar and HGMD or used features from methods trained on such data, and (2) do not use allele frequency as a feature, as it is often used to curate variants as benign"
+     },
+     {
+      "source": "@paper",
+      "text": "Evaluation results for all 46 methods, including those excluded for data leakage concerns, are reported in Supplementary Table"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "The balanced PRC-AUC is averaged over 100 downsamplings. Differences between methods are tested by permutation over 2,000 iterations, reported as P < 0.001 when no permutation reaches the observed difference. Bootstrapped means and standard deviations are used for the stop-gain analysis, not for the missense benchmarks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, AUC metrics; Testing for significant performance differences",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we repeated downsampling 100 times and calculated the average of the resulting PRC-AUC scores"
+     },
+     {
+      "source": "@paper",
+      "text": "value was the fraction of 2,000 iterations where the difference in output metric was as extreme as that with the actual, nonpermuted effect scores."
+     },
+     {
+      "source": "@paper",
+      "text": "Following 20 iterations, we calculated the mean ROC-AUC and s.d."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "A missense variant on a curated human protein isoform, labelled pathogenic or benign.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Data availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "for all possible missense variants affecting curated protein isoforms in the human genome"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Predicting the effects of all possible missense variants in the human genome"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "No assay: labels are clinical assertions from ClinVar and HGMD, and population allele frequency from gnomAD. The paper's separate deep mutational scanning benchmark, which does use assays, is a different evaluation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the second includes variants annotated by HGMD as disease-causing"
+     },
+     {
+      "source": "@paper",
+      "text": "We further compared all 46 VEP methods in their ability to predict experimental measurements from DMS."
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Whatever each published predictor uses; for the clinical comparison, methods using allele frequency features are excluded. ESM1b itself reads the protein sequence only, with a sliding window for long proteins.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Methods, Handling long sequences",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "do not use allele frequency as a feature"
+     },
+     {
+      "source": "@paper",
+      "text": "The sliding-window approach to tile long protein sequences with ESM1b."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "None: published predictors are scored as they are. ESM1b is used zero-shot, scoring a variant by the log-likelihood ratio against the wild type.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Results; README.md: Usage",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Using an LLR threshold of −7.5 to distinguish between pathogenic and benign variants"
+     },
+     {
+      "source": "@readme",
+      "text": "Each row represents a possible missense mutation and its ESM score."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Explicit eligibility rules exclude predictors trained on clinical labels or using allele frequency, so the main comparison is less affected by circularity than a typical ClinVar comparison.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we only considered methods that (1) were not trained on clinical databases such as ClinVar and HGMD or used features from methods trained on such data, and (2) do not use allele frequency as a feature, as it is often used to curate variants as benign"
+     }
+    ]
+   },
+   {
+    "text": "Two comparison modes are reported: a common variant set for all 19 methods, and head-to-head sets per method with the fraction of variants used stated.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Fig. 2 legend",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Performance was evaluated on the sets of variants available for all 19 methods."
+     },
+     {
+      "source": "@paper",
+      "text": "The percentage of variants considered for each method is shown at the bottom of each bar."
+     }
+    ]
+   },
+   {
+    "text": "The processed benchmarks with every method's predictions are published in the repository, apart from the HGMD variants.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Repository Contents, Data Availability",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "- `ClinVar_gnomAD_benchmark_with_predictions.csv`"
+     },
+     {
+      "source": "@readme",
+      "text": "These files contain all benchmark data, VEP predictions used for performance evaluation, and results, except HGMD variants (see below)."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The HGMD half cannot be redistributed: HGMD is a private resource and access must be requested from its curators, so that benchmark cannot be reproduced from public files.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Data availability; README.md: Data Availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "which is a private resource owned by the Institute of Medical Genetics in Cardiff University (requests to access this database should be directed to its curators)"
+     },
+     {
+      "source": "@readme",
+      "text": "[Request access here](https://www.hgmd.cf.ac.uk/ac/index.php)."
+     }
+    ]
+   },
+   {
+    "text": "The negative class is population frequency, not demonstrated benignity: gnomAD variants above 1% allele frequency are assumed benign.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "benign variants from gnomAD (defined by allele frequency &gt;1%)"
+     }
+    ]
+   },
+   {
+    "text": "The global ROC-AUC rewards scores that are comparable between genes; by the gene-average metric used in the EVE paper the ordering of ESM1b and EVE reverses on the ClinVar subset.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, AUC metrics for pathogenicity classification",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "while EVE is somewhat superior according to the gene-average ROC-AUC over this subset of genes"
+     }
+    ]
+   },
+   {
+    "text": "It is one paper's evaluation, run by the authors of the method being promoted, with no leaderboard or ongoing submission route.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Results; README.md: opening",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Over the set of variants reported by all 19 methods, ESM1b outperforms all other methods on both ClinVar and HGMD/gnomAD"
+     },
+     {
+      "source": "@readme",
+      "text": "This repository contains resources, tools, and command-line tools developed for the paper"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Clinical missense benchmark",
+   "steps": [
+    "ClinVar and HGMD or gnomAD labels",
+    "Keep high-confidence variants",
+    "Filter methods for training leakage",
+    "Score global ROC-AUC and balanced PRC-AUC",
+    "Permutation test between methods"
+   ],
+   "caption": "Nineteen eligible predictors are compared on pooled variants and head to head.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Results; Methods",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Only high-confidence variants were included ("
+    },
+    {
+     "source": "@paper",
+     "text": "statistical significance was determined through permutation tests"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Per-method ROC-AUC and balanced PRC-AUC values are in Supplementary Table 2, which was not fetched; it is the existing source gfm-guides-20261014-esm1b-source-brandes2023-supplementary-table-2.",
+   "The exact filters behind 'high-confidence variants' are in the Supplementary Methods, which were not fetched.",
+   "The repository holds no scoring script that recomputes the AUC metrics from the benchmark files."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the NCBI PMC full-text XML (PMC10484790), including Results and the Methods sections on AUC metrics, other VEP methods and significance testing, and README.md of ntranoslab/esm-variants at commit 0c33758a5073e5d6e673d9a16a40e5b0af46851d, both retrieved on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the authors' tools, then score missense mutations with ESM1b on your own sequences; the processed benchmark files with all methods' predictions are in the same repository.",
+  "prerequisites": [
+   "Python 3 with tqdm, numpy, pandas, biopython, torch and fair-esm.",
+   "A FASTA file of protein sequences, or a CSV with wt_seq, mut_seq and start_pos for multi-residue mutations.",
+   "HGMD variants are not included in the repository and need access from their curators."
+  ],
+  "steps": [
+   {
+    "title": "Install the dependencies and get the code",
+    "shell": "pip3 install tqdm numpy pandas biopython torch fair-esm\ngit clone https://github.com/ntranoslab/esm-variants.git\ncd esm-variants\ngit checkout --detach 0c33758a5073e5d6e673d9a16a40e5b0af46851d",
+    "explanation": "The README's install and clone commands. The checkout line pins the commit read for this page and is added by Rewire.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip3 install tqdm numpy pandas biopython torch fair-esm"
+     },
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/ntranoslab/esm-variants.git"
+     },
+     {
+      "source": "@readme",
+      "text": "cd esm-variants"
+     }
+    ]
+   },
+   {
+    "title": "Score every possible missense mutation in a FASTA file",
+    "shell": "python3 esm_score_missense_mutations.py --input-fasta-file example.fasta --output-csv-file esm_scores.csv",
+    "explanation": "The README's example. The output CSV has one row per possible missense mutation with its ESM score.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Examples",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python3 esm_score_missense_mutations.py --input-fasta-file example.fasta --output-csv-file esm_scores.csv"
+     },
+     {
+      "source": "@readme",
+      "text": "seq_id,mut_name,esm_score"
+     }
+    ]
+   },
+   {
+    "title": "Score multi-residue mutations",
+    "shell": "python3 esm_score_multi_residue_mutations.py --input-csv-file example.csv --output-csv-file esm_multi_residue_scores.csv",
+    "explanation": "For insertions, deletions and other multi-residue changes, scored as a pseudo log-likelihood ratio.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Examples",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python3 esm_score_multi_residue_mutations.py --input-csv-file example.csv --output-csv-file esm_multi_residue_scores.csv"
+     },
+     {
+      "source": "@readme",
+      "text": "Each row represents a multi-residue mutation and its ESM (PLLR) score."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A CSV of scores: seq_id, mut_name and esm_score for missense mutations, or wt_seq, mut_seq, start_pos and esm_score for multi-residue mutations. The repository also ships ClinVar_gnomAD_benchmark_with_predictions.csv and Table_of_results.xlsx."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "They produce scores; the repository README names no script that recomputes the ROC-AUC or balanced PRC-AUC comparisons.",
+   "The HGMD benchmark cannot be rebuilt from the public files."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "task": "ClinVar missense pathogenicity, variants scored by all 19 eligible methods",
+   "dataset": "ClinVar pathogenic versus benign missense variants, primary isoforms",
+   "size": null,
+   "size_unit": "variants scored by all 19 methods, count not stated",
+   "split": "no split; evaluation data only",
+   "primary_metric": "global ROC-AUC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/ntranoslab/esm-variants",
+   "data_url": "https://github.com/ntranoslab/esm-variants/tree/0c33758a5073e5d6e673d9a16a40e5b0af46851d",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we primarily used ROC-AUC (Fig. "
+    },
+    {
+     "source": "@paper",
+     "text": "we only considered methods that (1) were not trained on clinical databases such as ClinVar and HGMD or used features from methods trained on such data, and (2) do not use allele frequency as a feature, as it is often used to curate variants as benign"
+    },
+    {
+     "source": "@readme",
+     "text": "This repository contains resources, tools, and command-line tools developed for the paper"
+    },
+    {
+     "source": "@paper",
+     "text": "Performance was evaluated on the sets of variants available for all 19 methods."
+    },
+    {
+     "source": "@readme",
+     "text": "- `ClinVar_gnomAD_benchmark_with_predictions.csv`"
+    }
+   ]
+  },
+  {
+   "task": "HGMD and gnomAD missense pathogenicity, variants scored by all 19 eligible methods",
+   "dataset": "HGMD disease-causing versus gnomAD common missense variants, primary isoforms",
+   "size": null,
+   "size_unit": "variants scored by all 19 methods, count not stated",
+   "split": "no split; evaluation data only",
+   "primary_metric": "global ROC-AUC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/ntranoslab/esm-variants",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we primarily used ROC-AUC (Fig. "
+    },
+    {
+     "source": "@paper",
+     "text": "we only considered methods that (1) were not trained on clinical databases such as ClinVar and HGMD or used features from methods trained on such data, and (2) do not use allele frequency as a feature, as it is often used to curate variants as benign"
+    },
+    {
+     "source": "@readme",
+     "text": "This repository contains resources, tools, and command-line tools developed for the paper"
+    },
+    {
+     "source": "@paper",
+     "text": "Performance was evaluated on the sets of variants available for all 19 methods."
+    },
+    {
+     "source": "@readme",
+     "text": "The HGMD dataset is a private resource owned by the Institute of Medical Genetics in Cardiff University."
+    }
+   ]
+  },
+  {
+   "task": "ClinVar missense pathogenicity, ESM1b head to head with one other method",
+   "dataset": "ClinVar pathogenic versus benign missense variants, primary isoforms",
+   "size": null,
+   "size_unit": "variants with predictions for each compared method, count not stated",
+   "split": "no split; per-method set of scored variants",
+   "primary_metric": "global ROC-AUC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/ntranoslab/esm-variants",
+   "data_url": "https://github.com/ntranoslab/esm-variants/tree/0c33758a5073e5d6e673d9a16a40e5b0af46851d",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we primarily used ROC-AUC (Fig. "
+    },
+    {
+     "source": "@paper",
+     "text": "we only considered methods that (1) were not trained on clinical databases such as ClinVar and HGMD or used features from methods trained on such data, and (2) do not use allele frequency as a feature, as it is often used to curate variants as benign"
+    },
+    {
+     "source": "@readme",
+     "text": "This repository contains resources, tools, and command-line tools developed for the paper"
+    },
+    {
+     "source": "@paper",
+     "text": "the comparison against each other method is performed on the set of variants with effect predictions for that method"
+    },
+    {
+     "source": "@readme",
+     "text": "- `ClinVar_gnomAD_benchmark_with_predictions.csv`"
+    }
+   ]
+  },
+  {
+   "task": "HGMD and gnomAD missense pathogenicity, ESM1b head to head with one other method",
+   "dataset": "HGMD disease-causing versus gnomAD common missense variants, primary isoforms",
+   "size": null,
+   "size_unit": "variants with predictions for each compared method, count not stated",
+   "split": "no split; per-method set of scored variants",
+   "primary_metric": "global ROC-AUC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/ntranoslab/esm-variants",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we primarily used ROC-AUC (Fig. "
+    },
+    {
+     "source": "@paper",
+     "text": "we only considered methods that (1) were not trained on clinical databases such as ClinVar and HGMD or used features from methods trained on such data, and (2) do not use allele frequency as a feature, as it is often used to curate variants as benign"
+    },
+    {
+     "source": "@readme",
+     "text": "This repository contains resources, tools, and command-line tools developed for the paper"
+    },
+    {
+     "source": "@paper",
+     "text": "the comparison against each other method is performed on the set of variants with effect predictions for that method"
+    },
+    {
+     "source": "@readme",
+     "text": "The HGMD dataset is a private resource owned by the Institute of Medical Genetics in Cardiff University."
+    }
+   ]
+  },
+  {
+   "task": "ClinVar missense pathogenicity, ESM1b versus EVE on variants scored by both",
+   "dataset": "ClinVar pathogenic versus benign missense variants, from the EVE portal",
+   "size": 36537,
+   "size_unit": "variants in the ClinVar benchmark",
+   "split": "no split; variants scored by both methods",
+   "primary_metric": "global ROC-AUC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/ntranoslab/esm-variants",
+   "data_url": "https://evemodel.org/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we primarily used ROC-AUC (Fig. "
+    },
+    {
+     "source": "@paper",
+     "text": "we only considered methods that (1) were not trained on clinical databases such as ClinVar and HGMD or used features from methods trained on such data, and (2) do not use allele frequency as a feature, as it is often used to curate variants as benign"
+    },
+    {
+     "source": "@readme",
+     "text": "This repository contains resources, tools, and command-line tools developed for the paper"
+    },
+    {
+     "source": "@paper",
+     "text": "ROC-AUC) score of 0.905 for distinguishing between the 19,925 pathogenic and 16,612 benign variants in ClinVar (across 2,765 genes)"
+    },
+    {
+     "source": "@paper",
+     "text": "as labeled by ClinVar (36,537 variants in 2,765 unique genes)"
+    },
+    {
+     "source": "@paper",
+     "text": "A specific ClinVar benchmark with EVE scores was downloaded from the EVE portal ("
+    }
+   ]
+  },
+  {
+   "task": "HGMD and gnomAD missense pathogenicity, ESM1b versus EVE on variants scored by both",
+   "dataset": "HGMD disease-causing versus gnomAD common missense variants",
+   "size": 30497,
+   "size_unit": "variants in the HGMD and gnomAD benchmark",
+   "split": "no split; variants scored by both methods",
+   "primary_metric": "global ROC-AUC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/ntranoslab/esm-variants",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we primarily used ROC-AUC (Fig. "
+    },
+    {
+     "source": "@paper",
+     "text": "we only considered methods that (1) were not trained on clinical databases such as ClinVar and HGMD or used features from methods trained on such data, and (2) do not use allele frequency as a feature, as it is often used to curate variants as benign"
+    },
+    {
+     "source": "@readme",
+     "text": "This repository contains resources, tools, and command-line tools developed for the paper"
+    },
+    {
+     "source": "@paper",
+     "text": "On HGMD/gnomAD (with 27,754 disease-causing and 2,743 common variants across 1,991 genes)"
+    },
+    {
+     "source": "@paper",
+     "text": "or HGMD/gnomAD (30,497 variants in 1,991 unique genes)"
+    },
+    {
+     "source": "@readme",
+     "text": "The HGMD dataset is a private resource owned by the Institute of Medical Genetics in Cardiff University."
+    }
+   ]
+  }
+ ],
+ "notes": "This record is one paper's evaluation, not a released suite: there is no leaderboard, so results_url is null, and the repository holds scoring tools plus the processed benchmark files rather than an evaluation harness. size is given only for the ESM1b versus EVE entries, where the Figure 2b caption prints 36,537 ClinVar and 30,497 HGMD/gnomAD variants. The sets scored by all 19 methods (Fig. 2e,f) and the per-method head-to-head sets (Fig. 2g,h) have no printed count, so size is null for those four entries. data_url is null for the HGMD and gnomAD benchmark because HGMD cannot be redistributed. For the ClinVar entries data_url is the repository tree at the pinned commit: the README lists ClinVar_gnomAD_benchmark_with_predictions.csv under a 'Benchmarks' heading but gives no folder path. No saved file states a licence for the repository or the benchmark files (the README has no licence section and the repository LICENSE file was not saved), so data_licence and code_licence are null; the underlying ClinVar data come from the NCBI. Per-method values are in Supplementary Table 2 (xlsx), not quoted here. The paper's deep mutational scanning benchmark (28 assays, 15 genes) is a separate evaluation and is not covered by this record."
+}

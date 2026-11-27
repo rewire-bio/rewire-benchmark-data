@@ -1,0 +1,1730 @@
+{
+ "record_id": "segmentnt-human-genome-annotation-2025",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Annotating the genome at single-nucleotide resolution with DNA foundation models, Nature Methods 2025 (NCBI PMC full-text XML)",
+   "description": "Full-text JATS XML of the published SegmentNT article from NCBI E-utilities efetch (db=pmc, id=12615259).",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12615259&rettype=xml",
+   "url": "https://doi.org/10.1038/s41592-025-02881-2",
+   "version": "PMC12615259 as retrieved",
+   "media_type": "application/xml",
+   "sha256": "12c252fc3b179d78a0662ab2c580232969cab9e354067e27c9648868574bdc71",
+   "retrieved_at": "2026-11-26T23:59:13Z",
+   "store_bytes": false,
+   "licence": "CC BY-NC-ND 4.0"
+  },
+  {
+   "key": "si",
+   "name": "Text layer of the SegmentNT Supplementary Information PDF",
+   "description": "Text extracted with pdftotext -layout from the publisher's Supplementary Information PDF, which holds Supplementary Tables 1 to 3. The PDF is kept beside it as artifacts/supplementary-information.pdf.",
+   "file": "artifacts/supplementary-information.txt",
+   "artifact_url": "https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41592-025-02881-2/MediaObjects/41592_2025_2881_MOESM1_ESM.pdf",
+   "url": "https://doi.org/10.1038/s41592-025-02881-2",
+   "version": "Supplementary Information as published with Nature Methods (2025)",
+   "media_type": "text/plain",
+   "sha256": "15f3623c0753b38e1de7811410e3e7989e360e4a23b2a39e72fff7946ad9783b",
+   "retrieved_at": "2026-11-26T23:59:24Z",
+   "store_bytes": false
+  },
+  {
+   "key": "nt-readme",
+   "name": "instadeepai/nucleotide-transformer README.md at commit b8338eff",
+   "description": "Official repository README, pinned to a commit. It states the code licence and the install steps.",
+   "file": "artifacts/nt-readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/instadeepai/nucleotide-transformer/b8338effa8a07928c1565b778e0a06da431828c9/README.md",
+   "url": "https://github.com/instadeepai/nucleotide-transformer",
+   "version": "git commit b8338effa8a07928c1565b778e0a06da431828c9",
+   "media_type": "text/markdown",
+   "sha256": "69ddb4399064dac34bb87e5c3592895fa48e0bf28fa6ca8a5149bd43baf45839",
+   "retrieved_at": "2026-11-26T23:59:42Z",
+   "store_bytes": false
+  },
+  {
+   "key": "segment-doc",
+   "name": "instadeepai/nucleotide-transformer docs/segment_nt.md at commit b8338eff",
+   "description": "Official SegmentNT usage documentation, pinned to a commit.",
+   "file": "artifacts/segment-nt-doc.md",
+   "artifact_url": "https://raw.githubusercontent.com/instadeepai/nucleotide-transformer/b8338effa8a07928c1565b778e0a06da431828c9/docs/segment_nt.md",
+   "url": "https://github.com/instadeepai/nucleotide-transformer/blob/main/docs/segment_nt.md",
+   "version": "git commit b8338effa8a07928c1565b778e0a06da431828c9",
+   "media_type": "text/markdown",
+   "sha256": "5dce5411ed1724434a099d723c3ba646b5cd0d35c39e929dc5a31fb307e6f5f2",
+   "retrieved_at": "2026-11-26T23:59:46Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "This is the human genome annotation evaluation from the SegmentNT paper. A model must label every nucleotide of a DNA sequence with 14 types of genomic element, from protein-coding genes and exons to splice sites, promoters, enhancers and CTCF-bound sites. Performance is measured per element and per nucleotide, as MCC and area under the precision-recall curve on held-out chromosomes 20 and 21. It is used to compare segmentation models and architectures on how precisely they place genomic features.",
+  "summary_source_ids": [
+   "@paper",
+   "@si"
+  ],
+  "summary_source_locator": "Paper: Results and Methods; Supplementary Tables 2 and 3 captions",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We developed a model called SegmentNT to annotate the location of several genomic element in a sequence at single-nucleotide resolution."
+   },
+   {
+    "source": "@paper",
+    "text": "we framed this problem as a multilabel semantic segmentation, computing a binary mask over nucleotides for each type of element"
+   },
+   {
+    "source": "@paper",
+    "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+   },
+   {
+    "source": "@si",
+    "text": "Performance of all models across the 14 genomic elements (MCC)"
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Per-nucleotide localisation of 14 element types, split into gene elements (protein-coding genes, lncRNAs, 5' UTR, 3' UTR, exon, intron, splice acceptor and donor sites) and regulatory elements (poly(A) signal, tissue-invariant and tissue-specific promoters and enhancers, CTCF-bound sites). Each element is a separate binary mask over the sequence, so a model is judged on each element in turn rather than on one combined score.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Human genomic elements; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The human segmentation dataset of genomic elements was created from 14 types of element, divided in gene elements (protein-coding genes, lncRNAs, 5′UTR, 3′UTR, exon, intron, splice acceptor and donor sites) and regulatory elements (poly(A) signal, tissue-invariant and tissue-specific promoters and enhancers, and CTCF-bound sites)."
+     },
+     {
+      "source": "@paper",
+      "text": "computing a binary mask over nucleotides for each type of element"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Gene elements and poly(A) signals come from GENCODE V44, filtered to drop level three (automated) transcripts so every training annotation is human-curated; introns and splice sites were extracted with the HISAT2 script. Promoters, enhancers and CTCF-bound sites come from ENCODE's SCREEN database, with distal and proximal enhancers combined and each promoter or enhancer labelled tissue-invariant or tissue-specific using the Meuleman et al. vocabulary. The dataset is built by overlapping all 14 element tracks with every DNA sequence of the chosen length; sequences containing N are removed.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Human genomic elements",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The location of all gene elements and poly(A) signals were obtained from GENCODE"
+     },
+     {
+      "source": "@paper",
+      "text": "Annotations were filtered to exclude level three transcripts (automated annotation), so all training data were annotated by a human."
+     },
+     {
+      "source": "@paper",
+      "text": "Promoter-, enhancer- and CTCF-bound sites were retrieved from ENCODE’s SCREEN database"
+     },
+     {
+      "source": "@paper",
+      "text": "Promoters and enhancers were split in tissue-invariant and tissue-specific based on the vocabulary from Meuleman et al."
+     },
+     {
+      "source": "@paper",
+      "text": "The final segmentation dataset was created by overlapping all 14 elements"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "The split is by chromosome: chromosomes 20 and 21 are the test set, chromosome 22 is validation and the rest is training. Test chunks containing genes homologous to genes on the training or validation chromosomes were removed using Ensembl BioMart annotations (accessed 8 May 2024). Validation and test sequences are fixed by sliding a window of the model's length over the chromosome. A model outputs 14 probabilities per nucleotide; the predictions are concatenated across sequences per element type and scored per nucleotide with MCC, auPRC, Jaccard similarity and F1, plus a region-level SOV score. The test set was sampled ten times with different window start positions to give a spread. The best checkpoint is chosen on the validation chromosome by average MCC over the 14 elements.",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods, Model training and evaluation; Supplementary Table 2 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We split our dataset between train, validation and test sets by chromosome."
+     },
+     {
+      "source": "@paper",
+      "text": "We excluded from the test set chunks that contain genes with homology to genes in the train or validation chromosomes, using the annotations from"
+     },
+     {
+      "source": "@paper",
+      "text": "We keep the sequences in the validation and test sets fixed by using a sliding window of length"
+     },
+     {
+      "source": "@paper",
+      "text": "we predict 14 probabilities for each nucleotide in a sequence, corresponding to the different element types"
+     },
+     {
+      "source": "@paper",
+      "text": "These metrics treat each nucleotide as a separate prediction and include the MCC, auPRC, Jaccard similarity and the F1-score."
+     },
+     {
+      "source": "@paper",
+      "text": "We sampled the test set ten times to obtain estimates of confidence, each time starting the sliding windows at a different genomic starting position."
+     },
+     {
+      "source": "@paper",
+      "text": "We used MCC as a validation metric and selected the best checkpoint on the basis of the average score across all 14 genomic elements."
+     },
+     {
+      "source": "@si",
+      "text": "mean MCC values +/- standard deviation from 10 different"
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "The repository ships inference code in Jax. Clone it, install the package, then load a pretrained segmentation model with get_pretrained_segment_nt_model, tokenise sequences and read the per-nucleotide probabilities for each of the 14 features. The published evaluation itself, including the test chromosome manifests, is not released as a script.",
+    "source_ids": [
+     "@nt-readme",
+     "@segment-doc"
+    ],
+    "source_locator": "README.md: installation; docs/segment_nt.md: How to use",
+    "quotes": [
+     {
+      "source": "@nt-readme",
+      "text": "git clone https://github.com/instadeepai/nucleotide-transformer.git"
+     },
+     {
+      "source": "@segment-doc",
+      "text": "from nucleotide_transformer.pretrained import get_pretrained_segment_nt_model"
+     },
+     {
+      "source": "@segment-doc",
+      "text": "print(f\"Features inferred: {config.features}\")"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "One human segmentation dataset of 14 element types built from GENCODE V44 and ENCODE SCREEN annotations, instantiated at sequence lengths of 3 kb, 10 kb, 20 kb and 30 kb. Supplementary Table 4 splits all test-set nucleotides for SegmentNT-30kb into edge, interior and spurious classes; for each element these three counts sum to 72,960,000 nucleotides (for 3UTR, 103,780 plus 681,711 plus 72,174,509). This total is a sum derived for one model's windows; no other test-set count is stated in the parts read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods, Human genomic elements; Model training and evaluation; SI: Supplementary Table 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The human segmentation dataset of genomic elements was created from 14 types of element"
+     },
+     {
+      "source": "@paper",
+      "text": "The 10-, 20- and 30-kb models were initialized from the best checkpoint of the respective smaller model for faster adaptation to longer lengths."
+     },
+     {
+      "source": "@si",
+      "text": "we splatted all nucleotides from the test set according to their distance to the boundaries of the ground-truth regions"
+     },
+     {
+      "source": "@si",
+      "text": "Total edge nucleotides             103780 (0.14%)"
+     },
+     {
+      "source": "@si",
+      "text": "Total interior nucleotides         681711 (0.93%)"
+     },
+     {
+      "source": "@si",
+      "text": "Total spurious nucleotides         72174509 (98.92%)"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "By chromosome: 20 and 21 for test, 22 for validation, the rest for training. Training sequences are randomly sampled; validation and test sequences are fixed sliding windows.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Model training and evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+     },
+     {
+      "source": "@paper",
+      "text": "During training, sequences are randomly sampled in the genome with associated annotations."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Per-nucleotide MCC and auPRC per element are the reported comparisons (Supplementary Tables 2 and 3); Jaccard similarity, F1 and a region-level SOV score are also computed. Higher is better.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods, Model training and evaluation; Supplementary Tables 2 and 3 captions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "These metrics treat each nucleotide as a separate prediction and include the MCC, auPRC, Jaccard similarity and the F1-score."
+     },
+     {
+      "source": "@paper",
+      "text": "we used the perl code from"
+     },
+     {
+      "source": "@si",
+      "text": "Performance of all models across the 14 genomic elements (auPRC)"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Randomly initialised BPNet architectures (embedding 64 and 1,024), three SpliceAI architectures (embedding 32, 256 and 920), U-Net heads alone at 63M and 252M parameters, a U-Net with a linear up-projection, a randomly initialised SegmentNT, a head-only SegmentNT, and a SegmentNT whose backbone is NT v1 2.5B. SegmentEnformer and SegmentBorzoi appear in the same tables.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods, Model ablations and baselines; Supplementary Table 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We compared SegmentNT with the two state-of-the-art single-nucleotide model architectures BPNet"
+     },
+     {
+      "source": "@paper",
+      "text": "Two versions of the SegmentNT model (563M) whose encoder is initialized with random weights"
+     },
+     {
+      "source": "@si",
+      "text": "SpliceAI arch. extra-large"
+     },
+     {
+      "source": "@si",
+      "text": "SegmentEnformer-30kb"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Chromosome-level split, plus removal of test chunks containing genes homologous to genes on the training or validation chromosomes. The authors note this does not remove homologous distal regulatory elements, which could still inflate performance in those regions.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Model training and evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We excluded from the test set chunks that contain genes with homology to genes in the train or validation chromosomes, using the annotations from"
+     },
+     {
+      "source": "@paper",
+      "text": "We note that this does not remove homologous distal regulatory elements which could still be inflating performance on these regions."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "The test set is sampled ten times with different sliding window start positions; results are means with standard deviations over those ten samplings.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods; Supplementary Table 3 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We sampled the test set ten times to obtain estimates of confidence, each time starting the sliding windows at a different genomic starting position."
+     },
+     {
+      "source": "@si",
+      "text": "different samplings of the test set."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One nucleotide within a DNA sequence, carrying a binary label for each of the 14 element types.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "computing a binary mask over nucleotides for each type of element"
+     },
+     {
+      "source": "@paper",
+      "text": "These metrics treat each nucleotide as a separate prediction"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human for this evaluation. The paper also builds a multispecies dataset, which is a separate evaluation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Human genomic elements; Multispecies dataset",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The human segmentation dataset of genomic elements was created from 14 types of element"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "No direct assay: labels are curated annotations. Gene elements come from GENCODE V44, regulatory elements from ENCODE's SCREEN database, and the tissue-invariant or tissue-specific split from the Meuleman et al. vocabulary.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Human genomic elements",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Promoter-, enhancer- and CTCF-bound sites were retrieved from ENCODE’s SCREEN database"
+     },
+     {
+      "source": "@paper",
+      "text": "The location of all gene elements and poly(A) signals were obtained from GENCODE"
+     },
+     {
+      "source": "@paper",
+      "text": "Promoters and enhancers were split in tissue-invariant and tissue-specific based on the vocabulary from Meuleman et al."
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "DNA sequence only. SegmentNT models tokenise as 6-mers and cannot take sequences containing N.",
+    "status": "source_checked",
+    "source_ids": [
+     "@segment-doc",
+     "@paper"
+    ],
+    "source_locator": "docs/segment_nt.md: How to use; Paper: Methods",
+    "quotes": [
+     {
+      "source": "@segment-doc",
+      "text": "The SegmentNT models do not handle any \"N\" in the input sequence because each nucleotides need to be tokenized as 6-mers"
+     },
+     {
+      "source": "@paper",
+      "text": "Sequences with Ns were removed."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Supervised training of a segmentation head on top of a DNA encoder, trained end to end; the paper also reports head-only and randomly initialised variants as ablations.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Methods, Model ablations and baselines",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This architecture is trained end-to-end on a dataset of genomic annotations to minimize a focal loss objective"
+     },
+     {
+      "source": "@paper",
+      "text": "initialized with the NT-Multispecies-v2 weights but where we only fine-tune the segmentation head"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Every element is scored separately at nucleotide resolution, so a model's strength on, say, splice sites is visible rather than averaged away.",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods; Supplementary Table 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we predict 14 probabilities for each nucleotide in a sequence, corresponding to the different element types"
+     },
+     {
+      "source": "@si",
+      "text": "Performance of all models across the 14 genomic elements (MCC)"
+     }
+    ]
+   },
+   {
+    "text": "The split is by chromosome and test chunks with genes homologous to training genes are removed, which is stricter than a random split.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Model training and evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We excluded from the test set chunks that contain genes with homology to genes in the train or validation chromosomes"
+     }
+    ]
+   },
+   {
+    "text": "Ten test samplings give a standard deviation for every reported number, and ablations include randomly initialised and head-only models.",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods; Supplementary Table 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We sampled the test set ten times to obtain estimates of confidence"
+     },
+     {
+      "source": "@si",
+      "text": "Random-Init (only head)"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Homologous distal regulatory elements are not removed from the test set, which the authors say could still inflate performance in those regions.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Model training and evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We note that this does not remove homologous distal regulatory elements which could still be inflating performance on these regions."
+     }
+    ]
+   },
+   {
+    "text": "There is no released evaluation harness or test manifest: the repository gives inference code, not the benchmark pipeline, so another group cannot reproduce the exact test set from the sources read.",
+    "source_ids": [
+     "@paper",
+     "@segment-doc"
+    ],
+    "source_locator": "Paper: Code availability; docs/segment_nt.md",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+     },
+     {
+      "source": "@segment-doc",
+      "text": "The notebook `../notebooks/segment_nt/inference_segment_nt.ipynb` showcases how to infer on a 50kb sequence and plot the probabilities to reproduce the Fig.3 of the paper."
+     }
+    ]
+   },
+   {
+    "text": "The code is CC BY-NC-SA 4.0 and the weights are released for research purposes, so commercial use is restricted.",
+    "source_ids": [
+     "@nt-readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Licences; Paper: Code availability",
+    "quotes": [
+     {
+      "source": "@nt-readme",
+      "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+     },
+     {
+      "source": "@paper",
+      "text": "are available for research purposes via GitHub"
+     }
+    ]
+   },
+   {
+    "text": "Scores on CTCF-bound sites and tissue-specific promoters are low for every model: in Supplementary Table 2 (MCC) the best CTCF-bound score is 0.19 (SegmentEnformer-196kb) and the best tissue-specific promoter score is 0.33 (SegmentEnformer-30kb and SegmentBorzoi-524kb).",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: Supplementary Table 2",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "Supplementary Table 2 | Performance of all models across the 14 genomic elements (MCC)"
+     },
+     {
+      "source": "@si",
+      "text": "SegmentEnformer-196kb                0.68 (± 0.039)     0.44 (± 0.015)     0.19 (± 0.014)"
+     },
+     {
+      "source": "@si",
+      "text": "SegmentEnformer-30kb                 0.13 (± 0.011)     0.00 (± 0.000)     0.65 (± 0.011)              0.33 (± 0.008)"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "SegmentNT annotation evaluation",
+   "steps": [
+    "GENCODE and ENCODE annotation tracks",
+    "Overlap with fixed-length sequences",
+    "Chromosome split with homologous test chunks removed",
+    "Model predicts 14 probabilities per nucleotide",
+    "Per-element MCC and auPRC",
+    "Ten test samplings for a standard deviation"
+   ],
+   "caption": "Each element type is a separate binary mask scored nucleotide by nucleotide.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Methods",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The final segmentation dataset was created by overlapping all 14 elements"
+    },
+    {
+     "source": "@paper",
+     "text": "We combine these predictions across all sequences into a single array for each element type and calculate performance metrics on the basis of the predictions for every nucleotide across the dataset."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No test sequence count is stated in the sections read. Supplementary Table 4's edge, interior and spurious counts for SegmentNT-30kb sum to 72,960,000 test nucleotides per element, a derived sum rather than a stated size.",
+   "No released harness reproduces the test set; the exact sequence manifests and checkpoint hashes are not in the sources read.",
+   "Supplementary Table 1 (sequences seen during training per model) was not transcribed here."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read the NCBI PMC full-text XML (PMC12615259), the Supplementary Information PDF text layer (Supplementary Tables 1 to 3), and README.md and docs/segment_nt.md of instadeepai/nucleotide-transformer at commit b8338effa8a07928c1565b778e0a06da431828c9, all retrieved on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the repository and run a pretrained SegmentNT model to get per-nucleotide probabilities for the 14 elements.",
+  "prerequisites": [
+   "Python with the repository's dependencies, installed from the repository itself; Jax is used for inference.",
+   "The code is CC BY-NC-SA 4.0 and the weights are released for research purposes.",
+   "SegmentNT inputs must not contain N, because sequences are tokenised as 6-mers."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://github.com/instadeepai/nucleotide-transformer.git\ncd nucleotide-transformer\ngit checkout --detach b8338effa8a07928c1565b778e0a06da431828c9",
+    "explanation": "Clone the repository. The checkout line pins the commit read for this page and is added by Rewire.",
+    "source_ids": [
+     "@nt-readme"
+    ],
+    "source_locator": "README.md: Getting started",
+    "quotes": [
+     {
+      "source": "@nt-readme",
+      "text": "git clone https://github.com/instadeepai/nucleotide-transformer.git"
+     },
+     {
+      "source": "@nt-readme",
+      "text": "cd nucleotide-transformer"
+     }
+    ]
+   },
+   {
+    "title": "Install",
+    "shell": "python -m venv .venv\nsource .venv/bin/activate\npip install .",
+    "explanation": "Creates a virtual environment and installs the local package, as the README's steps 2 and 3.",
+    "source_ids": [
+     "@nt-readme"
+    ],
+    "source_locator": "README.md: Getting started",
+    "quotes": [
+     {
+      "source": "@nt-readme",
+      "text": "python -m venv .venv"
+     },
+     {
+      "source": "@nt-readme",
+      "text": "pip install . # Installs the local package"
+     }
+    ]
+   },
+   {
+    "title": "Run the model on sequences",
+    "shell": "python - <<'PY'\nimport haiku as hk\nimport jax\nimport jax.numpy as jnp\nfrom nucleotide_transformer.pretrained import get_pretrained_segment_nt_model\n\njax.config.update(\"jax_platform_name\", \"cpu\")\nbackend = \"cpu\"\ndevices = jax.devices(backend)\nmax_num_nucleotides = 8\nparameters, forward_fn, tokenizer, config = get_pretrained_segment_nt_model(\n    model_name=\"segment_nt\",\n    embeddings_layers_to_save=(29,),\n    attention_maps_to_save=((1, 4), (7, 10)),\n    max_positions=max_num_nucleotides + 1,\n)\nforward_fn = hk.transform(forward_fn)\napply_fn = jax.pmap(forward_fn.apply, devices=devices, donate_argnums=(0,))\nsequences = [\"ATTCCGATTCCGATTCCAACGGATTATTCCGATTAACCGATTCCAATT\", \"ATTTCTCTCTCTCTCTGAGATCGATGATTTCTCTCTCATCGAACTATG\"]\ntokens_ids = [b[1] for b in tokenizer.batch_tokenize(sequences)]\ntokens = jnp.asarray(tokens_ids, dtype=jnp.int32)\nrandom_key = jax.random.PRNGKey(seed=0)\nkeys = jax.device_put_replicated(random_key, devices=devices)\nparameters = jax.device_put_replicated(parameters, devices=devices)\ntokens = jax.device_put_replicated(tokens, devices=devices)\nouts = apply_fn(parameters, keys, tokens)\nlogits = outs[\"logits\"]\nprobabilities = jnp.asarray(jax.nn.softmax(logits, axis=-1))[...,-1]\nprint(f\"Features inferred: {config.features}\")\nPY",
+    "explanation": "A shortened copy of the documentation's Python example (the device print, the length assert, the probabilities shape print and the intron lines removed), wrapped by Rewire in a shell heredoc so it runs as one command. It loads the human SegmentNT model, tokenises two short sequences and prints the feature names behind the per-nucleotide probabilities. Supported model names are segment_nt and segment_nt_multi_species.",
+    "source_ids": [
+     "@segment-doc"
+    ],
+    "source_locator": "docs/segment_nt.md: How to use",
+    "quotes": [
+     {
+      "source": "@segment-doc",
+      "text": "from nucleotide_transformer.pretrained import get_pretrained_segment_nt_model"
+     },
+     {
+      "source": "@segment-doc",
+      "text": "    model_name=\"segment_nt\","
+     },
+     {
+      "source": "@segment-doc",
+      "text": "probabilities = jnp.asarray(jax.nn.softmax(logits, axis=-1))[...,-1]"
+     },
+     {
+      "source": "@segment-doc",
+      "text": "Supported model names are:"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Per-nucleotide probabilities for each of the 14 features, with the feature names printed from config.features. The documentation's full example also shows how to pull out the intron probabilities; the shortened step does not."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "This runs inference on example sequences; it does not reproduce the paper's test evaluation, for which no harness is released.",
+   "For sequences between 30 kb and 50 kb the documentation says a rescaling_factor argument must be passed."
+  ],
+  "source_ids": [
+   "@segment-doc",
+   "@nt-readme"
+  ]
+ },
+ "structured": [
+  {
+   "task": "3UTR: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "3UTR: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "5UTR: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "5UTR: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "CTCF-bound: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "CTCF-bound: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "enhancer tissue-invariant: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "enhancer tissue-invariant: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "enhancer tissue-specific: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "enhancer tissue-specific: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "exon: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "exon: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "intron: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "intron: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                3UTR               5UTR               CTCF-bound        enhancer tissue-invariant   enhancer tissue-specific     exon                intron"
+    }
+   ]
+  },
+  {
+   "task": "lncRNA: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "lncRNA: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "polyA signal: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "polyA signal: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "promoter tissue-invariant: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "promoter tissue-invariant: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "promoter tissue-specific: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "promoter tissue-specific: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "protein coding gene: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "protein coding gene: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "splice acceptor: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "splice acceptor: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "splice donor: per-nucleotide annotation (MCC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (MCC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  },
+  {
+   "task": "splice donor: per-nucleotide annotation (auPRC)",
+   "dataset": "SegmentNT human genomic elements, chromosomes 20 and 21",
+   "size": null,
+   "size_unit": "nucleotides; no per-entry count stated (see notes)",
+   "split": "chromosomes 20 and 21, homologous test chunks removed",
+   "primary_metric": "auPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/instadeepai/nucleotide-transformer",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "CC BY-NC-SA 4.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "chromosomes 20 and 21 are used for test, chromosome 22 is used for validation, and the remaining are used for training"
+    },
+    {
+     "source": "@paper",
+     "text": "as well as inference code in Jax, are available for research purposes via GitHub"
+    },
+    {
+     "source": "@nt-readme",
+     "text": "* **Code:** [CC BY-NC-SA 4.0](./LICENSE.md)."
+    },
+    {
+     "source": "@si",
+     "text": "Performance of all models across the 14 genomic elements (auPRC)"
+    },
+    {
+     "source": "@si",
+     "text": "Model                                lncRNA             polyA signal       promoter tissue-invariant   promoter tissue-specific   protein coding gene     splice acceptor       splice donor"
+    }
+   ]
+  }
+ ],
+ "notes": "This record is one paper's evaluation (SegmentNT, Nature Methods 2025), not a released suite: there is no leaderboard and no evaluation harness, so results_url and data_url are null and the run guide only runs inference. size is null for every entry because the sections read state no test size per entry; Supplementary Table 4's edge, interior and spurious counts for SegmentNT-30kb sum to 72,960,000 test nucleotides for each element, a derived total for that model's windows on chromosomes 20 and 21. code_licence is written as the README's own licence name (CC BY-NC-SA 4.0), which is not in the allowed source licence list, so it is recorded here and in a limitation rather than on the sources. The 28 structured entries match the store's 28 protocols (14 elements by MCC and auPRC). The article is CC BY-NC-ND 4.0 and the supplement carries no separate licence, so neither is stored. Values in Supplementary Tables 2 and 3 were read but not transcribed into this page."
+}

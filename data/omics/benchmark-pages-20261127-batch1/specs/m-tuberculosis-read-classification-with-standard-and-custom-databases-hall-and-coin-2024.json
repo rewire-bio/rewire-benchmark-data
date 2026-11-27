@@ -1,0 +1,720 @@
+{
+ "record_id": "dna-pathogen-20261009-benchmark-hall2024-mtb-read-classification",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Hall and Coin 2024, Pangenome databases improve host removal and mycobacteria classification (GigaScience giae010), NCBI PMC full-text XML PMC10993716",
+   "description": "Full text of the published article fetched through NCBI E-utilities efetch. The XML is quoted as it is.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=10993716&rettype=xml",
+   "url": "https://doi.org/10.1093/gigascience/giae010",
+   "version": "PMC version 1",
+   "media_type": "application/xml",
+   "retrieved_at": "2026-11-26T23:43:21Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true,
+   "sha256": "105b4171a060e560a88c93f4907c454b6e5f4e64ca43c84a459cceccd5f0163b"
+  },
+  {
+   "key": "readme",
+   "name": "mbhall88/classification_benchmark README.md at commit 4e039d0f",
+   "description": "Official repository file named in the paper, pinned to a commit. The paper states the code is MIT-licensed.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/mbhall88/classification_benchmark/4e039d0f29e4387cefb4f70365f862f4def140c3/README.md",
+   "url": "https://github.com/mbhall88/classification_benchmark",
+   "version": "git commit 4e039d0f29e4387cefb4f70365f862f4def140c3",
+   "media_type": "text/markdown",
+   "retrieved_at": "2026-11-26T23:46:26Z",
+   "licence": "MIT",
+   "store_bytes": true,
+   "sha256": "994ab71b3c99b7d990baea9ffc84854c9870568d5c00bebce9c79633d19c5518"
+  },
+  {
+   "key": "zenodo-8339789",
+   "name": "Zenodo record 8339789 (API JSON): Simulated Nanopore metagenomic reads",
+   "description": "Data deposit cited in the paper; the API record carries the licence and file list.",
+   "file": "artifacts/zenodo-8339789.json",
+   "artifact_url": "https://zenodo.org/api/records/8339789",
+   "url": "https://doi.org/10.5281/zenodo.8339789",
+   "version": "Zenodo record 8339789, published 2023-09-13",
+   "media_type": "application/json",
+   "retrieved_at": "2026-11-27T00:10:29Z",
+   "store_bytes": true,
+   "sha256": "89ea11562794204bf061a561e2347ed7f9625c6210c56eddc783bc4a1d5a4cfc"
+  },
+  {
+   "key": "zenodo-8339791",
+   "name": "Zenodo record 8339791 (API JSON): Simulated Illumina metagenomic reads",
+   "description": "Data deposit cited in the paper; the API record carries the licence and file list.",
+   "file": "artifacts/zenodo-8339791.json",
+   "artifact_url": "https://zenodo.org/api/records/8339791",
+   "url": "https://doi.org/10.5281/zenodo.8339791",
+   "version": "Zenodo record 8339791, published 2023-09-13",
+   "media_type": "application/json",
+   "retrieved_at": "2026-11-27T00:10:33Z",
+   "store_bytes": true,
+   "sha256": "84fff73b1776e4a855467cdb1493590a0216d51a7423c81b49e7c869d076f617"
+  },
+  {
+   "key": "zenodo-10472796",
+   "name": "Zenodo record 10472796 (API JSON): Artificial real metagenomic reads",
+   "description": "Data deposit cited in the paper; the API record carries the licence and file list.",
+   "file": "artifacts/zenodo-10472796.json",
+   "artifact_url": "https://zenodo.org/api/records/10472796",
+   "url": "https://doi.org/10.5281/zenodo.10472796",
+   "version": "Zenodo record 10472796, published 2024-01-09",
+   "media_type": "application/json",
+   "retrieved_at": "2026-11-27T00:10:36Z",
+   "store_bytes": true,
+   "sha256": "f3249f65f9ae91b9900c85f317b3c2d5c0871b70a391f80fafeb39c2ecaffce1"
+  }
+ ],
+ "profile": {
+  "summary": "The read classification part of Hall and Coin 2024: label each non-human read in a sputum-like metagenome as Mycobacterium tuberculosis or not. Kraken2 and minimap2 are each run with three databases, standard and custom, on simulated and artificial real Nanopore and Illumina data. It is for people building culture-free tuberculosis sequencing pipelines who need to choose a classifier and database, including on a laptop.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract; Results, Classification of Mycobacterium reads",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "In addition, we benchmarked pipelines using kraken and minimap2 for taxonomic classification of"
+   },
+   {
+    "source": "@paper",
+    "text": "read classification from metagenomic samples."
+   },
+   {
+    "source": "@paper",
+    "text": "We benchmarked kraken and minimap2 for read classification, using 3 different databases for each tool. For kraken, we used the standard database (standard) and a version of the standard database that is capped at 8 GB (standard-8)."
+   },
+   {
+    "source": "@paper",
+    "text": "Such databases allow for execution on a laptop, without sacrificing accuracy, an especially important consideration in low-resource settings. We make all customized databases and pipelines freely available."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "How accurately each tool and database labels reads as M. tuberculosis, with as few false positives and false negatives as possible, and what it costs in runtime and memory. The authors frame this as a step toward sequencing directly from sputum, where contamination is higher than in culture.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We benchmarked kraken and minimap2 for read classification, using 3 different databases for each tool. For kraken, we used the standard database (standard) and a version of the standard database that is capped at 8 GB (standard-8)."
+     },
+     {
+      "source": "@paper",
+      "text": "We assess the performance of these configurations using sensitivity, specificity, Youden’s index, peak memory usage, and runtime (rate—reads per second)."
+     },
+     {
+      "source": "@paper",
+      "text": "WGS work is done from culture and therefore does not contain much contamination by design."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Simulated reads mimic sputum: 46% bacteria, 46% human, 6% M. tuberculosis complex and 1% each virus and NTM, 4.5 gigabases of Nanopore and 0.9 of Illumina. The artificial real set combines real reads from three 1000 Genomes people, an M. tuberculosis isolate and the ZymoBIOMICS HMW standard, so each read's true taxon is known. Classification uses the non-human reads left after host removal: 100,733 simulated Nanopore reads, 1,417,015 simulated Illumina pairs, 915,209 real Nanopore reads and 21,172,961 real Illumina pairs. Simulation genomes were kept out of the custom kraken Mycobacterium database.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Generating in silico metagenomic reads; Creation of an artificial real metagenomic dataset; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In total, 4.5 and 0.9 gigabases were generated for Nanopore and Illumina, respectively, at the following proportions: 46% each for bacteria and human, 6%"
+     },
+     {
+      "source": "@paper",
+      "text": "We simulated metagenomic Nanopore and Illumina sequencing reads to a mixture ratio that approximates that found in patient sputa"
+     },
+     {
+      "source": "@paper",
+      "text": "We created Nanopore and Illumina metagenomic datasets by combining real sequencing reads into an artificial metagenomic dataset. By doing this, we can be highly confident of the true taxon for each read in the dataset."
+     },
+     {
+      "source": "@paper",
+      "text": "For the human component, we combined reads from 3 individuals in the 1000 Genomes Project"
+     },
+     {
+      "source": "@paper",
+      "text": "which contains 7 bacterial and 1 fungal strain(s)"
+     },
+     {
+      "source": "@paper",
+      "text": "For this section of the analysis, we use the nonhuman reads. For the simulated dataset, we are left with 100,733 Nanopore reads (460 Mbp) and 1,417,015 Illumina read pairs (424 Mbp). For the real dataset, we have 915,209 Nanopore reads (3.47 Gbp) and 21,172,961 Illumina read pairs (4.68 Gbp)."
+     },
+     {
+      "source": "@paper",
+      "text": "We ensured that the genomes used to simulate NTM and MTBC reads were not included in this database."
+     },
+     {
+      "source": "@paper",
+      "text": "complex (MTBC), and 1% each for virus and nontuberculous mycobacteria (NTM)."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Kraken2 uses the standard, standard-8 and a custom Mycobacterium database; minimap2 uses an M. tuberculosis database, the Clockwork decontamination database and a Mycobacterium genus database. A true positive is an M. tuberculosis read classified as M. tuberculosis. Each configuration is scored by sensitivity, specificity and Youden's index with Wilson score 95% intervals, plus mean runtime and peak memory over 10 runs with 4 threads.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Mycobacterium read classification and Human read removal; Table 5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We benchmarked kraken and minimap2 for read classification, using 3 different databases for each tool. For kraken, we used the standard database (standard) and a version of the standard database that is capped at 8 GB (standard-8)."
+     },
+     {
+      "source": "@paper",
+      "text": "We assess the performance of these configurations using sensitivity, specificity, Youden’s index, peak memory usage, and runtime (rate—reads per second)."
+     },
+     {
+      "source": "@paper",
+      "text": "All tools were run using 4 threads for consistency. Runtime and peak memory were calculated as the mean and maximum, respectively, from executing each method 10 times."
+     },
+     {
+      "source": "@paper",
+      "text": "CI, confidence interval (Wilson score interval)."
+     },
+     {
+      "source": "@paper",
+      "text": "Specificity (95% CI)"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Four: simulated Nanopore (100,733 non-human reads), simulated Illumina (1,417,015 read pairs), artificial real Nanopore (915,209 reads) and artificial real Illumina (21,172,961 read pairs).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Classification of Mycobacterium reads",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For this section of the analysis, we use the nonhuman reads. For the simulated dataset, we are left with 100,733 Nanopore reads (460 Mbp) and 1,417,015 Illumina read pairs (424 Mbp). For the real dataset, we have 915,209 Nanopore reads (3.47 Gbp) and 21,172,961 Illumina read pairs (4.68 Gbp)."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Test only: every non-human read is classified; there is no training split.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For this section of the analysis, we use the nonhuman reads. For the simulated dataset, we are left with 100,733 Nanopore reads (460 Mbp) and 1,417,015 Illumina read pairs (424 Mbp). For the real dataset, we have 915,209 Nanopore reads (3.47 Gbp) and 21,172,961 Illumina read pairs (4.68 Gbp)."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Sensitivity, specificity and Youden's index (higher is better); reads per second (higher is better) and peak memory (lower is better).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We assess the performance of these configurations using sensitivity, specificity, Youden’s index, peak memory usage, and runtime (rate—reads per second)."
+     },
+     {
+      "source": "@paper",
+      "text": "All tools were run using 4 threads for consistency. Runtime and peak memory were calculated as the mean and maximum, respectively, from executing each method 10 times."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Kraken2 standard and standard-8 databases serve as the standard reference points against the custom databases.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We benchmarked kraken and minimap2 for read classification, using 3 different databases for each tool. For kraken, we used the standard database (standard) and a version of the standard database that is capped at 8 GB (standard-8)."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Genomes used to simulate NTM and M. tuberculosis complex reads were excluded from the custom kraken Mycobacterium database. No such exclusion is stated for the minimap2 databases in the text read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Mycobacterium read classification",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We ensured that the genomes used to simulate NTM and MTBC reads were not included in this database."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Wilson score 95% confidence intervals for sensitivity, specificity and Youden's index; runtime and memory from 10 executions.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 5 footnote; Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "CI, confidence interval (Wilson score interval)."
+     },
+     {
+      "source": "@paper",
+      "text": "All tools were run using 4 threads for consistency. Runtime and peak memory were calculated as the mean and maximum, respectively, from executing each method 10 times."
+     },
+     {
+      "source": "@paper",
+      "text": "Specificity (95% CI)"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "A sequencing read (Nanopore) or read pair (Illumina).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For this section of the analysis, we use the nonhuman reads. For the simulated dataset, we are left with 100,733 Nanopore reads (460 Mbp) and 1,417,015 Illumina read pairs (424 Mbp). For the real dataset, we have 915,209 Nanopore reads (3.47 Gbp) and 21,172,961 Illumina read pairs (4.68 Gbp)."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "M. tuberculosis against human, other bacteria, viruses, nontuberculous mycobacteria and, in the real set, one fungal strain.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In total, 4.5 and 0.9 gigabases were generated for Nanopore and Illumina, respectively, at the following proportions: 46% each for bacteria and human, 6%"
+     },
+     {
+      "source": "@paper",
+      "text": "which contains 7 bacterial and 1 fungal strain(s)"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Simulated reads (Badreads for Nanopore, ART for Illumina) and real Nanopore and Illumina whole-genome sequencing reads.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "to produce the simulated Nanopore reads for each group"
+     },
+     {
+      "source": "@paper",
+      "text": "Illumina reads were simulated with ART (v2016.06.05)"
+     },
+     {
+      "source": "@paper",
+      "text": "We created Nanopore and Illumina metagenomic datasets by combining real sequencing reads into an artificial metagenomic dataset. By doing this, we can be highly confident of the true taxon for each read in the dataset."
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Read sequences only, classified against each tool's database.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The nonhuman reads were used for classification."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Not applicable: database-based tools are run with fixed databases, no model training.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods"
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Every read's true origin is known, in both the simulated and the artificial real datasets.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We created Nanopore and Illumina metagenomic datasets by combining real sequencing reads into an artificial metagenomic dataset. By doing this, we can be highly confident of the true taxon for each read in the dataset."
+     }
+    ]
+   },
+   {
+    "text": "Reports runtime and memory alongside accuracy, relevant to running on a laptop.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods; Conclusions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We assess the performance of these configurations using sensitivity, specificity, Youden’s index, peak memory usage, and runtime (rate—reads per second)."
+     },
+     {
+      "source": "@paper",
+      "text": "All tools were run using 4 threads for consistency. Runtime and peak memory were calculated as the mean and maximum, respectively, from executing each method 10 times."
+     },
+     {
+      "source": "@paper",
+      "text": "Such databases allow for execution on a laptop, without sacrificing accuracy, an especially important consideration in low-resource settings. We make all customized databases and pipelines freely available."
+     }
+    ]
+   },
+   {
+    "text": "Simulated and artificial real reads are on Zenodo under CC0, the custom databases are also on Zenodo (licence not checked), and the code is MIT-licensed.",
+    "source_ids": [
+     "@zenodo-8339789",
+     "@zenodo-10472796",
+     "@paper",
+     "@zenodo-8339791"
+    ],
+    "source_locator": "Zenodo records; Paper: Availability",
+    "quotes": [
+     {
+      "source": "@zenodo-8339789",
+      "text": "\"id\": \"cc-zero\""
+     },
+     {
+      "source": "@zenodo-8339791",
+      "text": "\"id\": \"cc-zero\""
+     },
+     {
+      "source": "@zenodo-10472796",
+      "text": "\"id\": \"cc-zero\""
+     },
+     {
+      "source": "@paper",
+      "text": "License: MIT"
+     },
+     {
+      "source": "@paper",
+      "text": "We make all customized databases and pipelines freely available."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Read-level classification of one pathogen, not sample-level detection.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We benchmarked kraken and minimap2 for read classification, using 3 different databases for each tool. For kraken, we used the standard database (standard) and a version of the standard database that is capped at 8 GB (standard-8)."
+     },
+     {
+      "source": "@paper",
+      "text": "For this section of the analysis, we use the nonhuman reads. For the simulated dataset, we are left with 100,733 Nanopore reads (460 Mbp) and 1,417,015 Illumina read pairs (424 Mbp). For the real dataset, we have 915,209 Nanopore reads (3.47 Gbp) and 21,172,961 Illumina read pairs (4.68 Gbp)."
+     }
+    ]
+   },
+   {
+    "text": "The 'real' data are artificial mixtures of separately sequenced samples, and the real Nanopore M. tuberculosis reads are R10.3, not R10.4.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We created Nanopore and Illumina metagenomic datasets by combining real sequencing reads into an artificial metagenomic dataset. By doing this, we can be highly confident of the true taxon for each read in the dataset."
+     },
+     {
+      "source": "@paper",
+      "text": "(we used R10.3 as there were no R10.4"
+     }
+    ]
+   },
+   {
+    "text": "Simulated mixtures carry a slightly higher mycobacterial share than patient sputa, as the authors note.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "albeit with a slightly higher mycobacterial component."
+     }
+    ]
+   },
+   {
+    "text": "No public leaderboard; results are the paper's tables.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "read classification results for simulated Nanopore data"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Hall and Coin M. tuberculosis read classification workflow",
+   "steps": [
+    "Simulated and artificial real sputum-like reads",
+    "Human read removal",
+    "Classify non-human reads with kraken2 or minimap2 and a database",
+    "Compare to known origin",
+    "Sensitivity, specificity, Youden's index, runtime, memory"
+   ],
+   "caption": "How the read classification benchmark is run, as the paper describes it.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Methods; Results",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We simulated metagenomic Nanopore and Illumina sequencing reads to a mixture ratio that approximates that found in patient sputa"
+    },
+    {
+     "source": "@paper",
+     "text": "For this section of the analysis, we use the nonhuman reads. For the simulated dataset, we are left with 100,733 Nanopore reads (460 Mbp) and 1,417,015 Illumina read pairs (424 Mbp). For the real dataset, we have 915,209 Nanopore reads (3.47 Gbp) and 21,172,961 Illumina read pairs (4.68 Gbp)."
+    },
+    {
+     "source": "@paper",
+     "text": "We benchmarked kraken and minimap2 for read classification, using 3 different databases for each tool. For kraken, we used the standard database (standard) and a version of the standard database that is capped at 8 GB (standard-8)."
+    },
+    {
+     "source": "@paper",
+     "text": "We assess the performance of these configurations using sensitivity, specificity, Youden’s index, peak memory usage, and runtime (rate—reads per second)."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Supplementary tables with full counts and the coverage analyses were not read.",
+   "The Snakemake pipeline files were not read; the README gives no command to run the full benchmark."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the PMC XML of the article (PMC10993716), mbhall88/classification_benchmark README.md at commit 4e039d0f29e4387cefb4f70365f862f4def140c3, and Zenodo API records 8339789, 8339791 and 10472796, retrieved 2026-11-26 and 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "The README's example usage shows how to download the custom databases and classify one's own reads, not how to score classifications against the truth files. It says the Snakemake pipeline produces all results but gives no command or configuration steps for running it.",
+ "structured": [
+  {
+   "task": "M. tuberculosis read classification, simulated nanopore",
+   "dataset": "Simulated Nanopore metagenome, non-human reads",
+   "size": 100733,
+   "size_unit": "non-human reads",
+   "split": null,
+   "primary_metric": "Youden's index",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/mbhall88/classification_benchmark",
+   "data_url": "https://doi.org/10.5281/zenodo.8339789",
+   "data_licence": "CC0-1.0",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For this section of the analysis, we use the nonhuman reads. For the simulated dataset, we are left with 100,733 Nanopore reads (460 Mbp) and 1,417,015 Illumina read pairs (424 Mbp). For the real dataset, we have 915,209 Nanopore reads (3.47 Gbp) and 21,172,961 Illumina read pairs (4.68 Gbp)."
+    },
+    {
+     "source": "@paper",
+     "text": "We assess the performance of these configurations using sensitivity, specificity, Youden’s index, peak memory usage, and runtime (rate—reads per second)."
+    },
+    {
+     "source": "@paper",
+     "text": "10.5281/zenodo.8339789"
+    },
+    {
+     "source": "@zenodo-8339789",
+     "text": "\"id\": \"cc-zero\""
+    },
+    {
+     "source": "@paper",
+     "text": "https://github.com/mbhall88/classification_benchmark"
+    },
+    {
+     "source": "@paper",
+     "text": "License: MIT"
+    }
+   ]
+  },
+  {
+   "task": "M. tuberculosis read classification, artificial real nanopore",
+   "dataset": "Artificial real Nanopore metagenome, non-human reads",
+   "size": 915209,
+   "size_unit": "non-human reads",
+   "split": null,
+   "primary_metric": "Youden's index",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/mbhall88/classification_benchmark",
+   "data_url": "https://doi.org/10.5281/zenodo.10472796",
+   "data_licence": "CC0-1.0",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For this section of the analysis, we use the nonhuman reads. For the simulated dataset, we are left with 100,733 Nanopore reads (460 Mbp) and 1,417,015 Illumina read pairs (424 Mbp). For the real dataset, we have 915,209 Nanopore reads (3.47 Gbp) and 21,172,961 Illumina read pairs (4.68 Gbp)."
+    },
+    {
+     "source": "@paper",
+     "text": "We assess the performance of these configurations using sensitivity, specificity, Youden’s index, peak memory usage, and runtime (rate—reads per second)."
+    },
+    {
+     "source": "@paper",
+     "text": "10.5281/zenodo.10472796"
+    },
+    {
+     "source": "@zenodo-10472796",
+     "text": "\"id\": \"cc-zero\""
+    },
+    {
+     "source": "@paper",
+     "text": "https://github.com/mbhall88/classification_benchmark"
+    },
+    {
+     "source": "@paper",
+     "text": "License: MIT"
+    }
+   ]
+  },
+  {
+   "task": "M. tuberculosis read classification, simulated illumina",
+   "dataset": "Simulated Illumina metagenome, non-human reads",
+   "size": 1417015,
+   "size_unit": "non-human read pairs",
+   "split": null,
+   "primary_metric": "Youden's index",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/mbhall88/classification_benchmark",
+   "data_url": "https://doi.org/10.5281/zenodo.8339791",
+   "data_licence": "CC0-1.0",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For this section of the analysis, we use the nonhuman reads. For the simulated dataset, we are left with 100,733 Nanopore reads (460 Mbp) and 1,417,015 Illumina read pairs (424 Mbp). For the real dataset, we have 915,209 Nanopore reads (3.47 Gbp) and 21,172,961 Illumina read pairs (4.68 Gbp)."
+    },
+    {
+     "source": "@paper",
+     "text": "We assess the performance of these configurations using sensitivity, specificity, Youden’s index, peak memory usage, and runtime (rate—reads per second)."
+    },
+    {
+     "source": "@paper",
+     "text": "10.5281/zenodo.8339791"
+    },
+    {
+     "source": "@zenodo-8339791",
+     "text": "\"id\": \"cc-zero\""
+    },
+    {
+     "source": "@paper",
+     "text": "https://github.com/mbhall88/classification_benchmark"
+    },
+    {
+     "source": "@paper",
+     "text": "License: MIT"
+    }
+   ]
+  },
+  {
+   "task": "M. tuberculosis read classification, artificial real illumina",
+   "dataset": "Artificial real Illumina metagenome, non-human reads",
+   "size": 21172961,
+   "size_unit": "non-human read pairs",
+   "split": null,
+   "primary_metric": "Youden's index",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/mbhall88/classification_benchmark",
+   "data_url": "https://doi.org/10.5281/zenodo.10472796",
+   "data_licence": "CC0-1.0",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For this section of the analysis, we use the nonhuman reads. For the simulated dataset, we are left with 100,733 Nanopore reads (460 Mbp) and 1,417,015 Illumina read pairs (424 Mbp). For the real dataset, we have 915,209 Nanopore reads (3.47 Gbp) and 21,172,961 Illumina read pairs (4.68 Gbp)."
+    },
+    {
+     "source": "@paper",
+     "text": "We assess the performance of these configurations using sensitivity, specificity, Youden’s index, peak memory usage, and runtime (rate—reads per second)."
+    },
+    {
+     "source": "@paper",
+     "text": "10.5281/zenodo.10472796"
+    },
+    {
+     "source": "@zenodo-10472796",
+     "text": "\"id\": \"cc-zero\""
+    },
+    {
+     "source": "@paper",
+     "text": "https://github.com/mbhall88/classification_benchmark"
+    },
+    {
+     "source": "@paper",
+     "text": "License: MIT"
+    }
+   ]
+  }
+ ],
+ "notes": "One paper's evaluation; no leaderboard. There is no training split, so split is null. The README's DOIs for the simulated reads (8339788, 8339790) differ by one from the paper's references (8339789, 8339791); the paper's numbers were fetched and are Zenodo records with the matching titles. Human read removal (Tables 1 to 4) is out of the store's scope for this record but uses the same datasets."
+}

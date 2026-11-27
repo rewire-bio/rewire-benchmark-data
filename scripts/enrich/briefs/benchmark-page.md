@@ -221,6 +221,22 @@ Fix every line it prints until it prints `OK`. Then move to the next benchmark. 
 done (no official source can be found or fetched), write `spec.json` with only `record_id` and `notes`
 explaining why, and move on.
 
+## Numbers belong to the exact set they are quoted for
+
+The first benchmark batch was reviewed at twice the error rate of model pages, and most faults were
+a number attached to the wrong set. Before you write a size, a count or a split:
+
+- A size in a `structured` entry is the size of that entry's own set. A whole-corpus size does not
+  go on each of its panels, and the count from one pairwise comparison is not the benchmark's size.
+  If no saved file gives the figure for that exact set, the field is null and the notes say what the
+  file does give.
+- A count must match the list or table it summarises. Count the rows.
+- A split rule or metric stated for one task or one adaptation setting is written for that task or
+  setting only.
+- A licence, an address, a model wrapper or a metric goes on the page only if a saved file prints it.
+- When you describe what a script does, read the script: say what it runs, not what its name or its
+  README suggests.
+
 ## Report
 
 When all your folders are done, reply with one line per benchmark: folder, OK or not, number of sources,

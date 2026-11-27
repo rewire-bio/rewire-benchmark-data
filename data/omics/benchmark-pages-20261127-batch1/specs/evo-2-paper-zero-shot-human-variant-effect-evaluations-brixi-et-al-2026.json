@@ -1,0 +1,908 @@
+{
+ "record_id": "gfm-guides-20261014-evo2-brixi2026-benchmark-human-vep",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Brixi et al. 2026, Genome modelling and design across all domains of life with Evo 2, Nature 652 (NCBI PMC full-text XML)",
+   "description": "Full-text JATS XML of the published article from NCBI E-utilities efetch (db=pmc, id=13128491).",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13128491&rettype=xml",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13128491/",
+   "version": "PMC13128491.1",
+   "media_type": "application/xml",
+   "sha256": "156d7aa4831cd8c1d6f743a835ff130f126d139334622b7fad852871b7f42deb",
+   "retrieved_at": "2026-11-26T23:47:26Z",
+   "store_bytes": false,
+   "licence": "CC BY-NC-ND 4.0"
+  },
+  {
+   "key": "si",
+   "name": "Text layer of the Evo 2 Supplementary Information PDF (Nature 2026)",
+   "description": "Text extracted with pdftotext -layout from the publisher's Supplementary Information PDF, which holds the Methods. The PDF is kept beside it as artifacts/supplementary-information.pdf.",
+   "file": "artifacts/supplementary-information.txt",
+   "artifact_url": "https://static-content.springer.com/esm/art%3A10.1038%2Fs41586-026-10176-5/MediaObjects/41586_2026_10176_MOESM1_ESM.pdf",
+   "url": "https://doi.org/10.1038/s41586-026-10176-5",
+   "version": "Supplementary Information as published with Nature 652 (2026)",
+   "media_type": "text/plain",
+   "sha256": "890f4c168aca438f2c5c243423cb94bddbbaf16ecda7b06e158a28034cdc8a3c",
+   "retrieved_at": "2026-11-26T23:47:43Z",
+   "store_bytes": false
+  },
+  {
+   "key": "evo2-readme",
+   "name": "ArcInstitute/evo2 README.md at commit 53f19599",
+   "description": "Official Evo 2 code repository README, pinned to a commit.",
+   "file": "artifacts/evo2-readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/ArcInstitute/evo2/53f195997257c56c00e5ef8d33a54f5baad143a6/README.md",
+   "url": "https://github.com/ArcInstitute/evo2",
+   "version": "git commit 53f195997257c56c00e5ef8d33a54f5baad143a6",
+   "media_type": "text/markdown",
+   "sha256": "58787c8ef5cb4fba4c04322a4ceb9f174e2233ec22d4193622fb6bc67d651d89",
+   "retrieved_at": "2026-11-26T23:48:02Z",
+   "store_bytes": true,
+   "licence": "Apache-2.0"
+  }
+ ],
+ "profile": {
+  "summary": "This is the human variant effect evaluation in the Evo 2 paper, not a released benchmark suite. The authors scored ClinVar variants, SpliceVarDB splice variants and BRCA1 and BRCA2 functional assay variants zero-shot with Evo 2 and a range of comparison models, and report AUROC and AUPRC per variant stratum. It is useful for seeing how a DNA language model compares with conservation scores, protein language models and supervised predictors on coding, noncoding, SNV and non-SNV variants.",
+  "summary_source_ids": [
+   "@paper",
+   "@si"
+  ],
+  "summary_source_locator": "Paper: Human variant effect prediction, Fig. 3 legend; SI: A.3.12 to A.3.15",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We used annotations of human clinical and experimentally determined variants to evaluate the ability of Evo 2 to predict biologically important sequence variation."
+   },
+   {
+    "source": "@si",
+    "text": "Using model scores, we classify Pathogenic/Likely Pathogenic variants from Benign/Likely Benign vari-"
+   },
+   {
+    "source": "@paper",
+    "text": "Shown are the AUROCs and AUPRCs for classifying pathogenic and benign variants from ClinVar, across models."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether a model's zero-shot score separates harmful from harmless human variants. Four label sources are used: ClinVar pathogenic or likely pathogenic versus benign or likely benign; SpliceVarDB experimentally validated splice-altering variants; BRCA1 saturation genome editing classes (loss of function versus functional or intermediate); and BRCA2 functional classifications. ClinVar results are split into coding and noncoding, SNV and non-SNV, by phyloP conservation bin and by distance from splice sites, so the evaluation also covers insertions, deletions and other non-SNVs that many predictors cannot score.",
+    "source_ids": [
+     "@si",
+     "@paper"
+    ],
+    "source_locator": "SI: A.3.13 to A.3.15; Paper: Human variant effect prediction",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "we separated variants by genomic context into coding (exonic) and noncoding (intronic, UTR, and intergenic)."
+     },
+     {
+      "source": "@si",
+      "text": "Variants were categorized into four"
+     },
+     {
+      "source": "@paper",
+      "text": "To further evaluate performance on splice variants, we used SpliceVarDB, a repository containing experimentally validated splicing effects."
+     },
+     {
+      "source": "@si",
+      "text": "For BRCA1, SNVs labeled as “LOF” in the original study"
+     },
+     {
+      "source": "@paper",
+      "text": "notably, these non-SNV variants are not possible to score by leading models such as AlphaMissense and GPN-MSA"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "ClinVar is the October 2024 release, restricted to nuclear variants with at least two review stars, with variants of unknown significance removed and variants affecting more than 64 bp of reference or alternate sequence removed. SpliceVarDB variants labelled low frequency are excluded. BRCA1 and BRCA2 labels are the classes assigned in the original assay studies: for BRCA1, 823 loss-of-function SNVs against 3,070 functional or intermediate SNVs; for BRCA2, 1,156 against 5,681. All models score the same variants within each benchmark.",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.12 to A.3.15",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "We use ClinVar (October 2024 release), a database of expert annotated human disease variants [134]. We"
+     },
+     {
+      "source": "@si",
+      "text": "remove variants which affect more than 64 base pairs of reference or alternate allele sequence and remove"
+     },
+     {
+      "source": "@si",
+      "text": "variants of unknown significance from the evaluation. We include only variants on the nuclear genome, with"
+     },
+     {
+      "source": "@si",
+      "text": "as ’low frequency’ in SpliceVarDB."
+     },
+     {
+      "source": "@si",
+      "text": "were classified as loss of function variants ( 𝑁 = 823), while SNVs labeled as “FUNC” ( 𝑁 = 2,821) or “INT”"
+     },
+     {
+      "source": "@si",
+      "text": "( 𝑁 = 249) were labeled as functional/intermediate variants (total 𝑁 = 3,070)."
+     },
+     {
+      "source": "@si",
+      "text": "“P moderate”, and “P supporting” were classified as loss of function variants ( 𝑁 = 1,156), while SNVs labeled as"
+     },
+     {
+      "source": "@si",
+      "text": "For each benchmark, we score the same variants with all models."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Each variant is scored zero-shot as the change in log-likelihood between the variant and reference sequence; a more negative change means more deleterious. Evo 2 scores an 8,192 bp genomic window around the variant. Encoder models use masked marginal likelihood for SNVs and the change in pseudolikelihood for non-SNVs; PhyloP non-SNV scores average the affected positions; Pangolin uses the largest absolute predicted change in splice site usage. Classification is scored with AUROC and AUPRC per stratum. The full per-model, per-stratum results are in Supplementary Data 1. A separate supervised BRCA1 experiment trains ridge regression on Evo 2 embeddings with a position-grouped 80/20 split; it is not part of the zero-shot comparison.",
+    "source_ids": [
+     "@si",
+     "gfm-guides-20261014-evo2-brixi2026-source-supplementary-data-1"
+    ],
+    "source_locator": "SI: A.3.12, A.3.13, A.3.16",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "by taking the delta between the predicted"
+     },
+     {
+      "source": "@si",
+      "text": "Vari- ants assigned a more negative log-likelihood change from reference are considered to be more deleterious."
+     },
+     {
+      "source": "@si",
+      "text": "To score a variant with Evo 2, we take a genomic window of length 8,192 around the variant and calculate"
+     },
+     {
+      "source": "@si",
+      "text": "masked marginal likelihood [108]. To score non-SNVs using encoder models ESM-1b, ESM-2, and Encodon"
+     },
+     {
+      "source": "@si",
+      "text": "we use the change in pseudolikelihood [133]"
+     },
+     {
+      "source": "@si",
+      "text": "ants, evaluating using AUROC and AUPRC."
+     },
+     {
+      "source": "@si",
+      "text": "1,326 genomic positions of BRCA1 that were covered by these SNVs into 1,060 (80%) positions for the train"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "ClinVar October 2024 (coding: 14,319 SNVs and 1,236 non-SNVs; noncoding: 34,761 SNVs and 3,894 non-SNVs), SpliceVarDB (1,181 exonic and 3,769 intronic variants), BRCA1 saturation genome editing SNVs (3,893; 2,077 coding and 1,125 noncoding) and BRCA2 functional SNVs (1,156 loss of function and 5,681 functional or intermediate).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Fig. 3 legend; SI: A.3.15",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "= 14,319 SNVs"
+     },
+     {
+      "source": "@paper",
+      "text": "= 1,236 non-SNVs"
+     },
+     {
+      "source": "@paper",
+      "text": "= 34,761 SNVs"
+     },
+     {
+      "source": "@paper",
+      "text": "= 3,894 non-SNVs"
+     },
+     {
+      "source": "@paper",
+      "text": "= 1,181) and intronic ("
+     },
+     {
+      "source": "@paper",
+      "text": "= 3,769) scoring."
+     },
+     {
+      "source": "@paper",
+      "text": "= 2,077 SNVs) and noncoding ("
+     },
+     {
+      "source": "@paper",
+      "text": "= 1,125 SNVs) regions."
+     },
+     {
+      "source": "@paper",
+      "text": "= 3,893), demonstrating"
+     },
+     {
+      "source": "@si",
+      "text": "“B strong”, “B moderate”, “B supporting” were classified as functional/intermediate variants ( 𝑁 = 5,681)."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "No train or test split for the zero-shot comparison: all variants are evaluation data. The separate supervised BRCA1 experiment splits 1,326 genomic positions 80/20 into 3,104 training and 789 test SNVs.",
+    "status": "source_checked",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.16",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "1,326 genomic positions of BRCA1 that were covered by these SNVs into 1,060 (80%) positions for the train"
+     },
+     {
+      "source": "@si",
+      "text": "This resulted in a total of 3,104 SNVs for the training set and"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "AUROC and AUPRC per stratum; higher is better.",
+    "status": "source_checked",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.13",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "ants, evaluating using AUROC and AUPRC."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "PhyloP (100, 241, 447 and 470 way), ESM models, Nucleotide Transformer, CodonBert, Decodon, EnCodon, RNA-FM, AlphaMissense, GPN-MSA, SpliceAI, Pangolin and CADD, each on the strata it can score.",
+    "status": "source_checked",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.12",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "(PhyloP variants [126]); unsupervised language models of proteins, RNA, and DNA (ESM [127, 109], Nu-"
+     },
+     {
+      "source": "@si",
+      "text": "the-art human variant effect models (AlphaMissense [129], GPN-MSA [92]); supervised splicing prediction"
+     },
+     {
+      "source": "@si",
+      "text": "models (SpliceAI [130], Pangolin [131]); and state-of-the-art ensembles for human VEP (CADD [132])."
+     },
+     {
+      "source": "@si",
+      "text": "PhyloP447, and PhyloP470."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "No variant-level control is described for comparison models. For Evo 2, the authors state it was not trained on human genetic variation or functional genomics data. Supervised comparators such as CADD, SpliceAI and Pangolin may have been trained on overlapping labels; the sources do not address this.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Human variant effect prediction, final paragraph",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Notably, Evo 2 is not trained on any human genetic variation or functional genomics data."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Unreported: the sections read give point AUROC and AUPRC values without confidence intervals or replicates.",
+    "status": "unreported",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.12 to A.3.15"
+   },
+   {
+    "label": "Entity type",
+    "value": "A human genetic variant (SNV, insertion, deletion or multi-nucleotide variant).",
+    "status": "source_checked",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.13",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "Second, we distinguished between single nucleotide variants (SNVs) and complex/non-SNV variants (inser-"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human.",
+    "status": "source_checked",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.14",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "a database of experimentally validated splice variants in humans [135]"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Clinical classifications (ClinVar), experimentally validated splicing effects (SpliceVarDB) and functional scores from BRCA1 saturation mutagenesis and BRCA2 experimental measurements.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Human variant effect prediction; SI: A.3.15",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Evo 2 and other models were used to evaluate"
+     },
+     {
+      "source": "@si",
+      "text": "categories were determined by running a two-component Gaussian mixture model on bimodally distributed"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "DNA models read the genomic sequence around the variant; protein models read the gene's amino acid sequence; conservation and supervised predictors use their own inputs.",
+    "status": "source_checked",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.12",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "DNA models use the DNA sequence around the variant while protein"
+     },
+     {
+      "source": "@si",
+      "text": "models are scored using the amino acid sequence of the gene."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Zero-shot likelihood scoring for the main comparison; one supplementary experiment trains a ridge regression probe on Evo 2 embeddings for BRCA1.",
+    "status": "source_checked",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.12, A.3.16",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "We compare different models’ ability to score mutations, zero-shot"
+     },
+     {
+      "source": "@si",
+      "text": "concatenated to serve as inputs to train a ridge regression model."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Covers non-SNV variants (insertions, deletions, multi-nucleotide variants) as well as SNVs, and noncoding as well as coding regions.",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.13",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "tions, deletions, and multi-nucleotide variants) to assess model performance across different mutation types."
+     }
+    ]
+   },
+   {
+    "text": "Within each benchmark all models score the same variants, and ClinVar results are stratified by conservation and splice-site distance.",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.12, A.3.13",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "For each benchmark, we score the same variants with all models."
+     },
+     {
+      "source": "@si",
+      "text": "ified ClinVar variants according to their phylogenetic conservation scores."
+     }
+    ]
+   },
+   {
+    "text": "Uses functional assay labels (BRCA1, BRCA2, SpliceVarDB) alongside clinical labels.",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.14, A.3.15",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "For both genes, we used the classification of"
+     },
+     {
+      "source": "@si",
+      "text": "to classify muta- tions that cause aberrant splicing"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "It is one paper's evaluation, run by the Evo 2 authors. No scoring code for the full comparison is listed in the availability statements, only the Evo 2 repository with an example BRCA1 notebook. Supplementary Data 1 is described as scores and metadata for the human variant effect prediction analysis; it was not read for this page.",
+    "source_ids": [
+     "@paper",
+     "@evo2-readme"
+    ],
+    "source_locator": "Paper: Code availability; Supplementary information list; evo2 README: Notebooks",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Code and tools for model exploration are available at the following links"
+     },
+     {
+      "source": "@evo2-readme",
+      "text": "shows zero-shot *BRCA1* variant effect prediction"
+     },
+     {
+      "source": "@paper",
+      "text": "Scores and metadata for human variant effect prediction analysis, related to Fig. 3 and Extended Data Fig. 4."
+     }
+    ]
+   },
+   {
+    "text": "Comparison models cover different subsets: GPN-MSA and AlphaMissense cannot score non-SNVs, so some strata compare fewer methods.",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.12",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "but cannot include non-SNVs for models with fixed coordinates"
+     },
+     {
+      "source": "@si",
+      "text": "like GPN-MSA or AlphaMissense."
+     }
+    ]
+   },
+   {
+    "text": "BRCA1 intermediate (INT) variants are merged with functional variants, and BRCA1 and BRCA2 labels come from thresholds set in the original assay studies, so the task is binary even where the assay is graded.",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "SI: A.3.15",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "The INT category was grouped"
+     },
+     {
+      "source": "@si",
+      "text": "together with the FUNC category because of its relatively smaller size."
+     }
+    ]
+   },
+   {
+    "text": "The article is CC BY-NC-ND 4.0, so the text cannot be redistributed in modified form or commercially.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: licence",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Evo 2 human variant evaluation",
+   "steps": [
+    "ClinVar, SpliceVarDB, BRCA1, BRCA2 variants",
+    "Filter and stratify",
+    "Score variant versus reference likelihood",
+    "AUROC and AUPRC per stratum",
+    "Supplementary Data 1"
+   ],
+   "caption": "Zero-shot scores from each model are compared on the same variants within each benchmark.",
+   "source_ids": [
+    "@si",
+    "@paper"
+   ],
+   "source_locator": "SI: A.3.12 to A.3.15; Paper: Human variant effect prediction",
+   "quotes": [
+    {
+     "source": "@si",
+     "text": "For each benchmark, we score the same variants with all models."
+    },
+    {
+     "source": "@paper",
+     "text": "Using the ClinVar database, we compared the ability of Evo 2 against other methods for predicting the pathogenic effects of human genetic variants across diverse variant classes (Supplementary Data"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Supplementary Data 1 (xlsx) holds the per-stratum results but was not fetched or quoted here; it is the existing source gfm-guides-20261014-evo2-brixi2026-source-supplementary-data-1.",
+   "Supplementary Data 1 is described as scores and metadata for the analysis; whether it holds the exact filtered variant lists was not checked because the file was not read.",
+   "No code for the full comparison is named in the paper."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read the NCBI PMC full-text XML (PMC13128491.1), the Supplementary Information PDF text layer (sections A.3.12 to A.3.16) and the ArcInstitute/evo2 README at commit 53f195997257c56c00e5ef8d33a54f5baad143a6, all retrieved on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "The paper names no script or data release that reproduces the full comparison. The Evo 2 README links one example notebook for zero-shot BRCA1 scoring, but gives no commands to run it, and it covers one stratum only.",
+ "structured": [
+  {
+   "task": "ClinVar coding SNVs",
+   "dataset": "ClinVar October 2024 release, filtered",
+   "size": 14319,
+   "size_unit": "variants",
+   "split": "zero-shot, no training split",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/arcinstitute/evo2",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": "2026-03-04",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "= 14,319 SNVs"
+    },
+    {
+     "source": "@si",
+     "text": "We compare different models’ ability to score mutations, zero-shot"
+    },
+    {
+     "source": "@si",
+     "text": "ants, evaluating using AUROC and AUPRC."
+    },
+    {
+     "source": "@paper",
+     "text": "top-level code repository: <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/arcinstitute/evo2\">"
+    },
+    {
+     "source": "@paper",
+     "text": "<pub-date pub-type=\"epub\"><day>4</day><month>3</month><year>2026</year></pub-date>"
+    }
+   ]
+  },
+  {
+   "task": "ClinVar coding non-SNVs",
+   "dataset": "ClinVar October 2024 release, filtered",
+   "size": 1236,
+   "size_unit": "variants",
+   "split": "zero-shot, no training split",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/arcinstitute/evo2",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": "2026-03-04",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "= 1,236 non-SNVs"
+    },
+    {
+     "source": "@si",
+     "text": "We compare different models’ ability to score mutations, zero-shot"
+    },
+    {
+     "source": "@si",
+     "text": "ants, evaluating using AUROC and AUPRC."
+    },
+    {
+     "source": "@paper",
+     "text": "top-level code repository: <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/arcinstitute/evo2\">"
+    },
+    {
+     "source": "@paper",
+     "text": "<pub-date pub-type=\"epub\"><day>4</day><month>3</month><year>2026</year></pub-date>"
+    }
+   ]
+  },
+  {
+   "task": "ClinVar noncoding SNVs",
+   "dataset": "ClinVar October 2024 release, filtered",
+   "size": 34761,
+   "size_unit": "variants",
+   "split": "zero-shot, no training split",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/arcinstitute/evo2",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": "2026-03-04",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "= 34,761 SNVs"
+    },
+    {
+     "source": "@si",
+     "text": "We compare different models’ ability to score mutations, zero-shot"
+    },
+    {
+     "source": "@si",
+     "text": "ants, evaluating using AUROC and AUPRC."
+    },
+    {
+     "source": "@paper",
+     "text": "top-level code repository: <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/arcinstitute/evo2\">"
+    },
+    {
+     "source": "@paper",
+     "text": "<pub-date pub-type=\"epub\"><day>4</day><month>3</month><year>2026</year></pub-date>"
+    }
+   ]
+  },
+  {
+   "task": "ClinVar noncoding non-SNVs",
+   "dataset": "ClinVar October 2024 release, filtered",
+   "size": 3894,
+   "size_unit": "variants",
+   "split": "zero-shot, no training split",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/arcinstitute/evo2",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": "2026-03-04",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "= 3,894 non-SNVs"
+    },
+    {
+     "source": "@si",
+     "text": "We compare different models’ ability to score mutations, zero-shot"
+    },
+    {
+     "source": "@si",
+     "text": "ants, evaluating using AUROC and AUPRC."
+    },
+    {
+     "source": "@paper",
+     "text": "top-level code repository: <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/arcinstitute/evo2\">"
+    },
+    {
+     "source": "@paper",
+     "text": "<pub-date pub-type=\"epub\"><day>4</day><month>3</month><year>2026</year></pub-date>"
+    }
+   ]
+  },
+  {
+   "task": "SpliceVarDB exonic",
+   "dataset": "SpliceVarDB",
+   "size": 1181,
+   "size_unit": "variants",
+   "split": "zero-shot, no training split",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/arcinstitute/evo2",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": "2026-03-04",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "= 1,181) and intronic ("
+    },
+    {
+     "source": "@si",
+     "text": "We compare different models’ ability to score mutations, zero-shot"
+    },
+    {
+     "source": "@si",
+     "text": "ants, evaluating using AUROC and AUPRC."
+    },
+    {
+     "source": "@paper",
+     "text": "top-level code repository: <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/arcinstitute/evo2\">"
+    },
+    {
+     "source": "@paper",
+     "text": "<pub-date pub-type=\"epub\"><day>4</day><month>3</month><year>2026</year></pub-date>"
+    }
+   ]
+  },
+  {
+   "task": "SpliceVarDB intronic",
+   "dataset": "SpliceVarDB",
+   "size": 3769,
+   "size_unit": "variants",
+   "split": "zero-shot, no training split",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/arcinstitute/evo2",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": "2026-03-04",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "= 3,769) scoring."
+    },
+    {
+     "source": "@si",
+     "text": "We compare different models’ ability to score mutations, zero-shot"
+    },
+    {
+     "source": "@si",
+     "text": "ants, evaluating using AUROC and AUPRC."
+    },
+    {
+     "source": "@paper",
+     "text": "top-level code repository: <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/arcinstitute/evo2\">"
+    },
+    {
+     "source": "@paper",
+     "text": "<pub-date pub-type=\"epub\"><day>4</day><month>3</month><year>2026</year></pub-date>"
+    }
+   ]
+  },
+  {
+   "task": "BRCA1 coding SNVs",
+   "dataset": "BRCA1 saturation mutagenesis",
+   "size": 2077,
+   "size_unit": "variants",
+   "split": "zero-shot, no training split",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/arcinstitute/evo2",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": "2026-03-04",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "= 2,077 SNVs) and noncoding ("
+    },
+    {
+     "source": "@si",
+     "text": "We compare different models’ ability to score mutations, zero-shot"
+    },
+    {
+     "source": "@si",
+     "text": "ants, evaluating using AUROC and AUPRC."
+    },
+    {
+     "source": "@paper",
+     "text": "top-level code repository: <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/arcinstitute/evo2\">"
+    },
+    {
+     "source": "@paper",
+     "text": "<pub-date pub-type=\"epub\"><day>4</day><month>3</month><year>2026</year></pub-date>"
+    }
+   ]
+  },
+  {
+   "task": "BRCA1 noncoding SNVs",
+   "dataset": "BRCA1 saturation mutagenesis",
+   "size": 1125,
+   "size_unit": "variants",
+   "split": "zero-shot, no training split",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/arcinstitute/evo2",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": "2026-03-04",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "= 1,125 SNVs) regions."
+    },
+    {
+     "source": "@si",
+     "text": "We compare different models’ ability to score mutations, zero-shot"
+    },
+    {
+     "source": "@si",
+     "text": "ants, evaluating using AUROC and AUPRC."
+    },
+    {
+     "source": "@paper",
+     "text": "top-level code repository: <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/arcinstitute/evo2\">"
+    },
+    {
+     "source": "@paper",
+     "text": "<pub-date pub-type=\"epub\"><day>4</day><month>3</month><year>2026</year></pub-date>"
+    }
+   ]
+  },
+  {
+   "task": "BRCA2 coding and noncoding SNVs",
+   "dataset": "BRCA2 variant dataset with experimental measurements",
+   "size": 6837,
+   "size_unit": "variants",
+   "split": "zero-shot, no training split",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/arcinstitute/evo2",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": "2026-03-04",
+   "quotes": [
+    {
+     "source": "@si",
+     "text": "“P moderate”, and “P supporting” were classified as loss of function variants ( 𝑁 = 1,156), while SNVs labeled as"
+    },
+    {
+     "source": "@si",
+     "text": "“B strong”, “B moderate”, “B supporting” were classified as functional/intermediate variants ( 𝑁 = 5,681)."
+    },
+    {
+     "source": "@si",
+     "text": "We compare different models’ ability to score mutations, zero-shot"
+    },
+    {
+     "source": "@si",
+     "text": "ants, evaluating using AUROC and AUPRC."
+    },
+    {
+     "source": "@paper",
+     "text": "top-level code repository: <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/arcinstitute/evo2\">"
+    },
+    {
+     "source": "@paper",
+     "text": "<pub-date pub-type=\"epub\"><day>4</day><month>3</month><year>2026</year></pub-date>"
+    }
+   ]
+  }
+ ],
+ "notes": "This record is the evaluation in the Evo 2 paper, not a released suite. The BRCA2 size (6,837) is the sum of the two class counts the SI prints (1,156 and 5,681); the paper does not print the total. The results file is Supplementary Data 1 (xlsx), existing source gfm-guides-20261014-evo2-brixi2026-source-supplementary-data-1, not quoted here, so results_url is null. The ClinVar per-stratum sizes for conservation and splice-distance bins are not printed in the text read. code_licence is left null because the Evo 2 repository is not a scoring harness for this evaluation; the repository itself reports Apache-2.0. The existing source evidence-official-8717ffb993cc8f7eddec points at Europe PMC fullTextXML, which was not requested today because the team lead reported it returning HTTP 500; the NCBI copy was used instead."
+}

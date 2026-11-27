@@ -1,0 +1,789 @@
+{
+ "record_id": "dna-pathogen-20261009-benchmark-portik2022-mock-communities",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Portik, Brown and Pierce-Ward 2022, Evaluation of taxonomic classification and profiling methods for long-read shotgun metagenomic sequencing datasets, BMC Bioinformatics (NCBI PMC full-text XML)",
+   "description": "Full-text JATS XML of the published article from NCBI E-utilities efetch (db=pmc, id=9749362).",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=9749362&rettype=xml",
+   "url": "https://doi.org/10.1186/s12859-022-05103-0",
+   "version": "PMC9749362 as retrieved",
+   "media_type": "application/xml",
+   "sha256": "4fe3aa2f67c5a42cf661dcb2cf1867a6857ab44669ee61c8f88c16c0d7422334",
+   "retrieved_at": "2026-11-27T00:02:18Z",
+   "store_bytes": true,
+   "licence": "CC BY 4.0"
+  },
+  {
+   "key": "osf",
+   "name": "Open Science Framework API record for project bqtdu",
+   "description": "OSF API JSON for the project that holds the kreport outputs, Jupyter notebooks and results files named in the data availability statement.",
+   "file": "artifacts/osf-bqtdu.json",
+   "artifact_url": "https://api.osf.io/v2/nodes/bqtdu/",
+   "url": "https://osf.io/bqtdu/",
+   "version": "OSF project bqtdu, last modified 2022-11-16",
+   "media_type": "application/json",
+   "sha256": "a0bf9c39aa592b5d61b6445f210eeed5cf073128a0e2e8164ee9fc033acd0ef0",
+   "retrieved_at": "2026-11-27T00:02:39Z",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "This is a benchmark of taxonomic classification and profiling tools, not of models. Eleven methods, five of them written for long reads, were run on public mock community datasets sequenced with PacBio HiFi, Oxford Nanopore and Illumina, where the species present and their intended abundances are known. Each method is scored on how many reads it uses, how precisely and completely it detects the known species, and how close its abundance estimates are to the manufacturer's specification.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract; Materials and methods",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "Here, we perform a critical benchmarking study using 11 methods, including five methods designed specifically for long reads."
+   },
+   {
+    "source": "@paper",
+    "text": "We applied these tools to several mock community datasets generated using Pacific Biosciences (PacBio) HiFi or Oxford Nanopore Technology sequencing, and evaluated their performance based on read utilization, detection metrics, and relative abundance estimates."
+   },
+   {
+    "source": "@paper",
+    "text": "The species compositions of the mock communities are known, allowing for a complete evaluation of detection metrics."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Three things per method and dataset. Read utilisation: what fraction of the reads the method assigns. Detection: precision, recall and F-score for the known species or genera, where a true positive is a mock community taxon whose read count passes a threshold and a false positive is any taxon not in the community. Abundance accuracy: the L1 distance between estimated and theoretical abundances, with a chi-squared goodness of fit test against the manufacturer's specification.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Detection metrics and Relative abundance estimates",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we define a true positive as the detection of a mock community taxon (based on a read count exceeding the minimum read threshold). We define a false positive as the detection of taxon that is not present in the mock community."
+     },
+     {
+      "source": "@paper",
+      "text": "We calculated several detection metrics (precision, recall, F-scores) which are based on the number of true positives, false positives, and false negatives."
+     },
+     {
+      "source": "@paper",
+      "text": "we calculated an L1 distance (following ["
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "The datasets are public, empirical sequencing runs of commercial mock communities, chosen over simulations because simulations do not capture real error profiles, read length spread or extraction and library effects. They include a PacBio HiFi run of ATCC MSA-1003 (20 bacterial species in staggered abundances from 18% down to 0.02%; 2.4 million HiFi reads, median length 8.3 kb, 20.54 Gb) and a PacBio HiFi run of ZymoBIOMICS D6331 (17 species including one archaeon and two yeasts, staggered from 14% down to 0.0001%; 1.9 million reads, median 8.1 kb, 17.99 Gb), plus Oxford Nanopore R10 and Q20 runs of ZymoBIOMICS D6300 and Illumina runs of both communities. The truth is the species list and the manufacturer's stated genomic DNA abundances.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Mock community datasets; Relative abundance estimates",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We chose empirical datasets versus simulated datasets because simulations do not capture true variation in error profiles, read length heterogeneity, and the effects of DNA extraction, library preparation, and sequencing."
+     },
+     {
+      "source": "@paper",
+      "text": "The ATCC MSA-1003 mock community contains 20 bacteria species in staggered abundances (5 species at 18%, 1.8%, 0.18% and 0.02% abundance levels, respectively)."
+     },
+     {
+      "source": "@paper",
+      "text": "The PacBio ATCC dataset was generated using the Sequel II System and contains 2.4 million HiFi reads with a median length of 8.3 kb, for a total of 20.54 Gb of data"
+     },
+     {
+      "source": "@paper",
+      "text": "The Zymo D6331 mock community contains 17 species (including 14 bacteria, 1 archaea, and 2 yeasts) in staggered abundances."
+     },
+     {
+      "source": "@paper",
+      "text": "The theoretical abundances were obtained from the manufacturer’s specifications, which are based on genomic DNA (vs. cell counts)."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Presence or absence is scored against a minimum percentage of the dataset's total reads, not a fixed read count, because the datasets differ in size. Three thresholds are used: 0.001% (mild), 0.1% (moderate) and 1% (heavy); Table 3 gives the resulting read counts per dataset, for example 24 reads at 0.001% and 24,190 at 1% for HiFi ATCC MSA-1003. Scoring is done at both species and genus level. Abundances are normalised with all false positives summed into an 'Other' category, which is compared against a theoretical abundance of zero, and the chi-squared test uses a Bonferroni correction over the 11 methods, so the altered alpha is 0.0045.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Detection metrics; Relative abundance estimates; Table 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We used a minimum percent threshold (vs. a fixed number of reads) because our datasets contained different numbers of total reads."
+     },
+     {
+      "source": "@paper",
+      "text": "We evaluated three minimum read thresholds, including 0.001% (mild filtering, mainly for removing singleton count taxa for short-read methods), 0.1% (moderate filtering), and 1% (heavy filtering) of the total number of reads per dataset"
+     },
+     {
+      "source": "@paper",
+      "text": "HiFi ATCC MSA-1003</td><td align=\"left\" colspan=\"1\" rowspan=\"1\">PacBio HiFi"
+     },
+     {
+      "source": "@paper",
+      "text": "We performed our evaluations at the species level and the genus level."
+     },
+     {
+      "source": "@paper",
+      "text": "We included the false positives lumped in the “Other” category in this calculation and compared them against a theoretical abundance of zero for this category."
+     },
+     {
+      "source": "@paper",
+      "text": "We applied a Bonferroni correction for multiple testing (n = 11) per dataset, for which α"
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "The paper prints the general command for each method, so a reader can repeat the analysis on the same public datasets. Kraken2 2.1.1 with the pre-built PlusPF database writes a kreport per sample; Bracken 2.6.0 then produces species-level abundances from that kreport. The other methods each have their own commands and databases in the same section. The kreport outputs, notebooks and results files are on the Open Science Framework project bqtdu.",
+    "source_ids": [
+     "@paper",
+     "@osf"
+    ],
+    "source_locator": "Paper: Materials and methods, Profiling method commands; Availability of data and materials; OSF record",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To facilitate reproducible results, we provide the general commands or instructions to run each method."
+     },
+     {
+      "source": "@paper",
+      "text": "The kreport output files for all methods and datasets, along with Jupyter notebooks and results files, are freely available on the Open Science Framework:"
+     },
+     {
+      "source": "@osf",
+      "text": "Evaluation of taxonomic profiling methods for long-read shotgun metagenomic sequencing datasets"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Six public mock community sequencing datasets: HiFi ATCC MSA-1003 and HiFi Zymo D6331 (PacBio Sequel II, 2.4 million and 1.9 million HiFi reads), ONT R10 and ONT Q20 runs of Zymo D6300, and Illumina runs of ATCC MSA-1003 and Zymo D6300. Table 3 prints the read count and the three detection thresholds for each.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 3; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "HiFi ATCC MSA-1003</td><td align=\"left\" colspan=\"1\" rowspan=\"1\">PacBio HiFi"
+     },
+     {
+      "source": "@paper",
+      "text": "The PacBio Zymo D6331 dataset was generated using the Sequel II System and contains 1.9 million HiFi reads"
+     },
+     {
+      "source": "@paper",
+      "text": "ONT R10 Zymo D6300</td><td align=\"left\" colspan=\"1\" rowspan=\"1\">Oxford Nanopore Technologies"
+     },
+     {
+      "source": "@paper",
+      "text": "ONT Q20 Zymo D6300 (ENA: PRJEB43406: ERR5396170)"
+     },
+     {
+      "source": "@paper",
+      "text": "Illumina ATCC MSA-1003 (NCBI: PRJNA510527: SRX5169925)"
+     },
+     {
+      "source": "@paper",
+      "text": "Illumina Zymo D6300 (NCBI: PRJNA648136: SRX8824472)"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Inapplicable: there is no training data. The methods are existing tools with their own reference databases, and every dataset is evaluation data.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Reference databases"
+   },
+   {
+    "label": "Metrics",
+    "value": "Precision, recall and F-score for detection (higher is better), read utilisation as a fraction of reads assigned (higher is better), and L1 distance between estimated and theoretical abundances (lower is better) with a chi-squared goodness of fit test.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We calculated several detection metrics (precision, recall, F-scores) which are based on the number of true positives, false positives, and false negatives."
+     },
+     {
+      "source": "@paper",
+      "text": "We calculated L1 distance by summing the absolute error between the theoretical and empirical estimate per species per community."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "The 11 methods are the comparison set: Kraken2, Bracken, Centrifuge (h22 and h500), MetaPhlAn3, mOTUs2, sourmash (k31 and k51), MetaMaps, MMseqs2, MEGAN-LR-prot, MEGAN-LR-nuc (HiFi and ONT settings) and BugSeq, giving 14 configurations (counted from Table 2 and the methods; the paper does not print the number 14).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Materials and methods, Profiling method commands",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Here, we perform a critical benchmarking study using 11 methods, including five methods designed specifically for long reads."
+     },
+     {
+      "source": "@paper",
+      "text": "labeled as Centrifuge-h22 and Centrifuge-h500, respectively"
+     },
+     {
+      "source": "@paper",
+      "text": "Thus, we include three analyses that involve MEGAN-LR: MEGAN-LR-prot, MEGAN-LR-nuc-HiFi, and MEGAN-LR-nuc-ONT."
+     },
+     {
+      "source": "@paper",
+      "text": "Sourmash (k31 and k51) displayed perfect recall"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "None, and none is possible: the mock community organisms are in the reference databases the methods use. The authors note that the reference database directly affects the outcome and that differences in method design forced the use of different databases, so method and database effects cannot be fully separated.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Reference databases",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The choice of reference database directly affects the outcome of taxonomic profiling."
+     },
+     {
+      "source": "@paper",
+      "text": "However, differences in method design and matching algorithms required the use of multiple reference databases."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "No replicates or confidence intervals for the detection metrics. Abundance estimates are tested with a chi-squared goodness of fit test against the theoretical abundances, with a Bonferroni-corrected alpha of 0.0045.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Relative abundance estimates",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We compared the chi-squared statistic to the critical value obtained at the 95% significance level and obtained a cor"
+     },
+     {
+      "source": "@paper",
+      "text": "We applied a Bonferroni correction for multiple testing (n = 11) per dataset, for which α"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "A sequencing read is the unit a method classifies; a scored example is one taxon (species or genus) called present or absent in one dataset.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Detection metrics",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we scored the presence/absence of a taxon based on whether or not the cumulative read count for that taxon exceeded a minimum percent threshold of the total reads"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Bacteria, with one archaeon and two yeasts in ZymoBIOMICS D6331 and two yeasts in ZymoBIOMICS D6300.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Mock community datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The Zymo D6331 mock community contains 17 species (including 14 bacteria, 1 archaea, and 2 yeasts) in staggered abundances."
+     },
+     {
+      "source": "@paper",
+      "text": "The ATCC MSA-1003 mock community contains 20 bacteria species in staggered abundances"
+     },
+     {
+      "source": "@paper",
+      "text": "including 8 bacteria at 12% abundance and two yeasts at 2% abundance"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Shotgun metagenomic sequencing of commercial mock community DNA standards on PacBio Sequel II (HiFi), Oxford Nanopore (R10.3 and Q20) and Illumina platforms.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Mock community datasets; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We obtained two PacBio HiFi datasets and two ONT datasets from publicly available sources."
+     },
+     {
+      "source": "@paper",
+      "text": "The PacBio Zymo D6331 dataset was generated using the Sequel II System"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Sequencing reads in FASTA form, plus whatever reference database each method requires; the paper lists the exact database build used for each.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Profiling method commands; Reference databases",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "kraken2 --db PlusPF --threads 24 –report SAMPLE.kreport.txt SAMPLE.fasta"
+     },
+     {
+      "source": "@paper",
+      "text": "we used a pre-built database that includes all RefSeq sequences for archaea, bacteria, viruses, plasmid, human, protozoa, and fungi"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Inapplicable: the methods are run as published with their own databases; nothing is trained or fine-tuned. The only tuning explored is the detection threshold and, for Centrifuge, the minimum hit length.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Profiling method commands",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Centrifuge offers the option to specify the minimum length of partial hits required for classification (--min-hitlen). We used two values for this option."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The truth is known: commercial mock communities with stated species and abundances allow precision, recall and abundance error to be computed exactly.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Detection metrics",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The species compositions of the mock communities are known, allowing for a complete evaluation of detection metrics."
+     }
+    ]
+   },
+   {
+    "text": "Real sequencing runs across three platforms rather than simulated reads, which the authors argue keeps error profiles and read length spread realistic.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Mock community datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We chose empirical datasets versus simulated datasets because simulations do not capture true variation in error profiles, read length heterogeneity, and the effects of DNA extraction, library preparation, and sequencing."
+     }
+    ]
+   },
+   {
+    "text": "The command for every method is printed, and the kreport outputs, notebooks and results are deposited on the Open Science Framework.",
+    "source_ids": [
+     "@paper",
+     "@osf"
+    ],
+    "source_locator": "Paper: Profiling method commands; Availability of data and materials; OSF record",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To facilitate reproducible results, we provide the general commands or instructions to run each method."
+     },
+     {
+      "source": "@osf",
+      "text": "\"public\":true"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Reference databases differ between methods because of how the methods are built, so a method's score mixes the method and its database.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Reference databases",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "However, differences in method design and matching algorithms required the use of multiple reference databases."
+     }
+    ]
+   },
+   {
+    "text": "Detection depends on an arbitrary percentage threshold, and the authors note this penalises methods that assign a smaller share of reads.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Detection metrics",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We recognize that setting a minimum detection threshold in this way penalizes methods that assign a smaller proportion of the total reads available."
+     }
+    ]
+   },
+   {
+    "text": "Abundance comparison is imperfect: classifiers give sequence abundances that must be converted, read counts are not weighted by read length, and the authors adjusted two species missing from several databases in HiFi Zymo D6331.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Relative abundance estimates",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "profiling methods provide taxonomic abundances whereas classifiers provide sequence abundances (which must be transformed into taxonomic abundances)"
+     },
+     {
+      "source": "@paper",
+      "text": "We corrected for the absence of two species from multiple databases ("
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Mock community profiling evaluation",
+   "steps": [
+    "Public mock community reads",
+    "Run each method with its own database",
+    "Apply a read percentage threshold",
+    "Score precision, recall and F-score",
+    "Normalise abundances and compute L1 distance",
+    "Chi-squared test against the specification"
+   ],
+   "caption": "The known species list and the manufacturer's abundances are the truth.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Materials and methods",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we scored the presence/absence of a taxon based on whether or not the cumulative read count for that taxon exceeded a minimum percent threshold of the total reads"
+    },
+    {
+     "source": "@paper",
+     "text": "The theoretical abundances were obtained from the manufacturer’s specifications, which are based on genomic DNA (vs. cell counts)."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Per-method precision, recall and abundance values were not transcribed here; they are in the paper's tables and the OSF project.",
+   "The OSF project attaches a licence (OSF licence id 563c1cf88c5e4a3877f9e973, year 2021) whose name is not in the saved record; it must be resolved before the data licence can be stated.",
+   "The genus-level results and the shorter-read variants are described only in general terms."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the NCBI PMC full-text XML (PMC9749362), including the Materials and methods, Table 1, Table 3 and the profiling method commands, and the OSF API record for project bqtdu, both retrieved on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Download one mock community dataset and run the paper's own Kraken2 and Bracken commands on it.",
+  "prerequisites": [
+   "Kraken2 version 2.1.1 and Bracken version 2.6.0, the versions the paper used.",
+   "The pre-built PlusPF database (RefSeq archaea, bacteria, viruses, plasmid, human, protozoa and fungi, released 27 January 2021).",
+   "One mock community dataset, for example HiFi ATCC MSA-1003 from NCBI SRX6095783, converted to FASTA."
+  ],
+  "steps": [
+   {
+    "title": "Get a dataset",
+    "shell": "# HiFi ATCC MSA-1003: NCBI PRJNA546278, run SRX6095783\n# download with your preferred SRA client and convert to SAMPLE.fasta",
+    "explanation": "The paper names the accession for each dataset in its availability statement but gives no download command, so this step is an instruction rather than a command.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Availability of data and materials",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "HiFi ATCC MSA-1003 (NCBI: PRJNA546278: SRX6095783)"
+     }
+    ]
+   },
+   {
+    "title": "Classify the reads with Kraken2",
+    "shell": "kraken2 --db PlusPF --threads 24 –report SAMPLE.kreport.txt SAMPLE.fasta > SAMPLE.kraken",
+    "explanation": "The paper's Kraken2 command, copied as printed. Note that the report flag as printed in the article uses a non-standard dash character.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Profiling method commands, Kraken2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "kraken2 --db PlusPF --threads 24 –report SAMPLE.kreport.txt SAMPLE.fasta"
+     },
+     {
+      "source": "@paper",
+      "text": "We ran Kraken version 2.1.1 for each sample."
+     }
+    ]
+   },
+   {
+    "title": "Estimate species abundances with Bracken",
+    "shell": "bracken -d PlusPF -i SAMPLE.kreport.txt -o SAMPLE.bracken -r 50 -l S -t 10",
+    "explanation": "The paper's Bracken command, which reads the Kraken2 report and gives species-level abundances.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Profiling method commands, Bracken",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "bracken -d PlusPF -i SAMPLE.kreport.txt -o SAMPLE.bracken -r 50 -l S -t 10"
+     },
+     {
+      "source": "@paper",
+      "text": "We ran Bracken version 2.6.0 for each sample, using the kreport outputs from Kraken2."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A Kraken2 report (SAMPLE.kreport.txt) and read assignments (SAMPLE.kraken), then a Bracken species abundance table (SAMPLE.bracken). The authors' own kreport outputs for all methods and datasets are on the OSF project."
+  ],
+  "limitations": [
+   "These commands were read from the paper and have not been executed by Rewire.",
+   "They cover two of the eleven methods; the paper gives separate commands and databases for the rest.",
+   "The paper provides no script that computes precision, recall or L1 distance from these outputs; the notebooks on OSF were not read."
+  ],
+  "source_ids": [
+   "@paper",
+   "@osf"
+  ]
+ },
+ "structured": [
+  {
+   "task": "Species detection at 0.001% of total reads: HiFi ATCC MSA-1003 mock community (PacBio Sequel II HiFi)",
+   "dataset": "HiFi ATCC MSA-1003 mock community (PacBio Sequel II HiFi)",
+   "size": 2419037,
+   "size_unit": "reads in the dataset",
+   "split": "no split; all data are evaluation data",
+   "primary_metric": "F-score",
+   "metric_direction": "higher",
+   "results_url": "https://osf.io/bqtdu/",
+   "code_url": null,
+   "data_url": "https://osf.io/bqtdu/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We calculated several detection metrics (precision, recall, F-scores) which are based on the number of true positives, false positives, and false negatives."
+    },
+    {
+     "source": "@paper",
+     "text": "The kreport output files for all methods and datasets, along with Jupyter notebooks and results files, are freely available on the Open Science Framework:"
+    },
+    {
+     "source": "@paper",
+     "text": "We evaluated three minimum read thresholds, including 0.001% (mild filtering, mainly for removing singleton count taxa for short-read methods), 0.1% (moderate filtering), and 1% (heavy filtering) of the total number of reads per dataset"
+    },
+    {
+     "source": "@paper",
+     "text": "HiFi ATCC MSA-1003</td><td align=\"left\" colspan=\"1\" rowspan=\"1\">PacBio HiFi"
+    }
+   ]
+  },
+  {
+   "task": "Species detection at 0.001% of total reads: HiFi ZymoBIOMICS D6331 gut microbiome standard (PacBio Sequel II HiFi)",
+   "dataset": "HiFi ZymoBIOMICS D6331 gut microbiome standard (PacBio Sequel II HiFi)",
+   "size": 1978852,
+   "size_unit": "reads in the dataset",
+   "split": "no split; all data are evaluation data",
+   "primary_metric": "F-score",
+   "metric_direction": "higher",
+   "results_url": "https://osf.io/bqtdu/",
+   "code_url": null,
+   "data_url": "https://osf.io/bqtdu/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We calculated several detection metrics (precision, recall, F-scores) which are based on the number of true positives, false positives, and false negatives."
+    },
+    {
+     "source": "@paper",
+     "text": "The kreport output files for all methods and datasets, along with Jupyter notebooks and results files, are freely available on the Open Science Framework:"
+    },
+    {
+     "source": "@paper",
+     "text": "We evaluated three minimum read thresholds, including 0.001% (mild filtering, mainly for removing singleton count taxa for short-read methods), 0.1% (moderate filtering), and 1% (heavy filtering) of the total number of reads per dataset"
+    },
+    {
+     "source": "@paper",
+     "text": "The PacBio Zymo D6331 dataset was generated using the Sequel II System and contains 1.9 million HiFi reads"
+    }
+   ]
+  },
+  {
+   "task": "Species detection at 0.001% of total reads: ONT R10.3 ZymoBIOMICS D6300 standard, length-filtered (GridION)",
+   "dataset": "ONT R10.3 ZymoBIOMICS D6300 standard, length-filtered (GridION)",
+   "size": 275318,
+   "size_unit": "reads in the dataset",
+   "split": "no split; all data are evaluation data",
+   "primary_metric": "F-score",
+   "metric_direction": "higher",
+   "results_url": "https://osf.io/bqtdu/",
+   "code_url": null,
+   "data_url": "https://osf.io/bqtdu/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We calculated several detection metrics (precision, recall, F-scores) which are based on the number of true positives, false positives, and false negatives."
+    },
+    {
+     "source": "@paper",
+     "text": "The kreport output files for all methods and datasets, along with Jupyter notebooks and results files, are freely available on the Open Science Framework:"
+    },
+    {
+     "source": "@paper",
+     "text": "We evaluated three minimum read thresholds, including 0.001% (mild filtering, mainly for removing singleton count taxa for short-read methods), 0.1% (moderate filtering), and 1% (heavy filtering) of the total number of reads per dataset"
+    },
+    {
+     "source": "@paper",
+     "text": "ONT R10 Zymo D6300</td><td align=\"left\" colspan=\"1\" rowspan=\"1\">Oxford Nanopore Technologies"
+    }
+   ]
+  },
+  {
+   "task": "Species detection at 0.001% of total reads: ONT Q20 ZymoBIOMICS D6300 standard, length-filtered (PromethION)",
+   "dataset": "ONT Q20 ZymoBIOMICS D6300 standard, length-filtered (PromethION)",
+   "size": 2000000,
+   "size_unit": "reads in the dataset",
+   "split": "no split; all data are evaluation data",
+   "primary_metric": "F-score",
+   "metric_direction": "higher",
+   "results_url": "https://osf.io/bqtdu/",
+   "code_url": null,
+   "data_url": "https://osf.io/bqtdu/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We calculated several detection metrics (precision, recall, F-scores) which are based on the number of true positives, false positives, and false negatives."
+    },
+    {
+     "source": "@paper",
+     "text": "The kreport output files for all methods and datasets, along with Jupyter notebooks and results files, are freely available on the Open Science Framework:"
+    },
+    {
+     "source": "@paper",
+     "text": "We evaluated three minimum read thresholds, including 0.001% (mild filtering, mainly for removing singleton count taxa for short-read methods), 0.1% (moderate filtering), and 1% (heavy filtering) of the total number of reads per dataset"
+    },
+    {
+     "source": "@paper",
+     "text": "ONT Q20 Zymo D6300 (ENA: PRJEB43406: ERR5396170)"
+    }
+   ]
+  },
+  {
+   "task": "Species detection at 0.001% of total reads: Illumina ATCC MSA-1003 mock community (HiSeq 2500)",
+   "dataset": "Illumina ATCC MSA-1003 mock community (HiSeq 2500)",
+   "size": 10038314,
+   "size_unit": "reads in the dataset",
+   "split": "no split; all data are evaluation data",
+   "primary_metric": "F-score",
+   "metric_direction": "higher",
+   "results_url": "https://osf.io/bqtdu/",
+   "code_url": null,
+   "data_url": "https://osf.io/bqtdu/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We calculated several detection metrics (precision, recall, F-scores) which are based on the number of true positives, false positives, and false negatives."
+    },
+    {
+     "source": "@paper",
+     "text": "The kreport output files for all methods and datasets, along with Jupyter notebooks and results files, are freely available on the Open Science Framework:"
+    },
+    {
+     "source": "@paper",
+     "text": "We evaluated three minimum read thresholds, including 0.001% (mild filtering, mainly for removing singleton count taxa for short-read methods), 0.1% (moderate filtering), and 1% (heavy filtering) of the total number of reads per dataset"
+    },
+    {
+     "source": "@paper",
+     "text": "Illumina ATCC MSA-1003 (NCBI: PRJNA510527: SRX5169925)"
+    }
+   ]
+  },
+  {
+   "task": "Species detection at 0.001% of total reads: Illumina ZymoBIOMICS D6300 standard (NovaSeq 6000), subsampled",
+   "dataset": "Illumina ZymoBIOMICS D6300 standard (NovaSeq 6000), subsampled",
+   "size": 20000000,
+   "size_unit": "reads in the dataset",
+   "split": "no split; all data are evaluation data",
+   "primary_metric": "F-score",
+   "metric_direction": "higher",
+   "results_url": "https://osf.io/bqtdu/",
+   "code_url": null,
+   "data_url": "https://osf.io/bqtdu/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We calculated several detection metrics (precision, recall, F-scores) which are based on the number of true positives, false positives, and false negatives."
+    },
+    {
+     "source": "@paper",
+     "text": "The kreport output files for all methods and datasets, along with Jupyter notebooks and results files, are freely available on the Open Science Framework:"
+    },
+    {
+     "source": "@paper",
+     "text": "We evaluated three minimum read thresholds, including 0.001% (mild filtering, mainly for removing singleton count taxa for short-read methods), 0.1% (moderate filtering), and 1% (heavy filtering) of the total number of reads per dataset"
+    },
+    {
+     "source": "@paper",
+     "text": "Illumina Zymo D6300 (NCBI: PRJNA648136: SRX8824472)"
+    }
+   ]
+  }
+ ],
+ "notes": "This record is one paper's evaluation of existing tools, not a released suite with a harness or leaderboard, so code_url is null and results_url points at the authors' OSF deposit, which the OSF API record shows as public, with a licence attached (OSF licence id 563c1cf88c5e4a3877f9e973, year 2021) whose name is not in the saved record, so data_licence is null. size is the number of reads in each dataset as Table 3 prints it, not a count of scored examples. The six structured entries match the store's six protocols, all at the 0.001% species-level threshold; the paper also reports the 0.1% and 1% thresholds and genus-level results. The raw datasets themselves live at the NCBI, ENA and lab addresses in the availability statement, not on OSF; data_url is given as the OSF project because that is where the authors' processed outputs and results sit."
+}
