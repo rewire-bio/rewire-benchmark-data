@@ -10,9 +10,11 @@
  * problem, and the ones rdf-kg-mcp's draft overlay made that nothing else does (recordChecks):
  *   - a controlled value that is not a concept of its vocabulary (validateVocabularies);
  *   - an ID already in the store, or twice in the batch;
- *   - a source_ids entry listed twice, that is not a source record, or that is neither in the
- *     batch nor in the store;
- *   - a link listed twice (same relation and target) or a link to the record itself;
+ *   - a source_ids entry listed twice, that is not a source record (a stored record not in
+ *     data/entities is evidence, so not a source), or that is neither in the batch nor in the store;
+ *   - a link listed twice (same relation and target), a link to the record itself, or a link to
+ *     another record of the batch that the relation rules do not allow (releaseProblems checks
+ *     links to stored records);
  *   - a number JSON cannot carry exactly (an integer beyond 2^53, or one too large to be finite)
  *     and text with a lone surrogate.
  * Usage: npx tsx scripts/agents/intake-check.ts [--json] <batch.jsonl>... (an update checks its changed
@@ -92,7 +94,8 @@ export function recordChecks(records: Rec[], storedTargets: Map<string, { kind: 
       if (sources.indexOf(source) !== i) problems.push(`${id}: source_ids[${i}] ${source} is listed twice`);
       else if (kindOf.has(source)) {
         if (kindOf.get(source) !== "source") problems.push(`${id}: source_ids[${i}] ${source} is a ${kindOf.get(source)}, not a source`);
-      } else if (store.ids && !store.ids.has(source)) problems.push(`${id}: source_ids[${i}] ${source} is neither in the batch nor in the store`);
+      } else if (store.ids?.has(source)) problems.push(`${id}: source_ids[${i}] ${source} is a stored evidence record, not a source`);
+      else if (store.ids) problems.push(`${id}: source_ids[${i}] ${source} is neither in the batch nor in the store`);
     });
     const seen = new Set<string>();
     (Array.isArray(record.links) ? record.links : []).forEach((link, i) => {
@@ -100,6 +103,11 @@ export function recordChecks(records: Rec[], storedTargets: Map<string, { kind: 
       const key = JSON.stringify([link.relation, link.target_id]);
       if (seen.has(key)) problems.push(`${id}: links[${i}] ${link.relation} to ${link.target_id} is listed twice`);
       else if (link.target_id === id) problems.push(`${id}: links[${i}] ${link.relation} links the record to itself`);
+      else if ((count.get(link.target_id) ?? 0) > 0) {
+        const target = records.find((r) => r.id === link.target_id)!;
+        if (!relationAllows(link.relation, record.kind, target.kind))
+          problems.push(`${id}: links[${i}] relation ${link.relation} cannot link a ${record.kind} to a ${target.kind} (${link.target_id})`);
+      }
       seen.add(key);
     });
     for (const p of valueProblems(record)) problems.push(`${id}: ${p}`);

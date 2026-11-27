@@ -18,7 +18,7 @@ uses. The first call is `dataset_info`, to prove the bundle loaded and to log it
 | `dataset_info` | both agents, at start | `kb/queries.py dataset_info` | Done: checkout commit, release ID when a discrepancies file is given, build time, counts by kind |
 | `search` | intake (duplicate probes, link targets, verifier's `kg_search`), reviewer (duplicates), plugin | `kb/queries.py search` (`kb/search.py`) | Done: same index, scores and ranks as the graph on bundle 2026-11-26-36acdf5e0cfa |
 | `describe_resource` | intake (verifier's `kg_describe`), plugin | `kb/queries.py describe_resource` | Done: returns the record itself, not statements; the caller changes |
-| `draft_upsert` | intake (duplicate probes, the batch) | `kb/queries.py duplicates` (`kb/duplicates.py`), `intake-check --json` with the per-record checks, then `records add` | Tools done, not switched: `duplicates` gives the same answer as `draft_upsert` on all 1,177 drafts compared on bundle 2026-11-26-36acdf5e0cfa; `intake-check` makes every per-record check listed below |
+| `draft_upsert` | intake (duplicate probes, the batch) | `kb/queries.py duplicates` (`kb/duplicates.py`), `intake-check --json` with the per-record checks, then `records add` | Tools done, not switched: `duplicates` gives the same answer as `draft_upsert` on all 1,176 single drafts and one batch of five compared on bundle 2026-11-26-36acdf5e0cfa; `intake-check` makes every per-record check listed below |
 | `draft_change` | intake (entity update) | the intake's own changes file, which it already writes as the fallback | Exists as fallback |
 | `draft_remove` | intake (probes, dropped records) | nothing: no overlay to clean | Goes away |
 | `draft_export` | intake | `batchLines` in `intake.mjs`, already the fallback | Exists as fallback |
@@ -131,16 +131,24 @@ per-record problems allow, and a fixed byte form for the batch.
    the other records of the same call, as in the export's summary. A draft whose ID is already in
    the database gets `error` instead, as the server refused it. Tests: `kb/tests/test_duplicates.py`
    checks the rules on 315 records of all 17 kinds of the current store; `kb/tools/compare_duplicates.py`
-   runs the server's `DraftOverlay.upsert` (what `draft_upsert` calls) and the tool on the same
-   1,177 drafts against bundle 2026-11-26-36acdf5e0cfa and a database built from its commit, and
-   every answer was equal, scores, ranks and order included. Pass the agents' discrepancies file,
+   runs the server's `DraftOverlay.upsert` (what `draft_upsert` calls, in process rather than over
+   MCP) and the tool on the same drafts against bundle 2026-11-26-36acdf5e0cfa, a database built
+   from its commit and the bundle's `discrepancies.json`: 1,176 single drafts from 315 records
+   (each record under a new ID, its name squashed and upper-cased, two of its words among words no
+   record has, and a name no record has) and one batch of five read back as the export summarises
+   it. Every answer was equal, scores, ranks, order and `same_name_omitted` included. The answer
+   gives only the duplicate lists: the rest of `kg.json` (release, `manifest_sha256`,
+   `batch_sha256`, each record's links and warnings, from the export's summary) has to be built by
+   the intake when it switches. Pass the agents' discrepancies file,
    or `--discrepancies none`, as for `search`: discrepancies are candidates of the `same name` list
    too.
 3. **Checks before writing, per record.** Done in `intake-check.ts` (`recordChecks`): controlled
    values (the per-record form of `validateVocabularies`, which stops at 20), an ID already in the
    store (read from the provenance log, so evidence IDs count; a record from a changes line must
    instead be in the store) or twice in the batch, a source listed twice, not a source record, or
-   in neither the batch nor the store, a repeated link pair, a link to itself, and numbers and
+   in neither the batch nor the store, a repeated link pair, a link to itself, a link to another
+   record of the batch that the relation rules do not allow (links to stored records were already
+   checked), and numbers and
    text JSON does not carry exactly. The integer rule is JavaScript's: an integer beyond 2^53 is
    flagged when `JSON.stringify` would write it as digits (below 1e21), which is what the server
    would have read in the exported bytes. `--json` prints `{records: {<id>: [problems]}, batch:

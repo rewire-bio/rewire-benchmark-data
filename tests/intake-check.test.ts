@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { intakeProblems, problemsByRecord, recordChecks, valueProblems } from "../scripts/agents/intake-check";
+import { main } from "../scripts/agents/intake.mjs";
 
 // The per-record checks of scripts/agents/intake-check.ts, on a batch the intake agent wrote (a
 // model and its source, since merged) and on changed copies of it. Each check has one record that
@@ -27,6 +28,17 @@ describe("intake-check keeps what it checked before", () => {
   it("passes a batch the intake agent wrote", () => {
     expect(intakeProblems(batch())).toEqual([]);
     expect(recordChecks(batch())).toEqual([]);
+  });
+
+  it("passes the batch of the intake agent's dry run on its fixtures", async () => {
+    const root = mkdtempSync(join(tmpdir(), "intake-check-"));
+    roots.push(root);
+    const result = await main(["--dry-run", "--store-dir", "tests/agents-intake-fixtures/entities", "--root", root, "--no-store-checks"], {},
+      { now: () => new Date("2026-11-19T09:00:00Z"), log: () => {} });
+    const written = readFileSync(join(root, result.batchDir, "batch.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+    expect(written.length).toBe(4);
+    expect(intakeProblems(written)).toEqual([]);
+    expect(recordChecks(written)).toEqual([]);
   });
 
   it("still reports a model without entity_level through release validation", () => {
@@ -72,11 +84,26 @@ describe("per-record checks", () => {
     expect(recordChecks(cite([SOURCE, "stored-source"]), stored, { ids: new Set(stored.keys()) })).toEqual([]);
     expect(recordChecks(cite([SOURCE, SOURCE]), stored)).toEqual([`${MODEL}: source_ids[1] ${SOURCE} is listed twice`]);
     expect(recordChecks(cite(["stored-model"]), stored)).toEqual([`${MODEL}: source_ids[0] stored-model is a model, not a source`]);
+    expect(recordChecks(cite(["stored-result"]), stored, { ids: new Set(["stored-result"]) })).toEqual([
+      `${MODEL}: source_ids[0] stored-result is a stored evidence record, not a source`,
+    ]);
     expect(recordChecks(cite(["nowhere"]), stored, { ids: new Set(stored.keys()) })).toEqual([
       `${MODEL}: source_ids[0] nowhere is neither in the batch nor in the store`,
     ]);
     // Without the store's IDs a source it may hold is not reported.
     expect(recordChecks(cite(["nowhere"]), stored)).toEqual([]);
+  });
+
+  it("a link to another record of the batch is one the relation rules allow", () => {
+    const variant = (target: string) => {
+      const records = batch();
+      const model = records.find((r) => r.id === MODEL)!;
+      return [...records, { ...model, id: "intake-check-test-variant", links: [{ relation: "variant_of", target_id: target }] }];
+    };
+    expect(recordChecks(variant(MODEL))).toEqual([]);
+    expect(recordChecks(variant(SOURCE))).toEqual([
+      `intake-check-test-variant: links[0] relation variant_of cannot link a model to a source (${SOURCE})`,
+    ]);
   });
 
   it("a link is listed once and does not point to its own record", () => {
