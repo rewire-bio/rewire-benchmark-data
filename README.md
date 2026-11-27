@@ -13,6 +13,7 @@ The website and API that display this data live in [rewire-database](https://git
 | Document | What it covers |
 | --- | --- |
 | [docs/knowledge-base.md](docs/knowledge-base.md) | The whole pipeline in plain terms: the records, how they are filled in batches and checked, releases, the nightly graph, comparing results across papers |
+| [docs/todo.md](docs/todo.md) | What is left to do on the data, grouped by goal, with the first step for each |
 | [docs/rebuild.md](docs/rebuild.md) | The rebuild decided on 26 November 2026: the single design the system is moving to, the plan, and the state of each step |
 | [docs/scorecard.md](docs/scorecard.md) | Counts of how complete models, benchmarks, methods, protocols, results and use cases are; rebuilt by `scripts/enrich/scorecard.py` |
 | [docs/collection.md](docs/collection.md) | The collection procedure: search, capture sources, extract, review, validate. Start here. |
