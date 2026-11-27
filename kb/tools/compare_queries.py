@@ -328,7 +328,6 @@ def check_search_inputs(store, manifest, records) -> list[str]:
     """The records search indexes and their classes, against the subjects rdf-kg-mcp indexes
     (any label, description or declared search text outside the ontology graph) and their types."""
     import pyoxigraph as ox
-    from search import TEXT_ATTRIBUTES  # noqa: F401  (the index reads them; listed in the manifest)
     ontology = ox.NamedNode(manifest["graphs"]["ontology"])
     predicates = [*manifest["label_predicates"], "rdfs:comment", "skos:definition", "obo:IAO_0000115", "dcterms:description",
                   *manifest.get("search", {}).get("text_predicates", [])]
@@ -361,6 +360,10 @@ def check_search_inputs(store, manifest, records) -> list[str]:
     return problems
 
 
+# rdf-kg-mcp itself finds 97.0% of the gold pairs of bundle 2026-11-26-36acdf5e0cfa in its top 5.
+SEARCH_FLOOR = 0.95
+
+
 def search_gold(store, records, misses: int = 5) -> int:
     """Run scripts/kg/search-gold.rq on the bundle and search the database for each pair, as
     rdf-kg-mcp's scripts/search_recall.py does: the expected record's class as the types filter,
@@ -389,9 +392,13 @@ def search_gold(store, records, misses: int = 5) -> int:
         for m in missed:
             print(f"    missed {m}")
     total = sum(h[0] for h in hits.values())
-    print(f"search    all gold pairs: {total}; top 3 {sum(h[1] for h in hits.values())}, "
-          f"top 5 {sum(h[2] for h in hits.values())}; {time.time() - started:.0f} s")
-    return total - sum(h[2] for h in hits.values())
+    found = sum(h[2] for h in hits.values())
+    print(f"search    all gold pairs: {total}; top 3 {sum(h[1] for h in hits.values())}, top 5 {found}; "
+          f"{time.time() - started:.0f} s")
+    if found < SEARCH_FLOOR * total:
+        print(f"DIFFERENT search finds fewer than {SEARCH_FLOOR:.0%} of the gold pairs in its top 5")
+        return 1
+    return 0
 
 
 def main() -> None:
@@ -432,7 +439,7 @@ def main() -> None:
     if not args.only or "search" in args.only.split(","):
         records = queries.Records(args.db, discrepancies=args.discrepancies)
         failures += len(check_search_inputs(store, manifest, records))
-        search_gold(store, records)
+        failures += search_gold(store, records)
     sys.exit(1 if failures else 0)
 
 

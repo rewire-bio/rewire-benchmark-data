@@ -853,7 +853,10 @@ LOCAL_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$|^$")
 class Records:
     """The record tools the agents used from rdf-kg-mcp: search, describe_resource and
     dataset_info, answered from kb.sqlite and discrepancies.json. Nothing is loaded until a
-    tool needs it; the search index is built on the first search (about five seconds)."""
+    tool needs it; the search index is built on the first search (about three seconds).
+    Without a discrepancies file the findings are derived from the database when first needed
+    (about ten seconds); discrepancies="none" leaves them out, so search and describe_resource
+    then know no discrepancy."""
 
     def __init__(self, db_path: str = "kb/build/kb.sqlite", discrepancies: str | None = None):
         self.db_path = db_path
@@ -882,7 +885,8 @@ class Records:
     @property
     def report(self) -> dict:
         if not hasattr(self, "_report"):
-            self._report = load_report(self.discrepancies_path, self.db_path)
+            self._report = ({"release_id": None, "discrepancies": []} if self.discrepancies_path == "none"
+                            else load_report(self.discrepancies_path, self.db_path))
         return self._report
 
     @property
@@ -974,15 +978,25 @@ class Records:
         return out
 
     def dataset_info(self) -> dict:
-        """What the agents print when they start: the release the discrepancies are for, when the
-        database was built, and how many records of each kind it holds."""
+        """What the agents print when they start: the commit of this checkout, the release the
+        discrepancies file is for, when the database was built, and its record counts. The
+        database does not record the commit it was built from; an agent builds it from the
+        checkout it runs in, so the checkout's commit identifies it. Findings are counted only
+        when a discrepancies file was given or they were already loaded."""
+        import subprocess
         db_file = Path(self.db_path)
         kinds = dict(self.db.execute("SELECT kind, count(*) FROM record GROUP BY kind ORDER BY kind").fetchall())
-        report = self.report
-        findings = report["discrepancies"]
+        try:
+            commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True,
+                                    check=True).stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
+            commit = None
+        report = self.report if self.discrepancies_path or hasattr(self, "_report") else None
+        findings = report["discrepancies"] if report else None
         return {
             "dataset": "rewire-benchmark-data",
-            "release_id": report.get("release_id"),
+            "commit": commit,
+            "release_id": report.get("release_id") if report else None,
             "database": str(db_file),
             "built_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(db_file.stat().st_mtime)),
             "records": sum(kinds.values()),
@@ -990,8 +1004,9 @@ class Records:
             "records_by_kind": kinds,
             "links": self.db.execute("SELECT count(*) FROM link").fetchone()[0],
             "source_citations": self.db.execute("SELECT count(*) FROM record_source").fetchone()[0],
-            "discrepancies": {"total": len(findings), "open": sum(f["review_state"] not in SETTLED for f in findings),
-                              "schema_version": report.get("schema_version")},
+            "discrepancies": None if findings is None else {
+                "total": len(findings), "open": sum(f["review_state"] not in SETTLED for f in findings),
+                "schema_version": report.get("schema_version")},
             "queries": list(QUERIES),
             "tools": list(TOOLS),
         }
@@ -1100,7 +1115,8 @@ def main() -> None:
     parser.add_argument("--db", default="kb/build/kb.sqlite")
     parser.add_argument("--use-cases", help="the release's use-cases.json, which says what the release serves "
                         "(default: public/omics/releases/<release in public/omics/manifest.json>/use-cases.json)")
-    parser.add_argument("--discrepancies", help="discrepancies.json from kb/discrepancies.py")
+    parser.add_argument("--discrepancies", help="discrepancies.json from kb/discrepancies.py; for the tools, none "
+                        "leaves the findings out")
     parser.add_argument("--format", choices=("json", "table"), default="json")
     args = parser.parse_args()
     if args.list or not args.query:

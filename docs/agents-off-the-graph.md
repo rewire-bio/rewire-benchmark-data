@@ -14,10 +14,10 @@ uses. The first call is `dataset_info`, to prove the bundle loaded and to log it
 
 | Tool | Used by | Replacement | State |
 | --- | --- | --- | --- |
-| `dataset_info` | both agents, at start | `kb/queries.py dataset_info` | Done: release ID, build time, counts by kind |
+| `dataset_info` | both agents, at start | `kb/queries.py dataset_info` | Done: checkout commit, release ID when a discrepancies file is given, build time, counts by kind |
 | `search` | intake (duplicate probes, link targets, verifier's `kg_search`), reviewer (duplicates), plugin | `kb/queries.py search` (`kb/search.py`) | Done: same index, scores and ranks as the graph on bundle 2026-11-26-36acdf5e0cfa |
 | `describe_resource` | intake (verifier's `kg_describe`), plugin | `kb/queries.py describe_resource` | Done: returns the record itself, not statements; the caller changes |
-| `draft_upsert` | intake (duplicate probes, the batch) | `duplicates` check in kb, plus `intake-check` and `records add` | Not started |
+| `draft_upsert` | intake (duplicate probes, the batch) | a `duplicates` tool in kb, `intake-check` extended to the per-record checks it lacks, then `records add` | Not started |
 | `draft_change` | intake (entity update) | the intake's own changes file, which it already writes as the fallback | Exists as fallback |
 | `draft_remove` | intake (probes, dropped records) | nothing: no overlay to clean | Goes away |
 | `draft_export` | intake | `batchLines` in `intake.mjs`, already the fallback | Exists as fallback |
@@ -74,16 +74,31 @@ The intake writes `batch.jsonl` to the batch folder and runs `scripts/agents/int
 `records -- change <review> <batch dir> --changes changes.jsonl`. It copies `summary` into the
 batch's `kg.json`, where the reviewer reads `summary.added[].possible_duplicates`.
 
-`records add` already checks more than the overlay: the record schema, no duplicate IDs,
-vocabularies, attributes, descriptions, derivations, concerns, links against the whole store, and
-the SHACL shapes on the new records and their neighbours, restoring the store on any failure.
-`records change --changes` checks the base digest against provenance, that the record was not
-edited in place, that its ID and kind are unchanged, and that the bytes it writes have the digest
-in the file.
+Two other checks run on the batch today, and they differ from the overlay in one way that
+matters: the overlay reports problems per record, so the intake drops one record and keeps the
+rest, while `records add` stops at the first problem and fails the whole batch.
 
-So the overlay adds three things records add does not: the possible duplicates, earlier feedback
-that lets the intake drop a bad record and draft the rest again, and a fixed byte form for the
-batch.
+- `scripts/agents/intake-check.ts` collects problems per record, prefixed with the record's ID:
+  the kind must be one the intake may add (model, method, benchmark, dataset, source), so a
+  baseline is refused as the overlay refuses it; undeclared attributes and attribute values of the
+  wrong type (`attributeIssues`); attributes `normalizeAttributes` would rewrite; the depth tier;
+  a link to a store record that does not exist or that the relation rules do not allow; and the
+  release's record schema (`validateSnapshot`).
+- `records add` (`addBatch`, then `validateRecords` in `scripts/omics/schema.ts`) throws on the
+  first problem: the record schema, an ID already in the store or twice in the batch, controlled
+  vocabulary values (`validateVocabularies`), attributes, descriptions, derivations, concerns, a
+  `source_ids` entry that is not a source record, a link target missing from the store and the
+  batch, a relation the rules do not allow, then the SHACL shapes on the new records and their
+  neighbours. It restores the store on any failure.
+- `records change --changes` checks the base digest against provenance, that the record was not
+  edited in place, that its ID and kind are unchanged, and that the bytes it writes have the digest
+  in the file.
+
+Server checks that nothing else makes per record: controlled vocabulary values, a source that is
+not a source record, an ID already in the store (all three only fail the whole batch in
+`records add`); a link pair listed twice, a link to itself, a source listed twice, and integers
+beyond 2^53 (none checked elsewhere). And three things beyond checks: the possible duplicates,
+the drop-and-redraft loop that per-record problems allow, and a fixed byte form for the batch.
 
 ## The smallest replacement
 
@@ -97,13 +112,15 @@ batch.
    same search and the same squashed names, over the database instead of the release. It is the
    only check the overlay made that nothing else makes, so it is ported exactly, with the same
    output shape, so `kg.json` and the reviewer do not change.
-3. **Checks before writing.** In `draftThroughKg`, replace `upsert` with a local loop: for each
-   record, link and source targets must exist in the database or in the batch (an error now, not a
-   warning, since the database is the current checkout), then `duplicates`, then
-   `intake-check.ts` on the batch. Drop and repeat as today. The schema, vocabulary and link rule
-   checks are left to `intake-check` and `records add`, which already run and are the gate; the
-   standard library has no JSON Schema validator, and the draft block is derived from those checks
-   anyway.
+3. **Checks before writing, per record.** Extend `intake-check.ts` with the per-record checks
+   listed above that it lacks: `validateVocabularies` on each record, a source that is not a
+   source record, an ID already in the store, a repeated link pair or source, a link to itself,
+   and unsafe integers. Add a `--json` output of problems by record ID. Then in `draftThroughKg`,
+   replace `upsert` with: run `intake-check --json` on the batch, then `duplicates`; drop records
+   with problems or unruled duplicates, prune their links and unused sources, and repeat, as today.
+   A link target missing from the store is an error, not the overlay's warning, since the
+   database is the current checkout. These checks stay in TypeScript because they are the store's
+   own code; the draft block's JSON Schema was derived from it.
 4. **Export.** `batchLines` in `intake.mjs` writes the bytes `draft_export` writes (it is the
    fallback today, and a test checks it against a stand-in for the export). For an update, the
    intake's own changes line (the `own` branch of `draftChange`) is the replacement. The server's
@@ -121,8 +138,10 @@ batch.
    against the bundle and against the database. They should differ only by records added after the
    bundle's release.
 2. **Intake, reading.** `kgCandidates` link-target search and the verifier's `kg_search` and
-   `kg_describe`. Test: the dry run on `tests/agents-intake-kg-fixtures` with a fixture database
-   built from that bundle's records; the candidate text must be the same.
+   `kg_describe`. Test: the dry run on `tests/agents-intake-kg-fixtures`. Its bundle is RDF, so
+   add the same records as store lines (`data/entities/*.jsonl` in a fixture folder, written once
+   from the records the bundle was exported from) and build the fixture database with
+   `kb/migrate.py` run in that folder; the candidate text must be the same.
 3. **Intake, drafting.** Duplicate probes and `draftThroughKg` on the new loop, `batchLines` for
    the export, the `own` changes file for updates. Test: on the fixtures, `batch.jsonl`,
    `changes.jsonl` and `kg.json` byte for byte against a run with the server; the dropped records
@@ -145,10 +164,16 @@ made through the server.
   excluded or not yet checked record is in the store but not searched, as today. Whether
   duplicates should include them is a decision to take once the switch works.
 - **Discrepancy labels.** The graph's search also returns discrepancies. Without
-  `discrepancies.json` the tool derives them (about ten seconds); pass the release's file, or skip
-  them for the agents, since they never match a record kind filter.
+  `discrepancies.json` the tool derives them (about six seconds). The agents should pass
+  `--discrepancies none`: a kind filter never matches a discrepancy, but leaving them out changes
+  the document count, so scores move slightly (2080.1 against 2080.2 for Evo 2) and ranks can.
+- **Identity.** The bundle named its release. A database built from the checkout has none:
+  `dataset_info` gives the checkout's commit, and `release_id` only when a discrepancies file is
+  passed. The agents should log the commit. Recording the commit in `kb.sqlite` itself would need
+  a change to `kb/migrate.py`.
 - **Ranking drift.** `kb/search.py` copies rdf-kg-mcp v0.4.0. A later server version may rank
-  differently; the gold pairs in `compare_queries.py` catch a regression on our side only.
+  differently. The gold pairs in `compare_queries.py` fail the run below 95 percent in the top 5
+  (the graph gets 97.0), which catches a regression on our side only.
 - **Lost safeguards.** If step 3 drops the duplicate check or the drop-and-redraft loop, bad
   batches reach a pull request. The fixture comparison in step 3 is the guard.
 
