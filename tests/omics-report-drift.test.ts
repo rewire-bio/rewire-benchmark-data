@@ -139,6 +139,13 @@ describe("rewriting a tagged figure", () => {
     expect(unknown.map((mark) => mark.figure)).toEqual(["not_a_figure"]);
   });
 
+  it("rewrites both figures when two tags on one line print the same digits", () => {
+    const row = "| Exact | 17,094 <!--figure:legacy.value_exact--> | 17,094 <!--figure:value_exact--> |";
+    const { text, changed } = retag(row, { "legacy.value_exact": 16158, value_exact: 16200 });
+    expect(text).toBe("| Exact | 16,158 <!--figure:legacy.value_exact--> | 16,200 <!--figure:value_exact--> |");
+    expect(changed).toHaveLength(2);
+  });
+
   it("leaves a document that already agrees exactly as it is", () => {
     const current = retag(document, { resolved: 5399, resolved_pct: 10.3 });
     expect(current.text).toBe(document);
