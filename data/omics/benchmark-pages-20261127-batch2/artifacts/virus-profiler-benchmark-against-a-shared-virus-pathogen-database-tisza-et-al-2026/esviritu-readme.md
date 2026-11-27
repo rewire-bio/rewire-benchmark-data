@@ -1,0 +1,199 @@
+# EsViritu
+
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/esviritu/badges/downloads.svg)](https://anaconda.org/bioconda/esviritu) [![Anaconda-Server Badge](https://anaconda.org/bioconda/esviritu/badges/version.svg)](https://anaconda.org/bioconda/esviritu)
+
+EsViritu is a read mapping pipeline for detection and measurement of human and animal virus pathogens using sequencing reads from metagenomic environmental or clinical samples.
+
+This approach is sensitive, specific, and ideal for exploring virus presence/absence/diversity within and between metagenomic or clinical samples. Interactive reports make it easy to see the breadth of read coverage for each detected virus. This tool should reliably detect virus reads with 80% ANI or greater to reference genomes.
+
+See documentation and manual on the dedicated ReadTheDocs [site](https://esviritu.readthedocs.io/en/latest/)
+## Features
+
+As of EsViritu `v1.0.0` (and later):
+
+1) Highly curated sequence-to-taxonomy database of known human, animal, and plant viruses.
+
+2) Single read sensitivity for detection (reads >= 100 nt are recommended).
+
+3) Assembly-aware genome reconstructions for segmented and non-segmented viruses.
+
+4) Expression of uncertainty (i.e. average read identity to reference, nucleotide diversity measurement).
+
+5) Attractive HTML reports.
+
+## Schematic
+
+
+![Schematic](docs/schematic/pipeline_schematic_v1.3.0.png)
+
+Logo by [Adrien Assie](https://github.com/aassie)
+
+
+## Interactive report of detected viruses
+
+![Example](docs/schematic/example_report_screengrab2.png)
+
+## Viruses in Database
+
+19,925 high quality virus genome assemblies across 63 taxonomic families:
+
+![heattree](docs/schematic/Esviritu_DB_heat_tree_v3.2.4.cropped.png)
+
+## Installation
+
+### Current Versions
+
+Code: **v1.3.6**
+
+Database: **v3.2.4**
+
+
+### Stable release via Bioconda (recommended)
+
+*NOTE: 2026-10-26 EsViritu v1.3.5 released on bioconda.*
+
+**1)  Create conda environment. `mamba` is preferable to `conda` for environment creation.**
+
+`mamba create -n EsViritu bioconda::esviritu`
+
+-OR- 
+
+`conda create -n EsViritu bioconda::esviritu`
+
+**2)  Activate the environment with `conda`**
+
+`conda activate EsViritu`
+
+*you should be able to run help menu:*
+
+`EsViritu -h`
+
+**3)  Download the database (\~400 MB when decompressed). EsViritu v1.0.0 or higher requires DB v3.1.0 or higher!**
+
+[![Database DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17716199.svg)](https://doi.org/10.5281/zenodo.17716199)
+
+
+`cd` *where you want the database to reside*
+
+`mkdir esviritu_DB && cd esviritu_DB`
+
+Download the tarball of DB `v3.2.4` (most recent version) from Zenodo:
+
+`wget https://zenodo.org/records/17716199/files/esviritu_db_v3.2.4.tar.gz`
+
+Check that the download was successful:
+
+`md5sum esviritu_db_v3.2.4.tar.gz`
+
+should return `24d85c1ec3cbffff12e921d2f39c91b2  esviritu_db_v3.2.4.tar.gz`
+
+Unpack and remove the tarball:
+
+`tar -xvf esviritu_db_v3.2.4.tar.gz`
+
+`rm esviritu_db_v3.2.4.tar.gz`
+
+DB files should be in `v3.2.4/`
+
+**4)  Set the database path (optional but recommended):**
+
+`conda env config vars set ESVIRITU_DB=/path/to/esviritu_DB/v3.2.4`
+
+**See development and container installation guides in the [documentation](https://esviritu.readthedocs.io/en/latest/).**
+
+# Running the tool
+
+You might run this as part of a bash script, snakemake pipeline, do your own upstream read processing, etc, but these are the basic instructions.
+
+*Required inputs:*
+
+`-r`: reads file FASTQ format (can be gzipped .gz)
+
+`-s`: sample name (no spaces)
+
+`-o`: output directory (may be shared with other samples)
+
+Activate the conda environment:
+
+`conda activate EsViritu`
+
+Individual samples can be run with the python script. E.g.:
+
+**Basic run with 1 .fastq file:**
+
+```bash
+EsViritu -r /path/to/reads/myreads.fastq -s sample_ABC -o myproject_EsViritu1 -p unpaired
+```
+
+**Using paired end input .fastq files. Must be exactly 2 files.**
+
+```bash
+EsViritu -r /path/to/reads/myreads.R1.fastq /path/to/reads/myreads.R2.fastq -s sample_ABC -o myproject_EsViritu1 -p paired
+```
+
+**Using one interleaved paired-end .fastq file:**
+
+Interleaved mates must be adjacent and have matching names. Conventional `/1` and `/2` name suffixes are supported.
+
+```bash
+EsViritu -r /path/to/reads/myreads.interleaved.fastq -s sample_ABC -o myproject_EsViritu1 -p interleaved
+```
+
+**With pre-filtering steps:**
+
+```bash
+EsViritu -r /path/to/reads/myreads.fastq -s sample_ABC -o myproject_EsViritu1 -q True -f True -p unpaired
+```
+
+**Using ONT reads (appropriate minimap2 presets):**
+
+```bash
+EsViritu -r /path/to/reads/myreads.ONT.fastq -s sample_ABC -o myproject_EsViritu1 -p unpaired -mmP lr:hq
+```
+
+**Help menu**
+
+```         
+EsViritu -h
+```
+
+## Make a Summary for Batch of Reports
+
+Run the batch summary script to collate reports from several sequencing libraries in a project:
+
+Example:
+
+Activate conda environment: `conda activate EsViritu`
+
+Then run the `summarize_esv_runs` command with the relative path to the output directory as the only argument:
+
+```bash
+summarize_esv_runs myproject_EsViritu1
+```
+
+This command will summarize information about all the samples in the given directory and generate the tables:
+ - `myproject_EsViritu1.detected_virus.info.tsv`
+ - `myproject_EsViritu1.detected_virus.assembly_summary.tsv`
+ - `myproject_EsViritu1.tax_profile.tsv`
+ - `myproject_EsViritu1.batch_detected_viruses.html` (reactable)
+
+# Gratitude
+From April 2023 to November 2026, the `EsViritu` repository was lovingly maintained by scientists at Baylor College of Medicine's [Center for Metagenomics and Microbiome Research](https://github.com/cmmr). Community involvement has increased, and the lead developer (Mike Tisza) has moved to SecureBio. To facilitate continued development by Mike and others in the community, we have moved `EsViritu` to its own [GitHub Org](https://github.com/esviritu) alongside related repos.
+
+Thank you to past and current developers!
+
+# Other Resources
+
+[Making a custom database for EsViritu](https://esviritu.readthedocs.io/en/latest/custom-database/)
+
+Checking EsViritu virus detections against large NCBI databases with [postviritu](https://github.com/esviritu/postviritu)
+
+# Citation
+
+**EsViritu is a sensitive and specific profiler for viral pathogen detection and genome recovery in metagenomes**
+
+Michael J. Tisza, Shelby R. Simar, Jackie K. Zorz, Sara J. Javornik Cregeen, Anthony W. Maresso
+
+<https://doi.org/10.64898/2026.09.29.755457>
+
+Your citations and GitHub Stars help keep `EsViritu` going!

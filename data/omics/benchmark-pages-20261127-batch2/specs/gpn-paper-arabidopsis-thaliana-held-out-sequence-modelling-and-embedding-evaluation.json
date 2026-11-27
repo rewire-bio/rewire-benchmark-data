@@ -1,0 +1,704 @@
+{
+  "record_id": "gpn-paper-20261116-benchmark-athaliana-model-quality",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Benegas, Batra and Song 2023, DNA language models are powerful predictors of genome-wide variant effects (PNAS), PMC full-text XML",
+      "description": "NCBI PMC JATS XML of the published PNAS article PMC10622914, fetched through E-utilities efetch.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&rettype=xml&id=10622914",
+      "url": "https://doi.org/10.1073/pnas.2311219120",
+      "version": "PNAS 120(44) e2311219120, PMC10622914",
+      "media_type": "application/xml",
+      "sha256": "18448cffb45272d6c72a9aa3bc096e648f592efb4ea11bf792ec355d78a48075",
+      "retrieved_at": "2026-11-27T01:09:54Z",
+      "licence": "CC BY-NC-ND 4.0",
+      "store_bytes": false
+    },
+    {
+      "key": "si",
+      "name": "Text layer of the PNAS SI Appendix for the GPN paper (Tables S1 to S3, Figures S1 to S12)",
+      "description": "Text extracted with pdftotext -layout from pnas.2311219120.sapp.pdf, taken from the Europe PMC supplementaryFiles zip. The PDF and the zip are kept beside it as artifacts/si-appendix.pdf and artifacts/si-supplementary.zip.",
+      "file": "artifacts/si-appendix.txt",
+      "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10622914/supplementaryFiles",
+      "url": "https://doi.org/10.1073/pnas.2311219120",
+      "version": "SI Appendix as distributed with PMC10622914",
+      "media_type": "text/plain",
+      "sha256": "6ee1d0c99cc16aa2f5781755204665f0ee08a8f966a9a52c4e1e804ba3bf335a",
+      "retrieved_at": "2026-11-27T01:16:50Z",
+      "licence": "CC BY-NC-ND 4.0",
+      "store_bytes": false
+    },
+    {
+      "key": "docs-gpn",
+      "name": "songlab-cal/gpn docs/models/gpn.md at commit dc5fd287",
+      "description": "Official repository documentation page for the GPN model family, pinned to a commit. Lists the published Brassicales model and datasets.",
+      "file": "artifacts/docs-gpn.md",
+      "artifact_url": "https://raw.githubusercontent.com/songlab-cal/gpn/dc5fd287599f2955a79d010bca0e0f7f8178c67e/docs/models/gpn.md",
+      "url": "https://github.com/songlab-cal/gpn",
+      "version": "git commit dc5fd287599f2955a79d010bca0e0f7f8178c67e",
+      "media_type": "text/markdown",
+      "sha256": "8bc702e8f5831b421bcfad8bffe1975320d2b66b5da851ccd09a2a750c5e4f23",
+      "retrieved_at": "2026-11-27T01:11:50Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "analysis-readme",
+      "name": "songlab-cal/gpn analysis/gpn_arabidopsis/README.md at archive commit 30dee6cf",
+      "description": "README of the paper's analysis code, preserved in the historical analysis archive (tag analysis-archive-2026-08-18).",
+      "file": "artifacts/analysis-readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/songlab-cal/gpn/30dee6cf45849dfdcfc043ca8baf44fd6ba51d74/analysis/gpn_arabidopsis/README.md",
+      "url": "https://github.com/songlab-cal/gpn/tree/analysis-archive-2026-08-18/analysis/gpn_arabidopsis",
+      "version": "git commit 30dee6cf45849dfdcfc043ca8baf44fd6ba51d74",
+      "media_type": "text/markdown",
+      "sha256": "d00455ccb57544d9764a6136e30559e7d239fabba9ededc4dbbead820e1b348e",
+      "retrieved_at": "2026-11-27T01:14:07Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "analysis-archive",
+      "name": "songlab-cal/gpn release/analysis-archive.md at commit dc5fd287",
+      "description": "Maintainer manifest describing the historical analysis archive and its status.",
+      "file": "artifacts/analysis-archive.md",
+      "artifact_url": "https://raw.githubusercontent.com/songlab-cal/gpn/dc5fd287599f2955a79d010bca0e0f7f8178c67e/release/analysis-archive.md",
+      "url": "https://github.com/songlab-cal/gpn",
+      "version": "git commit dc5fd287599f2955a79d010bca0e0f7f8178c67e",
+      "media_type": "text/markdown",
+      "sha256": "10568cc014459b7f07ee9e6bba0dec64e9f9d81cfe19280e66a1d13af0b4c70e",
+      "retrieved_at": "2026-11-27T01:11:53Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "licence",
+      "name": "songlab-cal/gpn LICENSE at commit dc5fd287",
+      "description": "Repository licence file, pinned to a commit.",
+      "file": "artifacts/licence.txt",
+      "artifact_url": "https://raw.githubusercontent.com/songlab-cal/gpn/dc5fd287599f2955a79d010bca0e0f7f8178c67e/LICENSE",
+      "url": "https://github.com/songlab-cal/gpn",
+      "version": "git commit dc5fd287599f2955a79d010bca0e0f7f8178c67e",
+      "media_type": "text/plain",
+      "sha256": "cef312cb27bc4aae45e0ca7130643ca36f9aa4165ef09bcddf5ba5eb6fb76e90",
+      "retrieved_at": "2026-11-27T01:14:52Z",
+      "licence": "MIT",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "The GPN paper's own check of how well its DNA language model, trained on eight Brassicales genomes, predicts held-out Arabidopsis thaliana sequence and how well its embeddings separate gene regions. It reports test perplexity on a held-out chromosome, perplexity by position class in a 1-Mb test region, and a leave-one-chromosome-out classifier of gene regions from averaged embeddings. It is useful to plant genomics researchers comparing DNA language models on A. thaliana, but only the authors' own models are scored.",
+    "summary_source_ids": [
+      "@paper",
+      "@si"
+    ],
+    "summary_source_locator": "Paper: Results, 'Training a Multispecies DNA Language Model', 'Unsupervised Clustering of Genomic Regions'; SI Appendix Table S2",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "seven related species within the Brassicales order to pretrain a language model based on a convolutional neural network"
+      },
+      {
+        "source": "@paper",
+        "text": "To quantify GPN’s ability to distinguish genomic regions, we trained a logistic regression classifier using the averaged embeddings as features"
+      },
+      {
+        "source": "@si",
+        "text": "Table S2: Test perplexity. Perplexity, defined as the exponentiation of the cross-entropy loss, is"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Two things about a masked DNA language model. First, how well it predicts nucleotides it has not seen, measured as perplexity on a held-out chromosome, genome-wide and in non-repeat regions, and by position class (splice sites, start and stop codons, codon positions, intergenic and intronic) in a 1-Mb test region. Second, whether its embeddings, learned without labels, carry gene structure: a classifier trained on embeddings averaged over 100-bp windows must assign each window to a gene region class.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, 'Unsupervised Clustering of Genomic Regions' and 'DNA Motifs Revealed by High-Confidence Model Predictions'; Materials and Methods, 'Motif Analysis'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Perplexity is defined as the exponentiation of the cross-entropy loss, which is equivalent to 1 over the probability given to the correct nucleotide."
+          },
+          {
+            "source": "@paper",
+            "text": "The held-out model perplexity was computed for splice acceptors, splice donors, start codons, stop codons, CDS, and intergenic and intronic positions in the 1-Mb region Chr5:3,500,000-4,500,000, after excluding repeats."
+          },
+          {
+            "source": "@paper",
+            "text": "To understand how well the model has learned the structure of the genome, we averaged GPN’s contextual embeddings (512 dimensions) of nucleotides over 100 base pair (bp) windows from the reference genome and visualized them using UMAP"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "The model was trained on 8 RefSeq-annotated Brassicales reference genomes. Arabidopsis thaliana chromosome 4 was held out for validation and chromosome 5 for testing. Training windows of 512 bp were drawn with emphasis on exons, promoters and an equal amount of random windows. For the embedding task, gene annotation came from EnsemblPlants; intergenic windows fully covered by repeats form a separate Repeat class, and windows with ambiguous annotation were dropped.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, 'Pretraining' and 'Analysis of Model Embeddings'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "resulting in a total of 8 reference genomes"
+          },
+          {
+            "source": "@paper",
+            "text": "chromosomes 4 and 5 for validation and testing, respectively"
+          },
+          {
+            "source": "@paper",
+            "text": "we took the union of exons (with a small intronic flank), promoters (1,000 bp upstream of transcription start sites) as well as an equivalent amount of random windows from the whole genome"
+          },
+          {
+            "source": "@paper",
+            "text": "The gene annotation was downloaded from EnsemblPlants."
+          },
+          {
+            "source": "@paper",
+            "text": "We considered intergenic regions with 100% overlap with repeats as a separate “Repeat” class."
+          },
+          {
+            "source": "@paper",
+            "text": "Windows with ambiguous annotation (e.g., 50% CDS and 50% intron) were excluded from the analysis."
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Perplexity is the exponential of the cross-entropy loss; lower is better. Table S2 reports chromosome-wide and non-repeat test perplexity for three models that differ only in the loss weight on repeats. For gene regions, a scikit-learn logistic regression with inverse-frequency class weights and cross-validated L2 strength is trained on standardised window embeddings; each chromosome is predicted by a model trained on the others. The text reports per-class accuracy only for CDS (96%) and ncRNA (51%), and says k-mer frequency features do worse (SI Appendix, Figure S1).",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Results and Materials and Methods, 'Analysis of Model Embeddings'; SI Appendix Table S2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We trained three models varying only in the loss weight on repetitive elements (marked lowercase in the FASTA file)."
+          },
+          {
+            "source": "@si",
+            "text": "Model Chromosome-wide Non-repeat regions"
+          },
+          {
+            "source": "@paper",
+            "text": "Genomic region classification was performed with logistic regression as implemented by scikit-learn"
+          },
+          {
+            "source": "@paper",
+            "text": "using class weight inversely proportional to frequency and L2 regularization strength chosen via cross-validation"
+          },
+          {
+            "source": "@paper",
+            "text": "Windows in each chromosome were predicted by a model trained on the remaining chromosomes."
+          },
+          {
+            "source": "@paper",
+            "text": "achieving the highest accuracy on CDS (96%) and the lowest on ncRNA (51%), the least frequent class"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "The A. thaliana reference genome, with chromosome 5 as test set, the 1-Mb region Chr5:3,500,000-4,500,000 for position-class perplexity, and genome-wide 100-bp windows annotated from EnsemblPlants for gene region classification. The paper gives no window or position counts; the 1-Mb region contains 264 genes and 471 transcripts.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results and Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Across a 1-Mb region in the test chromosome (containing 264 genes and 471 transcripts)"
+          },
+          {
+            "source": "@paper",
+            "text": "Model embeddings were averaged over nonoverlapping 100-bp windows."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Chromosome hold-out. For perplexity, A. thaliana chromosome 4 is validation and chromosome 5 is test. For gene region classification, each chromosome is predicted by a classifier trained on the remaining chromosomes.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, 'Pretraining' and 'Analysis of Model Embeddings'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "chromosomes 4 and 5 for validation and testing, respectively"
+          },
+          {
+            "source": "@paper",
+            "text": "Windows in each chromosome were predicted by a model trained on the remaining chromosomes."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Perplexity (lower is better) for the sequence modelling tasks; per-class classification accuracy and a confusion matrix (higher accuracy is better) for gene region classification.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods; Figure 2B legend",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Perplexity is defined as the exponentiation of the cross-entropy loss, which is equivalent to 1 over the probability given to the correct nucleotide."
+          },
+          {
+            "source": "@paper",
+            "text": "Confusion matrix for classification of gene regions using a logistic regression model trained on averaged embeddings. Each chromosome was predicted from a model trained on the remaining chromosomes."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "GPN variants only: three repeat loss weights (1, 0.1 and 0) and a model trained on the A. thaliana genome alone, which had test perplexity 3.13 (3.17 on non-repeat regions). For gene regions, k-mer frequency features are the comparison (SI Appendix, Figure S1).",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Materials and Methods, 'Pretraining'; SI Appendix Table S2",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "Repeat weight 1 2.88 2.99"
+          },
+          {
+            "source": "@si",
+            "text": "Repeat weight 0 3.03 2.92"
+          },
+          {
+            "source": "@paper",
+            "text": "This model obtained a higher test perplexity of 3.13 (3.17 on nonrepeat regions)."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Whole chromosomes are held out: chromosome 5 is never used in training, and the region classifier is evaluated leave-one-chromosome-out. The other seven training genomes are related species, and the paper does not discuss sequence shared between them and the test chromosome.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "chromosomes 4 and 5 for validation and testing, respectively"
+          },
+          {
+            "source": "@paper",
+            "text": "Windows in each chromosome were predicted by a model trained on the remaining chromosomes."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "None reported for the perplexities or accuracies: single values, no seeds or intervals.",
+        "status": "unreported",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Results; SI Appendix Table S2"
+      },
+      {
+        "label": "Entity type",
+        "value": "A nucleotide position for perplexity; a 100-bp genomic window for gene region classification.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Model embeddings were averaged over nonoverlapping 100-bp windows."
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Arabidopsis thaliana for evaluation; the training set adds seven other Brassicales species.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, 'Training a Multispecies DNA Language Model'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "seven related species within the Brassicales order to pretrain a language model based on a convolutional neural network"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "No experimental assay: labels are the reference genome sequence itself and EnsemblPlants gene annotation.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, 'Analysis of Model Embeddings'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The gene annotation was downloaded from EnsemblPlants."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "DNA sequence only: 512-bp windows of unaligned genomic sequence with masked positions.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Figure 1 legend",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This model was designed to predict masked nucleotides conditioned on their local genomic context"
+          },
+          {
+            "source": "@paper",
+            "text": "The input is a 512-bp DNA sequence where certain positions have been masked"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Perplexity is zero-shot from the pretrained model. Gene region classification is a linear probe: logistic regression on frozen, averaged embeddings.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, 'Unsupervised Clustering of Genomic Regions'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To quantify GPN’s ability to distinguish genomic regions, we trained a logistic regression classifier using the averaged embeddings as features"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Test data are a whole held-out chromosome, and the region classifier is scored leave-one-chromosome-out, so test windows are not neighbours of training windows.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "chromosomes 4 and 5 for validation and testing, respectively"
+          },
+          {
+            "source": "@paper",
+            "text": "Windows in each chromosome were predicted by a model trained on the remaining chromosomes."
+          }
+        ]
+      },
+      {
+        "text": "Perplexity is reported separately for non-repeat regions, so a reader can see the effect of repeats on the genome-wide figure.",
+        "source_ids": [
+          "@si"
+        ],
+        "source_locator": "SI Appendix Table S2",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "Model Chromosome-wide Non-repeat regions"
+          },
+          {
+            "source": "@si",
+            "text": "Repeat weight 0.1 2.90 2.92"
+          }
+        ]
+      },
+      {
+        "text": "The published model and the processed Arabidopsis data used by the study are on Hugging Face.",
+        "source_ids": [
+          "@docs-gpn"
+        ],
+        "source_locator": "docs/models/gpn.md: Published assets",
+        "quotes": [
+          {
+            "source": "@docs-gpn",
+            "text": "[`songlab/gpn-brassicales`](https://huggingface.co/songlab/gpn-brassicales): the published masked language model."
+          },
+          {
+            "source": "@docs-gpn",
+            "text": "[Processed Arabidopsis data](https://huggingface.co/datasets/gonzalobenegas/processed-data-arabidopsis): supporting resources used by the published study."
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "This is the authors' internal evaluation of their own models on one organism, Arabidopsis thaliana. No other DNA language model is scored, and there is no leaderboard.",
+        "source_ids": [
+          "@paper",
+          "@si",
+          "@analysis-readme"
+        ],
+        "source_locator": "Paper: Results; SI Appendix Table S2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We trained three models varying only in the loss weight on repetitive elements (marked lowercase in the FASTA file)."
+          },
+          {
+            "source": "@analysis-readme",
+            "text": "# GPN application to *Arabidopsis thaliana*"
+          }
+        ]
+      },
+      {
+        "text": "The text gives only two per-class accuracies (CDS 96%, ncRNA 51%); the full confusion matrix is a figure. The authors note that ncRNA annotation errors may explain some confusion.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, 'Unsupervised Clustering of Genomic Regions'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "achieving the highest accuracy on CDS (96%) and the lowest on ncRNA (51%), the least frequent class"
+          },
+          {
+            "source": "@paper",
+            "text": "the highest confusion was observed between intergenic regions and ncRNAs; this may be partly explained by errors in ncRNA annotation"
+          }
+        ]
+      },
+      {
+        "text": "The paper's analysis code sits in an unmaintained archive that may depend on absolute paths and inputs that are no longer available.",
+        "source_ids": [
+          "@analysis-archive"
+        ],
+        "source_locator": "release/analysis-archive.md",
+        "quotes": [
+          {
+            "source": "@analysis-archive",
+            "text": "The archived code is scientific provenance, not supported software. It may rely on institutional absolute paths, unavailable large inputs, mutable external"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "GPN Arabidopsis held-out evaluation",
+      "steps": [
+        "Train on 8 Brassicales genomes, A. thaliana chr4 for validation, chr5 held out",
+        "Mask positions on chr5 and score perplexity",
+        "Average embeddings over 100-bp windows",
+        "Leave-one-chromosome-out logistic regression for gene regions",
+        "Report perplexity and per-class accuracy"
+      ],
+      "caption": "How the paper scores held-out sequence modelling and embedding quality.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Materials and Methods",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "resulting in a total of 8 reference genomes"
+        },
+        {
+          "source": "@paper",
+          "text": "chromosomes 4 and 5 for validation and testing, respectively"
+        },
+        {
+          "source": "@paper",
+          "text": "Model embeddings were averaged over nonoverlapping 100-bp windows."
+        },
+        {
+          "source": "@paper",
+          "text": "Windows in each chromosome were predicted by a model trained on the remaining chromosomes."
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The paper gives no count of test positions or of classified windows.",
+      "Per-class accuracies other than CDS and ncRNA are in figures or in MathML that was not quoted. The position-class median perplexities are printed in the Results text (most of the values inside inline MathML) but are not recorded here; only Table S2 perplexities are given as numbers here.",
+      "No step-by-step reproduction instructions were found beyond the archive README's environment setup."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the PMC XML of PNAS 120(44) e2311219120 (PMC10622914), the SI Appendix text layer from the Europe PMC supplementary zip, and songlab-cal/gpn files at commits dc5fd287599f2955a79d010bca0e0f7f8178c67e and 30dee6cf45849dfdcfc043ca8baf44fd6ba51d74, on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": null,
+  "no_run_guide_reason": "The paper's evaluation code is only in the unmaintained analysis archive. Its README gives a conda environment and says the analysis is in a Snakefile and notebooks, with no command to reproduce the perplexity or classification results.",
+  "structured": [
+    {
+      "task": "Test perplexity, chromosome-wide",
+      "dataset": "Arabidopsis thaliana chromosome 5",
+      "size": null,
+      "size_unit": null,
+      "split": "chromosome 5 held out for testing",
+      "primary_metric": "perplexity",
+      "metric_direction": "lower",
+      "results_url": null,
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "chromosomes 4 and 5 for validation and testing, respectively"
+        },
+        {
+          "source": "@paper",
+          "text": "Code to reproduce all results, including instructions to load the pretrained model, is available at"
+        },
+        {
+          "source": "@licence",
+          "text": "MIT License"
+        },
+        {
+          "source": "@si",
+          "text": "Model Chromosome-wide Non-repeat regions"
+        },
+        {
+          "source": "@docs-gpn",
+          "text": "[`recipes/gpn_training`](https://github.com/songlab-cal/gpn/tree/main/recipes/gpn_training)"
+        }
+      ]
+    },
+    {
+      "task": "Test perplexity, non-repeat regions",
+      "dataset": "Arabidopsis thaliana chromosome 5, non-repeat regions",
+      "size": null,
+      "size_unit": null,
+      "split": "chromosome 5 held out for testing",
+      "primary_metric": "perplexity",
+      "metric_direction": "lower",
+      "results_url": null,
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "chromosomes 4 and 5 for validation and testing, respectively"
+        },
+        {
+          "source": "@paper",
+          "text": "Code to reproduce all results, including instructions to load the pretrained model, is available at"
+        },
+        {
+          "source": "@licence",
+          "text": "MIT License"
+        },
+        {
+          "source": "@si",
+          "text": "Model Chromosome-wide Non-repeat regions"
+        },
+        {
+          "source": "@docs-gpn",
+          "text": "[`recipes/gpn_training`](https://github.com/songlab-cal/gpn/tree/main/recipes/gpn_training)"
+        }
+      ]
+    },
+    {
+      "task": "Held-out perplexity by position class",
+      "dataset": "Chr5:3,500,000-4,500,000, repeats excluded",
+      "size": null,
+      "size_unit": null,
+      "split": "1-Mb region in the test chromosome",
+      "primary_metric": "median perplexity",
+      "metric_direction": "lower",
+      "results_url": null,
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The held-out model perplexity was computed for splice acceptors, splice donors, start codons, stop codons, CDS, and intergenic and intronic positions in the 1-Mb region Chr5:3,500,000-4,500,000, after excluding repeats."
+        },
+        {
+          "source": "@paper",
+          "text": "Across a 1-Mb region in the test chromosome (containing 264 genes and 471 transcripts)"
+        },
+        {
+          "source": "@paper",
+          "text": "Code to reproduce all results, including instructions to load the pretrained model, is available at"
+        },
+        {
+          "source": "@licence",
+          "text": "MIT License"
+        },
+        {
+          "source": "@docs-gpn",
+          "text": "[`recipes/gpn_training`](https://github.com/songlab-cal/gpn/tree/main/recipes/gpn_training)"
+        }
+      ]
+    },
+    {
+      "task": "Gene region classification from averaged embeddings",
+      "dataset": "Arabidopsis thaliana genome, 100-bp windows",
+      "size": null,
+      "size_unit": null,
+      "split": "leave-one-chromosome-out",
+      "primary_metric": "per-class accuracy",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": "https://huggingface.co/datasets/gonzalobenegas/processed-data-arabidopsis",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Model embeddings were averaged over nonoverlapping 100-bp windows."
+        },
+        {
+          "source": "@paper",
+          "text": "Windows in each chromosome were predicted by a model trained on the remaining chromosomes."
+        },
+        {
+          "source": "@paper",
+          "text": "achieving the highest accuracy on CDS (96%) and the lowest on ncRNA (51%), the least frequent class"
+        },
+        {
+          "source": "@docs-gpn",
+          "text": "[Processed Arabidopsis data](https://huggingface.co/datasets/gonzalobenegas/processed-data-arabidopsis): supporting resources used by the published study."
+        },
+        {
+          "source": "@paper",
+          "text": "Code to reproduce all results, including instructions to load the pretrained model, is available at"
+        },
+        {
+          "source": "@licence",
+          "text": "MIT License"
+        },
+        {
+          "source": "@docs-gpn",
+          "text": "[`recipes/gpn_training`](https://github.com/songlab-cal/gpn/tree/main/recipes/gpn_training)"
+        }
+      ]
+    }
+  ],
+  "notes": "Shares one paper and repository with gpn-paper-20261116-benchmark-athaliana-variant-effect (the variant effect evaluation); the source files are the same copies. The SI Appendix was fetched as the Europe PMC supplementaryFiles zip, kept as artifacts/si-supplementary.zip; si-appendix.pdf and si-appendix.txt were extracted from it. The paper is CC BY-NC-ND 4.0, so its files are not marked for redistribution. The paper's Data availability statement points to https://github.com/songlab-cal/gpn; the paper-specific code has since moved to the analysis-archive-2026-08-18 tag."
+}

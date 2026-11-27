@@ -1,0 +1,524 @@
+{
+ "record_id": "ladon-20261115-benchmark-clinbench",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Text layer of the Blank Bio report 'Ladon: An RNA Foundation Model for Predicting Patient Outcomes' (Zenodo 24157116)",
+   "description": "Text extracted with pdftotext -layout from the PDF in Zenodo record 24157116. The PDF is kept beside it as artifacts/paper.pdf.",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://zenodo.org/api/records/24157116/files/Ladon-An-RNA-Foundation-Model-for-Predicting-Patient-Outcomes.pdf/content",
+   "url": "https://doi.org/10.5281/zenodo.24157116",
+   "version": "Zenodo record 24157116, report dated November 12, 2026",
+   "media_type": "text/plain",
+   "sha256": "2f5a65a1e6b9830dd2aa1e0155865462c34a58451a230657f697d110b637bd6d",
+   "retrieved_at": "2026-11-27T01:11:23Z",
+   "store_bytes": false
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 24157116 (Ladon report)",
+   "description": "Zenodo API record JSON: creators, date, access and file list. No licence is stated.",
+   "file": "artifacts/zenodo.json",
+   "artifact_url": "https://zenodo.org/api/records/24157116",
+   "url": "https://doi.org/10.5281/zenodo.24157116",
+   "version": "Zenodo record 24157116, published 2026-11-12",
+   "media_type": "application/json",
+   "sha256": "af921bf3ab6fc0d6b0ef113cb8cc0dd817c68f942e32d9ab0c022d2c4027af73",
+   "retrieved_at": "2026-11-27T01:11:02Z",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "ClinBench is a patient-level benchmark that Blank Bio assembled to evaluate checkpoints of its Ladon bulk RNA-seq foundation model: 142 survival, treatment-response and patient and tumour characteristic prediction tasks scored on frozen embeddings. It is described only in a section of the Ladon technical report, which uses it to relate pretraining loss to downstream performance. The task list, cohorts and splits are not published, so other groups cannot run it.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Report pages 40 to 42: scaling section and Methods, 'Clinical benchmark'",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "relevant tasks, we assembled ClinBench, a patient-level benchmark covering survival, treatment"
+   },
+   {
+    "source": "@paper",
+    "text": "response, and patient and tumour characteristics. We aggregate performance across 142 tasks. Each"
+   },
+   {
+    "source": "@paper",
+    "text": "those embeddings. The Ladon model remained frozen throughout this evaluation. Survival tasks used"
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether embeddings from an RNA-seq foundation model carry information about patient outcomes and characteristics: survival, treatment response and patient and tumour characteristics. In the report it is used to test whether lower pretraining reconstruction loss goes with better downstream performance.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 40",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "relevant tasks, we assembled ClinBench, a patient-level benchmark covering survival, treatment"
+     },
+     {
+      "source": "@paper",
+      "text": "response, and patient and tumour characteristics. We aggregate performance across 142 tasks. Each"
+     },
+     {
+      "source": "@paper",
+      "text": "Figure 21. Lower reconstruction loss was strongly correlated with better aggregate performance on survival"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "142 tasks: 85 within-cohort tasks, each scored by three-fold cross-validation repeated five times, and 57 cross-cohort survival tasks, where a model trained on the other cohorts of the same cancer type is tested on a held-out cohort; each held-out cohort counts as a separate task. The report does not list the tasks, cohorts, outcome definitions or patient counts.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42: Methods, 'Clinical benchmark'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The benchmark contains 142 tasks: 85 within-cohort tasks and 57 cross-cohort survival tasks. Within-"
+     },
+     {
+      "source": "@paper",
+      "text": "cohort tasks used three-fold cross-validation repeated five times. For cross-cohort tasks, the prediction"
+     },
+     {
+      "source": "@paper",
+      "text": "model was trained on the other cohorts of the same cancer type and evaluated on the held-out cohort."
+     },
+     {
+      "source": "@paper",
+      "text": "cohort counted as a separate task, and the plotted score is the unweighted average across all 142 tasks."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Each checkpoint's frozen embeddings feed elastic-net Cox models for survival and logistic regression for classification, with regularisation chosen by cross-validation on training data. Survival is scored by Harrell's concordance index and classification by AUROC, and the reported score is the unweighted mean over all 142 tasks. Four feature representations (raw, standardised, PCA 32, PCA 64) are tried per checkpoint and the one with the highest average score is reported. A gene-expression baseline uses the same tasks, splits and heads on log gene expression.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42: Methods, 'Clinical benchmark'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "elastic-net Cox models, and classification tasks used logistic regression, with regularization selected by"
+     },
+     {
+      "source": "@paper",
+      "text": "Survival was scored using Harrell’s concordance index and classification using AUROC. Each held-out"
+     },
+     {
+      "source": "@paper",
+      "text": "cohort counted as a separate task, and the plotted score is the unweighted average across all 142 tasks."
+     },
+     {
+      "source": "@paper",
+      "text": "We evaluated four feature representations: raw embeddings, standardized embeddings, and PCA"
+     },
+     {
+      "source": "@paper",
+      "text": "checkpoint, we report the representation with the highest average benchmark score, which was"
+     },
+     {
+      "source": "@paper",
+      "text": "The gene-expression baseline used the same tasks, splits, and prediction models, with log-transformed"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "142 tasks: 85 within-cohort and 57 cross-cohort survival tasks. The cohorts, sample counts and outcome definitions are not given in the report.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The benchmark contains 142 tasks: 85 within-cohort tasks and 57 cross-cohort survival tasks. Within-"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Within-cohort tasks: three-fold cross-validation repeated five times. Cross-cohort tasks: train on the other cohorts of the same cancer type, test on the held-out cohort.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "cohort tasks used three-fold cross-validation repeated five times. For cross-cohort tasks, the prediction"
+     },
+     {
+      "source": "@paper",
+      "text": "model was trained on the other cohorts of the same cancer type and evaluated on the held-out cohort."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Harrell's concordance index for survival and AUROC for classification (higher is better for both); the summary is the unweighted mean over 142 tasks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Survival was scored using Harrell’s concordance index and classification using AUROC. Each held-out"
+     },
+     {
+      "source": "@paper",
+      "text": "cohort counted as a separate task, and the plotted score is the unweighted average across all 142 tasks."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "A gene-expression baseline on log-transformed gene expression with the same tasks, splits and heads; the figure line uses PCA with 32 components.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The gene-expression baseline used the same tasks, splits, and prediction models, with log-transformed"
+     },
+     {
+      "source": "@paper",
+      "text": "transformation. The dashed line in Fig. 21 shows the baseline using PCA with 32 components."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Feature transformations are fitted on training samples only, and cross-cohort tasks hold out whole cohorts. The report does not say whether ClinBench samples were in Ladon's pretraining data.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "projections to 32 or 64 dimensions. All transformations were fitted using training samples only. For each"
+     },
+     {
+      "source": "@paper",
+      "text": "model was trained on the other cohorts of the same cancer type and evaluated on the held-out cohort."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "None reported for ClinBench scores: Figures 20 and 21 show checkpoint points with no intervals in the text layer.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report pages 41 to 42"
+   },
+   {
+    "label": "Entity type",
+    "value": "A patient's bulk RNA-seq sample with an outcome or characteristic label.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 40",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "relevant tasks, we assembled ClinBench, a patient-level benchmark covering survival, treatment"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human patients (cancer cohorts, by the report's description of cross-cohort tasks within cancer types).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "model was trained on the other cohorts of the same cancer type and evaluated on the held-out cohort."
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Bulk RNA sequencing; labels are clinical outcomes (survival, treatment response) and patient and tumour characteristics.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report pages 40 and 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We used each checkpoint to generate RNA-seq embeddings, then trained separate prediction models on"
+     },
+     {
+      "source": "@paper",
+      "text": "response, and patient and tumour characteristics. We aggregate performance across 142 tasks. Each"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Frozen embeddings of the RNA-seq profile, or log gene expression for the baseline.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "those embeddings. The Ladon model remained frozen throughout this evaluation. Survival tasks used"
+     },
+     {
+      "source": "@paper",
+      "text": "The gene-expression baseline used the same tasks, splits, and prediction models, with log-transformed"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Linear probe: elastic-net Cox or logistic regression on frozen embeddings; the foundation model is not fine-tuned.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "those embeddings. The Ladon model remained frozen throughout this evaluation. Survival tasks used"
+     },
+     {
+      "source": "@paper",
+      "text": "elastic-net Cox models, and classification tasks used logistic regression, with regularization selected by"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Includes cross-cohort survival tasks that test transfer to a held-out cohort, not only cross-validation within one cohort.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "model was trained on the other cohorts of the same cancer type and evaluated on the held-out cohort."
+     }
+    ]
+   },
+   {
+    "text": "The gene-expression baseline uses the same tasks, splits and prediction heads as the model, so the comparison is like for like.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The gene-expression baseline used the same tasks, splits, and prediction models, with log-transformed"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The task list, cohorts, outcome definitions and splits are not published, so the benchmark cannot be rerun or checked.",
+    "source_ids": [
+     "@paper",
+     "@zenodo"
+    ],
+    "source_locator": "Report page 42; Zenodo file list",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The benchmark contains 142 tasks: 85 within-cohort tasks and 57 cross-cohort survival tasks. Within-"
+     }
+    ]
+   },
+   {
+    "text": "The 142 tasks are not 142 independent cohorts: 85 are within-cohort cross-validation tasks, and each held-out cohort counts as its own task.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The benchmark contains 142 tasks: 85 within-cohort tasks and 57 cross-cohort survival tasks. Within-"
+     },
+     {
+      "source": "@paper",
+      "text": "cohort counted as a separate task, and the plotted score is the unweighted average across all 142 tasks."
+     }
+    ]
+   },
+   {
+    "text": "The best of four feature representations is reported per checkpoint, a choice made on the evaluation tasks themselves.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Report page 42",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "checkpoint, we report the representation with the highest average benchmark score, which was"
+     }
+    ]
+   },
+   {
+    "text": "It is a vendor's internal benchmark for its own model, described in a report with no stated licence, and no ClinBench numbers are printed in the text layer.",
+    "source_ids": [
+     "@zenodo",
+     "@paper"
+    ],
+    "source_locator": "Zenodo record; Report pages 40 to 42",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "Blank Bio is excited to release Ladon, a transcriptomic foundation model trained on millions of bulk RNAseq samples."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "ClinBench evaluation",
+   "steps": [
+    "Ladon checkpoint embeds RNA-seq",
+    "Try four feature representations",
+    "Fit Cox or logistic heads per task",
+    "Score C-index or AUROC per task",
+    "Unweighted mean over 142 tasks"
+   ],
+   "caption": "How the report scores a checkpoint on ClinBench.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Report page 42",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "those embeddings. The Ladon model remained frozen throughout this evaluation. Survival tasks used"
+    },
+    {
+     "source": "@paper",
+     "text": "We evaluated four feature representations: raw embeddings, standardized embeddings, and PCA"
+    },
+    {
+     "source": "@paper",
+     "text": "elastic-net Cox models, and classification tasks used logistic regression, with regularization selected by"
+    },
+    {
+     "source": "@paper",
+     "text": "Survival was scored using Harrell’s concordance index and classification using AUROC. Each held-out"
+    },
+    {
+     "source": "@paper",
+     "text": "cohort counted as a separate task, and the plotted score is the unweighted average across all 142 tasks."
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "The tasks, cohorts, sample sizes and outcome definitions are not published.",
+   "Figures 20 and 21 are images; no ClinBench score is printed in the text layer.",
+   "The report is the only source; there is no code, data release or leaderboard."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the pdftotext -layout text layer of the Ladon report PDF (Zenodo 24157116), pages 40 to 42 in full and the rest by search, and the Zenodo API record, on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "No task list, data, splits or code for ClinBench are released.",
+ "structured": [
+  {
+   "task": "Within-cohort tasks",
+   "dataset": "ClinBench (unpublished cohorts)",
+   "size": null,
+   "size_unit": null,
+   "split": "three-fold cross-validation repeated five times",
+   "primary_metric": "Harrell's concordance index (survival) or AUROC (classification)",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The benchmark contains 142 tasks: 85 within-cohort tasks and 57 cross-cohort survival tasks. Within-"
+    },
+    {
+     "source": "@paper",
+     "text": "cohort tasks used three-fold cross-validation repeated five times. For cross-cohort tasks, the prediction"
+    },
+    {
+     "source": "@paper",
+     "text": "Survival was scored using Harrell’s concordance index and classification using AUROC. Each held-out"
+    }
+   ]
+  },
+  {
+   "task": "Cross-cohort survival tasks",
+   "dataset": "ClinBench (unpublished cohorts)",
+   "size": null,
+   "size_unit": null,
+   "split": "held-out cohort, trained on the other cohorts of the same cancer type",
+   "primary_metric": "Harrell's concordance index",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The benchmark contains 142 tasks: 85 within-cohort tasks and 57 cross-cohort survival tasks. Within-"
+    },
+    {
+     "source": "@paper",
+     "text": "model was trained on the other cohorts of the same cancer type and evaluated on the held-out cohort."
+    },
+    {
+     "source": "@paper",
+     "text": "Survival was scored using Harrell’s concordance index and classification using AUROC. Each held-out"
+    }
+   ]
+  }
+ ],
+ "notes": "Sizes are null: 85 and 57 are task counts, not example counts, and the report gives no patient numbers for ClinBench. The ClinBench section is distinct from the report's clinical trial analyses (OS, PFS and response AUROC across named trials), which other records may cover. The PDF has no stated licence, so it is not marked for redistribution."
+}

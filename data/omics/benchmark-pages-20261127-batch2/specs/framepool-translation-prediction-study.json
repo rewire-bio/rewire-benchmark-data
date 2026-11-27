@@ -1,0 +1,868 @@
+{
+  "record_id": "uc20260930-benchmark-framepool",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "PMC full text XML of the FramePool paper (PLoS Computational Biology 2021, PMC8136849)",
+      "description": "The JATS full text from NCBI E-utilities, including the Results section on the MPRA test sets, the Methods sections on model training, testing, baselines and Kipoi integration, and the data availability statement.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=8136849",
+      "url": "https://doi.org/10.1371/journal.pcbi.1008982",
+      "version": "PMC8136849, version of record 2021",
+      "media_type": "text/xml",
+      "licence": "CC BY 4.0",
+      "store_bytes": true,
+      "sha256": "ce16f73e194ecd4d210eb026bcd3f01aeb65379031cab43684492091d06c7d5a",
+      "retrieved_at": "2026-11-27T01:21:35Z"
+    },
+    {
+      "key": "readme",
+      "name": "Karollus/5UTR README.md at commit c575f9cdca0cac1ffa88eb18e4435fdfbc674b08",
+      "description": "Official repository file, pinned to a commit. It states what the work changes in the published model and how to replicate the main results.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/Karollus/5UTR/c575f9cdca0cac1ffa88eb18e4435fdfbc674b08/README.md",
+      "url": "https://github.com/Karollus/5UTR",
+      "version": "git commit c575f9cdca0cac1ffa88eb18e4435fdfbc674b08",
+      "media_type": "text/markdown",
+      "licence": "MIT",
+      "store_bytes": true,
+      "sha256": "4fbe571897e66cc1fd883a33fd0312f03974b6d4f2bee6f9f963863b0d973d1b",
+      "retrieved_at": "2026-11-27T01:31:10Z"
+    },
+    {
+      "key": "zenodo",
+      "name": "Zenodo record 3584237 API response, Framepool supplementary data and tables",
+      "description": "The Zenodo API record for the deposit the paper and repository point to, which carries the licence, the concept DOI and the file list.",
+      "file": "artifacts/zenodo.json",
+      "artifact_url": "https://zenodo.org/api/records/3584237",
+      "url": "https://doi.org/10.5281/zenodo.3584237",
+      "version": "record 3584925, published 2019-12-19",
+      "media_type": "application/json",
+      "licence": "CC BY 4.0",
+      "store_bytes": true,
+      "sha256": "e4cbe70409f375b5946b6644304be95ffe291d68a7b0f2871d290abed370ec00",
+      "retrieved_at": "2026-11-27T01:31:04Z"
+    }
+  ],
+  "profile": {
+    "summary": "This is the evaluation in the FramePool paper, not a released suite. Two massively parallel reporter assay test sets of 5' UTR sequences with measured mean ribosome load are used to compare frame pooling against the published Optimus 5-Prime models: one of 20,000 random sequences all 50 nucleotides long, and one of 7,600 random sequences of 25 to 100 nucleotides. The same two length settings are also reported on truncated human 5' UTRs measured in the same experiment. Scores are Pearson correlations between predicted and observed mean ribosome load, and the point of the comparison is how well a model generalises to sequences longer than those it was trained on.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Abstract; Results, Evaluating frame pooling on MPRA data; Methods, Model testing",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "Two MPRA test sets were used to evaluate model performance. One consists of 20,000 MPRA sequences that are 50 nt long. The other consists of 7,600 MPRA sequences, which vary in length from 25 to 100 nt, with 100 sequences for each length."
+      },
+      {
+        "source": "@paper",
+        "text": "These are the same test sets which were used in Sample et al. [<xref rid=\"pcbi.1008982.ref025\" ref-type=\"bibr\">25</xref>] to evaluate the performance of the Optimus models. Thus, performances on these sets are directly comparable."
+      },
+      {
+        "source": "@paper",
+        "text": "A similar pattern can be observed on (truncated) human sequences measured in the MPRA experiments (<xref ref-type=\"supplementary-material\" rid=\"pcbi.1008982.s001\">S1 Fig</xref>)."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "How accurately a model predicts mean ribosome load, a proxy for translation rate, from a 5' UTR sequence, and in particular whether it still works on sequences longer than its training data. The question matters because the earlier Optimus models learn position-specific weights relative to the start codon, so longer UTRs must be truncated: by the authors' count of GENCODE v19, only 30% of human 5' UTRs are 100 nucleotides or shorter and the median is about 200, so truncation usually throws away more than half the sequence.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Introduction; Results, Modelling 5'UTR of any length using frame pooling",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "a model was trained on a massively parallel reporter assay to predict mean ribosome load (MRL)—a proxy for translation rate—directly from 5’UTR sequence with a high degree of accuracy. However, this model is restricted to sequence lengths investigated in the reporter assay"
+          },
+          {
+            "source": "@paper",
+            "text": "the Optimus models learn position-specific weights (where the position is defined relative to the canonical start codon)"
+          },
+          {
+            "source": "@paper",
+            "text": "It was found that only 30% of 5’UTR are 100 nt or shorter."
+          },
+          {
+            "source": "@paper",
+            "text": "as the median sequence has about 200 nt, it means that truncation will usually lead to a substantial loss of information"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "The data come from the Sample et al. reporter assay, not from this study. More than 200,000 entirely random 50-nucleotide 5' UTRs were fused to an enhanced green fluorescent protein coding sequence and their mean ribosome load measured by polysome profiling, with a second library of about 80,000 random UTRs of varying length. The test sets are the held-out sets from that study: 20,000 sequences of 50 nucleotides, and 7,600 sequences of 25 to 100 nucleotides with 100 per length. Of the 260,000 sequences in the fixed-length library, 20,000 were withheld as a validation set used for hyperparameters and early stopping and not for testing. The human comparison uses human 5' UTRs that were measured in the same reporter experiment, truncated to the two length settings.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Introduction; Methods, Model training and Model testing; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "more than 200,000 entirely random 5’UTR sequences were generated, each 50 nucleotides long, and fused with an enhanced green fluorescent protein coding sequence"
+          },
+          {
+            "source": "@paper",
+            "text": "Using the polysome profiling technique, the mean ribosome load (MRL), a metric of the average number of ribosomes associated to a given RNA and a proxy for translation efficiency, was measured for each sequence."
+          },
+          {
+            "source": "@paper",
+            "text": "This set comprises the sequences of 260,000 random 5’UTR, all 50 nucleotides in length, together with mean ribosome load measurements for each sequence."
+          },
+          {
+            "source": "@paper",
+            "text": "Of these 260,000 sequences, 20,000 were withheld for the validation set, which was employed to optimize hyperparameters and for early stopping (but not for testing)."
+          },
+          {
+            "source": "@paper",
+            "text": "The FramePool100 model was trained on the random variable length MPRA dataset. This set comprises 76,319 random 5’UTR, with lengths varying from 25 to 100 nucleotides"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "A model predicts mean ribosome load for each test sequence and the score is the Pearson correlation with the measured value; the comparison is made against the Optimus models' published numbers on the same held-out sets. Training uses the Adam optimizer with mean squared error loss and early stopping after three epochs without validation improvement, keeping the model with the lowest validation error, while the variable-length and combined models were trained for six epochs straight with no early stopping. Alongside the two main models the authors train frame-unaware controls (global pooling and two dilated convolution variants on the same training set) and k-mer random forests, including one given frame-separated k-mer counts, to separate the benefit of frame information from the benefit of deep learning.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Evaluating frame pooling on MPRA data; Methods, Model training, Frame unaware deep learning models and Random forest models",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the predictions of the frame pooling model (FramePool50) show a Pearson correlation of 0.964 with the observed MRL values, whereas Optimus50 had a correlation of 0.966 (<xref ref-type=\"fig\" rid=\"pcbi.1008982.g002\">Fig 2</xref>)"
+          },
+          {
+            "source": "@paper",
+            "text": "Training was done using the Adam optimizer with default parameters and a standard mean-squared-error loss function. Training was stopped early if no improvement was made on the validation set for 3 consecutive epochs."
+          },
+          {
+            "source": "@paper",
+            "text": "No new validation set was constructed for this data and training was done for six epochs straight, without early stopping or other optimizations."
+          },
+          {
+            "source": "@paper",
+            "text": "we trained three models, which we call global_pool_conv, dilated_conv and more_dilated_conv, respectively"
+          },
+          {
+            "source": "@paper",
+            "text": "This random forest takes as input the k-mer-counts for each frame (giving a vector of length 3*(4^k))."
+          }
+        ]
+      },
+      {
+        "title": "Reported results",
+        "body": "On the 50-nucleotide random test set the two models are level: FramePool50 at 0.964 against Optimus50 at 0.966. On the 25 to 100 nucleotide random test set Optimus50 falls to 0.743 while FramePool50 holds 0.901, close to Optimus100's 0.915, which was trained on variable-length data. The human sequences follow the same pattern: 0.882 for FramePool50 against 0.889 for Optimus50 at 50 nucleotides, and 0.871 against 0.7 at 25 to 100 nucleotides. The authors read this as frame pooling giving up almost nothing in the fixed-length setting while generalising to longer sequences.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Evaluating frame pooling on MPRA data; Fig 2 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "On these 20,000 sequences, the predictions of the frame pooling model (FramePool50) show a Pearson correlation of 0.964 with the observed MRL values, whereas Optimus50 had a correlation of 0.966 (<xref ref-type=\"fig\" rid=\"pcbi.1008982.g002\">Fig 2</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "As a result, it generalizes poorly to this variable-length test set, and the correlation drops to 0.743. FramePool50, despite being trained on the same data, does not face this restriction and generalizes much better, with a correlation of 0.901 (<xref ref-type=\"fig\" rid=\"pcbi.1008982.g002\">Fig 2</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "Note that this result compares well even with Optimus100, which was trained on the variable-length MPRA data, and has a correlation of 0.915 with the observed values of this test set (<xref ref-type=\"supplementary-material\" rid=\"pcbi.1008982.s020\">S1 Table</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "Optimus50 and FramePool50 perform very similarly on human 5’UTR truncated to 50 nt (Pearson correlation: 0.889 vs 0.882), but frame pooling again generalizes better: for 25–100 nt sequences the correlation for Optimus50 drops to 0.7, whereas FramePool50 remains at 0.871."
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "Clone the repository, download the Zenodo deposit, put its data dictionary in the Data directory and run the training notebook; to reproduce the paper's plots without rerunning predictions, unpack the prediction archive into Data/Predictions and run the validation notebook. For predicting on new sequences the model is published through the Kipoi model zoo, with a dataloader that takes a BED file of 5' UTR exon regions, a VCF of variants and a reference FASTA, injects each variant and reports the log2 fold change in predicted mean ribosome load, plus the same figure for a simulated frameshift.",
+        "source_ids": [
+          "@readme",
+          "@paper",
+          "@zenodo"
+        ],
+        "source_locator": "Repository: README.md. Paper: Methods, Kipoi integration; Data Availability. Zenodo record: file list",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "To replicate the main results, clone the repository. Next download the data from https://doi.org/10.5281/zenodo.3584237. Place the data_dict.pkl in the Data directory. Then you can run the Model_Training.ipynb notebook to train a Framepool model."
+          },
+          {
+            "source": "@readme",
+            "text": "If you would like to generate the paper plots, without running predictions, place the contents of the Predictions.tar.gz file in Data/Predictions and then run the Validations.ipynb notebook."
+          },
+          {
+            "source": "@paper",
+            "text": "The dataloader takes as input a bed file specifying 5’UTR exon regions of interest, a vcf file specifying the variants of interest, and a fasta file with a human reference genome."
+          },
+          {
+            "source": "@zenodo",
+            "text": "\"key\": \"data_dict.pkl\""
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Two random-library test sets and two human cuts of the same reporter experiment. Random fixed length: 20,000 test sequences of 50 nucleotides, the held-out test set of Sample et al.; the FramePool50 training set is 260,000 sequences, of which 20,000 were kept for validation. Random variable length: 7,600 test sequences of 25 to 100 nucleotides, 100 per length; the FramePool100 training set is 76,319 sequences. Human: 5' UTRs measured in the same assay, truncated to 50 nucleotides and to 25 to 100 nucleotides; the sources read give no count for either human set, which is shown in S1 Fig.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Model training and Model testing; Results; S1 Fig caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "One consists of 20,000 MPRA sequences that are 50 nt long. The other consists of 7,600 MPRA sequences, which vary in length from 25 to 100 nt, with 100 sequences for each length."
+          },
+          {
+            "source": "@paper",
+            "text": "This set comprises 76,319 random 5’UTR, with lengths varying from 25 to 100 nucleotides"
+          },
+          {
+            "source": "@paper",
+            "text": "Performance of Optimus50 and Framepool50 on (truncated) human 5’UTR sequences measured in the MPRA experiment."
+          },
+          {
+            "source": "@paper",
+            "text": "This set comprises the sequences of 260,000 random 5’UTR, all 50 nucleotides in length"
+          },
+          {
+            "source": "@paper",
+            "text": "it was tested on the same held-out test set as in the original Optimus study"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Held-out test sets taken over from the earlier study, which is what makes the comparison possible. From the 260,000 fixed-length sequences, 20,000 are validation (hyperparameters and early stopping, never used for testing) and the 20,000-sequence test set is the one Sample et al. used; the variable-length test set of 7,600 is likewise theirs. The variable-length model had no validation set of its own. The splits are of random synthetic sequences, so no identity or family separation is described or needed; for the human cut, the sequences are truncated to the test length.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Model training and Model testing",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Of these 260,000 sequences, 20,000 were withheld for the validation set, which was employed to optimize hyperparameters and for early stopping (but not for testing)."
+          },
+          {
+            "source": "@paper",
+            "text": "These are the same test sets which were used in Sample et al. [<xref rid=\"pcbi.1008982.ref025\" ref-type=\"bibr\">25</xref>] to evaluate the performance of the Optimus models."
+          },
+          {
+            "source": "@paper",
+            "text": "No new validation set was constructed for this data"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Pearson correlation between predicted and observed mean ribosome load, higher better. Elsewhere in the paper, for endogenous data, both Pearson and Spearman correlations are reported in separate supplementary tables, and the training objective is mean squared error.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; Methods, Model training; S2 and S3 Table captions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "show a Pearson correlation of 0.964 with the observed MRL values"
+          },
+          {
+            "source": "@paper",
+            "text": "a standard mean-squared-error loss function"
+          },
+          {
+            "source": "@paper",
+            "text": "S2 Table</label><caption><title>Pearson correlations of predictions with endogenous data."
+          },
+          {
+            "source": "@paper",
+            "text": "S3 Table</label><caption><title>Spearman correlations of predictions with endogenous data."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Optimus50 and Optimus100 from Sample et al. are the published comparators. The authors add their own controls: three frame-unaware convolutional models (global_pool_conv with conventional global max and average pooling, plus dilated_conv and more_dilated_conv), and k-mer random forests (3-mer and 4-mer, a framed forest using per-frame k-mer counts, a hyperparameter-optimised framed forest and a 5-mer version), all trained on the same training set as FramePool50.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; Methods, Frame unaware deep learning models and Random forest models; S4 Table caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The first, global_pool_conv used the same hyperparameters as FramePool50, but the frame pooling layer was replaced with conventional global max and average pooling."
+          },
+          {
+            "source": "@paper",
+            "text": "We trained two such random forest models: 3mer_random_forest and 4mer_random_forest, which use 3-mer and 4-mer counts as input features, respectively."
+          },
+          {
+            "source": "@paper",
+            "text": "All these models were trained on the same training set as FramePool50."
+          },
+          {
+            "source": "@paper",
+            "text": "S4 Table</label><caption><title>Performance on MPRA datasets of different random forest models."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Test sequences are held out and are reused unchanged from the earlier study, and the validation set is kept separate from the test set. The sequences in the two main sets are entirely random, so there is no homology between train and test to control for. No further control is described: in particular nothing is said about overlap between the human sequences used here and anything in training, and the paper does not say how the 7,600 variable-length test sequences relate to the 76,319 sequences the variable-length model was trained on.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Model training and Model testing; Introduction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "more than 200,000 entirely random 5’UTR sequences were generated"
+          },
+          {
+            "source": "@paper",
+            "text": "20,000 were withheld for the validation set, which was employed to optimize hyperparameters and for early stopping (but not for testing)"
+          },
+          {
+            "source": "@paper",
+            "text": "it was tested on the same held-out test set as in the original Optimus study [<xref rid=\"pcbi.1008982.ref025\" ref-type=\"bibr\">25</xref>]"
+          },
+          {
+            "source": "@paper",
+            "text": "The FramePool100 model was trained on the random variable length MPRA dataset. This set comprises 76,319 random 5’UTR"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "None is reported for the MPRA correlations: each is a single Pearson value with no interval, replicate or seed. Where the paper reports correlations on endogenous data it marks significance thresholds (p below 1e-10 and 1e-50 against a null of zero correlation) rather than intervals, and for the GUCCCC motif analyses it uses Wilcoxon rank-sum tests.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; S2 Table and S6 Table captions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "* = p-value smaller than 1*10^-10, ** = p-value smaller than 1*10^-50 (where H_0 is zero correlation)"
+          },
+          {
+            "source": "@paper",
+            "text": "S6 Table</label><caption><title>Results of Wilcoxon rank-sum tests comparing genes which have the GUCCCC motif at least once to those that do not."
+          },
+          {
+            "source": "@paper",
+            "text": "the correlation drops to 0.743"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "One 5' UTR sequence with a measured mean ribosome load: a random synthetic UTR of 50 nucleotides or of 25 to 100 nucleotides, or a human 5' UTR truncated to those lengths, each fused to the same reporter coding sequence.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Introduction; Methods, Model testing",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "each 50 nucleotides long, and fused with an enhanced green fluorescent protein coding sequence"
+          },
+          {
+            "source": "@paper",
+            "text": "One consists of 20,000 MPRA sequences that are 50 nt long."
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human. The human test sets are human 5' UTRs measured in the same reporter experiment; the paper uses GENCODE v19 only to describe human 5' UTR lengths, and the Kipoi dataloader expects a human reference genome.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Modelling 5'UTR of any length; Methods, Kipoi integration",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we computed the empirical cumulative distribution function of length for the 5’UTR annotated in GENCODE v19"
+          },
+          {
+            "source": "@paper",
+            "text": "a fasta file with a human reference genome"
+          },
+          {
+            "source": "@paper",
+            "text": "Performance of Optimus50 and Framepool50 on (truncated) human 5’UTR sequences measured in the MPRA experiment."
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "A massively parallel reporter assay read out by polysome profiling: each 5' UTR is fused to an eGFP coding sequence and the mean ribosome load, the average number of ribosomes on a transcript, is measured. The paper's wider analyses also use ribosome profiling translation efficiency and protein-to-RNA ratios for endogenous genes, but not for these test sets.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Introduction; S18 and S19 Fig captions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Using the polysome profiling technique, the mean ribosome load (MRL), a metric of the average number of ribosomes associated to a given RNA and a proxy for translation efficiency, was measured for each sequence."
+          },
+          {
+            "source": "@paper",
+            "text": "TE is a measure of translation efficiency given by the log-ratio of ribo-seq reads to rna-seq reads covering a specific gene."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "The 5' UTR sequence alone, one-hot encoded. Optimus models additionally require the sequence to be at or below their training length, which is the restriction under test; the frame pooling model takes any length. For variant work through Kipoi the inputs are a reference and a variant sequence built from a genome FASTA, a BED of UTR exons and a VCF.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Introduction; Methods, Kipoi integration",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "neither model can yield predictions for sequences longer than the longest sequence in their training data"
+          },
+          {
+            "source": "@paper",
+            "text": "both reference sequences and variant sequences are one-hot encoded and fed to the model in batches"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Supervised training from scratch on the assay data. FramePool50 was trained on the fixed-length library with manual hyperparameter tuning and early stopping, FramePool100 on the variable-length library for six epochs, and a combined model on both with a library indicator to account for scaling differences. Nothing is scored zero-shot.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Model training",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The FramePool50 model was trained on the egfp1 MPRA dataset from Sample et al. [<xref rid=\"pcbi.1008982.ref025\" ref-type=\"bibr\">25</xref>]."
+          },
+          {
+            "source": "@paper",
+            "text": "The FramePoolCombined model was trained on both training sets for six epochs straight, with an additional library indicator to account for differences in scaling."
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The test sets are not new: they are the held-out sets from the study that introduced the assay and the Optimus models, so the numbers sit directly beside the published ones.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Model testing",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "These are the same test sets which were used in Sample et al. [<xref rid=\"pcbi.1008982.ref025\" ref-type=\"bibr\">25</xref>] to evaluate the performance of the Optimus models. Thus, performances on these sets are directly comparable."
+          }
+        ]
+      },
+      {
+        "text": "The comparison is designed to isolate one architectural choice. Frame-unaware models with the same hyperparameters and training set, and random forests with and without frame-separated k-mer counts, show whether the gain comes from frame information rather than from capacity.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Frame unaware deep learning models and Random forest models",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To evaluate the benefit of encoding frame information into neural net architecture, we also trained models using conventional global pooling strategies."
+          },
+          {
+            "source": "@paper",
+            "text": "To evaluate the impact of providing random forests with frame information, we additionally trained what we call the framed_forest model."
+          }
+        ]
+      },
+      {
+        "text": "Data and code are published and pinned: the deposit is on Zenodo under CC BY 4.0 with the data dictionary, trained model and prediction archive, and the repository is MIT licensed with the notebooks that reproduce the training and the figures.",
+        "source_ids": [
+          "@zenodo",
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "Zenodo record: licence and files. Repository: README.md. Paper: Data Availability",
+        "quotes": [
+          {
+            "source": "@zenodo",
+            "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+          },
+          {
+            "source": "@zenodo",
+            "text": "\"key\": \"Predictions.tar.gz\""
+          },
+          {
+            "source": "@paper",
+            "text": "All data necessary to replicate the results can be found under <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://doi.org/10.5281/zenodo.3584237\">https://doi.org/10.5281/zenodo.3584237</ext-link>. The code can be found under <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/Karollus/5UTR\">https://github.com/Karollus/5UTR</ext-link>."
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Most of the data are random synthetic sequences in a reporter construct, not endogenous transcripts, so a high correlation here does not establish accuracy on real human 5' UTRs. The human cut of the same experiment is also truncated to the test lengths.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Introduction; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "more than 200,000 entirely random 5’UTR sequences were generated, each 50 nucleotides long, and fused with an enhanced green fluorescent protein coding sequence"
+          },
+          {
+            "source": "@paper",
+            "text": "A similar pattern can be observed on (truncated) human sequences measured in the MPRA experiments (<xref ref-type=\"supplementary-material\" rid=\"pcbi.1008982.s001\">S1 Fig</xref>)."
+          }
+        ]
+      },
+      {
+        "text": "No uncertainty is reported on any of the four correlations, so small differences, such as 0.964 against 0.966 on the fixed-length set or 0.882 against 0.889 on the human 50-nucleotide set, cannot be told apart from noise with the published numbers.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Evaluating frame pooling on MPRA data",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "show a Pearson correlation of 0.964 with the observed MRL values, whereas Optimus50 had a correlation of 0.966"
+          },
+          {
+            "source": "@paper",
+            "text": "(Pearson correlation: 0.889 vs 0.882)"
+          }
+        ]
+      },
+      {
+        "text": "The headline contrast partly measures a known limitation rather than model quality: Optimus50 scores 0.743 on the variable-length set because sequences longer than 50 nucleotides have to be truncated to fit it at all.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Fig 2 caption; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This is because sequences longer than 50 nt need to be truncated to fit the model."
+          },
+          {
+            "source": "@paper",
+            "text": "Optimus50, due to its position-specific weights, cannot identify motifs located further than 50 nucleotides from the canonical start codon."
+          }
+        ]
+      },
+      {
+        "text": "The numbers for the two human settings, and the full table of model performances, are in supplementary figures and tables (S1 Fig, S1 Table, S4 Table) rather than in the article text, so only the values quoted in the prose can be read without the supplementary files. No count is given for either human test set.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; S1 Fig, S1 Table and S4 Table captions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "S1 Table</label><caption><title>Performance on MPRA datasets of Optimus and Framepool models."
+          },
+          {
+            "source": "@paper",
+            "text": "Performance of Optimus50 and Framepool50 on (truncated) human 5’UTR sequences measured in the MPRA experiment."
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "FramePool MPRA evaluation workflow",
+      "steps": [
+        "random 5' UTR libraries fused to an eGFP reporter",
+        "mean ribosome load measured by polysome profiling",
+        "held-out test sets from Sample et al.: 20,000 at 50 nt and 7,600 at 25 to 100 nt",
+        "models trained on the matching library, with 20,000 sequences kept for validation",
+        "predict mean ribosome load for each test sequence",
+        "Pearson correlation against the measured value, compared with Optimus50 and Optimus100"
+      ],
+      "caption": "How each reported correlation in the FramePool study is produced.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Introduction; Methods, Model training and Model testing; Results",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "fused with an enhanced green fluorescent protein coding sequence"
+        },
+        {
+          "source": "@paper",
+          "text": "Using the polysome profiling technique, the mean ribosome load (MRL), a metric of the average number of ribosomes associated to a given RNA and a proxy for translation efficiency, was measured for each sequence."
+        },
+        {
+          "source": "@paper",
+          "text": "Two MPRA test sets were used to evaluate model performance."
+        },
+        {
+          "source": "@paper",
+          "text": "20,000 were withheld for the validation set"
+        },
+        {
+          "source": "@paper",
+          "text": "show a Pearson correlation of 0.964 with the observed MRL values"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "S1 Table and S4 Table, which hold the full performance tables for the Optimus, FramePool, frame-unaware and random forest models, are XLSX supplementary files that were not fetched, so only the values printed in the article text are recorded.",
+      "The two human test sets have no stated size: their results appear only in S1 Fig.",
+      "The sources read do not say how the human 5' UTRs measured in the reporter experiment were selected or truncated.",
+      "The Zenodo record read is the 2019 deposit the paper points to; the sources read give no later version for it."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the PMC full text XML of the FramePool paper (PMC8136849, PLoS Computational Biology 2021), including the Results and the Methods sections on model training, testing, frame-unaware controls, random forests and Kipoi integration, the figure and supplementary captions and the data availability statement; the Karollus/5UTR README.md at commit c575f9cdca0cac1ffa88eb18e4435fdfbc674b08; and the Zenodo API record for deposit 3584237. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Clone the repository, download the Zenodo deposit, and run the published notebooks to train a frame pooling model or to regenerate the paper's plots from saved predictions.",
+    "prerequisites": [
+      "The repository's notebooks, which need a Jupyter environment; the sources read do not list package versions for the modelling code.",
+      "The Zenodo deposit at 10.5281/zenodo.3584237, which holds data_dict.pkl, the trained Framepool_combined_residual.h5 model and Predictions.tar.gz, under CC BY 4.0.",
+      "For the Kipoi route, a human reference genome FASTA, a BED file of 5' UTR exon regions and a VCF of variants; the dataloader is written for Python 3.6 with numpy, pandas and pybedtools."
+    ],
+    "steps": [
+      {
+        "title": "Get the code at the pinned commit",
+        "shell": "git clone https://github.com/Karollus/5UTR.git\ncd 5UTR\ngit checkout --detach c575f9cdca0cac1ffa88eb18e4435fdfbc674b08",
+        "explanation": "The repository address is the one the paper's data availability statement gives; the checkout line was added here to pin the commit these steps were read from.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Data Availability. Repository: README.md",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The code can be found under <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/Karollus/5UTR\">https://github.com/Karollus/5UTR</ext-link>."
+          },
+          {
+            "source": "@readme",
+            "text": "To replicate the main results, clone the repository."
+          }
+        ]
+      },
+      {
+        "title": "Download the data and place it in the Data directory",
+        "shell": "curl -o data_dict.pkl \"https://zenodo.org/api/records/3584925/files/data_dict.pkl/content\"\nmv data_dict.pkl Data/",
+        "explanation": "The README says to download the deposit and put data_dict.pkl in the Data directory. The address here is built from the Zenodo API record's own record id and file key; the README gives only the DOI, so this download line is a convenience and the deposit can equally be fetched from the DOI landing page.",
+        "source_ids": [
+          "@readme",
+          "@zenodo"
+        ],
+        "source_locator": "Repository: README.md. Zenodo record: id and file list",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Next download the data from https://doi.org/10.5281/zenodo.3584237. Place the data_dict.pkl in the Data directory."
+          },
+          {
+            "source": "@zenodo",
+            "text": "\"key\": \"data_dict.pkl\""
+          },
+          {
+            "source": "@zenodo",
+            "text": "\"id\": 3584925"
+          }
+        ]
+      },
+      {
+        "title": "Train a frame pooling model, or regenerate the plots",
+        "shell": "jupyter nbconvert --to notebook --execute Model_Training.ipynb\n# or, to regenerate the paper plots from saved predictions:\n# tar -xzf Predictions.tar.gz -C Data/Predictions\n# jupyter nbconvert --to notebook --execute Validations.ipynb",
+        "explanation": "The README names the two notebooks and says what each needs: Model_Training.ipynb trains a Framepool model from the downloaded data, while Validations.ipynb reproduces the paper plots once the contents of Predictions.tar.gz are in Data/Predictions. The nbconvert wrapper is added here to run them from a shell; the README gives the notebook names without a directory, and their location in the repository was not confirmed from a saved file, so run the commands from the directory that holds them.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Then you can run the Model_Training.ipynb notebook to train a Framepool model."
+          },
+          {
+            "source": "@readme",
+            "text": "place the contents of the Predictions.tar.gz file in Data/Predictions and then run the Validations.ipynb notebook"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "A trained frame pooling model from the training notebook.",
+      "The paper's plots from the validation notebook, once the saved predictions are in place.",
+      "Through Kipoi, per-variant log2 fold changes in predicted mean ribosome load, plus the same figure for a simulated frameshift."
+    ],
+    "limitations": [
+      "These commands were read from the repository and the paper and have not been executed by Rewire.",
+      "No published command computes the four reported MPRA correlations on its own; the notebooks produce the paper's figures and the correlations are reported in the article and its supplementary tables.",
+      "The sources read give no package versions for the modelling notebooks, and the Kipoi dataloader was written for Python 3.6.",
+      "The notebook file names come from the README; their directory was taken from the repository's file listing."
+    ],
+    "source_ids": [
+      "@readme",
+      "@paper",
+      "@zenodo"
+    ]
+  },
+  "structured": [
+    {
+      "task": "FramePool study MRL: Random 50nt",
+      "dataset": "Sample et al. fixed-length random MPRA test set",
+      "size": 20000,
+      "size_unit": "test sequences of 50 nt",
+      "split": "the held-out test set of the original Optimus study",
+      "primary_metric": "Pearson correlation",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1371/journal.pcbi.1008982",
+      "code_url": "https://github.com/Karollus/5UTR",
+      "data_url": "https://doi.org/10.5281/zenodo.3584237",
+      "data_licence": "CC-BY-4.0",
+      "code_licence": "MIT",
+      "released": "2019-12-19",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "One consists of 20,000 MPRA sequences that are 50 nt long."
+        },
+        {
+          "source": "@paper",
+          "text": "it was tested on the same held-out test set as in the original Optimus study [<xref rid=\"pcbi.1008982.ref025\" ref-type=\"bibr\">25</xref>]"
+        },
+        {
+          "source": "@paper",
+          "text": "show a Pearson correlation of 0.964 with the observed MRL values, whereas Optimus50 had a correlation of 0.966"
+        },
+        {
+          "source": "@zenodo",
+          "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+        },
+        {
+          "source": "@zenodo",
+          "text": "\"publication_date\": \"2019-12-19\""
+        },
+        {
+          "source": "@paper",
+          "text": "The code can be found under <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/Karollus/5UTR\">https://github.com/Karollus/5UTR</ext-link>."
+        }
+      ]
+    },
+    {
+      "task": "FramePool study MRL: Random 25-100nt",
+      "dataset": "Sample et al. variable-length random MPRA test set",
+      "size": 7600,
+      "size_unit": "test sequences of 25 to 100 nt, 100 per length",
+      "split": "the held-out variable-length test set of the original Optimus study",
+      "primary_metric": "Pearson correlation",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1371/journal.pcbi.1008982",
+      "code_url": "https://github.com/Karollus/5UTR",
+      "data_url": "https://doi.org/10.5281/zenodo.3584237",
+      "data_licence": "CC-BY-4.0",
+      "code_licence": "MIT",
+      "released": "2019-12-19",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The other consists of 7,600 MPRA sequences, which vary in length from 25 to 100 nt, with 100 sequences for each length."
+        },
+        {
+          "source": "@paper",
+          "text": "the correlation drops to 0.743. FramePool50, despite being trained on the same data, does not face this restriction and generalizes much better, with a correlation of 0.901"
+        },
+        {
+          "source": "@zenodo",
+          "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+        },
+        {
+          "source": "@zenodo",
+          "text": "\"publication_date\": \"2019-12-19\""
+        }
+      ]
+    },
+    {
+      "task": "FramePool study MRL: Human 50nt",
+      "dataset": "human 5' UTRs measured in the same MPRA experiment, truncated to 50 nt",
+      "size": null,
+      "size_unit": null,
+      "split": "human sequences from the reporter experiment, truncated to 50 nt",
+      "primary_metric": "Pearson correlation",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1371/journal.pcbi.1008982",
+      "code_url": "https://github.com/Karollus/5UTR",
+      "data_url": "https://doi.org/10.5281/zenodo.3584237",
+      "data_licence": "CC-BY-4.0",
+      "code_licence": "MIT",
+      "released": "2019-12-19",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Optimus50 and FramePool50 perform very similarly on human 5’UTR truncated to 50 nt (Pearson correlation: 0.889 vs 0.882)"
+        },
+        {
+          "source": "@paper",
+          "text": "Performance of Optimus50 and Framepool50 on (truncated) human 5’UTR sequences measured in the MPRA experiment."
+        },
+        {
+          "source": "@zenodo",
+          "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+        }
+      ]
+    },
+    {
+      "task": "FramePool study MRL: Human 25-100nt",
+      "dataset": "human 5' UTRs measured in the same MPRA experiment, 25 to 100 nt",
+      "size": null,
+      "size_unit": null,
+      "split": "human sequences from the reporter experiment at 25 to 100 nt",
+      "primary_metric": "Pearson correlation",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1371/journal.pcbi.1008982",
+      "code_url": "https://github.com/Karollus/5UTR",
+      "data_url": "https://doi.org/10.5281/zenodo.3584237",
+      "data_licence": "CC-BY-4.0",
+      "code_licence": "MIT",
+      "released": "2019-12-19",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "for 25–100 nt sequences the correlation for Optimus50 drops to 0.7, whereas FramePool50 remains at 0.871"
+        },
+        {
+          "source": "@paper",
+          "text": "Performance of Optimus50 and Framepool50 on (truncated) human 5’UTR sequences measured in the MPRA experiment."
+        },
+        {
+          "source": "@zenodo",
+          "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+        }
+      ]
+    }
+  ],
+  "notes": "Written from the PMC full text (PMC8136849, CC BY 4.0), the Karollus/5UTR README at commit c575f9cdca0cac1ffa88eb18e4435fdfbc674b08 (MIT) and the Zenodo API record for deposit 3584237 (CC BY 4.0). Points for a human. First, the two human entries carry no size: the article text gives their correlations but their counts appear only in S1 Fig, which was not fetched. Second, the two random sizes are the test-set sizes as the Methods print them (20,000 and 7,600), not the library sizes (260,000 and 76,319), which are quoted separately. Third, the Zenodo DOI in the paper (10.5281/zenodo.3584237) is the concept DOI; the API response returned record 3584925 of 19 December 2019, which is the version read here, and the released date comes from that record, not from the article. Fourth, the record's existing sources include Supplementary Tables S1 and S4 as XLSX files; those were not fetched because an XLSX cannot be quoted as text, so the full model tables are not covered. Fifth, the paper's wider analyses (endogenous genes, variant effects, uTIS motifs) are not part of the four protocols stored against this record."
+}
