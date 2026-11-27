@@ -1,0 +1,988 @@
+{
+ "record_id": "hyinv-20261106-benchmark-report-comparison",
+ "sources": [
+  {
+   "key": "report",
+   "name": "Text layer of the HyInv Technical Report (Hyra Team, 2026-10-14)",
+   "description": "Text extracted with pdftotext -layout from the technical report PDF in the Tencent-Hunyuan/Hyra-results repository at commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a. The PDF is kept beside it as artifacts/report.pdf.",
+   "file": "artifacts/report.txt",
+   "artifact_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hyra-results/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv/HyInv_Technical_Report.pdf",
+   "url": "https://github.com/Tencent-Hunyuan/Hyra-results/blob/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv/HyInv_Technical_Report.pdf",
+   "version": "report dated 2026-10-14, git commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a",
+   "media_type": "text/plain",
+   "sha256": "52ae9552b72266481b8c7190796f0bf2c93e4f8e84453c76b749b702edc50f52",
+   "retrieved_at": "2026-11-27T02:26:53Z",
+   "store_bytes": false
+  },
+  {
+   "key": "readme",
+   "name": "Tencent-Hunyuan/Hyra-results AI4Science/hyinv/README.md at commit 0dcc533c",
+   "description": "Official repository file for the HyInv package, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hyra-results/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv/README.md",
+   "url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv",
+   "version": "git commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a",
+   "media_type": "text/markdown",
+   "sha256": "b44c6d0c4c7f73aaf920cf734670a8d4649df175c14a105afaf5e74172fd6891",
+   "retrieved_at": "2026-11-27T02:26:50Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "licence",
+   "name": "Tencent-Hunyuan/Hyra-results AI4Science/hyinv/LICENSE at commit 0dcc533c",
+   "description": "Licence file of the HyInv package, pinned to a commit.",
+   "file": "artifacts/licence.txt",
+   "artifact_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hyra-results/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv/LICENSE",
+   "url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv",
+   "version": "git commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a",
+   "media_type": "text/plain",
+   "sha256": "816fb3d74b232ce2348dc1e4d93e41564780985789bd01fd4a15369af99ce350",
+   "retrieved_at": "2026-11-27T02:26:53Z",
+   "licence": "MIT",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "This is the inverse-folding comparison reported in the HyInv technical report, not a released suite. Ten published inverse-folding models and HyInv design sequences for the same held-out backbones from five panels (CATH4.3 test, CATH4.2 test, TS500, TS50 and RecentPDB), the designs are refolded, and the methods are compared by scTM, the TM-score between the predicted structure of a design and the input backbone, with native sequence recovery and sequence diversity reported beside it. It is useful to someone choosing a sequence-design model for screening libraries, with the caveat that the panels, the baseline settings and the scoring were all chosen and run by the team releasing HyInv.",
+  "summary_source_ids": [
+   "@report"
+  ],
+  "summary_source_locator": "Report: Abstract; Section 5.1",
+  "summary_quotes": [
+   {
+    "source": "@report",
+    "text": "Across five benchmark datasets and seven dataset–predictor combinations, HyInv reaches a higher average scTM than all ten external baselines at comparable or higher sequence diversity"
+   },
+   {
+    "source": "@report",
+    "text": "scTM, the TM-score between the predicted structure of a design and the input backbone, is the primary metric; native sequence recovery and sequence diversity (mean pairwise difference between the designs of a target) are reported beside it"
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "The task is protein inverse folding: given a backbone, produce amino-acid sequences that fold into it. The comparison asks how structurally consistent a method's designs are, at what sequence diversity. Screening needs many candidates rather than one, so the report states that a model is useful in proportion to the diversity it offers at a given structural quality, and compares methods at comparable diversity rather than at one temperature. Structural consistency is read from refolding: the designed sequence is folded by a structure predictor and the prediction is compared with the input backbone.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 1",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Inverse folding designs amino-acid sequences that fold into a given backbone, and it underlies scaffold design, enzyme engineering and the construction of sequence libraries for screening. Screening needs many diverse candidates rather than one best sequence, so a model is useful in proportion to the diversity it offers at a given structural quality."
+     },
+     {
+      "source": "@report",
+      "text": "Evaluation at a single sampling temperature can obscure the trade-off between structural consistency and sequence diversity, so we compare models at comparable diversity."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Five test panels of single chains are used: CATH4.3 test (1,882 chains), CATH4.2 test (1,120), TS500 (500), TS50 (50) and RecentPDB, which is 121 chains from 111 recent PDB entries covering 26,766 residues at lengths 42 to 978. The panels hold standard chains with complete backbones, and RecentPDB was screened for homology to PDB and CATH entries before 2025. ESMFold2 folds every design on all five panels; RecentPDB is additionally folded by Boltz2 and Protenix2, neither of which is used in training. That gives seven panel and predictor columns. A sixth panel, CATH4.3 validation, is the development panel on which the checkpoint and the sampler setting were chosen before any test panel was generated. Four further application panels (de novo backbones, pocket-constrained libraries, loop and window redesign, and four named enzymes) have panel rules, thresholds and endpoints fixed before designs were generated. Not every backbone in them was chosen by rule: ten of the twelve pocket backbones were chosen by rule and two were single cases chosen earlier, the 8 loop and window backbones were chosen by rule, and the four named enzymes are a fixed list that the report says is homologous to the training data and chosen for display.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.1; Appendix A; Appendix G, Table 10",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Five test panels: CATH4.3 test (1,882 chains), CATH4.2 test (1,120) (Ingraham et al., 2019), TS500 (500) and TS50 (50) (Gao et al., 2023), and RecentPDB, 121 chains from experimental structures of recent PDB entries (111 entries, 26,766 residues, lengths 42–978), all standard chains with complete backbones, screened for homology to PDB and CATH entries before 2025. ESMFold2 (Candido et al., 2026) folds every design; RecentPDB is also folded by Boltz2 (Passaro et al., 2025) and Protenix2 (Zhang et al., 2026), which are not used in training."
+     },
+     {
+      "source": "@report",
+      "text": "Checkpoint and sampler setting. Both were chosen on the development panel (CATH4.3 validation) alone."
+     },
+     {
+      "source": "@report",
+      "text": "Panel rules, thresholds and endpoints were fixed before designs were generated, and panels were chosen from native sequences and structures only."
+     },
+     {
+      "source": "@report",
+      "text": "12 ligand-pocket backbones: ten chosen by rule (length range, complete backbone atoms, a non-solvent ligand with at least eight residues within 4 Å, no hit that passes the homology rule), in hash order, and two single cases chosen earlier."
+     },
+     {
+      "source": "@report",
+      "text": "on 8 backbones chosen by rule and on 4 named enzymes"
+     },
+     {
+      "source": "@report",
+      "text": "and the named enzymes are a fixed list; the table documents the panel rule only."
+     },
+     {
+      "source": "@report",
+      "text": "The named enzymes are homologous to the training data and chosen for display"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Each method designs sequences for every backbone in a panel at its own published setting. The designs are folded and scored by scTM, the TM-score of the predicted structure of a design to the native backbone, computed on the C-alpha trace at valid sites, normalised by the native length and clipped at one; higher is better. A failed fold is a gap in the average rather than an imputed value. Panel values average the designs of a chain first and then the chains. Recovery is descriptive and has weight zero in the reward, and diversity is matched rather than ranked. The headline comparison is a paired difference: the macro-average of the per-chain scTM difference between HyInv and a baseline, with a 95 per cent percentile interval from 10,000 resamples with a fixed seed; a starred difference is one whose interval excludes zero, and intervals are not adjusted for multiple comparisons. For sampler and ablation comparisons the report instead reads scTM at a fixed diversity from a least-squares quadratic fit of scTM against diversity over a temperature grid, with no extrapolation.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Appendix A; Appendix B",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "scTM. TM-score (Zhang and Skolnick, 2004) of the predicted structure of a design to the native backbone, computed on the Cα trace at valid sites, normalized by the native length and clipped at one; higher is better. A failed fold is a gap in the average, not imputed. This is the primary quantity and the RL reward."
+     },
+     {
+      "source": "@report",
+      "text": "A paired difference is the macro-average of the per-chain scTM difference between HyInv and a baseline. Its 95% interval is the percentile interval of 10,000 resamples of the resampling unit with one resample shared by all rows compared and a fixed seed (20260922). A difference carries a star in the figures and tables when its interval excludes zero"
+     },
+     {
+      "source": "@report",
+      "text": "The scTM at fixed diversity D is the value at D of the least-squares quadratic fit"
+     }
+    ]
+   },
+   {
+    "title": "What the comparison found",
+    "body": "HyInv has the highest scTM in all seven panel and predictor columns, with an average of 0.875 against 0.867 for ProteinZero V2 with ESM2 weights and 0.863 for ProteinMPNN. Of the 70 comparisons (ten baselines across the seven columns), all 70 point estimates favour HyInv and 61 have an interval that excludes zero. The report states which nine include zero. The parallel decoders PiFold, CMLM, LM-Design and DPLM-2 3B sample at much lower diversity than HyInv, so their differences are not at matched diversity.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.2; Appendix D.2",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "HyInv has the highest scTM in all seven panel–predictor columns, and its average is 0.875, against 0.867 for ProteinZero V2 (ESM2) and 0.863 for ProteinMPNN."
+     },
+     {
+      "source": "@report",
+      "text": "Of the 70 comparisons (ten baselines in seven panel–predictor columns), all 70 point estimates favor HyInv and 61 have an interval that excludes zero"
+     },
+     {
+      "source": "@report",
+      "text": "PiFold, CMLM, LM-Design and DPLM-2 3B are single points at much lower diversity than HyInv, so their differences are not at matched diversity."
+     }
+    ]
+   },
+   {
+    "title": "Application panels",
+    "body": "Beyond the five test panels, the report runs the same default setting on four single-chain design tasks. On 74 de novo backbones in 58 clusters at 30 per cent sequence identity, with 4 designs per backbone, the endpoint is the number of designs per backbone that are both foldable (ESMFold2 scTM at least 0.9) and novel (identity below 0.3 to the nearest UniRef50 sequence and to the nearest sequence of the pretraining library). On 12 ligand-pocket backbones, residues within 4 angstroms of the ligand keep their native identity, 384 designs are made per backbone and cell, and the endpoint is the number of different sequences after clustering at 50 per cent identity among the designs that pass an scTM of at least 0.90 and a site C-alpha RMSD of at most 1.0 angstroms. Loop and window redesign covers 8 backbones chosen by rule plus 4 named enzymes whose catalytic residues are fixed, with 128 designs per backbone and region. The report says the named enzymes are homologous to the training data and were chosen for display.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 6; Appendix G",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "De novo backbones. 74 de novo backbones in 58 clusters of 30% sequence identity, none with a hit that passes the homology rule below, with 4 designs per backbone"
+     },
+     {
+      "source": "@report",
+      "text": "Pocket-constrained libraries. 12 ligand-pocket backbones"
+     },
+     {
+      "source": "@report",
+      "text": "A design passes if its scTM is at least 0.90 and its site Cα RMSD at most 1.0 Å; the endpoint is the number of different sequences, after clustering at 50% identity, among the passing designs of a plate of 96 or 384 designs"
+     },
+     {
+      "source": "@report",
+      "text": "The named enzymes are homologous to the training data and chosen for display: they illustrate the preservation of a fixed geometry, not the design of new enzymes."
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "No scoring harness or panel manifest is published, so the panels themselves cannot be rebuilt from the release. What the repository does offer is the design step: the hyinv package installs with pip, and one command designs a given number of sequences for a PDB backbone, with options for fixed positions, the draft and rewrite temperatures, the device and the accelerated inference path. Refolding and the scTM calculation have to be supplied by the user.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation; Usage",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python -m hyinv design --pdb structure.pdb --n 128 --seed 0 --out designs.fasta"
+     },
+     {
+      "source": "@readme",
+      "text": "Options: `--draft-temperature 0.6`, `--rewrite-temperature 0.34`, `--device cpu|cuda`,\n`--fast off|exact|bf16` (see *Accelerated inference*), `--weights DIR`."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Five test panels of single chains: CATH4.3 test (1,882 chains), CATH4.2 test (1,120), TS500 (500), TS50 (50) and RecentPDB (121 chains from 111 recent PDB entries, 26,766 residues, lengths 42 to 978). CATH4.3 validation (1,529 chains in the store's dataset list) is the development panel. Four application panels add 74 de novo backbones, 12 ligand-pocket backbones, 8 loop and window backbones and 4 named enzymes.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.1; Appendix G, Table 10",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Five test panels: CATH4.3 test (1,882 chains), CATH4.2 test (1,120) (Ingraham et al., 2019), TS500 (500) and TS50 (50) (Gao et al., 2023), and RecentPDB, 121 chains from experimental structures of recent PDB entries (111 entries, 26,766 residues, lengths 42–978)"
+     },
+     {
+      "source": "@report",
+      "text": "De novo backbones                          74            0                  28"
+     },
+     {
+      "source": "@report",
+      "text": "Pocket library                             12            0                   7"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Evaluation only: every panel is a test set and each test panel was evaluated once. Model selection used a separate development panel, CATH4.3 validation, on which the checkpoint and the sampler temperatures were chosen before the test panels were generated. The test panels are the published test splits of CATH4.3, CATH4.2, TS500 and TS50 plus the authors' own RecentPDB panel.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.1; Appendix A",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "The checkpoint and temperatures were chosen on the development panel (CATH4.3 validation) and every test panel was evaluated once."
+     },
+     {
+      "source": "@report",
+      "text": "The default sampler setting (draft 0.6, rewrite 0.34, development diversity 0.30) was read off the development curve before the test panels were generated with this checkpoint."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "scTM is the primary metric, higher is better: the TM-score of the predicted structure of a design to the native backbone on the C-alpha trace at valid sites, normalised by native length and clipped at one. Native sequence recovery (higher is more native-like, but descriptive only) and sequence diversity (mean pairwise normalised Hamming distance between a chain's designs, matched rather than ranked) are reported beside it. pLDDT, scRMSD (lower is better) and a C-alpha lDDT-style score are also reported. The application panels use novel-and-foldable yield per backbone, distinct passing designs per plate, site RMSD and region RMSD.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.1; Appendix B",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "scTM, the TM-score between the predicted structure of a design and the input backbone, is the primary metric; native sequence recovery and sequence diversity (mean pairwise difference between the designs of a target) are reported beside it (Appendix B)."
+     },
+     {
+      "source": "@report",
+      "text": "Recovery. Fraction of valid sites at which the design carries the native residue. It is descriptive, not an objective: it has weight zero in the reward and selects no checkpoint"
+     },
+     {
+      "source": "@report",
+      "text": "scRMSD. Self-consistency RMSD in Å: RMSD between the Cα atoms of the predicted structure of a design and the native backbone at valid sites"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Ten released models at their published single-temperature settings: ProteinMPNN, ProteinMPNN with grouped decoding, ProteinMPNN low-noise grouped, ProteinZero V2 with ESM1 weights, ProteinZero V2 with ESM2 weights, PiFold, CMLM, LM-Design 650M, DPLM-2 3B and LigandMPNN. The native sequence refolded is shown as a reference line. ProteinMPNN is the only baseline with a temperature sweep.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.1; Appendix D.1; Appendix D.3",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Baselines. Ten released models, each at its published single-temperature setting: ProteinMPNN and two grouped variants (Dauparas et al., 2022), ProteinZero V2 with ESM1 and ESM2 weights (Wang et al., 2025b), PiFold (Gao et al., 2023), CMLM (Ghazvininejad et al., 2019), LM-Design 650M (Zheng et al., 2023), DPLM-2 3B (Wang et al., 2025a) and LigandMPNN (Dauparas et al., 2023)."
+     },
+     {
+      "source": "@report",
+      "text": "ProteinMPNN is the only baseline with a temperature sweep (three temperatures; two were generated for this report)."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Three controls, each partial. The RecentPDB panel was screened for homology to PDB and CATH entries before 2025. The reinforcement-learning pool of 50,000 backbones was filtered against the benchmark datasets with a homology mask. The application panels were screened with MMseqs2 against the pretraining library and the benchmark reference set, counting a hit at 30 per cent identity and 80 per cent coverage; the report states this is a coverage rule, so shorter similar fragments remain, and the four named enzymes are homologous to the training data by design. The baselines are released checkpoints whose own training data the report does not screen.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 1; Section 5.1; Appendix G, Homology of the panels",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "primarily rewarded by predicted structural self-consistency on a pool of 50,000 backbones filtered against the benchmark datasets with a homology mask"
+     },
+     {
+      "source": "@report",
+      "text": "The native chain of each panel backbone was searched against the pretraining library and the benchmark reference set (MMseqs2); a hit counts if its identity is at least 0.3 and it covers at least 0.8 of the query or of the target. This is a coverage rule: hits that cover less of the chain remain, so a backbone passing the rule is homology-filtered at these thresholds, which is weaker than having no similar fragment in the library"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Paired differences carry 95 per cent percentile intervals from 10,000 resamples of the resampling unit, with one resample shared across all compared rows and a fixed seed; the intervals are not adjusted for multiple comparisons, and the report flags that a few starred intervals have a lower end within 0.001 of zero. Two independent generate-and-fold runs on the development panel differed by -0.0008 and +0.0016, which the authors read as noise of about 0.0015 in one evaluation, and they say differences between checkpoints below about 0.003 are not resolvable. Scores at equal diversity carry intervals from 1,000 draws in which all curve points are recomputed from one cluster resample.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Appendix A",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "a few starred intervals have a lower end within 0.001 of zero and are borderline (Tables 6 and 7). Intervals are not adjusted for multiple comparisons."
+     },
+     {
+      "source": "@report",
+      "text": "differ by −0.0008 and +0.0016, so one evaluation carries noise of about ±0.0015; refolding identical sequences with other fold seeds moves a panel mean by less than 0.0002."
+     },
+     {
+      "source": "@report",
+      "text": "with an interval from 1,000 draws in which all points of all curves are recomputed from one cluster resample"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One example is a protein backbone, given as a single chain, for which a method must design sequences; panel values are macro-averages over chains. In the application panels an example is a de novo backbone, a ligand-pocket backbone, or a backbone with a nominated loop or window.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 1; Appendix A",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Inverse folding designs amino-acid sequences that fold into a given backbone"
+     },
+     {
+      "source": "@report",
+      "text": "Panel values are macro-averages over chains."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Unreported. The panels are drawn from CATH and PDB chains and the four named enzymes are TEM-1 beta-lactamase, subtilisin, lysozyme and PETase, but the report gives no species composition for any panel.",
+    "status": "unreported",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.1; Appendix G"
+   },
+   {
+    "label": "Assays",
+    "value": "None. Every quantity in the comparison is computed from predicted structures and designed sequences, and the report states that none is an experimental measurement.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Appendix B",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "All quantities are measured on predicted structures and designed sequences; none is an experimental measurement."
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "A backbone structure. HyInv reads only the N, C-alpha, C and O backbone atoms of the input PDB, and LigandMPNN, which can read ligand atoms, is run on backbone coordinates only. In the constrained application panels a method is additionally given the positions whose native identity must be kept.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report",
+     "@readme"
+    ],
+    "source_locator": "Report: Appendix D.1; Appendix G; README.md: HyInv",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "LigandMPNN is run on backbone coordinates only."
+     },
+     {
+      "source": "@readme",
+      "text": "sees only the N, Cα, C and O backbone atoms, and runs on both CPU and GPU"
+     },
+     {
+      "source": "@report",
+      "text": "Residues within 4 Å of the ligand keep their native identity"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "No adaptation to the panels. Every baseline is run from its released weights at the single setting at which it was published and is not tuned to the panels, and HyInv uses one setting throughout, chosen on the development panel. Some baseline cells were regenerated by the authors and used only where the procedure reproduced the released score on RecentPDB.",
+    "status": "source_checked",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.1; Appendix D.1",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "scored with the protocol of Appendix A at the single setting at which it was published, not tuned to the panels"
+     },
+     {
+      "source": "@report",
+      "text": "All baselines use the released weights."
+     },
+     {
+      "source": "@report",
+      "text": "a regenerated cell is used only where the same procedure reproduces the released score on RecentPDB (difference 0.0001 to 0.0022, within 0.003)"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The comparison is made at comparable sequence diversity rather than at one temperature, and the report quantifies how far from equal diversity the comparison is: the largest diversity offset, 0.016, is worth at most 0.0011 scTM at the slope of the development curve.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Appendix A, Scores at equal diversity",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "at the slope of the development curve (0.07 scTM per unit of diversity) the largest offset, 0.016, is worth at most 0.0011 scTM, so the comparisons are close to, but not exactly at, equal diversity"
+     }
+    ]
+   },
+   {
+    "text": "Model selection and the test evaluation are separated: the checkpoint and the sampler temperatures were fixed on a development panel before the test panels were generated, and each test panel was evaluated once.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.1; Appendix A",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "The checkpoint and temperatures were chosen on the development panel (CATH4.3 validation) and every test panel was evaluated once."
+     }
+    ]
+   },
+   {
+    "text": "Because the primary structure predictor is also the reinforcement-learning reward, the RecentPDB panel is additionally folded by two predictors that never enter training, Boltz2 and Protenix2.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.3",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "ESMFold2 is also the reward predictor of RL, so RecentPDB is folded in addition by Boltz2 and Protenix2, which never enter training."
+     }
+    ]
+   },
+   {
+    "text": "Regenerated baseline cells are accepted only where the authors' procedure reproduced the released score on RecentPDB, and the per-baseline reproduction difference and fraction of identical sequences are printed.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Appendix D.1, Table 5",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "The reproduction check regenerates the baseline on RecentPDB, folds it with ESMFold2 and compares the target-averaged scTM with the released value (|∆scTM|) and the fraction of identical sequences."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Every number is author-reported: the team releasing HyInv chose the panels, ran all ten baselines at settings of their choosing, and defined the scoring. Only HyInv has a tuned setting and a temperature sweep on most panels.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.1; Appendix D.3",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "Baselines are single published settings, so comparisons are at comparable rather than exactly equal diversity, and a repeated evaluation varies slightly (Appendix A)."
+     },
+     {
+      "source": "@report",
+      "text": "ProteinMPNN is the only baseline with a temperature sweep (three temperatures; two were generated for this report)."
+     }
+    ]
+   },
+   {
+    "text": "Nothing here is an experimental measurement. Designs are judged by a structure predictor, and the primary predictor ESMFold2 is also the reward used to train HyInv.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Appendix B; Section 5.3",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "All quantities are measured on predicted structures and designed sequences; none is an experimental measurement."
+     },
+     {
+      "source": "@report",
+      "text": "This is the primary quantity and the RL reward."
+     }
+    ]
+   },
+   {
+    "text": "The margins are small next to the stated run-to-run noise. The average margin over the strongest baseline is +0.008 scTM, while one evaluation carries noise of about 0.0015 and differences below about 0.003 are called unresolvable; 9 of the 70 baseline comparisons have an interval that includes zero.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Section 5.2; Appendix A; Appendix D.2",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "The margin is smallest over ProteinZero V2 (ESM2) (+0.008) and largest over DPLM-2 3B (+0.062)."
+     },
+     {
+      "source": "@report",
+      "text": "Differences between checkpoints below about 0.003 are not resolvable."
+     },
+     {
+      "source": "@report",
+      "text": "the other 9 include zero"
+     }
+    ]
+   },
+   {
+    "text": "Two baselines are run outside their declared range or compared off matched diversity: ProteinZero V2 is declared for backbones of up to 100 residues but run on the full panels, and the parallel decoders sit at much lower diversity than HyInv.",
+    "source_ids": [
+     "@report"
+    ],
+    "source_locator": "Report: Appendix D.1; Appendix D.2",
+    "quotes": [
+     {
+      "source": "@report",
+      "text": "ProteinZero V2 is declared for backbones of up to 100 residues and is run here on the full panels."
+     },
+     {
+      "source": "@report",
+      "text": "PiFold, CMLM, LM-Design and DPLM-2 3B are single points at much lower diversity than HyInv, so their differences are not at matched diversity."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "HyInv report inverse-folding comparison workflow",
+   "steps": [
+    "backbone panel (CATH4.3, CATH4.2, TS500, TS50, RecentPDB)",
+    "each method designs sequences at its published setting",
+    "designs refolded by ESMFold2, and by Boltz2 and Protenix2 on RecentPDB",
+    "scTM, recovery and diversity per chain",
+    "paired difference from HyInv with a resampling interval"
+   ],
+   "caption": "The five panels and the three predictors give seven panel and predictor columns; each column is scored by scTM and reported as a paired per-chain difference from HyInv.",
+   "source_ids": [
+    "@report"
+   ],
+   "source_locator": "Report: Section 5.1; Appendix A",
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "ESMFold2 (Candido et al., 2026) folds every design; RecentPDB is also folded by Boltz2 (Passaro et al., 2025) and Protenix2 (Zhang et al., 2026), which are not used in training."
+    },
+    {
+     "source": "@report",
+     "text": "A paired difference is the macro-average of the per-chain scTM difference between HyInv and a baseline."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No chain list or split manifest is published for any panel, so the panels cannot be rebuilt and a third party cannot reproduce the comparison.",
+   "No scoring or refolding code is released: the repository holds the HyInv model and sampler only.",
+   "The per-panel baseline tables (Tables 6 and 7) and most per-method values in Figures 5, 6 and 14 to 16 are read from figures in the PDF and were not transcribed here.",
+   "The report does not state the species composition of any panel."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the text layer of the HyInv technical report PDF (report dated 2026-10-14) and the hyinv README.md and LICENSE, all from Tencent-Hunyuan/Hyra-results at commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a, on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the released HyInv package and design sequences for one backbone; the refolding and scTM scoring used in the report are not released, so they are not covered here.",
+  "prerequisites": [
+   "Python 3.10 or later and PyTorch; safetensors and numpy are the only other dependencies.",
+   "For the accelerated path, a CUDA build of PyTorch and triton; the authors verified triton 3.3.1 on an H20.",
+   "A backbone as a PDB file. mmCIF must be converted to PDB first.",
+   "The hyinv package is released under the MIT licence."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/Tencent-Hunyuan/Hyra-results\ncd Hyra-results\ngit checkout --detach 0dcc533cc9f8f76c90ecbfe944df816b6672328a\ncd AI4Science/hyinv",
+    "explanation": "The README does not give a clone command. These lines were added so that the install step below runs against the same commit as the saved README, and the path is the package directory in the repository tree.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Layout",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`weights/`: `model.safetensors` (FP32, 7.8 MB) and `config.json`"
+     }
+    ]
+   },
+   {
+    "title": "Install the package",
+    "shell": "pip install -e .\npip install -e '.[fast]'",
+    "explanation": "The first line installs the reference implementation. The second is optional and adds the triton kernels used by the accelerated paths on CUDA GPUs.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install -e .\npip install -e '.[fast]'   # optional: accelerated inference on CUDA GPUs"
+     }
+    ]
+   },
+   {
+    "title": "Design sequences for a backbone",
+    "shell": "python -m hyinv design --pdb structure.pdb --n 128 --seed 0 --out designs.fasta",
+    "explanation": "Writes 128 designed sequences for the backbone in structure.pdb to a FASTA file. The report's default setting is draft temperature 0.6 and rewrite temperature 0.34, which are the defaults of the options listed in the README.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Usage",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python -m hyinv design --pdb structure.pdb --n 128 --seed 0 --out designs.fasta"
+     },
+     {
+      "source": "@readme",
+      "text": "Options: `--draft-temperature 0.6`, `--rewrite-temperature 0.34`"
+     }
+    ]
+   },
+   {
+    "title": "Keep chosen positions fixed",
+    "shell": "python -m hyinv design --pdb structure.pdb --chain A --fixed 12-20,45 --n 16",
+    "explanation": "The constrained application panels keep nominated residues at their native identity. This is the command form the README gives for that, with positions numbered by PDB residue number and qualified by chain for multi-chain inputs.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Usage; Notes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python -m hyinv design --pdb structure.pdb --chain A --fixed 12-20,45 --n 16   # keep residues 12-20 and 45"
+     },
+     {
+      "source": "@readme",
+      "text": "Fixed positions are given by PDB residue number; they are visible as the native residue from the first round on and are kept unchanged in the output."
+     }
+    ]
+   },
+   {
+    "title": "Use the accelerated path",
+    "shell": "python -m hyinv design --pdb structure.pdb --n 128 --fast bf16 --out designs.fasta",
+    "explanation": "The bf16 setting is the fastest path but a numerically different one: the README states that sequences with the same seed are not identical to the default off path. The report's evaluated sequences all come from the reference sampler.",
+    "source_ids": [
+     "@readme",
+     "@report"
+    ],
+    "source_locator": "README.md: Accelerated inference; Report: Section 4",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python -m hyinv design --pdb structure.pdb --n 128 --fast bf16 --out designs.fasta"
+     },
+     {
+      "source": "@readme",
+      "text": "This is a\nnumerically-different path: sequences with the same seed are not identical to `off`"
+     },
+     {
+      "source": "@report",
+      "text": "All sequences evaluated in Section 5 come from the reference sampler, which the exact FP32 path reproduces sequence by sequence."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A FASTA file of designed sequences, one record per design, with chains separated by a forward slash for multi-chain inputs.",
+   "No score: the refolding and scTM calculation of the report are not part of the release."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The commands reproduce the design step only. The panels, the refolding recipe and the scoring code of the comparison are not published, so the reported numbers cannot be reproduced from the release.",
+   "Outputs are identical only for the same seed, batch size, device type and PyTorch version, and the README states that CPU and GPU random streams differ."
+  ],
+  "source_ids": [
+   "@readme",
+   "@report"
+  ]
+ },
+ "structured": [
+  {
+   "task": "Inverse folding, scTM under ESMFold2",
+   "dataset": "CATH4.3 test",
+   "size": 1882,
+   "size_unit": "test chains",
+   "split": "published CATH4.3 test split, evaluated once",
+   "primary_metric": "scTM",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Five test panels: CATH4.3 test (1,882 chains), CATH4.2 test (1,120) (Ingraham et al., 2019), TS500 (500) and TS50 (50) (Gao et al., 2023)"
+    },
+    {
+     "source": "@report",
+     "text": "The checkpoint and temperatures were chosen on the development panel (CATH4.3 validation) and every test panel was evaluated once."
+    },
+    {
+     "source": "@report",
+     "text": "scTM, the TM-score between the predicted structure of a design and the input backbone, is the primary metric"
+    },
+    {
+     "source": "@readme",
+     "text": "This package is released under the MIT license; see [LICENSE](LICENSE)."
+    }
+   ]
+  },
+  {
+   "task": "Inverse folding, scTM under ESMFold2",
+   "dataset": "CATH4.2 test",
+   "size": 1120,
+   "size_unit": "test chains",
+   "split": "published CATH4.2 test split, evaluated once",
+   "primary_metric": "scTM",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "CATH4.2 test (1,120) (Ingraham et al., 2019)"
+    },
+    {
+     "source": "@report",
+     "text": "every test panel was evaluated once"
+    },
+    {
+     "source": "@report",
+     "text": "scTM, the TM-score between the predicted structure of a design and the input backbone, is the primary metric"
+    },
+    {
+     "source": "@readme",
+     "text": "This package is released under the MIT license; see [LICENSE](LICENSE)."
+    }
+   ]
+  },
+  {
+   "task": "Inverse folding, scTM under ESMFold2",
+   "dataset": "TS500",
+   "size": 500,
+   "size_unit": "test chains",
+   "split": "published TS500 panel, evaluated once",
+   "primary_metric": "scTM",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "TS500 (500) and TS50 (50) (Gao et al., 2023)"
+    },
+    {
+     "source": "@report",
+     "text": "every test panel was evaluated once"
+    },
+    {
+     "source": "@report",
+     "text": "scTM, the TM-score between the predicted structure of a design and the input backbone, is the primary metric"
+    },
+    {
+     "source": "@readme",
+     "text": "This package is released under the MIT license; see [LICENSE](LICENSE)."
+    }
+   ]
+  },
+  {
+   "task": "Inverse folding, scTM under ESMFold2",
+   "dataset": "TS50",
+   "size": 50,
+   "size_unit": "test chains",
+   "split": "published TS50 panel, evaluated once",
+   "primary_metric": "scTM",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "TS500 (500) and TS50 (50) (Gao et al., 2023)"
+    },
+    {
+     "source": "@report",
+     "text": "every test panel was evaluated once"
+    },
+    {
+     "source": "@report",
+     "text": "scTM, the TM-score between the predicted structure of a design and the input backbone, is the primary metric"
+    },
+    {
+     "source": "@readme",
+     "text": "This package is released under the MIT license; see [LICENSE](LICENSE)."
+    }
+   ]
+  },
+  {
+   "task": "Inverse folding, scTM under ESMFold2",
+   "dataset": "RecentPDB",
+   "size": 121,
+   "size_unit": "test chains",
+   "split": "121 chains from 111 recent PDB entries, screened for homology to PDB and CATH entries before 2025",
+   "primary_metric": "scTM",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "RecentPDB, 121 chains from experimental structures of recent PDB entries (111 entries, 26,766 residues, lengths 42–978), all standard chains with complete backbones, screened for homology to PDB and CATH entries before 2025"
+    },
+    {
+     "source": "@report",
+     "text": "scTM, the TM-score between the predicted structure of a design and the input backbone, is the primary metric"
+    },
+    {
+     "source": "@readme",
+     "text": "This package is released under the MIT license; see [LICENSE](LICENSE)."
+    }
+   ]
+  },
+  {
+   "task": "Inverse folding, scTM under Boltz2",
+   "dataset": "RecentPDB",
+   "size": 121,
+   "size_unit": "test chains",
+   "split": "121 chains from 111 recent PDB entries, screened for homology to PDB and CATH entries before 2025",
+   "primary_metric": "scTM",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "RecentPDB, 121 chains from experimental structures of recent PDB entries (111 entries, 26,766 residues, lengths 42–978), all standard chains with complete backbones, screened for homology to PDB and CATH entries before 2025"
+    },
+    {
+     "source": "@report",
+     "text": "RecentPDB is also folded by Boltz2 (Passaro et al., 2025) and Protenix2 (Zhang et al., 2026), which are not used in training"
+    },
+    {
+     "source": "@readme",
+     "text": "This package is released under the MIT license; see [LICENSE](LICENSE)."
+    }
+   ]
+  },
+  {
+   "task": "Inverse folding, scTM under Protenix2",
+   "dataset": "RecentPDB",
+   "size": 121,
+   "size_unit": "test chains",
+   "split": "121 chains from 111 recent PDB entries, screened for homology to PDB and CATH entries before 2025",
+   "primary_metric": "scTM",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "RecentPDB, 121 chains from experimental structures of recent PDB entries (111 entries, 26,766 residues, lengths 42–978), all standard chains with complete backbones, screened for homology to PDB and CATH entries before 2025"
+    },
+    {
+     "source": "@report",
+     "text": "RecentPDB is also folded by Boltz2 (Passaro et al., 2025) and Protenix2 (Zhang et al., 2026), which are not used in training"
+    },
+    {
+     "source": "@readme",
+     "text": "This package is released under the MIT license; see [LICENSE](LICENSE)."
+    }
+   ]
+  },
+  {
+   "task": "De novo backbone application panel, novel and foldable designs per backbone",
+   "dataset": "De novo backbones",
+   "size": 74,
+   "size_unit": "backbones",
+   "split": "74 de novo backbones in 58 clusters of 30% sequence identity, none with a passing homology hit",
+   "primary_metric": "novel and foldable designs per backbone",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "De novo backbones. 74 de novo backbones in 58 clusters of 30% sequence identity, none with a hit that passes the homology rule below, with 4 designs per backbone"
+    },
+    {
+     "source": "@report",
+     "text": "the yield is the number of novel-and-foldable designs per backbone"
+    },
+    {
+     "source": "@readme",
+     "text": "This package is released under the MIT license; see [LICENSE](LICENSE)."
+    }
+   ]
+  },
+  {
+   "task": "Pocket-constrained library application panel, distinct passing designs per plate",
+   "dataset": "Ligand-pocket backbones",
+   "size": 12,
+   "size_unit": "backbones",
+   "split": "12 ligand-pocket backbones, ten chosen by rule in hash order and two single cases chosen earlier",
+   "primary_metric": "distinct passing designs per plate",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hyinv",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@report",
+     "text": "Pocket-constrained libraries. 12 ligand-pocket backbones: ten chosen by rule (length range, complete backbone atoms, a non-solvent ligand with at least eight residues within 4 Å, no hit that passes the homology rule), in hash order, and two single cases chosen earlier."
+    },
+    {
+     "source": "@report",
+     "text": "the endpoint is the number of different sequences, after clustering at 50% identity, among the passing designs of a plate of 96 or 384 designs"
+    },
+    {
+     "source": "@readme",
+     "text": "This package is released under the MIT license; see [LICENSE](LICENSE)."
+    }
+   ]
+  }
+ ],
+ "notes": "The record is one technical report's comparison, not a released suite: there is no leaderboard, no panel manifest and no scoring code, so results_url and data_url are null in every structured entry. The code_url and code_licence point at the hyinv package in the same repository, which is MIT; the repository root licence is not a recognised SPDX identifier, and no licence is stated for the report PDF itself, so its store_bytes is false. The loop and window redesign panel (8 backbones chosen by rule) and the four named enzymes are described in the Application panels section but have no structured entry, because the report prints their endpoints only in figures. The report's own date, 2026-10-14, is printed on its first page; no release date for the comparison is stated, so released is null throughout. Per-method values beyond those quoted sit in figures and in Tables 6 and 7 of the PDF and were not transcribed."
+}

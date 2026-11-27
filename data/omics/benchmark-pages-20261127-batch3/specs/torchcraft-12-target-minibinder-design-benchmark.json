@@ -1,0 +1,540 @@
+{
+ "record_id": "torchcraft-20261115-benchmark-minibinder-12-target",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Text layer of the TorchCraft paper, arXiv 2609.19770v1",
+   "description": "Text extracted with pdftotext -layout from the arXiv PDF of 'TorchCraft: Unified binder design by inverting an all-atom structure predictor', TorchCraft Team, Changping Laboratory. The PDF is kept beside it as artifacts/paper.pdf. Appendix A.4 holds the benchmark settings, the pass criteria and the supplementary target tables.",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2609.19770v1",
+   "url": "https://arxiv.org/abs/2609.19770v1",
+   "version": "arXiv v1, 17 September 2026",
+   "media_type": "text/plain",
+   "sha256": "90f1da5f8a936766087beba0ade3f038f5b69504b9f581b42f2391f5640c5e6b",
+   "retrieved_at": "2026-11-27T03:28:11Z",
+   "store_bytes": false
+  },
+  {
+   "key": "readme",
+   "name": "Mingchenchen/TorchX README.md at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+   "description": "README of the code repository the paper names, pinned to the head of its default branch main. Lists the modules and the entry points for folding, scoring and design.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/Mingchenchen/TorchX/ebf9dc6676ecb1be505bc72f87de408995f0d8fd/README.md",
+   "url": "https://github.com/Mingchenchen/TorchX",
+   "version": "git commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+   "media_type": "text/markdown",
+   "sha256": "88da821dfed6d76a6d1d2efd1e3e124a18f35c07d6fdf45a8e374fc2c35fccf0",
+   "retrieved_at": "2026-11-27T03:43:42Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "licence",
+   "name": "Mingchenchen/TorchX LICENSE at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+   "description": "The licence file of the code repository, the Apache License version 2.0.",
+   "file": "artifacts/licence.txt",
+   "artifact_url": "https://raw.githubusercontent.com/Mingchenchen/TorchX/ebf9dc6676ecb1be505bc72f87de408995f0d8fd/LICENSE",
+   "url": "https://github.com/Mingchenchen/TorchX",
+   "version": "git commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+   "media_type": "text/plain",
+   "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+   "retrieved_at": "2026-11-27T03:43:42Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "This is the in silico minibinder comparison published with TorchCraft. Twelve protein targets, each with a fixed crop and length-specific hotspot residues listed in Supplementary Table S4, are given to three design methods, TorchCraft, BoltzGen and RFdiffusion, at binder lengths of 75, 120, 160 and 200 residues, with 100 designs per method per length per target. Every design ends up scored by TorchScore, a score-only loading of the same AlphaFold 3 weights TorchCraft designs against, and counts as a pass when both its pTM and its ipTM exceed 0.7. Figure 2f prints the resulting pass rates aggregated over the four lengths. It is a comparison of computational pass rates between design methods on one target panel, not a measurement of binding.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Section 2.2 and Figure 2f; Appendix A.4.3.1; Supplementary Table S4",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We next compared TorchCraft with BoltzGen and RFdiffusion across 12 protein targets and binder lengths of 75, 120, 160, and 200 residues. Designs were evaluated using TorchScore, a score-only AF3 evaluation of supplied coordinates (Appendix A.4.2). Computational pass rates varied by target and binder length (Figure 2f)."
+   },
+   {
+    "source": "@paper",
+    "text": "A minibinder design was counted as passing the computational criterion when both TorchScore pTM and TorchScore ipTM exceeded 0.7."
+   },
+   {
+    "source": "@paper",
+    "text": "For each method, at each benchmark binder length and for each target, 100 designs were first generated using the default settings of the corresponding method."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether a design method produces minibinders that a structure predictor is confident about, across a spread of targets and binder lengths. The quantity is a pass rate: the share of a method's designs for a target that clear a confidence threshold. The authors are explicit that this is predictor-derived rather than experimental, and they add Rosetta interface-score distributions in a supplementary figure for that reason. The length sweep is part of the question: pass rates are reported per target and per binder length before being aggregated, and the paper says they varied by both.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.2; Figure 2f caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We next compared TorchCraft with BoltzGen and RFdiffusion across 12 protein targets and binder lengths of 75, 120, 160, and 200 residues. Designs were evaluated using TorchScore, a score-only AF3 evaluation of supplied coordinates (Appendix A.4.2). Computational pass rates varied by target and binder length (Figure 2f)."
+     },
+     {
+      "source": "@paper",
+      "text": "Because the evaluation uses predictor-derived scores, we additionally report Rosetta interface-score distributions (Supplementary Figure S2)."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "There is no dataset to download and no split. The panel is twelve target proteins, each listed in Supplementary Table S4 with a PDB entry, the target chain and residue crop used, and hotspot residues given separately for the 75, 120 and 160 or 200 residue settings: IL-7Ralpha, InsulinR, PD-L1, TrkA, CD3D, EGFRc, EGFRn, FGFR2, IGF1R, PDGFRbeta, Tie2 and VirB8, counted from the rows of that table. For each method, each length and each target, 100 designs are generated with that method's default settings, so each cell of the comparison rests on 100 original designs.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.1 and A.4.3.1; Supplementary Table S4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Table S4 Mini-binder benchmark targets. Hotspots are listed separately for each binder-length setting. Target PDB ID Target chain/residues 75-aa hotspots 120-aa hotspots 160/200-aa hotspots IL-7Rα 7opb B36–231 B78,B100,B159 B79,B104,B155,B159, B79,B104,B155,B159, B184,B212 B184,B187,B212 InsulinR 4zxb E6–155 E64,E88,E96 E34,E37,E65,E86,E142, E9,E19,E34,E37,E65,E86, E147 E142,E147 PD-L1 8znl B20–133 B57,B116,B124 B59,B70,B74,B120,B122, B30,B59,B70,B74,B107, B126 B120,B122,B126 TrkA 1www X282–382 X294,X296,X333 X287,X304,X306,X334, X287,X291,X294,X296, X339,X347 X304,X306,X327,X329, X334,X339,X347 CD3D 1xiw B2–72 B6,B17,B38 B4,B13,B17,B29,B32,B41 B4,B9,B13,B17,B29,B32, B41 EGFRc 1mox A301–500 A384,A436,A468 A384,A406,A411,A418, A318,A357,A384,A406, A463,A468 A411,A418,A463,A468 EGFRn 1mox A6–162 A45,A47,A127 A16,A20,A93,A101,A128, A16,A20,A30,A93,A101, A153 A128,A148,A153 FGFR2 1djs A251–362 A289,A347,A350 A285,A289,A311,A317, A285,A289,A311,A317, A352,A354 A352,A354,A356,A360 IGF1R 5u8r A1–144 A8,A59,A83 A28,A58,A108,A114,A136, A10,A28,A58,A79,A108, A138 A114,A136,A138 PDGFRβ 3mjg X124–312 X207,X242,X267 X136,X138,X186,X246, X136,X138,X186,X245, X259,X264 X246,X257,X259,X264 Tie2 2gy7 B23–445 B152,B161,B192 B66,B68,B95,B161,B167, B61,B66,B68,B71,B92, B197 B95,B101,B161,B162, B167,B197 VirB8 4o3v A90–231 A124,A140,A152 A134,A138,A142,A186, A134,A138,A142,A186, A189,A193 A189,A193,A196,A200, A217"
+     },
+     {
+      "source": "@paper",
+      "text": "For each method, at each benchmark binder length and for each target, 100 designs were first generated using the default settings of the corresponding method."
+     },
+     {
+      "source": "@paper",
+      "text": "The target structures, crop regions, and hotspot residues used in the wet-lab validation campaigns and computational benchmarks are summarized in Supplementary Tables S2–S6."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "The two comparator methods and TorchCraft are not scored on identical pipelines, and the paper describes the difference. For each BoltzGen and RFdiffusion design the full binder sequence is redesigned eight times with ProteinMPNN without fixing residues, each redesigned sequence is rebuilt to all-atom side chains with FlowPacker, the eight rebuilt models are scored with TorchScore, and the redesign with the highest pTM plus ipTM becomes the final score for that original design. TorchCraft is reported in two settings: raw, which is the default procedure and is scored directly by TorchScore without redesign, and MPNN-polished, in which interface residues are fixed and the rest are redesigned eight times, then rebuilt and selected exactly as for the comparators. A design passes when TorchScore pTM and ipTM both exceed 0.7. Figure 2f aggregates the pass rates over the four binder lengths.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.1; Figure 2f caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For de novo minibinder design, we compared BoltzGen, RFdiffusion, and TorchCraft. For each method, at each benchmark binder length and for each target, 100 designs were first generated using the default settings of the corresponding method. For each BoltzGen and RFdiffusion design, we then redesigned the full binder sequence with ProteinMPNN without fixing any residue, sampling eight redesigned sequences per generated backbone. Each redesigned sequence was rebuilt into an all-atom side-chain model with FlowPacker. The eight rebuilt models were scored with TorchScore, and the redesign with the highest pTM + ipTM was selected as the final structure and score for that original design."
+     },
+     {
+      "source": "@paper",
+      "text": "For TorchCraft, we evaluated raw and MPNN-polished settings separately. In the raw setting, which corresponds to the default TorchCraft core procedure, outputs were scored directly with TorchScore without sequence redesign. In the MPNN-polished setting, following the BindCraft-style protocol, TorchCraft-designed interface residues were fixed and all remaining positions were redesigned eight times with ProteinMPNN; FlowPacker side-chain rebuilding and TorchScore-based selection were then performed exactly as for BoltzGen and RFdiffusion."
+     },
+     {
+      "source": "@paper",
+      "text": "A minibinder design was counted as passing the computational criterion when both TorchScore pTM and TorchScore ipTM exceeded 0.7."
+     },
+     {
+      "source": "@paper",
+      "text": "(f) Computational pass rates across 12 protein targets, aggregated over binder lengths of 75, 120, 160, and 200 residues. TorchCraft, BoltzGen, and RFdiffusion designs were evaluated with TorchScore, which scores supplied coordinates using the same pretrained AF3 weights used for design and does not refold sequences."
+     }
+    ]
+   },
+   {
+    "title": "What TorchScore is",
+    "body": "The scorer every pass rate in this panel depends on is worth stating plainly, because it is not an independent evaluator. TorchScore is a score-only loading of the same TorchFold implementation used for design: given input coordinates it skips the diffusion structure module and runs the confidence pathway, returning pLDDT, pTM and ipTM. No separate scoring network is trained, and in this study it used the pretrained AlphaFold 3 weights, the same checkpoint the designs were optimised against. Sequences rebuilt with FlowPacker are scored from those coordinates and are not refolded from sequence.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "TorchScore is a score-only loading of the TorchFold implementation.[21] Given input coordinates, it bypasses the diffusion-based structure module and evaluates the complex through the confidence pathway, returning predictor-derived scores including pLDDT, pTM, and ipTM. No separate scoring network is trained."
+     },
+     {
+      "source": "@paper",
+      "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "One target panel, not a dataset. Twelve protein targets with PDB entries, crops and per-length hotspots in Supplementary Table S4, at four binder lengths of 75, 120, 160 and 200 residues, with 100 designs per method per length per target.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Supplementary Table S4; Appendix A.4.3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Table S4 Mini-binder benchmark targets. Hotspots are listed separately for each binder-length setting. Target PDB ID Target chain/residues 75-aa hotspots 120-aa hotspots 160/200-aa hotspots IL-7Rα 7opb B36–231 B78,B100,B159 B79,B104,B155,B159, B79,B104,B155,B159, B184,B212 B184,B187,B212 InsulinR 4zxb E6–155 E64,E88,E96 E34,E37,E65,E86,E142, E9,E19,E34,E37,E65,E86, E147 E142,E147 PD-L1 8znl B20–133 B57,B116,B124 B59,B70,B74,B120,B122, B30,B59,B70,B74,B107, B126 B120,B122,B126 TrkA 1www X282–382 X294,X296,X333 X287,X304,X306,X334, X287,X291,X294,X296, X339,X347 X304,X306,X327,X329, X334,X339,X347 CD3D 1xiw B2–72 B6,B17,B38 B4,B13,B17,B29,B32,B41 B4,B9,B13,B17,B29,B32, B41 EGFRc 1mox A301–500 A384,A436,A468 A384,A406,A411,A418, A318,A357,A384,A406, A463,A468 A411,A418,A463,A468 EGFRn 1mox A6–162 A45,A47,A127 A16,A20,A93,A101,A128, A16,A20,A30,A93,A101, A153 A128,A148,A153 FGFR2 1djs A251–362 A289,A347,A350 A285,A289,A311,A317, A285,A289,A311,A317, A352,A354 A352,A354,A356,A360 IGF1R 5u8r A1–144 A8,A59,A83 A28,A58,A108,A114,A136, A10,A28,A58,A79,A108, A138 A114,A136,A138 PDGFRβ 3mjg X124–312 X207,X242,X267 X136,X138,X186,X246, X136,X138,X186,X245, X259,X264 X246,X257,X259,X264 Tie2 2gy7 B23–445 B152,B161,B192 B66,B68,B95,B161,B167, B61,B66,B68,B71,B92, B197 B95,B101,B161,B162, B167,B197 VirB8 4o3v A90–231 A124,A140,A152 A134,A138,A142,A186, A134,A138,A142,A186, A189,A193 A189,A193,A196,A200, A217"
+     },
+     {
+      "source": "@paper",
+      "text": "For each method, at each benchmark binder length and for each target, 100 designs were first generated using the default settings of the corresponding method."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Inapplicable. This is a design panel evaluated in silico, with no train, validation or test partition.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.1"
+   },
+   {
+    "label": "Metrics",
+    "value": "One: the computational pass rate, higher is better. A design passes when both TorchScore pTM and TorchScore ipTM exceed 0.7, and the pass rate is the share of a method's designs that pass, reported per target and aggregated over the four binder lengths. Rosetta interface scores are reported separately as an additional view, not as the criterion.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.1; Figure 2f caption; Section 2.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "A minibinder design was counted as passing the computational criterion when both TorchScore pTM and TorchScore ipTM exceeded 0.7."
+     },
+     {
+      "source": "@paper",
+      "text": "(f) Computational pass rates across 12 protein targets, aggregated over binder lengths of 75, 120, 160, and 200 residues. TorchCraft, BoltzGen, and RFdiffusion designs were evaluated with TorchScore, which scores supplied coordinates using the same pretrained AF3 weights used for design and does not refold sequences."
+     },
+     {
+      "source": "@paper",
+      "text": "Because the evaluation uses predictor-derived scores, we additionally report Rosetta interface-score distributions (Supplementary Figure S2)."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Two other design methods, run by the TorchCraft authors with each method's default settings: BoltzGen and RFdiffusion. TorchCraft itself appears in a raw and an MPNN-polished setting.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.1; Section 2.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We next compared TorchCraft with BoltzGen and RFdiffusion across 12 protein targets and binder lengths of 75, 120, 160, and 200 residues. Designs were evaluated using TorchScore, a score-only AF3 evaluation of supplied coordinates (Appendix A.4.2). Computational pass rates varied by target and binder length (Figure 2f)."
+     },
+     {
+      "source": "@paper",
+      "text": "For TorchCraft, we evaluated raw and MPNN-polished settings separately. In the raw setting, which corresponds to the default TorchCraft core procedure, outputs were scored directly with TorchScore without sequence redesign. In the MPNN-polished setting, following the BindCraft-style protocol, TorchCraft-designed interface residues were fixed and all remaining positions were redesigned eight times with ProteinMPNN; FlowPacker side-chain rebuilding and TorchScore-based selection were then performed exactly as for BoltzGen and RFdiffusion."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "None, and none is needed in the train and test sense: no model is trained here and the panel has no labels to hold out. What the sources do describe is a dependency that runs the other way, which the authors state plainly: TorchScore uses the same pretrained AlphaFold 3 weights that TorchCraft optimised against, so the scorer is not independent of the designer.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.2; Figure 2f caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+     },
+     {
+      "source": "@paper",
+      "text": "All designs reported in this study used pretrained AF3 weights."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "None reported. The panel prints no replicate runs, seeds, confidence intervals or standard errors; the spread that is shown is the distribution over the fixed number of designs per target, 100 per method per length per target.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For each method, at each benchmark binder length and for each target, 100 designs were first generated using the default settings of the corresponding method."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One designed minibinder for one target at one length: a designed sequence with its predicted all-atom complex, scored as a single original design after the eight-way redesign selection where that applies.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For de novo minibinder design, we compared BoltzGen, RFdiffusion, and TorchCraft. For each method, at each benchmark binder length and for each target, 100 designs were first generated using the default settings of the corresponding method. For each BoltzGen and RFdiffusion design, we then redesigned the full binder sequence with ProteinMPNN without fixing any residue, sampling eight redesigned sequences per generated backbone. Each redesigned sequence was rebuilt into an all-atom side-chain model with FlowPacker. The eight rebuilt models were scored with TorchScore, and the redesign with the highest pTM + ipTM was selected as the final structure and score for that original design."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Not stated as such. The twelve targets are human and bacterial proteins identified by PDB entry in Supplementary Table S4, including VirB8, but the table gives PDB entries, chains and residue ranges rather than species.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Supplementary Table S4",
+    "quotes": []
+   },
+   {
+    "label": "Assays",
+    "value": "None in this panel. Every criterion is computed by a predictor. The paper reports wet-lab binding measurements elsewhere in the study, for minibinders and VHHs against four targets each, but those campaigns are separate from this comparison.",
+    "status": "unavailable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Figure 2f caption"
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "The target structure crop and the hotspot residues for that length, plus the binder length. Supplementary Table S4 gives the PDB entry, the target chain and residue range and the hotspots per length setting, and the paper states that the crop regions and hotspots for the computational benchmarks are summarised in Supplementary Tables S2 to S6.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.1; Supplementary Table S4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The target structures, crop regions, and hotspot residues used in the wet-lab validation campaigns and computational benchmarks are summarized in Supplementary Tables S2–S6."
+     },
+     {
+      "source": "@paper",
+      "text": "Table S4 Mini-binder benchmark targets. Hotspots are listed separately for each binder-length setting. Target PDB ID Target chain/residues 75-aa hotspots 120-aa hotspots 160/200-aa hotspots IL-7Rα 7opb B36–231 B78,B100,B159 B79,B104,B155,B159, B79,B104,B155,B159, B184,B212 B184,B187,B212 InsulinR 4zxb E6–155 E64,E88,E96 E34,E37,E65,E86,E142, E9,E19,E34,E37,E65,E86, E147 E142,E147 PD-L1 8znl B20–133 B57,B116,B124 B59,B70,B74,B120,B122, B30,B59,B70,B74,B107, B126 B120,B122,B126 TrkA 1www X282–382 X294,X296,X333 X287,X304,X306,X334, X287,X291,X294,X296, X339,X347 X304,X306,X327,X329, X334,X339,X347 CD3D 1xiw B2–72 B6,B17,B38 B4,B13,B17,B29,B32,B41 B4,B9,B13,B17,B29,B32, B41 EGFRc 1mox A301–500 A384,A436,A468 A384,A406,A411,A418, A318,A357,A384,A406, A463,A468 A411,A418,A463,A468 EGFRn 1mox A6–162 A45,A47,A127 A16,A20,A93,A101,A128, A16,A20,A30,A93,A101, A153 A128,A148,A153 FGFR2 1djs A251–362 A289,A347,A350 A285,A289,A311,A317, A285,A289,A311,A317, A352,A354 A352,A354,A356,A360 IGF1R 5u8r A1–144 A8,A59,A83 A28,A58,A108,A114,A136, A10,A28,A58,A79,A108, A138 A114,A136,A138 PDGFRβ 3mjg X124–312 X207,X242,X267 X136,X138,X186,X246, X136,X138,X186,X245, X259,X264 X246,X257,X259,X264 Tie2 2gy7 B23–445 B152,B161,B192 B66,B68,B95,B161,B167, B61,B66,B68,B71,B92, B197 B95,B101,B161,B162, B167,B197 VirB8 4o3v A90–231 A124,A140,A152 A134,A138,A142,A186, A134,A138,A142,A186, A189,A193 A189,A193,A196,A200, A217"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "No training or fine-tuning. Every method is run with its default settings and TorchCraft optimises sequence logits through frozen pretrained AlphaFold 3 weights; the paper states that all designs reported in the study used pretrained AF3 weights.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Appendix A; Appendix A.4.3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "that optimizes sequence logits through a frozen all-atom predictor"
+     },
+     {
+      "source": "@paper",
+      "text": "All designs reported in this study used pretrained AF3 weights."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The pass criterion is a stated numerical threshold on two named scores, so what counts as a pass can be checked rather than guessed.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "A minibinder design was counted as passing the computational criterion when both TorchScore pTM and TorchScore ipTM exceeded 0.7."
+     }
+    ]
+   },
+   {
+    "text": "The targets are pinned: Supplementary Table S4 gives a PDB entry, a chain and residue crop and hotspot residues for each target, separately for each binder length.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Supplementary Table S4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Table S4 Mini-binder benchmark targets. Hotspots are listed separately for each binder-length setting. Target PDB ID Target chain/residues 75-aa hotspots 120-aa hotspots 160/200-aa hotspots IL-7Rα 7opb B36–231 B78,B100,B159 B79,B104,B155,B159, B79,B104,B155,B159, B184,B212 B184,B187,B212 InsulinR 4zxb E6–155 E64,E88,E96 E34,E37,E65,E86,E142, E9,E19,E34,E37,E65,E86, E147 E142,E147 PD-L1 8znl B20–133 B57,B116,B124 B59,B70,B74,B120,B122, B30,B59,B70,B74,B107, B126 B120,B122,B126 TrkA 1www X282–382 X294,X296,X333 X287,X304,X306,X334, X287,X291,X294,X296, X339,X347 X304,X306,X327,X329, X334,X339,X347 CD3D 1xiw B2–72 B6,B17,B38 B4,B13,B17,B29,B32,B41 B4,B9,B13,B17,B29,B32, B41 EGFRc 1mox A301–500 A384,A436,A468 A384,A406,A411,A418, A318,A357,A384,A406, A463,A468 A411,A418,A463,A468 EGFRn 1mox A6–162 A45,A47,A127 A16,A20,A93,A101,A128, A16,A20,A30,A93,A101, A153 A128,A148,A153 FGFR2 1djs A251–362 A289,A347,A350 A285,A289,A311,A317, A285,A289,A311,A317, A352,A354 A352,A354,A356,A360 IGF1R 5u8r A1–144 A8,A59,A83 A28,A58,A108,A114,A136, A10,A28,A58,A79,A108, A138 A114,A136,A138 PDGFRβ 3mjg X124–312 X207,X242,X267 X136,X138,X186,X246, X136,X138,X186,X245, X259,X264 X246,X257,X259,X264 Tie2 2gy7 B23–445 B152,B161,B192 B66,B68,B95,B161,B167, B61,B66,B68,B71,B92, B197 B95,B101,B161,B162, B167,B197 VirB8 4o3v A90–231 A124,A140,A152 A134,A138,A142,A186, A134,A138,A142,A186, A189,A193 A189,A193,A196,A200, A217"
+     }
+    ]
+   },
+   {
+    "text": "The comparators' handling is written out, including the eight ProteinMPNN redesigns, the FlowPacker rebuild and the selection rule, and TorchCraft is reported both raw and polished so the effect of the polish step is visible.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For de novo minibinder design, we compared BoltzGen, RFdiffusion, and TorchCraft. For each method, at each benchmark binder length and for each target, 100 designs were first generated using the default settings of the corresponding method. For each BoltzGen and RFdiffusion design, we then redesigned the full binder sequence with ProteinMPNN without fixing any residue, sampling eight redesigned sequences per generated backbone. Each redesigned sequence was rebuilt into an all-atom side-chain model with FlowPacker. The eight rebuilt models were scored with TorchScore, and the redesign with the highest pTM + ipTM was selected as the final structure and score for that original design."
+     },
+     {
+      "source": "@paper",
+      "text": "For TorchCraft, we evaluated raw and MPNN-polished settings separately. In the raw setting, which corresponds to the default TorchCraft core procedure, outputs were scored directly with TorchScore without sequence redesign. In the MPNN-polished setting, following the BindCraft-style protocol, TorchCraft-designed interface residues were fixed and all remaining positions were redesigned eight times with ProteinMPNN; FlowPacker side-chain rebuilding and TorchScore-based selection were then performed exactly as for BoltzGen and RFdiffusion."
+     }
+    ]
+   },
+   {
+    "text": "The authors state the weakness of their own criterion and add an orthogonal view, reporting Rosetta interface-score distributions because the pass rates are predictor-derived.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Because the evaluation uses predictor-derived scores, we additionally report Rosetta interface-score distributions (Supplementary Figure S2)."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Author-built and author-run: the method's developers chose the targets, the lengths, the criterion and the comparators, and ran every method themselves.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.2; Appendix A.4.3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We next compared TorchCraft with BoltzGen and RFdiffusion across 12 protein targets and binder lengths of 75, 120, 160, and 200 residues. Designs were evaluated using TorchScore, a score-only AF3 evaluation of supplied coordinates (Appendix A.4.2). Computational pass rates varied by target and binder length (Figure 2f)."
+     },
+     {
+      "source": "@paper",
+      "text": "For de novo minibinder design, we compared BoltzGen, RFdiffusion, and TorchCraft. For each method, at each benchmark binder length and for each target, 100 designs were first generated using the default settings of the corresponding method. For each BoltzGen and RFdiffusion design, we then redesigned the full binder sequence with ProteinMPNN without fixing any residue, sampling eight redesigned sequences per generated backbone. Each redesigned sequence was rebuilt into an all-atom side-chain model with FlowPacker. The eight rebuilt models were scored with TorchScore, and the redesign with the highest pTM + ipTM was selected as the final structure and score for that original design."
+     }
+    ]
+   },
+   {
+    "text": "The scorer is not independent of the designer. TorchScore runs the confidence pathway of the same pretrained AlphaFold 3 weights that TorchCraft optimises against, and the designs it scores are not refolded from sequence.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+     },
+     {
+      "source": "@paper",
+      "text": "Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates"
+     }
+    ]
+   },
+   {
+    "text": "A pass is a predictor's confidence, not activity. No binding measurement enters this panel, and the paper's wet-lab results are separate campaigns against four targets.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix A.4.2; Figure 2f caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "(f) Computational pass rates across 12 protein targets, aggregated over binder lengths of 75, 120, 160, and 200 residues. TorchCraft, BoltzGen, and RFdiffusion designs were evaluated with TorchScore, which scores supplied coordinates using the same pretrained AF3 weights used for design and does not refold sequences."
+     },
+     {
+      "source": "@paper",
+      "text": "TorchScore is a score-only loading of the TorchFold implementation.[21] Given input coordinates, it bypasses the diffusion-based structure module and evaluates the complex through the confidence pathway, returning predictor-derived scores including pLDDT, pTM, and ipTM. No separate scoring network is trained."
+     }
+    ]
+   },
+   {
+    "text": "The results are printed only as a figure. No per-target or aggregate number is given in text or table, so no value can be recorded from this panel, and no uncertainty is reported for any bar.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.2 and Figure 2f",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We next compared TorchCraft with BoltzGen and RFdiffusion across 12 protein targets and binder lengths of 75, 120, 160, and 200 residues. Designs were evaluated using TorchScore, a score-only AF3 evaluation of supplied coordinates (Appendix A.4.2). Computational pass rates varied by target and binder length (Figure 2f)."
+     },
+     {
+      "source": "@paper",
+      "text": "(f) Computational pass rates across 12 protein targets, aggregated over binder lengths of 75, 120, 160, and 200 residues. TorchCraft, BoltzGen, and RFdiffusion designs were evaluated with TorchScore, which scores supplied coordinates using the same pretrained AF3 weights used for design and does not refold sequences."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "TorchCraft 12-target minibinder comparison",
+   "steps": [
+    "12 targets with crops and per-length hotspots from Supplementary Table S4",
+    "binder lengths 75, 120, 160 and 200 residues",
+    "100 designs per method per length per target, default settings",
+    "comparators: 8 ProteinMPNN redesigns, FlowPacker rebuild, best pTM plus ipTM kept",
+    "TorchCraft scored raw and, separately, MPNN-polished",
+    "pass when TorchScore pTM and ipTM both exceed 0.7",
+    "pass rates per target in Figure 2f, aggregated over lengths"
+   ],
+   "caption": "The panel as the main text, the figure caption and Appendix A.4.3 describe it.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Appendix A.4.3.1",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "For de novo minibinder design, we compared BoltzGen, RFdiffusion, and TorchCraft. For each method, at each benchmark binder length and for each target, 100 designs were first generated using the default settings of the corresponding method. For each BoltzGen and RFdiffusion design, we then redesigned the full binder sequence with ProteinMPNN without fixing any residue, sampling eight redesigned sequences per generated backbone. Each redesigned sequence was rebuilt into an all-atom side-chain model with FlowPacker. The eight rebuilt models were scored with TorchScore, and the redesign with the highest pTM + ipTM was selected as the final structure and score for that original design."
+    },
+    {
+     "source": "@paper",
+     "text": "A minibinder design was counted as passing the computational criterion when both TorchScore pTM and TorchScore ipTM exceeded 0.7."
+    },
+    {
+     "source": "@paper",
+     "text": "(f) Computational pass rates across 12 protein targets, aggregated over binder lengths of 75, 120, 160, and 200 residues. TorchCraft, BoltzGen, and RFdiffusion designs were evaluated with TorchScore, which scores supplied coordinates using the same pretrained AF3 weights used for design and does not refold sequences."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The pass rates exist only as the bars of Figure 2f, so no numeric result could be read.",
+   "Supplementary Table S4 is wide and its hotspot columns wrap in the text layer, so individual hotspot lists were not transcribed here.",
+   "Species are not given for the twelve targets, only PDB entries and crops.",
+   "No runner or scoring script for this panel is published, so the pass rates cannot be recomputed from the repository."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Written from the pdftotext -layout text layer of arXiv:2609.19770v1 and from the README and LICENSE of Mingchenchen/TorchX at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd, all retrieved 27 November 2026. The main text, the figure caption, Appendix A.4.2 and A.4.3 and the supplementary target table were read directly. Nothing was reproduced: no design was generated and no score was recomputed. No human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "No scoring harness for this panel is published. The code repository the paper names holds the design and score entry points, but nothing that reproduces the figure's pass rates from a set of designs, and the target crops and hotspots live in supplementary tables rather than in a machine-readable manifest.",
+ "structured": [
+  {
+   "task": "Minibinder computational pass rate under TorchScore confidence",
+   "dataset": "Twelve protein targets of the minibinder design benchmark, Supplementary Table S4",
+   "size": 12,
+   "size_unit": "protein targets, each with 100 designs per method at each of four binder lengths",
+   "split": null,
+   "primary_metric": "Computational pass rate, TorchScore pTM and ipTM both above 0.7",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/Mingchenchen/TorchX",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We next compared TorchCraft with BoltzGen and RFdiffusion across 12 protein targets and binder lengths of 75, 120, 160, and 200 residues. Designs were evaluated using TorchScore, a score-only AF3 evaluation of supplied coordinates (Appendix A.4.2). Computational pass rates varied by target and binder length (Figure 2f)."
+    },
+    {
+     "source": "@paper",
+     "text": "A minibinder design was counted as passing the computational criterion when both TorchScore pTM and TorchScore ipTM exceeded 0.7."
+    },
+    {
+     "source": "@paper",
+     "text": "For each method, at each benchmark binder length and for each target, 100 designs were first generated using the default settings of the corresponding method."
+    },
+    {
+     "source": "@readme",
+     "text": "Released under the Apache License 2.0."
+    }
+   ]
+  }
+ ],
+ "notes": "The pass rates of this panel are printed only as the bars of Figure 2f, so no result value is recorded from it. The structured size is the number of targets, twelve, counted from the rows of Supplementary Table S4; the 100 designs figure is per method, per binder length and per target, not a set size, and the four lengths are aggregated in the figure. The comparison is not symmetric: BoltzGen and RFdiffusion designs pass through eight ProteinMPNN redesigns and a FlowPacker rebuild with best-of-eight selection, while raw TorchCraft is scored directly, and an MPNN-polished TorchCraft arm is reported separately. The paper states no licence for itself, so the paper source carries none and its bytes are not stored; the code repository is Apache-2.0. The same paper is the source for four other records in this batch."
+}

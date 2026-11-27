@@ -1,0 +1,909 @@
+{
+ "record_id": "uc20260930-benchmark-rhomax",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "NCBI PMC full text of the RhoMax paper, PMC11200256",
+   "description": "Full-text JATS XML of Sela, Church, Schapiro and Schneidman-Duhovny, 'RhoMax: Computational Prediction of Rhodopsin Absorption Maxima Using Geometric Deep Learning', Journal of Chemical Information and Modeling 2024, fetched through E-utilities efetch. Holds the data set, the four splits, the training details, the comparison to BLASSO and Table 1.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=11200256&rettype=xml",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11200256/",
+   "version": "PMC11200256, J Chem Inf Model 64(12):4630-4639, retrieved 27 November 2026",
+   "media_type": "application/xml",
+   "sha256": "346d334f0ef5c6ea04f35801e66073fd00216afb87db2107292290804af0c5a4",
+   "retrieved_at": "2026-11-27T03:27:54Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "readme",
+   "name": "dina-lab3D/OpsiGen README.md at commit a7f6ac3b302235fe22d972388d633d9bfdb439b8",
+   "description": "README of the repository the paper's data availability statement names, pinned to the head of its default branch 'colab'. Gives the local run steps.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/dina-lab3D/OpsiGen/a7f6ac3b302235fe22d972388d633d9bfdb439b8/README.md",
+   "url": "https://github.com/dina-lab3D/OpsiGen/",
+   "version": "git commit a7f6ac3b302235fe22d972388d633d9bfdb439b8",
+   "media_type": "text/markdown",
+   "sha256": "16d7341536ec250ab36e822cf75fe31446742f6bde3af9e75666cdce64069a1b",
+   "retrieved_at": "2026-11-27T03:34:15Z",
+   "store_bytes": false
+  },
+  {
+   "key": "pipeline",
+   "name": "dina-lab3D/OpsiGen pipeline_auto/run.sh at commit a7f6ac3b302235fe22d972388d633d9bfdb439b8",
+   "description": "The feature preparation script the README's step 5 runs. Read to see what it does rather than what its name suggests.",
+   "file": "artifacts/pipeline-run.sh",
+   "artifact_url": "https://raw.githubusercontent.com/dina-lab3D/OpsiGen/a7f6ac3b302235fe22d972388d633d9bfdb439b8/pipeline_auto/run.sh",
+   "url": "https://github.com/dina-lab3D/OpsiGen/",
+   "version": "git commit a7f6ac3b302235fe22d972388d633d9bfdb439b8",
+   "media_type": "text/x-shellscript",
+   "sha256": "aa0adce6064c2d5f9bf34d6843f7641988efef0737f059f02bf67d0c25b1cd10",
+   "retrieved_at": "2026-11-27T03:34:15Z",
+   "store_bytes": false
+  },
+  {
+   "key": "pipeline-config",
+   "name": "dina-lab3D/OpsiGen pipeline_auto/config.json at commit a7f6ac3b302235fe22d972388d633d9bfdb439b8",
+   "description": "The configuration the feature preparation script reads, naming the input FASTA and PDB paths and the wavelength and sequence files it aligns against.",
+   "file": "artifacts/pipeline-config.json",
+   "artifact_url": "https://raw.githubusercontent.com/dina-lab3D/OpsiGen/a7f6ac3b302235fe22d972388d633d9bfdb439b8/pipeline_auto/config.json",
+   "url": "https://github.com/dina-lab3D/OpsiGen/",
+   "version": "git commit a7f6ac3b302235fe22d972388d633d9bfdb439b8",
+   "media_type": "application/json",
+   "sha256": "b13918caae036aad1f5bdb895f77139d59db24f44fb319f705b060456fb5c8f0",
+   "retrieved_at": "2026-11-27T03:34:23Z",
+   "store_bytes": false
+  },
+  {
+   "key": "predict",
+   "name": "dina-lab3D/OpsiGen predict/run.sh and predict/run_one_rhodopsin.sh at commit a7f6ac3b302235fe22d972388d633d9bfdb439b8",
+   "description": "The prediction entry point the README's step 6 runs, kept as artifacts/predict-run.sh, together with the script it calls. Read to see that the published entry point submits a Slurm batch job.",
+   "file": "artifacts/predict-run-one.sh",
+   "artifact_url": "https://raw.githubusercontent.com/dina-lab3D/OpsiGen/a7f6ac3b302235fe22d972388d633d9bfdb439b8/predict/run_one_rhodopsin.sh",
+   "url": "https://github.com/dina-lab3D/OpsiGen/",
+   "version": "git commit a7f6ac3b302235fe22d972388d633d9bfdb439b8",
+   "media_type": "text/x-shellscript",
+   "sha256": "4970cf8f09c1c8732aab4a82e70c0003a93be988ef7d0cfc34eb6177dafe7d32",
+   "retrieved_at": "2026-11-27T03:34:23Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "This is the evaluation published with RhoMax, a method that predicts the maximum absorption wavelength of a microbial rhodopsin from its sequence. The data are the 884 rhodopsin sequences compiled by Inoue et al., which come from 75 wild-type backgrounds with mutants of each. Four train and test splits are drawn over the wild types, 65 wild types for training and 10 for testing in each, with every mutant kept in the same set as its wild type. The error between the predicted and the measured absorption maximum is reported per split, in electronvolts and in nanometres, for RhoMax, for a RhoMax variant trained on structures that include the retinal, and for the earlier Bayesian LASSO sequence model retrained on the same splits. Anyone choosing a wavelength predictor for rhodopsin engineering can read it as a four-way holdout comparison on a small, unevenly distributed data set.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Materials and Methods, Data Set and Comparison to Previous Methods; Table 1",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We use a data set that contains 75 wild-type (WT) microbial rhodopsin sequences compiled by Inoue et al., with several mutations for each WT leading to a total of 884 sequences."
+   },
+   {
+    "source": "@paper",
+    "text": "Each split consists of 65 and 10 WT sequences in the train and test sets that were divided randomly, respectively."
+   },
+   {
+    "source": "@paper",
+    "text": "We compare our results to the previous method of Inoue et al."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "How closely a model predicts the wavelength at which a microbial rhodopsin absorbs most strongly, given only its sequence. The question matters for optogenetics, where the useful proteins are red-shifted ones: the authors state that the absorption spectrum has to move towards 700 nm, the lower limit of the tissue transparency window, while opsins typically absorb between 480 and 600 nm. The evaluation therefore also exposes how a predictor behaves when the test sequences sit at the red end of the distribution and the training sequences do not, which is what split 4 does.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Introduction; Results, RhoMax Performance",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the absorption spectrum of rhodopsins must be shifted toward 700 nm, which is the lower limit of the transparency window in tissues."
+     },
+     {
+      "source": "@paper",
+      "text": "The lowest accuracy is found for split number four, where the test set contains mostly red-shifted rhodopsins"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "The labels are measured absorption maxima taken from the Inoue et al. data set: 75 wild-type microbial rhodopsin sequences with several mutants each, 884 records in all, each record carrying the sequence, the absorption maximum and the experimental method used to determine it. The distribution is skewed, with most values between 500 and 570 nm, so the authors draw four separate train and test splits instead of one. The splits are made over wild types, 65 for training and 10 for testing, chosen randomly; because most mutants differ from their wild type by one or two mutations, every mutant is placed in the same set as its wild type. The number of mutants per wild type differs, so the train and test set sizes differ between splits, and the authors state that the split protocol does not make the absorption maxima distributions similar between train and test. Inputs are prepared by predicting five structures per sequence with AlphaFold2 through ColabFold without templates, keeping the highest ranked, and cutting out the 24 residues of the retinal binding pocket, whose positions are located with a ClustalW alignment.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Data Set and Protein Structure Generation and Representation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Every record in this data set contains the WT or mutant sequence, the maximum absorption wavelength, and the experimental method used to determine it."
+     },
+     {
+      "source": "@paper",
+      "text": "In response to this significant imbalance, we compute four distinct splits of training and testing sets to address this variability"
+     },
+     {
+      "source": "@paper",
+      "text": "Since the number of mutant sequences for each WT is different, the size of train and test sets is not identical for each data split"
+     },
+     {
+      "source": "@paper",
+      "text": "We generated five structures for each sequence using AlphaFold2"
+     },
+     {
+      "source": "@paper",
+      "text": "In total, 24 amino acids constitute the binding pocket"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "A model takes a sequence and returns one number, the predicted absorption maximum. The error is the absolute difference between the prediction and the measured value, which is also the training loss. Results are reported per split and as the mean over the four splits, as a median and as a mean with a standard deviation, in electronvolts and in nanometres; the authors argue that electronvolts are the better unit because they are linear in energy, and give nanometres as well for comparison with earlier reports. Lower is better. Table 1 holds three columns of this kind: RhoMax trained on structures without the retinal, RhoMax trained on structures with a retinal copied from the closest PDB homologue, and BLASSO. The comparison to BLASSO is made by running the original authors' R code on the same four splits, with the code modified to train in electronvolts. A separate table reports the same four splits for a RhoMax network whose graph attention layers are replaced by plain graph convolutional layers.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Energy Units, Loss Function and Comparison to Previous Methods; Tables 1 and 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "As electronvolts (eV) are linear in energy, they are better units for prediction. We have provided the results in both units to facilitate comparison with previous reports."
+     },
+     {
+      "source": "@paper",
+      "text": "we define the loss function as"
+     },
+     {
+      "source": "@paper",
+      "text": "We used their R code to train and test their model on the same data set splits that we used in the present work"
+     },
+     {
+      "source": "@paper",
+      "text": "While the original model was trained in nanometers, we have updated the code to support eV training."
+     },
+     {
+      "source": "@paper",
+      "text": "we conducted experiments where we maintained the same network architecture but substituted the graph attention layers with regular graph convolutional layers"
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "The data sets, source code and a Colab notebook are published in the OpsiGen repository that the paper's data availability statement names. The README gives six local steps: clone the repository, install the requirements, put a FASTA file and a PDB file into the pipeline_auto folder under fixed names, run the pipeline script, then run the predict script. The pipeline script clears and recreates the dists, features and cutted_parts folders and then runs main.py against config.json, which points at the sample FASTA and PDB and at packaged wavelength and sequence files. The predict script passes a configuration folder and a pickled model to run_one_rhodopsin.sh, which submits a Slurm batch job asking for one GPU, so running it as published needs a Slurm cluster. Nothing in the repository read here reproduces the four splits or Table 1.",
+    "source_ids": [
+     "@readme",
+     "@pipeline",
+     "@pipeline-config",
+     "@predict"
+    ],
+    "source_locator": "README.md: How to run OpsiGen locally; pipeline_auto/run.sh; pipeline_auto/config.json; predict/run_one_rhodopsin.sh",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "install the requirements using \"pip install -r requirements.txt\""
+     },
+     {
+      "source": "@readme",
+      "text": "insert the fasta file to the folder `pipeline_auto` under the name \"sample_fasta.fasta\""
+     },
+     {
+      "source": "@pipeline",
+      "text": "python ./main.py ./config.json"
+     },
+     {
+      "source": "@pipeline-config",
+      "text": "\"wavelength_file\": \"../excel/wavelength.dat\""
+     },
+     {
+      "source": "@predict",
+      "text": "sbatch --killable --mem=15000m -c1 --time=6:0:0 --gres=gpu:1,vmem:7g ./calculate_one_rhodopsin.sh"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "One data set, taken from Inoue et al.: 75 wild-type microbial rhodopsin sequences with several mutants each, 884 sequences in total, each with a measured absorption maximum. Most values lie between 500 and 570 nm.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Data Set",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We use a data set that contains 75 wild-type (WT) microbial rhodopsin sequences compiled by Inoue et al., with several mutations for each WT leading to a total of 884 sequences."
+     },
+     {
+      "source": "@paper",
+      "text": "with most of the rhodopsins in the range of 500–570 nm"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Four random holdouts over wild-type backgrounds. Each split puts 65 wild types in the training set and 10 in the test set, and every mutant goes to the same set as its wild type. Because the number of mutants per wild type varies, the train and test sizes differ between splits, and the paper states the protocol does not make the absorption maxima distributions similar between train and test. No separate validation split is described.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Data Set",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Each split consists of 65 and 10 WT sequences in the train and test sets that were divided randomly, respectively."
+     },
+     {
+      "source": "@paper",
+      "text": "Moreover, this data split protocol does not guarantee that the absorption maxima values have similar distributions in the train and test sequences"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Absolute error between the predicted and the measured absorption maximum, lower is better. It is reported as a median and as a mean with a standard deviation, in electronvolts and in nanometres, per split and as the mean of the four splits. The same quantity is the training loss.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Energy Units and Loss Function; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The loss function of the model quantifies the difference in nanometers between the predicted absorption maximum and the experimental counterpart."
+     },
+     {
+      "source": "@paper",
+      "text": "Performance of RhoMax and BLASSO on the Test Set for Each of the Four Splits for eV and nm"
+     },
+     {
+      "source": "@paper",
+      "text": "we define the loss function as"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "BLASSO, the Bayesian LASSO sequence regression of Inoue et al., retrained by the RhoMax authors on the same four splits with their R code updated to train in electronvolts. Two further configurations of the method itself are reported alongside: RhoMax trained on structures that include a retinal copied from the closest PDB homologue, and a version with the graph attention layers replaced by plain graph convolutional layers.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Comparison to Previous Methods; Tables 1 and 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We compare our results to the previous method of Inoue et al."
+     },
+     {
+      "source": "@paper",
+      "text": "that relies on the BLASSO (Bayesian LASSO) regression approach. We used their R code to train and test their model on the same data set splits that we used in the present work"
+     },
+     {
+      "source": "@paper",
+      "text": "we train a second model on structures with chromophores that were generated by copying the retinal from the closest homologues in the PDB via structural alignment of rhodopsin."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "One, and it is the main design choice: mutants are never separated from their wild type. Because most mutant sequences differ from their wild type by one or two mutations, each mutant is assigned to the same set as its wild type, so a near-identical sequence cannot sit on both sides of the split. No sequence identity cut-off between different wild types is described.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Data Set",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Because most mutant sequences have only one or two mutations, we decided that they would be assigned to the same set (train or test) as their WT to avoid data leakage between the train and test sets."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "No repeated training runs or confidence intervals. The spread reported is the standard deviation of the per-sequence errors within each test set, and the four splits themselves show how much the result moves with the partition. The authors attribute the variability across splits to the small size of the data set, and relate the per-split accuracy to the similarity of the train and test distributions measured with a Kolmogorov-Smirnov test.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, RhoMax Performance; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "There is variability in accuracy across the splits due to the data set’s limited size, causing differing spectra value distributions in the training and test sets for each split"
+     },
+     {
+      "source": "@paper",
+      "text": "The distributions were compared using the Kolmogorov–Smirnov test (as implemented in the Scipy library)."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One rhodopsin sequence, wild type or mutant, with its measured absorption maximum. For the model it becomes the 24 residues of the retinal binding pocket of an AlphaFold2 structure, represented as a graph of atoms joined when they are less than 2 Angstrom apart.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Method Summary and Protein Structure Generation and Representation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "multiple sequence alignment is applied to extract the 24 residues located around the retinal chromophore"
+     },
+     {
+      "source": "@paper",
+      "text": "We connect atoms that are less than 2 Å apart to include all the chemical bonds, resulting in a sparse graph."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Microbial rhodopsins, also called type I rhodopsins, across 75 wild-type backgrounds. The individual species are not listed in the text read here.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Introduction; Materials and Methods, Data Set",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "These proteins are classified into two types based on their occurrence in organisms: microbial (type I) and animal (type II) rhodopsins."
+     },
+     {
+      "source": "@paper",
+      "text": "75 wild-type (WT) microbial rhodopsin sequences compiled by Inoue et al."
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Spectroscopic measurement of the absorption maximum, reported in nanometres. Each record in the data set names the experimental method used to determine its value.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Data Set and Energy Units",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The spectroscopic measurements of the absorption spectra of rhodopsins are reported in wavelength for historical reasons."
+     },
+     {
+      "source": "@paper",
+      "text": "the maximum absorption wavelength, and the experimental method used to determine it"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Sequence only, as the task is defined. Structure is allowed but has to be produced from the sequence: RhoMax folds each sequence with AlphaFold2 through ColabFold without templates and uses a ClustalW alignment to find the binding pocket positions. The BLASSO comparator uses sequence and physicochemical features alone.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Method Summary, Protein Structure Generation and Representation, Comparison to Previous Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The input to RhoMax is the rhodopsin sequence, and the output is the corresponding maximum absorption wavelength"
+     },
+     {
+      "source": "@paper",
+      "text": "with default parameters and without templates (alphafold-ptm v1.0)"
+     },
+     {
+      "source": "@paper",
+      "text": "We use multiple sequence alignment established through ClustalW"
+     },
+     {
+      "source": "@paper",
+      "text": "the previously published approach that relied exclusively on sequential data and used Bayesian LASSO"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Training from scratch on each split. RhoMax is a small network of 6,401 parameters trained for 1000 epochs with the Adam optimiser, a learning rate of 0.0001 and L1 and L2 regularisation. BLASSO is likewise retrained on each split rather than used as published.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Network Architecture, Training Details, Comparison to Previous Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The total number of trained parameters in the network is 6,401."
+     },
+     {
+      "source": "@paper",
+      "text": "we set the learning rate to 0.0001 and trained the model for 1000 epochs"
+     },
+     {
+      "source": "@paper",
+      "text": "We used their R code to train and test their model on the same data set splits that we used in the present work"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The split rule is designed against the obvious leakage path for mutational data: mutants stay with their wild type, so a sequence one mutation away from a test case cannot be in the training set.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Data Set",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "they would be assigned to the same set (train or test) as their WT to avoid data leakage between the train and test sets"
+     }
+    ]
+   },
+   {
+    "text": "Four separate splits are reported rather than one, which makes the sensitivity of the result to the partition visible, and the authors relate the per-split error to how similar the train and test label distributions are.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Data Set; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we compute four distinct splits of training and testing sets to address this variability"
+     },
+     {
+      "source": "@paper",
+      "text": "We find that the accuracy of the model is correlated with the similarity between the absorption maxima distributions in the train and test sets"
+     }
+    ]
+   },
+   {
+    "text": "The comparator is retrained rather than quoted: the authors ran the original BLASSO R code on their own splits, and adapted it so that both methods are trained in the same units.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Comparison to Previous Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We used their R code to train and test their model on the same data set splits that we used in the present work"
+     },
+     {
+      "source": "@paper",
+      "text": "we have updated the code to support eV training"
+     }
+    ]
+   },
+   {
+    "text": "The data sets, the source code and a Colab notebook are published in one repository, which the paper names in its data availability statement.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Data Availability Statement; README.md",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The data sets, source code, and a Colab notebook that runs RhoMax are available from the GitHub repository:"
+     },
+     {
+      "source": "@readme",
+      "text": "How to run OpsiGen locally"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The data set is small and skewed: 884 sequences from 75 wild types, most absorbing between 500 and 570 nm. The authors name this as the reason results move between splits and say a larger set would be needed for more consistent results.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "First, the size of the data set used to train the model was limited to 884 sequences by Inoue et al."
+     },
+     {
+      "source": "@paper",
+      "text": "Training RhoMax on a larger data set may lead to even greater accuracy or at least produce more consistent theoretical results."
+     }
+    ]
+   },
+   {
+    "text": "The splits are not matched on the label distribution, so a split can be much harder than the others. Split 4 is the example the authors give: its test set is mostly red-shifted rhodopsins while the training set is mostly blue-shifted, and it is the worst split for every method in Table 1.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Data Set; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "this data split protocol does not guarantee that the absorption maxima values have similar distributions in the train and test sequences"
+     },
+     {
+      "source": "@paper",
+      "text": "the model was trained on blue-shifted rhodopsins and therefore predicted less accurate results for sequences with absorption maxima at longer wavelengths"
+     }
+    ]
+   },
+   {
+    "text": "The comparison was built and run by the authors of the method it favours, and the only external comparator is one earlier model.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods and Results, Comparison to Previous Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We compare our results to the previous method of Inoue et al."
+     },
+     {
+      "source": "@paper",
+      "text": "RhoMax doubles the accuracy compared to the Bayesian LASSO"
+     }
+    ]
+   },
+   {
+    "text": "Inputs depend on predicted structures. Each sequence is folded with AlphaFold2 and the authors report a median C-alpha RMSD of 1.08 Angstrom against the sequences with crystal structures, so pocket geometry carries that error; the retinal-containing variant, built by copying a retinal from a homologue, scored worse.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Protein Structure Generation and Representation; Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This protocol results in structural models with an estimated median RMSD of 1.08 Å as measured on the sequences with available crystal structures in the PDB"
+     },
+     {
+      "source": "@paper",
+      "text": "Given that we positioned the retinal based on the structure of the closest homologue in the PDB, inaccuracies in the placements are expected and they adversely affect the model’s performance."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "RhoMax wavelength prediction evaluation",
+   "steps": [
+    "884 sequences from 75 wild types with measured absorption maxima",
+    "four random holdouts of 65 training and 10 test wild types, mutants following their wild type",
+    "fold each sequence with AlphaFold2 and cut the 24-residue retinal pocket",
+    "train RhoMax and retrain BLASSO on the same split",
+    "absolute error per test sequence in eV and nm",
+    "median and mean per split, and the mean of the four splits in Table 1"
+   ],
+   "caption": "The steps as the Data Set, Protein Structure Generation, Comparison to Previous Methods and Results sections describe them.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Materials and Methods; Table 1",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "leading to a total of 884 sequences"
+    },
+    {
+     "source": "@paper",
+     "text": "Each split consists of 65 and 10 WT sequences in the train and test sets that were divided randomly, respectively."
+    },
+    {
+     "source": "@paper",
+     "text": "We generated five structures for each sequence using AlphaFold2"
+    },
+    {
+     "source": "@paper",
+     "text": "We used their R code to train and test their model on the same data set splits that we used in the present work"
+    },
+    {
+     "source": "@paper",
+     "text": "Performance of RhoMax and BLASSO on the Test Set for Each of the Four Splits for eV and nm"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The number of sequences in each split's train and test set is given only in Figure 4a, which is an image, so the per-split test sizes could not be read.",
+   "The repository read here publishes a prediction pipeline, not a script that rebuilds the four splits or recomputes Table 1.",
+   "No licence file or licence statement was found in the repository metadata, so the terms for reusing the code and the packaged data are unstated.",
+   "The repository's Colab notebook and the packaged wavelength data were not opened in this pass."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Written from the NCBI PMC full-text XML of PMC11200256 and from four files of dina-lab3D/OpsiGen at commit a7f6ac3b302235fe22d972388d633d9bfdb439b8, all retrieved 27 November 2026. The two shell scripts and the pipeline configuration were read rather than inferred from their names. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Get the published RhoMax code at a pinned commit, install its requirements, prepare the features for one rhodopsin from a FASTA and a PDB file, and run the prediction entry point.",
+  "prerequisites": [
+   "Python with pip, and the packages listed in the repository's requirements.txt.",
+   "A FASTA file and a PDB file for the rhodopsin to predict, placed under fixed names in the pipeline_auto folder.",
+   "A Slurm cluster with a GPU: the published predict entry point submits a batch job asking for one GPU, 15000 MB of memory and a six hour limit.",
+   "No licence is stated for this repository in the metadata read here, so the terms of reuse are unknown."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/dina-lab3D/OpsiGen\ncd OpsiGen\ngit checkout --detach a7f6ac3b302235fe22d972388d633d9bfdb439b8",
+    "explanation": "The paper's data availability statement names this repository. The README's own clone line points at an internal host inside the authors' university, so the public GitHub address is used here instead, and the checkout line was added to pin the commit these files were read at.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Data Availability Statement; README.md: How to run OpsiGen locally, step 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The data sets, source code, and a Colab notebook that runs RhoMax are available from the GitHub repository:"
+     },
+     {
+      "source": "@readme",
+      "text": "Clone the git repository"
+     }
+    ]
+   },
+   {
+    "title": "Install the requirements",
+    "shell": "pip install -r requirements.txt",
+    "explanation": "Step 2 of the README.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: How to run OpsiGen locally, step 2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "install the requirements using \"pip install -r requirements.txt\""
+     }
+    ]
+   },
+   {
+    "title": "Put the input sequence and structure in place",
+    "shell": "cp my_rhodopsin.fasta pipeline_auto/sample_fasta.fasta\ncp my_rhodopsin.pdb pipeline_auto/sample_pdb.pdb",
+    "explanation": "Steps 3 and 4 of the README require these two fixed file names; config.json is what reads them, together with packaged wavelength and sequence files. The copy commands are written here from the README's instruction, which gives the names but not a command.",
+    "source_ids": [
+     "@readme",
+     "@pipeline-config"
+    ],
+    "source_locator": "README.md: steps 3 and 4; pipeline_auto/config.json",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "insert the fasta file to the folder `pipeline_auto` under the name \"sample_fasta.fasta\""
+     },
+     {
+      "source": "@readme",
+      "text": "insert the pdb file to the folder `pipeline_auto` under the name \"sample_pdb.pdb\""
+     },
+     {
+      "source": "@pipeline-config",
+      "text": "\"fasta_path\": \"./sample_fasta.fasta\""
+     }
+    ]
+   },
+   {
+    "title": "Build the pocket graph and its features",
+    "shell": "cd ./pipeline_auto; ./run.sh",
+    "explanation": "Step 5 of the README. The script itself removes and recreates the dists, features and cutted_parts folders and then runs main.py with config.json, which is where the binding pocket is cut out and the graph features are written.",
+    "source_ids": [
+     "@readme",
+     "@pipeline"
+    ],
+    "source_locator": "README.md: step 5; pipeline_auto/run.sh",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`cd ./pipeline_auto; ./run.sh`"
+     },
+     {
+      "source": "@pipeline",
+      "text": "mkdir ./features"
+     },
+     {
+      "source": "@pipeline",
+      "text": "python ./main.py ./config.json"
+     }
+    ]
+   },
+   {
+    "title": "Predict the absorption maximum",
+    "shell": "cd ./predict; ./run.sh",
+    "explanation": "Step 6 of the README, run from the repository root. Read the script before running it: predict/run.sh passes a configuration folder and a pickled model on to run_one_rhodopsin.sh, which submits a Slurm job with sbatch requesting one GPU, so on a machine without Slurm this step will not run as published.",
+    "source_ids": [
+     "@readme",
+     "@predict"
+    ],
+    "source_locator": "README.md: step 6; predict/run_one_rhodopsin.sh",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`cd ./predict; ./run.sh`"
+     },
+     {
+      "source": "@predict",
+      "text": "sbatch --killable --mem=15000m -c1 --time=6:0:0 --gres=gpu:1,vmem:7g ./calculate_one_rhodopsin.sh"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A predicted maximum absorption wavelength for the input rhodopsin. The saved files do not name an output file or describe its format, and no command in them reproduces the four splits or the numbers in Table 1."
+  ],
+  "limitations": [
+   "These commands were read from the paper and the repository and have not been executed by Rewire.",
+   "The README's clone address points at a host inside the authors' university; the public GitHub address and the commit pin were substituted here.",
+   "The predict step submits a Slurm batch job, so it needs a cluster with that scheduler and a GPU.",
+   "No published script reproduces the four train and test splits or the Table 1 comparison with BLASSO."
+  ],
+  "source_ids": [
+   "@paper",
+   "@readme",
+   "@pipeline",
+   "@pipeline-config",
+   "@predict"
+  ]
+ },
+ "structured": [
+  {
+   "task": "RhoMax WT-background holdout mean",
+   "dataset": "Inoue et al. rhodopsin set, mean over the four wild-type holdouts",
+   "size": null,
+   "size_unit": "mean of the four split results, each split's test size is not printed in the text",
+   "split": "mean over four random 65 and 10 wild-type train and test splits",
+   "primary_metric": "Median absolute error of the absorption maximum, eV",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": "https://github.com/dina-lab3D/OpsiGen/",
+   "data_url": "https://github.com/dina-lab3D/OpsiGen/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Our new model, trained on structures without explicitly including retinal, predicts absorption maxima with a median accuracy of about 0.03 eV, which corresponds to 6.83 nm"
+    },
+    {
+     "source": "@paper",
+     "text": "Each split consists of 65 and 10 WT sequences in the train and test sets that were divided randomly, respectively."
+    },
+    {
+     "source": "@paper",
+     "text": "The data sets, source code, and a Colab notebook that runs RhoMax are available from the GitHub repository:"
+    },
+    {
+     "source": "@paper",
+     "text": "Performance of RhoMax and BLASSO on the Test Set for Each of the Four Splits for eV and nm"
+    }
+   ]
+  },
+  {
+   "task": "RhoMax WT-background holdout split 1",
+   "dataset": "Inoue et al. rhodopsin set, wild-type holdout split 1",
+   "size": 10,
+   "size_unit": "test wild-type sequences, each with its mutants; the resulting number of test sequences is not printed in the text",
+   "split": "random 65 and 10 wild-type train and test split, mutants assigned with their wild type",
+   "primary_metric": "Median absolute error of the absorption maximum, eV",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": "https://github.com/dina-lab3D/OpsiGen/",
+   "data_url": "https://github.com/dina-lab3D/OpsiGen/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each split consists of 65 and 10 WT sequences in the train and test sets that were divided randomly, respectively."
+    },
+    {
+     "source": "@paper",
+     "text": "they would be assigned to the same set (train or test) as their WT"
+    },
+    {
+     "source": "@paper",
+     "text": "The data sets, source code, and a Colab notebook that runs RhoMax are available from the GitHub repository:"
+    },
+    {
+     "source": "@paper",
+     "text": "Performance of RhoMax and BLASSO on the Test Set for Each of the Four Splits for eV and nm"
+    }
+   ]
+  },
+  {
+   "task": "RhoMax WT-background holdout split 2",
+   "dataset": "Inoue et al. rhodopsin set, wild-type holdout split 2",
+   "size": 10,
+   "size_unit": "test wild-type sequences, each with its mutants; the resulting number of test sequences is not printed in the text",
+   "split": "random 65 and 10 wild-type train and test split, mutants assigned with their wild type",
+   "primary_metric": "Median absolute error of the absorption maximum, eV",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": "https://github.com/dina-lab3D/OpsiGen/",
+   "data_url": "https://github.com/dina-lab3D/OpsiGen/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each split consists of 65 and 10 WT sequences in the train and test sets that were divided randomly, respectively."
+    },
+    {
+     "source": "@paper",
+     "text": "The data sets, source code, and a Colab notebook that runs RhoMax are available from the GitHub repository:"
+    },
+    {
+     "source": "@paper",
+     "text": "Performance of RhoMax and BLASSO on the Test Set for Each of the Four Splits for eV and nm"
+    }
+   ]
+  },
+  {
+   "task": "RhoMax WT-background holdout split 3",
+   "dataset": "Inoue et al. rhodopsin set, wild-type holdout split 3",
+   "size": 10,
+   "size_unit": "test wild-type sequences, each with its mutants; the resulting number of test sequences is not printed in the text",
+   "split": "random 65 and 10 wild-type train and test split, mutants assigned with their wild type",
+   "primary_metric": "Median absolute error of the absorption maximum, eV",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": "https://github.com/dina-lab3D/OpsiGen/",
+   "data_url": "https://github.com/dina-lab3D/OpsiGen/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each split consists of 65 and 10 WT sequences in the train and test sets that were divided randomly, respectively."
+    },
+    {
+     "source": "@paper",
+     "text": "The data sets, source code, and a Colab notebook that runs RhoMax are available from the GitHub repository:"
+    },
+    {
+     "source": "@paper",
+     "text": "Performance of RhoMax and BLASSO on the Test Set for Each of the Four Splits for eV and nm"
+    }
+   ]
+  },
+  {
+   "task": "RhoMax WT-background holdout split 4",
+   "dataset": "Inoue et al. rhodopsin set, wild-type holdout split 4",
+   "size": 10,
+   "size_unit": "test wild-type sequences, each with its mutants; the resulting number of test sequences is not printed in the text",
+   "split": "random 65 and 10 wild-type train and test split, test set mostly red-shifted rhodopsins",
+   "primary_metric": "Median absolute error of the absorption maximum, eV",
+   "metric_direction": "lower",
+   "results_url": null,
+   "code_url": "https://github.com/dina-lab3D/OpsiGen/",
+   "data_url": "https://github.com/dina-lab3D/OpsiGen/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each split consists of 65 and 10 WT sequences in the train and test sets that were divided randomly, respectively."
+    },
+    {
+     "source": "@paper",
+     "text": "The lowest accuracy is found for split number four, where the test set contains mostly red-shifted rhodopsins"
+    },
+    {
+     "source": "@paper",
+     "text": "The data sets, source code, and a Colab notebook that runs RhoMax are available from the GitHub repository:"
+    },
+    {
+     "source": "@paper",
+     "text": "Performance of RhoMax and BLASSO on the Test Set for Each of the Four Splits for eV and nm"
+    }
+   ]
+  }
+ ],
+ "notes": "The existing source on the record points at the Europe PMC fullTextXML endpoint for PMC11200256, which has been returning HTTP 500 for this run; the same full text was fetched from NCBI E-utilities instead and is the source quoted here. The paper is CC BY 4.0. The repository that the data availability statement names, dina-lab3D/OpsiGen, has no default branch called main or master: its default branch is 'colab', and the commit pinned here is its head. GitHub reports no licence for that repository, so the code and packaged data terms are left null. The released date is left null: the only dates in the PMC record are its publication dates, which sit inside markup and are not a dataset release. Per-split test set sizes appear only in Figure 4a, an image, so the structured sizes are the 10 held-out wild-type backgrounds that the text states, not sequence counts."
+}

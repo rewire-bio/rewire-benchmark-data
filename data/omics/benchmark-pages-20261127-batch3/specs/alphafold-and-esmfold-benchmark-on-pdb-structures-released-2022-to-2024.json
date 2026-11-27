@@ -1,0 +1,695 @@
+{
+ "record_id": "lit-structure-20261011-afesmfold-benchmark-promodev-2022-2024",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Mahtha et al. 2026 AlphaFold and ESMFold evaluation, PMC full-text XML (PMC12809598)",
+   "description": "NCBI PMC full-text XML of Mahtha, Venkadesan and Mohanty, Comparative evaluation of the prediction accuracy of AlphaFold and ESMFold for monomeric and dimeric proteins, NAR Genomics and Bioinformatics 8(1), 2026, fetched through E-utilities efetch.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12809598",
+   "url": "https://doi.org/10.1093/nargab/lqag002",
+   "version": "PMC12809598.1, NAR Genomics and Bioinformatics 2026, lqag002",
+   "media_type": "application/xml",
+   "sha256": "44531f21cdef05d962a8133f8b03a0d151aad3626775e9fa75dd1fc9c0677364",
+   "retrieved_at": "2026-11-27T02:46:39Z",
+   "licence": "CC BY-NC 4.0",
+   "store_bytes": false
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 17749805 API response (ProModEv benchmarking data)",
+   "description": "Zenodo API record for the deposit the paper names as the home of its benchmarking data, giving the files, the publication date and the data licence.",
+   "file": "artifacts/zenodo.json",
+   "artifact_url": "https://zenodo.org/api/records/17749805",
+   "url": "https://doi.org/10.5281/zenodo.17749805",
+   "version": "Zenodo record 17749805, publication date 2026-01-01",
+   "media_type": "application/json",
+   "sha256": "cc8c63fbc71b8e4c603f8a7d9230fa0910e767c4f618fd8ac844c7eb9cae1bd5",
+   "retrieved_at": "2026-11-27T02:47:01Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "This is one paper's own benchmark, not a released suite. It scores AlphaFold2, AlphaFold3 and ESMFold on experimental structures deposited in the Protein Data Bank between 2022 and 2024 whose sequences have no close homologue among structures released up to the end of 2021, giving 1666 monomeric and 994 dimeric targets. Monomer predictions are classified from RMSD and LDDT against the experimental structure, dimer predictions from DockQ at the interface. It is useful to someone asking how these three predictors behave on recent targets without usable templates, and the per-structure results are published through the authors' ProModEv portal and a Zenodo deposit.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract; Materials and methods",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We have evaluated the prediction accuracy of three different tools, deep-learning-based AlphaFold2, AlphaFold3, and large language model-based ESMFold, utilizing the experimentally derived structures deposited in the Protein Data Bank between 2022 and 2024, excluding those entries with close homologs in the structures released prior to 2022."
+   },
+   {
+    "source": "@paper",
+    "text": "Additionally, proteins with &lt;20 residues or &gt;2700 residues were excluded, resulting in the final benchmarking set of 1666 monomeric and 994 dimeric structures."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "How accurately three structure predictors reproduce an experimental structure from sequence, on targets chosen to be hard for template-based modelling. For monomers the question is global and local agreement with the crystallographic, cryo-electron microscopy or NMR structure. For dimers it is whether the predicted interface matches the experimental one, which is a harder question than getting each chain right. The paper also asks whether the predictors know when they are wrong, by comparing the predicted confidence pLDDT with the measured accuracy class, and whether remaining template similarity explains the failures, by stratifying each class by a template quality score.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, quality assessment sections; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This strategy ensured the inclusion of challenging targets that are difficult to model using template-based methods."
+     },
+     {
+      "source": "@paper",
+      "text": "A higher DockQ score indicates a more accurate reproduction of the experimental interface."
+     },
+     {
+      "source": "@paper",
+      "text": "Homology was assessed using Template Quality (TQ), calculated as the product of sequence identity and query coverage (TQ = identity"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "All 39,298 protein structures released between 1 January 2022 and 31 December 2024 were downloaded from the PDB and their sequences compared by BLAST with every PDB sequence released up to 31 December 2021, at an e-value cut-off of 0.001. The authors state that these dates were chosen so that the targets are outside the training data of all three predictors. Sequences below 40 per cent identity were kept whatever the coverage, and sequences below 70 per cent query coverage were kept whatever the identity. Entries were then classified as monomer, dimer or higher-order oligomer using PDBe biological assembly annotations plus manual curation, and only monomers and dimers were kept, giving 2799 monomers and 2179 dimers; for dimers an entry was kept even if only one chain lacked a homologous structure. CD-HIT at 90 per cent identity removed redundancy, with the two chains of a dimer concatenated before clustering, and chains shorter than 20 or longer than 2700 residues were dropped. The final set is 1666 monomers and 994 dimers.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Collection of benchmarking datasets and structure selection criteria",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The PDB structures released between 1"
+     },
+     {
+      "source": "@paper",
+      "text": "Sequences with &lt;40% identity were retained regardless of query coverage, and those with &lt;70% query coverage were retained irrespective of sequence identity."
+     },
+     {
+      "source": "@paper",
+      "text": "This filtering yielded a dataset of 2799 monomers and 2179 dimers. To eliminate redundancy, CD-HIT was used at a 90% sequence identity threshold ["
+     },
+     {
+      "source": "@paper",
+      "text": "Additionally, proteins with &lt;20 residues or &gt;2700 residues were excluded, resulting in the final benchmarking set of 1666 monomeric and 994 dimeric structures."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Five structures per sequence were generated with AlphaFold2 v2.2.3 and with the AlphaFold3 server, and one with ESMFold v1.0.3 at default parameters. For monomers the top-ranked AlphaFold model (ranked_0) and the single ESMFold model were aligned with the experimental structure and scored by RMSD and LDDT, with TM-score reported as a further similarity measure. From the two primary metrics each prediction falls into one of three classes: accurate (RMSD at most 3.0 angstroms and LDDT at least 0.7), correct with domain movement (RMSD above 3.0 angstroms but LDDT at least 0.7), and incorrect (RMSD above 3.0 angstroms and LDDT below 0.7). For dimers, ligands were stripped from the experimental files, residue numbering was fixed with the DockQ package's fix_numbering.pl script, DockQ was computed for all five AlphaFold predictions and the best-scoring model kept, and the result was classified by the CAPRI bands: incorrect below 0.23, acceptable 0.23 to 0.49, medium 0.49 to 0.80, high quality 0.80 and above. pLDDT was recorded for every prediction, monomer and dimer, as a per-residue confidence measure on a 0 to 100 scale. Statistics are Spearman correlations and t-tests between metrics.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Tertiary structure predictions; Residue alignment and quality assessment; Quality assessment of predicted dimer structures; Statistical analysis",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Five structures for each sequence were generated using AlphaFold2 (v2.2.3) and AlphaFold3 server. ESMFold v1.0.3 was run with default parameters, resulting in single structures as output."
+     },
+     {
+      "source": "@paper",
+      "text": "Based on a combined assessment of RMSD and LDDT, predicted monomer models were categorized into three groups: (i) Accurate prediction: RMSD"
+     },
+     {
+      "source": "@paper",
+      "text": "For each dimeric target, DockQ scores were calculated for all five AlphaFold2/AlphaFold3 predictions, and the model with the highest DockQ score was selected for downstream analysis."
+     },
+     {
+      "source": "@paper",
+      "text": "Following CAPRI standards, predictions were classified as: incorrect (&lt;0.23), acceptable (0.23–0.49), medium (0.49–0.80), and high quality ("
+     },
+     {
+      "source": "@paper",
+      "text": "Spearman’s correlation and <italic toggle=\"yes\">t</italic>-test analyses were performed to evaluate the metrics."
+     }
+    ]
+   },
+   {
+    "title": "What the comparison found",
+    "body": "The headline numbers are that AlphaFold2 and AlphaFold3 correctly predicted 88 per cent of the monomers and 77 per cent of the dimers, while ESMFold reached 76 per cent of the monomers and 41 per cent of the dimers; restricted to X-ray and cryo-electron microscopy structures, accuracy rose to 95 per cent for AlphaFold and 83 per cent for ESMFold on monomers, because most failures involved NMR structures. Confidence tracks accuracy poorly at the failure end: of the 200 incorrect AlphaFold2 monomer predictions, 150 (75 per cent) still had pLDDT at least 70, and of the 191 incorrect AlphaFold3 predictions, 158 (83 per cent) did. Residual template similarity is low across the set: of the 1666 monomers, 652 (39 per cent) have no homologous structure at all (template quality 0), 936 (56 per cent) have template quality between 1 and 40, and 78 (5 per cent) above 40, and the incorrect class is enriched in targets with no homologue.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Results, monomer sections",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Our analysis showed that AlphaFold2 and AlphaFold3 correctly predicted 88% of monomeric structures and 77% of dimeric proteins. On the other hand, ESMFold accurately predicted 76% of the monomeric proteins and 41% of the dimeric proteins."
+     },
+     {
+      "source": "@paper",
+      "text": "Among the 200 incorrect predictions, 150 (75%) still showed high confidence (pLDDT ≥ 70), while the remaining 50 ranged from 39 to 69"
+     },
+     {
+      "source": "@paper",
+      "text": "Of the 1666 monomer structures, 652 (39%) had no homologous structure (TQ = 0), 936 (56%) had TQ between 1 and 40, and only 78 (5%) had TQ &gt;40"
+     },
+     {
+      "source": "@paper",
+      "text": "For the 191 incorrect predictions, 158 (83%) had pLDDT ≥70, and for the remaining 33, pLDDT ranged between 43 and 69"
+     }
+    ]
+   },
+   {
+    "title": "Where the results live",
+    "body": "The per-structure benchmarking values are not printed in the article. They are served by ProModEv, a web portal the authors built for the purpose, with sortable tables and in-browser structure comparison, and they are also deposited on Zenodo. The Zenodo record holds nine archives: the experimental monomer and dimer structures (RCSB_Monomers, RCSB_Dimers), the AlphaFold2, AlphaFold3 and ESMFold predictions for both, and a pLDDT graph archive. The record is dated 1 January 2026 and carries a CC BY 4.0 licence.",
+    "source_ids": [
+     "@paper",
+     "@zenodo"
+    ],
+    "source_locator": "Paper: Development of ProModEv; Data availability; Zenodo record 17749805",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The detailed benchmarking matrices for individual structures are available at ProModEv and can be accessed using"
+     },
+     {
+      "source": "@zenodo",
+      "text": "RCSB_Monomers.tar.gz"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"doi\": \"10.5281/zenodo.17749805\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"publication_date\": \"2026-01-01\""
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Two sets drawn from the same pool: 1666 monomeric and 994 dimeric PDB structures released between 1 January 2022 and 31 December 2024. They come from 39,298 structures released in that window, reduced to 2799 monomers and 2179 dimers by the homology and assembly filters and then to the final counts by CD-HIT clustering at 90 per cent identity and the length limits. Among the monomers, the paper prints 1314 (79 per cent) solved by X-ray diffraction, 160 (9.6 per cent) by electron microscopy and 190 (11.4 per cent) by NMR; these sum to 1664, not 1666, so the paper's method breakdown leaves two monomers unaccounted for; the 994 dimers are 795 (80 per cent) homodimers and 199 (20 per cent) heterodimers, with 760 (76.5 per cent) by X-ray diffraction, 219 (22 per cent) by electron microscopy and 15 (1.5 per cent) by NMR.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, dataset collection; Results, Sequence selection and model generation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Additionally, proteins with &lt;20 residues or &gt;2700 residues were excluded, resulting in the final benchmarking set of 1666 monomeric and 994 dimeric structures."
+     },
+     {
+      "source": "@paper",
+      "text": "yielding a total of 39,298 protein structures across the three-year period"
+     },
+     {
+      "source": "@paper",
+      "text": "Among monomers, 1314 (79%) were resolved using X-ray diffraction (XRD), 160 (9.6%) by electron microscopy (EM), and 190 (11.4%) by NMR. The 994 dimers comprised 795 (80%) homodimers and 199 (20%) heterodimers."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "No train or validation split: this is an evaluation-only set and all 1666 monomers and 994 dimers are scored. The separation is temporal and by homology rather than by split: targets were released after the training cut-off of all three predictors and were filtered against every PDB sequence released up to 31 December 2021.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, dataset collection",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "These cut-off dates were chosen to ensure that selected structures were not part of the training data for AlphaFold2, AlphaFold3, or ESMFold."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Monomers: RMSD (lower is better) and LDDT on a 0 to 1 scale (higher is better) are the two primary metrics, combined into three accuracy classes, with TM-score reported beside them as a topological similarity measure. Dimers: DockQ (higher is better), which combines interface RMSD, ligand RMSD and the fraction of native contacts, classified by the CAPRI bands. pLDDT on a 0 to 100 scale (higher is better) is recorded for every prediction as the predictor's own confidence, not as an accuracy measure.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, quality assessment sections",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Lower RMSD values indicate closer global similarity to the experimental structure."
+     },
+     {
+      "source": "@paper",
+      "text": "LDDT values range from 0 to 1, with higher values reflecting better local structural agreement."
+     },
+     {
+      "source": "@paper",
+      "text": "DockQ integrates several interface-specific measures, including interface RMSD (iRMSD), ligand RMSD (LRMSD), and the fraction of native contacts preserved (Fnat)"
+     },
+     {
+      "source": "@paper",
+      "text": "pLDDT is reported on a 0–100 scale and reflects the expected local accuracy of residue based on the predicted LDDT-Cα metric."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Three predictors, compared with each other rather than against a baseline method: AlphaFold2 v2.2.3 run locally, AlphaFold3 through its web server, and ESMFold v1.0.3 run locally at default parameters. There is no template-based or physics-based reference method, and no null model.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Tertiary structure predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Five structures for each sequence were generated using AlphaFold2 (v2.2.3) and AlphaFold3 server. ESMFold v1.0.3 was run with default parameters, resulting in single structures as output."
+     },
+     {
+      "source": "@paper",
+      "text": "The AlphaFold3 was accessed as a web service and utilized for structure predictions ["
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Two controls, both stated. A time cut-off: only structures released from 1 January 2022 are used, which the authors say puts them outside the training data of all three predictors. A homology filter: every sequence was BLASTed against all PDB sequences released up to 31 December 2021 at e-value 0.001 and kept only if identity was below 40 per cent or query coverage below 70 per cent; for dimers an entry was kept if one chain met the rule. Residual similarity is then quantified rather than assumed, through a template quality score that is the product of identity and coverage, and reported per accuracy class. The authors note that for dimers an entry could enter with one homologous chain.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, dataset collection; Results, template quality analysis",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "These cut-off dates were chosen to ensure that selected structures were not part of the training data for AlphaFold2, AlphaFold3, or ESMFold."
+     },
+     {
+      "source": "@paper",
+      "text": "Sequences with &lt;40% identity were retained regardless of query coverage, and those with &lt;70% query coverage were retained irrespective of sequence identity."
+     },
+     {
+      "source": "@paper",
+      "text": "In the case of dimers, structures were included even if only one chain lacked a homologous structure."
+     },
+     {
+      "source": "@paper",
+      "text": "Homology was assessed using Template Quality (TQ), calculated as the product of sequence identity and query coverage (TQ = identity"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "No replicate or interval is reported for any accuracy figure. Sampling variation is handled by selection rather than by averaging: five models per sequence are generated for AlphaFold2 and AlphaFold3 and the best one is taken (the top-ranked model for monomers, the highest-DockQ model for dimers), while ESMFold produces a single model. The statistics reported are Spearman correlations and t-tests between metrics, not confidence intervals on the class counts.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, quality assessment and Statistical analysis",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For AlphaFold, the top-ranked model (ranked_0) was used, while ESMFold provides a single predicted model."
+     },
+     {
+      "source": "@paper",
+      "text": "For each dimeric target, DockQ scores were calculated for all five AlphaFold2/AlphaFold3 predictions, and the model with the highest DockQ score was selected for downstream analysis."
+     },
+     {
+      "source": "@paper",
+      "text": "Spearman’s correlation and <italic toggle=\"yes\">t</italic>-test analyses were performed to evaluate the metrics."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One example is a PDB entry whose biological assembly is a monomer or a dimer, predicted from its amino acid sequence and compared with the deposited experimental structure. For dimers the unit of scoring is the interface between the two chains.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, dataset collection and dimer assessment",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "only structures whose biological assembly corresponded to a monomeric or dimeric state were retained for benchmarking"
+     },
+     {
+      "source": "@paper",
+      "text": "Dimeric predictions generated by AlphaFold2, AlphaFold3, and ESMFold were evaluated using the DockQ score, an established metric for assessing the accuracy of protein–protein complex predictions."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Unreported. The targets are whatever PDB entries pass the release-date, assembly and homology filters; the paper reports their experimental method, oligomeric state and length but gives no species composition.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Sequence selection and model generation"
+   },
+   {
+    "label": "Assays",
+    "value": "Experimental structure determination is the reference. The paper gives the monomer targets as solved by X-ray diffraction (1314), electron microscopy (160) and NMR (190), which sum to 1664 of the 1666 monomers; the dimer targets by X-ray diffraction (760), electron microscopy (219) and NMR (15). No binding, activity or other functional assay is involved.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Sequence selection and model generation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Among monomers, 1314 (79%) were resolved using X-ray diffraction (XRD), 160 (9.6%) by electron microscopy (EM), and 190 (11.4%) by NMR."
+     },
+     {
+      "source": "@paper",
+      "text": "Of these, 760 (76.5%) were resolved via XRD, 219 (22%) by EM, and 15 (1.5%) by NMR."
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "The amino acid sequence, as retrieved from the PDB entry. Each predictor then uses whatever it normally uses internally: AlphaFold2 and AlphaFold3 build multiple sequence alignments, which the paper notes affects their dimer run time, while ESMFold reads sequence alone. Ligands are not supplied to any predictor, and were removed from the experimental files before interface scoring for that reason.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Tertiary structure predictions; dimer assessment",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We generated structure predictions for each selected target using their respective amino acid sequences, enabling subsequent benchmarking and comparative evaluation."
+     },
+     {
+      "source": "@paper",
+      "text": "Because AlphaFold and ESMFold predictions do not incorporate ligands, all ligand molecules were removed from the experimental PDB files to maintain consistency with predicted models."
+     },
+     {
+      "source": "@paper",
+      "text": "Dimer predictions were more demanding, depending on interface size and multiple sequence alignment (MSA) depth."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Zero-shot inference from released tools. Nothing is trained or fine-tuned: AlphaFold2 v2.2.3 and ESMFold v1.0.3 were installed from their own repositories and run, ESMFold at default parameters, and AlphaFold3 was used through its public web server.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Tertiary structure predictions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The AlphaFold2 and ESMFold programs were installed locally by following the installation instructions in their respective GitHub repositories"
+     },
+     {
+      "source": "@paper",
+      "text": "ESMFold v1.0.3 was run with default parameters, resulting in single structures as output."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The target selection is independent of the predictors and documented step by step, from 39,298 released structures down to 1666 monomers and 994 dimers, with the date cut-off, the BLAST thresholds, the assembly classification, the CD-HIT clustering and the length limits all stated.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, dataset collection",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "yielding a total of 39,298 protein structures across the three-year period"
+     },
+     {
+      "source": "@paper",
+      "text": "This filtering yielded a dataset of 2799 monomers and 2179 dimers. To eliminate redundancy, CD-HIT was used at a 90% sequence identity threshold ["
+     }
+    ]
+   },
+   {
+    "text": "Residual template similarity is measured rather than assumed: a template quality score is computed for every target and the accuracy classes are broken down by it, so a reader can see that 39 per cent of monomers have no homologue at all.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, template quality analysis",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Of the 1666 monomer structures, 652 (39%) had no homologous structure (TQ = 0), 936 (56%) had TQ between 1 and 40, and only 78 (5%) had TQ &gt;40"
+     }
+    ]
+   },
+   {
+    "text": "Predicted confidence is reported against measured accuracy, which exposes how often a confident prediction is wrong on these targets.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, monomer sections",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Among the 200 incorrect predictions, 150 (75%) still showed high confidence (pLDDT ≥ 70), while the remaining 50 ranged from 39 to 69"
+     }
+    ]
+   },
+   {
+    "text": "The per-structure results are published rather than summarised only: an interactive portal serves them, and the predicted and experimental structures are deposited on Zenodo under CC BY 4.0 as nine archives.",
+    "source_ids": [
+     "@paper",
+     "@zenodo"
+    ],
+    "source_locator": "Paper: Development of ProModEv; Data availability; Zenodo record 17749805",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To provide public access to benchmarking results, we developed ProModEv, a web-based platform for interactive evaluation of structure prediction tools."
+     },
+     {
+      "source": "@zenodo",
+      "text": "AF3_Monomers.tar.gz"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"id\": \"cc-by-4"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The accuracy classes rest on thresholds the authors chose themselves (RMSD 3.0 angstroms and LDDT 0.7 for monomers), so the headline percentages move if a reader prefers other cut-offs. The DockQ bands, by contrast, follow the CAPRI standard.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, quality assessment sections",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Based on a combined assessment of RMSD and LDDT, predicted monomer models were categorized into three groups: (i) Accurate prediction: RMSD"
+     },
+     {
+      "source": "@paper",
+      "text": "Following CAPRI standards, predictions were classified as: incorrect (&lt;0.23), acceptable (0.23–0.49), medium (0.49–0.80), and high quality ("
+     }
+    ]
+   },
+   {
+    "text": "The three predictors are not run under equal conditions. AlphaFold2 and AlphaFold3 get five models per target and the best is selected, while ESMFold produces one, and AlphaFold3 was run through a web server rather than locally, so its exact version and settings are outside the authors' control.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Tertiary structure predictions; dimer assessment",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Five structures for each sequence were generated using AlphaFold2 (v2.2.3) and AlphaFold3 server. ESMFold v1.0.3 was run with default parameters, resulting in single structures as output."
+     },
+     {
+      "source": "@paper",
+      "text": "The AlphaFold3 was accessed as a web service and utilized for structure predictions ["
+     }
+    ]
+   },
+   {
+    "text": "The homology filter is weaker for dimers than for monomers, because a dimeric entry was kept even when only one of its two chains lacked a homologous structure, so some dimer targets contain a chain with a close template.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, dataset collection",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In the case of dimers, structures were included even if only one chain lacked a homologous structure."
+     }
+    ]
+   },
+   {
+    "text": "No uncertainty is attached to the reported percentages, and the comparison between predictors is made on class counts with no interval or test between them.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Statistical analysis; Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Spearman’s correlation and <italic toggle=\"yes\">t</italic>-test analyses were performed to evaluate the metrics."
+     },
+     {
+      "source": "@paper",
+      "text": "Our analysis showed that AlphaFold2 and AlphaFold3 correctly predicted 88% of monomeric structures and 77% of dimeric proteins."
+     }
+    ]
+   },
+   {
+    "text": "No evaluation code is released. The portal and the Zenodo deposit hold the structures and the per-structure scores, but the custom shell and Python scripts behind them are not published, and the article itself is under a non-commercial licence.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Statistical analysis; Data availability; licence statement",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "All analyses in this study were performed using custom shell and Python scripts."
+     },
+     {
+      "source": "@paper",
+      "text": "All of the datasets supporting the results of this article are included within the article and its supplementary files."
+     },
+     {
+      "source": "@paper",
+      "text": "which permits non-commercial re-use, distribution, and reproduction in any medium"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "AlphaFold and ESMFold 2022 to 2024 benchmark workflow",
+   "steps": [
+    "39,298 PDB entries released 2022 to 2024",
+    "BLAST against pre-2022 PDB, keep below 40% identity or below 70% coverage",
+    "keep monomers and dimers, CD-HIT at 90%, length 20 to 2700",
+    "predict with AlphaFold2, AlphaFold3 and ESMFold from sequence",
+    "monomers: RMSD and LDDT classes; dimers: best-of-five DockQ in CAPRI bands"
+   ],
+   "caption": "Selection is temporal and homology based; scoring differs by assembly, with three accuracy classes for monomers and the CAPRI bands for dimer interfaces.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Materials and methods; Figure 1 caption",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "A schematic flowchart outlining the selection of non-redundant monomeric and dimeric protein structures from PDB (2022–2024), excluding entries with close homologs (sequence identity &gt;40%, query coverage &gt;70%)."
+    },
+    {
+     "source": "@paper",
+     "text": "Based on a combined assessment of RMSD and LDDT, predicted monomer models were categorized into three groups: (i) Accurate prediction: RMSD"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No per-structure values are printed in the article: they are served by the ProModEv portal and the Zenodo archives, neither of which was downloaded here.",
+   "The evaluation scripts are described as custom shell and Python code and are not published, so the scoring cannot be rerun exactly.",
+   "No species composition is given for either target set.",
+   "The dimer results by template quality and the full Table 2 breakdown were not transcribed here.",
+   "The Zenodo record was read through the API; the archives themselves, including the pLDDT graphs, were not retrieved."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the PMC full-text XML of PMC12809598 (NAR Genomics and Bioinformatics 2026, lqag002, doi 10.1093/nargab/lqag002) and the Zenodo API record for 10.5281/zenodo.17749805, on 2026-11-27. The ProModEv portal and the Zenodo archives were not downloaded. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "The paper gives no commands. It states that AlphaFold2 and ESMFold were installed by following the instructions in their own repositories, that AlphaFold3 was used through its web server, and that the scoring used custom shell and Python scripts that are not published; the Zenodo deposit holds structures rather than code. Nothing in the saved sources supports a runnable sequence of steps.",
+ "structured": [
+  {
+   "task": "Monomeric structure prediction accuracy",
+   "dataset": "Non-redundant PDB monomers released 2022 to 2024",
+   "size": 1666,
+   "size_unit": "evaluation structures",
+   "split": "evaluation only; released after 2021 and below 40% identity or below 70% query coverage against pre-2022 PDB",
+   "primary_metric": "LDDT",
+   "metric_direction": "higher",
+   "results_url": "http://pdbi.nii.ac.in/ProModEv/",
+   "code_url": null,
+   "data_url": "https://doi.org/10.5281/zenodo.17749805",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": "2026-01-01",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Additionally, proteins with &lt;20 residues or &gt;2700 residues were excluded, resulting in the final benchmarking set of 1666 monomeric and 994 dimeric structures."
+    },
+    {
+     "source": "@paper",
+     "text": "Sequences with &lt;40% identity were retained regardless of query coverage, and those with &lt;70% query coverage were retained irrespective of sequence identity."
+    },
+    {
+     "source": "@paper",
+     "text": "LDDT values range from 0 to 1, with higher values reflecting better local structural agreement."
+    },
+    {
+     "source": "@paper",
+     "text": "The detailed benchmarking matrices for individual structures are available at ProModEv and can be accessed using"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"doi\": \"10.5281/zenodo.17749805\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2026-01-01\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"id\": \"cc-by-4"
+    }
+   ]
+  },
+  {
+   "task": "Dimeric interface prediction accuracy",
+   "dataset": "Non-redundant PDB dimers released 2022 to 2024",
+   "size": 994,
+   "size_unit": "evaluation structures",
+   "split": "evaluation only; released after 2021, kept when at least one chain lacked a homologous pre-2022 structure",
+   "primary_metric": "DockQ",
+   "metric_direction": "higher",
+   "results_url": "http://pdbi.nii.ac.in/ProModEv/",
+   "code_url": null,
+   "data_url": "https://doi.org/10.5281/zenodo.17749805",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": "2026-01-01",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Additionally, proteins with &lt;20 residues or &gt;2700 residues were excluded, resulting in the final benchmarking set of 1666 monomeric and 994 dimeric structures."
+    },
+    {
+     "source": "@paper",
+     "text": "In the case of dimers, structures were included even if only one chain lacked a homologous structure."
+    },
+    {
+     "source": "@paper",
+     "text": "A higher DockQ score indicates a more accurate reproduction of the experimental interface."
+    },
+    {
+     "source": "@paper",
+     "text": "The detailed benchmarking matrices for individual structures are available at ProModEv and can be accessed using"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"doi\": \"10.5281/zenodo.17749805\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2026-01-01\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"id\": \"cc-by-4"
+    }
+   ]
+  }
+ ],
+ "notes": "One paper's evaluation, not a released suite, so there is no runner and no leaderboard; the results_url is the authors' own ProModEv portal, which the paper names, and the data_url is the Zenodo deposit it cites. The released date, 2026-01-01, is the Zenodo record's publication_date field, not a last-modified timestamp. The structured sizes are the full evaluation sets (1666 monomers, 994 dimers); the intermediate counts 2799 and 2179 are pre-clustering figures and must not be used as set sizes. The two accuracy figures in the abstract are classification percentages under the authors' own RMSD and LDDT thresholds for monomers and the CAPRI bands for dimers, and AlphaFold2 and AlphaFold3 are reported together in the abstract (88 per cent of monomers, 77 per cent of dimers) although the Results give separate per-model counts. The article is CC BY-NC, so the saved XML is not redistributable; the Zenodo data are CC BY 4.0."
+}

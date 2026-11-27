@@ -1,0 +1,950 @@
+{
+ "record_id": "rfd4-proteina-20261115-benchmark-frozen-project-benchmark-20261009",
+ "sources": [
+  {
+   "key": "methods",
+   "name": "RFD4-Proteina benchmarks/METHODS.md at revision 621b785",
+   "description": "The benchmark packet's methods supplement: the accounting and timing rules, the per-model recipes, the common AlphaFold 3 pass criteria per benchmark, and the rate and clustering definitions.",
+   "file": "artifacts/methods.md",
+   "artifact_url": "https://huggingface.co/nvidia/RFD4-Proteina/raw/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/METHODS.md",
+   "url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/METHODS.md",
+   "version": "revision 621b785abf9d61dd24f4b81ae4dbd1330728f030",
+   "media_type": "text/markdown",
+   "sha256": "46d1e181c495d4ecc9a3992a4e7f3cd8fae0b4904fb799ab5c1a883090ca837b",
+   "retrieved_at": "2026-11-27T03:28:32Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "summary",
+   "name": "RFD4-Proteina benchmarks/summary.csv at revision 621b785",
+   "description": "The packet's full comparison table: one row per panel, model, protocol and dataset, with pass and clustered percentages, the two efficiency columns, the target and attempt counts and a timing note. Counted in this pass: 52 data rows.",
+   "file": "artifacts/summary.csv",
+   "artifact_url": "https://huggingface.co/nvidia/RFD4-Proteina/raw/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "version": "revision 621b785abf9d61dd24f4b81ae4dbd1330728f030",
+   "media_type": "text/csv",
+   "sha256": "5c6d525d988d0df7fecb74396f86401c1ddb4c31fa83f00b357ba77d855d8a10",
+   "retrieved_at": "2026-11-27T03:28:32Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "provenance",
+   "name": "RFD4-Proteina benchmarks/provenance.json at revision 621b785",
+   "description": "The packet's provenance record: the source release label, the paper commit and path, the efficiency metric definition, the row counts and the SHA-256 digests of summary.csv and source_data.csv.",
+   "file": "artifacts/provenance.json",
+   "artifact_url": "https://huggingface.co/nvidia/RFD4-Proteina/raw/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/provenance.json",
+   "url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/provenance.json",
+   "version": "revision 621b785abf9d61dd24f4b81ae4dbd1330728f030",
+   "media_type": "application/json",
+   "sha256": "4e7a3051a58902cc7713d02c52941894eb9581b82e5af85a3b4f256f1a258336",
+   "retrieved_at": "2026-11-27T03:28:32Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "readme",
+   "name": "RFD4-Proteina model card README.md at revision 621b785",
+   "description": "The model card of the Hugging Face repository that publishes the packet. Its measured design efficiency section prints the headline per-GPU-hour comparison and the caveats, and its licence fields state the terms.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://huggingface.co/nvidia/RFD4-Proteina/raw/621b785abf9d61dd24f4b81ae4dbd1330728f030/README.md",
+   "url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/README.md",
+   "version": "revision 621b785abf9d61dd24f4b81ae4dbd1330728f030",
+   "media_type": "text/markdown",
+   "sha256": "38479d8e4c6e46ed7e1ec4ece0dd02c358ae46d73d56790c44be813201fd9b98",
+   "retrieved_at": "2026-11-27T03:28:32Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "This is the frozen benchmark packet published with RFD4-Proteina on Hugging Face: a set of result tables, not a runnable suite. It scores design methods on four target sets, 24 protein-binding targets, 77 small-molecule targets, 37 Atomic Motif Enzyme tasks and 3 DNA-binding targets, each model, protocol and target having 200 original attempts. Every attempt is judged by one common AlphaFold 3 evaluation with a pass criterion written per benchmark, and the headline number is efficiency: the mean over targets of structurally distinct passers per unit of GPU time, counting both generation and the AlphaFold 3 evaluation. The packet publishes a summary table of 52 rows, a per-target source table, a methods supplement with the criteria and timing rules, and a provenance file with digests. A reader comparing design methods on cost as well as hit rate can use it; it reports computational passers, which the packet says do not establish experimental activity.",
+  "summary_source_ids": [
+   "@methods",
+   "@provenance",
+   "@readme"
+  ],
+  "summary_source_locator": "METHODS.md: Common accounting and timing, Common AF3 scoring; provenance.json; README.md: Measured design efficiency",
+  "summary_quotes": [
+   {
+    "source": "@methods",
+    "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+   },
+   {
+    "source": "@provenance",
+    "text": "\"metric\": \"mean_over_targets(3600 * passing_structure_clusters / (generation_gpu_s + af3_gpu_s))\""
+   },
+   {
+    "source": "@provenance",
+    "text": "\"scope\": \"Frozen project benchmark runs; not a new evaluation of every model Hub revision.\""
+   },
+   {
+    "source": "@readme",
+    "text": "**Metric:** mean per-target structurally distinct computational passers per GPU-hour, including generation and common AF3 evaluation. Higher is better."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Not just whether a design method succeeds, but what each success costs. Two things are reported for every model, protocol and target: a rate, which is the share of 200 original attempts that pass the common AlphaFold 3 criterion, and an efficiency, which divides structurally distinct passers by the GPU time spent generating them plus the GPU time of the shared evaluation. The packet is explicit about what a pass is not: passers are computational, structural clusters are algorithmic rather than experimentally distinct proteins, and the whole release reuses existing evaluation outputs rather than running anything new.",
+    "source_ids": [
+     "@methods",
+     "@readme"
+    ],
+    "source_locator": "METHODS.md: Common accounting and timing, Common AF3 scoring; README.md: Measured design efficiency",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "Ordinary rate = passing originals / 200. Clustered rate = distinct clusters among passing originals / 200. Clusters are computed **within each model/protocol/target**, using generated binder/protein structures and Foldseek TM threshold 0.5, alignment type 1, minimum sequence identity 0; they are not pooled between targets or models. Dark bar plus light extension is the ordinary rate; dark alone is clustered. These are algorithmic structural clusters, not experimental successes or globally distinct proteins."
+     },
+     {
+      "source": "@methods",
+      "text": "`af3_gpu_s` is separate common evaluation time. Default efficiency is the **arithmetic mean across targets of successes / (generation + AF3 GPU time)**, multiplied by 600 for per-10-GPU-minute units."
+     },
+     {
+      "source": "@methods",
+      "text": "The existing accelerated external-eval AF3 outputs are reused; this release launches no generation, folding or rescoring. Protein targets are templated from propagated coordinate-conditioning information using stored coordinates. DNA alignment includes the target DNA in both conditioning modes. Template sanity metrics are diagnostic, not substitutions for binder accuracy."
+     },
+     {
+      "source": "@readme",
+      "text": "There are 200 original attempts per target. Failed attempts consume time; setup, compilation, CPU scoring, and idle allocation time are excluded. Values are means of target-level rates, not pooled totals or single-design latency. Conditioning differs between some methods: PPI uses RFD4 backbone conditioning versus all-atom conditioning for several baselines; DNA compares unfixed RFD4 inputs with fixed-DNA baselines; Proteina-Complexa's small-molecule route uses fixed ligands. Only three DNA targets are included. Computational passers do not establish experimental activity."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Four target sets and a fixed number of attempts, with no train or test split: the sets are evaluation panels. The counts are printed in the criteria table, 24 protein-protein interface targets, 77 small-molecule targets, 37 Atomic Motif Enzyme targets and 3 DNA targets, and each model, protocol and target combination has 200 original attempts including native failures and unmatched required motifs, with no replacement of rejected originals. What goes into the release is a frozen selection rather than everything that was ever run: the cohorts come from an evidence freeze file, antibody, HalluDesign, full-pipeline BindCraft and Genie3 search arms are excluded, and the provenance file describes the scope as frozen project benchmark runs rather than a new evaluation of every model revision. Each model's recipe, including steps, checkpoints, sequence designers and input handling, is written out in a table in the methods supplement, which also says that the executed receipts rather than the current upstream README identify what each cohort actually ran.",
+    "source_ids": [
+     "@methods",
+     "@provenance"
+    ],
+    "source_locator": "METHODS.md: Supplement methods, Common accounting and timing, Model recipes and adaptations, Common AF3 scoring; provenance.json",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "This release uses the frozen cohorts in `evidence/freeze.json`, not every run in the live catalog. It includes current Figure 2 methods and the additional RFD4 High conditioning arms. Antibody, HalluDesign, full-pipeline BindCraft and Genie3 search are excluded."
+     },
+     {
+      "source": "@methods",
+      "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+     },
+     {
+      "source": "@provenance",
+      "text": "\"scope\": \"Frozen project benchmark runs; not a new evaluation of every model Hub revision.\""
+     },
+     {
+      "source": "@methods",
+      "text": "| PPI, 24 targets | AF3 binder pTM ≥80 on the native 0–100 scale; minimum interface PAE ≤1.5 Å; target-backbone-aligned binder backbone RMSD ≤2.5 Å (CA-only for Genie3). Required target mapping/conditioning must be valid. Target mutations at a hotspot or within 5 Å of binder heavy atoms in design or refold fail; distal substitutions may pass. |"
+     },
+     {
+      "source": "@methods",
+      "text": "| DNA, 3 targets | AF3 minimum interface PAE ≤1.5 Å and DNA-target-aligned binder backbone RMSD ≤8 Å. Alignment uses all target DNA atoms in both fixed/unfixed modes. |"
+     },
+     {
+      "source": "@methods",
+      "text": "Native source/current workflow snapshots and immutable repository citations are listed in `references.csv`. They explain the implementation; executed receipts—not the newest README—identify what each cohort actually ran."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "One shared AlphaFold 3 evaluation decides every pass, with a criterion written per benchmark. Protein binders need binder pTM at least 80 on the native 0 to 100 scale, a minimum interface PAE of at most 1.5 Angstrom and a target-backbone-aligned binder backbone RMSD of at most 2.5 Angstrom, with CA-only RMSD for Genie3, and a target mutation at a hotspot or within 5 Angstrom of binder heavy atoms fails. Small-molecule binders need interface PAE at most 1.5 Angstrom, chain-of-interest ipTM at least 80 out of 100, protein backbone RMSD at most 1.5 Angstrom and ligand RMSD at most 5 Angstrom after protein-backbone alignment; a second, older DISCO criterion on the same 77 targets uses a 2 Angstrom backbone RMSD and a 2 Angstrom ligand centroid displacement with no PAE or ipTM cutoff, and the packet notes the two are not nested. Atomic Motif Enzyme tasks need backbone RMSD at most 2 Angstrom, motif all-atom RMSD at most 1.5 Angstrom and interface PAE below 1.5 Angstrom. DNA targets need interface PAE at most 1.5 Angstrom and a DNA-aligned binder backbone RMSD at most 8 Angstrom. From those verdicts, the ordinary rate is passing originals over 200 and the clustered rate is distinct clusters among passing originals over 200, with clusters computed inside each model, protocol and target by Foldseek at a TM threshold of 0.5 and never pooled. Efficiency is the arithmetic mean across targets of successes divided by generation plus AlphaFold 3 GPU seconds, which the provenance file expresses per GPU-hour and the methods supplement also reports in per-10-GPU-minute units; failed originals and the time they consumed stay in the denominator.",
+    "source_ids": [
+     "@methods",
+     "@provenance"
+    ],
+    "source_locator": "METHODS.md: Common AF3 scoring; provenance.json",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "| PPI, 24 targets | AF3 binder pTM ≥80 on the native 0–100 scale; minimum interface PAE ≤1.5 Å; target-backbone-aligned binder backbone RMSD ≤2.5 Å (CA-only for Genie3). Required target mapping/conditioning must be valid. Target mutations at a hotspot or within 5 Å of binder heavy atoms in design or refold fail; distal substitutions may pass. |"
+     },
+     {
+      "source": "@methods",
+      "text": "| Small molecule, 77 targets | AF3 minimum interface PAE ≤1.5 Å, chain-of-interest ipTM ≥80/100, protein-backbone RMSD ≤1.5 Å, and protein-backbone-aligned ligand RMSD ≤5 Å. This is `sm_binder`, not the looser historical `disco` criterion. |"
+     },
+     {
+      "source": "@methods",
+      "text": "| Original DISCO, same 77 targets | Protein-backbone RMSD ≤2 Å and maximum ligand-centroid displacement ≤2 Å after protein-backbone alignment. No AF3 PAE/ipTM cutoff. Stored verdicts and independently computed passing-cluster labels are retained separately from `sm_binder`. The criteria are not mathematically nested because the ligand-position tests differ. |"
+     },
+     {
+      "source": "@methods",
+      "text": "| Atomic Motif Enzyme (AME), 37 targets | Protein-backbone RMSD ≤2 Å, required motif all-atom RMSD ≤1.5 Å, and AF3 minimum interface PAE **<1.5 Å**. Motif RMSD aligns/scores mapped conditioned protein atoms against stored input references, respecting coordinate groups. Native-unmatched/sequence-failed motifs fail; missing metrics are not assigned zero. Clashes are diagnostic only in this current policy. |"
+     },
+     {
+      "source": "@methods",
+      "text": "| DNA, 3 targets | AF3 minimum interface PAE ≤1.5 Å and DNA-target-aligned binder backbone RMSD ≤8 Å. Alignment uses all target DNA atoms in both fixed/unfixed modes. |"
+     },
+     {
+      "source": "@methods",
+      "text": "Ordinary rate = passing originals / 200. Clustered rate = distinct clusters among passing originals / 200. Clusters are computed **within each model/protocol/target**, using generated binder/protein structures and Foldseek TM threshold 0.5, alignment type 1, minimum sequence identity 0; they are not pooled between targets or models. Dark bar plus light extension is the ordinary rate; dark alone is clustered. These are algorithmic structural clusters, not experimental successes or globally distinct proteins."
+     },
+     {
+      "source": "@methods",
+      "text": "`af3_gpu_s` is separate common evaluation time. Default efficiency is the **arithmetic mean across targets of successes / (generation + AF3 GPU time)**, multiplied by 600 for per-10-GPU-minute units."
+     },
+     {
+      "source": "@provenance",
+      "text": "\"metric\": \"mean_over_targets(3600 * passing_structure_clusters / (generation_gpu_s + af3_gpu_s))\""
+     }
+    ]
+   },
+   {
+    "title": "How the timings were taken",
+    "body": "The timing rules matter as much as the criteria, because efficiency is half the result. Generation time is the complete stored warm generation cost, including required sequence design and intrinsic folding or search, excluding setup, loading, warmup and compilation where those were measured separately, and it is not a diffusion-only timer. Batched costs are amortised across the batch, and the packet says batch shares are not individually measured latency and that the measured batch size is not a claim about maximal throughput. Component columns for MPNN and native folding are already inside the generation figure and must not be added again; a zero means the component did not run or used no GPU and a blank means it was not separately measured. Three exceptions are named rather than hidden: ODesign keeps an approved original-generation timing proxy, Complexa's fixed-small-molecule costs are batched remeasurements rather than batch-1 wall time, and the historical RFD4 protein-binding all-atom arm uses an approved backbone timing proxy and has no measured AlphaFold 3 cost. A configuration with a missing AlphaFold 3 cost drops out of inclusive efficiency comparisons but keeps its successes in rate comparisons.",
+    "source_ids": [
+     "@methods"
+    ],
+    "source_locator": "METHODS.md: Common accounting and timing",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "`generation_gpu_s` is the complete stored warm generation cost, including required sequence design, intrinsic folding/search, and native gaps inside that timed boundary. It excludes setup, loading, warmup and compilation where separately measured. It is not a diffusion-only timer."
+     },
+     {
+      "source": "@methods",
+      "text": "Failed originals and their consumed time stay included. MPNN and native-fold columns are components already included in generation: **do not add them again**. A zero means the component did not run or used no GPU; blank means it was not separately measured. A missing AF3 cost excludes that configuration from an inclusive efficiency comparison, not its successes from rate comparisons."
+     },
+     {
+      "source": "@methods",
+      "text": "Timing exceptions: ODesign retains the user-approved original-generation timing proxy, which includes its old MPNN step rather than separately adding corrected MPNN. Complexa fixed-small-molecule costs are registered batched remeasurements, not original batch-1 wall time. Historical RFD4 PPI all-atom uses the approved backbone timing proxy and has no measured AF3 cost. These are identified in `timing_basis`; they are not disguised as direct per-design measurements."
+     }
+    ]
+   },
+   {
+    "title": "What the tables contain",
+    "body": "The packet is four files. summary.csv holds one row per panel, model, protocol and dataset, with columns for the criterion, the pass and clustered percentages, successes and unique clusters per 10 GPU-minutes, the number of targets, the number of attempts and a timing note; counting its rows in this pass gives 52, the number the provenance file also states, alongside 2,488 per-target criterion rows in the companion source data. provenance.json records the source release label, the paper commit and path, the metric definition and the SHA-256 digests of the two CSV files. METHODS.md carries the criteria, the timing rules and the per-model recipes. The model card's own efficiency table prints a four-row headline comparison in per-GPU-hour units, with a warning above it that the numbers were measured on the previous release pair in the October 9 2026 frozen benchmark, predate the current checkpoints and have not been remeasured.",
+    "source_ids": [
+     "@summary",
+     "@provenance",
+     "@readme"
+    ],
+    "source_locator": "summary.csv header and rows; provenance.json; README.md: Measured design efficiency",
+    "quotes": [
+     {
+      "source": "@summary",
+      "text": "panel,model,protocol,dataset,label,criterion,pass_percent,clustered_percent,successes_per_10_gpu_min,unique_per_10_gpu_min,targets,attempts,timing_note"
+     },
+     {
+      "source": "@summary",
+      "text": "ame,alphaprotein_novo,one_shot,mcsa_fixed,AlphaProtein-novo (Codesign),ame,"
+     },
+     {
+      "source": "@provenance",
+      "text": "\"summary_rows_recomputed\": 52, \"target_criterion_rows\": 2488,"
+     },
+     {
+      "source": "@readme",
+      "text": "> **These numbers were measured on the previous release pair**, in the October 9, 2026 frozen project benchmark, which predates the current checkpoints. They have not been re-measured on the current release and should not be read as describing it."
+     },
+     {
+      "source": "@readme",
+      "text": "| Benchmark | Targets | RFD4-Proteína, high thinking | Best other method in this comparison | |---|---:|---:|---| | Protein binders | 24 | **71.60** | Proteina-Complexa · 13.24 | | Small-molecule binders | 77 | **112.25** | BoltzGen · 15.48 | | Atomic Motif Enzyme | 37 | **91.18** | AlphaProtein-novo (Codesign) · 26.02 | | DNA binders | 3 | **41.97** | BoltzGen (fixed DNA) · 9.46 |"
+     },
+     {
+      "source": "@readme",
+      "text": "[Benchmark provenance](benchmarks/provenance.json) · [Full comparison table](benchmarks/summary.csv) · [Per-target source data](benchmarks/source_data.csv) · [Benchmark methods and pass criteria](benchmarks/METHODS.md)"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Four target sets, with the counts printed in the criteria table: 24 protein-protein interface targets, 77 small-molecule targets, 37 Atomic Motif Enzyme targets and 3 DNA targets. The small-molecule set is scored twice, under the current sm_binder criterion and under the original DISCO criterion, on the same 77 targets. Each model, protocol and target has 200 original attempts, so a panel's attempt count in summary.csv is 200 times its targets, for example 7,400 for the 37 AME targets.",
+    "status": "source_checked",
+    "source_ids": [
+     "@methods",
+     "@summary"
+    ],
+    "source_locator": "METHODS.md: Common AF3 scoring; summary.csv",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "| PPI, 24 targets | AF3 binder pTM ≥80 on the native 0–100 scale; minimum interface PAE ≤1.5 Å; target-backbone-aligned binder backbone RMSD ≤2.5 Å (CA-only for Genie3). Required target mapping/conditioning must be valid. Target mutations at a hotspot or within 5 Å of binder heavy atoms in design or refold fail; distal substitutions may pass. |"
+     },
+     {
+      "source": "@methods",
+      "text": "| Small molecule, 77 targets | AF3 minimum interface PAE ≤1.5 Å, chain-of-interest ipTM ≥80/100, protein-backbone RMSD ≤1.5 Å, and protein-backbone-aligned ligand RMSD ≤5 Å. This is `sm_binder`, not the looser historical `disco` criterion. |"
+     },
+     {
+      "source": "@methods",
+      "text": "| Atomic Motif Enzyme (AME), 37 targets | Protein-backbone RMSD ≤2 Å, required motif all-atom RMSD ≤1.5 Å, and AF3 minimum interface PAE **<1.5 Å**. Motif RMSD aligns/scores mapped conditioned protein atoms against stored input references, respecting coordinate groups. Native-unmatched/sequence-failed motifs fail; missing metrics are not assigned zero. Clashes are diagnostic only in this current policy. |"
+     },
+     {
+      "source": "@methods",
+      "text": "| DNA, 3 targets | AF3 minimum interface PAE ≤1.5 Å and DNA-target-aligned binder backbone RMSD ≤8 Å. Alignment uses all target DNA atoms in both fixed/unfixed modes. |"
+     },
+     {
+      "source": "@methods",
+      "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+     },
+     {
+      "source": "@summary",
+      "text": "ame,alphaprotein_novo,one_shot,mcsa_fixed,AlphaProtein-novo (Codesign),ame,"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Inapplicable. These are evaluation-only target sets with no train, validation or test partition. The divisions that exist are by panel, by protocol, one-shot or native pipeline, and by conditioning mode, for example fixed and unfixed DNA inputs.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@summary"
+    ],
+    "source_locator": "summary.csv, panel, protocol and dataset columns"
+   },
+   {
+    "label": "Metrics",
+    "value": "Three, all higher is better. The ordinary rate is passing originals over 200. The clustered rate is distinct clusters among passing originals over 200, with clusters computed within each model, protocol and target using Foldseek at TM threshold 0.5, alignment type 1 and minimum sequence identity 0, never pooled across targets or models. Efficiency, the headline, is the arithmetic mean across targets of successes divided by generation plus AlphaFold 3 GPU time; the provenance file writes it per GPU-hour and summary.csv carries it in per-10-GPU-minute columns for both successes and unique clusters.",
+    "status": "source_checked",
+    "source_ids": [
+     "@methods",
+     "@provenance",
+     "@summary"
+    ],
+    "source_locator": "METHODS.md: Common AF3 scoring and Common accounting and timing; provenance.json; summary.csv header",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "Ordinary rate = passing originals / 200. Clustered rate = distinct clusters among passing originals / 200. Clusters are computed **within each model/protocol/target**, using generated binder/protein structures and Foldseek TM threshold 0.5, alignment type 1, minimum sequence identity 0; they are not pooled between targets or models. Dark bar plus light extension is the ordinary rate; dark alone is clustered. These are algorithmic structural clusters, not experimental successes or globally distinct proteins."
+     },
+     {
+      "source": "@methods",
+      "text": "`af3_gpu_s` is separate common evaluation time. Default efficiency is the **arithmetic mean across targets of successes / (generation + AF3 GPU time)**, multiplied by 600 for per-10-GPU-minute units."
+     },
+     {
+      "source": "@provenance",
+      "text": "\"metric\": \"mean_over_targets(3600 * passing_structure_clusters / (generation_gpu_s + af3_gpu_s))\""
+     },
+     {
+      "source": "@summary",
+      "text": "panel,model,protocol,dataset,label,criterion,pass_percent,clustered_percent,successes_per_10_gpu_min,unique_per_10_gpu_min,targets,attempts,timing_note"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Thirteen other design methods, each with its executed recipe written out in the methods supplement: RFdiffusion3, BoltzGen, Proteina-Complexa, DISCO, Genie3, BindCraft and BindCraft2 as single-backbone runs, Protein-Hunter, ESMFold2 inversion, RFdiffusion, RFdiffusion2, ODesign and AlphaProtein-novo. RFD4-Proteina itself appears in several arms, with low, medium and high thinking schedules and a search pipeline. The model card's headline table names the best comparator per benchmark: Proteina-Complexa for protein binders, BoltzGen for small molecules, AlphaProtein-novo Codesign for Atomic Motif Enzyme and BoltzGen with fixed DNA for DNA binders.",
+    "status": "source_checked",
+    "source_ids": [
+     "@methods",
+     "@readme"
+    ],
+    "source_locator": "METHODS.md: Model recipes and adaptations; README.md: Measured design efficiency",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "| RFD4-Proteina | Joint sequence/structure generation with stored Low/Medium/High schedules; exact schedule/checkpoint comes from each native config."
+     },
+     {
+      "source": "@readme",
+      "text": "| Benchmark | Targets | RFD4-Proteína, high thinking | Best other method in this comparison | |---|---:|---:|---| | Protein binders | 24 | **71.60** | Proteina-Complexa · 13.24 | | Small-molecule binders | 77 | **112.25** | BoltzGen · 15.48 | | Atomic Motif Enzyme | 37 | **91.18** | AlphaProtein-novo (Codesign) · 26.02 | | DNA binders | 3 | **41.97** | BoltzGen (fixed DNA) · 9.46 |"
+     },
+     {
+      "source": "@methods",
+      "text": "Per-target panels include RFD4 High, the best other generative model, and best non-generative model by mean clustered rate (ordinary rate breaks ties). The requested AME panel instead shows four: RFD4 High, AlphaProtein-novo Codesign, Proteina-Complexa and RFdiffusion3. Both small-molecule criteria get separate panels and comparator selection. Full selection and all model values remain in CSVs."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "None in the train and test sense, because the packet evaluates released models on fixed target sets and trains nothing. Two things stand in its place. The evaluation is common: every arm is judged by the same reused AlphaFold 3 outputs and the same criterion, and no arm may select its outputs using that evaluation. And the clustering that produces the distinct-passer counts is kept inside each model, protocol and target so that clusters are not pooled between arms.",
+    "status": "source_checked",
+    "source_ids": [
+     "@methods"
+    ],
+    "source_locator": "METHODS.md: Common accounting and timing, Common AF3 scoring",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+     },
+     {
+      "source": "@methods",
+      "text": "The existing accelerated external-eval AF3 outputs are reused; this release launches no generation, folding or rescoring. Protein targets are templated from propagated coordinate-conditioning information using stored coordinates. DNA alignment includes the target DNA in both conditioning modes. Template sanity metrics are diagnostic, not substitutions for binder accuracy."
+     },
+     {
+      "source": "@methods",
+      "text": "Ordinary rate = passing originals / 200. Clustered rate = distinct clusters among passing originals / 200. Clusters are computed **within each model/protocol/target**, using generated binder/protein structures and Foldseek TM threshold 0.5, alignment type 1, minimum sequence identity 0; they are not pooled between targets or models. Dark bar plus light extension is the ordinary rate; dark alone is clustered. These are algorithmic structural clusters, not experimental successes or globally distinct proteins."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "None reported. The packet prints no confidence intervals, standard errors or seed repeats; its sample is the fixed 200 original attempts per model, protocol and target, and the efficiency figure is an arithmetic mean across targets rather than a pooled total. For the DNA panel that mean is over three targets. The packet instead documents the conditions that make rows unequal: timing exceptions, differing conditioning between arms, and the caution that the conditioning panels show observed differences rather than isolated causal effects.",
+    "status": "source_checked",
+    "source_ids": [
+     "@methods",
+     "@readme"
+    ],
+    "source_locator": "METHODS.md: Common accounting and timing, Supplement selection and conditioning comparisons; README.md: Measured design efficiency",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+     },
+     {
+      "source": "@methods",
+      "text": "Timing exceptions: ODesign retains the user-approved original-generation timing proxy, which includes its old MPNN step rather than separately adding corrected MPNN. Complexa fixed-small-molecule costs are registered batched remeasurements, not original batch-1 wall time. Historical RFD4 PPI all-atom uses the approved backbone timing proxy and has no measured AF3 cost. These are identified in `timing_basis`; they are not disguised as direct per-design measurements."
+     },
+     {
+      "source": "@methods",
+      "text": "The High conditioning panels use all 200 originals per target and do not assume the desired direction. **PPI-AA and PPI-BB are different campaigns**; other settings/checkpoints can confound conditioning. AME compares *partially* to fully fixed ligand, not fully unfixed. Three NAD small-molecule cases use different input conformers. Therefore these plots show observed differences, not isolated causal effects of removing constraints."
+     },
+     {
+      "source": "@readme",
+      "text": "There are 200 original attempts per target. Failed attempts consume time; setup, compilation, CPU scoring, and idle allocation time are excluded. Values are means of target-level rates, not pooled totals or single-design latency. Conditioning differs between some methods: PPI uses RFD4 backbone conditioning versus all-atom conditioning for several baselines; DNA compares unfixed RFD4 inputs with fixed-DNA baselines; Proteina-Complexa's small-molecule route uses fixed ligands. Only three DNA targets are included. Computational passers do not establish experimental activity."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One original design attempt against one target, under one model and protocol. Attempts are counted whether or not they produced a usable output, since native failures and unmatched required motifs are included and rejected originals are not replaced. Results are aggregated to one row per panel, model, protocol and dataset in summary.csv.",
+    "status": "source_checked",
+    "source_ids": [
+     "@methods",
+     "@summary"
+    ],
+    "source_locator": "METHODS.md: Common accounting and timing; summary.csv",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+     },
+     {
+      "source": "@summary",
+      "text": "panel,model,protocol,dataset,label,criterion,pass_percent,clustered_percent,successes_per_10_gpu_min,unique_per_10_gpu_min,targets,attempts,timing_note"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Not stated. The packet names its targets by panel and dataset label, such as the Atomic Motif Enzyme set from M-CSA and the protein, small-molecule and DNA target sets, and gives no species for them in the files read here.",
+    "status": "unreported",
+    "source_ids": [
+     "@summary"
+    ],
+    "source_locator": "summary.csv, dataset column"
+   },
+   {
+    "label": "Assays",
+    "value": "None. Every criterion is computational and is defined by the packet itself, from reused AlphaFold 3 outputs. The model card states plainly that computational passers do not establish experimental activity, and the methods supplement that structural clusters are algorithmic, not experimental successes.",
+    "status": "unavailable",
+    "source_ids": [
+     "@methods",
+     "@readme"
+    ],
+    "source_locator": "METHODS.md: Common AF3 scoring; README.md: Measured design efficiency"
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Whatever each method's native conditioning takes, and this differs between arms by design, which is why the packet warns about it. Protein targets are templated from propagated coordinate-conditioning information using stored coordinates, DNA alignment includes the target DNA in both conditioning modes, and the datasets column separates fixed from unfixed ligand and DNA inputs and all-atom from backbone protein conditioning. Per-model input handling, down to hotspot projection and bond-type treatment, is listed in the recipe table.",
+    "status": "source_checked",
+    "source_ids": [
+     "@methods",
+     "@summary"
+    ],
+    "source_locator": "METHODS.md: Common AF3 scoring, Model recipes and adaptations, Supplement selection and conditioning comparisons; summary.csv dataset column",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "The existing accelerated external-eval AF3 outputs are reused; this release launches no generation, folding or rescoring. Protein targets are templated from propagated coordinate-conditioning information using stored coordinates. DNA alignment includes the target DNA in both conditioning modes. Template sanity metrics are diagnostic, not substitutions for binder accuracy."
+     },
+     {
+      "source": "@methods",
+      "text": "The High conditioning panels use all 200 originals per target and do not assume the desired direction. **PPI-AA and PPI-BB are different campaigns**; other settings/checkpoints can confound conditioning. AME compares *partially* to fully fixed ligand, not fully unfixed. Three NAD small-molecule cases use different input conformers. Therefore these plots show observed differences, not isolated causal effects of removing constraints."
+     },
+     {
+      "source": "@summary",
+      "text": "panel,model,protocol,dataset,label,criterion,pass_percent,clustered_percent,successes_per_10_gpu_min,unique_per_10_gpu_min,targets,attempts,timing_note"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Released models run under their own native configurations, with no training or fine-tuning in the packet. The supplement states that the exact schedule and checkpoint of each cohort comes from its own native config, and that executed receipts rather than the current upstream README identify what each cohort ran. The protocol column separates one-shot runs from native pipelines, which include a method's own intrinsic selection or search stages, and those stages count toward its generation cost.",
+    "status": "source_checked",
+    "source_ids": [
+     "@methods",
+     "@summary"
+    ],
+    "source_locator": "METHODS.md: Common accounting and timing, Model recipes and adaptations; summary.csv protocol column",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "| RFD4-Proteina | Joint sequence/structure generation with stored Low/Medium/High schedules; exact schedule/checkpoint comes from each native config."
+     },
+     {
+      "source": "@methods",
+      "text": "Native source/current workflow snapshots and immutable repository citations are listed in `references.csv`. They explain the implementation; executed receipts—not the newest README—identify what each cohort actually ran."
+     },
+     {
+      "source": "@methods",
+      "text": "`generation_gpu_s` is the complete stored warm generation cost, including required sequence design, intrinsic folding/search, and native gaps inside that timed boundary. It excludes setup, loading, warmup and compilation where separately measured. It is not a diffusion-only timer."
+     },
+     {
+      "source": "@summary",
+      "text": "panel,model,protocol,dataset,label,criterion,pass_percent,clustered_percent,successes_per_10_gpu_min,unique_per_10_gpu_min,targets,attempts,timing_note"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The accounting rules are written down in unusual detail: what generation time includes and excludes, that component columns are already inside it, what a zero and a blank mean, and that batch shares are amortised rather than measured latencies.",
+    "source_ids": [
+     "@methods"
+    ],
+    "source_locator": "METHODS.md: Common accounting and timing",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "`generation_gpu_s` is the complete stored warm generation cost, including required sequence design, intrinsic folding/search, and native gaps inside that timed boundary. It excludes setup, loading, warmup and compilation where separately measured. It is not a diffusion-only timer."
+     },
+     {
+      "source": "@methods",
+      "text": "Failed originals and their consumed time stay included. MPNN and native-fold columns are components already included in generation: **do not add them again**. A zero means the component did not run or used no GPU; blank means it was not separately measured. A missing AF3 cost excludes that configuration from an inclusive efficiency comparison, not its successes from rate comparisons."
+     }
+    ]
+   },
+   {
+    "text": "Exceptions are named rather than smoothed over. The supplement lists the three arms whose timings are proxies or batched remeasurements and says they are not disguised as direct per-design measurements.",
+    "source_ids": [
+     "@methods"
+    ],
+    "source_locator": "METHODS.md: Common accounting and timing",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "Timing exceptions: ODesign retains the user-approved original-generation timing proxy, which includes its old MPNN step rather than separately adding corrected MPNN. Complexa fixed-small-molecule costs are registered batched remeasurements, not original batch-1 wall time. Historical RFD4 PPI all-atom uses the approved backbone timing proxy and has no measured AF3 cost. These are identified in `timing_basis`; they are not disguised as direct per-design measurements."
+     }
+    ]
+   },
+   {
+    "text": "The pass criteria are explicit numerical thresholds per benchmark, and where two criteria exist for the same 77 small-molecule targets the packet states that they are not nested and keeps their verdicts separate.",
+    "source_ids": [
+     "@methods"
+    ],
+    "source_locator": "METHODS.md: Common AF3 scoring",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "| Small molecule, 77 targets | AF3 minimum interface PAE ≤1.5 Å, chain-of-interest ipTM ≥80/100, protein-backbone RMSD ≤1.5 Å, and protein-backbone-aligned ligand RMSD ≤5 Å. This is `sm_binder`, not the looser historical `disco` criterion. |"
+     },
+     {
+      "source": "@methods",
+      "text": "| Original DISCO, same 77 targets | Protein-backbone RMSD ≤2 Å and maximum ligand-centroid displacement ≤2 Å after protein-backbone alignment. No AF3 PAE/ipTM cutoff. Stored verdicts and independently computed passing-cluster labels are retained separately from `sm_binder`. The criteria are not mathematically nested because the ligand-position tests differ. |"
+     }
+    ]
+   },
+   {
+    "text": "The release is internally checkable: provenance.json records the metric definition, the row counts and the SHA-256 digests of the result tables, and states that the scope is frozen project benchmark runs rather than a fresh evaluation of every model revision.",
+    "source_ids": [
+     "@provenance"
+    ],
+    "source_locator": "provenance.json",
+    "quotes": [
+     {
+      "source": "@provenance",
+      "text": "\"summary_rows_recomputed\": 52, \"target_criterion_rows\": 2488,"
+     },
+     {
+      "source": "@provenance",
+      "text": "\"metric\": \"mean_over_targets(3600 * passing_structure_clusters / (generation_gpu_s + af3_gpu_s))\""
+     },
+     {
+      "source": "@provenance",
+      "text": "\"scope\": \"Frozen project benchmark runs; not a new evaluation of every model Hub revision.\""
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "It was built and published by the authors of the method that wins every panel in it, and the comparator in each row is selected by the packet's own rule.",
+    "source_ids": [
+     "@readme",
+     "@methods"
+    ],
+    "source_locator": "README.md: Measured design efficiency; METHODS.md: Supplement selection and conditioning comparisons",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| Benchmark | Targets | RFD4-Proteína, high thinking | Best other method in this comparison | |---|---:|---:|---| | Protein binders | 24 | **71.60** | Proteina-Complexa · 13.24 | | Small-molecule binders | 77 | **112.25** | BoltzGen · 15.48 | | Atomic Motif Enzyme | 37 | **91.18** | AlphaProtein-novo (Codesign) · 26.02 | | DNA binders | 3 | **41.97** | BoltzGen (fixed DNA) · 9.46 |"
+     },
+     {
+      "source": "@methods",
+      "text": "Per-target panels include RFD4 High, the best other generative model, and best non-generative model by mean clustered rate (ordinary rate breaks ties). The requested AME panel instead shows four: RFD4 High, AlphaProtein-novo Codesign, Proteina-Complexa and RFdiffusion3. Both small-molecule criteria get separate panels and comparator selection. Full selection and all model values remain in CSVs."
+     }
+    ]
+   },
+   {
+    "text": "Conditioning is not matched between arms. The model card states that protein binders compare RFD4 backbone conditioning with all-atom conditioning for several baselines, that the DNA comparison puts unfixed RFD4 inputs against fixed-DNA baselines, and that one comparator's small-molecule route uses fixed ligands.",
+    "source_ids": [
+     "@readme",
+     "@methods"
+    ],
+    "source_locator": "README.md: Measured design efficiency; METHODS.md: Supplement selection and conditioning comparisons",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "There are 200 original attempts per target. Failed attempts consume time; setup, compilation, CPU scoring, and idle allocation time are excluded. Values are means of target-level rates, not pooled totals or single-design latency. Conditioning differs between some methods: PPI uses RFD4 backbone conditioning versus all-atom conditioning for several baselines; DNA compares unfixed RFD4 inputs with fixed-DNA baselines; Proteina-Complexa's small-molecule route uses fixed ligands. Only three DNA targets are included. Computational passers do not establish experimental activity."
+     },
+     {
+      "source": "@methods",
+      "text": "The High conditioning panels use all 200 originals per target and do not assume the desired direction. **PPI-AA and PPI-BB are different campaigns**; other settings/checkpoints can confound conditioning. AME compares *partially* to fully fixed ligand, not fully unfixed. Three NAD small-molecule cases use different input conformers. Therefore these plots show observed differences, not isolated causal effects of removing constraints."
+     }
+    ]
+   },
+   {
+    "text": "Every endpoint is computational and defined by the packet, and two of the panels are small: the DNA benchmark has three targets, so its efficiency mean is over three numbers.",
+    "source_ids": [
+     "@methods",
+     "@readme"
+    ],
+    "source_locator": "METHODS.md: Common AF3 scoring; README.md: Measured design efficiency",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "| DNA, 3 targets | AF3 minimum interface PAE ≤1.5 Å and DNA-target-aligned binder backbone RMSD ≤8 Å. Alignment uses all target DNA atoms in both fixed/unfixed modes. |"
+     },
+     {
+      "source": "@readme",
+      "text": "There are 200 original attempts per target. Failed attempts consume time; setup, compilation, CPU scoring, and idle allocation time are excluded. Values are means of target-level rates, not pooled totals or single-design latency. Conditioning differs between some methods: PPI uses RFD4 backbone conditioning versus all-atom conditioning for several baselines; DNA compares unfixed RFD4 inputs with fixed-DNA baselines; Proteina-Complexa's small-molecule route uses fixed ligands. Only three DNA targets are included. Computational passers do not establish experimental activity."
+     },
+     {
+      "source": "@methods",
+      "text": "Ordinary rate = passing originals / 200. Clustered rate = distinct clusters among passing originals / 200. Clusters are computed **within each model/protocol/target**, using generated binder/protein structures and Foldseek TM threshold 0.5, alignment type 1, minimum sequence identity 0; they are not pooled between targets or models. Dark bar plus light extension is the ordinary rate; dark alone is clustered. These are algorithmic structural clusters, not experimental successes or globally distinct proteins."
+     }
+    ]
+   },
+   {
+    "text": "It is not executable and not current. The packet publishes summary and per-target rows with no runner, it launches no generation or rescoring of its own, each cohort's exact schedule and checkpoint comes from a native config the packet does not publish, and the model card warns that these numbers were measured on the previous release pair and have not been remeasured on the current checkpoints.",
+    "source_ids": [
+     "@methods",
+     "@readme"
+    ],
+    "source_locator": "METHODS.md: Common AF3 scoring, Model recipes and adaptations; README.md: Measured design efficiency",
+    "quotes": [
+     {
+      "source": "@methods",
+      "text": "The existing accelerated external-eval AF3 outputs are reused; this release launches no generation, folding or rescoring. Protein targets are templated from propagated coordinate-conditioning information using stored coordinates. DNA alignment includes the target DNA in both conditioning modes. Template sanity metrics are diagnostic, not substitutions for binder accuracy."
+     },
+     {
+      "source": "@methods",
+      "text": "| RFD4-Proteina | Joint sequence/structure generation with stored Low/Medium/High schedules; exact schedule/checkpoint comes from each native config."
+     },
+     {
+      "source": "@readme",
+      "text": "> **These numbers were measured on the previous release pair**, in the October 9, 2026 frozen project benchmark, which predates the current checkpoints. They have not been re-measured on the current release and should not be read as describing it."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Frozen project benchmark packet",
+   "steps": [
+    "four target sets: 24 protein, 77 small-molecule, 37 AME, 3 DNA",
+    "frozen cohorts from the evidence freeze, some arms excluded",
+    "200 original attempts per model, protocol and target",
+    "one common reused AlphaFold 3 evaluation per benchmark criterion",
+    "ordinary rate over 200, clustered rate by Foldseek within each cell",
+    "efficiency as distinct passers over generation plus AF3 GPU time",
+    "52 rows in summary.csv plus per-target source data"
+   ],
+   "caption": "The packet's path from target sets to published rows, as METHODS.md and provenance.json describe it.",
+   "source_ids": [
+    "@methods",
+    "@provenance"
+   ],
+   "source_locator": "METHODS.md; provenance.json",
+   "quotes": [
+    {
+     "source": "@methods",
+     "text": "This release uses the frozen cohorts in `evidence/freeze.json`, not every run in the live catalog. It includes current Figure 2 methods and the additional RFD4 High conditioning arms. Antibody, HalluDesign, full-pipeline BindCraft and Genie3 search are excluded."
+    },
+    {
+     "source": "@methods",
+     "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+    },
+    {
+     "source": "@methods",
+     "text": "The existing accelerated external-eval AF3 outputs are reused; this release launches no generation, folding or rescoring. Protein targets are templated from propagated coordinate-conditioning information using stored coordinates. DNA alignment includes the target DNA in both conditioning modes. Template sanity metrics are diagnostic, not substitutions for binder accuracy."
+    },
+    {
+     "source": "@methods",
+     "text": "Ordinary rate = passing originals / 200. Clustered rate = distinct clusters among passing originals / 200. Clusters are computed **within each model/protocol/target**, using generated binder/protein structures and Foldseek TM threshold 0.5, alignment type 1, minimum sequence identity 0; they are not pooled between targets or models. Dark bar plus light extension is the ordinary rate; dark alone is clustered. These are algorithmic structural clusters, not experimental successes or globally distinct proteins."
+    },
+    {
+     "source": "@provenance",
+     "text": "\"summary_rows_recomputed\": 52, \"target_criterion_rows\": 2488,"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The per-target source data file and the timing worker, reference, artifact audit and input coverage CSVs the supplement names were not fetched in this pass, so only the 52 summary rows were read.",
+   "The target identities are given as dataset labels in the summary table; the individual targets of each panel were not read.",
+   "The methods supplement states that each cohort's exact schedule and checkpoint comes from its own native config, which the packet does not publish, so no row is tied to a named checkpoint file.",
+   "The model card's licence statement covers the RFD4 model, weights and code; whether it is meant to cover the benchmark tables is not stated separately, although the repository card's licence field is bsd-3-clause."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Written from four files of the Hugging Face repository nvidia/RFD4-Proteina at revision 621b785abf9d61dd24f4b81ae4dbd1330728f030, retrieved 27 November 2026: README.md, benchmarks/METHODS.md, benchmarks/provenance.json and benchmarks/summary.csv. The 52 data rows of summary.csv were counted in this pass. No command was executed, nothing was reproduced, and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "The packet is not executable. It publishes result tables, a methods supplement and a provenance file rather than a runner or harness, it reuses existing AlphaFold 3 evaluation outputs and launches no generation, folding or rescoring, and the exact schedule and checkpoint of each cohort comes from a native configuration that the packet does not publish.",
+ "structured": [
+  {
+   "task": "Frozen project benchmark protein binding, backbone conditioning: distinct passers per GPU-hour",
+   "dataset": "Frozen project benchmark protein-binding target set, 24 targets",
+   "size": 24,
+   "size_unit": "targets, with 200 original attempts per target, 4800 attempts per model and protocol in this panel",
+   "split": null,
+   "primary_metric": "Mean per-target structurally distinct computational passers per GPU-hour",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "code_url": "https://github.com/RosettaCommons/RFD4-Proteina",
+   "data_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "data_licence": "BSD-3-Clause",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@summary",
+     "text": "ppi,esmfold2,one_shot,ppi_backbone"
+    },
+    {
+     "source": "@methods",
+     "text": "| PPI, 24 targets | AF3 binder pTM ≥80 on the native 0–100 scale; minimum interface PAE ≤1.5 Å; target-backbone-aligned binder backbone RMSD ≤2.5 Å (CA-only for Genie3). Required target mapping/conditioning must be valid. Target mutations at a hotspot or within 5 Å of binder heavy atoms in design or refold fail; distal substitutions may pass. |"
+    },
+    {
+     "source": "@methods",
+     "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+    },
+    {
+     "source": "@provenance",
+     "text": "\"metric\": \"mean_over_targets(3600 * passing_structure_clusters / (generation_gpu_s + af3_gpu_s))\""
+    },
+    {
+     "source": "@readme",
+     "text": "license: bsd-3-clause"
+    },
+    {
+     "source": "@summary",
+     "text": "panel,model,protocol,dataset,label,criterion,pass_percent,clustered_percent,successes_per_10_gpu_min,unique_per_10_gpu_min,targets,attempts,timing_note"
+    }
+   ]
+  },
+  {
+   "task": "Frozen project benchmark protein binding, all-atom conditioning: distinct passers per GPU-hour",
+   "dataset": "Frozen project benchmark protein-binding target set, 24 targets",
+   "size": 24,
+   "size_unit": "targets, with 200 original attempts per target, 4800 attempts per model and protocol in this panel",
+   "split": null,
+   "primary_metric": "Mean per-target structurally distinct computational passers per GPU-hour",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "code_url": "https://github.com/RosettaCommons/RFD4-Proteina",
+   "data_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "data_licence": "BSD-3-Clause",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@summary",
+     "text": "ppi,bindcraft,one_shot,ppi_all_atom"
+    },
+    {
+     "source": "@methods",
+     "text": "| PPI, 24 targets | AF3 binder pTM ≥80 on the native 0–100 scale; minimum interface PAE ≤1.5 Å; target-backbone-aligned binder backbone RMSD ≤2.5 Å (CA-only for Genie3). Required target mapping/conditioning must be valid. Target mutations at a hotspot or within 5 Å of binder heavy atoms in design or refold fail; distal substitutions may pass. |"
+    },
+    {
+     "source": "@methods",
+     "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+    },
+    {
+     "source": "@provenance",
+     "text": "\"metric\": \"mean_over_targets(3600 * passing_structure_clusters / (generation_gpu_s + af3_gpu_s))\""
+    },
+    {
+     "source": "@readme",
+     "text": "license: bsd-3-clause"
+    },
+    {
+     "source": "@summary",
+     "text": "panel,model,protocol,dataset,label,criterion,pass_percent,clustered_percent,successes_per_10_gpu_min,unique_per_10_gpu_min,targets,attempts,timing_note"
+    }
+   ]
+  },
+  {
+   "task": "Frozen project benchmark small-molecule binding, unfixed ligand: distinct passers per GPU-hour",
+   "dataset": "Frozen project benchmark small-molecule binding target set, 77 targets",
+   "size": 77,
+   "size_unit": "targets, with 200 original attempts per target, 15400 attempts per model and protocol in this panel",
+   "split": null,
+   "primary_metric": "Mean per-target structurally distinct computational passers per GPU-hour",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "code_url": "https://github.com/RosettaCommons/RFD4-Proteina",
+   "data_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "data_licence": "BSD-3-Clause",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@summary",
+     "text": "small_molecule,boltzgen,one_shot,studio_figure_2c_unfixed"
+    },
+    {
+     "source": "@methods",
+     "text": "| Small molecule, 77 targets | AF3 minimum interface PAE ≤1.5 Å, chain-of-interest ipTM ≥80/100, protein-backbone RMSD ≤1.5 Å, and protein-backbone-aligned ligand RMSD ≤5 Å. This is `sm_binder`, not the looser historical `disco` criterion. |"
+    },
+    {
+     "source": "@methods",
+     "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+    },
+    {
+     "source": "@provenance",
+     "text": "\"metric\": \"mean_over_targets(3600 * passing_structure_clusters / (generation_gpu_s + af3_gpu_s))\""
+    },
+    {
+     "source": "@readme",
+     "text": "license: bsd-3-clause"
+    },
+    {
+     "source": "@summary",
+     "text": "panel,model,protocol,dataset,label,criterion,pass_percent,clustered_percent,successes_per_10_gpu_min,unique_per_10_gpu_min,targets,attempts,timing_note"
+    }
+   ]
+  },
+  {
+   "task": "Frozen project benchmark Atomic Motif Enzyme, fixed ligand: distinct passers per GPU-hour",
+   "dataset": "Frozen project benchmark Atomic Motif Enzyme target set, 37 tasks",
+   "size": 37,
+   "size_unit": "targets, with 200 original attempts per target, 7400 attempts per model and protocol in this panel",
+   "split": null,
+   "primary_metric": "Mean per-target structurally distinct computational passers per GPU-hour",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "code_url": "https://github.com/RosettaCommons/RFD4-Proteina",
+   "data_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "data_licence": "BSD-3-Clause",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@summary",
+     "text": "ame,alphaprotein_novo,one_shot,mcsa_fixed"
+    },
+    {
+     "source": "@methods",
+     "text": "| Atomic Motif Enzyme (AME), 37 targets | Protein-backbone RMSD ≤2 Å, required motif all-atom RMSD ≤1.5 Å, and AF3 minimum interface PAE **<1.5 Å**. Motif RMSD aligns/scores mapped conditioned protein atoms against stored input references, respecting coordinate groups. Native-unmatched/sequence-failed motifs fail; missing metrics are not assigned zero. Clashes are diagnostic only in this current policy. |"
+    },
+    {
+     "source": "@methods",
+     "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+    },
+    {
+     "source": "@provenance",
+     "text": "\"metric\": \"mean_over_targets(3600 * passing_structure_clusters / (generation_gpu_s + af3_gpu_s))\""
+    },
+    {
+     "source": "@readme",
+     "text": "license: bsd-3-clause"
+    },
+    {
+     "source": "@summary",
+     "text": "panel,model,protocol,dataset,label,criterion,pass_percent,clustered_percent,successes_per_10_gpu_min,unique_per_10_gpu_min,targets,attempts,timing_note"
+    }
+   ]
+  },
+  {
+   "task": "Frozen project benchmark DNA binding, fixed DNA: distinct passers per GPU-hour",
+   "dataset": "Frozen project benchmark DNA-binding target set, 3 targets",
+   "size": 3,
+   "size_unit": "targets, with 200 original attempts per target, 600 attempts per model and protocol in this panel",
+   "split": null,
+   "primary_metric": "Mean per-target structurally distinct computational passers per GPU-hour",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "code_url": "https://github.com/RosettaCommons/RFD4-Proteina",
+   "data_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "data_licence": "BSD-3-Clause",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@summary",
+     "text": "dna,boltzgen,one_shot,dna_fixed"
+    },
+    {
+     "source": "@methods",
+     "text": "| DNA, 3 targets | AF3 minimum interface PAE ≤1.5 Å and DNA-target-aligned binder backbone RMSD ≤8 Å. Alignment uses all target DNA atoms in both fixed/unfixed modes. |"
+    },
+    {
+     "source": "@methods",
+     "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+    },
+    {
+     "source": "@provenance",
+     "text": "\"metric\": \"mean_over_targets(3600 * passing_structure_clusters / (generation_gpu_s + af3_gpu_s))\""
+    },
+    {
+     "source": "@readme",
+     "text": "license: bsd-3-clause"
+    },
+    {
+     "source": "@summary",
+     "text": "panel,model,protocol,dataset,label,criterion,pass_percent,clustered_percent,successes_per_10_gpu_min,unique_per_10_gpu_min,targets,attempts,timing_note"
+    }
+   ]
+  },
+  {
+   "task": "Frozen project benchmark DNA binding, unfixed DNA: distinct passers per GPU-hour",
+   "dataset": "Frozen project benchmark DNA-binding target set, 3 targets",
+   "size": 3,
+   "size_unit": "targets, with 200 original attempts per target, 600 attempts per model and protocol in this panel",
+   "split": null,
+   "primary_metric": "Mean per-target structurally distinct computational passers per GPU-hour",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "code_url": "https://github.com/RosettaCommons/RFD4-Proteina",
+   "data_url": "https://huggingface.co/nvidia/RFD4-Proteina/blob/621b785abf9d61dd24f4b81ae4dbd1330728f030/benchmarks/summary.csv",
+   "data_licence": "BSD-3-Clause",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@summary",
+     "text": "dna,rfd4_proteina_high,one_shot,dna_unfixed"
+    },
+    {
+     "source": "@methods",
+     "text": "| DNA, 3 targets | AF3 minimum interface PAE ≤1.5 Å and DNA-target-aligned binder backbone RMSD ≤8 Å. Alignment uses all target DNA atoms in both fixed/unfixed modes. |"
+    },
+    {
+     "source": "@methods",
+     "text": "Each model × protocol × target has **200 original attempts**, including native failures and unmatched required motifs. We do not replace rejected originals or select outputs with the common AF3 evaluation."
+    },
+    {
+     "source": "@provenance",
+     "text": "\"metric\": \"mean_over_targets(3600 * passing_structure_clusters / (generation_gpu_s + af3_gpu_s))\""
+    },
+    {
+     "source": "@readme",
+     "text": "license: bsd-3-clause"
+    },
+    {
+     "source": "@summary",
+     "text": "panel,model,protocol,dataset,label,criterion,pass_percent,clustered_percent,successes_per_10_gpu_min,unique_per_10_gpu_min,targets,attempts,timing_note"
+    }
+   ]
+  }
+ ],
+ "notes": "Sizes and units, since both appear in the sources. The structured size is the number of targets in that panel, as the criteria table of METHODS.md prints it, and the attempt count in the size unit is the 200 originals per target that summary.csv's attempts column records for that panel; neither is a number of designs that passed. The efficiency metric exists in two units in the same packet: provenance.json defines it with a factor of 3600, that is per GPU-hour, the model card's headline table is labelled per GPU-hour, and summary.csv carries successes_per_10_gpu_min and unique_per_10_gpu_min columns, which METHODS.md describes as the same quantity multiplied by 600 for per-10-GPU-minute units. No value from either table is recorded on this page. The small-molecule panel is scored under two criteria on the same 77 targets, sm_binder and the original DISCO criterion, which the packet says are not nested; the store holds a protocol for the unfixed sm_binder arm only. The protein-binding all-atom arm is the one the supplement flags as using an approved backbone timing proxy with no measured AlphaFold 3 cost, so its efficiency is not comparable with the backbone arm's. Licence: the repository card's licence field is bsd-3-clause and the model card's licence row states BSD 3-Clause for the RFD4 model and weights with separate terms for optional third-party assets; the data licence here is taken from the card's field, and code_licence is left null because no licence file of the code repository was read."
+}

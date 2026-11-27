@@ -1,0 +1,552 @@
+{
+ "record_id": "poisk-20261115-benchmark-binder-decoy",
+ "sources": [
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 21775623 API response, POISK dataset version 1.1",
+   "description": "Zenodo API record for the POISK release, giving the files, the row counts, the version, the licence and the dataset documentation including how the folding predictions relate to the release.",
+   "file": "artifacts/zenodo.json",
+   "artifact_url": "https://zenodo.org/api/records/21775623",
+   "url": "https://zenodo.org/records/21775623",
+   "version": "version 1.1, publication date 2026-10-23, doi 10.5281/zenodo.21775623",
+   "media_type": "application/json",
+   "sha256": "1363fbcc179fe5d6666fad3b5d6a1efdf25af5a7c7b0be4a2d0be4819ea38657",
+   "retrieved_at": "2026-11-27T03:23:12Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "This record is one paper's evaluation built on the POISK dataset, a collection of antibody sequences and binding metadata extracted from patent filings by a large language model pipeline. The evaluation treats structure prediction models as zero-shot binder classifiers: for each antibody and antigen pair the model folds the complex and its interface confidence scores, ipTM and ipSAE, are used to rank patent-supported binders against putative non-binders for the same antigen. The released folding metrics cover six co-folding models with 22,494 rows each. The paper itself is a bioRxiv preprint that this pass could not fetch, so this page is written from the Zenodo release and is deliberately thin on results.",
+  "summary_source_ids": [
+   "@zenodo"
+  ],
+  "summary_source_locator": "Zenodo record 21775623: Overview and Relationship to the folding predictions",
+  "summary_quotes": [
+   {
+    "source": "@zenodo",
+    "text": "This dataset comprises a curated collection of antibody sequences and associated functional metadata extracted from the global patent literature."
+   },
+   {
+    "source": "@zenodo",
+    "text": "holds folding metrics, including ipTM and ipSAE, from the six models used for benchmarking: one CSV per model, 22,494 rows each, all sharing the same 28 columns"
+   },
+   {
+    "source": "@zenodo",
+    "text": "the benchmarking of protein-protein interaction (PPI) prediction models"
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether a co-folding model's confidence in the interface it builds can tell a real antibody-antigen pair from a plausible but non-binding one, without any training for that task. The quantity used is not a predicted affinity but a structural confidence score, ipTM or an ipSAE-style score, so the output is a ranking rather than a measurement. The release warns that a score must be read with the chain pair it was computed on: each ipSAE-style score ships beside a column naming that pair, and a value whose pair is not antibody against antigen is not a binding metric.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Overview; Relationship to the folding predictions",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "this resource enables the large-scale analysis of therapeutic antibody space, epitope landscape mapping, and the benchmarking of protein-protein interaction (PPI) prediction models"
+     },
+     {
+      "source": "@zenodo",
+      "text": "Read that label before ranking on a score: a value whose pair is not antibody-against-antigen is not a binding metric."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "The underlying data are extracted from patent text rather than curated from a database. The release is a flat CSV of 93,193 rows and 47 columns, one row per unique record, carrying variable region sequences for the heavy and light chains, the target sequence with its provenance (what the release holds, what the patent's GenBank deposit holds and what the named UniProt entry holds), target metadata including gene symbols, UniProt identifiers and source organisms, experimental binding affinities with assay methods such as surface plasmon resonance and biolayer interferometry, and epitope information including linear ranges and structural contact residues. Extraction was done by a pipeline driven by large language models, with both prompts published verbatim: an extractor prompt run once per patent and an auditor prompt run once per record to re-locate its support in the patent.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Dataset Structure and Documentation; Methodology",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "is provided in a flattened CSV format: <strong>93,193 rows and 47 columns</strong>, each row carrying a distinct <code>unique_record_id</code>"
+     },
+     {
+      "source": "@zenodo",
+      "text": "Extraction from high-volume, unstructured patent text was performed using an automated pipeline powered by Large Language Models."
+     },
+     {
+      "source": "@zenodo",
+      "text": "Both prompts are included verbatim, with the response schema exactly as transmitted to the model: <code>extractor.md</code> (one request per patent, producing the structured records) and <code>auditor.md</code> (one request per record, re-locating its support in the patent)."
+     },
+     {
+      "source": "@zenodo",
+      "text": "<strong>Biophysical Properties:</strong> Experimental binding affinity, assay methods (e.g., SPR, BLI), and specific binding conditions."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "The released folding metrics are the evaluation's raw material: one CSV per model for six models, 22,494 rows each, sharing 28 columns whose order differs between files, so a user must align on names rather than position. The metrics include ipTM and ipSAE, and each ipSAE-style score carries the chain pair it was computed on, including a variant that treats the antibody as a single chain. The archives also hold the predicted structures and the predicted aligned error arrays for each model. A caveat the release states plainly is that these predictions were run against dataset version 1.0.1, not against the version 1.1 release they sit beside, so a pairing of metrics to records has to account for the version change, which the release describes as correcting errors found in 1.0.1.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Relationship to the folding predictions; Overview; file list",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "one CSV per model, 22,494 rows each, all sharing the same 28 columns (the column order differs between files, so align on names)"
+     },
+     {
+      "source": "@zenodo",
+      "text": "<strong>These predictions were run against dataset version 1.0.1, not against this release.</strong>"
+     },
+     {
+      "source": "@zenodo",
+      "text": "<strong>Version 1.1</strong> corrects errors found in version 1.0.1 and adds folding data for the benchmark from the paper."
+     },
+     {
+      "source": "@zenodo",
+      "text": "Each ipSAE-style score ships beside a column naming the chain pair it was computed on"
+     }
+    ]
+   },
+   {
+    "title": "What the release says about its own reliability",
+    "body": "The release is explicit that the labels come from a generative pipeline and may be wrong. It warns that large language model extraction is subject to hallucinations, naming the misassociation of affinity values with antibody variants and errors in residue indexing as the discrepancies to expect. Against that it ships an audit layer with three columns: a verdict in three tiers, where CONFIRMED means every field was explicitly supported by the patent text, PLAUSIBLE means nothing contradicted the record but support was partial, indirect or inferred, and REVIEW means the record appeared incorrect or could not be established and a human should look, which the release says is not an assertion that the row is false; a flags column naming fields with potential mismatches; and a reasoning column explaining how the value was reached. Users are told to verify critical sequences or affinity data against the original patent before any experimental work.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Quality Control and Algorithmic Audit; Usage and Limitations",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "Users should be aware that LLM-based extraction is subject to generative inconsistencies, commonly referred to as hallucinations. Discrepancies may include the misassociation of affinity values with specific antibody variants or errors in residue indexing."
+     },
+     {
+      "source": "@zenodo",
+      "text": "<code>CONFIRMED</code>: every field was explicitly supported by the patent text. <code>PLAUSIBLE</code>: nothing in the patent contradicted the record, but support was partial, indirect or inferred. <code>REVIEW</code>: the record appeared incorrect, or its correctness could not be established and a human should examine it."
+     },
+     {
+      "source": "@zenodo",
+      "text": "users are encouraged to verify critical sequences or affinity data against the original patent documents (accessible via the <code>patent_id</code> column) before initiating downstream experimental validation"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "One release in two parts. The dataset table is 93,193 rows and 47 columns in version 1.1, one row per unique record. The benchmark's folding side is six per-model metric CSVs of 22,494 rows each, with the predicted structures and predicted aligned error arrays archived beside them for af2m, boltz, intellifold, of3, protenix and protenix_v2. The folding predictions were run against version 1.0.1 of the table rather than the 1.1 release.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Dataset Structure; Relationship to the folding predictions; file list",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "is provided in a flattened CSV format: <strong>93,193 rows and 47 columns</strong>"
+     },
+     {
+      "source": "@zenodo",
+      "text": "one CSV per model, 22,494 rows each"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"structures_af2m.zip\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"pae_intellifold.zarr.zip\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "<strong>These predictions were run against dataset version 1.0.1, not against this release.</strong>"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Evaluation only, with no training, validation or test division: the models are used zero-shot and every pair is folded and scored. The release publishes no split manifest and no pair list; the folding metrics are a flat table of 22,494 rows per model, and how those rows pair binders with putative non-binders is not described in the Zenodo record.",
+    "status": "unextracted",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Relationship to the folding predictions"
+   },
+   {
+    "label": "Metrics",
+    "value": "Interface confidence scores from the folding models, used as a ranking signal, so higher means a more confident predicted interface: ipTM and ipSAE-style scores, the latter reported per chain pair, including a variant that treats the antibody as a single chain. Each metric CSV holds 28 columns. The release stresses that no score is a binding measurement and that a score computed on a chain pair other than antibody against antigen is not a binding metric at all.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Relationship to the folding predictions",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "holds folding metrics, including ipTM and ipSAE, from the six models used for benchmarking"
+     },
+     {
+      "source": "@zenodo",
+      "text": "<code>ipsae_chain_pair</code>, <code>cdr_ipsae_chain_pair</code>, and the <code>*_ab_as_single_chain_label</code> pair"
+     },
+     {
+      "source": "@zenodo",
+      "text": "Read that label before ranking on a score: a value whose pair is not antibody-against-antigen is not a binding metric."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Six co-folding models, named in the saved record only by the file names of their outputs: af2m, boltz, intellifold, of3, protenix and protenix_v2. The record calls them the six models used for benchmarking but gives no version, setting or score for any of them, and names no non-structural baseline.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Relationship to the folding predictions; file list",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "the six models used for benchmarking"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"structures_protenix_v2.zip\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"structures_boltz.zip\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"structures_of3.zip\""
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Unextracted. The Zenodo record describes no identity filter, time split or training-data screen for the benchmark; the record's own earlier notes describe excluding antibodies within 95 per cent identity of SAbDab and state that incomplete training-data disclosure prevents fully excluding overlap, but that account is in the preprint, which this pass could not fetch, so it is not supported by any saved file here.",
+    "status": "unextracted",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Overview and Usage and Limitations"
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Unextracted. The saved record says nothing about replicates, seeds or intervals for the folding runs: it lists one metric CSV per model with one row set, and the predicted aligned error archives are per-structure confidence arrays rather than run-to-run variation. Whether more than one seed per complex was folded is not stated.",
+    "status": "unextracted",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Relationship to the folding predictions"
+   },
+   {
+    "label": "Entity type",
+    "value": "For the dataset table, one example is a record extracted from a patent: an antibody with its heavy and light variable region sequences, a named target and whatever affinity and epitope information the patent gave. For the benchmark, one example is an antibody-antigen complex that was folded, which is what each of the 22,494 rows of a model's metric CSV carries.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Dataset Structure; Relationship to the folding predictions",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "<strong>Sequences:</strong> Amino acid sequences for Heavy (VH) and Light (VL) variable regions, plus the target sequence"
+     },
+     {
+      "source": "@zenodo",
+      "text": "one CSV per model, 22,494 rows each"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Carried per record rather than summarised: the target metadata includes source organisms alongside target names, gene symbols and UniProt identifiers. The antibodies are therapeutic antibody sequences from patent filings. The saved record gives no composition by species.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Dataset Structure, Key Data Categories",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "symbols, UniProt IDs, and source organisms."
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Binding assays as reported in the patents, not run for this work: the release holds experimental binding affinity with the assay method, naming surface plasmon resonance and biolayer interferometry as examples, and the specific binding conditions. These values are extracted by the language model pipeline, and the release warns that affinity values may be misassociated with the wrong antibody variant. The benchmark's own endpoints are structural confidence scores, not measurements.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Dataset Structure; Quality Control",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "<strong>Biophysical Properties:</strong> Experimental binding affinity, assay methods (e.g., SPR, BLI), and specific binding conditions."
+     },
+     {
+      "source": "@zenodo",
+      "text": "Discrepancies may include the misassociation of affinity values with specific antibody variants or errors in residue indexing."
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Sequence only, as far as the saved record shows: the antibody heavy and light variable region sequences and the target sequence, which the release provides with its provenance so that a user can see whether the sequence came from the release, the patent's GenBank deposit or the named UniProt entry. No structure is supplied as input, since the models fold the complex themselves.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Dataset Structure, Key Data Categories",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "Target sequences carry their provenance: <code>target.sequence</code> is the sequence the release holds, <code>target.sequence_from_patent</code> what the patent's GenBank deposit holds, and <code>target.sequence_from_uniprot</code> what the named UniProt entry holds."
+     },
+     {
+      "source": "@zenodo",
+      "text": "<strong>Sequences:</strong> Amino acid sequences for Heavy (VH) and Light (VL) variable regions, plus the target sequence"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Zero-shot: the models are used as released, folding each complex and reporting their own interface confidence, with nothing trained or fitted for the binder-against-decoy task. The release describes the folding outputs as metrics from the six models used for benchmarking and provides no training split that a method could use.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Relationship to the folding predictions",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "holds folding metrics, including ipTM and ipSAE, from the six models used for benchmarking"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The release is unusually open about how it was made: both language model prompts are published verbatim with the response schema as transmitted, one for extraction per patent and one for auditing each record against the patent text.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Methodology",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "Both prompts are included verbatim, with the response schema exactly as transmitted to the model: <code>extractor.md</code> (one request per patent, producing the structured records) and <code>auditor.md</code> (one request per record, re-locating its support in the patent)."
+     }
+    ]
+   },
+   {
+    "text": "Every record carries its own audit verdict, flagged fields and reasoning, in three tiers with stated meanings, so a user can filter to the records whose fields were explicitly supported by the patent text rather than trusting the table as a whole.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Quality Control and Algorithmic Audit",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "To ensure data integrity we implemented a multi-stage audit layer."
+     },
+     {
+      "source": "@zenodo",
+      "text": "<strong><code>audit.flags</code></strong> &mdash; field names with potential mismatches."
+     }
+    ]
+   },
+   {
+    "text": "The folding side is released, not just summarised: predicted structures, predicted aligned error arrays and a metrics CSV per model, with the chain pair recorded beside each interface score so a reader can tell which pair a number refers to.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: file list; Relationship to the folding predictions",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"poisk_all_models_folding_metrics.zip\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "Each ipSAE-style score ships beside a column naming the chain pair it was computed on"
+     }
+    ]
+   },
+   {
+    "text": "Target sequences are given with provenance rather than as a single reconciled value, so a mismatch between what the patent deposited and what the named UniProt entry holds is visible instead of hidden.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Dataset Structure, Key Data Categories",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "Target sequences carry their provenance: <code>target.sequence</code> is the sequence the release holds, <code>target.sequence_from_patent</code> what the patent's GenBank deposit holds, and <code>target.sequence_from_uniprot</code> what the named UniProt entry holds."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The labels are machine-extracted from legal text and the release says so: large language model extraction is subject to hallucinations, with affinity values potentially attached to the wrong antibody variant and residue indexing potentially wrong, and users are told to check critical values against the original patent before any experimental work.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Quality Control; Usage and Limitations",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "Users should be aware that LLM-based extraction is subject to generative inconsistencies, commonly referred to as hallucinations."
+     },
+     {
+      "source": "@zenodo",
+      "text": "users are encouraged to verify critical sequences or affinity data against the original patent documents (accessible via the <code>patent_id</code> column) before initiating downstream experimental validation"
+     }
+    ]
+   },
+   {
+    "text": "The folding metrics do not match the release they ship with: they were run against version 1.0.1, while version 1.1 exists specifically because errors were found in 1.0.1. Any join between a metric row and a dataset row has to account for that.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Relationship to the folding predictions; Overview",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "<strong>These predictions were run against dataset version 1.0.1, not against this release.</strong>"
+     },
+     {
+      "source": "@zenodo",
+      "text": "<strong>Version 1.1</strong> corrects errors found in version 1.0.1 and adds folding data for the benchmark from the paper."
+     }
+    ]
+   },
+   {
+    "text": "Nothing in the released scores is a binding measurement. They are structural confidence values, and the release warns that one computed on the wrong chain pair is not a binding metric at all, so a careless ranking can be meaningless rather than merely noisy.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Relationship to the folding predictions",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "Read that label before ranking on a score: a value whose pair is not antibody-against-antigen is not a binding metric."
+     }
+    ]
+   },
+   {
+    "text": "No benchmark code, pair list or split manifest is in the release: it holds the dataset table, the folding outputs and the two prompts, so the binder-against-decoy comparison cannot be reconstructed from the saved record alone.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: file list",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"poisk_dataset_column_description.csv\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"auditor.md\""
+     }
+    ]
+   },
+   {
+    "text": "The paper behind the evaluation could not be read in this pass, because its only open copy is a bioRxiv preprint that this run is not permitted to request. Every claim about the pair construction, the negatives, the epitope analysis and the per-model results therefore stays off this page.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record: Usage and Limitations",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "For further details on the extraction pipeline, performance benchmarks and validation metrics, refer to the main manuscr"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "POISK binder-versus-decoy evaluation workflow",
+   "steps": [
+    "patent text extracted into records by a language model pipeline",
+    "each record audited against the patent and given a verdict",
+    "antibody and antigen sequences folded by six co-folding models",
+    "interface confidence recorded per chain pair (ipTM, ipSAE)",
+    "scores used to rank binders against putative non-binders for the same antigen"
+   ],
+   "caption": "The endpoints are confidence scores from the folding models, not measurements, and each score is tied to the chain pair it was computed on.",
+   "source_ids": [
+    "@zenodo"
+   ],
+   "source_locator": "Zenodo record: Methodology; Relationship to the folding predictions",
+   "quotes": [
+    {
+     "source": "@zenodo",
+     "text": "Extraction from high-volume, unstructured patent text was performed using an automated pipeline powered by Large Language Models."
+    },
+    {
+     "source": "@zenodo",
+     "text": "holds folding metrics, including ipTM and ipSAE, from the six models used for benchmarking"
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "The paper was not fetched: its only open copy is on bioRxiv, which this run may not request, so the pair construction, the definition and provenance of the putative non-binders, the epitope-contact analysis and all per-model results are absent from this page. The address is in the notes.",
+   "No benchmark code or pair list is published, so the comparison cannot be rebuilt from the release.",
+   "The archives themselves (the dataset CSV, the column description, the metric CSVs, the structures and the predicted aligned error arrays) were not downloaded; only the Zenodo record was read, so the 22,494 figure is the record's own statement about each metric CSV rather than a counted value.",
+   "The six models are identified only by the file names of their outputs, with no version or inference setting recorded anywhere in the saved source.",
+   "No leakage control, replicate policy or uncertainty statement appears in the saved record."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the Zenodo API record for 10.5281/zenodo.21775623 (POISK dataset version 1.1, publication date 2026-10-23), including its full description and file list, on 2026-11-27. The bioRxiv preprint was not requested and no archive file was downloaded. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "No runner is published. The Zenodo release holds the dataset table, the per-model folding outputs and the two extraction prompts, but no benchmark harness, scoring script or pair list, and the record's own metadata records the runner as unavailable. The paper, which might describe the procedure, is a bioRxiv preprint this pass could not fetch.",
+ "structured": [
+  {
+   "task": "Zero-shot binder versus putative non-binder ranking by interface confidence",
+   "dataset": "POISK folding metrics, one CSV per model",
+   "size": 22494,
+   "size_unit": "folded complexes per model (rows per metric CSV)",
+   "split": "evaluation only; no split manifest published, and the predictions were run against dataset version 1.0.1",
+   "primary_metric": "ipSAE",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://zenodo.org/records/21775623",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": "2026-10-23",
+   "quotes": [
+    {
+     "source": "@zenodo",
+     "text": "one CSV per model, 22,494 rows each, all sharing the same 28 columns"
+    },
+    {
+     "source": "@zenodo",
+     "text": "<strong>These predictions were run against dataset version 1.0.1, not against this release.</strong>"
+    },
+    {
+     "source": "@zenodo",
+     "text": "Read that label before ranking on a score: a value whose pair is not antibody-against-antigen is not a binding metric."
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2026-10-23\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"id\": \"cc-by-4.0\""
+    }
+   ]
+  }
+ ],
+ "notes": "Written from the Zenodo release only. The paper is a bioRxiv preprint and this run is not permitted to request bioRxiv; its PDF address, for a later pass, is https://www.biorxiv.org/content/10.64898/2026.10.24.761513v1.full.pdf. As a result this page states no result, no pair count and no description of the negatives: the record's stored attributes describe 22,494 complexes as 11,247 pairs, with 7,647 nearest-CDR matches from the Observed Antibody Space and 3,600 germline-reverted decoys, and a 95 per cent identity exclusion against SAbDab, but none of that is in a file saved here, so it is left off the page and the leakage, split and uncertainty facts are marked unextracted. Three counts must be kept apart and only two are supported here: 93,193 rows is the version 1.1 dataset table, and 22,494 rows is each model's folding metric CSV; the 89,074-record figure for version 1.0.1 is not in the saved record. The folding predictions were run against version 1.0.1 while the release is 1.1, which corrects errors in 1.0.1, so metric rows and dataset rows do not join cleanly. released is the Zenodo publication_date field, not a last-modified timestamp. No code or leaderboard exists, so code_url and results_url are null."
+}

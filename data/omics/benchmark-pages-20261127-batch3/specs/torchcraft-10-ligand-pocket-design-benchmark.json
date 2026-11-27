@@ -1,0 +1,612 @@
+{
+  "record_id": "torchcraft-20261115-benchmark-ligand-pocket-10-ligand",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Text layer of the TorchCraft paper, arXiv 2609.19770v1",
+      "description": "Text extracted with pdftotext -layout from the arXiv PDF of 'TorchCraft: Unified binder design by inverting an all-atom structure predictor', TorchCraft Team, Changping Laboratory. The PDF is kept beside it as artifacts/paper.pdf. Appendix A.4 holds the benchmark settings, the pass criteria and the supplementary target tables.",
+      "file": "artifacts/paper.txt",
+      "artifact_url": "https://arxiv.org/pdf/2609.19770v1",
+      "url": "https://arxiv.org/abs/2609.19770v1",
+      "version": "arXiv v1, 17 September 2026",
+      "media_type": "text/plain",
+      "sha256": "90f1da5f8a936766087beba0ade3f038f5b69504b9f581b42f2391f5640c5e6b",
+      "retrieved_at": "2026-11-27T03:28:11Z",
+      "store_bytes": false
+    },
+    {
+      "key": "readme",
+      "name": "Mingchenchen/TorchX README.md at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+      "description": "README of the code repository the paper names, pinned to the head of its default branch main. Lists the modules and the entry points for folding, scoring and design.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/Mingchenchen/TorchX/ebf9dc6676ecb1be505bc72f87de408995f0d8fd/README.md",
+      "url": "https://github.com/Mingchenchen/TorchX",
+      "version": "git commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+      "media_type": "text/markdown",
+      "sha256": "88da821dfed6d76a6d1d2efd1e3e124a18f35c07d6fdf45a8e374fc2c35fccf0",
+      "retrieved_at": "2026-11-27T03:43:42Z",
+      "licence": "Apache-2.0",
+      "store_bytes": true
+    },
+    {
+      "key": "licence",
+      "name": "Mingchenchen/TorchX LICENSE at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+      "description": "The licence file of the code repository, the Apache License version 2.0.",
+      "file": "artifacts/licence.txt",
+      "artifact_url": "https://raw.githubusercontent.com/Mingchenchen/TorchX/ebf9dc6676ecb1be505bc72f87de408995f0d8fd/LICENSE",
+      "url": "https://github.com/Mingchenchen/TorchX",
+      "version": "git commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd",
+      "media_type": "text/plain",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "retrieved_at": "2026-11-27T03:43:42Z",
+      "licence": "Apache-2.0",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "This is the in silico ligand-conditioned pocket design comparison published with TorchCraft. Ten chemically diverse small molecules, ALE, ATP, CHD, CMP, DLU, FAD, IAI, OQO, SAM and TRP, each serve as the ligand a design must build a pocket for. For each method and each ligand 500 designs are generated under that method's own default settings, and the two methods compared are BoltzDesign and TorchCraft. The paper states the 160-residue length and the absence of a supplied native scaffold for the TorchCraft designs. The designs are assessed in two ways: score distributions from AutoDock Vina and affinity predictions from Boltz-2, printed in Figure 5c and 5d, and separately a TorchScore pass rate for TorchCraft, where a design passes when its pLDDT exceeds 70 and its ipTM exceeds 0.7. Nothing here is measured experimentally.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Section 2.5 and Figures 5c and 5d; Appendix A.4.3.4; Supplementary Figures S8 and S9",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+      },
+      {
+        "source": "@paper",
+        "text": "We evaluated the predicted ligand-binding proteins using AutoDock Vina scores and Boltz-2 affinity predictions (Figure 5c,d),[6, 28, 29] with TorchScore pass rates reported separately (Supplementary Figure S9). Score distributions varied across ligands and methods."
+      },
+      {
+        "source": "@paper",
+        "text": "For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether a design method can produce a protein that forms a plausible pocket around a specified small molecule, across a chemically varied panel. The ligands span nucleotides, cofactors, metabolites and drug-like compounds, so the panel also asks how the answer changes with ligand chemistry; the paper reports that score distributions varied across ligands and methods. Three different computational views are used rather than one: a physics-based docking score, a learned affinity prediction, and a predictor confidence pass rate.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.5; Supplementary Figures S8 and S9 captions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+          },
+          {
+            "source": "@paper",
+            "text": "We evaluated the predicted ligand-binding proteins using AutoDock Vina scores and Boltz-2 affinity predictions (Figure 5c,d),[6, 28, 29] with TorchScore pass rates reported separately (Supplementary Figure S9). Score distributions varied across ligands and methods."
+          },
+          {
+            "source": "@paper",
+            "text": "Figure S8 Small-molecule targets used in the SMI benchmark. Benchmark panel of chemically diverse ligand targets used for small-molecule interaction design, including ALE, ATP, CHD, CMP, DLU, FAD, IAI, OQO, SAM, and TRP."
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "No dataset and no split. The panel is the ten ligands named in Supplementary Figure S8, chosen for chemical diversity. For each method and each ligand, 500 designs are generated with that method's default settings. For TorchCraft the paper adds that the designs are 160-residue proteins generated without a supplied native scaffold; Appendix A.4.3.4, which covers both methods, gives neither a length nor a scaffold condition for BoltzDesign. Raw outputs are evaluated without post hoc sequence redesign or score-based preselection. The design procedure that produced them is described in the appendix as a staged schedule in which the ligand is added and the interface objective is weighted up gradually, separating fold formation from pocket optimisation, but the benchmark itself is defined by the ligand panel, the design count and the three scores.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.5; Appendix A.1.3 and A.4.3.4; Supplementary Figure S8 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Figure S8 Small-molecule targets used in the SMI benchmark. Benchmark panel of chemically diverse ligand targets used for small-molecule interaction design, including ALE, ATP, CHD, CMP, DLU, FAD, IAI, OQO, SAM, and TRP."
+          },
+          {
+            "source": "@paper",
+            "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+          },
+          {
+            "source": "@paper",
+            "text": "For small-molecule binder design, we compared BoltzDe- sign and TorchCraft. For each method and each target, 500 designs were generated using the default settings of the corresponding method. BoltzDesign and the raw TorchCraft setting were evaluated without sequence redesign. The score distributions of the resulting designs were assessed with AutoDock Vina and Boltz-2. For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7. We also tested a TorchCraft redesign variant in which ligand-interface residues were fixed, all remaining positions were redesigned eight times with LigandMPNN, and the redesigned sequences were refolded with TorchFold. The refolded structure with the highest pTM was selected as the redesigned structure and was then evaluated with AutoDock Vina and Boltz-2."
+          },
+          {
+            "source": "@paper",
+            "text": "The ligand was then added, and the weight of the interface objective was gradually increased before the final optimization stages (Appendix A.1.3). This schedule separates initial fold formation from subsequent pocket optimization."
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Two methods are compared, BoltzDesign and TorchCraft, and both are evaluated without sequence redesign in the arms that are compared directly. The score distributions of the resulting designs are assessed with AutoDock Vina and Boltz-2 and shown in Figures 5c and 5d. For TorchCraft alone, a TorchScore pass rate is also reported in Supplementary Figure S9: a design passes when TorchScore pLDDT exceeds 70 and TorchScore ipTM exceeds 0.7. A further TorchCraft variant is reported separately, in which ligand-interface residues are fixed, all other positions are redesigned eight times with LigandMPNN, the redesigned sequences are refolded with TorchFold, the structure with the highest pTM is kept, and that is then scored with AutoDock Vina and Boltz-2.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.4; Section 2.5; Supplementary Figure S9 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For small-molecule binder design, we compared BoltzDe- sign and TorchCraft. For each method and each target, 500 designs were generated using the default settings of the corresponding method. BoltzDesign and the raw TorchCraft setting were evaluated without sequence redesign. The score distributions of the resulting designs were assessed with AutoDock Vina and Boltz-2. For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7. We also tested a TorchCraft redesign variant in which ligand-interface residues were fixed, all remaining positions were redesigned eight times with LigandMPNN, and the redesigned sequences were refolded with TorchFold. The refolded structure with the highest pTM was selected as the redesigned structure and was then evaluated with AutoDock Vina and Boltz-2."
+          },
+          {
+            "source": "@paper",
+            "text": "For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7."
+          },
+          {
+            "source": "@paper",
+            "text": "We evaluated the predicted ligand-binding proteins using AutoDock Vina scores and Boltz-2 affinity predictions (Figure 5c,d),[6, 28, 29] with TorchScore pass rates reported separately (Supplementary Figure S9). Score distributions varied across ligands and methods."
+          },
+          {
+            "source": "@paper",
+            "text": "Figure S9 TorchScore computational pass rates in the small-molecule benchmark. Pass-rate evaluation of TorchCraft ligand-conditioned protein designs across the 10-ligand panel using the TorchScore criterion."
+          }
+        ]
+      },
+      {
+        "title": "What TorchScore is",
+        "body": "The scorer every pass rate in this panel depends on is worth stating plainly, because it is not an independent evaluator. TorchScore is a score-only loading of the same TorchFold implementation used for design: given input coordinates it skips the diffusion structure module and runs the confidence pathway, returning pLDDT, pTM and ipTM. No separate scoring network is trained, and in this study it used the pretrained AlphaFold 3 weights, the same checkpoint the designs were optimised against. Sequences rebuilt with FlowPacker are scored from those coordinates and are not refolded from sequence.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "TorchScore is a score-only loading of the TorchFold implementation.[21] Given input coordinates, it bypasses the diffusion-based structure module and evaluates the complex through the confidence pathway, returning predictor-derived scores including pLDDT, pTM, and ipTM. No separate scoring network is trained."
+          },
+          {
+            "source": "@paper",
+            "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "One ligand panel, not a dataset: the ten small molecules ALE, ATP, CHD, CMP, DLU, FAD, IAI, OQO, SAM and TRP, named in Supplementary Figure S8, with 500 designs generated per method per ligand under each method's default settings; the 160-residue design length is stated for TorchCraft.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Supplementary Figure S8 caption; Section 2.5; Appendix A.4.3.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Figure S8 Small-molecule targets used in the SMI benchmark. Benchmark panel of chemically diverse ligand targets used for small-molecule interaction design, including ALE, ATP, CHD, CMP, DLU, FAD, IAI, OQO, SAM, and TRP."
+          },
+          {
+            "source": "@paper",
+            "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+          },
+          {
+            "source": "@paper",
+            "text": "For each method and each target, 500 designs were generated using the default settings of the corresponding method."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Inapplicable. A design panel evaluated in silico, with no train, validation or test partition.",
+        "status": "inapplicable",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.4"
+      },
+      {
+        "label": "Metrics",
+        "value": "Three, reported separately. AutoDock Vina scores and Boltz-2 affinity predictions are shown as score distributions over the designs, in Figures 5c and 5d. A TorchScore computational pass rate is reported for TorchCraft in Supplementary Figure S9, counting a design as passing when pLDDT exceeds 70 and ipTM exceeds 0.7, so higher is better for the pass rate. The paper reports the Vina and Boltz-2 results as distributions rather than ranking the methods on a single figure of merit.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.5; Appendix A.4.3.4; Supplementary Figure S9 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We evaluated the predicted ligand-binding proteins using AutoDock Vina scores and Boltz-2 affinity predictions (Figure 5c,d),[6, 28, 29] with TorchScore pass rates reported separately (Supplementary Figure S9). Score distributions varied across ligands and methods."
+          },
+          {
+            "source": "@paper",
+            "text": "For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7."
+          },
+          {
+            "source": "@paper",
+            "text": "Figure S9 TorchScore computational pass rates in the small-molecule benchmark. Pass-rate evaluation of TorchCraft ligand-conditioned protein designs across the 10-ligand panel using the TorchScore criterion."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "One other design method, BoltzDesign, run with its default settings by the TorchCraft authors. A LigandMPNN-redesigned TorchCraft variant is reported separately as a further arm.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For small-molecule binder design, we compared BoltzDe- sign and TorchCraft. For each method and each target, 500 designs were generated using the default settings of the corresponding method. BoltzDesign and the raw TorchCraft setting were evaluated without sequence redesign. The score distributions of the resulting designs were assessed with AutoDock Vina and Boltz-2. For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7. We also tested a TorchCraft redesign variant in which ligand-interface residues were fixed, all remaining positions were redesigned eight times with LigandMPNN, and the redesigned sequences were refolded with TorchFold. The refolded structure with the highest pTM was selected as the redesigned structure and was then evaluated with AutoDock Vina and Boltz-2."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "None, and none is needed in the train and test sense: no model is trained here and the panel has no labels to hold out. What the sources do describe is a dependency that runs the other way, which the authors state plainly: TorchScore uses the same pretrained AlphaFold 3 weights that TorchCraft optimised against, so the scorer is not independent of the designer.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.2; Figures 5c and 5d",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+          },
+          {
+            "source": "@paper",
+            "text": "All designs reported in this study used pretrained AF3 weights."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "None reported. The panel prints no replicate runs, seeds, confidence intervals or standard errors; the spread that is shown is the distribution over the fixed number of designs per target, 500 per method per ligand.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.3.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For each method and each target, 500 designs were generated using the default settings of the corresponding method."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "One designed 160-residue protein for one ligand, with its predicted ligand-bound complex. Each design is scored individually and the results are reported as distributions over the 500 designs per ligand.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.5; Appendix A.4.3.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+          },
+          {
+            "source": "@paper",
+            "text": "For small-molecule binder design, we compared BoltzDe- sign and TorchCraft. For each method and each target, 500 designs were generated using the default settings of the corresponding method. BoltzDesign and the raw TorchCraft setting were evaluated without sequence redesign. The score distributions of the resulting designs were assessed with AutoDock Vina and Boltz-2. For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7. We also tested a TorchCraft redesign variant in which ligand-interface residues were fixed, all remaining positions were redesigned eight times with LigandMPNN, and the redesigned sequences were refolded with TorchFold. The refolded structure with the highest pTM was selected as the redesigned structure and was then evaluated with AutoDock Vina and Boltz-2."
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Inapplicable. The targets are small molecules and the designs are de novo proteins, so no organism is involved.",
+        "status": "inapplicable",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Supplementary Figure S8 caption",
+        "quotes": []
+      },
+      {
+        "label": "Assays",
+        "value": "None in this panel. Every criterion is computed by a predictor. The paper reports wet-lab binding measurements elsewhere in the study, for minibinders and VHHs against four targets each, but those campaigns are separate from this comparison.",
+        "status": "unavailable",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Figures 5c and 5d"
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "The ligand only. The paper states for the TorchCraft designs that they are 160 residues long and were generated without a supplied native scaffold, and that raw outputs were evaluated without post hoc sequence redesign or score-based preselection.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.5",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "No training or fine-tuning. Both methods run with their default settings, and TorchCraft optimises sequence logits through frozen pretrained AlphaFold 3 weights; the paper states that all designs reported in the study used pretrained AF3 weights. The only optional post-processing is the LigandMPNN redesign variant, which is reported as a separate arm.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Appendix A and A.4.3.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "that optimizes sequence logits through a frozen all-atom predictor"
+          },
+          {
+            "source": "@paper",
+            "text": "All designs reported in this study used pretrained AF3 weights."
+          },
+          {
+            "source": "@paper",
+            "text": "For small-molecule binder design, we compared BoltzDe- sign and TorchCraft. For each method and each target, 500 designs were generated using the default settings of the corresponding method. BoltzDesign and the raw TorchCraft setting were evaluated without sequence redesign. The score distributions of the resulting designs were assessed with AutoDock Vina and Boltz-2. For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7. We also tested a TorchCraft redesign variant in which ligand-interface residues were fixed, all remaining positions were redesigned eight times with LigandMPNN, and the redesigned sequences were refolded with TorchFold. The refolded structure with the highest pTM was selected as the redesigned structure and was then evaluated with AutoDock Vina and Boltz-2."
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Three independent computational views are used rather than one: a physics-based docking score, a learned affinity prediction, and a predictor confidence pass rate, with the pass rate kept separate from the distributions.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.5; Appendix A.4.3.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We evaluated the predicted ligand-binding proteins using AutoDock Vina scores and Boltz-2 affinity predictions (Figure 5c,d),[6, 28, 29] with TorchScore pass rates reported separately (Supplementary Figure S9). Score distributions varied across ligands and methods."
+          },
+          {
+            "source": "@paper",
+            "text": "For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7."
+          }
+        ]
+      },
+      {
+        "text": "The ligand panel is named and chosen for chemical spread, covering nucleotides, cofactors, metabolites and drug-like compounds.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.5; Supplementary Figure S8 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+          },
+          {
+            "source": "@paper",
+            "text": "Figure S8 Small-molecule targets used in the SMI benchmark. Benchmark panel of chemically diverse ligand targets used for small-molecule interaction design, including ALE, ATP, CHD, CMP, DLU, FAD, IAI, OQO, SAM, and TRP."
+          }
+        ]
+      },
+      {
+        "text": "The evaluated outputs are raw: the compared arms use no post hoc sequence redesign and no score-based preselection, and the redesigned variant is reported separately.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.5; Appendix A.4.3.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+          },
+          {
+            "source": "@paper",
+            "text": "For small-molecule binder design, we compared BoltzDe- sign and TorchCraft. For each method and each target, 500 designs were generated using the default settings of the corresponding method. BoltzDesign and the raw TorchCraft setting were evaluated without sequence redesign. The score distributions of the resulting designs were assessed with AutoDock Vina and Boltz-2. For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7. We also tested a TorchCraft redesign variant in which ligand-interface residues were fixed, all remaining positions were redesigned eight times with LigandMPNN, and the redesigned sequences were refolded with TorchFold. The refolded structure with the highest pTM was selected as the redesigned structure and was then evaluated with AutoDock Vina and Boltz-2."
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Author-built and author-run: the developers of TorchCraft chose the ligand panel, the design count, the scores and the single comparator, and ran both methods themselves.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.5; Appendix A.4.3.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+          },
+          {
+            "source": "@paper",
+            "text": "For small-molecule binder design, we compared BoltzDe- sign and TorchCraft. For each method and each target, 500 designs were generated using the default settings of the corresponding method. BoltzDesign and the raw TorchCraft setting were evaluated without sequence redesign. The score distributions of the resulting designs were assessed with AutoDock Vina and Boltz-2. For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7. We also tested a TorchCraft redesign variant in which ligand-interface residues were fixed, all remaining positions were redesigned eight times with LigandMPNN, and the redesigned sequences were refolded with TorchFold. The refolded structure with the highest pTM was selected as the redesigned structure and was then evaluated with AutoDock Vina and Boltz-2."
+          }
+        ]
+      },
+      {
+        "text": "The pass rate is scored by TorchScore, which is the confidence pathway of the same pretrained AlphaFold 3 checkpoint TorchCraft optimises against, and it is reported for TorchCraft only, so it does not compare the two methods.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Appendix A.4.2 and A.4.3.4; Supplementary Figure S9 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "In this study, TorchScore used pretrained AF3 weights, the same checkpoint used for design. Designed sequences that were rebuilt with FlowPacker were scored from the resulting coordinates; they were not refolded from sequence by TorchScore."
+          },
+          {
+            "source": "@paper",
+            "text": "For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7."
+          },
+          {
+            "source": "@paper",
+            "text": "Figure S9 TorchScore computational pass rates in the small-molecule benchmark. Pass-rate evaluation of TorchCraft ligand-conditioned protein designs across the 10-ligand panel using the TorchScore criterion."
+          }
+        ]
+      },
+      {
+        "text": "No per-ligand or aggregate number is printed. The Vina and Boltz-2 results are distributions in Figures 5c and 5d and the pass rates are a supplementary figure, so no value can be recorded from this panel.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.5; Supplementary Figure S9 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We evaluated the predicted ligand-binding proteins using AutoDock Vina scores and Boltz-2 affinity predictions (Figure 5c,d),[6, 28, 29] with TorchScore pass rates reported separately (Supplementary Figure S9). Score distributions varied across ligands and methods."
+          },
+          {
+            "source": "@paper",
+            "text": "Figure S9 TorchScore computational pass rates in the small-molecule benchmark. Pass-rate evaluation of TorchCraft ligand-conditioned protein designs across the 10-ligand panel using the TorchScore criterion."
+          }
+        ]
+      },
+      {
+        "text": "Every criterion is computational, and the paper describes the conclusion in those terms: the assessments support the feasibility of generating ligand-conditioned pockets, which is not a statement about measured binding.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.5",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "These complementary computational assessments support the feasibility of generating ligand-conditioned pockets."
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "TorchCraft 10-ligand pocket design comparison",
+      "steps": [
+        "10 chemically diverse ligands from Supplementary Figure S8",
+        "500 designs per method per ligand under each method's defaults, 160 residues and no native scaffold for TorchCraft",
+        "raw outputs, no redesign or score-based preselection in the compared arms",
+        "AutoDock Vina scores and Boltz-2 affinity predictions as distributions",
+        "TorchScore pass rate for TorchCraft, pLDDT above 70 and ipTM above 0.7",
+        "distributions in Figures 5c and 5d, pass rates in Supplementary Figure S9"
+      ],
+      "caption": "The panel as the main text, the figure caption and Appendix A.4.3 describe it.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Appendix A.4.3.4",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+        },
+        {
+          "source": "@paper",
+          "text": "We evaluated the predicted ligand-binding proteins using AutoDock Vina scores and Boltz-2 affinity predictions (Figure 5c,d),[6, 28, 29] with TorchScore pass rates reported separately (Supplementary Figure S9). Score distributions varied across ligands and methods."
+        },
+        {
+          "source": "@paper",
+          "text": "For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7."
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "No numeric results are printed for this panel: the scores are distributions in figures and the pass rates are a supplementary figure.",
+      "The ten ligand codes are given without their chemical names or identifiers beyond the three-letter codes.",
+      "Whether BoltzDesign was also scored with TorchScore is not stated; the pass rate is reported for TorchCraft.",
+      "No runner or scoring script for this panel is published."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Written from the pdftotext -layout text layer of arXiv:2609.19770v1 and from the README and LICENSE of Mingchenchen/TorchX at commit ebf9dc6676ecb1be505bc72f87de408995f0d8fd, all retrieved 27 November 2026. The main text, the figure caption, Appendix A.4.2 and A.4.3 and the supplementary target table were read directly. Nothing was reproduced: no design was generated and no score was recomputed. No human review is claimed."
+    }
+  },
+  "run_guide": null,
+  "no_run_guide_reason": "No scoring harness for this panel is published. The code repository the paper names holds the design and score entry points, but nothing that reproduces the figure's pass rates from a set of designs,, and the ligand panel is given only as three-letter codes in a figure caption, with no machine-readable ligand manifest published.",
+  "structured": [
+    {
+      "task": "Docking score of designed ligand pockets",
+      "dataset": "Ten small-molecule ligands of the pocket design benchmark, Supplementary Figure S8",
+      "size": 10,
+      "size_unit": "small-molecule ligands, each with 500 designs per method",
+      "split": null,
+      "primary_metric": "AutoDock Vina score distribution over the designs",
+      "metric_direction": null,
+      "results_url": null,
+      "code_url": "https://github.com/Mingchenchen/TorchX",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Figure S8 Small-molecule targets used in the SMI benchmark. Benchmark panel of chemically diverse ligand targets used for small-molecule interaction design, including ALE, ATP, CHD, CMP, DLU, FAD, IAI, OQO, SAM, and TRP."
+        },
+        {
+          "source": "@paper",
+          "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+        },
+        {
+          "source": "@paper",
+          "text": "We evaluated the predicted ligand-binding proteins using AutoDock Vina scores and Boltz-2 affinity predictions (Figure 5c,d),[6, 28, 29] with TorchScore pass rates reported separately (Supplementary Figure S9). Score distributions varied across ligands and methods."
+        },
+        {
+          "source": "@readme",
+          "text": "Released under the Apache License 2.0."
+        }
+      ]
+    },
+    {
+      "task": "Predicted affinity of designed ligand pockets",
+      "dataset": "Ten small-molecule ligands of the pocket design benchmark, Supplementary Figure S8",
+      "size": 10,
+      "size_unit": "small-molecule ligands, each with 500 designs per method",
+      "split": null,
+      "primary_metric": "Boltz-2 affinity prediction distribution over the designs",
+      "metric_direction": null,
+      "results_url": null,
+      "code_url": "https://github.com/Mingchenchen/TorchX",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Figure S8 Small-molecule targets used in the SMI benchmark. Benchmark panel of chemically diverse ligand targets used for small-molecule interaction design, including ALE, ATP, CHD, CMP, DLU, FAD, IAI, OQO, SAM, and TRP."
+        },
+        {
+          "source": "@paper",
+          "text": "We evaluated the predicted ligand-binding proteins using AutoDock Vina scores and Boltz-2 affinity predictions (Figure 5c,d),[6, 28, 29] with TorchScore pass rates reported separately (Supplementary Figure S9). Score distributions varied across ligands and methods."
+        },
+        {
+          "source": "@paper",
+          "text": "For each method and each target, 500 designs were generated using the default settings of the corresponding method."
+        },
+        {
+          "source": "@readme",
+          "text": "Released under the Apache License 2.0."
+        }
+      ]
+    },
+    {
+      "task": "Ligand-pocket computational pass rate under TorchScore confidence",
+      "dataset": "Ten small-molecule ligands of the pocket design benchmark, TorchCraft designs only",
+      "size": 10,
+      "size_unit": "small-molecule ligands, each with 500 TorchCraft designs of 160 residues",
+      "split": null,
+      "primary_metric": "Computational pass rate, TorchScore pLDDT above 70 and ipTM above 0.7",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/Mingchenchen/TorchX",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "For TorchCraft, we additionally reported a TorchScore-based computational pass rate, where a design passed the computational criterion when TorchScore pLDDT exceeded 70 and TorchScore ipTM exceeded 0.7."
+        },
+        {
+          "source": "@paper",
+          "text": "Figure S9 TorchScore computational pass rates in the small-molecule benchmark. Pass-rate evaluation of TorchCraft ligand-conditioned protein designs across the 10-ligand panel using the TorchScore criterion."
+        },
+        {
+          "source": "@paper",
+          "text": "We evaluated a panel of ten small-molecule targets spanning different chemical structures, including nucleotides, cofactors, metabolites, and drug-like compounds (Supplementary Figure S8).[17, 20, 26, 27] TorchCraft generated 500 independent 160-residue proteins per ligand without a supplied native scaffold. Raw outputs were evaluated without post hoc sequence redesign or score-based preselection."
+        },
+        {
+          "source": "@readme",
+          "text": "Released under the Apache License 2.0."
+        }
+      ]
+    }
+  ],
+  "notes": "No numbers are printed for this panel: Figures 5c and 5d show Vina and Boltz-2 score distributions and Supplementary Figure S9 shows the TorchScore pass rates, so no result value is recorded. The structured size is the number of ligands, ten, as Supplementary Figure S8's caption names them; the 500 designs figure is per method per ligand, and the design length of 160 residues is a design setting, not a set size. The three structured entries are not all comparisons of two methods: the Vina and Boltz-2 distributions cover BoltzDesign and TorchCraft, while the TorchScore pass rate is reported for TorchCraft only. Metric direction is left null for the Vina and Boltz-2 entries because the paper reports them as distributions and does not state a direction for either score. The paper states no licence for itself; the code repository is Apache-2.0. The same paper is the source for four other records in this batch."
+}

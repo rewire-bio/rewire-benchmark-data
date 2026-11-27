@@ -1,0 +1,1010 @@
+{
+  "record_id": "lit-interactions-20261011-mochibind-benchmark-alphabind-universal-affinity",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "NCBI PMC full text of the MochiBind evaluation framework paper, PMC13444443",
+      "description": "Full-text JATS XML of 'A systematic evaluation framework for universal antibody-antigen binding affinity prediction and candidate recommendation', iScience 2026, fetched through E-utilities efetch. Holds the dataset description, the cross-antigen split, the metrics and Table 2.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13444443&rettype=xml",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13444443/",
+      "version": "PMC13444443, iScience 2026, retrieved 27 November 2026",
+      "media_type": "application/xml",
+      "sha256": "1a25b1dcf262e3ab1d4dfaa30a825458cea26cbc2e385884c5e063234fe422df",
+      "retrieved_at": "2026-11-27T03:28:04Z",
+      "licence": "CC BY-NC-ND 4.0",
+      "store_bytes": false
+    },
+    {
+      "key": "readme",
+      "name": "amazon-science/ab-binding-eval README.md at commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04",
+      "description": "README of the code repository the paper's data and code availability statement names, pinned to the head of its default branch. Describes the checkpoints, the sampled data files, the install steps and the licence.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/amazon-science/ab-binding-eval/0c693d815f7f0bf0a3dd5494205dca10fbc20c04/README.md",
+      "url": "https://github.com/amazon-science/ab-binding-eval",
+      "version": "git commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04",
+      "media_type": "text/markdown",
+      "sha256": "786b4a3c076243c3c1c9bbf5598d8d7175de444bff55fefce071f769dfe6c1f5",
+      "retrieved_at": "2026-11-27T03:52:54Z",
+      "licence": "CC BY-NC 4.0",
+      "store_bytes": false
+    },
+    {
+      "key": "licence",
+      "name": "amazon-science/ab-binding-eval LICENSE at commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04",
+      "description": "The licence file of the code repository, the Creative Commons Attribution-NonCommercial 4.0 International Public License.",
+      "file": "artifacts/licence.txt",
+      "artifact_url": "https://raw.githubusercontent.com/amazon-science/ab-binding-eval/0c693d815f7f0bf0a3dd5494205dca10fbc20c04/LICENSE",
+      "url": "https://github.com/amazon-science/ab-binding-eval",
+      "version": "git commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04",
+      "media_type": "text/plain",
+      "sha256": "03fcbb002d8c250880896278284e03abe6bc4aa3343d3086d6e53af3d6810631",
+      "retrieved_at": "2026-11-27T03:52:54Z",
+      "licence": "CC BY-NC 4.0",
+      "store_bytes": false
+    },
+    {
+      "key": "sampler",
+      "name": "amazon-science/ab-binding-eval data/sample_alphabind_pairs.py at commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04",
+      "description": "The script that builds the antibody pairs the benchmark is evaluated on. Read rather than inferred from its name: it filters pairs by relative affinity difference and, in the same loop, skips any pair whose two antibody sequences differ in length.",
+      "file": "artifacts/sample-pairs.py",
+      "artifact_url": "https://raw.githubusercontent.com/amazon-science/ab-binding-eval/0c693d815f7f0bf0a3dd5494205dca10fbc20c04/data/sample_alphabind_pairs.py",
+      "url": "https://github.com/amazon-science/ab-binding-eval",
+      "version": "git commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04",
+      "media_type": "text/x-python",
+      "sha256": "261fbb4583db29ae31f8c726f6fc26d3f7b77f99bfa7d6d8c911cc3bef74b567",
+      "retrieved_at": "2026-11-27T03:52:54Z",
+      "licence": "CC BY-NC 4.0",
+      "store_bytes": false
+    }
+  ],
+  "profile": {
+    "summary": "This is the evaluation framework published with MochiBind, a study of whether antibody-antigen affinity predictors generalise to antigens they have never seen. The data are the four antigen systems of the AlphaBind dataset, PP489, PEM, VHH72 and TRA, each a large pool of antibody variants with measured affinities. The task is posed pairwise: given two antibodies against the same antigen, say which binds more strongly. Antigens are rotated so that each in turn is the held-out test antigen while two train and one validates, which means the test antigen is absent from training entirely. Scoring is pairwise accuracy over 200,000 sampled test pairs per antigen, plus retrieval accuracy and precision at K after a global ranking is derived with TrueSkill. Anyone comparing sequence-based and structure-based affinity predictors for candidate ranking can use it as a cross-antigen generalisation test.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Abstract; Introduction; STAR Methods, Cross-antigen evaluation setup; Table 2",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "we establish a benchmarking framework for evaluating universal antibody-antigen binding affinity prediction. Our framework compares sequence- and structure-based methods across diverse antigens, introducing standardized evaluation protocols based on pairwise accuracy and retrieval metrics."
+      },
+      {
+        "source": "@paper",
+        "text": "To rigorously assess the models’ performance on out-of-distribution systems, we employ a cross-antigen evaluation scheme. In each experimental configuration, two antigens are used for training (400,000 pairs), one for validation (200,000 pairs), and one for testing (200,000 pairs without threshold). For example, when the model is trained on PEM and PP489, the VHH72 dataset is used for validation to select the best-performing checkpoint, and the model is subsequently evaluated on TRA. This process is repeated so that each antigen serves as the held-out test set once."
+      },
+      {
+        "source": "@paper",
+        "text": "To complement retrieval-based evaluation, we also assessed the pairwise prediction accuracy, which quantifies a model’s ability to correctly identify the stronger binder within sampled pairs."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether a predictor can rank antibodies against an antigen it was never trained on. The authors' stated reason for building the framework is that studies in this area differ in dataset curation, splitting and metrics, so models cannot be compared, and that most published models are evaluated in-sample. Two things are measured. Pairwise accuracy asks whether the stronger of two antibodies is identified correctly. Retrieval accuracy and precision at K ask whether the strong binders can be pulled out of a large pool, which is what an in silico screening campaign actually needs. The authors argue that ranking and retrieval are more robust than absolute regression when affinity measurements are noisy.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Introduction; Results, Retrieval performance and Pairwise accuracy",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we establish a benchmarking framework for evaluating universal antibody-antigen binding affinity prediction. Our framework compares sequence- and structure-based methods across diverse antigens, introducing standardized evaluation protocols based on pairwise accuracy and retrieval metrics."
+          },
+          {
+            "source": "@paper",
+            "text": "To evaluate the retrieval performance, we propose two metrics in our evaluation framework: retrieval accuracy and retrieval precision. Retrieval accuracy calculates the percentage of antibodies from the K highest-ranked candidates that are among the true top-binding antibodies, while retrieval precision measures the percentage of good binders captured within the model’s recommendations, relative to the total number of good binders possible in this group."
+          },
+          {
+            "source": "@paper",
+            "text": "To complement retrieval-based evaluation, we also assessed the pairwise prediction accuracy, which quantifies a model’s ability to correctly identify the stronger binder within sampled pairs."
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "The data come from the AlphaBind dataset, which holds four antigen systems: AAB-PP489, a humanoid scFv against human TIGIT; Pembrolizumab-scFv against PD-1; VHH72, a camelid single-chain antibody against the SARS-CoV-1 RBD with cross-reactivity to SARS-CoV-2; and Trastuzumab-scFv against human HER2. The paper states that each system contains approximately 30,000 antibody variants generated and validated with AlphaSeq. For this benchmark the pools are cut down by stratified sampling to keep the affinity distribution: 5,000 antibodies are drawn from the fine-tuning set and 5,000 from the evaluation set for PP489, PEM and VHH72, giving 10,000 variants each, while 5,000 are drawn for TRA. The four antigens have almost no sequence similarity to one another: Needleman-Wunsch global alignment with BLOSUM62 gives off-diagonal normalised scores between minus 0.053 and 0.034. Pairs are then sampled, 200,000 per antigen, and the training pairs are restricted to those whose relative affinity difference exceeds 10 per cent while the test pairs carry no such threshold. The published sampling script differs from the paper here: as shipped it samples up to 500,000 pairs per antigen with the threshold set to 0 and writes sampled_pairs_500k_0th.pkl, so the released sampler is not the configuration the paper describes, and the 10 per cent value survives in it only as a function default. The script also adds a condition the paper does not mention: a pair is only eligible if both antibody sequences have the same length.",
+        "source_ids": [
+          "@paper",
+          "@sampler"
+        ],
+        "source_locator": "Paper: STAR Methods, Data source and preprocessing and Pairwise data generation; Introduction; data/sample_alphabind_pairs.py",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This dataset contains four unique antigens, each with thousands of experimentally characterized antibody candidates covering a wide affinity range: (1) AAB-PP489 (PP489), a previously undescribed humanoid scFv targeting human TIGIT; (2) Pembrolizumab-scFv (PEM), a humanized mouse antibody formatted as an scFv targeting PD-1; (3) VHH72, a camelid single-chain antibody targeting the RBD of SARS-CoV-1 with cross-reactivity to SARS-CoV-2; and (4) Trastuzumab-scFv (TRA), a humanized mouse antibody targeting human HER2."
+          },
+          {
+            "source": "@paper",
+            "text": "Each antigen system contains approximately 30 000 antibody variants generated and validated using AlphaSeq."
+          },
+          {
+            "source": "@paper",
+            "text": "To reduce computational cost while maintaining data diversity, we applied stratified sampling to select 5,000 antibodies per antigen following the same binding-affinity distribution as the full AlphaBind dataset. This sampling strategy follows the experimental design of the original AlphaBind study, in which PP489, PEM, and VHH72 are used for both finetuning and evaluation, while TRA is treated as a held-out antigen system for assessing cross-antigen generalization. As a result, for PP489, PEM, and VHH72, we sample 5,000 variants from the finetuning set and 5,000 from the evaluation set, yielding 10,000 antibody variants per antigen. In contrast, 5,000 variants are sampled from the TRA dataset."
+          },
+          {
+            "source": "@paper",
+            "text": "Pairwise antigen similarity was quantified using Needleman-Wunsch global alignment with BLOSUM62 substitution matrix, with the gap-opening penalty set to −10 and the gap-extension penalty set to −0.5. These are standard setups for algorithms (e.g., BLAST) and many protein alignment tools. Scores were normalized by the maximum self-alignment score to account for sequence length differences. The off-diagonal scores among the four antigen systems were all close to zero or negative, ranging from −0.053 to 0.034, indicating very low global sequence similarity between these antigens."
+          },
+          {
+            "source": "@paper",
+            "text": "Specifically, we sample 200,000 pairs per antigen for training, restricting selected pairs to those whose relative affinity difference exceeds 10%. This threshold ensures that the selected pairs reflect meaningful distinctions in binding strength, promoting efficient learning of robust and interpretable signals."
+          },
+          {
+            "source": "@paper",
+            "text": "For the test datasets, no such thresholding is applied, allowing evaluation under realistic experimental conditions that include small and noisy affinity differences."
+          },
+          {
+            "source": "@sampler",
+            "text": "# Check length criterion if lengths[i] != lengths[j]: continue"
+          },
+          {
+            "source": "@sampler",
+            "text": "aff_diff = abs(aff_i - aff_j) / max(abs(aff_i), abs(aff_j)) if aff_diff > threshold:"
+          },
+          {
+            "source": "@sampler",
+            "text": "pairs_per_df = 500000"
+          },
+          {
+            "source": "@sampler",
+            "text": "sampled_pairs = sample_pairs(dfs_4fold, pairs_per_df=pairs_per_df, threshold=threshold)"
+          },
+          {
+            "source": "@sampler",
+            "text": "with open('pairs_data/sampled_pairs_500k_0th.pkl', 'wb') as f:"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "A model is given two antibodies against the same antigen and must say which binds more strongly. The split is a rotation over antigens: in each configuration two antigens supply 400,000 training pairs, one supplies 200,000 validation pairs used to pick the checkpoint, and the fourth supplies 200,000 test pairs with no affinity-difference threshold, and the rotation is repeated so that every antigen is the test antigen once. Pairwise accuracy is the share of test pairs ordered correctly, and Table 2 reports it per held-out antigen for each method. Significance against each baseline is tested with a one-sided McNemar chi-squared test on the 200,000 test pairs, with all p values below 0.0001. For retrieval, pairwise predictions are turned into a global ranking with the TrueSkill algorithm, then retrieval accuracy and retrieval precision at K are computed; in the precision figure an antibody with log Kd below 2, Kd in nanomolar, counts as a good binder. Complex-wise baselines are handled on their own terms: Boltz-2 and GeoDock supply structure-derived confidence scores used as proxies rather than trained affinity predictions, and Graphinity is reported after fine-tuning on the training split because the published model, trained on single-point mutations, did not perform well on this data.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: STAR Methods, Cross-antigen evaluation setup and Pairwise setup; Results; Table 2 and Figure 2 captions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To rigorously assess the models’ performance on out-of-distribution systems, we employ a cross-antigen evaluation scheme. In each experimental configuration, two antigens are used for training (400,000 pairs), one for validation (200,000 pairs), and one for testing (200,000 pairs without threshold). For example, when the model is trained on PEM and PP489, the VHH72 dataset is used for validation to select the best-performing checkpoint, and the model is subsequently evaluated on TRA. This process is repeated so that each antigen serves as the held-out test set once."
+          },
+          {
+            "source": "@paper",
+            "text": "Specifically, we used 2 antigen datasets for training, 1 for validation, and 1 for testing, resulting in 400,000 pairs of antibodies sampled for training, 200,000 for validation, and 200,000 for testing."
+          },
+          {
+            "source": "@paper",
+            "text": "Pairwise accuracy (%) comparison of baselines and our proposed MochiBind approach on AlphaBind datasets"
+          },
+          {
+            "source": "@paper",
+            "text": "To validate the significance of model performance differences, we used one-sided McNemar’s chi-squared test to compare the MochiBind model with the baseline models across the four antigen datasets. Across all four datasets, McNemar’s chi-squared test rejects the null hypothesis that MochiBind and each baseline model (GeoDock, Boltz-2, and Graphinity) have equal marginal probabilities of accuracy, based on the 200,000 pairs from the test set"
+          },
+          {
+            "source": "@paper",
+            "text": "to infer global rankings across all candidates, allowing the identification of top binders within each antigen pool."
+          },
+          {
+            "source": "@paper",
+            "text": "It is defined as the proportion of correctly identified strong binders among the top-K predictions, given a predetermined threshold."
+          },
+          {
+            "source": "@paper",
+            "text": "Rather than being optimized specifically for affinity prediction, they provide structure-derived confidence or plausibility scores that are commonly used as proxy signals in practical antibody discovery workflows."
+          },
+          {
+            "source": "@paper",
+            "text": "The Graphinity model was evaluated after fine-tuning on the training dataset, because the original model was trained using single-point mutation data and did not perform well on the AlphaBind dataset"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The code is published as a reproducibility release. The repository holds MochiBind checkpoints for each of the four antigen systems, the sampled AlphaBind CSV files and the preprocessed pair pickles, the model and training code, and notebooks for pairwise accuracy and for the Graphinity, GeoDock and Boltz-2 retrieval comparisons. The README gives a conda environment and a requirements install, an embedding generation step and a training entry point at model_src/main_mean.py, and notes that full training expects precomputed ESM mean embeddings in a data_processed_esm_mean directory. The release terms matter: the repository is CC BY-NC 4.0 and the README states it is a non-commercial research release, published for academic reproducibility, with pull requests not accepted so that the code stays as it was used in the paper. The underlying AlphaBind data are MIT licensed, which the README states and links.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Release statement, Repository structure, Directory description, Installation and First Run, License",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "This repository contains the training code for **MochiBind** and the evaluation framework used to benchmark baseline models for **antigen–antibody binding affinity prediction**, including **Graphinity**, **GeoDock**, and **Boltz2**."
+          },
+          {
+            "source": "@readme",
+            "text": "This code is being released solely for academic and scientific reproducibility purposes"
+          },
+          {
+            "source": "@readme",
+            "text": "The main training entry point is in `model_src/main_mean.py`"
+          },
+          {
+            "source": "@readme",
+            "text": "Note: full training expects precomputed ESM mean embedding files saved under `data_processed_esm_mean/`."
+          },
+          {
+            "source": "@readme",
+            "text": "This repository is released under the **Creative Commons Attribution-NonCommercial 4.0 International License (CC-BY-NC-4.0)**."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "One dataset, AlphaBind, with four antigen systems: PP489, PEM, VHH72 and TRA. The paper states each system holds approximately 30,000 antibody variants measured with AlphaSeq. The benchmark uses stratified subsamples of those pools: 10,000 variants each for PP489, PEM and VHH72, made of 5,000 from the fine-tuning set and 5,000 from the evaluation set, and 5,000 for TRA. From those pools 200,000 pairs are sampled per antigen.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: STAR Methods, Data source and preprocessing and Pairwise data generation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This dataset contains four unique antigens, each with thousands of experimentally characterized antibody candidates covering a wide affinity range: (1) AAB-PP489 (PP489), a previously undescribed humanoid scFv targeting human TIGIT; (2) Pembrolizumab-scFv (PEM), a humanized mouse antibody formatted as an scFv targeting PD-1; (3) VHH72, a camelid single-chain antibody targeting the RBD of SARS-CoV-1 with cross-reactivity to SARS-CoV-2; and (4) Trastuzumab-scFv (TRA), a humanized mouse antibody targeting human HER2."
+          },
+          {
+            "source": "@paper",
+            "text": "Each antigen system contains approximately 30 000 antibody variants generated and validated using AlphaSeq."
+          },
+          {
+            "source": "@paper",
+            "text": "To reduce computational cost while maintaining data diversity, we applied stratified sampling to select 5,000 antibodies per antigen following the same binding-affinity distribution as the full AlphaBind dataset. This sampling strategy follows the experimental design of the original AlphaBind study, in which PP489, PEM, and VHH72 are used for both finetuning and evaluation, while TRA is treated as a held-out antigen system for assessing cross-antigen generalization. As a result, for PP489, PEM, and VHH72, we sample 5,000 variants from the finetuning set and 5,000 from the evaluation set, yielding 10,000 antibody variants per antigen. In contrast, 5,000 variants are sampled from the TRA dataset."
+          },
+          {
+            "source": "@paper",
+            "text": "Specifically, we sample 200,000 pairs per antigen for training, restricting selected pairs to those whose relative affinity difference exceeds 10%. This threshold ensures that the selected pairs reflect meaningful distinctions in binding strength, promoting efficient learning of robust and interpretable signals."
+          },
+          {
+            "source": "@paper",
+            "text": "For the test datasets, no such thresholding is applied, allowing evaluation under realistic experimental conditions that include small and noisy affinity differences."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "A cross-antigen rotation with no antigen overlap. In each configuration two antigens give 400,000 training pairs, one gives 200,000 validation pairs for checkpoint selection, and one gives 200,000 test pairs; the rotation repeats so each of the four antigens is the held-out test antigen once. Training and validation pairs are restricted to relative affinity differences above 10 per cent; test pairs have no threshold, so they include near-ties.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Retrieval performance; STAR Methods, Pairwise data generation and Cross-antigen evaluation setup",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To rigorously assess the models’ performance on out-of-distribution systems, we employ a cross-antigen evaluation scheme. In each experimental configuration, two antigens are used for training (400,000 pairs), one for validation (200,000 pairs), and one for testing (200,000 pairs without threshold). For example, when the model is trained on PEM and PP489, the VHH72 dataset is used for validation to select the best-performing checkpoint, and the model is subsequently evaluated on TRA. This process is repeated so that each antigen serves as the held-out test set once."
+          },
+          {
+            "source": "@paper",
+            "text": "Specifically, we used 2 antigen datasets for training, 1 for validation, and 1 for testing, resulting in 400,000 pairs of antibodies sampled for training, 200,000 for validation, and 200,000 for testing."
+          },
+          {
+            "source": "@paper",
+            "text": "Specifically, we sample 200,000 pairs per antigen for training, restricting selected pairs to those whose relative affinity difference exceeds 10%. This threshold ensures that the selected pairs reflect meaningful distinctions in binding strength, promoting efficient learning of robust and interpretable signals."
+          },
+          {
+            "source": "@paper",
+            "text": "For the test datasets, no such thresholding is applied, allowing evaluation under realistic experimental conditions that include small and noisy affinity differences."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Pairwise accuracy is the headline for the comparison in Table 2: the percentage of test pairs in which the stronger binder is identified correctly, higher is better, with significance against each baseline from a one-sided McNemar chi-squared test. Two retrieval metrics complement it, both higher is better: retrieval accuracy, the share of the K highest-ranked candidates that are among the true top binders, and retrieval precision, the share of good binders captured among the recommendations relative to the good binders available. The authors argue for ranking and retrieval over absolute regression metrics such as mean absolute error or correlation.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Retrieval performance and Pairwise accuracy; Introduction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To complement retrieval-based evaluation, we also assessed the pairwise prediction accuracy, which quantifies a model’s ability to correctly identify the stronger binder within sampled pairs."
+          },
+          {
+            "source": "@paper",
+            "text": "To evaluate the retrieval performance, we propose two metrics in our evaluation framework: retrieval accuracy and retrieval precision. Retrieval accuracy calculates the percentage of antibodies from the K highest-ranked candidates that are among the true top-binding antibodies, while retrieval precision measures the percentage of good binders captured within the model’s recommendations, relative to the total number of good binders possible in this group."
+          },
+          {
+            "source": "@paper",
+            "text": "To validate the significance of model performance differences, we used one-sided McNemar’s chi-squared test to compare the MochiBind model with the baseline models across the four antigen datasets. Across all four datasets, McNemar’s chi-squared test rejects the null hypothesis that MochiBind and each baseline model (GeoDock, Boltz-2, and Graphinity) have equal marginal probabilities of accuracy, based on the 200,000 pairs from the test set"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Three: Graphinity, an equivariant graph neural network on structural inputs, reported after fine-tuning on the training split because the released model, trained on single-point mutations, did not perform well here; and two structure-derived proxy scorers, Boltz-2, used through its ipLDDT score, and GeoDock. MochiBind, the authors' own sequence-only pairwise model built on ESM-2 embeddings, is the method under test.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Introduction; Results; Table 2; STAR Methods, Key resources table",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "First, the framework assesses both sequence-based and structure-based methods with pairwise learning, where the model is asked to compare two given antibodies of the same antigen and determine which antibody offers higher binding affinity."
+          },
+          {
+            "source": "@paper",
+            "text": "The Graphinity model was evaluated after fine-tuning on the training dataset, because the original model was trained using single-point mutation data and did not perform well on the AlphaBind dataset"
+          },
+          {
+            "source": "@paper",
+            "text": "Pairwise accuracy (%) comparison of baselines and our proposed MochiBind approach on AlphaBind datasets"
+          },
+          {
+            "source": "@paper",
+            "text": "ESM-2 protein language model"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "The split itself is the control, and it is the point of the benchmark: the training, validation and test sets cover distinct antigen systems with no overlap, so the test antigen is unseen. Two further things support it. The four antigens have near-zero global sequence similarity to one another, measured by Needleman-Wunsch alignment with BLOSUM62 and normalised, between minus 0.053 and 0.034. And within an antigen the variants come from one seed framework with varied multi-point mutations, which the authors say forces models to learn binding determinants rather than memorising identities. Nothing is said about overlap between the AlphaBind antibodies and the training data of the pretrained ESM-2 model or of the structure-based baselines.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Introduction; Results, Retrieval performance",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Pairwise antigen similarity was quantified using Needleman-Wunsch global alignment with BLOSUM62 substitution matrix, with the gap-opening penalty set to −10 and the gap-extension penalty set to −0.5. These are standard setups for algorithms (e.g., BLAST) and many protein alignment tools. Scores were normalized by the maximum self-alignment score to account for sequence length differences. The off-diagonal scores among the four antigen systems were all close to zero or negative, ranging from −0.053 to 0.034, indicating very low global sequence similarity between these antigens."
+          },
+          {
+            "source": "@paper",
+            "text": "The training, evaluation, and test datasets covered distinct antigen systems, ensuring no overlap between data splits."
+          },
+          {
+            "source": "@paper",
+            "text": "This setup compels models to learn true binding determinants rather than memorizing antigen or antibody identities"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Significance testing rather than replicates. Each baseline is compared with MochiBind by a one-sided McNemar chi-squared test on the 200,000 test pairs, with all p values below 0.0001 and the chi-squared statistics in Table S1. The paper reports no repeated training runs, seeds or confidence intervals on the accuracies. A sensitivity analysis is given instead: accuracy is stratified by the relative affinity gap within a pair, and it rises as the gap widens, with a large share of test pairs falling in the 0 to 10 per cent band that training excludes.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Pairwise accuracy; Figure 5 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To validate the significance of model performance differences, we used one-sided McNemar’s chi-squared test to compare the MochiBind model with the baseline models across the four antigen datasets. Across all four datasets, McNemar’s chi-squared test rejects the null hypothesis that MochiBind and each baseline model (GeoDock, Boltz-2, and Graphinity) have equal marginal probabilities of accuracy, based on the 200,000 pairs from the test set"
+          },
+          {
+            "source": "@paper",
+            "text": "We observed that the model’s accuracy increases consistently as the affinity gap between pairs widens"
+          },
+          {
+            "source": "@paper",
+            "text": "in the test dataset, a significant amount of the pairs are within 0%–10% difference in binding affinity, a category that does not exist in the training and validation datasets due to data filtering"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A pair of antibody variants against the same antigen, with the measured affinities of both. For the complex-wise baselines the scored unit is one antibody-antigen complex, which is then used to order the pair, and for retrieval the unit is one antibody in a ranked pool.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: STAR Methods, Pairwise setup",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "In the pairwise formulation, the model receives two antibody candidates targeting the same antigen and predicts which one exhibits higher binding affinity. This setting is particularly useful for ranking-based tasks, where relative comparison is more informative than absolute affinity estimation."
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human targets with antibodies of mixed origin. The four antigen systems are human TIGIT, human PD-1, human HER2 and the receptor binding domain of SARS-CoV-1 with cross-reactivity to SARS-CoV-2. The antibody frameworks include a humanoid scFv, two humanised mouse antibodies formatted as scFv, and a camelid single-chain antibody.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: STAR Methods, Data source and preprocessing",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This dataset contains four unique antigens, each with thousands of experimentally characterized antibody candidates covering a wide affinity range: (1) AAB-PP489 (PP489), a previously undescribed humanoid scFv targeting human TIGIT; (2) Pembrolizumab-scFv (PEM), a humanized mouse antibody formatted as an scFv targeting PD-1; (3) VHH72, a camelid single-chain antibody targeting the RBD of SARS-CoV-1 with cross-reactivity to SARS-CoV-2; and (4) Trastuzumab-scFv (TRA), a humanized mouse antibody targeting human HER2."
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "AlphaSeq affinity measurements. The paper states that each antigen system's approximately 30,000 variants were generated and validated using AlphaSeq, and the labels are measured binding affinities reported as log Kd. The authors treat those labels as noisy, which is their stated reason for a pairwise rather than a regression formulation.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: STAR Methods, Data source and preprocessing; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Each antigen system contains approximately 30 000 antibody variants generated and validated using AlphaSeq."
+          },
+          {
+            "source": "@paper",
+            "text": "Because the experimental measurements of binding affinity are often subjected to noise and variability, some antibody pairs may exhibit only marginal differences in their recorded affinity values."
+          },
+          {
+            "source": "@paper",
+            "text": "It is defined as the proportion of correctly identified strong binders among the top-K predictions, given a predetermined threshold."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Either sequence or structure, which is the comparison the benchmark exists to make. MochiBind reads the antibody and antigen sequences only, through a pretrained protein language model; Graphinity reads structural graphs; Boltz-2 and GeoDock take complexes and return interface confidence scores. The published sampling code adds one restriction on the pairs themselves: both antibody sequences in a pair must be of the same length.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@sampler"
+        ],
+        "source_locator": "Paper: Introduction; STAR Methods, Pairwise setup; data/sample_alphabind_pairs.py",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "In the pairwise formulation, the model receives two antibody candidates targeting the same antigen and predicts which one exhibits higher binding affinity. This setting is particularly useful for ranking-based tasks, where relative comparison is more informative than absolute affinity estimation."
+          },
+          {
+            "source": "@paper",
+            "text": "Rather than being optimized specifically for affinity prediction, they provide structure-derived confidence or plausibility scores that are commonly used as proxy signals in practical antibody discovery workflows."
+          },
+          {
+            "source": "@sampler",
+            "text": "# Check length criterion if lengths[i] != lengths[j]: continue"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Supervised training on the two training antigens for the pairwise models, and zero-shot use for the proxy scorers. MochiBind is trained on the 400,000 training pairs with the validation antigen used to select a checkpoint. Graphinity is fine-tuned on the same training split, and the paper reports its accuracy before and after fine-tuning in a supplementary table. Boltz-2 and GeoDock are used as published, supplying structure-derived confidence scores with no affinity training.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Retrieval performance; STAR Methods, Cross-antigen evaluation setup",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To rigorously assess the models’ performance on out-of-distribution systems, we employ a cross-antigen evaluation scheme. In each experimental configuration, two antigens are used for training (400,000 pairs), one for validation (200,000 pairs), and one for testing (200,000 pairs without threshold). For example, when the model is trained on PEM and PP489, the VHH72 dataset is used for validation to select the best-performing checkpoint, and the model is subsequently evaluated on TRA. This process is repeated so that each antigen serves as the held-out test set once."
+          },
+          {
+            "source": "@paper",
+            "text": "The Graphinity model was evaluated after fine-tuning on the training dataset, because the original model was trained using single-point mutation data and did not perform well on the AlphaBind dataset"
+          },
+          {
+            "source": "@paper",
+            "text": "Rather than being optimized specifically for affinity prediction, they provide structure-derived confidence or plausibility scores that are commonly used as proxy signals in practical antibody discovery workflows."
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The split answers the question the paper poses: every antigen is held out in turn and the test antigen appears in neither training nor validation, so the reported accuracy is a cross-antigen number rather than an in-sample one.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: STAR Methods, Cross-antigen evaluation setup",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To rigorously assess the models’ performance on out-of-distribution systems, we employ a cross-antigen evaluation scheme. In each experimental configuration, two antigens are used for training (400,000 pairs), one for validation (200,000 pairs), and one for testing (200,000 pairs without threshold). For example, when the model is trained on PEM and PP489, the VHH72 dataset is used for validation to select the best-performing checkpoint, and the model is subsequently evaluated on TRA. This process is repeated so that each antigen serves as the held-out test set once."
+          },
+          {
+            "source": "@paper",
+            "text": "The training, evaluation, and test datasets covered distinct antigen systems, ensuring no overlap between data splits."
+          }
+        ]
+      },
+      {
+        "text": "Training and test pairs are filtered differently on purpose. Training keeps only pairs whose affinities differ by more than 10 per cent, while test pairs are unfiltered, so the evaluation includes the near-ties that a real screen has to cope with.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: STAR Methods, Pairwise data generation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Specifically, we sample 200,000 pairs per antigen for training, restricting selected pairs to those whose relative affinity difference exceeds 10%. This threshold ensures that the selected pairs reflect meaningful distinctions in binding strength, promoting efficient learning of robust and interpretable signals."
+          },
+          {
+            "source": "@paper",
+            "text": "For the test datasets, no such thresholding is applied, allowing evaluation under realistic experimental conditions that include small and noisy affinity differences."
+          }
+        ]
+      },
+      {
+        "text": "Differences between methods are tested rather than asserted, with a one-sided McNemar chi-squared test on the 200,000 test pairs for each baseline comparison and the statistics reported in a supplementary table.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Pairwise accuracy",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To validate the significance of model performance differences, we used one-sided McNemar’s chi-squared test to compare the MochiBind model with the baseline models across the four antigen datasets. Across all four datasets, McNemar’s chi-squared test rejects the null hypothesis that MochiBind and each baseline model (GeoDock, Boltz-2, and Graphinity) have equal marginal probabilities of accuracy, based on the 200,000 pairs from the test set"
+          }
+        ]
+      },
+      {
+        "text": "Per-antigen heterogeneity is reported instead of being averaged away: the affinity distributions differ markedly between antigens, and the authors show that retrieval precision depends on that composition.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; Figure 4 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The PEM and TRA datasets display bimodal distributions, likely reflecting clear distinctions between strong and weak binders, while VHH72 follows a right-skewed unimodal distribution, and PP489 exhibits an intermediate pattern. The number of strong binders and non-binders also varies across antigens: PP489 contains the highest proportion of very strong and strong binders, whereas TRA consists predominantly of weak or non-binding variants."
+          },
+          {
+            "source": "@paper",
+            "text": "In the dataset of VHH72, a camelid single-chain antibody targeting the RBD of SARS-CoV1 with cross-reactivity to SARS-CoV2, the majority of the antibody mutations are good binders"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Four antigens is a narrow base for a generalisation claim. Each rotation has two training antigens, one validation antigen and one test antigen, so a reported accuracy rests on a single held-out system and the authors themselves name dataset scarcity as the limiting factor.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: STAR Methods, Cross-antigen evaluation setup; Limitations of the study",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Specifically, we used 2 antigen datasets for training, 1 for validation, and 1 for testing, resulting in 400,000 pairs of antibodies sampled for training, 200,000 for validation, and 200,000 for testing."
+          },
+          {
+            "source": "@paper",
+            "text": "Despite these promising results, progress is limited by the scarcity of large-scale, high-quality antibody-antigen affinity datasets suitable for commercial or open use."
+          }
+        ]
+      },
+      {
+        "text": "The benchmark was built and run by the authors of the method it favours, MochiBind, and the structure-based comparators are not matched to it: Boltz-2 and GeoDock supply confidence scores that were never trained to predict affinity, and Graphinity had to be fine-tuned before it performed.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Retrieval performance",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Rather than being optimized specifically for affinity prediction, they provide structure-derived confidence or plausibility scores that are commonly used as proxy signals in practical antibody discovery workflows."
+          },
+          {
+            "source": "@paper",
+            "text": "The Graphinity model was evaluated after fine-tuning on the training dataset, because the original model was trained using single-point mutation data and did not perform well on the AlphaBind dataset"
+          },
+          {
+            "source": "@paper",
+            "text": "First, the framework assesses both sequence-based and structure-based methods with pairwise learning, where the model is asked to compare two given antibodies of the same antigen and determine which antibody offers higher binding affinity."
+          }
+        ]
+      },
+      {
+        "text": "Pairs are not drawn from the whole pool. The published sampling script only forms a pair when both antibody sequences have the same length, which is a restriction the paper does not state, so the test pairs do not cover insertion or deletion variants.",
+        "source_ids": [
+          "@sampler"
+        ],
+        "source_locator": "data/sample_alphabind_pairs.py, get_all_eligible_pairs",
+        "quotes": [
+          {
+            "source": "@sampler",
+            "text": "# Check length criterion if lengths[i] != lengths[j]: continue"
+          }
+        ]
+      },
+      {
+        "text": "The code release is non-commercial and frozen. The repository is CC BY-NC 4.0, the README describes it as a non-commercial research release for academic reproducibility, and pull requests are not accepted so that the code stays exactly as used in the paper.",
+        "source_ids": [
+          "@readme",
+          "@licence"
+        ],
+        "source_locator": "README.md: Release statement, License, Pull requests; LICENSE",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "This is a **non-commercial** research release."
+          },
+          {
+            "source": "@readme",
+            "text": "Pull requests are not being accepted in order to maintain the code exactly as it was used in the paper."
+          },
+          {
+            "source": "@licence",
+            "text": "Creative Commons Attribution-NonCommercial 4.0 International"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Universal antibody-antigen affinity evaluation",
+      "steps": [
+        "AlphaBind: four antigen systems with large antibody variant pools",
+        "stratified subsample, 10,000 variants each for PP489, PEM and VHH72 and 5,000 for TRA",
+        "sample 200,000 pairs per antigen, training pairs above a 10 per cent affinity gap",
+        "rotate antigens: two train, one validates, one is held out",
+        "model picks the stronger binder in each test pair",
+        "pairwise accuracy per held-out antigen, with a McNemar test against each baseline",
+        "TrueSkill global ranking, then retrieval accuracy and precision at K"
+      ],
+      "caption": "The pipeline as the STAR Methods and the results sections describe it.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: STAR Methods; Results",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "To reduce computational cost while maintaining data diversity, we applied stratified sampling to select 5,000 antibodies per antigen following the same binding-affinity distribution as the full AlphaBind dataset. This sampling strategy follows the experimental design of the original AlphaBind study, in which PP489, PEM, and VHH72 are used for both finetuning and evaluation, while TRA is treated as a held-out antigen system for assessing cross-antigen generalization. As a result, for PP489, PEM, and VHH72, we sample 5,000 variants from the finetuning set and 5,000 from the evaluation set, yielding 10,000 antibody variants per antigen. In contrast, 5,000 variants are sampled from the TRA dataset."
+        },
+        {
+          "source": "@paper",
+          "text": "Specifically, we sample 200,000 pairs per antigen for training, restricting selected pairs to those whose relative affinity difference exceeds 10%. This threshold ensures that the selected pairs reflect meaningful distinctions in binding strength, promoting efficient learning of robust and interpretable signals."
+        },
+        {
+          "source": "@paper",
+          "text": "For the test datasets, no such thresholding is applied, allowing evaluation under realistic experimental conditions that include small and noisy affinity differences."
+        },
+        {
+          "source": "@paper",
+          "text": "To rigorously assess the models’ performance on out-of-distribution systems, we employ a cross-antigen evaluation scheme. In each experimental configuration, two antigens are used for training (400,000 pairs), one for validation (200,000 pairs), and one for testing (200,000 pairs without threshold). For example, when the model is trained on PEM and PP489, the VHH72 dataset is used for validation to select the best-performing checkpoint, and the model is subsequently evaluated on TRA. This process is repeated so that each antigen serves as the held-out test set once."
+        },
+        {
+          "source": "@paper",
+          "text": "to infer global rankings across all candidates, allowing the identification of top binders within each antigen pool."
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The paper gives two different pool sizes for the AlphaBind antigen systems: the introduction and STAR Methods say approximately 30,000 variants per antigen, while the results section says each antigen is associated with 5,000 to 10,000 variants, which matches the subsamples the benchmark actually uses.",
+      "Retrieval accuracy and precision are reported only in figures, so no retrieval number could be recorded; only the Table 2 pairwise accuracies are printed.",
+      "Nothing is said about overlap between these antibodies and the pretraining data of ESM-2 or of the structure-based baselines.",
+      "The evaluation notebooks and the model code were not opened in this pass, only the README and the pair sampling script."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Written from the NCBI PMC full-text XML of PMC13444443 and from three files of amazon-science/ab-binding-eval at commit 0c693d815f7f0bf0a3dd5494205dca10fbc20c04, all retrieved 27 November 2026. The pair sampling script was read, not inferred from its name. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Get the published evaluation code at a pinned commit, install its environment, build the ESM embeddings and train or load MochiBind, then run the pairwise accuracy and retrieval notebooks.",
+    "prerequisites": [
+      "Python 3.10 in a clean conda environment, with the repository's requirements.txt, or requirements-gpu.txt for GPU use.",
+      "A separate environment for the Graphinity baseline, built from requirements-graphinity.txt.",
+      "Precomputed ESM mean embeddings in a data_processed_esm_mean directory for full training.",
+      "Acceptance of the licence terms: the code is CC BY-NC 4.0 and the README describes it as a non-commercial research release for academic reproducibility. The AlphaBind data it ships are MIT licensed."
+    ],
+    "steps": [
+      {
+        "title": "Get the code at the pinned commit",
+        "shell": "git clone https://github.com/amazon-science/ab-binding-eval\ncd ab-binding-eval\ngit checkout --detach 0c693d815f7f0bf0a3dd5494205dca10fbc20c04",
+        "explanation": "The paper's data and code availability statement names this repository for the code and the A-Alpha-Bio alphabind repository for the data. The checkout line was added here to pin the commit these files were read at.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Data and code availability; README.md",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This paper analyzes existing, publicly available data, accessible at"
+          },
+          {
+            "source": "@paper",
+            "text": "All original code has been deposited to"
+          },
+          {
+            "source": "@readme",
+            "text": "This repository contains the training code for **MochiBind** and the evaluation framework used to benchmark baseline models for **antigen–antibody binding affinity prediction**, including **Graphinity**, **GeoDock**, and **Boltz2**."
+          }
+        ]
+      },
+      {
+        "title": "Create the environment",
+        "shell": "conda create -n mochibind python=3.10\nconda activate mochibind\n# for CPU only\npip install -r requirements.txt",
+        "explanation": "The README's installation section, verbatim for the CPU path. For GPU use it points to requirements-gpu.txt and says to install the PyTorch build matching the local CUDA version first.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Installation and First Run",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "conda create -n mochibind python=3.10 conda activate mochibind # for CPU only pip install -r requirements.txt"
+          },
+          {
+            "source": "@readme",
+            "text": "For GPU use, install the PyTorch build that matches your CUDA version before installing the remaining packages."
+          }
+        ]
+      },
+      {
+        "title": "Build the embeddings",
+        "shell": "python data_processed_esm_mean.py",
+        "explanation": "This is the command the README's first-run section gives. Note the inconsistency: elsewhere the same README says the embedding files under data_processed_esm_mean are generated using generate_esm2_embedding.py, which is the script actually present at the repository root, so this command may need to be the latter.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Installation and First Run; Directory description, model_src",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Create embeddings by running: ```bash python data_processed_esm_mean.py ```"
+          },
+          {
+            "source": "@readme",
+            "text": "These files are generated using `generate_esm2_embedding.py`."
+          }
+        ]
+      },
+      {
+        "title": "Train MochiBind, or use a released checkpoint",
+        "shell": "python model_src/main_mean.py",
+        "explanation": "The README's training entry point. Training is not required to reproduce the evaluation: the repository ships MochiBind checkpoints for the PEM, PP489, TRA and VHH72 configurations, and the README states that the included checkpoints can be loaded for evaluation.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Installation and First Run; Directory description, checkpoint; Reproducibility notes",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "python model_src/main_mean.py"
+          },
+          {
+            "source": "@readme",
+            "text": "Contains pretrained MochiBind model checkpoints for the following antigen systems:"
+          },
+          {
+            "source": "@readme",
+            "text": "The included checkpoints can be loaded for evaluation."
+          }
+        ]
+      },
+      {
+        "title": "Score the pairs and the retrieval",
+        "shell": "jupyter notebook evaluation_src/",
+        "explanation": "The evaluation lives in notebooks rather than a command line entry point: the README describes evaluation_src as holding notebooks and scripts for finetuned Graphinity, GeoDock and Boltz2, and says the evaluation code supports pairwise accuracy and ranking or retrieval style evaluation. It does not name the individual notebook files, so open the folder and pick the notebook there. The jupyter invocation is written here; the README names the folder and what it contains rather than a command.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Directory description, evaluation_src",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Contains notebooks and scripts used to evaluate MochiBind and compare against baseline models, including:"
+          },
+          {
+            "source": "@readme",
+            "text": "The evaluation code supports pairwise accuracy and ranking/retrieval-style evaluation."
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "Pairwise accuracies per held-out antigen and the ranking and retrieval curves, as the evaluation notebooks produce them. The sources read here do not describe the output files."
+    ],
+    "limitations": [
+      "These commands were read from the paper and the repository and have not been executed by Rewire.",
+      "The README is inconsistent about the embedding step, giving data_processed_esm_mean.py in the first-run section and generate_esm2_embedding.py in the directory description.",
+      "The evaluation is run from notebooks, so there is no single command that reproduces the published table.",
+      "The licence is non-commercial, so this cannot be used in commercial work; the repository also does not accept contributions."
+    ],
+    "source_ids": [
+      "@paper",
+      "@readme",
+      "@licence",
+      "@sampler"
+    ]
+  },
+  "structured": [
+    {
+      "task": "AlphaBind PEM held-out antigen, pairwise accuracy",
+      "dataset": "AlphaBind PEM antibody variants, sampled test pairs",
+      "size": 200000,
+      "size_unit": "sampled antibody pairs in the held-out test set, drawn with no affinity-difference threshold",
+      "split": "cross-antigen rotation: two antigens train, one validates, PEM is held out for testing",
+      "primary_metric": "Pairwise accuracy, percentage of pairs whose stronger binder is identified correctly",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/amazon-science/ab-binding-eval",
+      "data_url": "https://github.com/A-Alpha-Bio/alphabind",
+      "data_licence": "MIT",
+      "code_licence": "CC-BY-NC-4.0",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "To rigorously assess the models’ performance on out-of-distribution systems, we employ a cross-antigen evaluation scheme. In each experimental configuration, two antigens are used for training (400,000 pairs), one for validation (200,000 pairs), and one for testing (200,000 pairs without threshold). For example, when the model is trained on PEM and PP489, the VHH72 dataset is used for validation to select the best-performing checkpoint, and the model is subsequently evaluated on TRA. This process is repeated so that each antigen serves as the held-out test set once."
+        },
+        {
+          "source": "@paper",
+          "text": "Specifically, we used 2 antigen datasets for training, 1 for validation, and 1 for testing, resulting in 400,000 pairs of antibodies sampled for training, 200,000 for validation, and 200,000 for testing."
+        },
+        {
+          "source": "@paper",
+          "text": "To complement retrieval-based evaluation, we also assessed the pairwise prediction accuracy, which quantifies a model’s ability to correctly identify the stronger binder within sampled pairs."
+        },
+        {
+          "source": "@paper",
+          "text": "Pairwise accuracy (%) comparison of baselines and our proposed MochiBind approach on AlphaBind datasets"
+        },
+        {
+          "source": "@paper",
+          "text": "This paper analyzes existing, publicly available data, accessible at"
+        },
+        {
+          "source": "@paper",
+          "text": "All original code has been deposited to"
+        },
+        {
+          "source": "@readme",
+          "text": "with the following [MIT License](https://github.com/A-Alpha-Bio/alphabind/blob/15d2582fb0d5c39fb0d479120cf109cbc0a6a554/LICENSE)"
+        },
+        {
+          "source": "@readme",
+          "text": "This repository is released under the **Creative Commons Attribution-NonCommercial 4.0 International License (CC-BY-NC-4.0)**."
+        }
+      ]
+    },
+    {
+      "task": "AlphaBind PP489 held-out antigen, pairwise accuracy",
+      "dataset": "AlphaBind PP489 antibody variants, sampled test pairs",
+      "size": 200000,
+      "size_unit": "sampled antibody pairs in the held-out test set, drawn with no affinity-difference threshold",
+      "split": "cross-antigen rotation: two antigens train, one validates, PP489 is held out for testing",
+      "primary_metric": "Pairwise accuracy, percentage of pairs whose stronger binder is identified correctly",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/amazon-science/ab-binding-eval",
+      "data_url": "https://github.com/A-Alpha-Bio/alphabind",
+      "data_licence": "MIT",
+      "code_licence": "CC-BY-NC-4.0",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "To rigorously assess the models’ performance on out-of-distribution systems, we employ a cross-antigen evaluation scheme. In each experimental configuration, two antigens are used for training (400,000 pairs), one for validation (200,000 pairs), and one for testing (200,000 pairs without threshold). For example, when the model is trained on PEM and PP489, the VHH72 dataset is used for validation to select the best-performing checkpoint, and the model is subsequently evaluated on TRA. This process is repeated so that each antigen serves as the held-out test set once."
+        },
+        {
+          "source": "@paper",
+          "text": "Specifically, we used 2 antigen datasets for training, 1 for validation, and 1 for testing, resulting in 400,000 pairs of antibodies sampled for training, 200,000 for validation, and 200,000 for testing."
+        },
+        {
+          "source": "@paper",
+          "text": "To complement retrieval-based evaluation, we also assessed the pairwise prediction accuracy, which quantifies a model’s ability to correctly identify the stronger binder within sampled pairs."
+        },
+        {
+          "source": "@paper",
+          "text": "Pairwise accuracy (%) comparison of baselines and our proposed MochiBind approach on AlphaBind datasets"
+        },
+        {
+          "source": "@paper",
+          "text": "This paper analyzes existing, publicly available data, accessible at"
+        },
+        {
+          "source": "@paper",
+          "text": "All original code has been deposited to"
+        },
+        {
+          "source": "@readme",
+          "text": "with the following [MIT License](https://github.com/A-Alpha-Bio/alphabind/blob/15d2582fb0d5c39fb0d479120cf109cbc0a6a554/LICENSE)"
+        },
+        {
+          "source": "@readme",
+          "text": "This repository is released under the **Creative Commons Attribution-NonCommercial 4.0 International License (CC-BY-NC-4.0)**."
+        }
+      ]
+    },
+    {
+      "task": "AlphaBind TRA held-out antigen, pairwise accuracy",
+      "dataset": "AlphaBind TRA antibody variants, sampled test pairs, held out in the original AlphaBind study as well",
+      "size": 200000,
+      "size_unit": "sampled antibody pairs in the held-out test set, drawn with no affinity-difference threshold",
+      "split": "cross-antigen rotation: two antigens train, one validates, TRA is held out for testing",
+      "primary_metric": "Pairwise accuracy, percentage of pairs whose stronger binder is identified correctly",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/amazon-science/ab-binding-eval",
+      "data_url": "https://github.com/A-Alpha-Bio/alphabind",
+      "data_licence": "MIT",
+      "code_licence": "CC-BY-NC-4.0",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "To rigorously assess the models’ performance on out-of-distribution systems, we employ a cross-antigen evaluation scheme. In each experimental configuration, two antigens are used for training (400,000 pairs), one for validation (200,000 pairs), and one for testing (200,000 pairs without threshold). For example, when the model is trained on PEM and PP489, the VHH72 dataset is used for validation to select the best-performing checkpoint, and the model is subsequently evaluated on TRA. This process is repeated so that each antigen serves as the held-out test set once."
+        },
+        {
+          "source": "@paper",
+          "text": "Specifically, we used 2 antigen datasets for training, 1 for validation, and 1 for testing, resulting in 400,000 pairs of antibodies sampled for training, 200,000 for validation, and 200,000 for testing."
+        },
+        {
+          "source": "@paper",
+          "text": "To complement retrieval-based evaluation, we also assessed the pairwise prediction accuracy, which quantifies a model’s ability to correctly identify the stronger binder within sampled pairs."
+        },
+        {
+          "source": "@paper",
+          "text": "Pairwise accuracy (%) comparison of baselines and our proposed MochiBind approach on AlphaBind datasets"
+        },
+        {
+          "source": "@paper",
+          "text": "This paper analyzes existing, publicly available data, accessible at"
+        },
+        {
+          "source": "@paper",
+          "text": "All original code has been deposited to"
+        },
+        {
+          "source": "@readme",
+          "text": "with the following [MIT License](https://github.com/A-Alpha-Bio/alphabind/blob/15d2582fb0d5c39fb0d479120cf109cbc0a6a554/LICENSE)"
+        },
+        {
+          "source": "@readme",
+          "text": "This repository is released under the **Creative Commons Attribution-NonCommercial 4.0 International License (CC-BY-NC-4.0)**."
+        }
+      ]
+    },
+    {
+      "task": "AlphaBind VHH72 held-out antigen, pairwise accuracy",
+      "dataset": "AlphaBind VHH72 antibody variants, sampled test pairs",
+      "size": 200000,
+      "size_unit": "sampled antibody pairs in the held-out test set, drawn with no affinity-difference threshold",
+      "split": "cross-antigen rotation: two antigens train, one validates, VHH72 is held out for testing",
+      "primary_metric": "Pairwise accuracy, percentage of pairs whose stronger binder is identified correctly",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/amazon-science/ab-binding-eval",
+      "data_url": "https://github.com/A-Alpha-Bio/alphabind",
+      "data_licence": "MIT",
+      "code_licence": "CC-BY-NC-4.0",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "To rigorously assess the models’ performance on out-of-distribution systems, we employ a cross-antigen evaluation scheme. In each experimental configuration, two antigens are used for training (400,000 pairs), one for validation (200,000 pairs), and one for testing (200,000 pairs without threshold). For example, when the model is trained on PEM and PP489, the VHH72 dataset is used for validation to select the best-performing checkpoint, and the model is subsequently evaluated on TRA. This process is repeated so that each antigen serves as the held-out test set once."
+        },
+        {
+          "source": "@paper",
+          "text": "Specifically, we used 2 antigen datasets for training, 1 for validation, and 1 for testing, resulting in 400,000 pairs of antibodies sampled for training, 200,000 for validation, and 200,000 for testing."
+        },
+        {
+          "source": "@paper",
+          "text": "To complement retrieval-based evaluation, we also assessed the pairwise prediction accuracy, which quantifies a model’s ability to correctly identify the stronger binder within sampled pairs."
+        },
+        {
+          "source": "@paper",
+          "text": "Pairwise accuracy (%) comparison of baselines and our proposed MochiBind approach on AlphaBind datasets"
+        },
+        {
+          "source": "@paper",
+          "text": "This paper analyzes existing, publicly available data, accessible at"
+        },
+        {
+          "source": "@paper",
+          "text": "All original code has been deposited to"
+        },
+        {
+          "source": "@readme",
+          "text": "with the following [MIT License](https://github.com/A-Alpha-Bio/alphabind/blob/15d2582fb0d5c39fb0d479120cf109cbc0a6a554/LICENSE)"
+        },
+        {
+          "source": "@readme",
+          "text": "This repository is released under the **Creative Commons Attribution-NonCommercial 4.0 International License (CC-BY-NC-4.0)**."
+        }
+      ]
+    }
+  ],
+  "notes": "Two numbers in the source disagree and a reviewer should know which this page uses. The introduction and the STAR Methods say each AlphaBind antigen system holds approximately 30,000 antibody variants, while the results section says each unique antigen is associated with 5,000 to 10,000 variants. The second figure matches what the benchmark uses: stratified subsamples of 10,000 variants for PP489, PEM and VHH72 and 5,000 for TRA. The structured size of 200,000 is neither of those: it is the number of sampled antibody pairs in the held-out test set for that antigen, which is the set Table 2's accuracy is computed on, and the test pairs carry no affinity-difference threshold. The published pair sampling script also requires both antibodies in a pair to have the same sequence length, a restriction the paper does not state. Retrieval accuracy and precision appear only in figures, so only the pairwise accuracies are available as numbers. The paper is CC BY-NC-ND 4.0 and the code repository CC BY-NC 4.0, so no source bytes are stored; the AlphaBind data the code ships are MIT, which the README states and links."
+}
