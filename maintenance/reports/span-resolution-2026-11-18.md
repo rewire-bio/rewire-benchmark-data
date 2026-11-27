@@ -437,9 +437,9 @@ compares numbers as numbers:
 | | Locators | Share of what it is a share of |
 | --- | --- | --- |
 | Stored result locators | 52,878 <!--figure:locators--> | |
-| Resolved | 18,667 <!--figure:resolved--> | 35.3% <!--figure:resolved_pct--> |
-| Prints the stored value and nothing else | 17,094 <!--figure:value_exact--> | 91.6% <!--figure:value_exact_pct--> |
-| Prints it somewhere | 18,662 <!--figure:value_present--> | 100.0% <!--figure:value_present_pct--> |
+| Resolved | 17,699 <!--figure:resolved--> | 33.5% <!--figure:resolved_pct--> |
+| Prints the stored value and nothing else | 16,158 <!--figure:value_exact--> | 91.3% <!--figure:value_exact_pct--> |
+| Prints it somewhere | 17,694 <!--figure:value_present--> | 100.0% <!--figure:value_present_pct--> |
 | Commits to text that does not print it | 2 <!--figure:wrong_commits--> | |
 | Right span with the value inside an image | 3 <!--figure:value_in_image--> | |
 
@@ -448,8 +448,8 @@ compares numbers as numbers:
 The sheet resolver resolves 7,257 <!--figure:kind.sheet_cell.spans--> `sheet_cell` spans, which is
 the largest single gain this lane has had: `measure --no-sheet` over the same tree, run after the
 figures above, resolves 11,410
-of the same 52,278 locators, 21.8 percent, against 18,667 <!--figure:resolved--> and
-35.3 percent <!--figure:resolved_pct--> with the blocks read. Not one of the 7,257 prints a
+of the same 52,278 locators, 21.8 percent, against 17,699 <!--figure:resolved--> and
+33.5 percent <!--figure:resolved_pct--> with the blocks read. Not one of the 7,257 prints a
 different number from the one its record keeps: 0 <!--figure:kind.sheet_cell.no_value--> of them
 print no part of the stored value, and the store-wide count of spans committed to text that does
 not print the value is 2 <!--figure:wrong_commits-->, which is what it was with the resolver off.
@@ -514,7 +514,7 @@ reads as a resolver to switch off, so the measurement gets believed and the reso
 A resolver can only be judged as well as the check judging it.
 
 What the 2 is a floor on, and not a count of, is worth stating. Of the
-18,662 <!--figure:value_present--> spans that print the stored value, 15,478 are a number pair the
+17,694 <!--figure:value_present--> spans that print the stored value, 15,478 are a number pair the
 rule compares as numbers, and the other 3,184 rest on containment: a quote, a page, or a cell that
 prints the value beside something else. Containment accepts a number that extends the record's
 digits, `0.17599999999999999` against a record of `0.175`, so a wrong number of that shape in
@@ -524,8 +524,8 @@ judged, and the rule rejects 0 of the 15,478 pairs.
 The 2 that remain wrong are quote spans, and both are the sentence the locator names: one record
 stores `75.5% (108/143)` where its sentence prints `108 of the 143 variants (75.5%)`, and one
 locator names one sentence fewer than the value needs. `no_column_geometry` refuses
-4,804 <!--figure:reason.no_column_geometry--> locators,
-9.1% <!--figure:reason.no_column_geometry.pct--> of the store, against the 22,528 this file leads with
+4,216 <!--figure:reason.no_column_geometry--> locators,
+8% <!--figure:reason.no_column_geometry.pct--> of the store, against the 22,528 this file leads with
 and the 10,304, 19.7 percent, that `measure --no-sheet` refuses over the same tree. The table
 grids moved the first drop and the sheet blocks moved the second.
 
@@ -545,11 +545,11 @@ section is a line on a layer that prints one block per line.
 
 | | Legacy | With the rule |
 | --- | --- | --- |
-| Resolved | 18,617 <!--figure:legacy.resolved--> | 18,667 <!--figure:resolved--> |
-| Prints the value somewhere | 18,605 <!--figure:legacy.value_present--> | 18,662 <!--figure:value_present--> |
-| Prints the value and nothing else | 17,094 <!--figure:legacy.value_exact--> | 17,094 <!--figure:value_exact--> |
+| Resolved | 17,661 <!--figure:legacy.resolved--> | 17,699 <!--figure:resolved--> |
+| Prints the value somewhere | 17,649 <!--figure:legacy.value_present--> | 17,694 <!--figure:value_present--> |
+| Prints the value and nothing else | 16,158 <!--figure:legacy.value_exact--> | 16,158 <!--figure:value_exact--> |
 | Commits to text that does not print it | 7 <!--figure:legacy.wrong_commits--> | 2 <!--figure:wrong_commits--> |
-| Quote spans | 97 <!--figure:legacy.kind.quote.spans--> | 155 <!--figure:kind.quote.spans--> |
+| Quote spans | 80 <!--figure:legacy.kind.quote.spans--> | 126 <!--figure:kind.quote.spans--> |
 | Quote spans printing the value nowhere | 7 <!--figure:legacy.kind.quote.no_value--> | 2 <!--figure:kind.quote.no_value--> |
 
 97 locators changed outcome or span text. 57 of them reach a span that prints the stored value and
