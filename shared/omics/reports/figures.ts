@@ -334,7 +334,9 @@ export function retag(text: string, figures: Record<string, number>): { text: st
       continue;
     }
     if (mark.printed === "" || printsFigure(mark.printed, value)) continue;
-    const at = text.indexOf(mark.printed, Math.max(0, lineStart(text, mark.line)));
+    // From the end of the last replacement: two tags on one line can print the same digits, and the
+    // second must not find the first one's number again.
+    const at = text.indexOf(mark.printed, Math.max(read, lineStart(text, mark.line)));
     if (at < 0) continue;
     out += text.slice(read, at) + spell(value, mark.printed);
     read = at + mark.printed.length;
