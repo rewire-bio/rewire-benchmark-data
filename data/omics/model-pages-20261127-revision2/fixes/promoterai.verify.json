@@ -1,0 +1,21 @@
+{
+  "record_id": "vep-uc-20261014-model-promoterai",
+  "statements_checked": 37,
+  "findings": [
+    {
+      "where": "section Scores and thresholds",
+      "verdict": "partly",
+      "statement": "Because a promoter variant acts through one gene's strand, each variant row needs a strand; if it is unknown, the README says to score both strands as separate rows and combine the results.",
+      "source_says": "README: \"Organize the variants into a `tsv` file with the following columns: `chrom`, `pos`, `ref`, `alt`, `strand`. If strand cannot be specified, create separate rows for each strand and aggregate predictions.\" No saved file gives the reason \"because a promoter variant acts through one gene's strand\"; the paper says only that sequences are taken \"on the sense strand\".",
+      "fix": "Each variant row needs a strand; if it is unknown, the README says to create separate rows for each strand and aggregate the predictions."
+    },
+    {
+      "where": "fact Parameters",
+      "verdict": "partly",
+      "statement": "About 208 million trainable parameters per model, as the paper states; the fine-tuning step tuned about 3 million of them. The published score uses two such models.",
+      "source_says": "Paper, Model architecture, describing the model whose output is \"a matrix of size 4,096 × 970\" (498 human and 472 mouse profiles): \"which resulted in the model having ~208 million trainable parameters\". Model ensemble: \"We trained and fine-tuned two PromoterAI models, one using only human data and the other using both human and mouse data.\" The paper does not give a count for the human-only model, whose output heads would not include the 472 mouse profiles.",
+      "fix": "About 208 million trainable parameters for the model the paper describes, with 970 human and mouse outputs; the fine-tuning step tuned about 3 million. The published score averages two models, one trained on human data only and one on human and mouse data; the paper gives no separate count for the human-only model. The distributed weight files are not named in the sources read."
+    }
+  ],
+  "summary": "Reliable. The architecture, training data counts, fine-tuning, ensemble, variant score, licences, weights access route and run steps all match the paper text, README, setup.py, architecture.py and the issue replies. Two minor findings: an added rationale for the strand column, and a parameter count applied to both ensemble members when the paper states it for the human and mouse model. No email address is quoted on the page."
+}

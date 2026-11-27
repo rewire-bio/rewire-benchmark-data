@@ -34,12 +34,15 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 1. **General-purpose language models: 50 records** (Claude, GPT, Gemini, Llama, Qwen and others)
    that a benchmark prompted. No page. Decision needed from the owner: a short standard page each
    (what it is, who makes it, which benchmark used it and how), or none.
-2. **Pages set aside: 11.** A safety classifier interrupted an agent on each and they were not
+2. **Pages set aside: 12.** A safety classifier interrupted an agent on each and they were not
    retried: BenchBench-Cloning and its two sub-sets, FrameFlow, ViroDNABERT2, PGraphDTA, the
-   DeepProtein benchmark, the Genie 3 comparison, and the revisions of DeCodon, EnCodon and E1.
-   They need a person. The three revisions are the only ones whose paper is already archived:
-   the cdsFM preprint and the E1 preprint are source records added on 27 November, with their
-   text layers, so the work is to revise the pages from text the store already holds.
+   DeepProtein benchmark, the Genie 3 comparison, and the revisions of DeCodon, EnCodon, E1 and
+   ProGen3. They need a person. The four revisions are the only ones whose paper is already
+   archived: the cdsFM, E1 and ProGen3 preprints are source records added on 27 November, with
+   their text layers, so the work is to revise the pages from text the store already holds.
+   ProGen3 is the one with a known fault on the live page: it says no source supports the two
+   figures in the record's description, 46 billion parameters and 1.5 trillion amino-acid tokens.
+   The archived paper states both, so the description is right and the page's gap is wrong.
 3. **Records that are not models: about 15.** LLF, MFE, DeepGraphDTA and LCDD-team (table rows and
    a challenge team), Emb-Cos and the MassSpecGym DeepSets predictor (baselines built inside a
    benchmark), the Cellpose conditions, four benchmark-built Tier 1 baselines, six generic
