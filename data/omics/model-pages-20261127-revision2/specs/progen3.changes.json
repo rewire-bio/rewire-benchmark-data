@@ -1,0 +1,111 @@
+[
+ {
+  "where": "sources",
+  "before": null,
+  "after": "added source paper-full-text (artifacts/paper-full-text.txt)",
+  "source": "paper",
+  "reason": "The paper's full text is now saved; its text layer is the quoted file."
+ },
+ {
+  "where": "section How it works",
+  "before": "ProGen3 is a sparse mixture-of-experts transformer. The 3B configuration has 24 layers, hidden size 1280, 16 attention heads, 8 experts with 2 chosen per token, SiLU-gated feed-forward blocks, RMS normalisation and rotary position embeddings. It is trained in both reading directions: a prompt starts with 1 for N-to-C or 2 for C-to-N, so the same model can extend a sequence from either end. A separate [GLM] prompt form asks the model to replace a named span of a given sequence with a chosen average number of residues, which is how infilling is done. Scoring averages the log-likelihood of the forward and reverse directions.",
+  "after": "ProGen3 is a decoder-only transformer whose feed-forward layers are a mixture of 8 experts, 2 of which are used for each token, so a forward pass activates 27% of the parameters. The paper gives a context length of 8192 tokens, SwiGLU feed-forward networks, rotary position embeddings with theta 100000, grouped query attention and pre-layer RMS normalisation, with a load-balancing loss weighted 0.05. The released 3B configuration has 24 layers, hidden size 1280, 16 attention heads, intermediate size 3840 and a vocabulary of 134 tokens, matching the paper's table. It is trained in both reading directions: a prompt starts with 1 for N-to-C or 2 for C-to-N. A separate [GLM] prompt form asks the model to replace a named span of a given sequence, which is how infilling is done. Scoring averages the log-likelihood of the forward and reverse directions.",
+  "source": "paper",
+  "reason": "The paper's appendix gives the architecture the config only partly shows, including the active fraction and the context length in tokens."
+ },
+ {
+  "where": "section Versions and reproducibility",
+  "before": "Six checkpoints are on the Hugging Face hub: progen3-112m, progen3-219m, progen3-339m, progen3-762m, progen3-1b and progen3-3b. Hugging Face counts their weights as 112,456,320, 219,677,184, 339,245,568, 762,885,888, 1,355,871,232 and 2,989,920,000 parameters, so the names round the true counts (the 1B checkpoint is about 1.36B and the 3B about 2.99B). None is gated. A result should name the checkpoint and its Hugging Face revision, and for generation also the temperature and top-p, since the README's example sets 0.85 and 0.95 rather than relying on defaults. This page read the 3B checkpoint at revision f2c6b565.",
+  "after": "The paper describes 8 sizes from 112M to 46B parameters. Six are released on the Hugging Face hub: progen3-112m, progen3-219m, progen3-339m, progen3-762m, progen3-1b and progen3-3b. The paper states that the weights up to 3B are released and that the ProGen3-46B weights, the dataset and the training code are not. Hugging Face counts the published weights as 112,456,320, 219,677,184, 339,245,568, 762,885,888, 1,355,871,232 and 2,989,920,000 parameters; the paper's table calls the last two 1.4B and 3.0B. None is gated. A result should name the checkpoint and its Hugging Face revision, and for generation also the temperature and top-p, since the README's example sets 0.85 and 0.95 rather than relying on defaults. This page read the 3B checkpoint at revision f2c6b565.",
+  "source": "paper",
+  "reason": "The paper names the sizes trained and states which weights are withheld."
+ },
+ {
+  "where": "fact Architecture",
+  "before": "Mixture-of-experts transformer. In the 3B configuration: 24 layers, hidden size 1280, intermediate size 3840, 16 attention heads, 8 experts with 2 per token and switch routing, SiLU gated MLP, RMS norm, rotary embeddings, vocabulary of 134 tokens.",
+  "after": "Decoder-only mixture-of-experts transformer: 8 experts with 2 used per token (27% of parameters active per forward pass), SwiGLU feed-forward networks, rotary position embeddings, grouped query attention and pre-layer RMS normalisation. Released 3B configuration: 24 layers, hidden size 1280, intermediate size 3840, 16 attention heads, vocabulary of 134 tokens. The paper's table gives the same four values for the 3.0B model, and 866M active parameters.",
+  "source": "paper",
+  "reason": "The paper adds the expert routing, the active fraction and the attention scheme."
+ },
+ {
+  "where": "fact Parameters",
+  "before": "112,456,320 (progen3-112m), 219,677,184 (219m), 339,245,568 (339m), 762,885,888 (762m), 1,355,871,232 (1b) and 2,989,920,000 (3b), counted by Hugging Face from the published safetensors files. These are total parameters of a sparse model, not the parameters used per token.",
+  "after": "Released checkpoints, counted by Hugging Face from the safetensors files: 112,456,320 (progen3-112m), 219,677,184 (219m), 339,245,568 (339m), 762,885,888 (762m), 1,355,871,232 (1b) and 2,989,920,000 (3b). These are total parameters of a sparse model. The paper's Table 3 gives active counts beside each total: 32M of 112M, 63M of 219M, 98M of 339M, 221M of 762M, 393M of 1.4B and 866M of 3.0B, and describes two larger sizes, 10B (2.7B active) and 46B (12.6B active), that are not released.",
+  "source": "paper",
+  "reason": "The paper gives the active parameter count per size, which no other source states."
+ },
+ {
+  "where": "fact Training data",
+  "before": "Not extracted. The README and the model card do not describe the training data, and the preprint could not be fetched (bioRxiv returned HTTP 429 twice).",
+  "after": "Profluent Protein Atlas v1 (PPA-1), which the paper describes as 3.4 billion proteins and 1.1 trillion amino acid tokens drawn from genomic and metagenomic sources, with protein fragments excluded. Sequences are sampled through an Inverse Log scheme over 50% identity clusters. ProGen3-46B was trained on 1.5 trillion tokens from PPA-1; smaller models were trained for fewer tokens, for example ProGen3-339M on 200 billion and ProGen3-3B on 500 billion. The dataset is not released.",
+  "source": "paper",
+  "reason": "The paper names and sizes the training set; the page had it as not extracted."
+ },
+ {
+  "where": "fact Context limits",
+  "before": "8190 residues per sequence for scoring, as the README's FASTA rules state. The 3B configuration sets max_position_embeddings to 65536 and a maximum of 512 sequences per batch.",
+  "after": "8192 tokens, as the paper states for all ProGen3 models. The README caps scoring input at 8190 residues per sequence. The released 3B configuration sets max_position_embeddings to 65536 and a maximum of 512 sequences per batch.",
+  "source": "paper",
+  "reason": "The paper gives the trained context length, which differs from the configuration value."
+ },
+ {
+  "where": "fact Training cutoff",
+  "before": "Not reported. The sources read do not date the training data, and the preprint was not fetchable.",
+  "after": "No date is given. The paper names the training set as Profluent Protein Atlas v1 without dating its sources.",
+  "source": "paper",
+  "reason": "The full paper was read and gives no date."
+ },
+ {
+  "where": "fact Known versions",
+  "before": "Six checkpoints: Profluent-Bio/progen3-112m, progen3-219m, progen3-339m, progen3-762m, progen3-1b and progen3-3b. The repository also names a Docker image, ghcr.io/profluent-ai/progen3:v0.1.0.",
+  "after": "Six released checkpoints: Profluent-Bio/progen3-112m, progen3-219m, progen3-339m, progen3-762m, progen3-1b and progen3-3b. The paper describes eight pretrained sizes, adding 10B and 46B, which are not released. The repository also names a Docker image, ghcr.io/profluent-ai/progen3:v0.1.0.",
+  "source": "paper",
+  "reason": "The paper names the unreleased sizes."
+ },
+ {
+  "where": "limitations (added)",
+  "before": null,
+  "after": "The authors report that models larger than 3B often perform worse on the ProteinGym zero-shot benchmark, and use supervised alignment rather than zero-shot likelihoods for fitness prediction.",
+  "source": "paper",
+  "reason": "A limitation the paper states about its own family, and one that bears on how its ProteinGym results are read."
+ },
+ {
+  "where": "limitations[3] (removed)",
+  "before": "Some generations are invalid and are dropped: the seq.fasta output holds only a subset of the raw generations.",
+  "after": null,
+  "source": "other",
+  "reason": "The brief allows 2 to 4 limitations. The dropping of invalid generations is still stated in the Outputs fact."
+ },
+ {
+  "where": "profile.gaps",
+  "before": [
+   "The preprint could not be read: bioRxiv returned HTTP 429 on two attempts, so training data, training compute, benchmark results and the reported scaling behaviour are all missing here.",
+   "The model card holds only the licence line and a pointer to the code, so no developer description of the model was available beyond the README.",
+   "The record's description mentions models up to 46 billion parameters trained on 1.5 trillion amino-acid tokens; no source read here supports that, and only checkpoints up to about 3B are released.",
+   "The sources read give configuration details only for the 3B checkpoint; the five smaller configurations were not fetched.",
+   "No per-token (active) parameter count is published for these sparse models."
+  ],
+  "after": [
+   "Pre-training compute is given for ProGen3-46B (about 17 days on 256 H100 GPUs) but not per released checkpoint.",
+   "The sources give configuration files only for the 3B checkpoint; the five smaller ones were not fetched.",
+   "The paper gives active parameter counts by size, but no saved file gives an active count for a named released checkpoint file.",
+   "The supplementary appendices beyond those in the saved PDF were not read."
+  ],
+  "source": "paper",
+  "reason": "The full paper closes the gaps on training data, the unsupported description figures and the 46B model; the rest are restated."
+ },
+ {
+  "where": "profile.coverage",
+  "before": "limited",
+  "after": "reviewed",
+  "source": "paper",
+  "reason": "The paper has now been read in full, which was the reason coverage was limited."
+ },
+ {
+  "where": "profile.review",
+  "before": null,
+  "after": "date and note updated",
+  "source": "paper",
+  "reason": "Records that the full text was read."
+ }
+]
