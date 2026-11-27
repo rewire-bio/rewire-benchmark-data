@@ -16,7 +16,12 @@ docs/boards.md describes the output for readers; the rules are stated here.
 How a board is built
 
 1. A comparison group is one study's results on one test: same protocol, data, metric, unit,
-   qualifier, aggregation and scoring conditions. Only results inside a group are compared.
+   qualifier, aggregation and scoring conditions. Only results inside a group are compared. A test
+   feeds a use case's board only when the use case's relevance judgement for it is direct or proxy
+   and not withdrawn: a test judged outside_scope is linked for the record, not as evidence.
+   Scoring conditions recorded as a structured value (leaderboard imports) are compared without the
+   keys that name the submission, the system's own configuration or the result's own counts
+   (IGNORED_CONDITION_KEYS); otherwise every submission would fall in a group of its own.
 2. In a group a model's value is its best configuration. Results marked disputed, excluded or
    superseded, results copied from another paper, and metrics with no stated direction are left out.
 3. Studies. A result's study can name several studies joined by " + " (its sources belong to more
@@ -93,6 +98,13 @@ MIN_STUDIES = 2
 MOSTLY_ONE_STUDY = 0.8
 # Log strengths closer than this are a tie: far above the fit's tolerance, far below any real gap.
 SEPARATION = 1e-3
+# Keys of a structured scoring condition that describe the submission, the system's own
+# configuration or the result's own counts, rather than how the test was scored.
+IGNORED_CONDITION_KEYS = frozenset({
+    "participant_id", "submission", "submission_id", "submission_date", "team_id", "model_name_reported", "low_id",
+    "configuration", "features", "scaling",
+    "tp", "fp", "fn", "n_called_dup", "n_called_del", "classification", "clashes",
+})
 NOT_A_MODEL, ONE_STUDY, NOT_CONNECTED, TOO_FEW = "not a model record", "one study", "not compared with the main group", "no second model to rank"
 
 GROUP_QUERY = """
@@ -102,8 +114,25 @@ SELECT o.study_id, o.assessment_id, o.metric, o.unit, o.metric_qualifier, o.aggr
 FROM link l JOIN observation_v o ON o.assessment_id = l.to_id
 WHERE l.from_id = ? AND l.relation = 'assessed_by' AND o.value IS NOT NULL AND o.direction IN ('higher', 'lower')
   AND o.status NOT IN ('disputed', 'excluded', 'superseded') AND o.origin != 'paper_compilation' AND o.root_id IS NOT NULL
+  AND EXISTS (SELECT 1 FROM claim c JOIN record cr ON cr.id = c.id JOIN link s ON s.from_id = c.id AND s.relation = 'subject'
+              WHERE s.to_id = l.from_id AND c.field = 'links:assessed_by:' || l.to_id
+                AND c.relevance IN ('direct', 'proxy') AND cr.status NOT IN ('excluded', 'superseded'))
 ORDER BY o.id
 """
+
+
+def condition_key(conditions):
+    """Rule 1: the scoring conditions as compared. A structured value (marked by a leading NUL) is
+    compared without IGNORED_CONDITION_KEYS; any other value is compared as written."""
+    if not conditions or not conditions.startswith("\x00"):
+        return conditions
+    try:
+        value = json.loads(conditions[1:])
+    except ValueError:
+        return conditions
+    if not isinstance(value, dict):
+        return conditions
+    return "\x00" + json.dumps({k: v for k, v in value.items() if k not in IGNORED_CONDITION_KEYS}, sort_keys=True)
 
 
 def read_groups(db, use_case_id):
@@ -112,7 +141,7 @@ def read_groups(db, use_case_id):
     records = {}
     for study, assessment, metric, unit, qualifier, aggregation, conditions, data, root, name, direction, value in db.execute(GROUP_QUERY, (use_case_id,)):
         records[root] = {"name": name}
-        key = (study, (assessment, metric, unit, qualifier, aggregation, conditions, data), direction)
+        key = (study, (assessment, metric, unit, qualifier, aggregation, condition_key(conditions), data), direction)
         best = groups[key].get(root)
         if best is None or (value > best if direction == "higher" else value < best):
             groups[key][root] = value

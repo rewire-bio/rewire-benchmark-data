@@ -40,7 +40,12 @@ The rules are stated in full in the docstring of `kb/board.py`. In short:
 
 1. Only results inside one study's group (same protocol, data, metric, unit and conditions) are
    compared. A model's value in a group is its best configuration. Disputed, excluded and superseded
-   results, results copied from another paper and metrics with no direction are left out.
+   results, results copied from another paper and metrics with no direction are left out. A test feeds
+   a board only when the use case judges it `direct` or `proxy`; one judged `outside_scope` stays
+   linked for the record but is not evidence. Leaderboard imports record each submission's identity in
+   a structured scoring condition; the board compares those without the keys that name the
+   submission, the system's own configuration or the result's own counts, so the entries of one
+   leaderboard round can be compared with each other.
 2. Study ids joined by " + " that share a part are one study, so one piece of work counts once.
 3. Records with the same name, ignoring case and punctuation, are one row when one of them is a model
    record. The row lists every record id.
