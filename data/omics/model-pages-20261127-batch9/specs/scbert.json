@@ -1,0 +1,662 @@
+{
+  "record_id": "perturbation-ahlmann-20261011-model-scbert",
+  "sources": [
+    {
+      "key": "readme",
+      "name": "TencentAILabHealthcare/scBERT README.md at commit 262fd4b9",
+      "description": "Official repository README, pinned to a commit.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/TencentAILabHealthcare/scBERT/262fd4b91f3f1c21a6e595d03d4ef423e16ffc99/README.md",
+      "url": "https://github.com/TencentAILabHealthcare/scBERT",
+      "version": "git commit 262fd4b91f3f1c21a6e595d03d4ef423e16ffc99",
+      "media_type": "text/markdown",
+      "sha256": "c6ceec232c81ee7f02eae17513f77e69b9e3029a77d30b56c36f64bf9db39969",
+      "retrieved_at": "2026-11-27T02:54:10Z",
+      "store_bytes": false
+    },
+    {
+      "key": "license",
+      "name": "TencentAILabHealthcare/scBERT LICENSE at commit 262fd4b9",
+      "description": "Licence file of the official repository (GPL-3.0), pinned to a commit.",
+      "file": "artifacts/license.txt",
+      "artifact_url": "https://raw.githubusercontent.com/TencentAILabHealthcare/scBERT/262fd4b91f3f1c21a6e595d03d4ef423e16ffc99/LICENSE",
+      "url": "https://github.com/TencentAILabHealthcare/scBERT",
+      "version": "git commit 262fd4b91f3f1c21a6e595d03d4ef423e16ffc99",
+      "media_type": "text/plain",
+      "sha256": "2a1cd1c518b360c3589b697ad3e7b091075d86c1386f205f9d48fd2c99fe78a1",
+      "retrieved_at": "2026-11-27T02:54:13Z",
+      "store_bytes": false
+    },
+    {
+      "key": "requirements",
+      "name": "TencentAILabHealthcare/scBERT requirements.txt at commit 262fd4b9",
+      "description": "Pinned Python dependencies of the repository.",
+      "file": "artifacts/requirements.txt",
+      "artifact_url": "https://raw.githubusercontent.com/TencentAILabHealthcare/scBERT/262fd4b91f3f1c21a6e595d03d4ef423e16ffc99/requirements.txt",
+      "url": "https://github.com/TencentAILabHealthcare/scBERT",
+      "version": "git commit 262fd4b91f3f1c21a6e595d03d4ef423e16ffc99",
+      "media_type": "text/plain",
+      "sha256": "1c15021a9ed68e17da00d22840e04ce18e27406ce706855b58718477caa44eed",
+      "retrieved_at": "2026-11-27T02:55:10Z",
+      "store_bytes": false
+    },
+    {
+      "key": "predict",
+      "name": "TencentAILabHealthcare/scBERT predict.py at commit 262fd4b9",
+      "description": "Prediction script named in the README, pinned to a commit.",
+      "file": "artifacts/predict.py",
+      "artifact_url": "https://raw.githubusercontent.com/TencentAILabHealthcare/scBERT/262fd4b91f3f1c21a6e595d03d4ef423e16ffc99/predict.py",
+      "url": "https://github.com/TencentAILabHealthcare/scBERT",
+      "version": "git commit 262fd4b91f3f1c21a6e595d03d4ef423e16ffc99",
+      "media_type": "text/x-python",
+      "sha256": "ada38aa52090a4fa775205b1e905805e4dd62d0a12a5ed7991eafb010998fe08",
+      "retrieved_at": "2026-11-27T02:55:14Z",
+      "store_bytes": false
+    },
+    {
+      "key": "abstract",
+      "name": "Europe PMC record PPR428747: abstract of the scBERT preprint (doi 10.1101/2021.12.05.471261)",
+      "description": "Europe PMC search API response holding the preprint's title and abstract.",
+      "file": "artifacts/paper-abstract-epmc.json",
+      "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:PPR428747%20AND%20SRC:PPR&format=json&resultType=core",
+      "url": "https://europepmc.org/article/PPR/PPR428747",
+      "version": "Europe PMC core record as served on 2026-11-27",
+      "media_type": "application/json",
+      "sha256": "037d9ef133d5b09e98b5273db6f5fe4cba1e2dfe960f162c7c05062755d8fa8d",
+      "retrieved_at": "2026-11-27T02:55:10Z",
+      "store_bytes": false
+    }
+  ],
+  "profile": {
+    "summary": "scBERT is a pretrained deep language model for annotating cell types in single-cell RNA-seq data. It is first pre-trained on large amounts of unlabelled scRNA-seq data to learn gene-gene interactions, then fine-tuned on a labelled reference; the fine-tuned model takes a normalised expression profile and outputs the cell type of each cell, and can flag novel cell types by thresholding prediction confidence.",
+    "summary_source_ids": [
+      "@readme",
+      "@abstract"
+    ],
+    "summary_source_locator": "README.md: introduction, Usage; preprint abstract",
+    "summary_quotes": [
+      {
+        "source": "@readme",
+        "text": "we present a pretrained deep neural network-based model scBERT (single-cell Bidirectional Encoder Representations from Transformers)"
+      },
+      {
+        "source": "@abstract",
+        "text": "scBERT obtains a general understanding of gene-gene interaction by being pre-trained on huge amounts of unlabeled scRNA-seq data"
+      },
+      {
+        "source": "@readme",
+        "text": "The expected output of model inference is the cell type of each individual cell."
+      },
+      {
+        "source": "@readme",
+        "text": "The detection of novel cell type can be done by thresholding the predicted probabilities."
+      }
+    ],
+    "sections": [
+      {
+        "title": "How it works",
+        "body": "scBERT follows BERT's pre-train and fine-tune approach with a Performer encoder. Expression values are binned into a small number of tokens (num_tokens, default 7 in the README) and combined with a gene embedding; predict.py uses Gene2vec encoding for genes by default and a sequence of 16906 genes plus one. The default encoder has 6 layers, 10 heads and a 200-dimensional embedding. For annotation a classifier head is trained on top during fine-tuning.",
+        "source_ids": [
+          "@abstract",
+          "@readme",
+          "@predict"
+        ],
+        "source_locator": "README.md: Guidance for hyperparameter selection; predict.py; preprint abstract",
+        "quotes": [
+          {
+            "source": "@abstract",
+            "text": "Following BERT’s approach of pre-train and fine-tune"
+          },
+          {
+            "source": "@readme",
+            "text": "num_tokens    |Number of bins in expression embedding |\t7"
+          },
+          {
+            "source": "@predict",
+            "text": "help='Using Gene2vec encoding or not.'"
+          },
+          {
+            "source": "@predict",
+            "text": "parser.add_argument(\"--gene_num\", type=int, default=16906, help='Number of genes.')"
+          },
+          {
+            "source": "@predict",
+            "text": "SEQ_LEN = args.gene_num + 1"
+          },
+          {
+            "source": "@readme",
+            "text": "depth = 6,"
+          },
+          {
+            "source": "@readme",
+            "text": "heads = 10"
+          },
+          {
+            "source": "@readme",
+            "text": "dim = 200,"
+          }
+        ]
+      },
+      {
+        "title": "Versions and reproducibility",
+        "body": "One pre-trained checkpoint is offered through a Weixin Drive link, with no version label or checksum. Users fine-tune it on their own labelled data, so every annotation result depends on the fine-tuning data. predict.py sets bin_num to 5 by default and builds the model with num_tokens = bin_num + 2 = 7, which matches the README's default num_tokens of 7 (the README calls this the number of bins). A result should name the repository commit, the checkpoint source and the fine-tuning data.",
+        "source_ids": [
+          "@readme",
+          "@predict"
+        ],
+        "source_locator": "README.md: Checkpoint; predict.py",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "The pre-trained model checkpoint can be downloaded from this link."
+          },
+          {
+            "source": "@predict",
+            "text": "parser.add_argument(\"--bin_num\", type=int, default=5, help='Number of bins.')"
+          },
+          {
+            "source": "@predict",
+            "text": "CLASS = args.bin_num + 2"
+          },
+          {
+            "source": "@predict",
+            "text": "num_tokens = CLASS,"
+          },
+          {
+            "source": "@readme",
+            "text": "num_tokens    |Number of bins in expression embedding |\t7"
+          }
+        ]
+      },
+      {
+        "title": "Intended uses",
+        "body": "Cell type annotation of scRNA-seq data after fine-tuning, including detection of novel cell types; research use only, not for clinical use.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Usage, Disclaimer",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Detection of novel cell type"
+          },
+          {
+            "source": "@readme",
+            "text": "This tool is for research purpose and not approved for clinical use."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Model type",
+        "value": "Pretrained language model (BERT-style, Performer encoder) for single-cell cell type annotation.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "scBERT as a Large-scale Pretrained Deep Language Model for Cell Type Annotation of Single-cell RNA-seq Data"
+          }
+        ]
+      },
+      {
+        "label": "Architecture",
+        "value": "Performer encoder: default 6 layers, 10 heads, embedding size 200, 7 expression bins (README); Gene2vec gene encoding in predict.py.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme",
+          "@predict"
+        ],
+        "source_locator": "README.md; predict.py",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Number of Performer encoder layers     |\t6"
+          },
+          {
+            "source": "@readme",
+            "text": "Number of attention heads of Performer |\t10"
+          },
+          {
+            "source": "@readme",
+            "text": "Size of scBERT embedding vector        |\t200"
+          },
+          {
+            "source": "@predict",
+            "text": "Using Gene2vec encoding or not."
+          }
+        ]
+      },
+      {
+        "label": "Inputs",
+        "value": "scRNA-seq data with gene symbols revised against the NCBI Gene database of 10 January 2020 and normalised with scanpy normalize_total and log1p.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "revising gene symbols according to [NCBI Gene database](https://www.ncbi.nlm.nih.gov/gene) updated on Jan. 10, 2020"
+          },
+          {
+            "source": "@readme",
+            "text": "the data should be normalized with the `sc.pp.normalize_total` and `sc.pp.log1p` method"
+          }
+        ]
+      },
+      {
+        "label": "Outputs",
+        "value": "The predicted cell type of each cell; cells below a confidence threshold can be left unassigned as novel.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Expected output",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "The expected output of model inference is the cell type of each individual cell."
+          },
+          {
+            "source": "@readme",
+            "text": "(Default threshold=0.5)"
+          }
+        ]
+      },
+      {
+        "label": "Parameters",
+        "value": "Not stated in the sources read.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": []
+      },
+      {
+        "label": "Training data",
+        "value": "Unlabelled scRNA-seq data for pre-training; the sources read do not describe the corpus further. Data download links are given in the README.",
+        "status": "source_checked",
+        "source_ids": [
+          "@abstract",
+          "@readme"
+        ],
+        "source_locator": "Preprint abstract; README.md: Data",
+        "quotes": [
+          {
+            "source": "@abstract",
+            "text": "pre-trained on huge amounts of unlabeled scRNA-seq data"
+          },
+          {
+            "source": "@readme",
+            "text": "The data can be downloaded from these links."
+          }
+        ]
+      },
+      {
+        "label": "Known versions",
+        "value": "One pre-trained checkpoint, unversioned.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Checkpoint",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "The pre-trained model checkpoint can be downloaded from this link."
+          }
+        ]
+      },
+      {
+        "label": "Training cutoff",
+        "value": "Not stated. Gene symbols follow the NCBI Gene database of 10 January 2020.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "updated on Jan. 10, 2020"
+          }
+        ]
+      },
+      {
+        "label": "Context limits",
+        "value": "16906 genes plus one position (predict.py default gene_num and SEQ_LEN).",
+        "status": "source_checked",
+        "source_ids": [
+          "@predict"
+        ],
+        "source_locator": "predict.py",
+        "quotes": [
+          {
+            "source": "@predict",
+            "text": "default=16906, help='Number of genes.'"
+          },
+          {
+            "source": "@predict",
+            "text": "SEQ_LEN = args.gene_num + 1"
+          }
+        ]
+      },
+      {
+        "label": "Weights licence",
+        "value": "Not stated. The checkpoint is a Weixin Drive download with no licence text; the README says the copyright holder is Tencent AI Lab and all rights are reserved.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Checkpoint, Coypright",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "The copyright holder for this project is Tencent AI Lab."
+          },
+          {
+            "source": "@readme",
+            "text": "All rights reserved."
+          }
+        ]
+      },
+      {
+        "label": "Code licence",
+        "value": "GPL-3.0, from the repository LICENSE file. The README separately states that all rights are reserved by Tencent AI Lab.",
+        "status": "source_checked",
+        "source_ids": [
+          "@license",
+          "@readme"
+        ],
+        "source_locator": "LICENSE; README.md",
+        "quotes": [
+          {
+            "source": "@license",
+            "text": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007"
+          },
+          {
+            "source": "@readme",
+            "text": "All rights reserved."
+          }
+        ]
+      },
+      {
+        "label": "Access",
+        "value": "Code: https://github.com/TencentAILabHealthcare/scBERT. Checkpoint: https://drive.weixin.qq.com/s?k=AJEAIQdfAAoUxhXE7r (Weixin Drive).",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "https://drive.weixin.qq.com/s?k=AJEAIQdfAAoUxhXE7r"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Pre-trained on unlabelled data and then fine-tuned, so it does not depend on curated marker gene lists (authors' framing).",
+        "source_ids": [
+          "@abstract"
+        ],
+        "source_locator": "Preprint abstract",
+        "quotes": [
+          {
+            "source": "@abstract",
+            "text": "existing annotation methods typically suffer from lack of curated marker gene lists"
+          }
+        ]
+      },
+      {
+        "text": "Can flag novel cell types by thresholding prediction confidence.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "--novel_type True --unassign_thres \"custom_threshold\""
+          }
+        ]
+      },
+      {
+        "text": "Small default configuration (6 layers, embedding size 200) with documented hyperparameter ranges.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Guidance for hyperparameter selection"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Needs fine-tuning on labelled data before it annotates anything.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Fine-tune using pre-trained models"
+          }
+        ]
+      },
+      {
+        "text": "Old, pinned dependencies (torch 1.8.1, transformers 4.6.1, Python 3.6.8 badge).",
+        "source_ids": [
+          "@requirements"
+        ],
+        "source_locator": "requirements.txt; README.md",
+        "quotes": [
+          {
+            "source": "@requirements",
+            "text": "torch==1.8.1"
+          },
+          {
+            "source": "@requirements",
+            "text": "transformers==4.6.1"
+          }
+        ]
+      },
+      {
+        "text": "Checkpoint and data are on Weixin and Google Drive links with no licence or version; the README says all rights reserved.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "https://drive.weixin.qq.com/s?k=AJEAIQdfAAoUxhXE7r"
+          },
+          {
+            "source": "@readme",
+            "text": "All rights reserved."
+          }
+        ]
+      },
+      {
+        "text": "Gene symbols must be revised to a fixed 2020 NCBI Gene release, and run times are slow on a desktop (about 25 minutes for 10,000 cells, as stated).",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "updated on Jan. 10, 2020"
+          },
+          {
+            "source": "@readme",
+            "text": "Exptected run time for infering 10,000 cells on a \"normal\" desktop computer is about 25 minutes."
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "scBERT workflow",
+      "steps": [
+        "scRNA-seq counts",
+        "Revise symbols (NCBI 2020), normalise, log1p",
+        "Binned expression plus gene embedding",
+        "Performer encoder (pre-trained)",
+        "Fine-tuned classifier",
+        "Cell type per cell"
+      ],
+      "caption": "Pre-train on unlabelled cells, fine-tune on a labelled reference, predict cell types.",
+      "source_ids": [
+        "@readme",
+        "@abstract"
+      ],
+      "source_locator": "README.md: Usage; abstract",
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "the data should be normalized with the `sc.pp.normalize_total` and `sc.pp.log1p` method"
+        },
+        {
+          "source": "@abstract",
+          "text": "is transferred to the cell type annotation task"
+        },
+        {
+          "source": "@readme",
+          "text": "The expected output of model inference is the cell type of each individual cell."
+        }
+      ]
+    },
+    "coverage": "limited",
+    "gaps": [
+      "The paper full text was not read: the Nature Machine Intelligence article and the bioRxiv preprint have no open copy found in PMC; only the Europe PMC abstract was read.",
+      "Parameter count and pre-training corpus are not given in the sources read."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the TencentAILabHealthcare/scBERT README, LICENSE, requirements.txt and predict.py at commit 262fd4b91f3f1c21a6e595d03d4ef423e16ffc99, and the Europe PMC abstract record PPR428747, on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Clone the repository, install the pinned dependencies, download the pre-trained checkpoint, fine-tune on labelled data and predict cell types.",
+    "prerequisites": [
+      "Python (README badge: 3.6.8) with the pinned packages in requirements.txt.",
+      "The pre-trained checkpoint from the Weixin Drive link.",
+      "Labelled reference data and query data, preprocessed as the README describes (preprocess.py)."
+    ],
+    "steps": [
+      {
+        "title": "Get the code and install",
+        "shell": "git clone https://github.com/TencentAILabHealthcare/scBERT\ncd scBERT\ngit checkout --detach 262fd4b91f3f1c21a6e595d03d4ef423e16ffc99\n# Install the package versions shown in the README badges and pinned in requirements.txt (for example torch 1.8.1, scanpy 1.7.2, transformers 4.6.1)",
+        "explanation": "Clone and pin the reviewed commit; these lines are added by Rewire. The README gives package versions only as badges and gives no install command.",
+        "source_ids": [
+          "@readme",
+          "@requirements"
+        ],
+        "source_locator": "requirements.txt; README.md: Install",
+        "quotes": [
+          {
+            "source": "@requirements",
+            "text": "torch==1.8.1"
+          },
+          {
+            "source": "@requirements",
+            "text": "scanpy==1.7.2"
+          }
+        ]
+      },
+      {
+        "title": "Download the checkpoint",
+        "shell": "# Download the pre-trained checkpoint in a browser from https://drive.weixin.qq.com/s?k=AJEAIQdfAAoUxhXE7r",
+        "explanation": "The README gives only a Weixin Drive link.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Checkpoint",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "https://drive.weixin.qq.com/s?k=AJEAIQdfAAoUxhXE7r"
+          }
+        ]
+      },
+      {
+        "title": "Fine-tune",
+        "shell": "python -m torch.distributed.launch finetune.py --data_path \"fine-tune_data_path\" --model_path \"pretrained_model_path\"",
+        "explanation": "Replace the quoted placeholders with your labelled data and the checkpoint path. Cell type labels are written to 'label' and 'label_dict' files.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "python -m torch.distributed.launch finetune.py --data_path \"fine-tune_data_path\" --model_path \"pretrained_model_path\""
+          }
+        ]
+      },
+      {
+        "title": "Predict",
+        "shell": "python predict.py --data_path \"test_data_path\" --model_path \"finetuned_model_path\"",
+        "explanation": "Replace the placeholders with your query data and the fine-tuned model.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "python predict.py --data_path \"test_data_path\" --model_path \"finetuned_model_path\""
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "The cell type of each cell, using the labels saved during fine-tuning."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "The pinned dependencies are old and may not install on current Python versions.",
+      "The README says the demo takes about 4 hours."
+    ],
+    "source_ids": [
+      "@readme"
+    ]
+  },
+  "structured": [
+    {
+      "checkpoint": "scBERT pre-trained checkpoint",
+      "parameters": null,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "GPL-3.0",
+      "weights_licence": null,
+      "code_url": "https://github.com/TencentAILabHealthcare/scBERT",
+      "weights_url": "https://drive.weixin.qq.com/s?k=AJEAIQdfAAoUxhXE7r",
+      "gated": false,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "https://drive.weixin.qq.com/s?k=AJEAIQdfAAoUxhXE7r"
+        }
+      ]
+    }
+  ],
+  "notes": "Structured context_length is null: predict.py defaults to gene_num 16906 with SEQ_LEN = gene_num + 1, a script default rather than a stated model limit. The preprint is on bioRxiv (https://www.biorxiv.org/content/10.1101/2021.12.05.471261v1, linked from the README; not requested) and the published article is doi 10.1038/s42256-022-00534-z."
+}

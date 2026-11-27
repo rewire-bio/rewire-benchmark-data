@@ -1,0 +1,703 @@
+{
+  "record_id": "intake-348-20261121-model-scrm",
+  "sources": [
+    {
+      "key": "readme",
+      "name": "altoslabs/scRM README.md at commit 7afa21a7",
+      "description": "Official repository README, pinned to a commit.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/altoslabs/scRM/7afa21a788c8c9ee870e697e23e60954fc152c77/README.md",
+      "url": "https://github.com/altoslabs/scRM",
+      "version": "git commit 7afa21a788c8c9ee870e697e23e60954fc152c77",
+      "media_type": "text/markdown",
+      "sha256": "f4f7bdc70f5836cbb1708ea93356f40bbe97048c4ef8ec6a876115ca20cf0b9f",
+      "retrieved_at": "2026-11-27T02:59:47Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "license",
+      "name": "altoslabs/scRM LICENSE at commit 7afa21a7",
+      "description": "Licence file of the official repository, pinned to a commit.",
+      "file": "artifacts/license.txt",
+      "artifact_url": "https://raw.githubusercontent.com/altoslabs/scRM/7afa21a788c8c9ee870e697e23e60954fc152c77/LICENSE",
+      "url": "https://github.com/altoslabs/scRM",
+      "version": "git commit 7afa21a788c8c9ee870e697e23e60954fc152c77",
+      "media_type": "text/plain",
+      "sha256": "a83915e5968889793870c3d386fc1309224dab9256bf857da49c71ee4bb6b029",
+      "retrieved_at": "2026-11-27T02:59:51Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "reproduce",
+      "name": "altoslabs/scRM REPRODUCE.md at commit 7afa21a7",
+      "description": "Reproduction guide of the official repository, pinned to a commit.",
+      "file": "artifacts/reproduce.md",
+      "artifact_url": "https://raw.githubusercontent.com/altoslabs/scRM/7afa21a788c8c9ee870e697e23e60954fc152c77/REPRODUCE.md",
+      "url": "https://github.com/altoslabs/scRM",
+      "version": "git commit 7afa21a788c8c9ee870e697e23e60954fc152c77",
+      "media_type": "text/markdown",
+      "sha256": "dee2b9c99162e0ca57050b10ccaa18bf8b15fec191838581a9403d1292ca5457",
+      "retrieved_at": "2026-11-27T02:59:59Z",
+      "licence": "MIT",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "scRM (the single-cell read model) embeds single cells directly from raw sequencing reads, without a reference genome, gene annotation, count matrix or gene vocabulary. It takes paired 10x Chromium polyA FASTQ files, assembles each captured molecule from its reads, and learns a cell embedding from the base sequences; count matrices are used only as evaluation targets.",
+    "summary_source_ids": [
+      "@readme"
+    ],
+    "summary_source_locator": "README.md: introduction and Architecture",
+    "summary_quotes": [
+      {
+        "source": "@readme",
+        "text": "Cells are embedded directly from **raw sequencing bytes** (A/C/G/T): no reference genome, no gene annotation, no count matrix, no gene vocabulary, no ortholog bridge."
+      },
+      {
+        "source": "@readme",
+        "text": "Scope is 10x Chromium single-cell polyA assays"
+      },
+      {
+        "source": "@readme",
+        "text": "Count matrices are permitted on the **evaluation side only**, as prediction targets"
+      }
+    ],
+    "sections": [
+      {
+        "title": "How it works",
+        "body": "A Rust pipeline reads paired FASTQ files, trims R2, corrects cell barcodes against the CellRanger called-cell list, deduplicates UMIs without any gene partition, and assembles one consensus sequence per UMI (one captured mRNA) with a de Bruijn graph at k = 19. The molecules are written to an Arrow corpus sorted by cell and packed into windows of 16384 tokens. The Python model is hierarchical (bytes, contig, UMI, window, cell): a byte-level local transformer trunk, attention pooling at each level, and a global trunk over UMI slots, both LLaMA-style pre-norm stacks. Training combines masked base modelling, EMA-teacher terms at UMI and cell level, and a SIGReg regulariser.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Architecture",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Paired FASTQ front end (`crates/scrm-fastq`)"
+          },
+          {
+            "source": "@readme",
+            "text": "Hamming-1 correction against an **explicit list** of CellRanger-called cells"
+          },
+          {
+            "source": "@readme",
+            "text": "per cell, with **no gene partition**: there is no reference, so there are no genes"
+          },
+          {
+            "source": "@readme",
+            "text": "one UMI is one captured mRNA"
+          },
+          {
+            "source": "@readme",
+            "text": "at **k = 19**"
+          },
+          {
+            "source": "@readme",
+            "text": "`seq_len = 16384` tokens"
+          },
+          {
+            "source": "@readme",
+            "text": "the hierarchy is **bytes ⊂ contig ⊂ UMI ⊂ window ⊂ cell**"
+          },
+          {
+            "source": "@readme",
+            "text": "a LLaMA-style pre-norm stack"
+          },
+          {
+            "source": "@readme",
+            "text": "`mlm` (block-masked bases, `masking.py`), `ema_umi`, `ema_cell`, and a regularizer"
+          }
+        ]
+      },
+      {
+        "title": "Versions and reproducibility",
+        "body": "Three training arms are declared: S96, the flagship with global and local width 96, and S96ML and S96MA, mean-pooling ablations. The flagship recipe is fixed in code (arm S96, the corpora mouse_brain_5k, neuron_1k_v3, neurons_5k and sod1_spinal_cord, lambda 0.0196, seed 20260903, 8947 steps, 3000 training cells). Window length moves only on a ladder of 16384, 32768 and 49152 tokens, and runs at different rungs are different experiments. Checkpoints record the architecture hash and the regulariser. The sources do not offer a pretrained scRM checkpoint for download; the README's evaluation reads a checkpoint produced by training. A result should name the run, the arm, the seq_len rung and the commit.",
+        "source_ids": [
+          "@readme",
+          "@reproduce"
+        ],
+        "source_locator": "README.md: Training arms; REPRODUCE.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "`--arm {S96,S96ML,S96MA}`. **S96** is the flagship (`dim_global = dim_local = 96`"
+          },
+          {
+            "source": "@reproduce",
+            "text": "LAMB=0.0196 REGULARIZER=sigreg SEED=20260903 STEPS=8947 TRAIN_CELLS=3000 TRAIN_FRAC=1.0"
+          },
+          {
+            "source": "@readme",
+            "text": "`SEQ_LEN_OPTIONS = (16384, 32768, 49152)`"
+          },
+          {
+            "source": "@readme",
+            "text": "Runs at different rungs are different experiments and their curves are not comparable."
+          },
+          {
+            "source": "@readme",
+            "text": "--checkpoint runs/armS96-c3k-sigreg-lam002/latest.pt --arm S96"
+          }
+        ]
+      },
+      {
+        "title": "Intended uses",
+        "body": "Reference-free cell embeddings from raw reads (the paper's cross-species panels use rhesus monkey and rat corpora for training), scored against count-based controls and count foundation-model baselines on held-out datasets.",
+        "source_ids": [
+          "@reproduce",
+          "@readme"
+        ],
+        "source_locator": "README.md; REPRODUCE.md: The cross-species panels",
+        "quotes": [
+          {
+            "source": "@reproduce",
+            "text": "`2500_rhesus_monkey_...` and `2500_wistar_rat_...` are two rows of `model/jobs/corpora.tsv`"
+          },
+          {
+            "source": "@readme",
+            "text": "embed a checkpoint over ONE held-out dataset and score it against the controls + count-FM panel"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Model type",
+        "value": "Reference-free single-cell embedding model trained on raw read sequences.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "the single-cell read model"
+          }
+        ]
+      },
+      {
+        "label": "Architecture",
+        "value": "Hierarchical byte-level transformer: local trunk, attention pooling over contigs, UMIs, windows and views, and a global trunk over UMI slots (LLaMA-style pre-norm, RMSNorm, SwiGLU). Flagship width 96.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Architecture, Training arms",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "A byte-level local trunk, then one masked `SegmentAttentionPool` per level"
+          },
+          {
+            "source": "@readme",
+            "text": "`nn.RMSNorm`, `F.silu` over three `nn.Linear` for SwiGLU"
+          },
+          {
+            "source": "@readme",
+            "text": "`dim_global = dim_local = 96`"
+          }
+        ]
+      },
+      {
+        "label": "Inputs",
+        "value": "Paired gzipped FASTQ from 10x Chromium polyA assays, a samplesheet with an FGDL geometry string and the CellRanger called-cell barcode list.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Building the corpus",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "experiment,r1,r2,barcodes,geometry"
+          },
+          {
+            "source": "@readme",
+            "text": "`geometry` is an FGDL string, not a chemistry name"
+          }
+        ]
+      },
+      {
+        "label": "Outputs",
+        "value": "A per-window embedding artifact with a provenance stamp; cell embeddings come from offline window-to-cell reductions (mean, median, max, l2_mean, first).",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Architecture item 11; Training, embedding, scoring",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "the embedding artifact is **per window** and carries a stamp that cannot be omitted"
+          },
+          {
+            "source": "@readme",
+            "text": "Window→cell reductions are named in every report: `mean`, `median`, `max`, `l2_mean`, `first`."
+          }
+        ]
+      },
+      {
+        "label": "Parameters",
+        "value": "Not stated in the sources read.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": []
+      },
+      {
+        "label": "Training data",
+        "value": "The flagship trains on four corpora (mouse_brain_5k, neuron_1k_v3, neurons_5k, sod1_spinal_cord) with 3000 training cells. The paper's scope is twenty corpora.",
+        "status": "source_checked",
+        "source_ids": [
+          "@reproduce"
+        ],
+        "source_locator": "REPRODUCE.md",
+        "quotes": [
+          {
+            "source": "@reproduce",
+            "text": "ARM=S96 CORPORA='mouse_brain_5k neuron_1k_v3 neurons_5k sod1_spinal_cord'"
+          },
+          {
+            "source": "@reproduce",
+            "text": "The paper's scope is twenty corpora."
+          }
+        ]
+      },
+      {
+        "label": "Known versions",
+        "value": "Arms S96 (flagship), S96ML and S96MA; the README and REPRODUCE.md offer no checkpoint download.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Training arms",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "There are **three**, and `train.py --help` prints exactly that set"
+          }
+        ]
+      },
+      {
+        "label": "Training cutoff",
+        "value": "Not applicable: the model is trained on fixed public 10x corpora pinned by digest.",
+        "status": "inapplicable",
+        "source_ids": [
+          "@reproduce"
+        ],
+        "source_locator": "REPRODUCE.md",
+        "quotes": []
+      },
+      {
+        "label": "Context limits",
+        "value": "16384 tokens per window by default (ladder 16384, 32768, 49152); molecules up to 1600 bases (max_umi_len).",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "`seq_len = 16384` tokens"
+          },
+          {
+            "source": "@readme",
+            "text": "`max_umi_len = 1600` is a tenth of `seq_len`"
+          }
+        ]
+      },
+      {
+        "label": "Weights licence",
+        "value": "Unavailable: the README and REPRODUCE.md offer no scRM checkpoint download. Third-party baseline weights are not redistributed.",
+        "status": "unavailable",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: License; REPRODUCE.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "**Those weights are not redistributed here**"
+          }
+        ]
+      },
+      {
+        "label": "Code licence",
+        "value": "MIT, from the repository LICENSE (copyright 2026 Altos Labs, Inc.).",
+        "status": "source_checked",
+        "source_ids": [
+          "@license"
+        ],
+        "source_locator": "LICENSE; README.md",
+        "quotes": [
+          {
+            "source": "@license",
+            "text": "MIT License"
+          },
+          {
+            "source": "@license",
+            "text": "Copyright (c) 2026 Altos Labs, Inc."
+          }
+        ]
+      },
+      {
+        "label": "Access",
+        "value": "Code: https://github.com/altoslabs/scRM, built from source with cargo and pip. The README and REPRODUCE.md offer no pretrained weights for download.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Install",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "cargo build --release"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Needs no reference genome, annotation or gene vocabulary, so the same pipeline applies across species.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "no reference genome, no gene annotation, no count matrix, no gene vocabulary, no ortholog bridge"
+          }
+        ]
+      },
+      {
+        "text": "Strong provenance: corpora pinned by digest, stamped artifacts and checks that refuse mismatched inputs.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md; REPRODUCE.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "`verify` walks the shards on disk and checks them against the manifest."
+          }
+        ]
+      },
+      {
+        "text": "MIT-licensed code with a scripted reproduction of the paper's numbers (stages 0 to 5 need nothing private).",
+        "source_ids": [
+          "@reproduce"
+        ],
+        "source_locator": "LICENSE; REPRODUCE.md",
+        "quotes": [
+          {
+            "source": "@reproduce",
+            "text": "stages 0–5 need nothing private"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The README and REPRODUCE.md offer no pretrained weights; users build corpora and train.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md; REPRODUCE.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "python -m scrm_model.train"
+          }
+        ]
+      },
+      {
+        "text": "Limited to 10x Chromium single-cell polyA assays; Flex and spatial are out of scope.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "probe-based (Flex) and spatial are out of scope"
+          }
+        ]
+      },
+      {
+        "text": "Heavy compute and storage: about 350 GB of reads become about 141 GB of corpus for the 20 datasets, and embedding took about 4h50 on 8-9 H100s; workflows assume Slurm.",
+        "source_ids": [
+          "@reproduce"
+        ],
+        "source_locator": "REPRODUCE.md: Measured costs",
+        "quotes": [
+          {
+            "source": "@reproduce",
+            "text": "~350 GB of reads → ~141 GB of corpus for the 20"
+          },
+          {
+            "source": "@reproduce",
+            "text": "~4h50 wall at 8–9 concurrent H100s"
+          },
+          {
+            "source": "@reproduce",
+            "text": "It submits to Slurm"
+          }
+        ]
+      },
+      {
+        "text": "The paper is in a private repository, so its typeset results cannot be rebuilt publicly.",
+        "source_ids": [
+          "@reproduce"
+        ],
+        "source_locator": "REPRODUCE.md",
+        "quotes": [
+          {
+            "source": "@reproduce",
+            "text": "a separate, **private** repository holding `main.tex`"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "scRM workflow",
+      "steps": [
+        "Paired 10x FASTQ",
+        "Trim, barcode correction, UMI dedup",
+        "Per-UMI assembly (k = 19)",
+        "Arrow corpus, 16384-token windows",
+        "Hierarchical byte transformer",
+        "Per-window embeddings, reduced to cells"
+      ],
+      "caption": "Reads become assembled molecules, then windows of bases, then cell embeddings.",
+      "source_ids": [
+        "@readme"
+      ],
+      "source_locator": "README.md: Architecture",
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "Per-molecule assembly (`crates/scrm-asm`)"
+        },
+        {
+          "source": "@readme",
+          "text": "`seq_len = 16384` tokens"
+        },
+        {
+          "source": "@readme",
+          "text": "the embedding artifact is **per window**"
+        }
+      ]
+    },
+    "coverage": "limited",
+    "gaps": [
+      "The paper is not public (REPRODUCE.md says it is in a private repository), so only the README and REPRODUCE.md were read.",
+      "No parameter count is stated.",
+      "The README and REPRODUCE.md offer no pretrained checkpoint download."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the altoslabs/scRM README.md, LICENSE and REPRODUCE.md at commit 7afa21a788c8c9ee870e697e23e60954fc152c77, on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Build scRM from source, build a corpus from paired FASTQ files and train the flagship model; the README and REPRODUCE.md offer no pretrained checkpoint to download.",
+    "prerequisites": [
+      "Rust 1.85 or newer and Python 3.11 or newer.",
+      "Paired 10x Chromium polyA FASTQ files, a CellRanger called-cell barcode list and a samplesheet CSV.",
+      "A GPU cluster for training; the reproduction scripts assume Slurm."
+    ],
+    "steps": [
+      {
+        "title": "Get the code and build",
+        "shell": "git clone https://github.com/altoslabs/scRM\ncd scRM\ngit checkout --detach 7afa21a788c8c9ee870e697e23e60954fc152c77\npip install -r requirements.txt\ncargo build --release\ncargo build --release -p scrm-py && mkdir -p target/py \\\n  && cp target/release/libscrm_py.so target/py/scrm_py.so",
+        "explanation": "The README's install commands; the clone and checkout lines are added by Rewire to pin the reviewed commit.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Install",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "pip install -r requirements.txt"
+          },
+          {
+            "source": "@readme",
+            "text": "cargo build --release -p scrm-py && mkdir -p target/py"
+          },
+          {
+            "source": "@readme",
+            "text": "cp target/release/libscrm_py.so target/py/scrm_py.so"
+          }
+        ]
+      },
+      {
+        "title": "Build a corpus",
+        "shell": "target/release/scrm-corpus \\\n    --samplesheet <your samplesheet.csv> \\\n    --out $SCRM_PROJ/corpus_rel \\\n    --threads 32",
+        "explanation": "Replace the samplesheet and set SCRM_PROJ to your data root. This is the README's build command with one change: the README example writes to $SCRM_PROJ/corpus_v3, which REPRODUCE.md calls the predecessor root, while the release's corpus root is $SCRM_PROJ/corpus_rel, so --out points there. Each experiment is built into its own folder under --out and manifest.json is written last. The training launcher refuses a corpus that is not in the pinned digest file, so for the flagship the four pretraining corpora must match the pinned digests; REPRODUCE.md builds them with the per-dataset launchers that ./reproduce.sh --dry-run 2 prints, and the saved files do not say whether this direct command reproduces those digests.",
+        "source_ids": [
+          "@readme",
+          "@reproduce"
+        ],
+        "source_locator": "README.md: Building the corpus; REPRODUCE.md: What this release can reproduce today, From a clean clone to the tables",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "--samplesheet <your samplesheet.csv>"
+          },
+          {
+            "source": "@readme",
+            "text": "--out $SCRM_PROJ/corpus_v3"
+          },
+          {
+            "source": "@readme",
+            "text": "--threads 32"
+          },
+          {
+            "source": "@readme",
+            "text": "Each experiment is built into `<out>/<experiment>/`"
+          },
+          {
+            "source": "@reproduce",
+            "text": "is the release's corpus root, and it is `reproduce.sh`'s default."
+          },
+          {
+            "source": "@reproduce",
+            "text": "The predecessor root `corpus_v3` is not: its twenty corpora were built before trimming moved into the builder"
+          },
+          {
+            "source": "@reproduce",
+            "text": "export SCRM_CORPUS_ROOT=$SCRM_PROJ/corpus_rel      # the release's root; not $SCRM_PROJ/corpus"
+          },
+          {
+            "source": "@reproduce",
+            "text": "a corpus not in `expected_stream_digests.json`"
+          },
+          {
+            "source": "@reproduce",
+            "text": "`--dry-run 2` print the fetch and build launcher for every dataset"
+          }
+        ]
+      },
+      {
+        "title": "Train the flagship",
+        "shell": "export SCRM_PROJ=/path/to/data-root\nexport SCRM_PY=/path/to/envs/scrm/bin/python\nexport SCRM_CORPUS_ROOT=$SCRM_PROJ/corpus_rel\nexport SCRM_REPO=$PWD\nexport SBATCH_PARTITION=<partition>\nexport SBATCH_ACCOUNT=<account>\nexport PYTHONPATH=model:eval:target/py\n$SCRM_PY -m scrm_eval.registry --recipe armS96-c3k-sigreg-lam002-s20260903\nsbatch model/jobs/arm_ablation.sbatch armS96-c3k-sigreg-lam002-s20260903",
+        "explanation": "REPRODUCE.md's hand path for the reported flagship, armS96-c3k-sigreg-lam002-s20260903 (seed 20260903). The registry command prints the recipe the launcher will use (the four pretraining corpora, seed 20260903, 8947 steps); the launcher writes $SCRM_PROJ/runs/<run>/latest.pt. SCRM_CORPUS_ROOT must be set because every launcher defaults to $SCRM_PROJ/corpus and arm_ablation.sbatch refuses against it. The README instead gives a direct python -m scrm_model.train command that reads $SCRM_PROJ/corpus/... and writes runs/armS96-c3k-sigreg-lam002; REPRODUCE.md gives that name to the seed-floor run (seed 20260817), while the README says train.py's defaults, including --seed, are the flagship's. The saved files do not settle which seed that README command would produce, so this step follows REPRODUCE.md.",
+        "source_ids": [
+          "@reproduce",
+          "@readme"
+        ],
+        "source_locator": "REPRODUCE.md: From a clean clone to the tables, step 4; README.md: Training arms, Training, embedding, scoring",
+        "quotes": [
+          {
+            "source": "@reproduce",
+            "text": "export SCRM_PY=/path/to/envs/scrm/bin/python"
+          },
+          {
+            "source": "@reproduce",
+            "text": "export SCRM_CORPUS_ROOT=$SCRM_PROJ/corpus_rel      # the release's root; not $SCRM_PROJ/corpus"
+          },
+          {
+            "source": "@reproduce",
+            "text": "export SCRM_REPO=$PWD"
+          },
+          {
+            "source": "@reproduce",
+            "text": "export SBATCH_PARTITION=<partition>"
+          },
+          {
+            "source": "@reproduce",
+            "text": "export SBATCH_ACCOUNT=<account>"
+          },
+          {
+            "source": "@reproduce",
+            "text": "export PYTHONPATH=model:eval:target/py"
+          },
+          {
+            "source": "@reproduce",
+            "text": "$SCRM_PY -m scrm_eval.registry --recipe armS96-c3k-sigreg-lam002-s20260903"
+          },
+          {
+            "source": "@reproduce",
+            "text": "sbatch model/jobs/arm_ablation.sbatch armS96-c3k-sigreg-lam002-s20260903"
+          },
+          {
+            "source": "@reproduce",
+            "text": "| `armS96-c3k-sigreg-lam002-s20260903` | the reported flagship (`registry.FLAGSHIP`), seed 20260903 |"
+          },
+          {
+            "source": "@reproduce",
+            "text": "| `armS96-c3k-sigreg-lam002` | the same recipe at seed 20260817"
+          },
+          {
+            "source": "@reproduce",
+            "text": "ARM=S96 CORPORA='mouse_brain_5k neuron_1k_v3 neurons_5k sod1_spinal_cord'"
+          },
+          {
+            "source": "@reproduce",
+            "text": "LAMB=0.0196 REGULARIZER=sigreg SEED=20260903 STEPS=8947 TRAIN_CELLS=3000 TRAIN_FRAC=1.0"
+          },
+          {
+            "source": "@reproduce",
+            "text": "every launcher's own default is `$SCRM_PROJ/corpus`, and `arm_ablation.sbatch` will refuse with \"has no manifest\" against it."
+          },
+          {
+            "source": "@reproduce",
+            "text": "$SCRM_PROJ/runs/<run>/latest.pt"
+          },
+          {
+            "source": "@readme",
+            "text": "--corpus $SCRM_PROJ/corpus/{mouse_brain_5k,neuron_1k_v3,neurons_5k,sod1_spinal_cord}"
+          },
+          {
+            "source": "@readme",
+            "text": "--token-passes 1 --out runs/armS96-c3k-sigreg-lam002"
+          },
+          {
+            "source": "@readme",
+            "text": "**Every `train.py` default that names a training choice is the flagship's**"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "A training run directory, $SCRM_PROJ/runs/armS96-c3k-sigreg-lam002-s20260903/ with latest.pt. The README's run_eval example reads runs/armS96-c3k-sigreg-lam002/latest.pt, the name REPRODUCE.md gives to the seed-floor run, so point --checkpoint at the run you trained."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "Training data must be built first; REPRODUCE.md describes the full pipeline and its costs."
+    ],
+    "source_ids": [
+      "@readme",
+      "@reproduce"
+    ]
+  },
+  "structured": [
+    {
+      "checkpoint": "scRM S96 (flagship arm; no download offered)",
+      "parameters": null,
+      "context_length": 16384,
+      "context_unit": "tokens",
+      "code_licence": "MIT",
+      "weights_licence": null,
+      "code_url": "https://github.com/altoslabs/scRM",
+      "weights_url": null,
+      "gated": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "`seq_len = 16384` tokens"
+        }
+      ]
+    }
+  ],
+  "notes": "context_unit is tokens; scRM tokens are sequence bytes (A/C/G/T plus separators), so 16384 tokens is not a gene count. No paper is public; REPRODUCE.md names a private paper repository."
+}

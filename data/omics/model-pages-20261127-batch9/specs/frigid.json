@@ -1,0 +1,741 @@
+{
+ "record_id": "lit-otheromics-20261011-msgwild-model-frigid",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "coleygroup/FRIGID README.md at commit 5adba44b",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/coleygroup/FRIGID/5adba44b643e444b5b28e54645ce8dde11df2437/README.md",
+   "url": "https://github.com/coleygroup/FRIGID",
+   "version": "git commit 5adba44b643e444b5b28e54645ce8dde11df2437",
+   "media_type": "text/markdown",
+   "sha256": "2bbea3e7110c37b419cab7708afd37b818a329e65637e3a3c60e877788ed8a47",
+   "retrieved_at": "2026-11-27T02:42:42Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "coleygroup/FRIGID LICENSE/license_code.txt at commit 5adba44b",
+   "description": "Code licence file of the official repository (in the LICENSE folder), pinned to a commit.",
+   "file": "artifacts/license-code.txt",
+   "artifact_url": "https://raw.githubusercontent.com/coleygroup/FRIGID/5adba44b643e444b5b28e54645ce8dde11df2437/LICENSE/license_code.txt",
+   "url": "https://github.com/coleygroup/FRIGID",
+   "version": "git commit 5adba44b643e444b5b28e54645ce8dde11df2437",
+   "media_type": "text/plain",
+   "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+   "retrieved_at": "2026-11-27T02:42:58Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 23543494 (FRIGID checkpoints, updated), API response",
+   "description": "Zenodo API response for the record the README names for pretrained FRIGID decoders and ICEBERG models.",
+   "file": "artifacts/zenodo-frigid.json",
+   "artifact_url": "https://zenodo.org/api/records/23543494",
+   "url": "https://zenodo.org/records/23543494",
+   "version": "Zenodo record 23543494, as served on 2026-11-27",
+   "media_type": "application/json",
+   "sha256": "95c6d56eeefc4e1b310a14de7317fa7db40bb5e0b2732695d7642d4bca332d7a",
+   "retrieved_at": "2026-11-27T02:42:59Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper-abs",
+   "name": "arXiv 2604.16648 abstract page (Bohde, Liu et al., FRIGID)",
+   "description": "arXiv abstract page of the FRIGID paper.",
+   "file": "artifacts/paper-abs.html",
+   "artifact_url": "https://arxiv.org/abs/2604.16648",
+   "url": "https://arxiv.org/abs/2604.16648",
+   "version": "arXiv 2604.16648, latest version as served on 2026-11-27",
+   "media_type": "text/html",
+   "sha256": "75ad566f2c32206f0d6e3e39245cc9be77a808f8ffad0bb218f0ace4ae8b0a27",
+   "retrieved_at": "2026-11-27T02:42:59Z",
+   "store_bytes": false
+  },
+  {
+   "key": "paper",
+   "name": "arXiv 2604.16648v3 full text, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of the FRIGID paper (v3, 25 Oct 2026).",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2604.16648",
+   "url": "https://arxiv.org/abs/2604.16648",
+   "version": "arXiv 2604.16648v3",
+   "media_type": "text/plain",
+   "sha256": "3a04aeb9d67530c0001a2e6fd2f051a7b8741e344b86ca0b3d00bf5375085d7f",
+   "retrieved_at": "2026-11-27T02:43:03Z",
+   "store_bytes": false
+  },
+  {
+   "key": "msgwild",
+   "name": "MassSpecGym in the Wild, arXiv 2606.19624v1, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of the MassSpecGym in the Wild paper, which re-evaluated FRIGID.",
+   "file": "artifacts/msgwild-v1.txt",
+   "artifact_url": "https://arxiv.org/pdf/2606.19624v1",
+   "url": "https://arxiv.org/abs/2606.19624v1",
+   "version": "arXiv 2606.19624v1",
+   "media_type": "text/plain",
+   "sha256": "90139d4bf7f7bc38f7b01df0194ae4207b9a805723322b5a6d82edf25d6a7701",
+   "retrieved_at": "2026-11-27T02:24:43Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "FRIGID generates candidate molecular structures from a tandem mass spectrum (de novo structure elucidation). A MIST encoder predicts a molecular fingerprint from the spectrum, and a masked diffusion language model generates molecules as SAFE strings conditioned on that fingerprint and the chemical formula. An optional refinement loop simulates spectra of the candidates with the ICEBERG forward model and re-generates the parts that do not match.",
+  "summary_source_ids": [
+   "@readme"
+  ],
+  "summary_source_locator": "README.md: introduction, Overview",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "**FRIGID** is a diffusion language model (DLM) framework for *de novo* structural elucidation from tandem mass spectra (MS/MS)."
+   },
+   {
+    "source": "@readme",
+    "text": "Given an observed spectrum, FRIGID generates molecular structures as SAFE sequences conditioned on intermediate fingerprint representations and chemical formulae, with optional iterative refinement guided by a forward fragmentation model (ICEBERG)."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Stage 1 (FRIGID-base): a MIST encoder predicts a 4096-bit radius-2 Morgan fingerprint; its active bits are embedded and passed through 3 self-attention layers, and the precursor formula is encoded as per-element counts; both enter every Transformer block through cross-attention. The backbone is a 12-layer BERT-style masked diffusion language model (hidden size 896, 14 heads) over BPE-tokenised SAFE strings, and an NGBoost model predicts the sequence length from the formula. Stage 2: candidates are ranked against the predicted fingerprint, ICEBERG simulates their spectra, peaks that appear in simulation but not in the experiment flag inconsistent atoms, and those tokens are re-masked and re-denoised over several rounds. The code is adapted from NVIDIA's GenMol.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: How It Works, Model Architecture Details",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "MIST encoder predicts a 4096-bit radius-2 Morgan fingerprint from the spectrum. Active bit indices are embedded and processed through 3 self-attention layers, then injected via cross-attention into every Transformer block."
+     },
+     {
+      "source": "@readme",
+      "text": "The precursor chemical formula (inferred from MS1) is encoded as a per-element count embedding sequence"
+     },
+     {
+      "source": "@readme",
+      "text": "The model evaluated in the paper uses a 12-layer BERT Transformer (hidden size 896, 14 heads, FFN dimension 3072)"
+     },
+     {
+      "source": "@readme",
+      "text": "An NGBoost model predicts the distribution of SAFE token lengths for a given formula"
+     },
+     {
+      "source": "@readme",
+      "text": "peaks present in simulation but absent in experiment are flagged as *hallucinations*."
+     },
+     {
+      "source": "@readme",
+      "text": "The FRIGID codebase is adapted from [GenMol](https://github.com/NVIDIA-Digital-Bio/genmol)."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The README reports that earlier MIST encoders for MassSpecGym were trained with synthetic spectra of PubChem molecules chosen to resemble test formulas, which used test-set information. The encoders were replaced (MIST 2M-aug for NPLIB1, MIST 4M-aug for MassSpecGym), the evaluations repeated, and the earlier results marked as superseded: for example FRIGID on MassSpecGym fell from 18.29% to 9.05% top-1 accuracy. The updated release (Zenodo record 23543494, 2026-10-21, Apache 2.0) holds DLM.ckpt and four ICEBERG checkpoints; MIST encoders come from a separate Zenodo record. The paper read is arXiv v3 (25 Oct 2026). A result should state which MIST encoder was used, whether refinement was applied and how many rounds.",
+    "source_ids": [
+     "@readme",
+     "@zenodo",
+     "@paper"
+    ],
+    "source_locator": "README.md: Important note, Results, Data and checkpoint setup; Zenodo record; paper",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "In the previous release, MIST training for MassSpecGym used synthetic spectra of PubChem molecules selected to match or resemble the chemical formulae of test molecules. Although exact test structures were excluded, this selection still used test-set information."
+     },
+     {
+      "source": "@readme",
+      "text": "The revised results supersede those previously reported; both are presented"
+     },
+     {
+      "source": "@readme",
+      "text": "| **FRIGID** | **9.05%** |"
+     },
+     {
+      "source": "@readme",
+      "text": "| *FRIGID (previous)* | ~~18.29%~~ |"
+     },
+     {
+      "source": "@readme",
+      "text": "The FRIGID archive contains `frigid_pretrained_checkpoints/DLM.ckpt` and four ICEBERG checkpoints"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"publication_date\": \"2026-10-21\""
+     },
+     {
+      "source": "@paper",
+      "text": "arXiv:2604.16648v3 [cs.LG] 25 Oct 2026"
+     }
+    ]
+   },
+   {
+    "title": "Use in benchmarks",
+    "body": "MassSpecGym in the Wild (an existing source on this record) lists FRIGID in its updated MassSpecGym de novo leaderboard with 18.29% top-1 accuracy, the figure the FRIGID README now marks as previous and superseded, and also evaluates FRIGID for generative retrieval. For its own augmentation experiments it trained MIST encoders with a modified MIST implementation that it links to the MIST-FRIGID branch of the FRIGID repository.",
+    "source_ids": [
+     "@msgwild",
+     "lit-otheromics-20261011-msgwild-source-liu2026"
+    ],
+    "source_locator": "MassSpecGym in the Wild: Table 2, Table 9, Appendix A.2",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "FRIGID (generative retrieval) [43]"
+     },
+     {
+      "source": "@msgwild",
+      "text": "using a modified version of the original samgoldman97/mist implementation8 that supports forward-simulation data augmentation."
+     },
+     {
+      "source": "@msgwild",
+      "text": "https://github.com/coleygroup/FRIGID/tree/MIST-FRIGID"
+     },
+     {
+      "source": "@msgwild",
+      "text": "10.73% 31.75% 18.29%"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Conditional generative model: masked diffusion language model for de novo molecule generation from MS/MS, with optional forward-model-guided refinement.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Key contributions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "A masked diffusion language model (MDLM) that generates SAFE molecular strings conditioned on predicted Morgan fingerprints (via MIST) and chemical formulae (via cross-attention)."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "12-layer BERT MDLM (d=896, 14 heads) with cross-attention to fingerprint and formula encoders; MIST fingerprint encoder; NGBoost length model; ICEBERG forward model for refinement.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Model Architecture Details",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| Backbone | BERT, 12 layers, d=896, H=14 |"
+     },
+     {
+      "source": "@readme",
+      "text": "| Cross-attention | Shared pathway for formula + fingerprint |"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "An MS/MS spectrum (converted to a fingerprint by MIST) and the precursor chemical formula.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: How It Works",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The precursor chemical formula (inferred from MS1)"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Candidate molecular structures as SAFE sequences, a growing pool of unique candidates when refinement is used.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Repeat for R rounds, accumulating a growing pool of unique candidates."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "247.0M (FRIGID-base decoder), as given in the README table and the paper.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Model Architecture Details; paper Table 2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| Total parameters | 247.0M |"
+     },
+     {
+      "source": "@paper",
+      "text": "Despite using an architecture with 247.0M parameters"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Decoder pretraining on up to 230 million unlabeled structures as SAFE sequences (datamol-io/safe-gpt on Hugging Face), with test and validation InChIKeys excluded. MIST and ICEBERG are trained on the NPLIB1 or MassSpecGym training splits; the revised MIST encoders also use GLACIER spectra for 2 million sampled PubChem molecules or the official 4 million MassSpecGym molecules.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Trained on up to 230 million unlabeled structures"
+     },
+     {
+      "source": "@readme",
+      "text": "SAFE pretraining uses `datamol-io/safe-gpt` on Hugging Face"
+     },
+     {
+      "source": "@readme",
+      "text": "Separate ICEBERG models are trained on the training split of each benchmark to avoid leakage."
+     },
+     {
+      "source": "@readme",
+      "text": "augmented with GLACIER spectra for 2 million sampled PubChem molecules and the official 4 million MassSpecGym molecules."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Updated release: DLM.ckpt plus iceberg_canopus_model1/2 and iceberg_msg_model1/2 in frigid_pretrained_checkpoints.tar.gz; MIST encoders mist_canopus_aug and mist_msg_aug used in the benchmark examples. Earlier results with the previous MIST encoders are superseded.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@zenodo"
+    ],
+    "source_locator": "README.md: Data and checkpoint setup; Zenodo record",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Use `iceberg_canopus_model1.ckpt` / `iceberg_canopus_model2.ckpt` for CANOPUS and `iceberg_msg_model1.ckpt` / `iceberg_msg_model2.ckpt` for MassSpecGym"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"frigid_pretrained_checkpoints.tar.gz\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "(Updated)"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md; paper",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "256 tokens (maximum SAFE token length); formula encoder covers 30 elements.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Model Architecture Details",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| Max token length | 256 |"
+     },
+     {
+      "source": "@readme",
+      "text": "| Formula encoder | Per-element count embedding (30 elements) |"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Apache-2.0, as declared on Zenodo record 23543494, which holds the FRIGID and ICEBERG checkpoints.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record metadata",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"apache2.0\"}"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0, per LICENSE/license_code.txt and the README; the LICENSE folder also holds third-party licences.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE/license_code.txt; README.md: License",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Apache License Version 2.0, January 2004"
+     },
+     {
+      "source": "@readme",
+      "text": "FRIGID is released under the [Apache 2.0](LICENSE/license_code.txt) license."
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/coleygroup/FRIGID (with the ms-pred submodule). Checkpoints: https://zenodo.org/records/23543494. MIST encoders: https://zenodo.org/records/23303289. Paper: https://arxiv.org/abs/2604.16648.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "wget https://zenodo.org/records/23543494/files/frigid_pretrained_checkpoints.tar.gz"
+     },
+     {
+      "source": "@readme",
+      "text": "MIST encoder checkpoints are available [here](https://zenodo.org/records/23303289)"
+     },
+     {
+      "source": "@readme",
+      "text": "https://arxiv.org/abs/2604.16648"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The authors corrected their own results after finding test-set information in the earlier MIST training, and publish both old and revised figures.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Important note, Results",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Rows marked *previous* are retained for transparency and shown with strikethrough; they are superseded by the revised comparison."
+     }
+    ]
+   },
+   {
+    "text": "Code and checkpoints are Apache-2.0, with commands for the benchmark and the refinement pipeline.",
+    "source_ids": [
+     "@zenodo",
+     "@readme"
+    ],
+    "source_locator": "README.md; Zenodo record",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"apache2.0\"}"
+     },
+     {
+      "source": "@readme",
+      "text": "python scripts/spec2mol_scaling.py"
+     }
+    ]
+   },
+   {
+    "text": "The authors report FRIGID-base is 20 times faster than DiffMS on NPLIB1 (6.58 versus 131.2 seconds per spectrum on one NVIDIA 6000 Ada GPU).",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Results",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "On NPLIB1, **FRIGID-base is 20× faster than DiffMS** (6.58 versus 131.2 seconds per spectrum on a single NVIDIA 6000 Ada GPU)."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Needs the chemical formula and a separately downloaded MIST encoder; performance depends on the encoder, and the revised encoders roughly halved the reported MassSpecGym accuracy.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "MIST encoders are downloaded separately from the coleygroup/MIST release."
+     },
+     {
+      "source": "@readme",
+      "text": "| **FRIGID** | **9.05%** |"
+     }
+    ]
+   },
+   {
+    "text": "The checkpoint archive lacks the NGBoost token-length models, which FRIGID-base requires; they must be trained first.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Data and checkpoint setup",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The FRIGID archive does not contain benchmark datasets, SAFE pretraining data, or NGBoost token-length models."
+     },
+     {
+      "source": "@readme",
+      "text": "FRIGID-base requires an NGBoost model to predict SAFE sequence lengths from molecular formulae."
+     }
+    ]
+   },
+   {
+    "text": "Benchmark figures cited elsewhere may be the superseded ones; MassSpecGym in the Wild lists 18.29%, which the README now marks as previous.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "MassSpecGym in the Wild Table 9; README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| *FRIGID (previous)* | ~~18.29%~~ |"
+     }
+    ]
+   },
+   {
+    "text": "Large downloads: the checkpoint archive is about 2.6 GB.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"size\": 2614091122"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "FRIGID workflow",
+   "steps": [
+    "MS/MS spectrum and formula",
+    "MIST fingerprint prediction",
+    "Diffusion language model generates SAFE strings",
+    "ICEBERG simulates candidate spectra",
+    "Re-mask inconsistent parts",
+    "Candidate molecules"
+   ],
+   "caption": "Refinement rounds (the last three steps) are optional; FRIGID-base stops after the first generation.",
+   "source_ids": [
+    "@readme"
+   ],
+   "source_locator": "README.md figure caption and Stage 2",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "(a) FRIGID-base: Spectrum → fingerprint (MIST) + formula → diffusion decoder. (b) ICEBERG-guided inference-time refinement."
+    },
+    {
+     "source": "@readme",
+     "text": "Randomly remask inconsistent tokens and re-denoise with FRIGID-base to produce refined candidates."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The configs and token_models README were not read.",
+   "The MIST encoder Zenodo record was not read.",
+   "The paper text read is v3; the MassSpecGym in the Wild figures come from an earlier FRIGID version."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read README.md and LICENSE/license_code.txt of coleygroup/FRIGID at commit 5adba44b643e444b5b28e54645ce8dde11df2437, Zenodo record 23543494, the arXiv 2604.16648 abstract page and the v3 PDF text layer, and the MassSpecGym in the Wild arXiv 2606.19624v1 text layer, all on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install FRIGID with its ICEBERG submodule, download the benchmark data and checkpoints, train a token-length model and run the MassSpecGym benchmark with FRIGID-base.",
+  "prerequisites": [
+   "conda; Python 3.10.",
+   "A GPU (the authors timed inference on an NVIDIA 6000 Ada).",
+   "wget and about 2.6 GB for the checkpoint archive, plus the MIST encoders and benchmark data."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone --recurse-submodules https://github.com/coleygroup/FRIGID.git\ncd FRIGID\ngit checkout --detach 5adba44b643e444b5b28e54645ce8dde11df2437\ngit submodule update --init --recursive",
+    "explanation": "The README's clone command has a placeholder URL; Rewire filled in the repository URL and added the checkout line to pin the reviewed commit.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone --recurse-submodules <repo-url>"
+     },
+     {
+      "source": "@readme",
+      "text": "git submodule update --init --recursive"
+     }
+    ]
+   },
+   {
+    "title": "Install",
+    "shell": "conda create -n frigid python=3.10\nconda activate frigid\nbash env/patch_ms_pred.sh\npip install -r ms-pred/requirements.txt\npip install -e ./ms-pred\npip install -e .",
+    "explanation": "As the README gives it, including the ms-pred patch.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -n frigid python=3.10 conda activate frigid"
+     },
+     {
+      "source": "@readme",
+      "text": "bash env/patch_ms_pred.sh"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install -r ms-pred/requirements.txt pip install -e ./ms-pred pip install -e ."
+     }
+    ]
+   },
+   {
+    "title": "Download data and checkpoints",
+    "shell": "bash data_processing/01_download_canopus_data.sh\nbash data_processing/02_download_msg_data.sh\nwget https://zenodo.org/records/23543494/files/frigid_pretrained_checkpoints.tar.gz\ntar -xzf frigid_pretrained_checkpoints.tar.gz\nmkdir -p checkpoints\nwget -O checkpoints/mist_canopus_aug.ckpt https://zenodo.org/records/23303289/files/mist_canopus_aug.ckpt\nwget -O checkpoints/mist_msg_aug.ckpt https://zenodo.org/records/23303289/files/mist_msg_aug.ckpt",
+    "explanation": "Downloads NPLIB1 and MassSpecGym data, the FRIGID and ICEBERG checkpoints and the MIST encoders.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Data and checkpoint setup",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "bash data_processing/01_download_canopus_data.sh bash data_processing/02_download_msg_data.sh"
+     },
+     {
+      "source": "@readme",
+      "text": "tar -xzf frigid_pretrained_checkpoints.tar.gz"
+     },
+     {
+      "source": "@readme",
+      "text": "wget -O checkpoints/mist_msg_aug.ckpt https://zenodo.org/records/23303289/files/mist_msg_aug.ckpt"
+     }
+    ]
+   },
+   {
+    "title": "Train a token-length model",
+    "shell": "cd token_models/\nmkdir -p data\npython train_opt_msg.py\ncd ..",
+    "explanation": "Option A in the README (fast, trained on benchmark data); models are saved to token_models/models/.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Training NGBoost Token Length Models",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "cd token_models/ mkdir -p data"
+     },
+     {
+      "source": "@readme",
+      "text": "python train_opt_msg.py # for MassSpecGym"
+     },
+     {
+      "source": "@readme",
+      "text": "Trained models are saved to `token_models/models/`."
+     }
+    ]
+   },
+   {
+    "title": "Run the MassSpecGym benchmark",
+    "shell": "python scripts/benchmark_spec2mol.py \\\n    --config configs/spec2mol_benchmark_msg.yaml \\\n    --mist-checkpoint checkpoints/mist_msg_aug.ckpt \\\n    --dlm-checkpoint frigid_pretrained_checkpoints/DLM.ckpt",
+    "explanation": "FRIGID-base without refinement. The README says to pass the trained length model with --token-model token_models/models/<model>.joblib; the file name depends on the previous step.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Running the Benchmark",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--config configs/spec2mol_benchmark_msg.yaml"
+     },
+     {
+      "source": "@readme",
+      "text": "--mist-checkpoint checkpoints/mist_msg_aug.ckpt"
+     },
+     {
+      "source": "@readme",
+      "text": "--dlm-checkpoint frigid_pretrained_checkpoints/DLM.ckpt"
+     },
+     {
+      "source": "@readme",
+      "text": "Pass a trained length model with `--token-model token_models/models/<model>.joblib` when running benchmarks or scaling."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Benchmark results for FRIGID-base on the MassSpecGym test set; scripts/compute_metrics.py computes metrics from saved results. The README does not name the output files."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "ICEBERG refinement (scripts/spec2mol_scaling.py) is a further, slower step. The README example passes --num-rounds 11, which it says counts the initial generation plus the 10 refinement rounds, and gives 41.3 seconds per spectrum on NPLIB1 for FRIGID with 10 refinement rounds.",
+   "Set ICEBERG_INSTRUMENT_PROFILE to msg or canopus to match the ICEBERG checkpoint when using refinement."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "FRIGID DLM.ckpt (FRIGID-base decoder)",
+   "parameters": 247000000,
+   "context_length": 256,
+   "context_unit": "tokens",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "Apache-2.0",
+   "code_url": "https://github.com/coleygroup/FRIGID",
+   "weights_url": "https://zenodo.org/records/23543494/files/frigid_pretrained_checkpoints.tar.gz",
+   "gated": false,
+   "released": "2026-10-21",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| Total parameters | 247.0M |"
+    },
+    {
+     "source": "@readme",
+     "text": "| Max token length | 256 |"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2026-10-21\""
+    }
+   ]
+  }
+ ],
+ "notes": "The record's benchmark source (MassSpecGym in the Wild) reports the earlier FRIGID figures that the FRIGID README now marks as superseded; worth a human look when showing benchmark numbers. The arXiv paper is CC BY-NC-SA 4.0, so its files are not stored. The README's clone command uses a placeholder URL."
+}

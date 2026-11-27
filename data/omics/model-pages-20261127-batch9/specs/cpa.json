@@ -1,0 +1,629 @@
+{
+  "record_id": "perturbation-ahlmann-20261011-model-cpa",
+  "sources": [
+    {
+      "key": "readme",
+      "name": "theislab/cpa README.md at commit fbd7c025",
+      "description": "Official repository README, pinned to a commit.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/theislab/cpa/fbd7c0250edc23eff003a10c99655579c53afd63/README.md",
+      "url": "https://github.com/theislab/cpa",
+      "version": "git commit fbd7c0250edc23eff003a10c99655579c53afd63",
+      "media_type": "text/markdown",
+      "sha256": "8d4b8bf455ab08d365b8c967924d7250576c73724c8b1656a7463a4f990f4514",
+      "retrieved_at": "2026-11-27T02:56:14Z",
+      "licence": "BSD-3-Clause",
+      "store_bytes": true
+    },
+    {
+      "key": "license",
+      "name": "theislab/cpa LICENSE at commit fbd7c025",
+      "description": "Licence file of the official repository, pinned to a commit.",
+      "file": "artifacts/license.txt",
+      "artifact_url": "https://raw.githubusercontent.com/theislab/cpa/fbd7c0250edc23eff003a10c99655579c53afd63/LICENSE",
+      "url": "https://github.com/theislab/cpa",
+      "version": "git commit fbd7c0250edc23eff003a10c99655579c53afd63",
+      "media_type": "text/plain",
+      "sha256": "9eaad59a80a87d0a3b2029b10584a1e3e3d0aa83a8b3dfb71acf43b3a2918ef3",
+      "retrieved_at": "2026-11-27T02:56:17Z",
+      "licence": "BSD-3-Clause",
+      "store_bytes": true
+    },
+    {
+      "key": "docs-install",
+      "name": "theislab/cpa docs/installation.rst at commit fbd7c025",
+      "description": "Installation page of the official documentation, pinned to a commit.",
+      "file": "artifacts/docs-installation.rst",
+      "artifact_url": "https://raw.githubusercontent.com/theislab/cpa/fbd7c0250edc23eff003a10c99655579c53afd63/docs/installation.rst",
+      "url": "https://github.com/theislab/cpa",
+      "version": "git commit fbd7c0250edc23eff003a10c99655579c53afd63",
+      "media_type": "text/x-rst",
+      "sha256": "142f3f8bb574d98769b3819716687839eeeb776c5a56ada26b63035ab7288805",
+      "retrieved_at": "2026-11-27T02:56:33Z",
+      "licence": "BSD-3-Clause",
+      "store_bytes": true
+    },
+    {
+      "key": "paper",
+      "name": "Lotfollahi et al. 2023, Predicting cellular responses to complex perturbations in high-throughput screens, Molecular Systems Biology (PMC10258562)",
+      "description": "Full text of the published article as NCBI PMC XML.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=10258562&rettype=xml",
+      "url": "https://doi.org/10.15252/msb.202211517",
+      "version": "PMC10258562",
+      "media_type": "application/xml",
+      "sha256": "050965e5dc312571b142328837d9788671d145dd929ace7ed6de254b55663577",
+      "retrieved_at": "2026-11-27T02:56:34Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "CPA (Compositional Perturbation Autoencoder) is a deep generative model that predicts how single cells respond to drugs and genetic perturbations, alone or in combination. It is trained on a perturbation dataset of single-cell expression with perturbation, dose and covariate labels, and predicts expression for unseen combinations of perturbations, doses and cell types, with interpretable perturbation and covariate embeddings.",
+    "summary_source_ids": [
+      "@paper",
+      "@readme"
+    ],
+    "summary_source_locator": "Paper Abstract and synopsis; README.md: What is CPA?",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "is a deep learning model for predicting the transcriptomic responses of single cells to single or combinatorial treatments from drugs and genetic manipulations"
+      },
+      {
+        "source": "@readme",
+        "text": "Out-of-distribution predictions of unseen drug and gene combinations at various doses and among different cell types."
+      },
+      {
+        "source": "@readme",
+        "text": "Learn interpretable drug and cell-type latent spaces."
+      }
+    ],
+    "sections": [
+      {
+        "title": "How it works",
+        "body": "An encoder network decomposes each cell's expression into additive latent embeddings for its basal state, the observed perturbations and the observed covariates. An adversarial discriminator is trained against the encoder so the basal state carries no perturbation or covariate information, which lets embeddings be recombined at prediction time. Perturbation embeddings are scaled by a neural network of the dose or time. A decoder maps the recombined latent state back to expression.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Results and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the CPA first uses an encoder neural network to decompose the cells' gene expression into a series of learnable, additive embeddings, which correspond to its basal state, the observed perturbation, and the observed covariates"
+          },
+          {
+            "source": "@paper",
+            "text": "By virtue of an adversarial loss, these embeddings are independent of each other, so they can be recombined at prediction time to predict the effect of novel perturbation"
+          },
+          {
+            "source": "@paper",
+            "text": "the learned embeddings about each perturbation are scaled nonlinearly via a neural network which receives the continuous covariate values for each cell"
+          }
+        ]
+      },
+      {
+        "title": "Versions and reproducibility",
+        "body": "CPA learns from a given single-cell perturbation dataset; the README's preprocessing recipe prepares the user's own dataset for it. The current implementation is the cpa-tools package in theislab/cpa, whose hyperparameter tuner is based on the scvi-tools optimiser; datasets and pre-trained models are in a Google Drive folder linked from the README. The paper's analyses are in a separate reproducibility repository. A result should name the package version or commit, the training dataset and the hyperparameters.",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "README.md; paper Data availability",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Datasets and pre-trained models are available [here]"
+          },
+          {
+            "source": "@readme",
+            "text": "based on scvi-tools hyperparam optimizer"
+          },
+          {
+            "source": "@paper",
+            "text": "dataset of multiple perturbations and covariates, the CPA first uses an encoder neural network"
+          },
+          {
+            "source": "@readme",
+            "text": "Congrats! Now you're dataset is ready to be used with CPA."
+          },
+          {
+            "source": "@paper",
+            "text": "https://github.com/theislab/cpa‐reproducibility/tree/main/notebooks"
+          }
+        ]
+      },
+      {
+        "title": "Intended uses",
+        "body": "Predicting responses to unseen drug and gene combinations and doses, transferring perturbation effects to unseen cell types, estimating dose-response curves, and removing batch effects in latent and expression space.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: What is CPA?",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Estimate the dose-response curve for each perturbation and their combinations."
+          },
+          {
+            "source": "@readme",
+            "text": "Transfer pertubration effects from on cell-type to an unseen cell-type."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Model type",
+        "value": "Compositional perturbation autoencoder: a deep generative model for single-cell perturbation responses, learned from a perturbation dataset.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Abstract and Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we present the compositional perturbation autoencoder (CPA)"
+          },
+          {
+            "source": "@paper",
+            "text": "dataset of multiple perturbations and covariates, the CPA first uses an encoder neural network"
+          }
+        ]
+      },
+      {
+        "label": "Architecture",
+        "value": "Encoder to additive basal, perturbation and covariate embeddings; adversarial discriminator; dose and time scaling network; decoder.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "learnable, additive embeddings"
+          },
+          {
+            "source": "@paper",
+            "text": "in a competition against the encoder network of the CPA"
+          }
+        ]
+      },
+      {
+        "label": "Inputs",
+        "value": "An AnnData of single-cell expression with perturbation and dosage in obs (and cell type and batch when available), raw counts in layers['counts'], normalised and log-transformed, highly variable genes selected.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Pre-processing steps",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Perturbation information should be in `adata.obs`."
+          },
+          {
+            "source": "@readme",
+            "text": "Dosage information should be in `adata.obs`."
+          },
+          {
+            "source": "@readme",
+            "text": "adata.layers['counts'] = adata.X.copy()"
+          }
+        ]
+      },
+      {
+        "label": "Outputs",
+        "value": "Predicted gene expression for perturbation and covariate combinations, perturbation and covariate embeddings, and dose-response curves.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: What is CPA?",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Learn interpretable drug and cell-type latent spaces."
+          },
+          {
+            "source": "@readme",
+            "text": "Estimate the dose-response curve"
+          }
+        ]
+      },
+      {
+        "label": "Parameters",
+        "value": "Not stated; size depends on each trained model's hyperparameters.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": []
+      },
+      {
+        "label": "Training data",
+        "value": "Not fixed: CPA is trained on the user's perturbation dataset. The paper's datasets are public and linked from the reproducibility repository.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Data availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "All datasets analyzed in this manuscript are public and have been published in other papers."
+          }
+        ]
+      },
+      {
+        "label": "Known versions",
+        "value": "The cpa-tools package (theislab/cpa); pre-trained models on Google Drive (not itemised in the README). The paper describes chemCPA as a separate extension for unseen drugs.",
+        "status": "source_checked",
+        "source_ids": [
+          "@docs-install",
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "README.md; paper",
+        "quotes": [
+          {
+            "source": "@docs-install",
+            "text": "!pip install cpa-tools"
+          },
+          {
+            "source": "@readme",
+            "text": "Datasets and pre-trained models are available [here]"
+          },
+          {
+            "source": "@paper",
+            "text": "To enable the prediction of unseen drugs, a recent extension to this, called"
+          }
+        ]
+      },
+      {
+        "label": "Training cutoff",
+        "value": "Not applicable: the model is learned from whichever perturbation dataset it is trained on.",
+        "status": "inapplicable",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": []
+      },
+      {
+        "label": "Context limits",
+        "value": "Not applicable as a token limit. In the paper, perturbations are limited to those in the training set's perturbation dictionary; the current README lists a tutorial that uses external embeddings to predict responses to unseen drugs.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper; README.md: tutorials table",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "it is limited to the set of compounds present in the training set"
+          },
+          {
+            "source": "@readme",
+            "text": "Predicting unseen perturbations uisng external embeddings enabling the model to predict unseen reponses to unseen drugs"
+          }
+        ]
+      },
+      {
+        "label": "Weights licence",
+        "value": "Not stated for the pre-trained models on Google Drive.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Datasets and Pre-trained models",
+        "quotes": []
+      },
+      {
+        "label": "Code licence",
+        "value": "BSD-3-Clause, from the repository LICENSE file (copyright 2023 Mohammad Lotfollahi, Theislab).",
+        "status": "source_checked",
+        "source_ids": [
+          "@license"
+        ],
+        "source_locator": "LICENSE",
+        "quotes": [
+          {
+            "source": "@license",
+            "text": "BSD 3-Clause License"
+          },
+          {
+            "source": "@license",
+            "text": "Copyright (c) 2023, Mohammad Lotfollahi, Theislab"
+          }
+        ]
+      },
+      {
+        "label": "Access",
+        "value": "Code: https://github.com/theislab/cpa (pip install git+https://github.com/theislab/cpa; PyPI cpa-tools). Datasets and pre-trained models: https://drive.google.com/drive/folders/1yFB0gBr72_KLLp1asojxTgTqgz6cwpju?usp=drive_link.",
+        "status": "source_checked",
+        "source_ids": [
+          "@docs-install",
+          "@readme"
+        ],
+        "source_locator": "README.md; docs/installation.rst",
+        "quotes": [
+          {
+            "source": "@docs-install",
+            "text": "pip install git+https://github.com/theislab/cpa"
+          },
+          {
+            "source": "@docs-install",
+            "text": "!pip install cpa-tools"
+          },
+          {
+            "source": "@readme",
+            "text": "https://drive.google.com/drive/folders/1yFB0gBr72_KLLp1asojxTgTqgz6cwpju?usp=drive_link"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Predicts combinations and doses not seen together in training, by recombining learned embeddings.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Abstract",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "so they can be recombined at prediction time to predict the effect of novel perturbation"
+          }
+        ]
+      },
+      {
+        "text": "Interpretable latent spaces for drugs and cell types, and dose-response estimates.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Learn interpretable drug and cell-type latent spaces."
+          }
+        ]
+      },
+      {
+        "text": "Open code (BSD-3-Clause), open-access paper (CC BY 4.0) and tutorials for drugs, CRISPR and context transfer.",
+        "source_ids": [
+          "@license",
+          "@readme"
+        ],
+        "source_locator": "LICENSE; README.md",
+        "quotes": [
+          {
+            "source": "@license",
+            "text": "BSD 3-Clause License"
+          },
+          {
+            "source": "@readme",
+            "text": "Predicting combinatorial CRISPR perturbations"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "In the paper, CPA's perturbation dictionary is limited to compounds present in the training set, and the paper points to chemCPA for unseen drugs. The current README lists a tutorial that uses external (RDKit) embeddings to predict responses to unseen drugs.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper Results; README.md: tutorials table",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Therefore, predicting perturbation responses for compounds not screened in the experiments is not feasible."
+          },
+          {
+            "source": "@paper",
+            "text": "it is limited to the set of compounds present in the training set"
+          },
+          {
+            "source": "@paper",
+            "text": "To enable the prediction of unseen drugs, a recent extension to this, called"
+          },
+          {
+            "source": "@readme",
+            "text": "Predicting unseen perturbations uisng external embeddings enabling the model to predict unseen reponses to unseen drugs"
+          },
+          {
+            "source": "@readme",
+            "text": "combosciplex_Rdkit_embeddings.ipynb"
+          }
+        ]
+      },
+      {
+        "text": "The README documents preparing and training on your own perturbation dataset; it does not describe a general-purpose pretrained model.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Congrats! Now you're dataset is ready to be used with CPA."
+          }
+        ]
+      },
+      {
+        "text": "Requires PyTorch 1.13.1 or newer and a Python 3.9 environment in the documented setup.",
+        "source_ids": [
+          "@docs-install"
+        ],
+        "source_locator": "docs/installation.rst",
+        "quotes": [
+          {
+            "source": "@docs-install",
+            "text": "requires Pytorch version >= 1.13.1"
+          },
+          {
+            "source": "@docs-install",
+            "text": "conda create -n cpa python=3.9"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "CPA workflow",
+      "steps": [
+        "Perturbation scRNA-seq (AnnData)",
+        "Encoder: basal state",
+        "Add perturbation (dose-scaled) and covariate embeddings",
+        "Adversarial disentangling",
+        "Decoder: predicted expression"
+      ],
+      "caption": "Latent embeddings are added and decoded; recombining them predicts new combinations.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper Results",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "additive embeddings, which correspond to its basal state, the observed perturbation, and the observed covariates"
+        },
+        {
+          "source": "@paper",
+          "text": "By virtue of an adversarial loss"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The tutorials that show training and prediction were not read; the run guide stops at installation and preprocessing.",
+      "No weights licence is stated for the pre-trained models on Google Drive."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the theislab/cpa README, LICENSE and docs/installation.rst at commit fbd7c0250edc23eff003a10c99655579c53afd63, and the PMC10258562 full-text XML of the Molecular Systems Biology paper, on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Create a conda environment, install PyTorch, CPA and scanpy, and preprocess a perturbation dataset for training; training and prediction follow the tutorials, which were not reviewed.",
+    "prerequisites": [
+      "Conda and Python 3.9.",
+      "PyTorch 1.13.1 or newer (GPU build optional).",
+      "A single-cell perturbation dataset with raw counts and perturbation and dose labels."
+    ],
+    "steps": [
+      {
+        "title": "Create an environment",
+        "shell": "conda create -n cpa python=3.9\nconda activate cpa\npip install torch==1.13.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu",
+        "explanation": "The documentation's environment and CPU-only PyTorch commands; use a CUDA build from the same page if you have a GPU.",
+        "source_ids": [
+          "@docs-install"
+        ],
+        "source_locator": "docs/installation.rst",
+        "quotes": [
+          {
+            "source": "@docs-install",
+            "text": "conda create -n cpa python=3.9"
+          },
+          {
+            "source": "@docs-install",
+            "text": "conda activate cpa"
+          },
+          {
+            "source": "@docs-install",
+            "text": "pip install torch==1.13.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu"
+          }
+        ]
+      },
+      {
+        "title": "Install CPA and scanpy",
+        "shell": "pip install git+https://github.com/theislab/cpa\npip install scanpy",
+        "explanation": "Installs the latest CPA from GitHub (not pinned to the reviewed commit) and scanpy.",
+        "source_ids": [
+          "@docs-install"
+        ],
+        "source_locator": "docs/installation.rst",
+        "quotes": [
+          {
+            "source": "@docs-install",
+            "text": "pip install git+https://github.com/theislab/cpa"
+          },
+          {
+            "source": "@docs-install",
+            "text": "pip install scanpy"
+          }
+        ]
+      },
+      {
+        "title": "Preprocess your dataset",
+        "shell": "python - <<'EOF'\nimport scanpy as sc\n# adata: your perturbation AnnData with perturbation and dosage in adata.obs\nsc.pp.filter_cells(adata, min_counts=100)\nadata.layers['counts'] = adata.X.copy()\nsc.pp.normalize_total(adata, target_sum=1e4, exclude_highly_expressed=True)\nsc.pp.log1p(adata)\nsc.pp.highly_variable_genes(adata, n_top_genes=5000, subset=True)\nEOF",
+        "explanation": "The README's preprocessing recipe wrapped in a heredoc by Rewire. It does not load data: add your own line that creates adata, and save the result with adata.write_h5ad.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Pre-processing steps",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "sc.pp.filter_cells(adata, min_counts=100)"
+          },
+          {
+            "source": "@readme",
+            "text": "adata.layers['counts'] = adata.X.copy()"
+          },
+          {
+            "source": "@readme",
+            "text": "sc.pp.normalize_total(adata, target_sum=1e4, exclude_highly_expressed=True)"
+          },
+          {
+            "source": "@readme",
+            "text": "sc.pp.log1p(adata)"
+          },
+          {
+            "source": "@readme",
+            "text": "sc.pp.highly_variable_genes(adata, n_top_genes=5000, subset=True)"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "A preprocessed AnnData ready for CPA training; the README gives no training or prediction command."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "Training and prediction are documented in tutorial notebooks that were not read."
+    ],
+    "source_ids": [
+      "@readme",
+      "@docs-install"
+    ]
+  },
+  "structured": [
+    {
+      "checkpoint": "CPA (cpa-tools)",
+      "parameters": null,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "BSD-3-Clause",
+      "weights_licence": null,
+      "code_url": "https://github.com/theislab/cpa",
+      "weights_url": "https://drive.google.com/drive/folders/1yFB0gBr72_KLLp1asojxTgTqgz6cwpju?usp=drive_link",
+      "gated": false,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "Datasets and pre-trained models are available [here]"
+        }
+      ]
+    }
+  ],
+  "notes": "The paper names https://github.com/theislab/cpa as its open-source implementation and theislab/cpa-reproducibility for the analyses. This page uses theislab/cpa, the repository the current README and docs point to. A benchmark that used CPA may have run a different version; check the benchmark's software versions."
+}

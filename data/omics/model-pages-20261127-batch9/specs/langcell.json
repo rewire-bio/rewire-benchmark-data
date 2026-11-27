@@ -1,0 +1,618 @@
+{
+  "record_id": "cell-type-20261009-model-langcell",
+  "sources": [
+    {
+      "key": "readme",
+      "name": "PharMolix/LangCell README.md at commit 69e41ef2",
+      "description": "Official repository README, pinned to a commit.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/PharMolix/LangCell/69e41ef2fae485b67703294b50f3150bb1d5bb9b/README.md",
+      "url": "https://github.com/PharMolix/LangCell",
+      "version": "git commit 69e41ef2fae485b67703294b50f3150bb1d5bb9b",
+      "media_type": "text/markdown",
+      "sha256": "55ebbed308f83aed41e6856e63687c3c9c9ebc55f933158d0ffbab6dd7fe38c1",
+      "retrieved_at": "2026-11-27T02:28:06Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "license",
+      "name": "PharMolix/LangCell LICENSE at commit 69e41ef2",
+      "description": "Licence file of the official repository, pinned to a commit.",
+      "file": "artifacts/license.txt",
+      "artifact_url": "https://raw.githubusercontent.com/PharMolix/LangCell/69e41ef2fae485b67703294b50f3150bb1d5bb9b/LICENSE",
+      "url": "https://github.com/PharMolix/LangCell",
+      "version": "git commit 69e41ef2fae485b67703294b50f3150bb1d5bb9b",
+      "media_type": "text/plain",
+      "sha256": "977b27236abe19a9c740cf39549567516d4ff37dd3869a1d37979133e286448f",
+      "retrieved_at": "2026-11-27T02:28:10Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "requirements",
+      "name": "PharMolix/LangCell requirements.txt at commit 69e41ef2",
+      "description": "Pinned Python dependencies named in the README install step.",
+      "file": "artifacts/requirements.txt",
+      "artifact_url": "https://raw.githubusercontent.com/PharMolix/LangCell/69e41ef2fae485b67703294b50f3150bb1d5bb9b/requirements.txt",
+      "url": "https://github.com/PharMolix/LangCell",
+      "version": "git commit 69e41ef2fae485b67703294b50f3150bb1d5bb9b",
+      "media_type": "text/plain",
+      "sha256": "502d55c5d2c70e96e9aec42aed097a58f1457478ff90f6982dfb4cdceea73f3f",
+      "retrieved_at": "2026-11-27T02:28:16Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "paper",
+      "name": "arXiv 2405.06708v5 full text (Zhao et al., LangCell: Language-Cell Pre-training for Cell Identity Understanding)",
+      "description": "Text layer of the arXiv PDF, extracted with pdftotext.",
+      "file": "artifacts/paper.txt",
+      "artifact_url": "https://arxiv.org/pdf/2405.06708",
+      "url": "https://arxiv.org/abs/2405.06708",
+      "version": "arXiv 2405.06708v5",
+      "media_type": "text/plain",
+      "sha256": "ef968f6ddaf656814827f44ada249052fe40019c968d3a908f110e2f7cbf37e3",
+      "retrieved_at": "2026-11-27T02:28:16Z",
+      "store_bytes": false
+    }
+  ],
+  "profile": {
+    "summary": "LangCell is a single-cell language model trained on pairs of single-cell transcriptomes and text descriptions of cell identity. It places cells and text in one shared feature space, so it can annotate cell types zero-shot by matching a cell against text descriptions of candidate types, as well as after few-shot training or fine-tuning.",
+    "summary_source_ids": [
+      "@readme"
+    ],
+    "summary_source_locator": "README.md: introduction and Checkpoint; arXiv Abstract",
+    "summary_quotes": [
+      {
+        "source": "@readme",
+        "text": "we propose an innovative solution by constructing a unified representation of single-cell data and natural language during the pre-training phase"
+      },
+      {
+        "source": "@readme",
+        "text": "map the model outputs corresponding to the [CLS] position in cells and text to a unified feature space"
+      },
+      {
+        "source": "@readme",
+        "text": "LangCell is the only single-cell PLM that can work effectively in zero-shot cell identity understanding scenarios"
+      }
+    ],
+    "sections": [
+      {
+        "title": "How it works",
+        "body": "LangCell has a cell encoder and a text encoder. The cell encoder is initialised from a pre-trained Geneformer and takes Geneformer-style tokenised cells, with a [CLS] token whose embedding is projected into the shared space. The text encoder is initialised from PubMedBERT and has a cross-attention mode that scores whether a cell and a text match. Pre-training jointly optimises four losses: masked gene modelling, cell-cell contrastive learning, cell-text contrastive learning and cell-text matching. It runs in two stages: first the cell encoder alone with the first two losses, then all four.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "arXiv Sections 3 and 4.1; README.md: Checkpoint",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We use pre-trained Geneformer (Theodoris et al., 2023) to initialize our cell encoder"
+          },
+          {
+            "source": "@paper",
+            "text": "The weights are initialized using PubMedBERT (Gu et al., 2021)"
+          },
+          {
+            "source": "@paper",
+            "text": "Masked Gene Modeling (MGM) and Cell-Cell Contrastive Learning (C-C), to enhance single-cell representation learning. Additionally, we employ Cell-Text Contrastive Learning (C-T) and Cell-Text Matching (CTM)"
+          },
+          {
+            "source": "@paper",
+            "text": "In the first stage, we initialize the cell encoder parameters using Geneformer and conduct unimodal training using only the LM GM and LC−C loss functions."
+          },
+          {
+            "source": "@paper",
+            "text": "In the second stage, we initialize the text encoder parameters using PubMedBERT and engage in multimodal training using all four loss functions."
+          }
+        ]
+      },
+      {
+        "title": "Versions and reproducibility",
+        "body": "One checkpoint is distributed as a Google Drive folder, split into five modules: text_bert, cell_bert, text_proj, cell_proj and ctm_head. cell_bert is a standard Hugging Face BertModel and can be used alone as LangCell-CE. The checkpoint has no version label or hash in the README, so a result should name the repository commit and the date the checkpoint was downloaded.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Checkpoint; Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "The model's checkpoint is divided into five modules: text_bert, cell_bert, text_proj, cell_proj, and ctm_head."
+          },
+          {
+            "source": "@readme",
+            "text": "cell_bert is the standard Huggingface BertModel"
+          },
+          {
+            "source": "@readme",
+            "text": "fine-tuning using only LangCell's Cell Encoder (LangCell-CE)"
+          }
+        ]
+      },
+      {
+        "title": "Intended uses",
+        "body": "Cell identity understanding, mainly cell type annotation: zero-shot from text descriptions, few-shot, and fine-tuning of the cell encoder. Text descriptions of new cell types can be written following the OBO Foundry examples the authors provide.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "LangCell zero-shot cell type annotation"
+          },
+          {
+            "source": "@readme",
+            "text": "LangCell few-shot cell type annotation"
+          },
+          {
+            "source": "@readme",
+            "text": "You can use these as examples to write textual descriptions for new cell types."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Model type",
+        "value": "Language-cell pre-trained model (multimodal single-cell and text) for cell identity understanding.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: introduction",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "we introduce **LangCell**, the first **Lang**uage-**Cell** pre-training framework."
+          }
+        ]
+      },
+      {
+        "label": "Architecture",
+        "value": "Model configuration in paper Table C.0.1: vocabulary 25427, hidden size 512, 12 hidden layers, 8 attention heads, ReLU. The table does not say which encoder these describe; the vocabulary size suggests the cell encoder. Cell encoder initialised from Geneformer. Text encoder: BERT with pluggable cross-attention, initialised from PubMedBERT. Linear projections and a cell-text matching head.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "arXiv Table C.0.1 and Section 3; README.md: Checkpoint",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Vocab size Hidden size Number of hidden layers Max sequence length Number of attention heads Dropout Hidden act LayerNorm eps 25427 512 12 2048 8 0.02 ReLU 1e-12"
+          },
+          {
+            "source": "@paper",
+            "text": "we add a pluggable crossattention module after each self-attention module"
+          },
+          {
+            "source": "@readme",
+            "text": "ctm_head is a linear layer that maps the output of text_bert to matching scores when performing Cell-Text Matching"
+          }
+        ]
+      },
+      {
+        "label": "Inputs",
+        "value": "Single-cell data read with scanpy and tokenised the same way as Geneformer; for zero-shot annotation, text descriptions of candidate cell types.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "you can use `scanpy` to read any single-cell data and process it into a format accepted by the model. The processing method is similar to `Geneformer`."
+          }
+        ]
+      },
+      {
+        "label": "Outputs",
+        "value": "Cell and text embeddings in a shared space, cell-text matching scores, and cell type predictions.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Checkpoint",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "map the model outputs corresponding to the [CLS] position in cells and text to a unified feature space"
+          },
+          {
+            "source": "@readme",
+            "text": "maps the output of text_bert to matching scores"
+          }
+        ]
+      },
+      {
+        "label": "Parameters",
+        "value": "Not stated. The sources give layer sizes but no parameter count.",
+        "status": "unreported",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "arXiv Table C.0.1",
+        "quotes": []
+      },
+      {
+        "label": "Training data",
+        "value": "scLibrary: about 27.5 million scRNA-seq entries from CELLxGENE paired with text descriptions of eight aspects of cell identity taken from the OBO Foundry. Released on Hugging Face as Toycat/scLibrary.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Pre-training Dataset; News",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "containing 27.5 million scRNA-seq entries along with their descriptions"
+          },
+          {
+            "source": "@readme",
+            "text": "We selected eight critical aspects of cell identity"
+          },
+          {
+            "source": "@readme",
+            "text": "Released pre-training dataset [**scLibrary**](https://huggingface.co/datasets/Toycat/scLibrary/tree/main)"
+          }
+        ]
+      },
+      {
+        "label": "Known versions",
+        "value": "One checkpoint (five modules) on Google Drive. LangCell-CE is the cell encoder used alone.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Checkpoint; Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "[Download checkpoint](https://drive.google.com/drive/folders/1cuhVG9v0YoAnjW-t_WMpQQguajumCBTp)"
+          },
+          {
+            "source": "@readme",
+            "text": "Cell Encoder (LangCell-CE)"
+          }
+        ]
+      },
+      {
+        "label": "Training cutoff",
+        "value": "Not stated. The CELLxGENE download date is not given.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Pre-training Dataset",
+        "quotes": []
+      },
+      {
+        "label": "Context limits",
+        "value": "Max sequence length 2048 in paper Table C.0.1; the table does not say which encoder this applies to, though the 25427-token vocabulary it lists suggests the cell encoder.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "arXiv Table C.0.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Number of hidden layers Max sequence length Number of attention heads"
+          },
+          {
+            "source": "@paper",
+            "text": "25427 512 12 2048 8 0.02 ReLU 1e-12"
+          }
+        ]
+      },
+      {
+        "label": "Weights licence",
+        "value": "Not stated. The checkpoint is a Google Drive folder and no file states terms for it.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Checkpoint",
+        "quotes": []
+      },
+      {
+        "label": "Code licence",
+        "value": "MIT, from the repository LICENSE file (copyright 2024 Suyuan Zhao).",
+        "status": "source_checked",
+        "source_ids": [
+          "@license"
+        ],
+        "source_locator": "LICENSE",
+        "quotes": [
+          {
+            "source": "@license",
+            "text": "MIT License"
+          },
+          {
+            "source": "@license",
+            "text": "Copyright (c) 2024 Suyuan Zhao"
+          }
+        ]
+      },
+      {
+        "label": "Access",
+        "value": "Code: https://github.com/PharMolix/LangCell. Weights: Google Drive folder https://drive.google.com/drive/folders/1cuhVG9v0YoAnjW-t_WMpQQguajumCBTp. Pre-training data: https://huggingface.co/datasets/Toycat/scLibrary.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "https://drive.google.com/drive/folders/1cuhVG9v0YoAnjW-t_WMpQQguajumCBTp"
+          },
+          {
+            "source": "@readme",
+            "text": "https://huggingface.co/datasets/Toycat/scLibrary/tree/main"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Zero-shot cell type annotation from text descriptions, which the authors say other single-cell language models cannot do effectively.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: introduction (authors' claim)",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "LangCell is the only single-cell PLM that can work effectively in zero-shot cell identity understanding scenarios"
+          }
+        ]
+      },
+      {
+        "text": "Modular checkpoint: the cell encoder is a standard Hugging Face BertModel and can be fine-tuned alone.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Checkpoint",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "cell_bert is the standard Huggingface BertModel"
+          }
+        ]
+      },
+      {
+        "text": "The 27.5 million cell-text pre-training set is public.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: News",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Released pre-training dataset [**scLibrary**]"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The authors note that all pre-training texts come from the OBO Foundry, that it handles only transcriptomics, and that it cannot generate cells or text.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "arXiv Section 5",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the pre-training texts are all from the OBO Foundry, which limits the diversity to a certain extent. LangCell also cannot yet analyze other single-cell omics such as scATAC-seq, and it does not include cell/text generation functions."
+          }
+        ]
+      },
+      {
+        "text": "Weights are on Google Drive with no stated licence or version.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Checkpoint",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "[Download checkpoint](https://drive.google.com/drive/folders/1cuhVG9v0YoAnjW-t_WMpQQguajumCBTp)"
+          }
+        ]
+      },
+      {
+        "text": "Pre-training is expensive: four A100 GPUs for about 50 days, as reported.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "arXiv Appendix C",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The pre-training is conducted on four NVIDIA Tesla A100 GPUs and takes approximately 50 days to complete."
+          }
+        ]
+      },
+      {
+        "text": "Zero-shot annotation is documented only as a notebook; the README gives commands only for few-shot and fine-tuning.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "run `LangCell-annotation-zeroshot/zero-shot.ipynb`"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "LangCell workflow",
+      "steps": [
+        "Cell (Geneformer tokens)",
+        "Cell encoder (Geneformer init)",
+        "Text description",
+        "Text encoder (PubMedBERT init)",
+        "Shared space: contrastive and matching scores",
+        "Cell type"
+      ],
+      "caption": "Cells and texts are encoded separately, projected into one space and matched.",
+      "source_ids": [
+        "@paper",
+        "@readme"
+      ],
+      "source_locator": "arXiv Section 3; README.md: Checkpoint",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We use pre-trained Geneformer (Theodoris et al., 2023) to initialize our cell encoder"
+        },
+        {
+          "source": "@paper",
+          "text": "The weights are initialized using PubMedBERT"
+        },
+        {
+          "source": "@readme",
+          "text": "map the model outputs corresponding to the [CLS] position in cells and text to a unified feature space"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "No parameter count is given in the sources read.",
+      "The checkpoint on Google Drive has no licence, version or hash.",
+      "No minimal zero-shot command-line example; the zero-shot route is a notebook that was not read."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the PharMolix/LangCell README, LICENSE and requirements.txt at commit 69e41ef2fae485b67703294b50f3150bb1d5bb9b and the arXiv 2405.06708v5 full text, on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Clone the repository, install the pinned dependencies, download the checkpoint and run few-shot cell type annotation.",
+    "prerequisites": [
+      "Python 3.9.18 (README badge).",
+      "The LangCell checkpoint folder downloaded from Google Drive.",
+      "A single-cell dataset tokenised as described in data_preprocess/preprocess.py (Geneformer-style)."
+    ],
+    "steps": [
+      {
+        "title": "Get the code",
+        "shell": "git clone https://github.com/PharMolix/LangCell\ncd LangCell\ngit checkout --detach 69e41ef2fae485b67703294b50f3150bb1d5bb9b",
+        "explanation": "Clone the official repository and pin it to the reviewed commit; the clone and checkout lines are added by Rewire.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: introduction",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "LangCell: Language-Cell Pre-training for Cell Identity Understanding"
+          }
+        ]
+      },
+      {
+        "title": "Install",
+        "shell": "pip install -r requirements.txt",
+        "explanation": "Installs the pinned dependencies, including torch 2.0.1, geneformer 0.0.1 and transformers 4.39.1.",
+        "source_ids": [
+          "@readme",
+          "@requirements"
+        ],
+        "source_locator": "README.md: Install; requirements.txt",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "pip install -r requirements.txt"
+          },
+          {
+            "source": "@requirements",
+            "text": "torch==2.0.1"
+          },
+          {
+            "source": "@requirements",
+            "text": "geneformer==0.0.1"
+          },
+          {
+            "source": "@requirements",
+            "text": "transformers==4.39.1"
+          }
+        ]
+      },
+      {
+        "title": "Download the checkpoint",
+        "shell": "# Download the checkpoint folder in a browser from https://drive.google.com/drive/folders/1cuhVG9v0YoAnjW-t_WMpQQguajumCBTp",
+        "explanation": "The README gives only a Google Drive link, no command.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Checkpoint",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "https://drive.google.com/drive/folders/1cuhVG9v0YoAnjW-t_WMpQQguajumCBTp"
+          }
+        ]
+      },
+      {
+        "title": "Run few-shot annotation",
+        "shell": "cd LangCell-annotation-fewshot/\n\npython fewshot.py --data_path [data_path] --model_path [model_path] --nshot [nshot] --device [device]",
+        "explanation": "Fill in the bracketed values: the tokenised dataset, the checkpoint folder, the number of shots and the device.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "cd LangCell-annotation-fewshot/"
+          },
+          {
+            "source": "@readme",
+            "text": "python fewshot.py --data_path [data_path] --model_path [model_path] --nshot [nshot] --device [device]"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "The README does not describe what fewshot.py prints or writes."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "The checkpoint download is manual and unversioned.",
+      "The zero-shot route is the notebook LangCell-annotation-zeroshot/zero-shot.ipynb, which was not read."
+    ],
+    "source_ids": [
+      "@readme",
+      "@requirements"
+    ]
+  },
+  "structured": [
+    {
+      "checkpoint": "LangCell",
+      "parameters": null,
+      "context_length": 2048,
+      "context_unit": "tokens",
+      "code_licence": "MIT",
+      "weights_licence": null,
+      "code_url": "https://github.com/PharMolix/LangCell",
+      "weights_url": "https://drive.google.com/drive/folders/1cuhVG9v0YoAnjW-t_WMpQQguajumCBTp",
+      "gated": false,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "25427 512 12 2048 8 0.02 ReLU 1e-12"
+        }
+      ]
+    }
+  ],
+  "notes": "The README says LangCell will be added to the OpenBioMed toolkit; that route was not reviewed. gated is false because the Google Drive link is public in the README; no Hugging Face weights exist. context_length 2048 is the max sequence length in paper Table C.0.1, which does not name the encoder it describes."
+}

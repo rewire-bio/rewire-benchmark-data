@@ -1,0 +1,671 @@
+{
+ "record_id": "lit-otheromics-20261011-msgwild-model-foam",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "coleygroup/foam README.md at commit f3ed69b1",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/coleygroup/foam/f3ed69b11642c01be0301dd2cfcba5cb3ee8c793/README.md",
+   "url": "https://github.com/coleygroup/foam",
+   "version": "git commit f3ed69b11642c01be0301dd2cfcba5cb3ee8c793",
+   "media_type": "text/markdown",
+   "sha256": "53a14e74237900690f64f211b0fe68d86f14fe029ccce45cb6838b84f6bf587f",
+   "retrieved_at": "2026-11-27T02:52:46Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "coleygroup/foam LICENSE at commit f3ed69b1",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/coleygroup/foam/f3ed69b11642c01be0301dd2cfcba5cb3ee8c793/LICENSE",
+   "url": "https://github.com/coleygroup/foam",
+   "version": "git commit f3ed69b11642c01be0301dd2cfcba5cb3ee8c793",
+   "media_type": "text/plain",
+   "sha256": "c33cdc03d9b8017e6fce71a185ca434ac1534724a265df00db965b6ade2638db",
+   "retrieved_at": "2026-11-27T02:52:55Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 18502041 (auxiliary datasets for FOAM), API response",
+   "description": "Zenodo API response for the record the README names for MassSpecGym ICEBERG weights; it also holds the PubChem and DiffMS seed caches.",
+   "file": "artifacts/zenodo-18502041.json",
+   "artifact_url": "https://zenodo.org/api/records/18502041",
+   "url": "https://zenodo.org/records/18502041",
+   "version": "Zenodo record 18502041, as served on 2026-11-27",
+   "media_type": "application/json",
+   "sha256": "4c22ae07e178b7dbc5b7dc0210ec361eec8afac3f6fb67f7cfbc83f8ed60147e",
+   "retrieved_at": "2026-11-27T02:52:55Z",
+   "licence": "CC-BY-4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper-abs",
+   "name": "arXiv 2602.07709 abstract page (Manjrekar et al., FOAM)",
+   "description": "arXiv abstract page of the FOAM paper.",
+   "file": "artifacts/paper-abs.html",
+   "artifact_url": "https://arxiv.org/abs/2602.07709",
+   "url": "https://arxiv.org/abs/2602.07709",
+   "version": "arXiv 2602.07709, latest version as served on 2026-11-27",
+   "media_type": "text/html",
+   "sha256": "22f967306cb4d64292b5c6145f14787c88d1c4bd01c4889d597078a2e9e554ea",
+   "retrieved_at": "2026-11-27T02:52:55Z",
+   "store_bytes": false
+  },
+  {
+   "key": "paper",
+   "name": "arXiv 2602.07709v1 full text, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of Generative structural elucidation from mass spectra as an iterative optimization problem (v1, 7 Feb 2026).",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2602.07709",
+   "url": "https://arxiv.org/abs/2602.07709",
+   "version": "arXiv 2602.07709v1",
+   "media_type": "text/plain",
+   "sha256": "85aaef212f83ddc4b7ea63f9735107707b79e47bfec13a9d9be77243cb26d0d1",
+   "retrieved_at": "2026-11-27T02:52:59Z",
+   "store_bytes": false
+  },
+  {
+   "key": "msgwild",
+   "name": "MassSpecGym in the Wild, arXiv 2606.19624v1, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of the MassSpecGym in the Wild paper, which lists FOAM in its de novo leaderboard.",
+   "file": "artifacts/msgwild-v1.txt",
+   "artifact_url": "https://arxiv.org/pdf/2606.19624v1",
+   "url": "https://arxiv.org/abs/2606.19624v1",
+   "version": "arXiv 2606.19624v1",
+   "media_type": "text/plain",
+   "sha256": "90139d4bf7f7bc38f7b01df0194ae4207b9a805723322b5a6d82edf25d6a7701",
+   "retrieved_at": "2026-11-27T02:24:43Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "FOAM (Formula-constrained Optimization for Annotating Metabolites) proposes molecular structures for an unknown tandem mass spectrum by optimisation rather than by a single trained generator. Given the spectrum and the molecular formula, it starts from seed structures with that formula, evolves them with a formula-constrained graph genetic algorithm, and keeps the candidates whose ICEBERG-simulated spectra best match the observed one. Seeds can come from PubChem or from other models such as DiffMS.",
+  "summary_source_ids": [
+   "@readme",
+   "@paper"
+  ],
+  "summary_source_locator": "README.md introduction; paper abstract",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "Given an experimental spectrum and molecular formula, FOAM uses a formula-constrained graph genetic algorithm to propose and refine candidate structures, scoring them with ICEBERG (a learned spectral simulator) to maximize predicted spectral similarity to the observed spectrum."
+   },
+   {
+    "source": "@readme",
+    "text": "FOAM supports the refinement of structures from any source---virtual libraries, generative models, or other domain-specific tools."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "FOAM first retrieves seed structures that match the formula (from PubChem, with the true structure excluded in evaluation, or from another tool). ICEBERG simulates the spectrum of each candidate, candidates are scored by similarity to the observed spectrum, and the best form a mating pool. A graph genetic algorithm then applies crossover and mutation that keep the formula fixed, and the loop repeats until a budget of ICEBERG calls is used. A multi-objective variant adds a penalty on structural complexity. FOAM has no trained weights of its own; the learned part is the ICEBERG simulator.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper Section 2 and Figure 1; README.md",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Given a target spectrum T , seed structures with matching formulae are first"
+     },
+     {
+      "source": "@paper",
+      "text": "a graph genetic evolutionary algorithm [50] applies formula-constrained crossover and mutation operations to generate"
+     },
+     {
+      "source": "@paper",
+      "text": "objective penalizing structural complexity."
+     },
+     {
+      "source": "@readme",
+      "text": "is used for forward spectral simulation; given a SMILES representation of a molecule alongside instrumental metadata such as specified adducts, collision energy, and instrument type, a spectrum can be generated."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "Reproduction configs are in configs/final, for NIST'20 (7,500 calls) and MassSpecGym with PubChem and DiffMS seeds. The MassSpecGym ICEBERG checkpoints (msg_gen.ckpt and msg_inten_cosine.ckpt) and the PubChem and DiffMS seed caches are on Zenodo record 18502041 (CC-BY-4.0, published 2026-02-06). The NIST'20 ICEBERG weights and NIST spectra are not public. A result should name the config, the seed sources, the call budget and the ICEBERG checkpoints.",
+    "source_ids": [
+     "@readme",
+     "@zenodo"
+    ],
+    "source_locator": "README.md: Downloading models and data, Reproduction Instructions; Zenodo record",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python src/foam/opt_graph_ga_fc/run_opt.py --config configs/final/msg_pubchem_diffms_1500calls.yaml"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"msg_gen.ckpt\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"msg_inten_cosine.ckpt\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"publication_date\": \"2026-02-06\""
+     },
+     {
+      "source": "@readme",
+      "text": "NIST'20: since this model is trained on a commercial library, we cannot make these weights publicly available."
+     }
+    ]
+   },
+   {
+    "title": "Use in the benchmark source",
+    "body": "MassSpecGym in the Wild (an existing source on this record) lists FOAM (DiffMS + PubChem) in its updated MassSpecGym de novo leaderboard with 1.50% top-1 accuracy. The FOAM paper added 100 DiffMS samples per spectrum to the seeds for MassSpecGym. It gives the MassSpecGym call budget as 5,000 in its results and 1,500 in its methods, and the repository's MassSpecGym config is named for 1,500 calls. The sources do not say which setting the leaderboard row used.",
+    "source_ids": [
+     "@msgwild",
+     "@paper",
+     "lit-otheromics-20261011-msgwild-source-liu2026"
+    ],
+    "source_locator": "MassSpecGym in the Wild Table 9; FOAM paper Section 3; README.md",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "FOAM (DiffMS + PubChem)"
+     },
+     {
+      "source": "@msgwild",
+      "text": "2.30% 1.50% 10.73%"
+     },
+     {
+      "source": "@paper",
+      "text": "For MassSpecGym, we additionally include samples from DiffMS [29] and terminate searches after 5,000 calls."
+     },
+     {
+      "source": "@paper",
+      "text": "each spectrum in the MassSpecGym test set, we generate 100 samples from DiffMS,"
+     },
+     {
+      "source": "@paper",
+      "text": "for MassSpecGym experiments, it is 1,500 calls"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Optimisation workflow: formula-constrained graph genetic algorithm scored by a learned spectrum simulator (ICEBERG), for de novo structure elucidation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "FOAM couples a formula-constrained graph genetic algorithm with spectral simulation to explore candidate annotations given an experimental spectrum."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Graph genetic algorithm (crossover and mutation that keep the formula) with an ICEBERG oracle; optional multi-objective scoring.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper Section 2; README.md parameters",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "applies formula-constrained crossover and mutation operations"
+     },
+     {
+      "source": "@readme",
+      "text": "--multiobj # if included, will use multiobj setup"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "An experimental MS/MS spectrum (HDF5 or a folder of spectra) with its molecular formula, plus seed structures (HDF5 or a .txt of SMILES).",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Instructions for Use",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Prepare your spectrum in HDF5 format (matching the structure of the provided `spec_files.hdf5`), or provide a folder of spectra."
+     },
+     {
+      "source": "@readme",
+      "text": "Optionally prepare a seed library (`.hdf5` or `.txt` file of SMILES)."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Candidate molecules per generation with scores and evaluation metrics, written under the save directory.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Expected Output",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Candidate molecules generated during the run"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not applicable to FOAM itself, which is a search algorithm; the ICEBERG checkpoints it uses are separate models, and no parameter count for them is given in the sources read.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper; README.md",
+    "quotes": []
+   },
+   {
+    "label": "Training data",
+    "value": "FOAM is not trained. The MassSpecGym ICEBERG checkpoints are for MassSpecGym; a NIST'20 ICEBERG model trained on the commercial library is not public. Seeds come from PubChem formula matches and DiffMS samples.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Models, Data",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "MassSpecGym: weights available here: https://zenodo.org/uploads/18502041"
+     },
+     {
+      "source": "@readme",
+      "text": "Structure caches for both PubChem and DiffMS are provided in our Zenodo"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Single-objective and multi-objective modes; configs in configs/final for NIST'20 and MassSpecGym. No versioned releases are described.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Example configs are in `configs/final/`."
+     },
+     {
+      "source": "@readme",
+      "text": "--multiobj"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not applicable; FOAM is not trained.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated as a fixed limit; the search is bounded by the number of ICEBERG calls (--max-calls) and ICEBERG predicts up to --max-nodes fragments (100 in the demo).",
+    "status": "unreported",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Description of Parameters",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--max-calls {int} # num of max calls to ICEBERG"
+     },
+     {
+      "source": "@readme",
+      "text": "--max-nodes 100"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "CC-BY-4.0 for the MassSpecGym ICEBERG checkpoints and seed caches on Zenodo record 18502041; FOAM has no weights of its own.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record metadata",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, per the LICENSE file.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2026 Coley Research Group @ MIT"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/coleygroup/foam (needs coleygroup/ms-pred for ICEBERG). Weights and seed caches: Zenodo record 18502041 (the README links https://zenodo.org/uploads/18502041). Paper: https://arxiv.org/abs/2602.07709.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@zenodo"
+    ],
+    "source_locator": "README.md; Zenodo record",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/coleygroup/foam.git"
+     },
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/coleygroup/ms-pred.git"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"self_html\": \"https://zenodo.org/records/18502041\""
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Can refine candidates from any source, so it can be stacked on generative models such as DiffMS.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md; paper",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "As a spectrum-conditioned generative method that can also accept any number of seed structures"
+     }
+    ]
+   },
+   {
+    "text": "Runs on CPU; the README times a 200-call demo at about 4 minutes on a 4-core desktop (the authors' figure).",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Hardware Requirements, Expected Runtime",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "**CPU-only mode:** No special hardware required."
+     },
+     {
+      "source": "@readme",
+      "text": "| Demo (200 calls, CPU) | Standard desktop (4 cores) | ~4 minutes |"
+     }
+    ]
+   },
+   {
+    "text": "MIT code and CC-BY-4.0 checkpoints and seed caches for MassSpecGym.",
+    "source_ids": [
+     "@license",
+     "@zenodo"
+    ],
+    "source_locator": "LICENSE; Zenodo",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Needs the molecular formula, and results depend on how close the seed structures are; the authors show success rises when a seed is structurally similar to the true molecule.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "FOAM’s performance correlates with the relevance of seed"
+     }
+    ]
+   },
+   {
+    "text": "Its quality is bounded by the ICEBERG simulator; the NIST'20 ICEBERG weights and spectra used in the main evaluation are not public.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md; paper",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Since the NIST20 reference library is not open-access, we cannot provide these spectra publically."
+     }
+    ]
+   },
+   {
+    "text": "Large downloads: the PubChem seed files on Zenodo are about 6.2 GB and 9.2 GB, and at least 20 GB RAM is recommended.",
+    "source_ids": [
+     "@zenodo",
+     "@readme"
+    ],
+    "source_locator": "Zenodo record; README.md",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"size\": 6247103480"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"size\": 9245679614"
+     },
+     {
+      "source": "@readme",
+      "text": "**RAM:** 20 GB minimum recommended"
+     }
+    ]
+   },
+   {
+    "text": "The README demo points at NIST spectrum files that are not distributed, and configs contain placeholder paths.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Demo, Reproduction Instructions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--spec-lib-dir data/spec_datasets/nist23/spec_files.hdf5"
+     },
+     {
+      "source": "@readme",
+      "text": "Note: Config files contain placeholder paths to model checkpoints and data files."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "FOAM optimisation loop",
+   "steps": [
+    "Spectrum and formula",
+    "Formula-matched seeds (PubChem, DiffMS)",
+    "ICEBERG simulates candidate spectra",
+    "Score and select mating pool",
+    "Formula-constrained crossover and mutation",
+    "Ranked candidates"
+   ],
+   "caption": "The loop repeats until the ICEBERG call budget is spent.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper Figure 1 caption and Section 2",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "In Step 2, ICEBERG simulates these structures’ spectra with the same"
+    },
+    {
+     "source": "@paper",
+     "text": "applies formula-constrained crossover and mutation operations to generate"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The configs were not read, so the call budget behind the leaderboard row is not confirmed.",
+   "No parameter count for the ICEBERG checkpoints is given in the sources read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read README.md and LICENSE of coleygroup/foam at commit f3ed69b11642c01be0301dd2cfcba5cb3ee8c793, Zenodo record 18502041, the arXiv 2602.07709 abstract page and v1 PDF text layer, and the MassSpecGym in the Wild arXiv 2606.19624v1 text layer, all on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install FOAM with ms-pred using uv, download the MassSpecGym ICEBERG checkpoints and seed caches from Zenodo, and run the MassSpecGym reproduction config.",
+  "prerequisites": [
+   "Python 3.10 and uv.",
+   "At least 20 GB RAM; CPU is enough, an NVIDIA GPU with CUDA 12.1 is optional.",
+   "About 20 GB of disk for data and checkpoints.",
+   "A MassSpecGym spectra HDF5 file, built with code in the ms-pred repository."
+  ],
+  "steps": [
+   {
+    "title": "Get the code and environment",
+    "shell": "git clone https://github.com/coleygroup/foam.git\ncd foam\ngit checkout --detach f3ed69b11642c01be0301dd2cfcba5cb3ee8c793\nuv venv --python 3.10 ms-gen-foam\nsource ms-gen-foam/bin/activate",
+    "explanation": "As the README's uv route gives it; the checkout line is added by Rewire to pin the reviewed commit.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Option 2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/coleygroup/foam.git cd foam uv venv --python 3.10 ms-gen-foam source ms-gen-foam/bin/activate"
+     }
+    ]
+   },
+   {
+    "title": "Install ms-pred and FOAM",
+    "shell": "cd .. && git clone https://github.com/coleygroup/ms-pred.git && cd ms-pred\ngit checkout fix-deps\nuv pip install -e .\ncd ../foam\nuv pip install -e \".[cpu]\"",
+    "explanation": "Installs ICEBERG's ms-pred package on its fix-deps branch, then FOAM for CPU; use .[cuda] for GPU.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Option 2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "cd .. && git clone https://github.com/coleygroup/ms-pred.git && cd ms-pred"
+     },
+     {
+      "source": "@readme",
+      "text": "git checkout fix-deps uv pip install -e ."
+     },
+     {
+      "source": "@readme",
+      "text": "uv pip install -e \".[cpu]\""
+     }
+    ]
+   },
+   {
+    "title": "Download checkpoints and seed caches",
+    "shell": "# From Zenodo record 18502041, download msg_gen.ckpt and msg_inten_cosine.ckpt,\n# and put the PubChem and DiffMS seed caches into data/pubchem/ and data/diffms/",
+    "explanation": "The README names the record and target folders but gives no download command.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Models, Data",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Structure caches for both PubChem and DiffMS are provided in our Zenodo and should be deposited into the `data/{pubchem}|{diffms}/` directories."
+     }
+    ]
+   },
+   {
+    "title": "Run the MassSpecGym config",
+    "shell": "python src/foam/opt_graph_ga_fc/run_opt.py --config configs/final/msg_pubchem_diffms_1500calls.yaml",
+    "explanation": "Edit the placeholder paths in the config to your checkpoints and data first.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Reproduction Instructions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python src/foam/opt_graph_ga_fc/run_opt.py --config configs/final/msg_pubchem_diffms_1500calls.yaml"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A results directory with optimisation logs and metrics, candidate molecules per generation, and evaluation metrics (NDS scores, Pareto rankings, InChIKey matches)."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The config's placeholder paths must be set by hand.",
+   "The README's own demo uses NIST spectra that are not distributed."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "ICEBERG MassSpecGym checkpoints used by FOAM (msg_gen.ckpt, msg_inten_cosine.ckpt)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "MIT",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/coleygroup/foam",
+   "weights_url": "https://zenodo.org/records/18502041",
+   "gated": false,
+   "released": "2026-02-06",
+   "quotes": [
+    {
+     "source": "@zenodo",
+     "text": "\"key\": \"msg_gen.ckpt\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2026-02-06\""
+    }
+   ]
+  }
+ ],
+ "notes": "FOAM has no reference in MassSpecGym in the Wild; it was identified from the record description and found as coleygroup/foam with arXiv 2602.07709. The README links the Zenodo record as zenodo.org/uploads/18502041; the public record is zenodo.org/records/18502041. The structured entry describes the ICEBERG weights FOAM uses, since FOAM has none of its own. The arXiv paper is CC BY-NC-SA 4.0, so its files are not stored."
+}

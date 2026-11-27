@@ -1,0 +1,480 @@
+{
+  "record_id": "lit-cells-networks-20261011-chen2026-model-scelmo",
+  "sources": [
+    {
+      "key": "readme",
+      "name": "HelloWorldLTY/scELMo readme.md at commit 2bdbb6a8",
+      "description": "Official repository README, pinned to a commit.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/HelloWorldLTY/scELMo/2bdbb6a80e5e184324209db0856e744dd784dcb5/readme.md",
+      "url": "https://github.com/HelloWorldLTY/scELMo",
+      "version": "git commit 2bdbb6a80e5e184324209db0856e744dd784dcb5",
+      "media_type": "text/markdown",
+      "sha256": "511ae0dc9fde9b280604607932115b2394ee1c5628fdefe1ad1f039aac2ff6fc",
+      "retrieved_at": "2026-11-27T02:37:41Z",
+      "store_bytes": false
+    },
+    {
+      "key": "repo-contents",
+      "name": "HelloWorldLTY/scELMo root directory listing at commit 2bdbb6a8",
+      "description": "GitHub API listing of the repository root at the pinned commit.",
+      "file": "artifacts/repo-contents.json",
+      "artifact_url": "https://api.github.com/repos/HelloWorldLTY/scELMo/contents?ref=2bdbb6a80e5e184324209db0856e744dd784dcb5",
+      "url": "https://github.com/HelloWorldLTY/scELMo",
+      "version": "git commit 2bdbb6a80e5e184324209db0856e744dd784dcb5",
+      "media_type": "application/json",
+      "sha256": "7d9aac7f363e76b53dac27c4069d4c0c6a52c748cd99915ebad5d2c3c81db3dd",
+      "retrieved_at": "2026-11-27T02:37:41Z",
+      "store_bytes": true
+    },
+    {
+      "key": "paper",
+      "name": "Liu et al., scELMo: Embeddings from Language Models are Good Learners for Single-cell Data Analysis, bioRxiv preprint v4 (PMC12393277)",
+      "description": "Full text of the preprint as NCBI PMC XML.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12393277&rettype=xml",
+      "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12393277/",
+      "version": "PMC12393277, preprint version 4",
+      "media_type": "application/xml",
+      "sha256": "74635fd5b44c4505e4b392f205f83e048561b8018c6e931b040be2056a60f097",
+      "retrieved_at": "2026-11-27T02:37:49Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "scELMo uses large language models to describe genes (or other features and cell metadata) in text and to embed those descriptions, then combines the embeddings with single-cell expression data to make cell embeddings. Without training a new model the cell embeddings support clustering, batch effect correction and cell type annotation; a small fine-tuned adaptor handles harder tasks such as perturbation analysis.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper Abstract",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "utilizes Large Language Models (LLMs) as a generator for both the description of metadata information and the embeddings for such descriptions"
+      },
+      {
+        "source": "@paper",
+        "text": "We demonstrate that scELMo is capable of cell clustering, batch effect correction, and cell-type annotation without training a new model. Moreover, the fine-tuning framework of scELMo can help with more challenging task"
+      }
+    ],
+    "sections": [
+      {
+        "title": "How it works",
+        "body": "Feature information (for example genes or proteins) is turned into text, either from a database such as NCBI or as a summary written by an LLM, and the text is embedded with an LLM. A cell's embedding combines these feature embeddings with its expression profile. Unlike GenePT's arithmetic average, scELMo also offers a weighted average that uses expression levels as weights. In the fine-tuning framework, a light model (an adaptor) is trained on the gene embeddings and expression profiles.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Introduction and Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we can either use prior knowledge from a known database such as NCBI or the summary given by LLMs as a prompt, and then generate the embeddings for the prompt based on LLM"
+          },
+          {
+            "source": "@paper",
+            "text": "we treated the gene expression levels as weights and computed the weighted average"
+          },
+          {
+            "source": "@paper",
+            "text": "GenePT utilized a naive arithmetic average"
+          },
+          {
+            "source": "@paper",
+            "text": "We then trained the model based on gene embeddings and expression profiles. Such model is also known as an adaptor"
+          }
+        ]
+      },
+      {
+        "title": "Versions and reproducibility",
+        "body": "scELMo is a method, not a fixed checkpoint. Results depend on which LLM produced the descriptions and embeddings (the authors compared LLMs including GPT 3.5, GPT 4, Llama-2 70B and Mistral for hallucination) and on the averaging method. The authors host precomputed embeddings, including gene embeddings from gpt4-o and drug embeddings from GPT 3.5, on a website. A result should name the LLM, the embedding file and the averaging method.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper Results: Evaluation of Hallucinations in LLMs; README.md: News",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "GPT 3.5, GPT 4, Llama-2 (70B), Mistral"
+          },
+          {
+            "source": "@readme",
+            "text": "We have uploaded gene embeddings from gpt4-o and drug embeddings from GPT 3.5 in our website"
+          }
+        ]
+      },
+      {
+        "title": "Intended uses",
+        "body": "Cell clustering, batch effect correction and cell type annotation (zero-shot), plus in silico treatment and perturbation analysis with fine-tuning; each task has a folder of example notebooks.",
+        "source_ids": [
+          "@readme",
+          "@repo-contents"
+        ],
+        "source_locator": "README.md: Tutorials; repository listing",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Please use the example ipynb notebook in each folders as instructions."
+          },
+          {
+            "source": "@repo-contents",
+            "text": "\"name\":\"Perturbation Analysis\""
+          },
+          {
+            "source": "@repo-contents",
+            "text": "\"name\":\"In silico treatment\""
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Model type",
+        "value": "Method that builds single-cell embeddings from LLM embeddings of text descriptions, with an optional fine-tuned adaptor.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Abstract",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we propose a method named scELMo (Single-cell Embedding from Language Models)"
+          }
+        ]
+      },
+      {
+        "label": "Architecture",
+        "value": "No pretrained network of its own. Zero-shot: averages of LLM feature embeddings weighted by expression (wa) or plain (aa). Fine-tuning: a small adaptor model trained on gene embeddings and expression.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we treated the gene expression levels as weights and computed the weighted average"
+          },
+          {
+            "source": "@paper",
+            "text": "Such model is also known as an adaptor"
+          }
+        ]
+      },
+      {
+        "label": "Inputs",
+        "value": "A single-cell expression matrix and text descriptions of its features or cells, embedded by an LLM through the OpenAI API (or a DeepSeek alternative).",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Installation; paper",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "We rely on OpenAI API for query."
+          },
+          {
+            "source": "@readme",
+            "text": "we provide an alternative solution based on [deepseekv2]"
+          }
+        ]
+      },
+      {
+        "label": "Outputs",
+        "value": "Cell embeddings for clustering, batch correction and annotation; fine-tuned predictions for perturbation tasks.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Abstract",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "scELMo is capable of cell clustering, batch effect correction, and cell-type annotation without training a new model"
+          }
+        ]
+      },
+      {
+        "label": "Parameters",
+        "value": "Not applicable for the zero-shot method, which trains nothing. The adaptor's size is not stated in the sources read.",
+        "status": "inapplicable",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper",
+        "quotes": []
+      },
+      {
+        "label": "Training data",
+        "value": "None for the zero-shot method. Descriptions come from NCBI and Ensembl gene names and from LLM summaries; datasets used are listed in the paper's Supplementary file 3.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper Results; README.md: Datasets",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we generated gene embeddings for gene names from both NCBI and Ensemble"
+          },
+          {
+            "source": "@readme",
+            "text": "All of the datasets and their download information are included in the Supplementary file 3."
+          }
+        ]
+      },
+      {
+        "label": "Known versions",
+        "value": "No numbered releases. Embedding sets differ by LLM (GPT 3.5, gpt4-o and others) and are hosted on the authors' website.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "We have uploaded gene embeddings from gpt4-o and drug embeddings from GPT 3.5 in our website"
+          },
+          {
+            "source": "@readme",
+            "text": "https://sites.google.com/yale.edu/scelmolib"
+          }
+        ]
+      },
+      {
+        "label": "Training cutoff",
+        "value": "Not stated.",
+        "status": "unreported",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper",
+        "quotes": []
+      },
+      {
+        "label": "Context limits",
+        "value": "Not applicable: there is no sequence model of its own; limits of the underlying LLMs are not stated.",
+        "status": "inapplicable",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper",
+        "quotes": []
+      },
+      {
+        "label": "Weights licence",
+        "value": "Not stated. The precomputed embeddings are on a Google Sites page with no licence among the sources read.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Database for scELMo",
+        "quotes": []
+      },
+      {
+        "label": "Code licence",
+        "value": "MIT, as stated in the paper's Codes and Datasets section ('The license is MIT license'); the repository has no LICENSE file and the README names no licence.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@repo-contents",
+          "@readme"
+        ],
+        "source_locator": "Paper: Codes and Datasets; GitHub root listing",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The license is MIT license."
+          }
+        ]
+      },
+      {
+        "label": "Access",
+        "value": "Code and notebooks: https://github.com/HelloWorldLTY/scELMo. Embeddings: https://sites.google.com/yale.edu/scelmolib.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "https://sites.google.com/yale.edu/scelmolib"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Zero-shot use needs no model training; the README says the demo runs on a normal computer within 10 minutes.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Tutorials",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "The demo tutorial can be finished in a normal computer within 10 minutes with a prepared environment."
+          }
+        ]
+      },
+      {
+        "text": "Extends GenePT with expression-weighted averaging and with embeddings of other features and cell metadata.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Different from GenePT, we treated the gene expression levels as weights"
+          }
+        ]
+      },
+      {
+        "text": "The authors report that the fine-tuned adaptor is comparable to scGPT and Geneformer for annotation while needing fewer resources (authors' claim).",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the fine-tuning results by combining the gene embeddings from GPT 3.5 or GenePT and our adaptor are comparable with FMs like scGPT"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Generating new embeddings needs access to an LLM API (OpenAI, or DeepSeek as the alternative).",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Installation",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "We rely on OpenAI API for query."
+          }
+        ]
+      },
+      {
+        "text": "The MIT licence is stated only in the paper; the repository has no LICENSE file.",
+        "source_ids": [
+          "@paper",
+          "@repo-contents"
+        ],
+        "source_locator": "Paper: Codes and Datasets; GitHub root listing",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The license is MIT license."
+          },
+          {
+            "source": "@repo-contents",
+            "text": "\"name\":\"readme.md\""
+          }
+        ]
+      },
+      {
+        "text": "Results depend on the LLM chosen, and the authors screen LLMs for hallucinated descriptions.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "A suitable LLM should not suffer from Hallucinations"
+          },
+          {
+            "source": "@paper",
+            "text": "that is, generating fake or incorrect information about our given feature information or cell information"
+          }
+        ]
+      },
+      {
+        "text": "No package; each task is a set of notebooks with its own dependencies, and perturbation analysis uses modified copies of CINEMA-OT, CPA and GEARS.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Installation",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "use the modifeid version provided in the **Perturbation Analysis** folder"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "scELMo workflow",
+      "steps": [
+        "Feature or cell metadata",
+        "Text description (NCBI or LLM summary)",
+        "LLM text embedding",
+        "Combine with expression (weighted average or adaptor)",
+        "Cell embedding"
+      ],
+      "caption": "Text embeddings of features are combined with each cell's expression profile.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper Introduction and Results",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we can either use prior knowledge from a known database such as NCBI or the summary given by LLMs as a prompt"
+        },
+        {
+          "source": "@paper",
+          "text": "we treated the gene expression levels as weights and computed the weighted average"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "No embedding licence is stated.",
+      "The adaptor's size and the precomputed embedding files were not examined.",
+      "The paper read is bioRxiv preprint v4 in PMC; the Patterns version cited in the README was not read."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the HelloWorldLTY/scELMo readme.md and root listing at commit 2bdbb6a80e5e184324209db0856e744dd784dcb5 and the PMC12393277 preprint full-text XML (version 4), on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": null,
+  "no_run_guide_reason": "The README gives only dependency installs and points to per-task Jupyter notebooks; there is no package or command that produces embeddings, so no runnable sequence can be taken from the sources read.",
+  "structured": [
+    {
+      "checkpoint": "scELMo (method)",
+      "parameters": null,
+      "context_length": null,
+      "context_unit": null,
+      "code_licence": "MIT",
+      "weights_licence": null,
+      "code_url": "https://github.com/HelloWorldLTY/scELMo",
+      "weights_url": "https://sites.google.com/yale.edu/scelmolib",
+      "gated": false,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "https://sites.google.com/yale.edu/scelmolib"
+        },
+        {
+          "source": "@paper",
+          "text": "The license is MIT license."
+        }
+      ]
+    }
+  ],
+  "notes": "The README cites a 2026 Patterns article (doi 10.1016/j.patter.2025.101431); the open text read is the bioRxiv preprint v4 in PMC. Similar in idea to GenePT (06-genept); not a duplicate."
+}

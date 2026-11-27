@@ -1,0 +1,681 @@
+{
+ "record_id": "lit-otheromics-20261011-msgwild-model-diffms",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "coleygroup/DiffMS README.md at commit 6d62bbe8",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/coleygroup/DiffMS/6d62bbe8a72469e55f923a34f20c1370ddc56fcc/README.md",
+   "url": "https://github.com/coleygroup/DiffMS",
+   "version": "git commit 6d62bbe8a72469e55f923a34f20c1370ddc56fcc",
+   "media_type": "text/markdown",
+   "sha256": "e2ddb0eeb703b8dba38049167b77f7fcf48778ce400ecb6aa8dd095f792854dc",
+   "retrieved_at": "2026-11-27T02:40:42Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "coleygroup/DiffMS LICENSE at commit 6d62bbe8",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/coleygroup/DiffMS/6d62bbe8a72469e55f923a34f20c1370ddc56fcc/LICENSE",
+   "url": "https://github.com/coleygroup/DiffMS",
+   "version": "git commit 6d62bbe8a72469e55f923a34f20c1370ddc56fcc",
+   "media_type": "text/plain",
+   "sha256": "1662c9755bc5df36304f125f94807d8b2bd9f52f3b1a9581401c0ce5e73987d4",
+   "retrieved_at": "2026-11-27T02:40:46Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 23542112 (DiffMS checkpoints), API response",
+   "description": "Zenodo API response for the record the README names for pretrained DiffMS end-to-end models and decoders.",
+   "file": "artifacts/zenodo-diffms.json",
+   "artifact_url": "https://zenodo.org/api/records/23542112",
+   "url": "https://zenodo.org/records/23542112",
+   "version": "Zenodo record 23542112, as served on 2026-11-27",
+   "media_type": "application/json",
+   "sha256": "75c7d637cd837b1eaf3f2fd82d0c16b6c919043f603f7f8f1da50759479c6a02",
+   "retrieved_at": "2026-11-27T02:40:53Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "paper-abs",
+   "name": "arXiv 2502.09571 abstract page (Bohde et al., DiffMS)",
+   "description": "arXiv abstract page of the DiffMS paper.",
+   "file": "artifacts/paper-abs.html",
+   "artifact_url": "https://arxiv.org/abs/2502.09571",
+   "url": "https://arxiv.org/abs/2502.09571",
+   "version": "arXiv 2502.09571, latest version as served on 2026-11-27",
+   "media_type": "text/html",
+   "sha256": "6073585af7dd8563d4ba54566bc55db3dd67dbe9447e9111519f1800d3dcb968",
+   "retrieved_at": "2026-11-27T02:40:54Z",
+   "store_bytes": false
+  },
+  {
+   "key": "paper",
+   "name": "arXiv 2502.09571v2 full text, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of the DiffMS paper (v2, 27 May 2025).",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2502.09571",
+   "url": "https://arxiv.org/abs/2502.09571",
+   "version": "arXiv 2502.09571v2",
+   "media_type": "text/plain",
+   "sha256": "47e3ca619583e75a16d825339cf4a8edd12878f6823e4d4a1da067ff656d8398",
+   "retrieved_at": "2026-11-27T02:40:57Z",
+   "store_bytes": false
+  },
+  {
+   "key": "msgwild",
+   "name": "MassSpecGym in the Wild, arXiv 2606.19624v1, text layer",
+   "description": "Text layer extracted with pdftotext from the arXiv PDF of the MassSpecGym in the Wild paper, which re-evaluated DiffMS.",
+   "file": "artifacts/msgwild-v1.txt",
+   "artifact_url": "https://arxiv.org/pdf/2606.19624v1",
+   "url": "https://arxiv.org/abs/2606.19624v1",
+   "version": "arXiv 2606.19624v1",
+   "media_type": "text/plain",
+   "sha256": "90139d4bf7f7bc38f7b01df0194ae4207b9a805723322b5a6d82edf25d6a7701",
+   "retrieved_at": "2026-11-27T02:24:43Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "DiffMS generates candidate molecular structures from a tandem mass spectrum (de novo structure elucidation). It takes an MS/MS spectrum and the molecule's chemical formula, encodes the spectrum with a formula transformer, and uses a discrete graph diffusion model to build molecular graphs with the right heavy atoms. It outputs a set of sampled candidate structures.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "arXiv 2502.09571v2 abstract",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "One formulation of the structure elucidation task is the conditional de novo generation of molecular structure given a mass spectrum."
+   },
+   {
+    "source": "@paper",
+    "text": "The encoder utilizes a transformer architecture and models mass spectra domain knowledge such as peak formulae and neutral losses,"
+   },
+   {
+    "source": "@paper",
+    "text": "and the decoder is a discrete graph diffusion model restricted by the heavy-atom composition of a known chemical formula."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The encoder is the MIST formula transformer, which embeds spectrum peaks labelled with formulas and neutral losses. The decoder is a discrete graph diffusion model adapted from DiGress: it denoises an adjacency matrix over a fixed set of heavy atoms taken from the known formula, and hydrogens are placed implicitly. The decoder is pretrained on 2.8M fingerprint-molecule pairs (2048-bit Morgan fingerprints, radius 2) from DSSTox, HMDB, COCONUT and MOSES; the encoder is pretrained on the finetuning data (NPLIB1 or MassSpecGym); then the whole model is finetuned with the denoising cross-entropy loss.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: abstract, Section 3, Appendix A",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For the encoder, we adopt the formula transformer from MIST (Goldman et al., 2023b) with"
+     },
+     {
+      "source": "@readme",
+      "text": "The DiffMS codebase is adapted from [DiGress](https://github.com/cvignac/DiGress)."
+     },
+     {
+      "source": "@paper",
+      "text": "we find it sufficient to model only the heavy-atoms in the graph and infer hydrogen atom placement implicitly;"
+     },
+     {
+      "source": "@paper",
+      "text": "For pretraining the decoder, we use 2048-bit Morgan fingerprints with radius 2"
+     },
+     {
+      "source": "@paper",
+      "text": "We build a decoder pretraining datset consisting of 2.8M fingerprint-molecule pairs sampled from DSSTox"
+     },
+     {
+      "source": "@paper",
+      "text": "We pretrain the encoder on the same dataset used for finetuning (i.e. NPLIB1, MassSpecGym)"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "Pretrained end-to-end models and decoders are on Zenodo record 23542112 (published 2026-10-21, MIT, files diffms_checkpoints.tar.gz and msg_preprocessed.tar.gz). MIST encoder checkpoints are on a separate Zenodo record, in four variants (CANOPUS or MassSpecGym, with or without synthetic training spectra), with training code in coleygroup/MIST. The MassSpecGym in the Wild paper reports that the MIST attention code as first published in the MIST and DiffMS codebases mishandled padding in batched inputs, and that a commonly reused MIST checkpoint from DiffMS could not be reproduced. A result should name the checkpoint files, the MIST encoder variant and the code commit.",
+    "source_ids": [
+     "@readme",
+     "@zenodo",
+     "@msgwild",
+     "lit-otheromics-20261011-msgwild-source-liu2026"
+    ],
+    "source_locator": "README.md: Pretrained Checkpoints; Zenodo record; MassSpecGym in the Wild Section 6.1",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Pretrained DiffMS end-to-end models and decoders are available [here](https://zenodo.org/records/23542112)."
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"publication_date\": \"2026-10-21\""
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"diffms_checkpoints.tar.gz\""
+     },
+     {
+      "source": "@readme",
+      "text": "The MIST checkpoints, `mist_{canopus,msg}_{noaug,aug}.ckpt`, cover CANOPUS and MassSpecGym, with (`aug`) or without (`noaug`) synthetic training spectra."
+     },
+     {
+      "source": "@msgwild",
+      "text": "its attention code as initially published in the MIST and DiffMS codebases mistakenly applied the raw boolean mask via attn += attn_mask."
+     },
+     {
+      "source": "@msgwild",
+      "text": "Unreproducible MIST (vDiffMS) Checkpoint Affecting Downstream Decoder"
+     }
+    ]
+   },
+   {
+    "title": "Use in benchmarks",
+    "body": "MassSpecGym in the Wild (an existing source on this record) lists DiffMS in its updated MassSpecGym de novo leaderboard and also uses it for generative retrieval. It shows that changing metric settings on identical DiffMS predictions changes the scores, and recommends keeping metric code consistent with the MassSpecGym reference implementation.",
+    "source_ids": [
+     "@msgwild",
+     "lit-otheromics-20261011-msgwild-source-liu2026"
+    ],
+    "source_locator": "MassSpecGym in the Wild: Table 2, Table 9, Appendix A.8",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "DiffMS (generative retrieval) [41]"
+     },
+     {
+      "source": "@msgwild",
+      "text": "Table 10 shows the influence of evaluation metric parameters on DiffMS performance."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Conditional generative model: formula-restricted encoder-decoder for de novo molecule generation from mass spectra.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we present DiffMS, a formularestricted encoder-decoder generative network"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "MIST formula transformer encoder plus a discrete graph diffusion decoder (adapted from DiGress) over heavy atoms.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 3; README.md",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we adopt the formula transformer from MIST"
+     },
+     {
+      "source": "@paper",
+      "text": "the decoder is a discrete graph diffusion model"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "An MS/MS spectrum with peak formula annotations and the target's chemical formula (inferable from MS1 with tools such as SIRIUS or MIST-CF).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract and Section 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "restricted by the heavy-atom composition of a known chemical formula."
+     },
+     {
+      "source": "@paper",
+      "text": "Formulae can be inferred from high-resolution MS1 data and isotopic traces with sufficient accuracy using tools like SIRIUS"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Sampled candidate molecular graphs; generated molecules may differ from the true formula in hydrogen count.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 3; Appendix A",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "thus DiffMS generated molecules may differ in formula from the true molecule in hydrogen atom count."
+     },
+     {
+      "source": "@paper",
+      "text": "It takes 4 minutes on average to generate 100 samples from DiffMS."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported in the sources read; the authors describe it as a relatively lightweight model.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Appendix A",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "DiffMS is a relatively lightweight model"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Decoder pretraining: 2.8M fingerprint-molecule pairs from DSSTox, HMDB, COCONUT and MOSES. Encoder pretraining and finetuning: NPLIB1 (CANOPUS) or MassSpecGym.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper Appendix A",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "2.8M fingerprint-molecule pairs sampled from DSSTox (CCTE, 2019), HMDB (Wishart et al., 2021), COCONUT (Sorokina et al., 2021), and MOSES (Polykovskiy et al., 2020) datasets."
+     },
+     {
+      "source": "@readme",
+      "text": "You will also need to set the dataset in [config.yaml](configs/config.yaml) to 'msg' for MassSpecGym or 'canopus' for NPLIB1."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Checkpoint archive diffms_checkpoints.tar.gz on Zenodo record 23542112 (end-to-end models and decoders); MIST encoder checkpoints mist_canopus_noaug, mist_canopus_aug, mist_msg_noaug and mist_msg_aug on a separate Zenodo record. Preprint arXiv 2502.09571 (v2 dated 27 May 2025); ICML 2025 per MassSpecGym in the Wild.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo",
+     "@readme",
+     "@paper",
+     "@msgwild"
+    ],
+    "source_locator": "README.md; Zenodo record; paper; MassSpecGym in the Wild references",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"diffms_checkpoints.tar.gz\""
+     },
+     {
+      "source": "@readme",
+      "text": "`mist_{canopus,msg}_{noaug,aug}.ckpt`"
+     },
+     {
+      "source": "@paper",
+      "text": "arXiv:2502.09571v2 [cs.LG] 27 May 2025"
+     },
+     {
+      "source": "@msgwild",
+      "text": "Diffms: Diffusion generation of molecules conditioned on mass spectra. In International Conference on Machine Learning, pages 4737–4756. PMLR, 2025."
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated as a limit; generation is restricted to the heavy atoms of the given formula.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "restricted by the heavy-atom composition of a known chemical formula."
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "MIT, as declared on Zenodo record 23542112, which holds the DiffMS checkpoints.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record metadata",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"mit-license\"}"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, per the LICENSE file and README.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE; README.md: License",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2025 Montgomery Bohde"
+     },
+     {
+      "source": "@readme",
+      "text": "DiffMS is released under the [MIT](LICENSE.txt) license."
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/coleygroup/DiffMS. Checkpoints: https://zenodo.org/records/23542112. MIST encoders: https://zenodo.org/records/23303289. Paper: https://arxiv.org/abs/2502.09571.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "https://zenodo.org/records/23542112"
+     },
+     {
+      "source": "@readme",
+      "text": "MIST encoder checkpoints are available [here](https://zenodo.org/records/23303289)"
+     },
+     {
+      "source": "@readme",
+      "text": "https://arxiv.org/abs/2502.09571"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Code and checkpoints are MIT-licensed, with scripts to download and preprocess the pretraining and finetuning data.",
+    "source_ids": [
+     "@readme",
+     "@zenodo"
+    ],
+    "source_locator": "README.md; Zenodo record",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We provide a series of scripts to download/process the pretraining and finetuning datasets."
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"mit-license\"}"
+     }
+    ]
+   },
+   {
+    "text": "Decoder pretraining uses fingerprint-molecule pairs, which are plentiful compared with spectrum-structure pairs; the authors report performance scaling with pretraining set size.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we pretrain the diffusion decoder with fingerprint-structure pairs, which are available in virtually infinite quantities"
+     },
+     {
+      "source": "@paper",
+      "text": "show consistent performance scaling with increasing pretraining dataset size."
+     }
+    ]
+   },
+   {
+    "text": "Relatively light: all experiments ran on 12 GB NVIDIA 2080 Ti GPUs (the authors' report).",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Appendix A",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "all experiments were run on NVIDIA 2080ti GPUs with 12 GB of memory."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Needs the molecule's chemical formula, which must be known or predicted separately.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "restricted by the heavy-atom composition of a known chemical formula."
+     }
+    ]
+   },
+   {
+    "text": "Generated molecules may have the wrong number of hydrogens because hydrogens are not modelled explicitly.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper Section 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "DiffMS generated molecules may differ in formula from the true molecule in hydrogen atom count."
+     }
+    ]
+   },
+   {
+    "text": "MassSpecGym in the Wild found a batched-padding bug in the MIST encoder code as first published in DiffMS and an unreproducible MIST checkpoint reused downstream; results that depend on that checkpoint need care.",
+    "source_ids": [
+     "@msgwild"
+    ],
+    "source_locator": "MassSpecGym in the Wild Section 6.1",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "Padding tokens therefore receive a finite +1 attention offset rather than being excluded from the softmax, affecting both training and inference with padded batches."
+     }
+    ]
+   },
+   {
+    "text": "Scores are sensitive to metric settings; the de novo leaderboard values differ by implementation.",
+    "source_ids": [
+     "@msgwild"
+    ],
+    "source_locator": "MassSpecGym in the Wild Appendix A.8",
+    "quotes": [
+     {
+      "source": "@msgwild",
+      "text": "High deviation in the results highlights the importance of keeping metric implementations consistent with the original reference implementations"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "DiffMS workflow",
+   "steps": [
+    "MS/MS spectrum and chemical formula",
+    "Peak formula annotations",
+    "MIST formula transformer encoder",
+    "Graph diffusion over heavy atoms",
+    "Sampled candidate molecules"
+   ],
+   "caption": "The decoder is pretrained on fingerprint-molecule pairs before end-to-end finetuning.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper Figure 2 caption and abstract",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We embed mass spectrum features with a transformer encoder,"
+    },
+    {
+     "source": "@paper",
+     "text": "and the decoder is a discrete graph diffusion model restricted by the heavy-atom composition of a known chemical formula."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Parameter counts are not given in the sources read.",
+   "The MIST encoder Zenodo record (23303289) and the configs were not read.",
+   "Whether the 2026 checkpoints on Zenodo include the encoder fix reported by MassSpecGym in the Wild is not stated in the sources read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read README.md and LICENSE of coleygroup/DiffMS at commit 6d62bbe8a72469e55f923a34f20c1370ddc56fcc, Zenodo record 23542112, the arXiv 2502.09571 abstract page and the v2 PDF text layer, and the MassSpecGym in the Wild arXiv 2606.19624v1 text layer, all on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install DiffMS, download and preprocess the datasets with the provided scripts, and point the configuration at a pretrained checkpoint before running the end-to-end script, as the README describes.",
+  "prerequisites": [
+   "conda or mamba; tested with PyTorch 2.3.1, CUDA 11.8 and torch_geometric 2.3.1.",
+   "unzip, used by the data scripts.",
+   "A GPU; the authors used 12 GB NVIDIA 2080 Ti cards.",
+   "The checkpoint archive from https://zenodo.org/records/23542112."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://github.com/coleygroup/DiffMS.git\ncd DiffMS\ngit checkout --detach 6d62bbe8a72469e55f923a34f20c1370ddc56fcc",
+    "explanation": "Clone and pin the reviewed commit; these lines are added by Rewire.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "DiffMS code is publicly available at"
+     }
+    ]
+   },
+   {
+    "title": "Create the environment",
+    "shell": "conda create -y -c conda-forge -n diffms rdkit=2024.09.4 python=3.9\nconda activate diffms\npip install torch==2.3.1 --index-url https://download.pytorch.org/whl/cu118\npip install -e .",
+    "explanation": "As the README gives it; pick the PyTorch build for your CUDA version.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Environment installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -y -c conda-forge -n diffms rdkit=2024.09.4 python=3.9 conda activate diffms"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install torch==2.3.1 --index-url https://download.pytorch.org/whl/cu118"
+     },
+     {
+      "source": "@readme",
+      "text": "```pip install -e .```"
+     }
+    ]
+   },
+   {
+    "title": "Download and process data",
+    "shell": "bash data_processing/00_download_fp2mol_data.sh\nbash data_processing/01_download_canopus_data.sh\nbash data_processing/02_download_msg_data.sh\nbash data_processing/03_preprocess_fp2mol.sh",
+    "explanation": "Downloads the fingerprint-molecule pretraining data, NPLIB1 and MassSpecGym, and preprocesses the pretraining set.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Dataset Download/Processing",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "bash data_processing/00_download_fp2mol_data.sh bash data_processing/01_download_canopus_data.sh bash data_processing/02_download_msg_data.sh bash data_processing/03_preprocess_fp2mol.sh"
+     }
+    ]
+   },
+   {
+    "title": "Configure and run the end-to-end script",
+    "shell": "# Set the dataset in configs/config.yaml to 'msg' (MassSpecGym) or 'canopus' (NPLIB1),\n# set general.load_weights in configs/general/general_default.yaml to the downloaded checkpoint path,\n# then run src/spec2mol_main.py",
+    "explanation": "The README describes these steps in prose and gives no literal command; it calls spec2mol_main.py the script to finetune the end-to-end model.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Run the code, Pretrained Checkpoints",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "To finetune the end-to-end model on spectra-molecule generation, run [spec2mol_main.py](src/spec2mol_main.py)."
+     },
+     {
+      "source": "@readme",
+      "text": "To use a pretrained end-to-end model, set `general.load_weights` in [general_default.yaml](configs/general/general_default.yaml) to its checkpoint path."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "The README does not describe the output files of spec2mol_main.py."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The README describes spec2mol_main.py as the finetuning entry point; whether it runs evaluation only when weights are loaded is not stated.",
+   "Finetuning took 46 minutes per epoch on MassSpecGym on the authors' GPUs."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "diffms_checkpoints.tar.gz (end-to-end models and decoders)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://github.com/coleygroup/DiffMS",
+   "weights_url": "https://zenodo.org/records/23542112",
+   "gated": false,
+   "released": "2026-10-21",
+   "quotes": [
+    {
+     "source": "@zenodo",
+     "text": "\"key\": \"diffms_checkpoints.tar.gz\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2026-10-21\""
+    }
+   ]
+  }
+ ],
+ "notes": "The arXiv paper is CC BY-NC-SA 4.0, so its files are not stored. The README links LICENSE.txt but the file in the repository is LICENSE. MassSpecGym in the Wild reports problems with the MIST encoder code and a MIST checkpoint used in DiffMS; whether the current Zenodo checkpoints are affected is not stated in the sources read."
+}

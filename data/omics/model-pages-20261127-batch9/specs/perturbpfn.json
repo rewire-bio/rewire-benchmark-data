@@ -1,0 +1,480 @@
+{
+ "record_id": "perturbpfn-20261115-model-perturbpfn",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "arXiv 2607.23447v1 full text (Gao, Guo and Hernández-Lobato, PerturbPFN: Probing the Limits of Synthetic Priors in Drug Perturbation Modelling)",
+   "description": "Text layer of the arXiv PDF, extracted with pdftotext.",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2607.23447v1",
+   "url": "https://arxiv.org/abs/2607.23447v1",
+   "version": "arXiv 2607.23447v1",
+   "media_type": "text/plain",
+   "sha256": "a49db8b4079289d962e131b6ec14e0bc78eb7d91df47e6b1eb0819d5cb5b5221",
+   "retrieved_at": "2026-11-27T02:44:18Z",
+   "store_bytes": false
+  },
+  {
+   "key": "github-search",
+   "name": "GitHub repository search for 'perturbpfn', as served on 2026-11-27",
+   "description": "GitHub API search response used to check for a public code repository.",
+   "file": "artifacts/github-search.json",
+   "artifact_url": "https://api.github.com/search/repositories?q=perturbpfn",
+   "url": "https://github.com/search?q=perturbpfn&type=repositories",
+   "version": "As served on 2026-11-27",
+   "media_type": "application/json",
+   "sha256": "4af480b8ee5b87b369a76c49bd22c9a783908272ebffbe97898f8ab0f0772a5f",
+   "retrieved_at": "2026-11-27T02:44:18Z",
+   "store_bytes": true
+  },
+  {
+   "key": "hf-search",
+   "name": "Hugging Face model search for 'perturbpfn', as served on 2026-11-27",
+   "description": "Hugging Face API search response used to check for released weights; the body is an empty list.",
+   "file": "artifacts/hf-search.json",
+   "artifact_url": "https://huggingface.co/api/models?search=perturbpfn",
+   "url": "https://huggingface.co/models?search=perturbpfn",
+   "version": "As served on 2026-11-27",
+   "media_type": "application/json",
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "retrieved_at": "2026-11-27T02:44:19Z",
+   "store_bytes": true
+  },
+  {
+   "key": "hf-search-2",
+   "name": "Hugging Face model search for 'perturb-pfn', as served on 2026-11-27",
+   "description": "Hugging Face API search response for the hyphenated name; the body is an empty list.",
+   "file": "artifacts/hf-search-2.json",
+   "artifact_url": "https://huggingface.co/api/models?search=perturb-pfn",
+   "url": "https://huggingface.co/models?search=perturb-pfn",
+   "version": "As served on 2026-11-27",
+   "media_type": "application/json",
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "retrieved_at": "2026-11-27T02:44:22Z",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "PerturbPFN predicts how cells respond to chemical perturbations whose targets are unknown. Given observed responses to other perturbations as context, it infers a latent gene graph, sparse intervention targets and intervention strengths, and propagates them through a causal (SCM) decoder to predict expression under a new perturbation. It is trained only on simulated perturbation episodes and has no released code or weights.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "arXiv Abstract and Section 2",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "PerturbPFN infers a latent system graph, sparse atomic intervention targets, and intervention strengths, then propagates their effects through an SCM decoder"
+   },
+   {
+    "source": "@paper",
+    "text": "The model is trained entirely on prior-predictive synthetic episodes generated from biologically motivated graph and expression simulators"
+   },
+   {
+    "source": "@paper",
+    "text": "Predicting cellular responses to unseen chemical perturbations is challenging due to unknown targets and mechanisms"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "PerturbPFN follows the prior-data fitted network (PFN) approach: a transformer is pre-trained on synthetic tasks so that at test time it predicts in context, without gradient updates. Each synthetic episode samples a modular, scale-free gene regulatory network, drug-like perturbations with sparse targets and Hill-type dose-response strengths, and zero-inflated log-normal observations with SERGIO noise. The model infers context interventions and an episode-level graph, predicts the query's targets and strengths with dedicated heads, and generates expression through a modulated SCM decoder in topological order. Training uses multi-task losses on the synthetic graph, target, strength and outcome labels.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Sections 2.3 and 2.4; Fig. 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we draw inspiration from Prior-Data Fitted Networks (PFNs)"
+     },
+     {
+      "source": "@paper",
+      "text": "augmented with module structure to induce heterogeneous, scale-free topology with stronger within-module regulation"
+     },
+     {
+      "source": "@paper",
+      "text": "Interventions apply signed additive shifts whose magnitudes follow Hill-type dose–response functions"
+     },
+     {
+      "source": "@paper",
+      "text": "Observations are then sampled from a zero-inflated log-normal expression model with SERGIO noise injection"
+     },
+     {
+      "source": "@paper",
+      "text": "PerturbPFN implements the latent factorization above with a transformer-based amortized predictor."
+     },
+     {
+      "source": "@paper",
+      "text": "is trained with multi-task losses on all synthetic references"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The paper reports one selected checkpoint, taken at step 3100 of a 3500-step run, with 14.98M parameters, used for all reported results. No code or weights were found: on 2026-11-27 a GitHub repository search for perturbpfn returned a total count of 0 and Hugging Face model searches for perturbpfn and perturb-pfn returned empty lists. The paper's results cannot be reproduced from public artefacts.",
+    "source_ids": [
+     "@paper",
+     "@github-search"
+    ],
+    "source_locator": "arXiv Appendix B; GitHub and Hugging Face search responses",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The selected step-3100 checkpoint contains 14.98M parameters and is shared across all reported evaluation tasks."
+     },
+     {
+      "source": "@github-search",
+      "text": "\"total_count\":0"
+     }
+    ]
+   },
+   {
+    "title": "Intended uses",
+    "body": "Research on perturbation effect prediction for unseen drugs, target identification and regulatory structure discovery. The authors evaluate it on real single-cell chemical perturbation data (Srivatsan et al. 2020, massively multiplex chemical transcriptomics) and on synthetic benchmarks.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Abstract and contributions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "covering effect prediction, target identification, and regulatory structure discovery"
+     },
+     {
+      "source": "@paper",
+      "text": "Massively multiplex chemical transcriptomics at single-cell resolution"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "PFN-style amortized model for unknown-target perturbation prediction (in-context learning).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We propose PerturbPFN, a PFN-style amortized model for unknown-target perturbation prediction under a hierarchical synthetic structural prior."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Transformer-based amortized predictor with target, strength and modulation heads and a shared nonlinear SCM decoder.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Section 2.4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "PerturbPFN implements the latent factorization above with a transformer-based amortized predictor."
+     },
+     {
+      "source": "@paper",
+      "text": "A shared nonlinear decoder, modulated by the node- and query-specific parameters, generates variables in topological order."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Context perturbation-response pairs (with perturbation descriptors) and a query perturbation regime.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Section 2.4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Given context perturbation–response pairs and a query regime"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Predicted post-perturbation expression, plus estimates of the gene graph, intervention targets and strengths.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "exposing interpretable intermediate estimates of targets, strengths, and system structure"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "14.98M (the selected step-3100 checkpoint, not released).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Appendix B",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The selected step-3100 checkpoint contains 14.98M parameters"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Synthetic episodes only: gene graphs of 40 to 60 genes in 4 to 8 modules, synthetic drugs with Hill-type dose responses, and zero-inflated log-normal observations; no real perturbation responses.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Section 2.3; Table 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "no real perturbation responses are used for training"
+     },
+     {
+      "source": "@paper",
+      "text": "Number of genes Number of gene modules"
+     },
+     {
+      "source": "@paper",
+      "text": "[40, 60] [4, 8]"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One checkpoint described in the paper (step 3100); none released.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Appendix B",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "development-set selection chose step 3100"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not applicable: trained on simulated data only.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Section 2.3",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "40 to 60 genes per synthetic episode, much smaller than a transcriptome; and the authors list this as a limitation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Table 4; Limitations and Outlook",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "operates on gene panels much smaller than a complete transcriptome"
+     },
+     {
+      "source": "@paper",
+      "text": "[40, 60] [4, 8]"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Unavailable: no weights are released (Hugging Face searches on 2026-11-27 returned no models).",
+    "status": "unavailable",
+    "source_ids": [
+     "@hf-search",
+     "@hf-search-2"
+    ],
+    "source_locator": "Hugging Face search responses",
+    "quotes": []
+   },
+   {
+    "label": "Code licence",
+    "value": "Unavailable: no code repository was found (GitHub search total count 0 on 2026-11-27) and the paper links none.",
+    "status": "unavailable",
+    "source_ids": [
+     "@github-search"
+    ],
+    "source_locator": "GitHub search response",
+    "quotes": [
+     {
+      "source": "@github-search",
+      "text": "\"total_count\":0"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "No public code or weights. Paper: https://arxiv.org/abs/2607.23447.",
+    "status": "unavailable",
+    "source_ids": [
+     "@github-search"
+    ],
+    "source_locator": "GitHub and Hugging Face search responses",
+    "quotes": [
+     {
+      "source": "@github-search",
+      "text": "\"total_count\":0"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Gives interpretable intermediate outputs (graph, targets, strengths) rather than only a predicted expression vector.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "exposing interpretable intermediate estimates of targets, strengths, and system structure"
+     }
+    ]
+   },
+   {
+    "text": "Predicts in context with one forward pass, with no dataset-specific optimisation at test time, according to the authors.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv contributions",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "through a single in-context forward pass, without dataset-specific optimization at test time"
+     }
+    ]
+   },
+   {
+    "text": "Cheap to train as reported: one RTX 4090 GPU, about 1.44 GPU-hours for the checkpoint-selection run.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Appendix B",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The selected model was trained on a single NVIDIA RTX 4090 GPU with 24GB of memory. The complete 3500-step checkpoint-selection run took approximately 1.44 GPUhours"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "No code or weights are available.",
+    "source_ids": [
+     "@github-search"
+    ],
+    "source_locator": "GitHub search response",
+    "quotes": [
+     {
+      "source": "@github-search",
+      "text": "\"total_count\":0"
+     }
+    ]
+   },
+   {
+    "text": "Works on small gene panels and assumes a sparse acyclic system with point estimates.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Limitations and Outlook",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The current model also represents graphs, targets, and strengths using point estimates, assumes a sparse acyclic system, and operates on gene panels much smaller than a complete transcriptome."
+     }
+    ]
+   },
+   {
+    "text": "Latent variables are defined by the synthetic prior and may not match identifiable biological mechanisms.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "arXiv Limitations and Outlook",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The meaning of PerturbPFN’s latent variables is determined by its synthetic prior."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "PerturbPFN workflow",
+   "steps": [
+    "Synthetic SCM prior episodes",
+    "Transformer: context perturbation-response pairs",
+    "Infer graph, targets, strengths",
+    "SCM decoder rollout",
+    "Predicted response to new perturbation"
+   ],
+   "caption": "Trained on simulated episodes; at test time it infers latent structure from context and decodes a prediction.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "arXiv Fig. 1 and Section 2.4",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The model is trained entirely on prior-predictive synthetic episodes"
+    },
+    {
+     "source": "@paper",
+     "text": "then propagates their effects through an SCM decoder"
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "No README or model card exists; only the paper was read.",
+   "No code or weights are released, so access, licences and run instructions cannot be given."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the arXiv 2607.23447v1 full text and ran GitHub repository and Hugging Face model searches for perturbpfn and perturb-pfn, on 2026-11-27. No command was executed beyond these lookups and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "No code or weights are released: a GitHub repository search and two Hugging Face model searches on 2026-11-27 found nothing, and the paper links no repository.",
+ "structured": [
+  {
+   "checkpoint": "PerturbPFN step-3100 (unreleased)",
+   "parameters": 14980000,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": null,
+   "weights_licence": null,
+   "code_url": null,
+   "weights_url": null,
+   "gated": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The selected step-3100 checkpoint contains 14.98M parameters"
+    }
+   ]
+  }
+ ],
+ "notes": "The arXiv PDF was refetched as a new source (the existing store source perturbpfn-20261115-source-arxiv-v1 is the same document). The Hugging Face search responses are empty lists ('[]'), too short to quote; the GitHub search response is quoted instead. Searches of the first author's and Prior Labs' repositories were not repeated."
+}

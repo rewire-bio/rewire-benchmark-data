@@ -1,0 +1,757 @@
+{
+ "record_id": "lit-interactions-20261011-leakctl-model-flowdock",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "BioinfoMachineLearning/FlowDock README.md at commit c233fd8b",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/BioinfoMachineLearning/FlowDock/c233fd8be67f9c9d174f0db7f9e7b7ea613bbaf2/README.md",
+   "url": "https://github.com/BioinfoMachineLearning/FlowDock",
+   "version": "git commit c233fd8be67f9c9d174f0db7f9e7b7ea613bbaf2",
+   "media_type": "text/markdown",
+   "sha256": "0a049a120a07923122115b6dfc6033c4bb304249c0dedb9f5b15157978dc2ec5",
+   "retrieved_at": "2026-11-27T02:40:08Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "BioinfoMachineLearning/FlowDock LICENSE at commit c233fd8b",
+   "description": "Licence file of the official repository, at the same commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/BioinfoMachineLearning/FlowDock/c233fd8be67f9c9d174f0db7f9e7b7ea613bbaf2/LICENSE",
+   "url": "https://github.com/BioinfoMachineLearning/FlowDock",
+   "version": "git commit c233fd8be67f9c9d174f0db7f9e7b7ea613bbaf2",
+   "media_type": "text/plain",
+   "sha256": "0871489aa2eb411608a05e644dfbc4866dbfdf66d7c6b65f3ddf91edde77d7ff",
+   "retrieved_at": "2026-11-27T02:40:12Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "git-tree",
+   "name": "GitHub tree listing of BioinfoMachineLearning/FlowDock at commit c233fd8b",
+   "description": "GitHub API response listing every file in the repository at that commit.",
+   "file": "artifacts/github-tree.json",
+   "artifact_url": "https://api.github.com/repos/BioinfoMachineLearning/FlowDock/git/trees/c233fd8be67f9c9d174f0db7f9e7b7ea613bbaf2?recursive=1",
+   "url": "https://github.com/BioinfoMachineLearning/FlowDock",
+   "version": "git commit c233fd8be67f9c9d174f0db7f9e7b7ea613bbaf2",
+   "media_type": "application/json",
+   "sha256": "6893c409b6140c2be38cc3ded67bc929d06469dd5806789cffc1b6d9cd28f0e7",
+   "retrieved_at": "2026-11-27T02:40:00Z",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Morehead and Cheng 2025, FlowDock, Bioinformatics 41(Suppl 1):i198, PMC full text XML",
+   "description": "Full text of the FlowDock paper as served by NCBI PMC, under CC BY 4.0.",
+   "file": "artifacts/paper-fulltext.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12261468&rettype=xml",
+   "url": "https://doi.org/10.1093/bioinformatics/btaf187",
+   "version": "PMC12261468, as served on 2026-11-27",
+   "media_type": "application/xml",
+   "sha256": "cf1cfe09edfb491566bc715c35681c113cb561537a4501ba0a244cc89886bd35",
+   "retrieved_at": "2026-11-27T02:41:03Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "FlowDock predicts the three dimensional structure of a protein-ligand complex and, at the same time, how strongly the ligand binds. The inputs are protein sequences and ligand SMILES strings, with no pocket and no multiple sequence alignment needed; the model first predicts an unbound protein structure with ESMFold, then moves it towards a bound structure. Each generated complex comes with a structural confidence score and a binding affinity value, and several ligands can be modelled at the same time.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Abstract, Section 3 overview; README.md: Description, How to predict new protein-ligand complex structures and their affinities",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "accepts both (multi-chain) protein sequences and (multi-fragment) ligand SMILES strings as its primary inputs, which it uses to predict an unbound (apo) state of the protein sequences using ESMFold"
+   },
+   {
+    "source": "@paper",
+    "text": "runs confidence and binding affinity heads to predict structural confidence scores (i.e. plDDT) and binding affinities of the predicted complex structure, to rank-order the model’s generated samples."
+   },
+   {
+    "source": "@readme",
+    "text": "**FlowDock: Geometric Flow Matching for Generative Protein-Ligand Docking and Affinity Prediction**"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "FlowDock is a conditional flow matching model: it learns a path from an unbound (apo) protein structure to the bound (holo) structure, for any number of binding ligands. The protein side starts from an ESMFold structure, which the authors use as a surrogate prior, and the ligand side starts from a harmonic prior constrained by the bond graph of the given SMILES string. The network is the NeuralPLexer architecture, which encodes protein language model sequence embeddings and ligand SMILES strings and decodes contact maps that condition a flow ordinary differential equation for the coordinates. The authors fine-tune NeuralPLexer's score head with the flow matching objective, along with its other intermediate weights and heads, including a confidence head redesigned to predict binding affinity; NeuralPLexer's original confidence head stays frozen.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract, Section 3 Methods, structure parametrisation and optimisation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the first deep geometric generative model based on conditional flow matching (CFM) that learns to directly map unbound (apo) structures to their bound (holo) counterparts for an arbitrary number of binding ligands"
+     },
+     {
+      "source": "@paper",
+      "text": "samples initial ligand conformations using a harmonic prior distribution constrained by the bond graph defined by one’s specified ligand SMILES strings."
+     },
+     {
+      "source": "@paper",
+      "text": "with the NeuralPLexer model which encodes protein language model (PLM) sequence embeddings and ligand SMILES strings to iteratively decode block diagonal contact maps to condition a flow ODE for equivariant coordinates and auxiliary predictions."
+     },
+     {
+      "source": "@paper",
+      "text": "Moreover, we fine-tune all of NeuralPLexer’s remaining intermediate weights and prediction heads including a dedicated confidence head redesigned to predict binding affinities, with the exception of its original confidence head which remains frozen at all points during training."
+     },
+     {
+      "source": "@paper",
+      "text": "we empirically find noised ESMFold structures to be a suitable surrogate"
+     }
+    ]
+   },
+   {
+    "title": "Training data and compute",
+    "body": "Training used PDBBind-E, which the authors describe as an enhanced version of a PDBBind 2020 based training set: they collected 17 743 crystal complex structures from PDBBind 2020 and 47 183 structures from the Binding MOAD. The repository also ships preparation steps for DockGen and a PDB based van der Mers dataset, and a fine-tuning route on PLINDER, which it warns needs about an hour to download and about 750G of storage. The paper states that FlowDock was trained using only 4 80GB H100 GPUs for 1 week, which it contrasts with the 128 A100 GPUs for one month it attributes to Chai-1.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 3 dataset curation, Section 4 results discussion; README.md: How to prepare data for FlowDock",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To curate PDBBind-E, we collected 17 743 crystal complex structures contained in the PDBBind 2020 dataset and 47 183 structures of the Binding MOAD"
+     },
+     {
+      "source": "@paper",
+      "text": "is trained using only 4 80GB H100 GPUs for 1 week, representing a 32× reduction in GPU hours required for training"
+     },
+     {
+      "source": "@readme",
+      "text": "# fetch PLINDER data (NOTE: requires ~1 hour to download and ~750G of storage)"
+     },
+     {
+      "source": "@readme",
+      "text": "# cached data for PDBBind, Binding MOAD, DockGen, and the PDB-based van der Mers (vdM) dataset"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The published weights are a tar archive on Zenodo record 15066450, and the commands in the README name two checkpoints from it: esmfold_prior_paper_weights.ckpt for fine-tuning and esmfold_prior_paper_weights-EMA.ckpt for evaluation and sampling. The pretrained NeuralPLexer weights are a separate download, from Zenodo record 10373581. A result should name the checkpoint, the prior type, the sampler and the number of steps, since those are all command line settings; the README's examples use prior_type=esmfold, sampler=VDODE, num_steps=40 and n_samples=5. The repository also ships a Dockerfile and points at a prebuilt image.",
+    "source_ids": [
+     "@readme",
+     "@git-tree"
+    ],
+    "source_locator": "README.md: Installation, How to evaluate FlowDock, How to predict new protein-ligand complex structures, Docker; git tree listing: Dockerfile",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "wget https://zenodo.org/records/15066450/files/flowdock_checkpoints.tar.gz"
+     },
+     {
+      "source": "@readme",
+      "text": "wget https://zenodo.org/records/10373581/files/neuralplexermodels_downstream_datasets_predictions.zip"
+     },
+     {
+      "source": "@readme",
+      "text": "python flowdock/eval.py data.test_datasets=[pdbbind] ckpt_path=checkpoints/esmfold_prior_paper_weights-EMA.ckpt trainer=gpu"
+     },
+     {
+      "source": "@readme",
+      "text": "python flowdock/train.py experiment=flowdock_fm data=plinder ckpt_path=checkpoints/esmfold_prior_paper_weights.ckpt"
+     },
+     {
+      "source": "@git-tree",
+      "text": "\"path\":\"Dockerfile\""
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Generative flow matching model for flexible protein-ligand docking with joint binding affinity and confidence prediction.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Abstract; README.md: Description",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the first deep geometric generative model based on conditional flow matching (CFM) that learns to directly map unbound (apo) structures to their bound (holo) counterparts for an arbitrary number of binding ligands"
+     },
+     {
+      "source": "@readme",
+      "text": "**FlowDock: Geometric Flow Matching for Generative Protein-Ligand Docking and Affinity Prediction**"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "The NeuralPLexer architecture, fine-tuned with a flow matching objective: protein language model sequence embeddings and ligand SMILES are encoded, block diagonal contact maps are decoded to condition a flow ODE on the coordinates, and separate confidence and affinity heads score each sample.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3 Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "with the NeuralPLexer model which encodes protein language model (PLM) sequence embeddings and ligand SMILES strings to iteratively decode block diagonal contact maps to condition a flow ODE for equivariant coordinates and auxiliary predictions."
+     },
+     {
+      "source": "@paper",
+      "text": "runs confidence and binding affinity heads to predict structural confidence scores (i.e. plDDT) and binding affinities of the predicted complex structure, to rank-order the model’s generated samples."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Protein sequences, which may be multi-chain, and ligand SMILES strings, which may be multi-fragment and are delimited by a vertical bar for several ligands. A template protein structure is optional: with input_template=null the script predicts the ESMFold structure first. A csv file can be given instead for batched prediction.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 3 overview; README.md: How to predict new protein-ligand complex structures and their affinities",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "accepts both (multi-chain) protein sequences and (multi-fragment) ligand SMILES strings as its primary inputs"
+     },
+     {
+      "source": "@readme",
+      "text": "If you do not already have a template protein structure available for your target of interest, set `input_template=null` to instead have the sampling script predict the ESMFold structure of your provided `input_protein` sequence before running the sampling pipeline."
+     },
+     {
+      "source": "@readme",
+      "text": "a `csv_path` can be specified instead of the `input_receptor`, `input_ligand`, and `input_template` CLI arguments to perform *batched* prediction"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Generated three dimensional protein-ligand complex structures, written as PDB files, each with a structural confidence score (plDDT) and a binding affinity value. Sample trajectories can be written out as well.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Abstract, Section 3 overview; README.md: How to predict new protein-ligand complex structures and their affinities",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "provides predicted structural confidence scores and binding affinity values with each of its generated protein–ligand complex structures, enabling fast virtual screening of new (multi-ligand) drug targets."
+     },
+     {
+      "source": "@readme",
+      "text": "separate_pdb=true visualize_sample_trajectories=true"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not stated. The paper gives no parameter count for FlowDock; it only says of a competing model that it is a 10 times larger model.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4 results discussion"
+   },
+   {
+    "label": "Training data",
+    "value": "PDBBind-E, built from 17 743 PDBBind 2020 crystal complex structures and 47 183 Binding MOAD structures, with apo structures predicted by ESMFold and aligned to their holo counterparts. The repository adds DockGen, a PDB based van der Mers set, and an optional PLINDER fine-tuning route.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 3 dataset curation; README.md: How to prepare data for FlowDock",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we prepared PDBBind-E, an enhanced version of the PDBBind 2020-based training dataset proposed by"
+     },
+     {
+      "source": "@paper",
+      "text": "To curate PDBBind-E, we collected 17 743 crystal complex structures contained in the PDBBind 2020 dataset and 47 183 structures of the Binding MOAD"
+     },
+     {
+      "source": "@readme",
+      "text": "Align each apo protein structure to its corresponding holo protein structure counterpart in PDBBind, Binding MOAD, and PDBSidechain, taking ligand conformations into account during each alignment"
+     },
+     {
+      "source": "@readme",
+      "text": "Lastly, to finetune `FlowDock` using the `PLINDER` dataset, one must first prepare this data for training"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One released checkpoint archive on Zenodo record 15066450. The README's commands name two files from it: esmfold_prior_paper_weights.ckpt and esmfold_prior_paper_weights-EMA.ckpt. The code was read here at commit c233fd8be67f9c9d174f0db7f9e7b7ea613bbaf2.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@git-tree"
+    ],
+    "source_locator": "README.md: Installation, How to evaluate FlowDock; git tree listing: sha",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "wget https://zenodo.org/records/15066450/files/flowdock_checkpoints.tar.gz"
+     },
+     {
+      "source": "@readme",
+      "text": "ckpt_path=checkpoints/esmfold_prior_paper_weights-EMA.ckpt"
+     },
+     {
+      "source": "@git-tree",
+      "text": "\"sha\":\"c233fd8be67f9c9d174f0db7f9e7b7ea613bbaf2\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported as a date. The training structures come from PDBBind 2020 and the Binding MOAD, and the sources read give no deposition cutoff date for FlowDock's own training set.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3 dataset curation"
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated as a model limit. The only length setting in the sources read is in data preparation, where the ESM2 embedding step is run with --truncation_seq_length 4096, and the sampling command has a chunk_size and an esmfold_chunk_size to control memory.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Generating ESM2 embeddings for each protein; How to predict new protein-ligand complex structures and their affinities",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--repr_layers 33 --include per_tok --truncation_seq_length 4096 --cuda_device_index 0"
+     },
+     {
+      "source": "@readme",
+      "text": "n_samples=5 chunk_size=5 num_steps=40"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated separately for the weights. The repository is under the MIT licence and the checkpoints are a Zenodo download; the sources read give no separate licence for the checkpoint archive, and the NeuralPLexer weights it builds on come from a different Zenodo record.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README.md: Installation, License; LICENSE",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This project is covered under the **MIT License**."
+     },
+     {
+      "source": "@readme",
+      "text": "wget https://zenodo.org/records/10373581/files/neuralplexermodels_downstream_datasets_predictions.zip"
+     },
+     {
+      "source": "@license",
+      "text": "MIT License Copyright (c) 2024 BioinfoMachineLearning"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, as stated in the README and in the repository's LICENSE file.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE; README.md: License",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Permission is hereby granted, free of charge, to any person obtaining a copy"
+     },
+     {
+      "source": "@readme",
+      "text": "This project is covered under the **MIT License**."
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code at https://github.com/BioinfoMachineLearning/FlowDock. Weights at Zenodo record 15066450 (flowdock_checkpoints.tar.gz), with the pretrained NeuralPLexer weights at Zenodo record 10373581. A Docker image is published as cford38/flowdock, and the README links hosted services at Neurosnap, Tamarind Bio and ProteinIQ.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Description, Installation, Docker",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/BioinfoMachineLearning/FlowDock"
+     },
+     {
+      "source": "@readme",
+      "text": "wget https://zenodo.org/records/15066450/files/flowdock_checkpoints.tar.gz"
+     },
+     {
+      "source": "@readme",
+      "text": "Pull from [Docker Hub](https://hub.docker.com/repository/docker/cford38/flowdock): `docker pull cford38/flowdock:latest`"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "One run gives both a complex structure and an affinity value, with a confidence score for ranking the samples.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract, Section 3 overview",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "provides predicted structural confidence scores and binding affinity values with each of its generated protein–ligand complex structures, enabling fast virtual screening of new (multi-ligand) drug targets."
+     }
+    ]
+   },
+   {
+    "text": "It takes sequences and SMILES only. No pocket and no multiple sequence alignment is needed, because the protein starting structure comes from single-sequence ESMFold.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract, Section 3 overview, Section 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "accepts both (multi-chain) protein sequences and (multi-fragment) ligand SMILES strings as its primary inputs, which it uses to predict an unbound (apo) state of the protein sequences using ESMFold"
+     },
+     {
+      "source": "@paper",
+      "text": "without any information derived from multiple sequence alignments"
+     }
+    ]
+   },
+   {
+    "text": "Several ligands can be modelled at once, and the sampling command accepts multi-ligand SMILES separated by a vertical bar.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Abstract; README.md: How to predict new protein-ligand complex structures and their affinities",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "for an arbitrary number of binding ligands"
+     },
+     {
+      "source": "@readme",
+      "text": "generate new protein-ligand complexes for pairs of protein sequences and (multi-)ligand SMILES strings (delimited via `|`)"
+     }
+    ]
+   },
+   {
+    "text": "The release is complete and permissive: MIT code, published checkpoints, preprocessed datasets, a Dockerfile and a published image.",
+    "source_ids": [
+     "@readme",
+     "@license",
+     "@git-tree"
+    ],
+    "source_locator": "README.md: Installation, Docker, License; LICENSE; git tree listing",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License Copyright (c) 2024 BioinfoMachineLearning"
+     },
+     {
+      "source": "@readme",
+      "text": "Download preprocessed datasets"
+     },
+     {
+      "source": "@git-tree",
+      "text": "\"path\":\"environments\""
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "It needs a GPU in practice. The evaluation and sampling commands in the README are given with trainer=gpu, and the Docker instructions run the container with all GPUs.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: How to evaluate FlowDock, Docker",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python flowdock/eval.py data.test_datasets=[pdbbind] ckpt_path=checkpoints/esmfold_prior_paper_weights-EMA.ckpt trainer=gpu"
+     },
+     {
+      "source": "@readme",
+      "text": "docker run --gpus all -v ./checkpoints:/software/flowdock/checkpoints --rm --name flowdock -it flowdock /bin/bash"
+     }
+    ]
+   },
+   {
+    "text": "Setting it up is heavy. The install needs mamba and an extra ProDy install without dependencies, the weights come in two separate downloads, and the preprocessed datasets are several further archives; the README itself suggests Docker because the tool has many dependencies.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation, Docker",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip3 install prody==2.4.1 --no-dependencies  # install ProDy without NumPy dependency"
+     },
+     {
+      "source": "@readme",
+      "text": "Given that this tool has a number of dependencies, it may be easier to run it in a Docker container."
+     }
+    ]
+   },
+   {
+    "text": "The affinity head is fine-tuned from NeuralPLexer, so a user also depends on that project's pretrained weights, which are fetched from a separate Zenodo record.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 3 Methods; README.md: Installation, Acknowledgements",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Moreover, we fine-tune all of NeuralPLexer’s remaining intermediate weights and prediction heads including a dedicated confidence head redesigned to predict binding affinities"
+     },
+     {
+      "source": "@readme",
+      "text": "# pretrained NeuralPLexer weights"
+     }
+    ]
+   },
+   {
+    "text": "Retraining is out of reach for most users: the paper reports 4 80GB H100 GPUs for a week, and fine-tuning on PLINDER needs about 750G of storage.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 4 results discussion; README.md: How to prepare data for FlowDock",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "is trained using only 4 80GB H100 GPUs for 1 week, representing a 32× reduction in GPU hours required for training"
+     },
+     {
+      "source": "@readme",
+      "text": "# fetch PLINDER data (NOTE: requires ~1 hour to download and ~750G of storage)"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "FlowDock workflow",
+   "steps": [
+    "input: protein sequences and ligand SMILES strings",
+    "ESMFold predicts an unbound protein structure, used as the prior",
+    "ligand conformations are drawn from a harmonic prior set by the bond graph",
+    "a flow ODE, conditioned on decoded contact maps, moves the pair towards the bound state",
+    "confidence and affinity heads score each generated sample",
+    "output: complex structures with plDDT and binding affinity"
+   ],
+   "caption": "Sampling starts from predicted unbound structures and ends with ranked complexes that carry an affinity value.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Abstract, Section 3 Methods and overview",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "which it uses to predict an unbound (apo) state of the protein sequences using ESMFold"
+    },
+    {
+     "source": "@paper",
+     "text": "samples initial ligand conformations using a harmonic prior distribution constrained by the bond graph defined by one’s specified ligand SMILES strings."
+    },
+    {
+     "source": "@paper",
+     "text": "to condition a flow ODE for equivariant coordinates and auxiliary predictions"
+    },
+    {
+     "source": "@paper",
+     "text": "runs confidence and binding affinity heads to predict structural confidence scores (i.e. plDDT) and binding affinities of the predicted complex structure, to rank-order the model’s generated samples."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count is given in the sources read.",
+   "No inference hardware or memory requirement is stated as a number; the paper mentions a runtime and peak memory table for a subset of the Astex Diverse dataset, which was not transcribed here.",
+   "The licence of the Zenodo checkpoint archive and of the preprocessed datasets was not checked: the Zenodo records themselves were not fetched.",
+   "The reported accuracy figures are not transcribed here beyond the two the paper states in prose about docking success rate.",
+   "The Wang and Cheng 2026 leakage-controlled benchmark that this record comes from is on bioRxiv only, which this pass does not fetch, so how that benchmark ran or scored FlowDock is not described here."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Written from the repository README.md and LICENSE at commit c233fd8be67f9c9d174f0db7f9e7b7ea613bbaf2, the GitHub tree response for that commit, and the PMC full text XML of PMC12261468 (doi 10.1093/bioinformatics/btaf187), each fetched on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the environment, download the FlowDock and NeuralPLexer weights, and sample complex structures with affinities for one protein sequence and one ligand SMILES string.",
+  "prerequisites": [
+   "Mamba or conda, and the environment file environments/flowdock_environment.yaml from the repository.",
+   "A CUDA GPU: the sampling and evaluation commands in the README are given with trainer=gpu.",
+   "Disk space for two weight downloads, the FlowDock checkpoints from Zenodo record 15066450 and the pretrained NeuralPLexer weights from Zenodo record 10373581.",
+   "The code is MIT licensed. The sources read do not state a licence for the Zenodo weight archives."
+  ],
+  "steps": [
+   {
+    "title": "Install the environment",
+    "shell": "git clone https://github.com/BioinfoMachineLearning/FlowDock\ncd FlowDock\ngit checkout --detach c233fd8be67f9c9d174f0db7f9e7b7ea613bbaf2\nmamba env create -f environments/flowdock_environment.yaml\nconda activate FlowDock\npip3 install -e .\npip3 install prody==2.4.1 --no-dependencies",
+    "explanation": "These are the README's install lines. The git checkout line is added here to pin the run to the commit these notes were read at. The README also gives Miniforge install lines if mamba is not present.",
+    "source_ids": [
+     "@readme",
+     "@git-tree"
+    ],
+    "source_locator": "README.md: Installation; git tree listing: sha, environments",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/BioinfoMachineLearning/FlowDock cd FlowDock"
+     },
+     {
+      "source": "@readme",
+      "text": "mamba env create -f environments/flowdock_environment.yaml conda activate FlowDock  # NOTE: one still needs to use `conda` to (de)activate environments pip3 install -e . # install local project as package pip3 install prody==2.4.1 --no-dependencies  # install ProDy without NumPy dependency"
+     },
+     {
+      "source": "@git-tree",
+      "text": "\"sha\":\"c233fd8be67f9c9d174f0db7f9e7b7ea613bbaf2\""
+     }
+    ]
+   },
+   {
+    "title": "Download the weights",
+    "shell": "cd checkpoints/\nwget https://zenodo.org/records/10373581/files/neuralplexermodels_downstream_datasets_predictions.zip\nunzip neuralplexermodels_downstream_datasets_predictions.zip\nrm neuralplexermodels_downstream_datasets_predictions.zip\ncd ../\nwget https://zenodo.org/records/15066450/files/flowdock_checkpoints.tar.gz\ntar -xzf flowdock_checkpoints.tar.gz\nrm flowdock_checkpoints.tar.gz",
+    "explanation": "Both download blocks come from the README's Installation section: the pretrained NeuralPLexer weights first, then the FlowDock checkpoints.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation, Download checkpoints",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "cd checkpoints/ wget https://zenodo.org/records/10373581/files/neuralplexermodels_downstream_datasets_predictions.zip unzip neuralplexermodels_downstream_datasets_predictions.zip"
+     },
+     {
+      "source": "@readme",
+      "text": "wget https://zenodo.org/records/15066450/files/flowdock_checkpoints.tar.gz tar -xzf flowdock_checkpoints.tar.gz"
+     }
+    ]
+   },
+   {
+    "title": "Sample structures and affinities for one target",
+    "shell": "python flowdock/sample.py ckpt_path=checkpoints/esmfold_prior_paper_weights-EMA.ckpt model.cfg.prior_type=esmfold sampling_task=batched_structure_sampling input_receptor='YNKIVHLLVAEPEKIYAMPDPTVPDSDIKALTTLCDLADRELVVIIGWAKHIPGFSTLSLADQMSLLQSAWMEILILGVVYRSLFEDELVYADDYIMDEDQSKLAGLLDLNNAILQLVKKYKSMKLEKEEFVTLKAIALANSDSMHIEDVEAVQKLQDVLHEALQDYEAGQHMEDPRRAGKMLMTLPLLRQTSTKAVQHFYNKLEGKVPMHKLFLEMLEAKV' input_ligand='\"c1cc2c(cc1O)CCCC2\"' input_template=null sample_id='6i67' out_path='./6i67_sampled_structures/' n_samples=5 chunk_size=5 num_steps=40 sampler=VDODE sampler_eta=1.0 start_time='1.0' use_template=true separate_pdb=true visualize_sample_trajectories=true auxiliary_estimation_only=false esmfold_chunk_size=null trainer=gpu",
+    "explanation": "This is the README's example for the PDBBind 2020 test target 6i67, with one change: input_template is set to null, which the README says makes the script predict the ESMFold structure of the given sequence, because the original example points at a template file from the preprocessed PDBBind download.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: How to predict new protein-ligand complex structures and their affinities using FlowDock",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python flowdock/sample.py ckpt_path=checkpoints/esmfold_prior_paper_weights-EMA.ckpt model.cfg.prior_type=esmfold sampling_task=batched_structure_sampling input_receptor='YNKIVHLLVAEPEKIYAMPDPTVPDSDIKALTTLCDLADRELVVIIGWAKHIPGFSTLSLADQMSLLQSAWMEILILGVVYRSLFEDELVYADDYIMDEDQSKLAGLLDLNNAILQLVKKYKSMKLEKEEFVTLKAIALANSDSMHIEDVEAVQKLQDVLHEALQDYEAGQHMEDPRRAGKMLMTLPLLRQTSTKAVQHFYNKLEGKVPMHKLFLEMLEAKV' input_ligand='\"c1cc2c(cc1O)CCCC2\"'"
+     },
+     {
+      "source": "@readme",
+      "text": "set `input_template=null` to instead have the sampling script predict the ESMFold structure of your provided `input_protein` sequence before running the sampling pipeline"
+     }
+    ]
+   },
+   {
+    "title": "Or run many pairs from a csv file",
+    "shell": "python flowdock/sample.py ckpt_path=checkpoints/esmfold_prior_paper_weights-EMA.ckpt model.cfg.prior_type=esmfold sampling_task=batched_structure_sampling csv_path='./data/test_cases/prediction_inputs/flowdock_batched_inputs.csv' out_path='./T1152_batch_sampled_structures/' n_samples=5 chunk_size=5 num_steps=40 sampler=VDODE sampler_eta=1.0 start_time='1.0' use_template=true separate_pdb=true visualize_sample_trajectories=false auxiliary_estimation_only=false esmfold_chunk_size=null trainer=gpu",
+    "explanation": "The README's batched example. Each csv row holds id, input_receptor, input_ligand and input_template.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: How to predict new protein-ligand complex structures and their affinities using FlowDock",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "csv_path='./data/test_cases/prediction_inputs/flowdock_batched_inputs.csv'"
+     },
+     {
+      "source": "@readme",
+      "text": "each represented as a CSV row containing column values for `id`, `input_receptor`, `input_ligand`, and `input_template`"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Generated complex structures under the given out_path, written as separate PDB files when separate_pdb is true.",
+   "A structural confidence score (plDDT) and a binding affinity value for each generated sample.",
+   "Sample trajectories, when visualize_sample_trajectories is true; the README notes that turning this off reduces storage for large batches."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The sampling example here sets input_template=null, because the README's own example points at a template file that comes from the preprocessed PDBBind download rather than from the clone.",
+   "Reproducing the paper's structure prediction evaluation is not covered: the README directs that work to version 0.6.0-FlowDock of the PoseBench repository.",
+   "No run time or memory figure for this command is given in the sources read."
+  ],
+  "source_ids": [
+   "@readme",
+   "@git-tree",
+   "@paper",
+   "@license"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "esmfold_prior_paper_weights-EMA.ckpt (flowdock_checkpoints.tar.gz, Zenodo record 15066450)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "MIT",
+   "weights_licence": null,
+   "code_url": "https://github.com/BioinfoMachineLearning/FlowDock",
+   "weights_url": "https://zenodo.org/records/15066450/files/flowdock_checkpoints.tar.gz",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "wget https://zenodo.org/records/15066450/files/flowdock_checkpoints.tar.gz"
+    },
+    {
+     "source": "@readme",
+     "text": "This project is covered under the **MIT License**."
+    }
+   ]
+  },
+  {
+   "checkpoint": "esmfold_prior_paper_weights.ckpt (fine-tuning start point, same archive)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": null,
+   "code_licence": "MIT",
+   "weights_licence": null,
+   "code_url": "https://github.com/BioinfoMachineLearning/FlowDock",
+   "weights_url": "https://zenodo.org/records/15066450/files/flowdock_checkpoints.tar.gz",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "python flowdock/train.py experiment=flowdock_fm data=plinder ckpt_path=checkpoints/esmfold_prior_paper_weights.ckpt"
+    }
+   ]
+  }
+ ],
+ "notes": "The record comes from the Wang and Cheng 2026 leakage-controlled benchmark preprint, which is on bioRxiv only (pdf at https://www.biorxiv.org/content/10.64898/2026.09.17.752433v1.full.pdf) and was not fetched in this pass, so nothing here is taken from it. Name collision worth noting: Europe PMC also lists a different model called FlowDock, 'A unified flow-based framework for flexible protein-ligand docking and binding affinity prediction' (doi 10.1016/j.apsb.2026.04.009), by other authors. This page describes Morehead and Cheng's FlowDock, the one whose repository and ISMB 2025 paper match the record description (ESMFold and NeuralPLexer components). The Zenodo records holding the weights and preprocessed data were not fetched, so no licence is claimed for them."
+}

@@ -1,0 +1,772 @@
+{
+ "record_id": "dna-pathogen-20261012-bertax-model-bertax",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "rnajena/bertax README.md at commit 8fdb010f",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/rnajena/bertax/8fdb010ffb3ede7fce758d5da92a4fcabd8283e7/README.md",
+   "url": "https://github.com/rnajena/bertax",
+   "version": "git commit 8fdb010ffb3ede7fce758d5da92a4fcabd8283e7",
+   "media_type": "text/markdown",
+   "sha256": "d7af02d7f626426566155beb4c1d2cf2450f53e439ab2520d049d05e0ac13fda",
+   "retrieved_at": "2026-11-27T02:58:57Z",
+   "store_bytes": false
+  },
+  {
+   "key": "license",
+   "name": "rnajena/bertax LICENSE at commit 8fdb010f",
+   "description": "Licence file of the official repository, at the same commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/rnajena/bertax/8fdb010ffb3ede7fce758d5da92a4fcabd8283e7/LICENSE",
+   "url": "https://github.com/rnajena/bertax",
+   "version": "git commit 8fdb010ffb3ede7fce758d5da92a4fcabd8283e7",
+   "media_type": "text/plain",
+   "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+   "retrieved_at": "2026-11-27T02:59:10Z",
+   "store_bytes": false
+  },
+  {
+   "key": "git-tree",
+   "name": "GitHub tree listing of rnajena/bertax at commit 8fdb010f",
+   "description": "GitHub API response listing every file in the repository at that commit.",
+   "file": "artifacts/github-tree.json",
+   "artifact_url": "https://api.github.com/repos/rnajena/bertax/git/trees/8fdb010ffb3ede7fce758d5da92a4fcabd8283e7?recursive=1",
+   "url": "https://github.com/rnajena/bertax",
+   "version": "git commit 8fdb010ffb3ede7fce758d5da92a4fcabd8283e7",
+   "media_type": "application/json",
+   "sha256": "ce0c985367869d0dbbee3e2fa1c750d1f6683fd59f4f48f9c2bc2434c437b47f",
+   "retrieved_at": "2026-11-27T02:58:54Z",
+   "store_bytes": true
+  },
+  {
+   "key": "github-repo",
+   "name": "GitHub API metadata for rnajena/bertax, as served on 2026-11-27",
+   "description": "GitHub API response giving the repository licence field, default branch and description.",
+   "file": "artifacts/github-repo-api.json",
+   "artifact_url": "https://api.github.com/repos/rnajena/bertax",
+   "url": "https://github.com/rnajena/bertax",
+   "version": "As served on 2026-11-27; the response may change",
+   "media_type": "application/json",
+   "sha256": "c45e43d704faecfab19b6e4582f0bd891fffef6f2d94e94b02f41802d7f54bd3",
+   "retrieved_at": "2026-11-27T02:58:54Z",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Mock et al. 2022, BERTax, PNAS 119(35):e2122636119, PMC full text XML",
+   "description": "Full text of the BERTax paper as served by NCBI PMC. The copy carries a CC BY-NC-ND 4.0 licence, so the file is hashed and not redistributed.",
+   "file": "artifacts/paper-fulltext.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=9436379&rettype=xml",
+   "url": "https://doi.org/10.1073/pnas.2122636119",
+   "version": "PMC9436379, as served on 2026-11-27",
+   "media_type": "application/xml",
+   "sha256": "e4519d7bc9a999266cc6cca8fe4a44613bbb21a4a8fc78daccd73bd190b825e8",
+   "retrieved_at": "2026-11-27T02:59:13Z",
+   "licence": "CC BY-NC-ND 4.0",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "BERTax reads a DNA sequence and says which part of the tree of life it came from, without comparing it to a database of known genomes. It is a BERT model: the sequence is cut into overlapping three letter tokens and a transformer encoder reads them, and classification layers on top predict superkingdom, phylum and, in the released version, genus. The point of the method is novel organisms: when no close relative exists in a reference database, similarity search degrades, while BERTax works from the statistics of the sequence itself.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Significance, Introduction, Materials and Methods; README.md: Usage, Training BERTax models",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "Here we present BERTax, a deep neural network program based on natural language processing to precisely classify the superkingdom and phylum of DNA sequences taxonomically without the need for a known representative relative from a database."
+   },
+   {
+    "source": "@paper",
+    "text": "Each sequence was split into 500 3-mers (i.e., tokens in a natural language), with the first 250 3-mers being the first sentence and the second 250 3-mers being the second sentence"
+   },
+   {
+    "source": "@readme",
+    "text": "The script takes a (multi)fasta as input and outputs a list of predicted classes to the console:"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Training has two steps. First a BERT encoder is pretrained without labels on genomic fragments of a fixed length of 1,500 nucleotides, each cut into 500 three letter tokens and presented as two sentences of 250 tokens. Then the model is fine-tuned for classification: the [CLS] token output goes to three taxonomy layers in what the authors call the all-in-one architecture, where each rank's prediction also sees the higher ranks. The authors compared flat, nested and all-in-one arrangements and found all-in-one best. Fine-tuning ran for at most 16 epochs with early stopping, and class weights per rank to stop the model favouring frequent classes. At prediction time each rank also has an unknown class, used when a sequence looks unlike any trained class.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Materials and Methods, Pretraining and Architectures, Results; README.md: Usage note on unknown",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To model DNA as natural language, BERTax was pretrained on DNA sequences of a fixed length of 1,500 nucleotides."
+     },
+     {
+      "source": "@paper",
+      "text": "The taxonomy layers use our all-in-one architecture which uses the output of the pretrained BERT model and all higher taxonomic ranks to predict superkingdom, phylum, and—only in the final model—also the genus of an input sequence."
+     },
+     {
+      "source": "@paper",
+      "text": "We developed three different DNN architectures: the 1) flat, 2) nested, and 3) all-in-one architectures, which we compared with each other."
+     },
+     {
+      "source": "@paper",
+      "text": "We fine-tuned all models for a maximum of 16 epochs, employing early stopping"
+     },
+     {
+      "source": "@readme",
+      "text": "Note, that \"unknown\" is a special placeholder class for each prediction rank, meaning the sequence's taxonomy is predicted to be unlike any possible output class."
+     }
+    ]
+   },
+   {
+    "title": "What it can classify",
+    "body": "Four superkingdoms (archaea, bacteria, eukaryota and viruses), and a fixed list of phyla and genera that the README prints without giving counts. Anything outside those lists is likely to come back as unknown, and the authors say so plainly. The README also carries their recommendation to use BERTax for superkingdom and phylum, with genus possible but weaker, and points at the separate training repository for building a model that covers other taxa.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Compatible phyla and genera, Training BERTax models; Paper: Introduction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Due to the limited amount of samples that can be used for training, we could not train all known phyla and genera."
+     },
+     {
+      "source": "@readme",
+      "text": "If the taxon of your sample is not included in this list, there is a high probability that phylum/genus will be predicted as \"unknown\"."
+     },
+     {
+      "source": "@readme",
+      "text": "Note: We recommend using BERTax only for super kingdom and phylum prediction, but genera are possible."
+     },
+     {
+      "source": "@paper",
+      "text": "Here, we present the tool BERTax for classification of DNA sequences on three different taxonomic levels, superkingdom (archaea, bacteria, eukaryota, and viruses), phylum, and genus."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The published tool is one model: the downloadable version, built on the all-in-one architecture, trained on what the paper calls the final model dataset, and the only version that predicts genus as well. The weights are a single file, big_trainingset_all_fix_classes_selection.h5, distributed through the repository's latest release, and the tool is also packaged as a conda package and a Docker image. The paper additionally describes models trained on a closely related and a distantly related dataset, used for its comparisons; those are not the released tool. A result should name the model file, the sequence splitting mode and the window settings, since long sequences are chunked and the chunk predictions are averaged by default.",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@git-tree"
+    ],
+    "source_locator": "Paper: Downloadable BERTax Version, Results; README.md: Run Bertax, Local pip-only installation, Examples; git tree listing: conda.recipe, Dockerfile",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The downloadable BERTax version is built on the all-in-one architecture and trained on the final model dataset. The downloadable tool additionally predicts the taxonomic rank genus."
+     },
+     {
+      "source": "@readme",
+      "text": "Then [download](https://github.com/rnajena/bertax/releases/latest/download/big_trainingset_all_fix_classes_selection.h5) the (big) model file into the `resources` subfolder."
+     },
+     {
+      "source": "@readme",
+      "text": "Default mode, sequences longer than 1500 nt are split into equal chunks, one prediction (average) per sequence"
+     },
+     {
+      "source": "@git-tree",
+      "text": "\"path\":\"conda.recipe/meta.yaml\""
+     },
+     {
+      "source": "@git-tree",
+      "text": "\"path\":\"Dockerfile\""
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Supervised taxonomic classifier of DNA sequences: a pretrained BERT encoder with classification layers for superkingdom, phylum and genus.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@github-repo"
+    ],
+    "source_locator": "Paper: Significance, Materials and Methods; GitHub API response: description",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "At the core, BERTax is based on the state-of-the-art natural language processing (NLP) architecture BERT (bidirectional encoder representations from transformers)"
+     },
+     {
+      "source": "@github-repo",
+      "text": "\"description\":\"Taxonomic classification of DNA sequences\""
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "BERT transformer encoder with self-attention over 3-mer tokens, plus three taxonomy layers in the all-in-one arrangement, where each rank's output also uses the higher ranks. Only the [CLS] token is passed from the encoder to the taxonomy layers.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Architectures; Figure 1 description",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "BERTax is based on the DNN encoder architecture BERT, that relies on a transformer employing the mechanism of self-attention"
+     },
+     {
+      "source": "@paper",
+      "text": "The pretrained transformation blocks process this input, and only the [CLS] token is delivered to the taxonomy layers as output"
+     },
+     {
+      "source": "@paper",
+      "text": "The taxonomy layers use our all-in-one architecture which uses the output of the pretrained BERT model and all higher taxonomic ranks to predict superkingdom, phylum, and—only in the final model—also the genus of an input sequence."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A fasta or multifasta file of DNA sequences. Internally a sequence is tokenised into 3-mers over a window of 1,500 nucleotides; longer sequences are split into equal chunks by default, or sampled with a single random window, or scanned with a running window.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Usage, Options, Examples; Paper: Materials and Methods, Pretraining",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The script takes a (multi)fasta as input and outputs a list of predicted classes to the console:"
+     },
+     {
+      "source": "@readme",
+      "text": "how to handle sequences sequence longer than the maximum (window) size: split into equal chunks (<code>equal_chunks</code>, default) or use random sequence window (<code>window</code>)"
+     },
+     {
+      "source": "@paper",
+      "text": "BERTax was pretrained on DNA sequences of a fixed length of 1,500 nucleotides"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "One predicted class per rank per sequence, by default superkingdom, phylum and genus, with confidence scores unless switched off. Options write a tab separated file, per chunk predictions, or a json file of confidences for all classes of all ranks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Usage, Options",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "write output to specified file (tab-separated format) instead of to the output stream (console)"
+     },
+     {
+      "source": "@readme",
+      "text": "output confidences for all classes of all ranks to JSON file"
+     },
+     {
+      "source": "@readme",
+      "text": "specify which ranks to include in output (default: superkingdom phylum genus)"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not stated. The sources read give no parameter count. The paper reports ablations over the number of attention heads per transformer block and the number of transformer blocks, but no total.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, ablation studies",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we ran ablation studies varying both the number of attention heads per transformer block and the number of transformer blocks in the BERT part of BERTax"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Pretraining: 1 million genomic fragments of 1,500 nt for each of the four superkingdoms, from NCBI RefSeq genomes. Fine-tuning: the paper's datasets, with the released model trained on the final model dataset, an expanded closely related dataset with roughly tripled eukaryotic and bacterial fragment counts. The data is deposited at OSF, doi 10.17605/OSF.IO/QG6MV.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Materials and Methods, Pretraining, Results; README.md: opening section",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The unsupervised pretraining was performed on a dataset based on 1 million genomic fragments of 1,500 nt for each of the four superkingdoms—archaea, bacteria, eukaryotes, and viruses—obtained from National Center for Biotechnology Information (NCBI) refseq genomes"
+     },
+     {
+      "source": "@paper",
+      "text": "This dataset differs from the closely related dataset in that the number of eukaryotic and bacterial fragments is almost tripled."
+     },
+     {
+      "source": "@readme",
+      "text": "The used data can be found under DOI 10.17605/OSF.IO/QG6MV or [https://osf.io/qg6mv/](https://osf.io/qg6mv/)"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One released model, the downloadable all-in-one version trained on the final model dataset, shipped as big_trainingset_all_fix_classes_selection.h5 and available through conda and Docker. Custom models trained with the separate bertax_training repository can be supplied with --custom_model_file.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Downloadable BERTax Version; README.md: Local pip-only installation, Training BERTax models",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The downloadable BERTax version is built on the all-in-one architecture and trained on the final model dataset."
+     },
+     {
+      "source": "@readme",
+      "text": "Custom models trained with these scripts can be used in BERTax with the parameter `--custom_model_file`."
+     },
+     {
+      "source": "@readme",
+      "text": "conda create -n bertax -c fkretschmer bertax"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported as a date. The training fragments come from NCBI RefSeq genomes, and the sources read give no download or snapshot date for them.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and Methods, Pretraining"
+   },
+   {
+    "label": "Context limits",
+    "value": "1,500 nucleotides per window, tokenised as 500 3-mers. Longer sequences are handled by chunking rather than by a longer context, and a smaller custom window size can be set.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Materials and Methods, Pretraining; README.md: Options, Examples",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Each sequence was split into 500 3-mers (i.e., tokens in a natural language), with the first 250 3-mers being the first sentence and the second 250 3-mers being the second sentence"
+     },
+     {
+      "source": "@readme",
+      "text": "Default mode, sequences longer than 1500 nt are split into equal chunks, one prediction (average) per sequence"
+     },
+     {
+      "source": "@readme",
+      "text": "allows specifying a custom, smaller window size"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated separately. The model file is distributed through the repository's releases and its conda and Docker packages; the sources read give no licence for the weights beyond the repository's GPL-3.0 licence file.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README.md: Local pip-only installation, Run Bertax; LICENSE",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "https://github.com/rnajena/bertax/releases/latest/download/big_trainingset_all_fix_classes_selection.h5"
+     },
+     {
+      "source": "@license",
+      "text": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "GPL-3.0: the repository's LICENSE file is the GNU General Public License version 3, and the GitHub API reports the same identifier.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@github-repo"
+    ],
+    "source_locator": "LICENSE; GitHub API response: license",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007"
+     },
+     {
+      "source": "@github-repo",
+      "text": "\"spdx_id\":\"GPL-3.0\""
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code at https://github.com/rnajena/bertax (GPL-3.0). Weights from the repository's latest release. Also a Docker image, fkre/bertax:latest, and a conda package on the fkretschmer channel. Training code is at https://github.com/rnajena/bertax_training, and the data at https://osf.io/qg6mv/.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@github-repo"
+    ],
+    "source_locator": "README.md: Run Bertax, Alternative local installation, Training BERTax models; GitHub API response: html_url",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "docker run -t --rm -v /path/to/input/files:/in fkre/bertax:latest /in/sequences.fa"
+     },
+     {
+      "source": "@readme",
+      "text": "The repository with the code used in the development of BERTax is located at https://github.com/rnajena/bertax_training."
+     },
+     {
+      "source": "@github-repo",
+      "text": "\"html_url\":\"https://github.com/rnajena/bertax\""
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "It does not need a close relative in a database, which is the case where similarity search fails. The authors report that for novel organisms BERTax clearly outperforms existing approaches.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Significance",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For novel organisms, however, BERTax clearly outperforms any existing approach."
+     },
+     {
+      "source": "@paper",
+      "text": "The classification quality depends heavily on the database, since representative relatives must be present."
+     }
+    ]
+   },
+   {
+    "text": "It is packaged for use, not just published: a Docker image, a conda package and a pip install, with one command on a multifasta file and a tab separated output.",
+    "source_ids": [
+     "@readme",
+     "@git-tree"
+    ],
+    "source_locator": "README.md: Run Bertax, Alternative local installation, Usage; git tree listing: Dockerfile, conda.recipe",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We provide a Docker container to run BERTax."
+     },
+     {
+      "source": "@readme",
+      "text": "bertax sequences.fasta"
+     },
+     {
+      "source": "@git-tree",
+      "text": "\"path\":\"conda.recipe/meta.yaml\""
+     }
+    ]
+   },
+   {
+    "text": "Predictions come with confidence scores and an explicit unknown class per rank, so a sequence outside the trained taxa can be reported as such rather than forced into a class.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Options, Usage note",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Note, that \"unknown\" is a special placeholder class for each prediction rank, meaning the sequence's taxonomy is predicted to be unlike any possible output class."
+     },
+     {
+      "source": "@readme",
+      "text": "if set, do not include confidence scores in output"
+     }
+    ]
+   },
+   {
+    "text": "The model can be inspected: a bertax-visualize command produces an attention head view and a model view of the BERT model for a given sequence.",
+    "source_ids": [
+     "@readme",
+     "@git-tree"
+    ],
+    "source_locator": "README.md: Visualization; git tree listing: bertax/visualize.py",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "bertax-visualize sequence.fa"
+     },
+     {
+      "source": "@git-tree",
+      "text": "\"path\":\"bertax/visualize.py\""
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The label space is fixed and incomplete: the README lists the trained phyla and genera and warns that a sample outside them will probably be called unknown.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Compatible phyla and genera",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Due to the limited amount of samples that can be used for training, we could not train all known phyla and genera."
+     },
+     {
+      "source": "@readme",
+      "text": "If the taxon of your sample is not included in this list, there is a high probability that phylum/genus will be predicted as \"unknown\"."
+     }
+    ]
+   },
+   {
+    "text": "The authors themselves recommend it only for superkingdom and phylum, with genus possible but weaker.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Compatible phyla and genera",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Note: We recommend using BERTax only for super kingdom and phylum prediction, but genera are possible."
+     }
+    ]
+   },
+   {
+    "text": "The window is 1,500 nucleotides, so long sequences are chunked and their chunk predictions averaged, which is a choice the user has to make rather than a single whole sequence prediction.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Options, Examples; Paper: Materials and Methods, Pretraining",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "output predictions per chunk, otherwise (by default) chunk predictions are averaged"
+     },
+     {
+      "source": "@paper",
+      "text": "BERTax was pretrained on DNA sequences of a fixed length of 1,500 nucleotides"
+     }
+    ]
+   },
+   {
+    "text": "The code is GPL-3.0, which is copyleft, so embedding it in a closed product is restricted. The weights carry no separate licence statement in the sources read.",
+    "source_ids": [
+     "@license",
+     "@github-repo"
+    ],
+    "source_locator": "LICENSE; GitHub API response: license",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007"
+     },
+     {
+      "source": "@github-repo",
+      "text": "\"spdx_id\":\"GPL-3.0\""
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "BERTax workflow",
+   "steps": [
+    "input: a fasta file of DNA sequences",
+    "each sequence is cut to 1,500 nt windows, chunked if longer",
+    "each window becomes 500 3-mer tokens in two sentences",
+    "the pretrained BERT encoder gives a [CLS] representation",
+    "three taxonomy layers predict superkingdom, then phylum, then genus",
+    "output: class per rank with confidence, averaged over chunks"
+   ],
+   "caption": "Each rank's prediction uses the higher ranks, and chunk predictions are averaged unless asked for separately.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "Paper: Materials and Methods, Figure 1 description; README.md: Options, Examples",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Each sequence was split into 500 3-mers (i.e., tokens in a natural language)"
+    },
+    {
+     "source": "@paper",
+     "text": "The pretrained transformation blocks process this input, and only the [CLS] token is delivered to the taxonomy layers as output"
+    },
+    {
+     "source": "@readme",
+     "text": "Default mode, sequences longer than 1500 nt are split into equal chunks, one prediction (average) per sequence"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count, memory need or run time is stated in the sources read; the README only says the GPU route is likely much faster and that batch size can be lowered to decrease memory usage.",
+   "The number of classes in the released model is not stated as a figure in the sources read: the README prints the phylum and genus lists but gives no count, and none is computed here.",
+   "The reported accuracy figures were only partly read: the paper's prose gives macro average precision for a few comparisons, and the tables were not transcribed.",
+   "The separate bertax_training repository and the OSF data deposit were not fetched, so how to retrain, and the licence of the data, are not covered.",
+   "The input.json for this record names github.com/f-kretschmer/bertax as the code location, while the paper and this README use github.com/rnajena/bertax; the record's address was not checked."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Written from the repository README.md and LICENSE at commit 8fdb010ffb3ede7fce758d5da92a4fcabd8283e7, the GitHub tree and repository API responses, and the PMC full text XML of PMC9436379 (doi 10.1073/pnas.2122636119), each fetched on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Classify the sequences in a fasta file with the released BERTax model, either through Docker or through a local install.",
+  "prerequisites": [
+   "Docker, for the route the README puts first. For GPU use, the nvidia-container-toolkit and the --gpus all flag.",
+   "Or conda, for a local install from the fkretschmer channel, plus pip for keras-bert 0.86.0.",
+   "For the pip only route, the model file big_trainingset_all_fix_classes_selection.h5 from the repository's latest release, placed in the resources subfolder.",
+   "A fasta or multifasta file of DNA sequences.",
+   "The code is GPL-3.0."
+  ],
+  "steps": [
+   {
+    "title": "Run with Docker",
+    "shell": "docker run -t --rm -v /path/to/input/files:/in fkre/bertax:latest /in/sequences.fa",
+    "explanation": "The README's first route: it pulls and runs the published image, with your input directory mounted at /in. Add --gpus all to use a GPU, which the README says is likely much faster.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Run Bertax",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "docker run -t --rm -v /path/to/input/files:/in fkre/bertax:latest /in/sequences.fa"
+     },
+     {
+      "source": "@readme",
+      "text": "the `bertax` image has to be run with the flag `--gpus all`"
+     }
+    ]
+   },
+   {
+    "title": "Or install locally with conda",
+    "shell": "conda create -n bertax -c fkretschmer bertax\nconda activate bertax\npip install keras-bert==0.86.0",
+    "explanation": "The README's conda route, which installs the packaged tool and then the pip dependency it needs.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Prepare conda",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -n bertax -c fkretschmer bertax"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install keras-bert==0.86.0"
+     }
+    ]
+   },
+   {
+    "title": "Or install from a clone, with the model file",
+    "shell": "git clone https://github.com/rnajena/bertax.git\ngit -C bertax checkout --detach 8fdb010ffb3ede7fce758d5da92a4fcabd8283e7\ncurl -L -o bertax/bertax/resources/big_trainingset_all_fix_classes_selection.h5 https://github.com/rnajena/bertax/releases/latest/download/big_trainingset_all_fix_classes_selection.h5\npip install -e bertax",
+    "explanation": "The README's pip only route: clone, download the model file into the resources subfolder, then install. The checkout line is added here to pin the clone to the commit these notes were read at, and the download is written as a curl command for the release URL the README links; the README gives it as a link rather than a command.",
+    "source_ids": [
+     "@readme",
+     "@git-tree"
+    ],
+    "source_locator": "README.md: Local pip-only installation; git tree listing: bertax/resources, sha",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/rnajena/bertax.git"
+     },
+     {
+      "source": "@readme",
+      "text": "Then [download](https://github.com/rnajena/bertax/releases/latest/download/big_trainingset_all_fix_classes_selection.h5) the (big) model file into the `resources` subfolder."
+     },
+     {
+      "source": "@readme",
+      "text": "pip install -e bertax"
+     },
+     {
+      "source": "@git-tree",
+      "text": "\"path\":\"bertax/resources/README.txt\""
+     }
+    ]
+   },
+   {
+    "title": "Classify a fasta file",
+    "shell": "bertax sequences.fasta\nbertax sequences.fa --output_ranks superkingdom\nbertax -C -1 --running_window --running_window_stride 300 --chunk_predictions sequences.fa",
+    "explanation": "Three of the README's examples: the default run, one restricted to superkingdom, and a running window scan in 300 nt steps with per chunk output and no cap on the number of chunks.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Usage, Examples",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "bertax sequences.fasta"
+     },
+     {
+      "source": "@readme",
+      "text": "bertax sequences.fa --output_ranks superkingdom"
+     },
+     {
+      "source": "@readme",
+      "text": "bertax -C -1 --running_window --running_window_stride 300 --chunk_predictions sequences.fa"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A list of predicted classes per sequence on the console, with confidence scores by default.",
+   "With -o, the same as a tab separated file; with --conf_matrix_file, confidences for all classes of all ranks as json.",
+   "unknown in place of a class when the sequence is predicted to be unlike any trained class."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The model file download in the third step is written here as a curl command; the README provides it as a hyperlink.",
+   "Run time and memory are not stated in the sources read, beyond the README's note that batch size can be lowered to decrease memory usage.",
+   "Retraining is not covered: the README directs that to the separate bertax_training repository."
+  ],
+  "source_ids": [
+   "@readme",
+   "@git-tree",
+   "@paper",
+   "@license"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "big_trainingset_all_fix_classes_selection.h5 (downloadable BERTax, all-in-one, final model dataset)",
+   "parameters": null,
+   "context_length": 1500,
+   "context_unit": "bases",
+   "code_licence": "GPL-3.0",
+   "weights_licence": null,
+   "code_url": "https://github.com/rnajena/bertax",
+   "weights_url": "https://github.com/rnajena/bertax/releases/latest/download/big_trainingset_all_fix_classes_selection.h5",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "BERTax was pretrained on DNA sequences of a fixed length of 1,500 nucleotides"
+    },
+    {
+     "source": "@github-repo",
+     "text": "\"spdx_id\":\"GPL-3.0\""
+    },
+    {
+     "source": "@readme",
+     "text": "https://github.com/rnajena/bertax/releases/latest/download/big_trainingset_all_fix_classes_selection.h5"
+    }
+   ]
+  }
+ ],
+ "notes": "The official repository is rnajena/bertax, which the paper's own README identifies and whose GitHub licence field is GPL-3.0. The record's attributes name github.com/f-kretschmer/bertax instead; that address was not checked, and the conda channel in the README is fkretschmer, so the record may be recording the author's name rather than the repository owner. The record's existing source, the PNAS paper, was fetched in full from PMC; it carries a CC BY-NC-ND 4.0 licence, so store_bytes is false for it. The paper also describes models trained on closely related and distantly related datasets, which are evaluation models rather than the released tool, and a separate training repository (rnajena/bertax_training) that was not fetched."
+}
