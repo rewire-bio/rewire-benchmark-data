@@ -139,6 +139,7 @@ SCRIPT_TAIL = r"""
 export __RG_RECORD="$RECORD" __RG_WORK="$TRIAL_DIR/work" __RG_FULL="$TRIAL_DIR/full-logs"
 printf 'started_at\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$RECORD/run.tsv"
 printf 'timeout_seconds\t%s\n' "${TRIAL_TIMEOUT_SECONDS:-}" >> "$RECORD/run.tsv"
+printf 'disk_free_kb_at_start\t%s\n' "$(df -Pk "$TRIAL_DIR" | awk 'NR == 2 { print $4 }')" >> "$RECORD/run.tsv"
 cd "$TRIAL_DIR/work" || exit 2
 start=$(date +%s)
 if [ -n "${TRIAL_TIMEOUT_SECONDS:-}" ] && command -v timeout > /dev/null 2>&1; then
@@ -211,7 +212,7 @@ CAUSE_RULES: list[tuple[str, re.Pattern]] = [
     ("network", re.compile(
         r"Could not resolve host|Temporary failure in name resolution|Name or service not known|"
         r"Connection (refused|reset|timed out)|ConnectionError|ReadTimeout|Max retries exceeded|"
-        r"HTTP Error \d{3}|\b404\b|\b50[234]\b|SSL(Error| certificate)|fatal: unable to access|"
+        r"HTTP Error \d{3}|\b(404|50[234]) (Client Error|Server Error|Not Found)|status code (404|50[234])|SSL(Error| certificate)|fatal: unable to access|"
         r"curl: \(\d+\)|Unable to establish SSL|ERROR \d{3}:", re.I)),
     ("needs_root", re.compile(
         r"sudo: |is not in the sudoers|must be run as root|are you root|"
@@ -337,14 +338,15 @@ def repository_commit() -> str | None:
         return os.environ.get("GITHUB_SHA")
 
 
-def runner_facts(trial_dir: Path) -> dict:
+def runner_facts(trial_dir: Path, run: dict) -> dict:
     session_python = trial_dir / "record" / "session-python.txt"
     return {
         "os": os_name(),
         "platform": platform.platform(),
         "cpu_count": os.cpu_count(),
         "memory_bytes": memory_bytes(),
-        "disk_free_bytes": shutil.disk_usage(trial_dir).free,
+        "disk_free_bytes_at_start": int(run["disk_free_kb_at_start"]) * 1024 if run.get("disk_free_kb_at_start", "").isdigit() else None,
+        "disk_free_bytes_at_end": shutil.disk_usage(trial_dir).free,
         "session_python": session_python.read_text(errors="replace").strip() if session_python.is_file() else None,
         "receipt_python": platform.python_version(),
         "gpu_present": bool(shutil.which("nvidia-smi") or Path("/dev/nvidia0").exists()),
@@ -372,6 +374,7 @@ def build_receipt(trial_dir: Path, record: dict) -> dict:
         elif row[0] == "end" and len(row) >= 5 and int(row[1]) not in ends:
             ends[int(row[1])] = (to_seconds(row[2]), int(row[3]), row[4])
 
+    last_begun = max(begins) if begins else None
     steps = []
     for n, step in enumerate(guide["steps"], start=1):
         log_file = record_dir / "logs" / f"{n}.log"
@@ -379,7 +382,11 @@ def build_receipt(trial_dir: Path, record: dict) -> dict:
         entry = {"number": n, "title": step["title"], "shell": step["shell"], "manual": is_manual(step["shell"]), "status": "not_run",
                  "exit_code": None, "seconds": None, "log_tail": log_tail}
         if n in begins:
-            if n in ends:
+            ended_by_timeout = timed_out and n == last_begun and (n not in ends or ends[n][2] == "exit")
+            if ended_by_timeout:
+                entry["status"] = "timed_out"
+                entry["seconds"] = round(ends[n][0] - begins[n], 3) if n in ends else None
+            elif n in ends:
                 end, code, how = ends[n]
                 entry["exit_code"] = code
                 entry["seconds"] = round(end - begins[n], 3)
@@ -389,8 +396,6 @@ def build_receipt(trial_dir: Path, record: dict) -> dict:
                     entry["status"] = "ended_session"
                 else:
                     entry["status"] = "completed"
-            elif timed_out:
-                entry["status"] = "timed_out"
             else:
                 entry["status"] = "failed"
                 entry["exit_code"] = session_exit
@@ -421,7 +426,7 @@ def build_receipt(trial_dir: Path, record: dict) -> dict:
         "repository_commit": repository_commit(),
         "run_guide_sha256": sha,
         "run_guide_status": guide.get("status"),
-        "runner": runner_facts(trial_dir),
+        "runner": runner_facts(trial_dir, run),
         "started_at": run.get("started_at"),
         "finished_at": run.get("finished_at"),
         "timeout_seconds": int(run["timeout_seconds"]) if run.get("timeout_seconds", "").isdigit() else None,
@@ -499,7 +504,8 @@ def load_checkpoints(specs_glob: str = SPECS_GLOB) -> dict[str, list[dict]]:
 
 
 GPU_OPTIONAL_RE = re.compile(
-    r"optional|not (required|needed|stated)|no GPU is|recommended|\bon (a )?CPU\b|falls back to cpu|mode cpu", re.I)
+    r"optional|not (required|needed)|no GPU is|recommended|\bon (a )?CPU\b|falls back to cpu|mode cpu|"
+    r"GPU (need|requirement)s?\b[^.]*not stated", re.I)
 
 
 def mentions_gpu(guide: dict) -> bool:

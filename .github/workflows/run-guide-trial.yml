@@ -79,6 +79,7 @@ jobs:
           trial_path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           if [ -n "${pythonLocation:-}" ]; then trial_path="$pythonLocation/bin:$trial_path"; fi
           echo "TRIAL_PATH=$trial_path" >> "$GITHUB_ENV"
+          cd /trial
           sudo -u trial -- env -i HOME=/trial/home PATH="$trial_path" python3 -m venv /trial/home/venv
 
       - name: Run the guide as the trial user
@@ -89,6 +90,7 @@ jobs:
           GITHUB_TOKEN: ""
           SESSION_SECONDS: ${{ needs.setup.outputs.session_seconds }}
         run: |
+          cd /trial
           sudo -u trial -- env -i \
             HOME=/trial/home USER=trial LOGNAME=trial SHELL=/bin/bash LANG=C.UTF-8 \
             PATH="$TRIAL_PATH" \

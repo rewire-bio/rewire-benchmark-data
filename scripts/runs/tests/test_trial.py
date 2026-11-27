@@ -86,7 +86,8 @@ class RunGuideTrialTest(unittest.TestCase):
         self.assertEqual(files["result.txt"]["size_bytes"], len("made\n"))
         self.assertEqual(len(files["result.txt"]["sha256"]), 64)
         self.assertEqual([d["path"] for d in receipt["outputs"]["directories"]], ["project/"])
-        for key in ("os", "cpu_count", "memory_bytes", "disk_free_bytes", "receipt_python", "gpu_present"):
+        self.assertIsInstance(receipt["runner"]["disk_free_bytes_at_start"], int)
+        for key in ("os", "cpu_count", "memory_bytes", "disk_free_bytes_at_end", "receipt_python", "gpu_present"):
             self.assertIn(key, receipt["runner"])
 
     def test_a_failing_step_stops_the_run_and_later_steps_are_not_run(self):
@@ -143,6 +144,43 @@ class RunGuideTrialTest(unittest.TestCase):
                 self.assertEqual(receipt["steps"][1]["status"], "not_run")
 
 
+class TimeoutReceiptTest(unittest.TestCase):
+    """Canned record directories, since the tests cannot rely on GNU timeout being installed."""
+
+    def receipt(self, status, run):
+        with tempfile.TemporaryDirectory() as tmp:
+            trial_dir = Path(tmp)
+            (trial_dir / "record").mkdir()
+            (trial_dir / "record" / "status.tsv").write_text("".join("\t".join(row) + "\n" for row in status))
+            (trial_dir / "record" / "run.tsv").write_text("".join("\t".join(row) + "\n" for row in run))
+            return trial.build_receipt(trial_dir, FAIL_GUIDE)
+
+    started = [("started_at", "2026-11-27T10:00:00Z"), ("timeout_seconds", "60")]
+    step_one = [("begin", "1", "100"), ("end", "1", "101", "0", "normal"), ("begin", "2", "101")]
+
+    def test_a_trap_written_end_after_the_timeout_is_a_timeout(self):
+        receipt = self.receipt(self.step_one + [("end", "2", "160", "143", "exit")],
+                               self.started + [("finished_at", "x"), ("session_exit", "124"), ("timed_out", "yes")])
+        self.assertEqual(receipt["result"], "timed_out")
+        self.assertEqual([s["status"] for s in receipt["steps"]], ["completed", "timed_out", "not_run"])
+        self.assertNotIn("likely_cause", receipt)
+
+    def test_a_run_killed_before_it_finished_is_a_timeout(self):
+        receipt = self.receipt(self.step_one, self.started)
+        self.assertEqual(receipt["result"], "timed_out")
+        self.assertEqual(receipt["steps"][1]["status"], "timed_out")
+
+    def test_a_failure_before_the_timeout_stays_a_failure(self):
+        receipt = self.receipt(self.step_one + [("end", "2", "102", "1", "exit")],
+                               self.started + [("finished_at", "x"), ("session_exit", "1"), ("timed_out", "no")])
+        self.assertEqual(receipt["result"], "failed_at_step_2")
+        self.assertEqual(receipt["steps"][1]["exit_code"], 1)
+
+    def test_no_step_begun_is_not_started(self):
+        receipt = self.receipt([], self.started + [("finished_at", "x"), ("session_exit", "1"), ("timed_out", "no")])
+        self.assertEqual(receipt["result"], "not_started")
+
+
 class LikelyCauseTest(unittest.TestCase):
     cases = {
         "no_gpu": "AssertionError: Torch not compiled with CUDA enabled",
@@ -165,6 +203,9 @@ class LikelyCauseTest(unittest.TestCase):
     def test_flash_attn_build_without_cuda_is_a_gpu_cause(self):
         tail = "Failed building wheel for flash-attn\nOSError: CUDA_HOME environment variable is not set."
         self.assertEqual(trial.likely_cause(tail), "no_gpu")
+
+    def test_download_sizes_are_not_http_errors(self):
+        self.assertEqual(trial.likely_cause("Downloading foo-1.0.whl (404 kB)\nValueError: bad"), "other")
 
     def test_a_killed_process_with_no_message_is_memory(self):
         self.assertEqual(trial.likely_cause("", 137), "out_of_memory")
@@ -197,6 +238,14 @@ class CandidatesTest(unittest.TestCase):
                 ok, why, _ = self.assess(record)
                 self.assertFalse(ok)
                 self.assertEqual(why, [expected])
+
+    def test_unstated_gpu_memory_does_not_make_a_gpu_optional(self):
+        record = guide_record("gpumemory", [("Install", "pip install thing")],
+                              prerequisites=["A CUDA-capable GPU. Memory needs are not stated."])
+        self.assertFalse(self.assess(record)[0])
+        record = guide_record("gpuneed", [("Install", "pip install thing")],
+                              prerequisites=["GPU need for generation is not stated."])
+        self.assertTrue(self.assess(record)[0])
 
     def test_gpu_in_prerequisites_excludes(self):
         record = guide_record("gpuprereq", [("Install", "pip install thing")], prerequisites=["A CUDA GPU."])

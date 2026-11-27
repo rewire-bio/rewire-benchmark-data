@@ -29,8 +29,8 @@ Then start up to 10 trials, one runner each:
 gh workflow run run-guide-trial.yml -f record_ids="ID1 ID2" -f timeout_minutes=30
 ```
 
-`timeout_minutes` is the time each guide gets, at most 90. Download the receipts with
-`gh run download <run id>`; each is an artifact named `run-guide-receipt-<record id>`, kept 30 days.
+`timeout_minutes` is the time each guide gets, at most 90. `gh run download <run id>` fetches the
+receipts: artifacts named `run-guide-receipt-<record id>`, kept 30 days.
 
 `trial.py script <record id> --out run-guide.sh` writes the script a trial runs, for reading. Do
 not run it on your own machine: its commands come from third-party repositories.
@@ -43,16 +43,14 @@ Each step's text is written to its own file first and sourced with standard inpu
 so a step cannot read the next one as input. The session runs with `set -e`: a step stops at its
 first failing command, which is where a person would stop, and the session ends. The steps after it
 are recorded as not run. A step that calls `exit` also ends the session and is recorded with its
-exit code. Pipelines are judged by their last command, as in a normal shell.
+exit code. A pipeline is judged by its last command. The session stops itself after
+`timeout_minutes`; the step and job have longer limits, so a receipt is still written.
 
 Before the first step the session activates a fresh Python venv (so `pip install` works without
 sudo), loads conda's shell functions if the runner has conda, and sets `CONDA_ALWAYS_YES`,
 `PIP_NO_INPUT` and `DEBIAN_FRONTEND=noninteractive` so that prompts a person would answer with yes
 do not hang the run. If the prerequisites name exactly one version as "Python 3.x", that Python is
 installed first; otherwise the runner's own Python is used.
-
-The session stops itself after `timeout_minutes`. The workflow step and job have longer limits as
-a backstop, so a receipt is written even when the session has to be killed.
 
 ## What the receipt holds
 
@@ -61,12 +59,14 @@ a backstop, so a receipt is written even when the session has to be killed.
 - the record id, kind and name, and the commit of this repository the trial ran from;
 - `run_guide_sha256`: the SHA-256 of the guide's canonical JSON (keys sorted, no spaces), so a
   later change to the guide shows;
-- the runner: OS, CPU count, memory, free disk, the session's Python and whether a GPU is present;
+- the runner: OS, CPU count, memory, free disk before and after, the session's Python and whether
+  a GPU is present;
 - start and finish times and the timeout;
 - per step: title, shell text, status (`completed`, `failed`, `timed_out`, `not_run`,
   `ended_session`), exit code, seconds, whether it holds only comments, and the last 200 lines of
   its combined output;
-- `result`: `completed` (every step exited 0), `failed_at_step_<n>` or `timed_out`;
+- `result`: `completed` (every step exited 0), `failed_at_step_<n>`, `timed_out`, or
+  `not_started` when the harness failed before the first step;
 - `likely_cause` when a step failed;
 - `manual_steps`: steps holding only comments, which a completed run did not exercise;
 - `outputs`: the guide's outputs are prose, so the receipt picks out the words that look like paths
@@ -115,5 +115,5 @@ could be written. The pipeline alert workflow does not watch this one.
   guide, so a successful receipt cannot yet be recorded on the record.
 - Receipts live only as workflow artifacts for 30 days. They are not stored in this repository.
 - Guides that need a GPU are recorded as failing for that reason. There is no GPU runner.
-- The workflow has not run yet. Assumptions to check on the first run: that the runner's
-  `python3 -m venv` works for a second user, and whether the runner image has conda (`$CONDA`).
+- The workflow has not run yet. The first run should check that `python3 -m venv` works for the
+  trial user and whether the runner image has conda (`$CONDA`).
