@@ -131,6 +131,22 @@ jobs:
           python3 kb/discrepancies.py --release unreleased --out kb/build/discrepancies.json
           python3 -c "import json; ids = [d['id'] for d in json.load(open('kb/build/discrepancies.json'))['discrepancies']]; assert len(ids) == len(set(ids)), 'duplicate discrepancy IDs'; print(len(ids), 'discrepancies')"
 
+  # Builds the release files from this commit (about a minute) and pages every use case at 20
+  # and 100 evaluations per page, so a change that would make a use case unservable fails here,
+  # before a release is cut from it.
+  use-case-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run omics:release
+      - run: npm run use-cases:check-pages
+
   release:
     runs-on: ubuntu-latest
     outputs:
@@ -176,6 +192,9 @@ jobs:
       - name: Check the prepared file against the live query engine
         if: steps.mode.outputs.release == 'true'
         run: npm run serving:parity
+      - name: Check every use-case page fits the response budget
+        if: steps.mode.outputs.release == 'true'
+        run: npm run use-cases:check-pages
       - name: Keep the prepared file and release files for publishing
         if: steps.mode.outputs.release == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
@@ -189,7 +208,7 @@ jobs:
 
   publish:
     # Runs only on main release pushes, and only after every check and the release rebuild pass.
-    needs: [checks, release]
+    needs: [checks, release, use-case-pages]
     if: needs.release.outputs.release == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     concurrency:

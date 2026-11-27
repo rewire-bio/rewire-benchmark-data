@@ -56,6 +56,15 @@ make each publishable. What they still need:
 - Baselines: none of the nine names a conventional comparator, because no source in the store
   establishes one for these questions.
 
+Use-case page size. Every page of a use case repeats each mapping whole, including its full source
+and protocol records, before any evaluation is added. Genomic element annotation's 105 mappings take
+620 KB of the 900 KB response budget. At that rate of about 5.9 KB per mapping, a use case stops being
+servable at about 145 tied tests (`npm run use-cases:check-pages` prints each use case's share). The
+lasting fix is to stop repeating full source and protocol records in every mapping, and to refer to the
+response's top-level sources by id instead. That changes the `useCase` response shape, so the site's
+live check (`scripts/check-live-catalogue.mjs`, which compares every mapping field) and API clients
+must change with it.
+
 ## Pages
 
 1. **General-purpose language models: 50 records** (Claude, GPT, Gemini, Llama, Qwen and others)
