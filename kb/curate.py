@@ -18,6 +18,8 @@ Tables
                      the subset of the data the number is for. Both are free text in the record store
   difference_review  what a review concluded about one difference between studies, and why
   lead               a disagreement someone or something has noticed, with its state
+  source_lead        a difference inside one study's or one model's own files (paper, code, card, config), with
+                     both passages quoted, who could answer it and where. See docs/leads.md
 
 Views
   setting_observation_v   every result that falls in a setting, with its grade
@@ -44,6 +46,7 @@ TABLES = {
     "grounding": ("kb/curation/grounding.jsonl", ["observation_id", "system_key", "system_label", "system_basis", "adaptation", "subset", "subset_basis", "confidence"]),
     "difference_review": ("kb/curation/difference_reviews.jsonl", ["setting_id", "system_key", "subset", "metric", "verdict", "why", "basis"]),
     "lead": ("kb/curation/leads.jsonl", ["id", "setting_id", "kind", "model", "model_id", "metric", "values", "note", "state", "basis"]),
+    "source_lead": ("kb/curation/source_leads.jsonl", ["id", "record_ids", "kind", "summary", "sides", "who", "where_to_raise", "strength", "strength_why", "impact", "impact_why", "state", "basis"]),
 }
 VIEWS = {
     "setting_observation_v": """
