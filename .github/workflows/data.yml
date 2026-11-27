@@ -124,6 +124,8 @@ jobs:
       - run: python3 kb/migrate.py --check
       - run: python3 kb/curate.py
       - run: python3 kb/board.py
+      - name: Duplicate rules against the store
+        run: python3 -m unittest discover -s kb/tests
       - name: Find discrepancies from the database
         run: |
           python3 kb/discrepancies.py --release unreleased --out kb/build/discrepancies.json

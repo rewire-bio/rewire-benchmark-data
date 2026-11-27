@@ -2,7 +2,8 @@
 
 The owner decided on 26 November 2026 that agents read the database, not the knowledge graph
 ([rebuild.md](rebuild.md), step 8). This is the plan for the intake and reviewer agents and the
-plugin skills. Nothing in `scripts/agents/` has changed yet.
+plugin skills. No agent has switched yet: `scripts/agents/intake.mjs`, `reviewer.mjs` and `kg.mjs`
+still start the server.
 
 ## What ties them to the graph today
 
@@ -17,7 +18,7 @@ uses. The first call is `dataset_info`, to prove the bundle loaded and to log it
 | `dataset_info` | both agents, at start | `kb/queries.py dataset_info` | Done: checkout commit, release ID when a discrepancies file is given, build time, counts by kind |
 | `search` | intake (duplicate probes, link targets, verifier's `kg_search`), reviewer (duplicates), plugin | `kb/queries.py search` (`kb/search.py`) | Done: same index, scores and ranks as the graph on bundle 2026-11-26-36acdf5e0cfa |
 | `describe_resource` | intake (verifier's `kg_describe`), plugin | `kb/queries.py describe_resource` | Done: returns the record itself, not statements; the caller changes |
-| `draft_upsert` | intake (duplicate probes, the batch) | a `duplicates` tool in kb, `intake-check` extended to the per-record checks it lacks, then `records add` | Not started |
+| `draft_upsert` | intake (duplicate probes, the batch) | `kb/queries.py duplicates` (`kb/duplicates.py`), `intake-check --json` with the per-record checks, then `records add` | Tools done, not switched: `duplicates` gives the same answer as `draft_upsert` on all 1,176 single drafts and one batch of five compared on bundle 2026-11-26-36acdf5e0cfa; `intake-check` makes every per-record check listed below |
 | `draft_change` | intake (entity update) | the intake's own changes file, which it already writes as the fallback | Exists as fallback |
 | `draft_remove` | intake (probes, dropped records) | nothing: no overlay to clean | Goes away |
 | `draft_export` | intake | `batchLines` in `intake.mjs`, already the fallback | Exists as fallback |
@@ -45,10 +46,19 @@ in the release. Otherwise it stores the record and returns `status` (added, repl
 A link or source target found in neither the drafts, the store lines nor the release is a
 warning, because the store may have gained it after the release was cut.
 
-Possible duplicates are three lists: up to three search hits of the same class on the name whose
-label shares at least half its words with it (`match: search`), up to ten release records with the
-same squashed name (letters and digits, case folded; `same name`), and other drafts with the same
-squashed name or half their words in common.
+Only the name, kind and ID of a draft are read for its possible duplicates. They are three lists:
+
+- `search`: the first 20 hits of a search for the name, limited to the class of the draft's kind
+  (unfiltered for an unknown kind). A hit counts if it matched on its label or alias and the two
+  names overlap by at least half: the larger of the share of the draft's words found in the hit's
+  name and the share of the hit's words found in the draft's, where a word of four letters or more
+  is also found as the start of a longer word. The first three that count are kept, with `rank`
+  and `score`.
+- `same name`: release records and discrepancies of any kind whose squashed name (letters and
+  digits, case folded) equals the draft's, the draft's kind first, then by ID. At most ten;
+  `same_name_omitted` counts the rest. A record found by both is `same name, search`.
+- other drafts in the overlay with the same squashed name (`same name`) or an overlap of at least
+  half (`near name`), with `in: draft`.
 
 **`draft_change(id, changes, base_sha256)`** needs `--draft-records`. The record must be one of
 those lines and of a draftable kind. `base_sha256` must equal the SHA-256 of the committed line,
@@ -78,12 +88,16 @@ Two other checks run on the batch today, and they differ from the overlay in one
 matters: the overlay reports problems per record, so the intake drops one record and keeps the
 rest, while `records add` stops at the first problem and fails the whole batch.
 
-- `scripts/agents/intake-check.ts` collects problems per record, prefixed with the record's ID:
+- `scripts/agents/intake-check.ts` collected problems, prefixed with the record's ID (before the
+  per-record checks below were added):
   the kind must be one the intake may add (model, method, benchmark, dataset, source), so a
   baseline is refused as the overlay refuses it; undeclared attributes and attribute values of the
   wrong type (`attributeIssues`); attributes `normalizeAttributes` would rewrite; the depth tier;
   a link to a store record that does not exist or that the relation rules do not allow; and the
-  release's record schema (`validateSnapshot`).
+  release's record schema (`validateSnapshot`). Two parts of it are not per record: a link to a
+  store record that is missing or not allowed skips `validateSnapshot` for the whole batch, and
+  `validateSnapshot` throws a plain error at the first record for some problems (a source that is
+  not a source, a repeated ID, a link it cannot resolve), which names no record in its prefix.
 - `records add` (`addBatch`, then `validateRecords` in `scripts/omics/schema.ts`) throws on the
   first problem: the record schema, an ID already in the store or twice in the batch, controlled
   vocabulary values (`validateVocabularies`), attributes, descriptions, derivations, concerns, a
@@ -94,11 +108,12 @@ rest, while `records add` stops at the first problem and fails the whole batch.
   edited in place, that its ID and kind are unchanged, and that the bytes it writes have the digest
   in the file.
 
-Server checks that nothing else makes per record: controlled vocabulary values, a source that is
+Server checks that nothing else made per record: controlled vocabulary values, a source that is
 not a source record, an ID already in the store (all three only fail the whole batch in
-`records add`); a link pair listed twice, a link to itself, a source listed twice, and integers
-beyond 2^53 (none checked elsewhere). And three things beyond checks: the possible duplicates,
-the drop-and-redraft loop that per-record problems allow, and a fixed byte form for the batch.
+`records add`); a link pair listed twice, a link to itself, a source listed twice, integers
+beyond 2^53, non-finite numbers and lone surrogates in text or keys (none checked elsewhere).
+And three things beyond checks: the possible duplicates, the drop-and-redraft loop that
+per-record problems allow, and a fixed byte form for the batch.
 
 ## The smallest replacement
 
@@ -108,16 +123,41 @@ the drop-and-redraft loop that per-record problems allow, and a fixed byte form 
    only `startKg` changes: build `kb.sqlite` with `python3 kb/migrate.py` (about 5 seconds), start
    the process, call `dataset_info`. The search index builds in about 3 seconds on the first call.
    One process per run, because each start rebuilds the index.
-2. **`duplicates(records)`**, a new tool with the server's rules: the same three lists, from the
-   same search and the same squashed names, over the database instead of the release. It is the
-   only check the overlay made that nothing else makes, so it is ported exactly, with the same
-   output shape, so `kg.json` and the reviewer do not change.
-3. **Checks before writing, per record.** Extend `intake-check.ts` with the per-record checks
-   listed above that it lacks: `validateVocabularies` on each record, a source that is not a
-   source record, an ID already in the store, a repeated link pair or source, a link to itself,
-   and unsafe integers. Add a `--json` output of problems by record ID. Then in `draftThroughKg`,
-   replace `upsert` with: run `intake-check --json` on the batch, then `duplicates`; drop records
-   with problems or unruled duplicates, prune their links and unused sources, and repeat, as today.
+2. **`duplicates(records)`**, done: `python3 kb/queries.py duplicates --param records=<drafts>`
+   (inline JSON, a file of JSON lines or a JSON list, or `-`), `Records.duplicates` in Python, the
+   rules in `kb/duplicates.py`. The same three lists, from the same search and the same squashed
+   names, over the public records of the database instead of the release, in the server's output
+   shape (`in` stays `release`), so `kg.json` and the reviewer do not change. The other drafts are
+   the other records of the same call, as in the export's summary. A draft whose ID is already in
+   the database gets `error` instead, as the server refused it. Tests: `kb/tests/test_duplicates.py`
+   checks the rules on 315 records of all 17 kinds of the current store; `kb/tools/compare_duplicates.py`
+   runs the server's `DraftOverlay.upsert` (what `draft_upsert` calls, in process rather than over
+   MCP) and the tool on the same drafts against bundle 2026-11-26-36acdf5e0cfa, a database built
+   from its commit and the bundle's `discrepancies.json`: 1,176 single drafts from 315 records
+   (each record under a new ID, its name squashed and upper-cased, two of its words among words no
+   record has, and a name no record has) and one batch of five read back as the export summarises
+   it. Every answer was equal, scores, ranks, order and `same_name_omitted` included. The answer
+   gives only the duplicate lists: the rest of `kg.json` (release, `manifest_sha256`,
+   `batch_sha256`, each record's links and warnings, from the export's summary) has to be built by
+   the intake when it switches. Pass the agents' discrepancies file,
+   or `--discrepancies none`, as for `search`: discrepancies are candidates of the `same name` list
+   too.
+3. **Checks before writing, per record.** Done in `intake-check.ts` (`recordChecks`): controlled
+   values (the per-record form of `validateVocabularies`, which stops at 20), an ID already in the
+   store (read from the provenance log, so evidence IDs count; a record from a changes line must
+   instead be in the store) or twice in the batch, a source listed twice, not a source record, or
+   in neither the batch nor the store, a repeated link pair, a link to itself, a link to another
+   record of the batch that the relation rules do not allow (links to stored records were already
+   checked), and numbers and
+   text JSON does not carry exactly. The integer rule is JavaScript's: an integer beyond 2^53 is
+   flagged when `JSON.stringify` would write it as digits (below 1e21), which is what the server
+   would have read in the exported bytes. `--json` prints `{records: {<id>: [problems]}, batch:
+   [problems]}`; `batch` holds what names no record of the batch. Still to do, in `draftThroughKg`:
+   replace `upsert` with `intake-check --json` on the batch, then `duplicates`; drop records with
+   problems or unruled duplicates, prune their links and unused sources, and repeat, as today. A
+   problem under `batch` should stop the run, as a refused source does now, unless dropping the
+   records with problems clears it in the next round; because a stored-link problem hides the
+   release validation of the whole batch, a batch can need one more round than with the server.
    A link target missing from the store is an error, not the overlay's warning, since the
    database is the current checkout. These checks stay in TypeScript because they are the store's
    own code; the draft block's JSON Schema was derived from it.
