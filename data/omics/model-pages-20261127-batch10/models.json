@@ -1,0 +1,3060 @@
+{
+ "lit-microbial-20261011-virobench-model-aido-rna": {
+  "slug": "aido-rna",
+  "new_source_ids": [
+   "model-pages-20261126-batch2-aido-dna-source-mg-readme",
+   "model-pages-20261127-batch7-aido-protein-rag-source-license",
+   "model-pages-20261127-batch10-aido-rna-source-backbones",
+   "model-pages-20261127-batch10-aido-rna-source-experiments",
+   "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+   "model-pages-20261127-batch10-aido-rna-source-hf-config-1-6b",
+   "model-pages-20261127-batch10-aido-rna-source-hf-card-650m",
+   "model-pages-20261127-batch10-aido-rna-source-hf-config-650m",
+   "model-pages-20261127-batch10-aido-rna-source-hf-api-1-6b",
+   "model-pages-20261127-batch10-aido-rna-source-hf-api-650m",
+   "model-pages-20261127-batch10-aido-rna-source-hf-api-1-6b-cds",
+   "model-pages-20261127-batch10-aido-rna-source-hf-api-650m-cds",
+   "model-pages-20261127-batch10-aido-rna-source-hf-api-1m-mars",
+   "model-pages-20261127-batch10-aido-rna-source-hf-api-25m-mars",
+   "model-pages-20261127-batch10-aido-rna-source-hf-api-300m-mars",
+   "model-pages-20261127-batch10-aido-rna-source-hf-api-aido",
+   "model-pages-20261127-batch10-aido-rna-source-hf-list",
+   "model-pages-20261127-batch10-aido-rna-source-hf-card-1m-mars",
+   "model-pages-20261127-batch10-aido-rna-source-hf-card-25m-mars",
+   "model-pages-20261127-batch10-aido-rna-source-hf-card-300m-mars"
+  ],
+  "profile": {
+   "summary": "AIDO.RNA is a family of RNA foundation models from GenBio AI; its Hugging Face repositories and current code use the name GB.RNA. The models read an RNA sequence one nucleotide at a time and turn it into embeddings that a downstream model can use, for tasks such as RNA secondary structure prediction, mRNA-related prediction and RNA function prediction. The largest model has 1.6 billion parameters and was trained on 42 million non-coding RNA sequences.",
+   "summary_source_ids": [
+    "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+    "model-pages-20261127-batch10-aido-rna-source-hf-api-1-6b"
+   ],
+   "summary_source_locator": "1.6B model card: opening paragraph; Hugging Face API id",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "The models are encoder-only transformers pretrained with a masked language modelling (MLM) objective: parts of the sequence are hidden and the model learns to predict them. The 1.6B model has 32 layers, hidden size 2,048, feed-forward size 5,440 and 32 attention heads, with a vocabulary of 16 tokens. The 650M model's configuration has 33 layers, hidden size 1,280, intermediate size 3,392 and 20 attention heads. Both configurations use rotary position embeddings and SwiGLU activations. Users normally adapt a backbone to a task through GenBio's ModelGenerator framework, which offers embedding, sequence-level and token-level classification, and regression heads.",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-config-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-config-650m"
+     ],
+     "source_locator": "1.6B model card: Model architectural details, How to Use; config.json of 1.6B and 650M"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "The repository documentation lists seven RNA backbones: gb_rna_1b600m, gb_rna_1b600m_cds, gb_rna_650m, gb_rna_650m_cds, gb_rna_300m_mars, gb_rna_25m_mars and gb_rna_1m_mars. GB.RNA-1.6B and GB.RNA-650M were trained on non-coding RNA. GB.RNA-1.6B-CDS and GB.RNA-650M-CDS are domain-adapted versions for coding sequences, whose Hugging Face metadata name the base models. The three MARS models were trained on 886 million RNA sequences from the MARS database. The Hugging Face repositories read are named GB.RNA rather than AIDO.RNA, and the sources read do not explain the difference. The model cards call the backbones aido_rna_1b600m and aido_rna_650m, while the pinned repository uses gb_rna_ names. A result should name the checkpoint, its Hugging Face revision and the backbone name used; this page read GB.RNA-1.6B at revision cea90e53 and GB.RNA-650M at revision efaf4af4.",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-backbones",
+      "model-pages-20261127-batch10-aido-rna-source-hf-api-1-6b-cds",
+      "model-pages-20261127-batch10-aido-rna-source-hf-api-650m-cds",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-300m-mars",
+      "model-pages-20261127-batch10-aido-rna-source-hf-api-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-650m"
+     ],
+     "source_locator": "backbones.md: RNA; Hugging Face API responses (id, base_model); model cards"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "RNA foundation model (masked language model) used as a backbone for downstream RNA tasks.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b"
+     ],
+     "source_locator": "1.6B model card: opening paragraph; Model architectural details"
+    },
+    {
+     "label": "Architecture",
+     "value": "Encoder-only transformer. 1.6B: 32 layers, hidden size 2,048, feed-forward size 5,440, 32 attention heads. 650M: 33 layers, hidden size 1,280, intermediate size 3,392, 20 attention heads. Rotary position embeddings and SwiGLU activations in both configurations.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-config-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-config-650m"
+     ],
+     "source_locator": "1.6B model card: Model architectural details; config.json of 1.6B and 650M"
+    },
+    {
+     "label": "Inputs",
+     "value": "RNA sequences at single-nucleotide resolution, passed as strings (the card examples use short sequences such as \"ACGT\").",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b"
+     ],
+     "source_locator": "1.6B model card: opening paragraph; How to Use"
+    },
+    {
+     "label": "Outputs",
+     "value": "Embeddings from the backbone, or logits from a classification or regression head added through ModelGenerator (sequence-level or token-level).",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b"
+     ],
+     "source_locator": "1.6B model card: How to Use"
+    },
+    {
+     "label": "Parameters",
+     "value": "648,372,368 (GB.RNA-650M, safetensors count); 1.6 billion (GB.RNA-1.6B, model card). The MARS cards give 1 million (1M-MARS) and 300 million (300M-MARS); the 25M-MARS card also says 300 million, which does not match its name, and the sources do not explain this. No counts were found for the CDS versions.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-api-650m",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1m-mars",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-25m-mars",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-300m-mars"
+     ],
+     "source_locator": "Hugging Face API safetensors field; model cards, opening paragraphs"
+    },
+    {
+     "label": "Training data",
+     "value": "42 million unique ncRNA sequences from RNAcentral version 24.0 for the 1.6B model (model card); the 650M card says 42 million non-coding RNA sequences and does not name the database release; 886 million RNA sequences from the MARS database for the MARS models. The CDS versions were domain-adapted for coding sequences; their adaptation data are not described in the sources read.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-650m",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-300m-mars"
+     ],
+     "source_locator": "Model cards: Pre-training data; opening paragraphs"
+    },
+    {
+     "label": "Known versions",
+     "value": "Seven backbones in the repository documentation: gb_rna_1b600m (GB.RNA-1.6B), gb_rna_650m (GB.RNA-650M), gb_rna_1b600m_cds and gb_rna_650m_cds (coding-sequence versions), and gb_rna_300m_mars, gb_rna_25m_mars and gb_rna_1m_mars. The model cards use aido_rna_ backbone names. Task-specific fine-tuned GB.RNA-1.6B checkpoints are also on Hugging Face but are not covered here.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-backbones",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-list"
+     ],
+     "source_locator": "backbones.md: RNA; 1.6B model card: How to Use; genbio-ai model listing"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "Not reported as a date. The 1.6B model card identifies its training data as RNAcentral version 24.0, but the sources read give no date for the data or the training run, and the paper was not read.",
+     "status": "unextracted",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b"
+     ],
+     "source_locator": "1.6B model card: Pre-training data"
+    },
+    {
+     "label": "Context limits",
+     "value": "1,024 tokens, the max_position_embeddings value in the config.json of both the 1.6B and 650M models. The models use rotary position embeddings, and the sources read do not say whether longer inputs are supported. The repository's example backbone configuration, for gb_rna_1b600m_cds, sets max_length: 1024.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-config-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-config-650m",
+      "model-pages-20261127-batch10-aido-rna-source-backbones"
+     ],
+     "source_locator": "config.json of 1.6B and 650M; backbones.md: Example Backbone Configuration"
+    },
+    {
+     "label": "Weights licence",
+     "value": "GenBio AI Community License, a non-commercial licence. The Hugging Face metadata of every checkpoint read gives the licence as \"other\", and the cards link to the GenBio AI Community License. Its grant covers non-commercial purposes only and forbids using outputs to train similar models, with stated exceptions.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-api-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+      "model-pages-20261127-batch7-aido-protein-rag-source-license"
+     ],
+     "source_locator": "Hugging Face API cardData; model card licence badge; LICENSE sections 1.1, 1.2.2"
+    },
+    {
+     "label": "Code licence",
+     "value": "GenBio AI Community License Agreement, which covers code as well as weights and limits use to non-commercial purposes.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch7-aido-protein-rag-source-license",
+      "model-pages-20261126-batch2-aido-dna-source-mg-readme"
+     ],
+     "source_locator": "LICENSE: preamble and section 1.1; README: licence badge"
+    },
+    {
+     "label": "Access",
+     "value": "Code: https://github.com/genbio-ai/ModelGenerator (also on PyPI as modelgenerator). Weights: https://huggingface.co/genbio-ai/GB.RNA-1.6B, https://huggingface.co/genbio-ai/GB.RNA-650M, the CDS versions and the MARS models under https://huggingface.co/genbio-ai. None of the repositories read is gated.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch2-aido-dna-source-mg-readme",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-api-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-api-650m",
+      "model-pages-20261127-batch10-aido-rna-source-hf-api-1m-mars"
+     ],
+     "source_locator": "README: Installation; model card; Hugging Face API gated field"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "One family covers a wide range of sizes, from the 1M-parameter MARS model to the 1.6B-parameter model, so a user can trade compute for capacity within one framework.",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-backbones",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1m-mars",
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b"
+     ],
+     "source_locator": "backbones.md: RNA; model cards"
+    },
+    {
+     "text": "Domain-adapted versions for coding sequences (CDS) are released beside the non-coding RNA models.",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-hf-api-1-6b-cds"
+     ],
+     "source_locator": "1.6B model card; Hugging Face API base_model"
+    },
+    {
+     "text": "The repository ships task configurations and scripts for the paper's downstream fine-tuning experiments, including LoRA fine-tuning, so results can be rerun.",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-experiments",
+      "model-pages-20261126-batch2-aido-dna-source-mg-readme"
+     ],
+     "source_locator": "experiments/GB.RNA/README.md; README: Use LoRA for parameter-efficient finetuning"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Code and weights are under the GenBio AI Community License, which allows non-commercial use only and restricts using outputs to train similar models.",
+     "source_ids": [
+      "model-pages-20261127-batch7-aido-protein-rag-source-license"
+     ],
+     "source_locator": "LICENSE: sections 1.1 and 1.2"
+    },
+    {
+     "text": "The authors describe the ModelGenerator repository as deprecated; it is kept for the previous generation of GB models and their experiments.",
+     "source_ids": [
+      "model-pages-20261126-batch2-aido-dna-source-mg-readme"
+     ],
+     "source_locator": "README: introduction"
+    },
+    {
+     "text": "Names are inconsistent across sources: the record and model cards use AIDO.RNA and aido_rna_ backbone names, while the Hugging Face identifiers and the pinned code use GB.RNA and gb_rna_. Code copied from a card may need the backbone name changed.",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-backbones",
+      "model-pages-20261127-batch10-aido-rna-source-hf-api-1-6b"
+     ],
+     "source_locator": "1.6B model card: How to Use; backbones.md; Hugging Face API id"
+    },
+    {
+     "text": "The released configurations set max_position_embeddings to 1,024 and the sources do not say whether longer inputs work. The fine-tuning experiments in the repository were run on NVIDIA A100-80G GPUs; inference hardware needs are not stated.",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-config-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-experiments"
+     ],
+     "source_locator": "config.json; experiments/GB.RNA/README.md notes"
+    }
+   ],
+   "diagram": {
+    "title": "AIDO.RNA workflow",
+    "steps": [
+     "RNA sequence",
+     "Single-nucleotide tokens",
+     "Encoder-only transformer pretrained by masked language modelling",
+     "Per-nucleotide embeddings",
+     "Task head in ModelGenerator: classification, regression or token-level prediction"
+    ],
+    "caption": "Data flow as described in the model cards. The task head is added and trained by the user through ModelGenerator.",
+    "source_ids": [
+     "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b"
+    ],
+    "source_locator": "1.6B model card: opening paragraph; Model architectural details; How to Use"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "The paper (Zou et al. 2024, bioRxiv 10.1101/2024.11.28.625345) was not read: no open full text was saved for this page, and bioRxiv was not contacted for this run. Training compute, exact parameter count of the 1.6B model, benchmark results and the training dates are therefore not given.",
+    "The 25M-MARS card states 300 million parameters; the sources read do not resolve this.",
+    "No source read gives a parameter count or training data for the CDS versions; the repository's example configuration sets max_length: 1024 for gb_rna_1b600m_cds, but no source states a context limit for the CDS models.",
+    "The sources do not state inference hardware or memory needs."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Written from the genbio-ai/ModelGenerator README, LICENSE, docs/docs/api_reference/backbones.md and experiments/GB.RNA/README.md at commit bda6f2da, the model cards and config.json files of GB.RNA-1.6B (revision cea90e53) and GB.RNA-650M (revision efaf4af4), the model cards of the three MARS models, and Hugging Face API responses for seven checkpoints, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "lit-microbial-20261011-virobench-model-aido-rna",
+   "summary": "Install ModelGenerator from the repository at a pinned commit and compute embeddings for two short RNA sequences with the GB.RNA-1.6B backbone.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "Python 3.10, 3.11 or 3.12, as the README badge states.",
+    "Git and pip. GPU type and memory for inference are not stated; the repository's fine-tuning experiments were run on NVIDIA A100-80G GPUs.",
+    "Code and weights are under the GenBio AI Community License: non-commercial use only. The Hugging Face repositories are not gated."
+   ],
+   "steps": [
+    {
+     "title": "Get and install the code",
+     "shell": "git clone https://github.com/genbio-ai/ModelGenerator.git\ncd ModelGenerator\ngit checkout --detach bda6f2da297ba886e3662b49eea9928feacbfd98\npip install -e .",
+     "explanation": "The README's source install, with a checkout line added to pin the commit this page was written from.",
+     "source_ids": [
+      "model-pages-20261126-batch2-aido-dna-source-mg-readme"
+     ],
+     "source_locator": "README: Installation"
+    },
+    {
+     "title": "Compute embeddings",
+     "shell": "python - <<'PY'\nfrom modelgenerator.tasks import Embed\nmodel = Embed.from_config({\"model.backbone\": \"gb_rna_1b600m\"}).eval()\ntransformed_batch = model.transform({\"sequences\": [\"ACGT\", \"AGCT\"]})\nembedding = model(transformed_batch)\nprint(embedding.shape)\nprint(embedding)\nPY",
+     "explanation": "The model card's embedding example, wrapped in a shell heredoc. The card names the backbone aido_rna_1b600m; the backbone list at the pinned commit names it gb_rna_1b600m, so that name is used here. For the 650M model use gb_rna_650m.",
+     "source_ids": [
+      "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+      "model-pages-20261127-batch10-aido-rna-source-backbones"
+     ],
+     "source_locator": "1.6B model card: Embedding; backbones.md: RNA"
+    }
+   ],
+   "outputs": [
+    "The shape of the embedding tensor and the tensor itself, printed to the terminal, as in the model card example."
+   ],
+   "limitations": [
+    "These commands were read from the repository and model card and have not been executed by Rewire.",
+    "The backbone name in the second step is taken from the repository documentation, not from the model card, because the two differ.",
+    "The repository is described by its authors as deprecated."
+   ],
+   "source_ids": [
+    "model-pages-20261126-batch2-aido-dna-source-mg-readme",
+    "model-pages-20261127-batch10-aido-rna-source-hf-card-1-6b",
+    "model-pages-20261127-batch10-aido-rna-source-backbones"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "This page is meant for both AIDO.RNA records (lit-microbial-20261011-virobench-model-aido-rna and lit-rna-20261011-rnalm-zeroshot-model-aido-rna). The saved API response artifacts/hf-api-aido-1.6b.json gives the GB.RNA-1.6B identifier; no saved file says when or why the name changed, so the page states both names without explaining it. The paper is on bioRxiv: https://www.biorxiv.org/content/10.1101/2024.11.28.625345v1.full.pdf (not fetched, per run rules). OpenReview (NeurIPS 2024 workshop) returned a challenge page and was not used. The 1.6B parameter count is the card's rounded figure; the API response gives no safetensors count for it. The 25M-MARS parameter field is null because its card says 300 million. The repository LICENSE and the cards are under the GenBio AI Community License, so store_bytes is false for them. The released field is null: the API createdAt values are repository creation dates and were not used.",
+  "no_run_guide_reason": ""
+ },
+ "lit-microbial-20261011-virobench-model-birna-bert": {
+  "slug": "birna-bert",
+  "new_source_ids": [
+   "model-pages-20261127-batch10-birna-bert-source-readme",
+   "model-pages-20261127-batch10-birna-bert-source-requirements",
+   "model-pages-20261127-batch10-birna-bert-source-gh-repo",
+   "model-pages-20261127-batch10-birna-bert-source-hf-card",
+   "model-pages-20261127-batch10-birna-bert-source-hf-config",
+   "model-pages-20261127-batch10-birna-bert-source-hf-api",
+   "model-pages-20261127-batch10-birna-bert-source-hf-tree",
+   "model-pages-20261127-batch10-birna-bert-source-hf-list",
+   "model-pages-20261127-batch10-birna-bert-source-paper"
+  ],
+  "profile": {
+   "summary": "BiRNA-BERT is an RNA language model that turns an RNA sequence into embeddings for downstream prediction tasks. It can read a sequence either one nucleotide at a time, for fine-grained tasks such as secondary structure prediction, or as compressed byte-pair tokens, so that long RNAs can be processed without cutting them short. It is a 117M-parameter transformer encoder trained on about 36 million non-coding RNA sequences.",
+   "summary_source_ids": [
+    "model-pages-20261127-batch10-birna-bert-source-paper",
+    "model-pages-20261127-batch10-birna-bert-source-hf-card"
+   ],
+   "summary_source_locator": "Paper abstract; model card opening paragraph",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "BiRNA-BERT is a BERT-style transformer encoder trained with the MosaicBERT framework. It uses ALiBi relative positional encoding instead of fixed position embeddings, which lets it handle sequences longer than those seen in training. Its main idea is dual tokenisation: the same model is trained by masked language modelling on both byte-pair encoding (BPE) tokens, with a vocabulary of 4096, and single-nucleotide (NUC) tokens. BPE compresses long sequences so they fit in memory, while nucleotide tokens keep the per-base detail needed for tasks such as secondary structure prediction. With the released tokenizer, an unspaced sequence is split into BPE tokens and a space-separated sequence into nucleotide tokens.",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-paper",
+      "model-pages-20261127-batch10-birna-bert-source-hf-card"
+     ],
+     "source_locator": "Paper: Results (first paragraph), Methods (tokenisation); model card: Usage"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "The main checkpoint is buetnlpbio/birna-bert, used with the tokenizer buetnlpbio/birna-tokenizer. The paper also trained BPE-Only-BERT and NUC-Only-BERT as controls, and the buetnlpbio account lists bpe-only-rna-bert and nuc-only-rna-bert. The README warns that the current version is substantially updated and suggests re-analysing data processed with earlier versions. The README's own embedding example loads a different model name, Lancelot53/birnabert-2ep, while the model card loads buetnlpbio/birna-bert; the sources do not explain the difference. A result should name the checkpoint and its Hugging Face revision (this page read revision 35bceaf6) and say whether BPE or nucleotide tokenisation was used.",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-readme",
+      "model-pages-20261127-batch10-birna-bert-source-hf-card",
+      "model-pages-20261127-batch10-birna-bert-source-hf-list",
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "README: header, Extracting RNA embeddings; model card: Usage; Hugging Face listing; paper Methods"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "RNA language model (masked language model) that produces embeddings for RNA sequences.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-hf-card",
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "Model card: opening paragraph; paper Methods"
+    },
+    {
+     "label": "Architecture",
+     "value": "BERT-style transformer encoder built with MosaicBERT, with ALiBi relative positional encoding. config.json: 12 layers, hidden size 768, intermediate size 3072, 12 attention heads, vocabulary 4096.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-hf-card",
+      "model-pages-20261127-batch10-birna-bert-source-hf-config",
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "Model card; config.json; paper Results"
+    },
+    {
+     "label": "Inputs",
+     "value": "RNA sequences as text. Unspaced input is tokenised into BPE tokens; space-separated input into single-nucleotide tokens. The card examples use the letters A, G, C and T.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-hf-card"
+     ],
+     "source_locator": "Model card: Usage"
+    },
+    {
+     "label": "Outputs",
+     "value": "Per-token embeddings: one per BPE token for sequence-level use, or one per nucleotide for nucleotide-level tasks, plus CLS and SEP tokens. The card replaces the masked-language-model head with an identity layer to read them out.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-hf-card"
+     ],
+     "source_locator": "Model card: Usage"
+    },
+    {
+     "label": "Parameters",
+     "value": "117M (BiRNA-BERT), as stated in the paper abstract. No count is given for the BPE-only and nucleotide-only control models.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "Paper: abstract"
+    },
+    {
+     "label": "Training data",
+     "value": "About 36 million non-coding RNA sequences from RNAcentral, 26.42 billion nucleotides in total, trained for two epochs.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "Paper: Methods (pretraining dataset); Results"
+    },
+    {
+     "label": "Known versions",
+     "value": "buetnlpbio/birna-bert (main model) with buetnlpbio/birna-tokenizer; control models bpe-only-rna-bert and nuc-only-rna-bert. The same account also lists DNA models (bidna-bert, bpe-only-dna-bert, nuc-only-dna-bert), which are not described in the sources read. The README notes the current version is substantially updated from earlier ones.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-hf-list",
+      "model-pages-20261127-batch10-birna-bert-source-readme"
+     ],
+     "source_locator": "Hugging Face listing for buetnlpbio; README header"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "Not reported. The paper names RNAcentral as the data source but does not give the release or download date in the passages read.",
+     "status": "unreported",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "Paper: Methods (pretraining dataset)"
+    },
+    {
+     "label": "Context limits",
+     "value": "No fixed limit: ALiBi lets the model take sequences longer than its training length, and BPE shortens long inputs. config.json sets alibi_starting_size and max_position_embeddings to 128; the card says the config default is 1024 and shows raising alibi_starting_size to 2048. The sources do not explain the 128 versus 1024 difference.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-hf-config",
+      "model-pages-20261127-batch10-birna-bert-source-hf-card",
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "config.json; model card: Explicitly increasing max sequence length; paper abstract"
+    },
+    {
+     "label": "Weights licence",
+     "value": "Not stated. The Hugging Face card metadata has no licence field, and the card text names no licence.",
+     "status": "unreported",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-hf-api",
+      "model-pages-20261127-batch10-birna-bert-source-hf-card"
+     ],
+     "source_locator": "Hugging Face API cardData; model card"
+    },
+    {
+     "label": "Code licence",
+     "value": "Not stated. The repository has no licence file detected by GitHub (licence field null) and the README names none.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-gh-repo"
+     ],
+     "source_locator": "GitHub API repository metadata: license"
+    },
+    {
+     "label": "Access",
+     "value": "Code: https://github.com/buetnlpbio/BiRNA-BERT. Weights: https://huggingface.co/buetnlpbio/birna-bert (not gated) with tokenizer https://huggingface.co/buetnlpbio/birna-tokenizer. The weights load with trust_remote_code=True because the model code lives in the Hugging Face repository.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-paper",
+      "model-pages-20261127-batch10-birna-bert-source-hf-api",
+      "model-pages-20261127-batch10-birna-bert-source-hf-card",
+      "model-pages-20261127-batch10-birna-bert-source-hf-tree"
+     ],
+     "source_locator": "Paper abstract; Hugging Face API gated field; model card; file listing"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "One model gives both nucleotide-level embeddings, for structure tasks, and compressed BPE embeddings, for long sequences, so only one set of weights needs to be in memory.",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "Paper: Methods (dual tokenisation)"
+    },
+    {
+     "text": "Long sequences need not be truncated: BPE shortens them by about six-fold and ALiBi extrapolates beyond the training length, according to the authors.",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "Paper: abstract; Information theoretic analysis"
+    },
+    {
+     "text": "The model is small and cheap to train by the authors' account: 117M parameters, pretrained on eight consumer RTX 4090 GPUs.",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "Paper: abstract; Results"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "No licence is stated for the code or the weights, so terms of reuse are unclear.",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-gh-repo"
+     ],
+     "source_locator": "GitHub API repository metadata"
+    },
+    {
+     "text": "BPE tokens lose information: the authors estimate each BPE token holds about 75% of the information of nucleotide tokens, and BPE cannot be used for nucleotide-level tasks.",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "Paper: Information theoretic analysis; Nucleotide-level task"
+    },
+    {
+     "text": "The repository and card disagree in places: the README example loads Lancelot53/birnabert-2ep rather than buetnlpbio/birna-bert, and the README says earlier versions should be re-analysed. Its external download links point to file.io.",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-readme"
+     ],
+     "source_locator": "README: header; Extracting RNA embeddings; Download Model and Tokenizer"
+    },
+    {
+     "text": "Loading needs trust_remote_code=True, which runs model code downloaded from the Hugging Face repository; the repository dependencies include triton.",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-hf-card",
+      "model-pages-20261127-batch10-birna-bert-source-hf-tree",
+      "model-pages-20261127-batch10-birna-bert-source-requirements"
+     ],
+     "source_locator": "Model card: Usage; file listing; requirements.txt"
+    }
+   ],
+   "diagram": {
+    "title": "BiRNA-BERT workflow",
+    "steps": [
+     "RNA sequence",
+     "Tokenizer: BPE for long input, single nucleotides for short or per-base tasks",
+     "BERT encoder with ALiBi positions",
+     "Per-token embeddings",
+     "User's downstream model"
+    ],
+    "caption": "Data flow as described in the paper and model card. The user chooses the tokenisation by spacing the input; the downstream model is the user's own.",
+    "source_ids": [
+     "model-pages-20261127-batch10-birna-bert-source-paper",
+     "model-pages-20261127-batch10-birna-bert-source-hf-card"
+    ],
+    "source_locator": "Paper: Results; model card: Usage"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "No licence is stated for code or weights in any source read.",
+    "No source gives an exact parameter count from the weights; the 117M figure is the paper's.",
+    "The relationship between the README's Lancelot53/birnabert-2ep model and buetnlpbio/birna-bert is not explained.",
+    "The control models and the DNA models on the same account were not reviewed beyond their names."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Written from the buetnlpbio/BiRNA-BERT README and requirements.txt at commit 14dc86b1, the GitHub repository metadata, the buetnlpbio/birna-bert model card, config.json and file listing at revision 35bceaf6, Hugging Face API responses, and the full text of Tahmid et al. 2025 (Communications Biology) from PMC, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "lit-microbial-20261011-virobench-model-birna-bert",
+   "summary": "Install the listed Python packages and compute BPE and nucleotide embeddings for one short sequence with the published checkpoint.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "Python with the packages in requirements.txt: torch, transformers, tqdm, numpy, pandas, einops, triton.",
+    "Internet access to download buetnlpbio/birna-bert and buetnlpbio/birna-tokenizer from Hugging Face. The weights are not gated.",
+    "Loading runs remote code from the Hugging Face repository (trust_remote_code=True).",
+    "No licence is stated for code or weights. GPU type and memory for inference are not stated."
+   ],
+   "steps": [
+    {
+     "title": "Get the code at the pinned commit",
+     "shell": "git clone https://github.com/buetnlpbio/BiRNA-BERT.git\ncd BiRNA-BERT\ngit checkout --detach 14dc86b1b44c266f01025fc425103f2878646b39",
+     "explanation": "The README gives no install commands. The clone and checkout lines get the repository, including its requirements.txt, at the commit this page read. Install the packages that file lists (see prerequisites) with your usual package manager before the next step.",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-requirements",
+      "model-pages-20261127-batch10-birna-bert-source-paper"
+     ],
+     "source_locator": "requirements.txt; paper abstract"
+    },
+    {
+     "title": "Compute embeddings",
+     "shell": "python - <<'PY'\nimport torch\nimport transformers\nfrom transformers import AutoModelForMaskedLM, AutoTokenizer\n\ntokenizer = AutoTokenizer.from_pretrained(\"buetnlpbio/birna-tokenizer\")\n\nconfig = transformers.BertConfig.from_pretrained(\"buetnlpbio/birna-bert\")\nmysterybert = AutoModelForMaskedLM.from_pretrained(\"buetnlpbio/birna-bert\",config=config,trust_remote_code=True)\nmysterybert.cls = torch.nn.Identity()\n\n# To get sequence embeddings\nseq_embed = mysterybert(**tokenizer(\"AGCTACGTACGT\", return_tensors=\"pt\"))\nprint(seq_embed.logits.shape) # CLS + 4 BPE token embeddings + SEP\n\n# To get nucleotide embeddings\nchar_embed = mysterybert(**tokenizer(\"A G C T A C G T A C G T\", return_tensors=\"pt\")) \nprint(char_embed.logits.shape) # CLS + 12 nucleotide token embeddings + SEP\nPY",
+     "explanation": "The model card's embedding example, unchanged, wrapped in a shell heredoc. It loads the published checkpoint and prints the shape of the BPE and nucleotide embeddings.",
+     "source_ids": [
+      "model-pages-20261127-batch10-birna-bert-source-hf-card"
+     ],
+     "source_locator": "Model card: Extracting RNA embeddings"
+    }
+   ],
+   "outputs": [
+    "Two tensor shapes: one for CLS, 4 BPE token embeddings and SEP, and one for CLS, 12 nucleotide token embeddings and SEP, as the card's comments describe."
+   ],
+   "limitations": [
+    "These commands were read from the repository and model card and have not been executed by Rewire.",
+    "The README gives no install commands; the package list comes from requirements.txt and no versions are pinned.",
+    "The README's own example uses the model name Lancelot53/birnabert-2ep; this guide follows the model card and uses buetnlpbio/birna-bert."
+   ],
+   "source_ids": [
+    "model-pages-20261127-batch10-birna-bert-source-hf-card",
+    "model-pages-20261127-batch10-birna-bert-source-requirements",
+    "model-pages-20261127-batch10-birna-bert-source-readme"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "This page is meant for both BiRNA-BERT records (lit-microbial-20261011-virobench-model-birna-bert and lit-rna-20261011-rnalm-zeroshot-model-birna-bert). The paper was read in full from PMC (PMC12635123, CC BY 4.0). The record's existing bioRxiv citation is the preprint of the same paper. The README example loads Lancelot53/birnabert-2ep; its Hugging Face API response was saved as artifacts/hf-api-lancelot.json but nothing else about it was read.",
+  "no_run_guide_reason": ""
+ },
+ "gfm2-20261011-you2026-model-dnabert": {
+  "slug": "dnabert",
+  "new_source_ids": [
+   "model-pages-20261127-batch10-dnabert-source-readme",
+   "model-pages-20261127-batch10-dnabert-source-license",
+   "model-pages-20261127-batch10-dnabert-source-hf-config-6",
+   "model-pages-20261127-batch10-dnabert-source-hf-api-3",
+   "model-pages-20261127-batch10-dnabert-source-hf-api-4",
+   "model-pages-20261127-batch10-dnabert-source-hf-api-5",
+   "model-pages-20261127-batch10-dnabert-source-hf-api-6",
+   "model-pages-20261127-batch10-dnabert-source-paper"
+  ],
+  "profile": {
+   "summary": "DNABERT is a DNA language model that applies the BERT approach from natural language processing to genomic DNA. It reads a DNA sequence of up to 512 tokens, split into k-mers, and is pretrained on the human genome by predicting masked k-mers. Users fine-tune it with a small labelled data set to predict features such as promoters, splice sites and transcription factor binding sites, and can inspect its attention to find motifs and score variants.",
+   "summary_source_ids": [
+    "model-pages-20261127-batch10-dnabert-source-paper",
+    "model-pages-20261127-batch10-dnabert-source-readme"
+   ],
+   "summary_source_locator": "Paper: abstract, Methods 2.2.2; README",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "DNABERT adapts the BERT language model to DNA. A sequence is cut into k-mers, each base joined with the bases that follow it, and these k-mers become the tokens. During pretraining on human genome sequences, the model sees contiguous spans of k-mers masked (about 15% of the input, raised to 20% for the last 20k of 120k steps) and learns to predict them, so it learns general patterns of DNA from unlabelled data. The pretrained model is then fine-tuned with a small labelled data set for a specific task. The repository adds tools to visualise attention, find motifs and score the effect of sequence variants with a fine-tuned model.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper",
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "Paper: Methods 2.1, 2.2.2; README: sections 5 to 7"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "There are four pretrained checkpoints, one for each k-mer size from 3 to 6, with the same architecture and settings. The paper reports results with k = 6 because it performed best, and says k = 3 to 6 gave very similar results. The README's download links have expired and point users to the Hugging Face copies. A result should name the k-mer size and the Hugging Face revision; this page read DNA_bert_6 at revision c56e67ea. The repository extends code from Hugging Face transformers and its README sets up a Python 3.6 environment with CUDA 10.0, and the README recommends checking out DNABERT-2 for newer work.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper",
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "Paper: Methods 2.2.3; README: Update 2025/07/08, Update 2023/06/26, 1.1"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "Pretrained DNA language model (BERT-style bidirectional encoder) that is fine-tuned for sequence-level and token-level prediction tasks.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper"
+     ],
+     "source_locator": "Paper: abstract; Methods 2.1"
+    },
+    {
+     "label": "Architecture",
+     "value": "Same architecture as BERT base: 12 transformer layers with 768 hidden units and 12 attention heads. Pretraining drops BERT's next-sentence prediction and masks contiguous spans of k tokens.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper",
+      "model-pages-20261127-batch10-dnabert-source-hf-config-6"
+     ],
+     "source_locator": "Paper: Methods 2.1, 2.2.2; DNA_bert_6 config.json"
+    },
+    {
+     "label": "Inputs",
+     "value": "DNA sequences tokenised into k-mers (k = 3, 4, 5 or 6; for example ATGGCT becomes the 3-mers ATG, TGG, GGC, GCT), with [CLS] and [SEP] tokens added; the repository scripts expect sequences already converted to k-mer format.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper",
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "Paper: Methods 2.2.2; README: 2.1 Data processing"
+    },
+    {
+     "label": "Outputs",
+     "value": "From the pretrained model, masked k-mer predictions and token representations. After fine-tuning, task predictions (for example promoter, splice site or transcription factor binding site classification), attention scores for visualisation and motif analysis, and mutation effect scores.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper",
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "Paper: abstract; README: sections 4 to 7"
+    },
+    {
+     "label": "Parameters",
+     "value": "Not stated as a count in the sources read. The four models share the BERT base architecture (12 layers, 768 hidden units, 12 heads); vocabulary size differs with k (4,101 tokens in the DNA_bert_6 config).",
+     "status": "unreported",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper",
+      "model-pages-20261127-batch10-dnabert-source-hf-config-6"
+     ],
+     "source_locator": "Paper: Methods 2.2.2; DNA_bert_6 config.json"
+    },
+    {
+     "label": "Training data",
+     "value": "Human genome sequences, generated by non-overlapping splitting and random sampling, 5 to 510 long according to Methods 2.2.2 (Section 2.1 says 10 to 510); the paper does not explain the difference. The sources read do not name the genome assembly.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper"
+     ],
+     "source_locator": "Paper: Section 2.1 and Methods 2.2.2"
+    },
+    {
+     "label": "Known versions",
+     "value": "Four pretrained models, DNABERT-3, DNABERT-4, DNABERT-5 and DNABERT-6, one per k-mer size, now on Hugging Face as zhihan1996/DNA_bert_3 to DNA_bert_6. The README also offers a DNABERT-6 model fine-tuned on its sample data. DNABERT-2 is a separate, later model.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "README: Update 2025/07/08; 3.2; Update 2023/06/26"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "Not reported. The paper does not date the genome data or the training run in the passages read.",
+     "status": "unreported",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper"
+     ],
+     "source_locator": "Paper: Methods 2.2.2"
+    },
+    {
+     "label": "Context limits",
+     "value": "512 tokens, including [CLS] and [SEP]. The paper splits longer sequences into pieces and concatenates their representations (DNABERT-XL).",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper",
+      "model-pages-20261127-batch10-dnabert-source-hf-config-6"
+     ],
+     "source_locator": "Paper: Methods 2.2.2, 2.2.3; DNA_bert_6 config.json"
+    },
+    {
+     "label": "Weights licence",
+     "value": "Not stated for the weights. The Hugging Face card metadata of the four checkpoints has no licence field. The repository's Apache-2.0 LICENSE does not mention the weights.",
+     "status": "unreported",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-hf-api-6",
+      "model-pages-20261127-batch10-dnabert-source-license"
+     ],
+     "source_locator": "Hugging Face API cardData; LICENSE"
+    },
+    {
+     "label": "Code licence",
+     "value": "Apache-2.0 (Apache License, Version 2.0), from the repository LICENSE file.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-license"
+     ],
+     "source_locator": "LICENSE"
+    },
+    {
+     "label": "Access",
+     "value": "Code: https://github.com/jerryji1993/DNABERT. Weights: https://huggingface.co/zhihan1996/DNA_bert_3, _4, _5 and _6, none gated. The README's original Google Drive links have expired.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-readme",
+      "model-pages-20261127-batch10-dnabert-source-hf-api-3",
+      "model-pages-20261127-batch10-dnabert-source-hf-api-6"
+     ],
+     "source_locator": "README: Update 2025/07/08; Hugging Face API gated field"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "Code is Apache-2.0 and the repository covers the full cycle: pretraining, fine-tuning, prediction, attention visualisation, motif finding and variant scoring.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-license",
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "LICENSE; README table of contents"
+    },
+    {
+     "text": "The authors report that a model pretrained on the human genome can be applied to other organisms after fine-tuning.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper"
+     ],
+     "source_locator": "Paper: abstract"
+    },
+    {
+     "text": "Four k-mer sizes are released, so users can choose the tokenisation; the authors found little difference between them.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper",
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "Paper: Methods 2.2.3; README"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Input is limited to 512 tokens; longer sequences must be split into pieces.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper"
+     ],
+     "source_locator": "Paper: Methods 2.2.2, 2.2.3"
+    },
+    {
+     "text": "Trained on the human genome only; the sources read describe no multi-species pretraining. The authors point to DNABERT-2, trained on multi-species genomes, as the successor.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-paper",
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "Paper: Methods 2.2.2; README: Update 2023/06/26"
+    },
+    {
+     "text": "The software stack is old: the README environment uses Python 3.6, CUDA 10.0 and an NVIDIA GPU, and the original model download links have expired.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "README: 1. Environment setup; Update 2025/07/08"
+    },
+    {
+     "text": "No licence is stated for the model weights on Hugging Face.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-hf-api-6"
+     ],
+     "source_locator": "Hugging Face API cardData"
+    }
+   ],
+   "diagram": {
+    "title": "DNABERT workflow",
+    "steps": [
+     "DNA sequence, up to 512 tokens",
+     "k-mer tokens (k = 3 to 6) with [CLS] and [SEP]",
+     "BERT base encoder pretrained on the human genome",
+     "Fine-tuning on a labelled task",
+     "Task predictions, attention maps, motifs and variant scores"
+    ],
+    "caption": "Data flow as described in the paper and README. Fine-tuning data are the user's own; the repository includes sample data for a promoter task.",
+    "source_ids": [
+     "model-pages-20261127-batch10-dnabert-source-paper",
+     "model-pages-20261127-batch10-dnabert-source-readme"
+    ],
+    "source_locator": "Paper: Methods; README: sections 3 to 7"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "No source read gives a parameter count for any of the four checkpoints.",
+    "The Hugging Face model cards are empty apart from tags, and no weights licence is stated.",
+    "The supplementary material of the paper was not read.",
+    "The README gives no single-sequence inference or embedding example with the Hugging Face checkpoints."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Written from the jerryji1993/DNABERT README and LICENSE at commit b6da04ec, the DNA_bert_6 config.json at revision c56e67ea, Hugging Face API responses for DNA_bert_3 to DNA_bert_6, and the PMC article page of Ji et al. 2021 (PMC11025658), all fetched on 2026-11-27. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "gfm2-20261011-you2026-model-dnabert",
+   "summary": "Set up the repository environment, then fine-tune the pretrained DNABERT-6 model on the repository's sample promoter data and make predictions.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "Linux with at least one NVIDIA GPU and driver version 410.48 or later (CUDA 10.0), and Anaconda, as the README states. The authors trained on 8 NVIDIA GeForce RTX 2080 Ti GPUs with 11 GB memory.",
+    "The pretrained DNABERT-6 files from https://huggingface.co/zhihan1996/DNA_bert_6 downloaded into a local directory. The README gives no download command.",
+    "Code is Apache-2.0. No licence is stated for the weights."
+   ],
+   "steps": [
+    {
+     "title": "Create the environment",
+     "shell": "conda create -n dnabert python=3.6\nconda activate dnabert",
+     "explanation": "Creates and activates the Python 3.6 conda environment the README recommends.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "README: 1.1"
+    },
+    {
+     "title": "Install the package at the pinned commit",
+     "shell": "conda install pytorch torchvision cudatoolkit=10.0 -c pytorch\n\ngit clone https://github.com/jerryji1993/DNABERT\ncd DNABERT\ngit checkout --detach b6da04ec9a7d4e53efe5b33a6ce1a21c0e7ac413\npython3 -m pip install --editable .\ncd examples\npython3 -m pip install -r requirements.txt",
+     "explanation": "The README's install commands, with a checkout line added to pin the commit this page read.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "README: 1.2"
+    },
+    {
+     "title": "Fine-tune DNABERT-6 on the sample data",
+     "shell": "export KMER=6\nexport MODEL_PATH=PATH_TO_THE_PRETRAINED_MODEL\nexport DATA_PATH=sample_data/ft/$KMER\nexport OUTPUT_PATH=./ft/$KMER\n\npython run_finetune.py \\\n    --model_type dna \\\n    --tokenizer_name=dna$KMER \\\n    --model_name_or_path $MODEL_PATH \\\n    --task_name dnaprom \\\n    --do_train \\\n    --do_eval \\\n    --data_dir $DATA_PATH \\\n    --max_seq_length 100 \\\n    --per_gpu_eval_batch_size=32   \\\n    --per_gpu_train_batch_size=32   \\\n    --learning_rate 2e-4 \\\n    --num_train_epochs 5.0 \\\n    --output_dir $OUTPUT_PATH \\\n    --evaluate_during_training \\\n    --logging_steps 100 \\\n    --save_steps 4000 \\\n    --warmup_percent 0.1 \\\n    --hidden_dropout_prob 0.1 \\\n    --overwrite_output \\\n    --weight_decay 0.01 \\\n    --n_process 8",
+     "explanation": "The README's fine-tuning example, run from the examples directory. Replace PATH_TO_THE_PRETRAINED_MODEL with the directory holding the downloaded DNABERT-6 files.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "README: 3.3 Fine-tune with pre-trained model"
+    },
+    {
+     "title": "Predict with the fine-tuned model",
+     "shell": "export KMER=6\nexport MODEL_PATH=./ft/$KMER\nexport DATA_PATH=sample_data/ft/$KMER\nexport PREDICTION_PATH=./result/$KMER\n\npython run_finetune.py \\\n    --model_type dna \\\n    --tokenizer_name=dna$KMER \\\n    --model_name_or_path $MODEL_PATH \\\n    --task_name dnaprom \\\n    --do_predict \\\n    --data_dir $DATA_PATH  \\\n    --max_seq_length 75 \\\n    --per_gpu_pred_batch_size=128   \\\n    --output_dir $MODEL_PATH \\\n    --predict_dir $PREDICTION_PATH \\\n    --n_process 48",
+     "explanation": "The README's prediction example. It loads the fine-tuned model from ./ft/6 and predicts on dev.tsv in the sample data.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-source-readme"
+     ],
+     "source_locator": "README: 4. Prediction"
+    }
+   ],
+   "outputs": [
+    "A fine-tuned model in ./ft/6, and prediction results for the sample dev.tsv saved under ./result/6, as the README describes."
+   ],
+   "limitations": [
+    "These commands were read from the repository and have not been executed by Rewire.",
+    "The README gives no command to download the weights from Hugging Face; the user must place them in a directory and set MODEL_PATH.",
+    "The environment pins Python 3.6 and CUDA 10.0, which may be hard to reproduce on current systems."
+   ],
+   "source_ids": [
+    "model-pages-20261127-batch10-dnabert-source-readme"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "This page is meant for both DNABERT records (gfm2-20261011-you2026-model-dnabert and lit-genomics-20261011-gfmbench-model-dnabert). The PMC E-utilities XML (artifacts/paper-pmc.xml) holds only the abstract because the article is not in the open-access subset, so the full text was read from the PMC article page (artifacts/paper-pmc.html), which is all rights reserved: store_bytes is false. The DNA_bert_6 model card (artifacts/hf-card-6.md) holds only tags and was not cited.",
+  "no_run_guide_reason": ""
+ },
+ "gfm2-20261011-buzkova2026-model-dnabert-s": {
+  "slug": "dnabert-s",
+  "new_source_ids": [
+   "model-pages-20261127-batch10-dnabert-s-source-readme",
+   "model-pages-20261127-batch10-dnabert-s-source-requirements",
+   "model-pages-20261127-batch10-dnabert-s-source-gh-repo",
+   "model-pages-20261127-batch10-dnabert-s-source-hf-card",
+   "model-pages-20261127-batch10-dnabert-s-source-hf-config",
+   "model-pages-20261127-batch10-dnabert-s-source-hf-api",
+   "model-pages-20261127-batch10-dnabert-s-source-hf-tree",
+   "model-pages-20261127-batch10-dnabert-s-source-paper",
+   "model-pages-20261127-batch10-dnabert-s-source-paper-abs"
+  ],
+  "profile": {
+   "summary": "DNABERT-S is a DNA embedding model that turns a DNA sequence into a single vector so that sequences from the same species end up close together. It starts from the DNABERT-2 genome foundation model and is further trained with contrastive learning on pairs of sequences from the same microbial species. The embeddings are meant for tasks such as species clustering, few-shot species classification and metagenomics binning, where many species have no reference genome.",
+   "summary_source_ids": [
+    "model-pages-20261127-batch10-dnabert-s-source-paper",
+    "model-pages-20261127-batch10-dnabert-s-source-readme"
+   ],
+   "summary_source_locator": "Paper abstract; README: 1. Introduction",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "DNABERT-S starts from the pretrained DNABERT-2 model and continues training it with contrastive learning on pairs of DNA sequences taken from the same species. Training follows a two-phase curriculum (curriculum contrastive learning): first a Weighted SimCLR objective pulls same-species sequences together and pushes different species apart, then a Manifold Instance Mixup (MI-Mix) objective mixes hidden representations at a randomly chosen layer to make harder examples. The resulting embedding, the mean of the last hidden states, can be clustered or fed to a simple classifier to separate species without reference genomes, for example in metagenomics binning.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-paper",
+      "model-pages-20261127-batch10-dnabert-s-source-readme"
+     ],
+     "source_locator": "Paper: abstract, Introduction, Section 3; README: 1. Introduction"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "There is one released checkpoint, zhihan1996/DNABERT-S, which this page read at revision 00e47f96. The repository provides the training and evaluation data through gdown links and the scripts used for training, clustering, classification and binning. The README pins transformers 4.27 and suggests uninstalling triton on GPUs other than the A100. The arXiv record has three versions, and the HTML full text read here carries a different title from the README (DNABERT-S: Pioneering Species Differentiation with Species-Aware DNA Embeddings). A result should name the checkpoint revision.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-readme",
+      "model-pages-20261127-batch10-dnabert-s-source-requirements",
+      "model-pages-20261127-batch10-dnabert-s-source-paper",
+      "model-pages-20261127-batch10-dnabert-s-source-paper-abs"
+     ],
+     "source_locator": "README: 2, 3, 6; requirements.txt; arXiv HTML title; abstract page submission history"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "DNA embedding model: a genome foundation model further trained so that its sequence embeddings group DNA by species.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-readme",
+      "model-pages-20261127-batch10-dnabert-s-source-paper"
+     ],
+     "source_locator": "README: 1. Introduction; paper abstract"
+    },
+    {
+     "label": "Architecture",
+     "value": "BERT-style encoder whose config.json gives zhihan1996/DNABERT-2-117M as its starting checkpoint: 12 layers, hidden size 768, intermediate size 3072, 12 attention heads, vocabulary 4096; config.json sets alibi_starting_size and max_position_embeddings to 512 and position_embedding_type to absolute. The saved paper and README do not mention ALiBi. The model code is loaded from the Hugging Face repository.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-hf-config",
+      "model-pages-20261127-batch10-dnabert-s-source-hf-tree"
+     ],
+     "source_locator": "config.json; file listing"
+    },
+    {
+     "label": "Inputs",
+     "value": "A DNA sequence as a string, tokenised by the model's own tokenizer.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-readme"
+     ],
+     "source_locator": "README: 4. Quick Start"
+    },
+    {
+     "label": "Outputs",
+     "value": "Per-token hidden states of size 768; the sequence embedding is their mean (mean pooling), a 768-value vector.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-readme",
+      "model-pages-20261127-batch10-dnabert-s-source-paper"
+     ],
+     "source_locator": "README: 4. Quick Start; paper: implementation details"
+    },
+    {
+     "label": "Parameters",
+     "value": "Not stated as a count in the sources read. config.json records the starting checkpoint as zhihan1996/DNABERT-2-117M and gives 12 layers of hidden size 768.",
+     "status": "unreported",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-hf-config"
+     ],
+     "source_locator": "config.json"
+    },
+    {
+     "label": "Training data",
+     "value": "Pairs of non-overlapping 10,000 bp sequences from the same species, built from GenBank reference genomes of viruses, fungi and bacteria. A random subset of the pairs was used for training (the README's full training file is train_2m.csv) and the rest for validation.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-paper",
+      "model-pages-20261127-batch10-dnabert-s-source-readme"
+     ],
+     "source_locator": "Paper: Section 4 (training data); README: 5. Training"
+    },
+    {
+     "label": "Known versions",
+     "value": "One released checkpoint, zhihan1996/DNABERT-S. The paper also trains variants with other positive-pair strategies (DNA-Mutate, DNA-Dropout, DNA-Double) for comparison; the sources read do not show them released.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-readme",
+      "model-pages-20261127-batch10-dnabert-s-source-paper"
+     ],
+     "source_locator": "README: 2.1 Model; paper: baselines"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "Not reported. The paper names GenBank as the data source but gives no download date.",
+     "status": "unreported",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-paper"
+     ],
+     "source_locator": "Paper: Section 4 (training data)"
+    },
+    {
+     "label": "Context limits",
+     "value": "No fixed limit stated. Training used 10,000 bp sequences, and the README sets the training max_length to 0.2 times the DNA length (2000 tokens in its example). The paper says DNABERT-2, the base model, does not impose a strict input length limit.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-paper",
+      "model-pages-20261127-batch10-dnabert-s-source-readme"
+     ],
+     "source_locator": "Paper: Section 4, Appendix; README: 5. Training"
+    },
+    {
+     "label": "Weights licence",
+     "value": "Apache-2.0, as declared in the Hugging Face model card metadata.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-hf-card",
+      "model-pages-20261127-batch10-dnabert-s-source-hf-api"
+     ],
+     "source_locator": "Model card metadata; API cardData"
+    },
+    {
+     "label": "Code licence",
+     "value": "Not stated. GitHub detects no licence for the repository (licence field null) and the README names none.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-gh-repo"
+     ],
+     "source_locator": "GitHub API repository metadata: license"
+    },
+    {
+     "label": "Access",
+     "value": "Code: https://github.com/MAGICS-LAB/DNABERT_S. Weights: https://huggingface.co/zhihan1996/DNABERT-S, not gated. Training and evaluation data are downloadable with gdown from links in the README.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-readme",
+      "model-pages-20261127-batch10-dnabert-s-source-hf-api"
+     ],
+     "source_locator": "README: 2. Model and Data; Hugging Face API gated field"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "Embeddings are designed to separate species without labels or reference genomes, which suits metagenomics binning and species clustering.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-paper"
+     ],
+     "source_locator": "Paper: abstract"
+    },
+    {
+     "text": "The authors report that it identifies about twice as many species as the best baseline in metagenomics binning and doubles the Adjusted Rand Index in species clustering.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-paper"
+     ],
+     "source_locator": "Paper: abstract"
+    },
+    {
+     "text": "Weights are Apache-2.0 and not gated, and the training and evaluation data are published.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-hf-card",
+      "model-pages-20261127-batch10-dnabert-s-source-hf-api",
+      "model-pages-20261127-batch10-dnabert-s-source-readme"
+     ],
+     "source_locator": "Model card metadata; API; README: 2.2 Data"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Training data are microbial (viral, fungal and bacterial genomes); the model is built for species differentiation rather than general genome annotation.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-paper"
+     ],
+     "source_locator": "Paper: Section 4 (training data)"
+    },
+    {
+     "text": "No licence is stated for the code repository.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-gh-repo"
+     ],
+     "source_locator": "GitHub API repository metadata"
+    },
+    {
+     "text": "Short inputs embed poorly: in the authors' tests both DNABERT-S and the TNF baseline performed poorly when the evaluation sequences were short.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-paper"
+     ],
+     "source_locator": "Paper: Appendix, impact of sequence length in evaluation"
+    },
+    {
+     "text": "Loading needs trust_remote_code=True, the environment pins transformers 4.27, and the README warns triton can cause errors on GPUs other than the A100. Training expects 8 A100 80GB GPUs.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-readme",
+      "model-pages-20261127-batch10-dnabert-s-source-requirements"
+     ],
+     "source_locator": "README: 3, 4, 5; requirements.txt"
+    }
+   ],
+   "diagram": {
+    "title": "DNABERT-S workflow",
+    "steps": [
+     "DNA sequence",
+     "Encoder initialised from DNABERT-2 and further trained with contrastive learning (curriculum, MI-Mix)",
+     "Per-token hidden states (768 values each)",
+     "Mean pooling to one 768-value embedding",
+     "Clustering, binning or a simple classifier"
+    ],
+    "caption": "Data flow as described in the README and paper. The clustering or classification step is the user's own.",
+    "source_ids": [
+     "model-pages-20261127-batch10-dnabert-s-source-readme",
+     "model-pages-20261127-batch10-dnabert-s-source-paper"
+    ],
+    "source_locator": "README: 4. Quick Start; paper: Section 3"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "No source read gives a parameter count for DNABERT-S.",
+    "The code licence is not stated.",
+    "The tokenizer is not described in the sources read beyond its vocabulary size in config.json.",
+    "Memory needs for inference are not stated. The paper reports that DNABERT-S takes about 1 hour on 2 NVIDIA A100 GPUs to make the predictions in its species classification comparison, against about 30 seconds on a single CPU for MMseqs2."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Written from the MAGICS-LAB/DNABERT_S README and requirements.txt at commit ac01b55e, the GitHub repository metadata, the zhihan1996/DNABERT-S model card, config.json and file listing at revision 00e47f96, the Hugging Face API response, and the arXiv 2402.08777 abstract page and HTML full text, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "gfm2-20261011-buzkova2026-model-dnabert-s",
+   "summary": "Set up the repository's environment at a pinned commit and compute a mean-pooled embedding for one DNA sequence with the published checkpoint.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "conda, to create a Python 3.9 environment.",
+    "The packages in requirements.txt, including transformers==4.27 and torch. The README suggests uninstalling triton on GPUs other than the A100. The paper reports that the predictions in its species classification comparison took about 1 hour on 2 NVIDIA A100 GPUs; memory needs are not stated.",
+    "Weights are Apache-2.0 and not gated; no licence is stated for the code."
+   ],
+   "steps": [
+    {
+     "title": "Get the code at the pinned commit",
+     "shell": "git clone https://github.com/MAGICS-LAB/DNABERT_S.git\ncd DNABERT_S\ngit checkout --detach ac01b55e5034182e4b915d34ce5a3a323b82adb8",
+     "explanation": "The README gives no clone command. These lines get the repository at the commit this page read, so that requirements.txt is available.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-readme"
+     ],
+     "source_locator": "README: title"
+    },
+    {
+     "title": "Create the environment",
+     "shell": "conda create -n DNABERT_S python=3.9\nconda activate DNABERT_S\npip install -r requirements.txt\npip uninstall triton # this can lead to errors in GPUs other than A100",
+     "explanation": "The README's environment setup. The last line is only needed on GPUs other than the A100, according to the README.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-readme"
+     ],
+     "source_locator": "README: 3. Setup environment"
+    },
+    {
+     "title": "Compute an embedding",
+     "shell": "python - <<'PY'\nimport torch\nfrom transformers import AutoTokenizer, AutoModel\n\ntokenizer = AutoTokenizer.from_pretrained(\"zhihan1996/DNABERT-S\", trust_remote_code=True)\nmodel = AutoModel.from_pretrained(\"zhihan1996/DNABERT-S\", trust_remote_code=True)\n\ndna = \"ACGTAGCATCGGATCTATCTATCGACACTTGGTTATCGATCTACGAGCATCTCGTTAGC\"\ninputs = tokenizer(dna, return_tensors = 'pt')[\"input_ids\"]\nhidden_states = model(inputs)[0] # [1, sequence_length, 768]\n\n# embedding with mean pooling\nembedding_mean = torch.mean(hidden_states[0], dim=0)\nprint(embedding_mean.shape) # expect to be 768\nPY",
+     "explanation": "The README's two Quick Start snippets joined in one shell heredoc: load the model and tokenizer from Hugging Face, then embed one sequence.",
+     "source_ids": [
+      "model-pages-20261127-batch10-dnabert-s-source-readme"
+     ],
+     "source_locator": "README: 4. Quick Start"
+    }
+   ],
+   "outputs": [
+    "The shape of the mean-pooled embedding, which the README expects to be 768."
+   ],
+   "limitations": [
+    "These commands were read from the repository and have not been executed by Rewire.",
+    "The weights download from Hugging Face at run time; the guide does not pin the Hugging Face revision."
+   ],
+   "source_ids": [
+    "model-pages-20261127-batch10-dnabert-s-source-readme",
+    "model-pages-20261127-batch10-dnabert-s-source-paper"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "This page is meant for both DNABERT-S records (gfm2-20261011-buzkova2026-model-dnabert-s and lit-genomics-20261011-geneb-model-dnabert-s). The README section 2.1 gives a gdown command for the model that unzips dnabert-s_train.zip, the same archive name as the training data, so it looks like a copy error; the Hugging Face checkpoint is used instead. The arXiv HTML full text was fetched without a version suffix; the abstract page lists three versions.",
+  "no_run_guide_reason": ""
+ },
+ "lit-microbial-20261011-virobench-model-mp-rna": {
+  "slug": "mp-rna",
+  "new_source_ids": [
+   "model-pages-20261127-batch10-mp-rna-source-hf-card",
+   "model-pages-20261127-batch10-mp-rna-source-hf-config",
+   "model-pages-20261127-batch10-mp-rna-source-hf-api",
+   "model-pages-20261127-batch10-mp-rna-source-paper",
+   "model-pages-20261127-batch10-mp-rna-source-paper-page",
+   "model-pages-20261127-batch10-mp-rna-source-readme",
+   "model-pages-20261127-batch10-mp-rna-source-gh-old",
+   "model-pages-20261127-batch10-mp-rna-source-license"
+  ],
+  "profile": {
+   "summary": "MP-RNA is an RNA foundation model that reads an RNA sequence one base at a time and produces representations for downstream prediction. It was pretrained on plant transcriptomes from over 1,000 species with objectives that include predicting secondary structure and repairing single-base mutations. It is aimed at tasks that need per-base resolution, such as RNA secondary structure prediction and mutation detection, and the authors also apply it to DNA tasks.",
+   "summary_source_ids": [
+    "model-pages-20261127-batch10-mp-rna-source-hf-card",
+    "model-pages-20261127-batch10-mp-rna-source-paper"
+   ],
+   "summary_source_locator": "Model card: Model Description, Training Data; paper Section 3",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "MP-RNA is a transformer encoder that reads RNA one base at a time. It is pretrained with three combined objectives: masked RNA language modelling, single nucleotide mutation repair (5% of sites are mutated and the model learns to correct them), and secondary structure prediction. Structure labels come from ViennaRNA. To limit noise from these computed labels, the authors keep the 10% of samples with the lowest expected calibration error for incremental pretraining, and append structures to the sequence in 10% of masked language modelling examples. After pretraining, the model is fine-tuned or used for tasks such as secondary structure prediction, mutation detection and repair, and DNA genomic tasks.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-paper",
+      "model-pages-20261127-batch10-mp-rna-source-hf-card"
+     ],
+     "source_locator": "Paper Sections 3.1 to 3.3; model card: Model Description"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "The paper describes two sizes, MP-RNA-52M and MP-RNA-186M, both pretrained on four RTX 4090 GPUs over one month. This page read one checkpoint, yangheng/MP-RNA; its configuration (32 layers, dimension 720) and parameter count match the 186M version. The paper states that only MP-RNA-186M received incremental pretraining and that the incrementally pretrained 52M model will not be released. Whether any other MP-RNA checkpoint is public was not checked. The paper and card link to github.com/yangheng95/OmniGenomeBench; the code repository read here is yangheng95/OmniGenBench, and no saved file shows how the two addresses are related. Its README's examples use OmniGenome models and list MP-RNA as one supported model. A result should name the Hugging Face revision; this page read revision 0a727ebb.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-paper",
+      "model-pages-20261127-batch10-mp-rna-source-hf-config",
+      "model-pages-20261127-batch10-mp-rna-source-hf-api",
+      "model-pages-20261127-batch10-mp-rna-source-readme",
+      "model-pages-20261127-batch10-mp-rna-source-gh-old"
+     ],
+     "source_locator": "Paper Section 3.5, 4.1, footnote 1; config.json; API; README; GitHub API response for yangheng95/OmniGenBench"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "RNA foundation model (masked language model with structure-aware pretraining objectives) used for RNA and DNA sequence tasks.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-hf-card",
+      "model-pages-20261127-batch10-mp-rna-source-paper"
+     ],
+     "source_locator": "Model card: Model Description; paper Section 3.2"
+    },
+    {
+     "label": "Architecture",
+     "value": "Transformer encoder with rotary position embeddings. MP-RNA-186M: 32 layers, dimension 720, 30 heads; MP-RNA-52M: 16 layers, dimension 480, 24 heads. The released config uses custom OmniGenome model code (OmniGenomeForMaskedLM).",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-paper",
+      "model-pages-20261127-batch10-mp-rna-source-hf-config"
+     ],
+     "source_locator": "Paper Table 1; config.json"
+    },
+    {
+     "label": "Inputs",
+     "value": "RNA (or DNA) sequences tokenised one base per token (single-nucleotide tokenisation), from a vocabulary that also includes secondary-structure symbols.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-paper",
+      "model-pages-20261127-batch10-mp-rna-source-hf-card"
+     ],
+     "source_locator": "Paper Section 3.1; model card: How to use"
+    },
+    {
+     "label": "Outputs",
+     "value": "Per-base hidden representations from the base model; with task heads, predictions such as secondary structure (dot-bracket labels in the config), mutation detection and repair, or sequence-level properties.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-hf-card",
+      "model-pages-20261127-batch10-mp-rna-source-hf-config"
+     ],
+     "source_locator": "Model card: Intended Use, How to use; config.json id2label"
+    },
+    {
+     "label": "Parameters",
+     "value": "185,888,649 (yangheng/MP-RNA, safetensors count; this matches the 186M version's 32-layer, 720-dimension configuration). The paper also describes a 52M version, which the paper says will not be released in its incrementally pretrained form.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-hf-api",
+      "model-pages-20261127-batch10-mp-rna-source-paper",
+      "model-pages-20261127-batch10-mp-rna-source-hf-config"
+     ],
+     "source_locator": "Hugging Face API safetensors; paper Table 1, Section 4.1"
+    },
+    {
+     "label": "Training data",
+     "value": "Plant transcriptome data from the OneKP initiative, covering 1,124 plant species (54.2B tokens of mRNA, CDS and UTRs per the paper's comparison table), sliced into 1,024-base windows, deduplicated, and filtered to remove sequences under 50 bases. Secondary structures were annotated with ViennaRNA.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-paper",
+      "model-pages-20261127-batch10-mp-rna-source-hf-card"
+     ],
+     "source_locator": "Paper Section 3.4, Table 2; model card: Training Data"
+    },
+    {
+     "label": "Known versions",
+     "value": "This page read one Hugging Face checkpoint, yangheng/MP-RNA, whose configuration matches MP-RNA-186M. The paper and card describe 52M and 186M versions, and the paper says the incrementally pretrained MP-RNA-52M will not be released.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-hf-card",
+      "model-pages-20261127-batch10-mp-rna-source-hf-api",
+      "model-pages-20261127-batch10-mp-rna-source-paper"
+     ],
+     "source_locator": "Model card: Model Description; API id; paper Section 3.5"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "Not reported. The sources do not date the OneKP data download or the training run.",
+     "status": "unreported",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-paper"
+     ],
+     "source_locator": "Paper Section 3.4"
+    },
+    {
+     "label": "Context limits",
+     "value": "1,024 bases in pretraining (sequence length in Table 1; data sliced into 1,024-base windows). config.json sets max_position_embeddings to 1026, and the model uses rotary position embeddings.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-paper",
+      "model-pages-20261127-batch10-mp-rna-source-hf-config"
+     ],
+     "source_locator": "Paper Section 3.4, Table 1; config.json"
+    },
+    {
+     "label": "Weights licence",
+     "value": "Apache-2.0, as declared in the model card metadata and its License section.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-hf-card",
+      "model-pages-20261127-batch10-mp-rna-source-hf-api"
+     ],
+     "source_locator": "Model card: metadata, License; API cardData"
+    },
+    {
+     "label": "Code licence",
+     "value": "Apache-2.0, from the LICENSE file of yangheng95/OmniGenBench, the code repository read for this page. The paper and card link to github.com/yangheng95/OmniGenomeBench; no saved file shows how the two addresses are related.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-license",
+      "model-pages-20261127-batch10-mp-rna-source-gh-old",
+      "model-pages-20261127-batch10-mp-rna-source-paper"
+     ],
+     "source_locator": "LICENSE; GitHub API response for yangheng95/OmniGenBench; paper footnote 1"
+    },
+    {
+     "label": "Access",
+     "value": "Weights: https://huggingface.co/yangheng/MP-RNA, not gated. Code: the paper and card link to https://github.com/yangheng95/OmniGenomeBench; the code repository read here is yangheng95/OmniGenBench, whose README lists MP-RNA among its supported models; no saved file shows how the two addresses are related.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-hf-api",
+      "model-pages-20261127-batch10-mp-rna-source-paper",
+      "model-pages-20261127-batch10-mp-rna-source-hf-card",
+      "model-pages-20261127-batch10-mp-rna-source-readme",
+      "model-pages-20261127-batch10-mp-rna-source-gh-old"
+     ],
+     "source_locator": "API gated field; paper footnote 1; model card Citation; README; GitHub API"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "Single-base tokenisation with structure-aware pretraining targets tasks that need per-base output, such as secondary structure prediction and mutation repair.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-paper"
+     ],
+     "source_locator": "Paper Section 3.1, 3.2"
+    },
+    {
+     "text": "The authors report a 40% improvement in RNA secondary structure prediction over existing RNA foundation models, and strong results on DNA benchmarks without DNA pretraining.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-paper"
+     ],
+     "source_locator": "Paper abstract"
+    },
+    {
+     "text": "Weights and code are Apache-2.0, and the weights are not gated.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-hf-card",
+      "model-pages-20261127-batch10-mp-rna-source-license",
+      "model-pages-20261127-batch10-mp-rna-source-hf-api"
+     ],
+     "source_locator": "Model card License; LICENSE; API"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Pretraining data are plant transcriptomes only; the authors call the model small for the data and say results rest on in-silico experiments without in-vivo validation.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-paper",
+      "model-pages-20261127-batch10-mp-rna-source-hf-card"
+     ],
+     "source_locator": "Paper Limitations; model card Limitations"
+    },
+    {
+     "text": "Inputs are limited to about 1,024 bases, the pretraining window; the paper notes that sequences in one benchmark are usually longer than the model's maximum length.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-paper"
+     ],
+     "source_locator": "Paper Section 3.4, 4.3"
+    },
+    {
+     "text": "The paper says the incrementally pretrained MP-RNA-52M will not be released. The paper's code address is github.com/yangheng95/OmniGenomeBench, while the repository read here, yangheng95/OmniGenBench, has README examples that use OmniGenome models rather than MP-RNA.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-hf-api",
+      "model-pages-20261127-batch10-mp-rna-source-paper",
+      "model-pages-20261127-batch10-mp-rna-source-readme",
+      "model-pages-20261127-batch10-mp-rna-source-gh-old"
+     ],
+     "source_locator": "API id; paper footnote; README; GitHub API"
+    },
+    {
+     "text": "The config maps to custom model code (modeling_omnigenome); the card's loading example does not set trust_remote_code, and the sources do not say whether it is needed.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-hf-config",
+      "model-pages-20261127-batch10-mp-rna-source-hf-card"
+     ],
+     "source_locator": "config.json auto_map; model card How to use"
+    }
+   ],
+   "diagram": {
+    "title": "MP-RNA workflow",
+    "steps": [
+     "RNA sequence up to 1,024 bases",
+     "Single-nucleotide tokens",
+     "Transformer encoder pretrained with masked modelling, mutation repair and structure prediction",
+     "Per-base representations",
+     "Task head: secondary structure, mutation repair or sequence-level prediction"
+    ],
+    "caption": "Data flow as described in the paper and model card. Task heads are fine-tuned by the user.",
+    "source_ids": [
+     "model-pages-20261127-batch10-mp-rna-source-paper",
+     "model-pages-20261127-batch10-mp-rna-source-hf-card"
+    ],
+    "source_locator": "Paper Sections 3.1 to 3.4; model card Intended Use"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "The paper says the incrementally pretrained MP-RNA-52M will not be released; whether any other MP-RNA checkpoint, including a 52M version, is public was not checked.",
+    "The code repository no longer has MP-RNA-specific instructions in its README; the paper-era scripts were not reviewed.",
+    "Inference hardware and memory needs are not stated.",
+    "The sources do not date the training data."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Written from the yangheng/MP-RNA model card and config.json at revision 0a727ebb, the Hugging Face API response, the text layer of the Findings of EMNLP 2024 paper PDF and its ACL Anthology page, and the yangheng95/OmniGenBench README.MD and LICENSE at commit 1aa53050, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "lit-microbial-20261011-virobench-model-mp-rna",
+   "summary": "Load the MP-RNA checkpoint from Hugging Face and run it on one short RNA sequence.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "Python with the transformers package and PyTorch, which the card's example imports and returns tensors for. The card gives no install command or version.",
+    "Internet access to download yangheng/MP-RNA. The weights are Apache-2.0 and not gated.",
+    "Hardware needs for inference are not stated. The authors pretrained on four RTX 4090 GPUs."
+   ],
+   "steps": [
+    {
+     "title": "Load the model and run one sequence",
+     "shell": "python - <<'PY'\nfrom transformers import AutoTokenizer, AutoModel\n\n# Load pre-trained model tokenizer\ntokenizer = AutoTokenizer.from_pretrained(\"yangheng/MP-RNA\")\n\n# Load pre-trained model\nmodel = AutoModel.from_pretrained(\"yangheng/MP-RNA\")\n\n# Example input sequence\ninput_seq = \"AUGGCUACUUUCG\"\n\n# Tokenize input\ninputs = tokenizer(input_seq, return_tensors=\"pt\")\n\n# Perform inference\noutputs = model(**inputs)\nPY",
+     "explanation": "The model card's example, unchanged, wrapped in a shell heredoc. The card does not pass trust_remote_code, although config.json points to custom model code.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mp-rna-source-hf-card"
+     ],
+     "source_locator": "Model card: How to use"
+    }
+   ],
+   "outputs": [
+    "A model output object held in the variable outputs; the example prints nothing."
+   ],
+   "limitations": [
+    "This command was read from the model card and has not been executed by Rewire.",
+    "Loading may need trust_remote_code=True because config.json maps to custom model code; the card does not say.",
+    "The example stops at a forward pass and does not show how to read embeddings or predictions."
+   ],
+   "source_ids": [
+    "model-pages-20261127-batch10-mp-rna-source-hf-card"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "This page is meant for both MP-RNA records (lit-microbial-20261011-virobench-model-mp-rna and lit-rna-20261011-rnalm-zeroshot-model-mp-rna). The paper source is the pdftotext text layer of the ACL Anthology PDF (CC BY 4.0); the PDF itself is kept as artifacts/paper.pdf. The README examples use yangheng/OmniGenome-186M; no saved source links OmniGenome models to MP-RNA, so they are not treated as MP-RNA checkpoints. The saved GitHub API response artifacts/gh-repo-omnigenomebench.json gives yangheng95/OmniGenBench; no saved file shows how it relates to the OmniGenomeBench address the paper gives. That repository is treated as the code source. The cited paper file is the pdftotext text layer, so its sha256 is not the PDF's.",
+  "no_run_guide_reason": ""
+ },
+ "gfm2-20261011-datta2026-model-omni-dna": {
+  "slug": "omni-dna",
+  "new_source_ids": [
+   "model-pages-20261127-batch10-omni-dna-source-readme",
+   "model-pages-20261127-batch10-omni-dna-source-gh-repo",
+   "model-pages-20261127-batch10-omni-dna-source-inference",
+   "model-pages-20261127-batch10-omni-dna-source-hf-card",
+   "model-pages-20261127-batch10-omni-dna-source-hf-config",
+   "model-pages-20261127-batch10-omni-dna-source-hf-api-20m",
+   "model-pages-20261127-batch10-omni-dna-source-hf-api-60m",
+   "model-pages-20261127-batch10-omni-dna-source-hf-api-116m",
+   "model-pages-20261127-batch10-omni-dna-source-hf-api-300m",
+   "model-pages-20261127-batch10-omni-dna-source-hf-api-700m",
+   "model-pages-20261127-batch10-omni-dna-source-hf-api-1b",
+   "model-pages-20261127-batch10-omni-dna-source-hf-api-multitask",
+   "model-pages-20261127-batch10-omni-dna-source-hf-api-dna2function",
+   "model-pages-20261127-batch10-omni-dna-source-hf-api-dna2image",
+   "model-pages-20261127-batch10-omni-dna-source-paper",
+   "model-pages-20261127-batch10-omni-dna-source-paper-abs"
+  ],
+  "profile": {
+   "summary": "Omni-DNA is a family of generative DNA language models, named by size from 20M to 1B parameters, that read a DNA sequence and predict the next token. After pretraining on multi-species genomes, a single model can be fine-tuned to answer several tasks at once, producing a class label, a text description of function, or image tokens from a DNA input. The base models can also be fine-tuned with a classification head like other genomic foundation models.",
+   "summary_source_ids": [
+    "model-pages-20261127-batch10-omni-dna-source-paper",
+    "model-pages-20261127-batch10-omni-dna-source-readme",
+    "model-pages-20261127-batch10-omni-dna-source-hf-api-20m"
+   ],
+   "summary_source_locator": "Paper abstract and Figure 4; README Capabilities; Hugging Face API",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "Omni-DNA works in two stages. First, decoder-only transformers based on OLMo are pretrained on DNA alone by next-token prediction. Then a model is fine-tuned on several tasks at once: the tokenizer vocabulary is expanded with new tokens for each task's outputs (class labels, text, or discrete image codes), and the model learns to generate the answer after the input sequence and a task description. To limit the shift in existing tokens caused by vocabulary expansion, the authors use a method they call Important Key Repetition together with NEFTune. Base models can also be fine-tuned in the usual way with a classification head.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-paper",
+      "model-pages-20261127-batch10-omni-dna-source-readme"
+     ],
+     "source_locator": "Paper: Introduction, Figure 4, Section 3; README: Capabilities"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "Six base sizes and three fine-tuned 1B models are released on Hugging Face. The 116M and 1B models use non-parametric layer norm and the other four use RMSNorm. The repository's run.sh lists the commands used to replicate the paper's experiments, including classification fine-tuning and inference with the multi-task, DNA-to-text and DNA-to-image models. A result should name the checkpoint and its Hugging Face revision; this page read Omni-DNA-1B at revision 0ea9d54e.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-paper",
+      "model-pages-20261127-batch10-omni-dna-source-readme"
+     ],
+     "source_locator": "Paper Section 3 (LayerNorm); README: Replicating Experiments"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "Family of autoregressive (decoder-only) DNA foundation models, pretrained by next-token prediction and then fine-tuned for classification, multi-task and cross-modal generation tasks.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-paper",
+      "model-pages-20261127-batch10-omni-dna-source-hf-card"
+     ],
+     "source_locator": "Paper: Figure 4 caption; model card: Model Description"
+    },
+    {
+     "label": "Architecture",
+     "value": "Transformer decoder built on OLMo, with rotary position embeddings (RoPE), SwiGLU activation and a BPE tokenizer with an initial vocabulary of 4096. Base sizes run from 8 layers and hidden size 256 (20M) to 16 layers and hidden size 2048 (1B).",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-paper",
+      "model-pages-20261127-batch10-omni-dna-source-hf-config",
+      "model-pages-20261127-batch10-omni-dna-source-readme"
+     ],
+     "source_locator": "Paper Section 3; Omni-DNA-1B config.json; README: Base Models"
+    },
+    {
+     "label": "Inputs",
+     "value": "DNA sequences as text, tokenised by BPE; for fine-tuned models, a sequence followed by a task description, as in the SFT data format.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-hf-card",
+      "model-pages-20261127-batch10-omni-dna-source-readme"
+     ],
+     "source_locator": "Model card: Usage; README: SFT Example"
+    },
+    {
+     "label": "Outputs",
+     "value": "Generated tokens (DNA, class labels, text or image tokens, depending on the fine-tuned model), or class logits when a classification head is attached.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-hf-card",
+      "model-pages-20261127-batch10-omni-dna-source-readme"
+     ],
+     "source_locator": "Model card: Usage; README: Capabilities"
+    },
+    {
+     "label": "Parameters",
+     "value": "10,490,112 (Omni-DNA-20M), 37,757,440 (60M), 116,391,936 (116M), 272,663,552 (300M), 616,613,376 (700M), 1,082,130,432 (1B); the fine-tuned Multitask, DNA2Function and DNA2Image models have 1,090,605,056, 1,107,222,528 and 1,090,547,712. All are safetensors counts from Hugging Face. Several counts differ from the size in the name (for example 10,490,112 for 20M and 37,757,440 for 60M); the sources do not explain this.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-20m",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-60m",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-116m",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-300m",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-700m",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-1b",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-multitask",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-dna2function",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-dna2image"
+     ],
+     "source_locator": "Hugging Face API safetensors field for each checkpoint"
+    },
+    {
+     "label": "Training data",
+     "value": "NCBI's multi-species genome dataset, reduced to 30 billion nucleotides after exact duplicates were removed. The models were trained on 300 billion nucleotides; the paper says multiple epochs can still be used after the reduction.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-paper",
+      "model-pages-20261127-batch10-omni-dna-source-readme"
+     ],
+     "source_locator": "Paper Section 3 (pretraining, deduplication); README: Base Models"
+    },
+    {
+     "label": "Known versions",
+     "value": "Six base models (Omni-DNA 20M, 60M, 116M, 300M, 700M and 1B) and three supervised fine-tuned models built on the 1B base (Omni-DNA-Multitask, Omni-DNA-DNA2Function, Omni-DNA-DNA2Image).",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-readme"
+     ],
+     "source_locator": "README: Model Details"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "2024, as the model card's Date cutoff field states. The card does not say what the date refers to.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-hf-card"
+     ],
+     "source_locator": "Model card: Model Description"
+    },
+    {
+     "label": "Context limits",
+     "value": "250 tokens for all base models (README, card and config max_sequence_length). The paper's hyperparameter table gives the sequence length as 250 tokens and says the context length can be extended during fine-tuning; the README's fine-tuning example sets a maximum of 1000 and the SFT example 512.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-readme",
+      "model-pages-20261127-batch10-omni-dna-source-hf-config",
+      "model-pages-20261127-batch10-omni-dna-source-paper"
+     ],
+     "source_locator": "README tables and examples; config.json; paper Section 3, Appendix A"
+    },
+    {
+     "label": "Weights licence",
+     "value": "MIT, as declared in the Hugging Face metadata of every checkpoint and in the model card.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-hf-card",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-1b",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-20m"
+     ],
+     "source_locator": "Model card metadata; API cardData"
+    },
+    {
+     "label": "Code licence",
+     "value": "MIT, as stated in the README's License section. GitHub detects no licence file in the repository.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-readme",
+      "model-pages-20261127-batch10-omni-dna-source-gh-repo"
+     ],
+     "source_locator": "README: License; GitHub API"
+    },
+    {
+     "label": "Access",
+     "value": "Code: https://github.com/Zehui127/Omni-DNA. Weights: https://huggingface.co/zehui127/Omni-DNA-20M, -60M, -116M, -300M, -700M, -1B, -Multitask, -DNA2Function and -DNA2Image, none gated.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-readme",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-1b",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-multitask"
+     ],
+     "source_locator": "README: Model Details; API gated field"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "One fine-tuned model can handle several tasks and output types (classification labels, text and image tokens), instead of one fine-tuned model per task.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-hf-card"
+     ],
+     "source_locator": "Model card: Overview"
+    },
+    {
+     "text": "A wide range of sizes, from 10,490,112 to 1,082,130,432 parameters for the base models, all MIT licensed and not gated.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-20m",
+      "model-pages-20261127-batch10-omni-dna-source-hf-api-1b"
+     ],
+     "source_locator": "Hugging Face API responses"
+    },
+    {
+     "text": "The authors report that the autoregressive models match or outperform bidirectional transformers on genomic sequence modelling.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-paper"
+     ],
+     "source_locator": "Paper: Conclusion"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "The pretrained context is short, 250 tokens; longer inputs depend on extending the context during fine-tuning.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-hf-config",
+      "model-pages-20261127-batch10-omni-dna-source-paper"
+     ],
+     "source_locator": "config.json; paper Section 3"
+    },
+    {
+     "text": "The authors say their evaluation does not cover long-range interaction prediction or variant effect prediction, and that high-fidelity cross-modal translation remains open.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-paper"
+     ],
+     "source_locator": "Paper: Limitations"
+    },
+    {
+     "text": "The model card installs ai2-olmo and passes trust_remote_code=True in its classification and fine-tuning examples, though the repository's inference code loads the model without it; that code moves the model to a CUDA GPU.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-hf-card",
+      "model-pages-20261127-batch10-omni-dna-source-inference"
+     ],
+     "source_locator": "Model card: Requirement, Usage, Supervised Finetuning; inference_sft.py line 18"
+    },
+    {
+     "text": "The repository has no licence file; the MIT licence is stated only in the README and model metadata.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-gh-repo",
+      "model-pages-20261127-batch10-omni-dna-source-readme"
+     ],
+     "source_locator": "GitHub API; README: License"
+    }
+   ],
+   "diagram": {
+    "title": "Omni-DNA workflow",
+    "steps": [
+     "DNA sequence",
+     "BPE tokens (vocabulary 4096, expanded per task)",
+     "OLMo-based decoder pretrained by next-token prediction",
+     "Multi-task fine-tuning with a task description after the sequence",
+     "Generated answer: class label, text or image tokens"
+    ],
+    "caption": "Data flow as described in the paper and README. A classification head can be attached instead of generative fine-tuning.",
+    "source_ids": [
+     "model-pages-20261127-batch10-omni-dna-source-paper",
+     "model-pages-20261127-batch10-omni-dna-source-readme"
+    ],
+    "source_locator": "Paper Figure 4, Section 3; README SFT example"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "The Omni-DNA-20M safetensors count is 10,490,112, about half its name; no source explains the difference.",
+    "The model card's generative example loads anon/Omni-DNA-1B, a placeholder name; it was not used.",
+    "Inference hardware and memory needs are not stated.",
+    "Model cards of the checkpoints other than Omni-DNA-1B were not read."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Written from the Zehui127/Omni-DNA README and src/multitask_sft/inference_sft.py at commit fbc0a4ef, the GitHub repository metadata, the Omni-DNA-1B model card and config.json at revision 0ea9d54e, Hugging Face API responses for all nine checkpoints, and the arXiv 2502.03499 abstract page and HTML full text, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "gfm2-20261011-datta2026-model-omni-dna",
+   "summary": "Install the dependencies, get the repository at a pinned commit, and run the multi-task model on the histone modification test sets used in the paper.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "conda, to create a Python 3.10 environment.",
+    "A CUDA GPU: the inference code moves the model to 'cuda'. GPU memory needs are not stated.",
+    "Internet access to download zehui127/Omni-DNA-Multitask and the zehui127/Omni-DNA-dataset-nt-downstream-multitask dataset from Hugging Face. Weights are MIT licensed and not gated."
+   ],
+   "steps": [
+    {
+     "title": "Create the environment and install dependencies",
+     "shell": "conda create -n omni_dna python=3.10 -y\nconda activate omni_dna\npip install trl==0.13 transformers datasets datasets ai2-olmo",
+     "explanation": "The README's installation steps 1 and 2.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-readme"
+     ],
+     "source_locator": "README: Installation"
+    },
+    {
+     "title": "Get the code at the pinned commit",
+     "shell": "git clone https://github.com/Zehui127/Omni-DNA.git\ncd Omni-DNA\ngit checkout --detach fbc0a4ef3d7094b6d1bfcd027ae413d9f0eb9cdc",
+     "explanation": "The README's step 3, with a checkout line added to pin the commit this page read.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-readme"
+     ],
+     "source_locator": "README: Installation"
+    },
+    {
+     "title": "Run multi-task inference",
+     "shell": "export PYTHONPATH=$(pwd)\npython scripts/sft_multitask.py --model_tokenizer_path zehui127/Omni-DNA-Multitask",
+     "explanation": "Two lines from the README's run.sh. The script loads the multi-task model and its test dataset from Hugging Face and evaluates it on ten histone modification tasks.",
+     "source_ids": [
+      "model-pages-20261127-batch10-omni-dna-source-readme",
+      "model-pages-20261127-batch10-omni-dna-source-inference"
+     ],
+     "source_locator": "README: Replicating Experiments; inference_sft.py"
+    }
+   ],
+   "outputs": [
+    "For each of the ten tasks, a header line and a dictionary of accuracy, F1, Matthews correlation, precision and recall, printed to the terminal, as the code in inference_sft.py does."
+   ],
+   "limitations": [
+    "These commands were read from the repository and have not been executed by Rewire.",
+    "The install line does not pin versions other than trl; library changes may break the code.",
+    "The script runs over full test sets and needs a CUDA GPU."
+   ],
+   "source_ids": [
+    "model-pages-20261127-batch10-omni-dna-source-readme",
+    "model-pages-20261127-batch10-omni-dna-source-inference"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "This page is meant for both Omni-DNA records (gfm2-20261011-datta2026-model-omni-dna and lit-genomics-20261011-geneb-model-omni-dna). The README news line dates the Hugging Face release as 2024.02.10 while the arXiv preprint is v1 of 05 Feb 2025; the release date is left null. artifacts/sft_multitask.py is a two-line wrapper that calls inference_sft.py; it was saved but not cited.",
+  "no_run_guide_reason": ""
+ },
+ "lit-microbial-20261011-virobench-model-rinalmo": {
+  "slug": "rinalmo",
+  "new_source_ids": [
+   "model-pages-20261127-batch10-rinalmo-source-readme",
+   "model-pages-20261127-batch10-rinalmo-source-license",
+   "model-pages-20261127-batch10-rinalmo-source-pretrained",
+   "model-pages-20261127-batch10-rinalmo-source-model-map",
+   "model-pages-20261127-batch10-rinalmo-source-config",
+   "model-pages-20261127-batch10-rinalmo-source-zenodo",
+   "model-pages-20261127-batch10-rinalmo-source-paper"
+  ],
+  "profile": {
+   "summary": "RiNALMo is an RNA language model that reads an RNA sequence one nucleotide at a time and produces a numerical representation of each position. It was pretrained on 36 million non-coding RNA sequences by learning to fill in masked nucleotides, and the representations are then fine-tuned for tasks such as RNA secondary structure prediction and splice site prediction. The largest model has 650M parameters; smaller 148M and 33.5M versions are also released.",
+   "summary_source_ids": [
+    "model-pages-20261127-batch10-rinalmo-source-paper",
+    "model-pages-20261127-batch10-rinalmo-source-readme"
+   ],
+   "summary_source_locator": "Paper: Introduction, Methods; README: About",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "RiNALMo is an encoder-only transformer trained by masked language modelling: 15% of tokens in each training sequence are selected, most are replaced with a mask token, and the model learns to reconstruct them. It uses rotary position embeddings, SwiGLU feed-forward layers and FlashAttention-2. Training sequences were sampled once per cluster per epoch to keep batches diverse. For downstream use, the per-nucleotide representations or the classification token embedding feed a task head; the authors fine-tuned it for secondary structure prediction, splice site prediction, mean ribosome loading and ncRNA family classification.",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper",
+      "model-pages-20261127-batch10-rinalmo-source-readme"
+     ],
+     "source_locator": "Paper: Methods; README: Usage"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "Three pretrained sizes are published on Zenodo: giga (650M), mega and micro. Their parameter counts differ slightly between the paper, the README and the Zenodo description. The 650M model was pretrained on seven 80 GB A100 GPUs for 2 weeks. Fine-tuned giga weights and the train_<task>.py scripts allow the paper's downstream evaluations to be rerun. The Python loader in the repository downloads only giga-v1. A result should name the size, whether pretrained or fine-tuned weights were used, and the Zenodo record (15043668).",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper",
+      "model-pages-20261127-batch10-rinalmo-source-readme",
+      "model-pages-20261127-batch10-rinalmo-source-model-map",
+      "model-pages-20261127-batch10-rinalmo-source-zenodo"
+     ],
+     "source_locator": "Paper: Methods; README: Usage; model2gdisk.json; Zenodo"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "RNA language model (BERT-style masked language model) that produces nucleotide representations for downstream RNA structure and function tasks.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper",
+      "model-pages-20261127-batch10-rinalmo-source-readme"
+     ],
+     "source_locator": "Paper: Introduction, Methods; README: Quick Start"
+    },
+    {
+     "label": "Architecture",
+     "value": "Encoder-only transformer. RiNALMo-650M (giga): 33 blocks, 1280-dimensional embeddings, 20 attention heads, feed-forward hidden size 3413, rotary position embeddings (RoPE), SwiGLU activation and FlashAttention-2. The repository configs give mega 30 blocks at 640 dimensions and micro 12 blocks at 480 dimensions, all with 20 heads.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper",
+      "model-pages-20261127-batch10-rinalmo-source-config"
+     ],
+     "source_locator": "Paper: Methods (model architecture); rinalmo/config.py"
+    },
+    {
+     "label": "Inputs",
+     "value": "RNA sequences, one token per nucleotide; U is replaced by T, and the vocabulary covers IUPAC nucleotide codes plus inosine.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper",
+      "model-pages-20261127-batch10-rinalmo-source-readme"
+     ],
+     "source_locator": "Paper: Methods (tokenisation); README: Quick Start"
+    },
+    {
+     "label": "Outputs",
+     "value": "Per-nucleotide representations (the model output's \"representation\" field) and a classification token embedding; fine-tuned heads give secondary structure, splice site, mean ribosome loading and ncRNA family predictions.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-readme",
+      "model-pages-20261127-batch10-rinalmo-source-paper"
+     ],
+     "source_locator": "README: Quick Start, Download fine-tuned weights; paper Results"
+    },
+    {
+     "label": "Parameters",
+     "value": "650M (RiNALMo-650M, giga); 148M (RiNALMo-150M, mega); 33.5M (RiNALMo-33M, micro), as the paper states. The README lists 150M for mega and 35M for micro, and the Zenodo record 33M for micro; the sources do not explain the differences.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper",
+      "model-pages-20261127-batch10-rinalmo-source-readme",
+      "model-pages-20261127-batch10-rinalmo-source-zenodo"
+     ],
+     "source_locator": "Paper: Methods (model sizes); README: Installation step 3; Zenodo description"
+    },
+    {
+     "label": "Training data",
+     "value": "36M unique non-coding RNA sequences, clustered into 17M clusters, from RNAcentral, nt, Rfam and Ensembl. Sequences shorter than 16 or longer than 8192 were removed, duplicates dropped, and the rest clustered with mmseqs easy-linclust (options --min-seq-id 0.7 and -c 0.8).",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper"
+     ],
+     "source_locator": "Paper: Methods (pre-training dataset)"
+    },
+    {
+     "label": "Known versions",
+     "value": "Three pretrained sizes on Zenodo (giga, mega, micro), plus giga models fine-tuned for secondary structure prediction (bpRNA and nine archiveII family splits), splice donor and acceptor prediction, mean ribosome loading and ncRNA family classification. The Python loader get_pretrained_model knows one name, giga-v1.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-readme",
+      "model-pages-20261127-batch10-rinalmo-source-zenodo",
+      "model-pages-20261127-batch10-rinalmo-source-model-map"
+     ],
+     "source_locator": "README: Installation steps 3 and 4; Zenodo file list; model2gdisk.json"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "Not given as a date. The paper names the data releases used: RNAcentral release 22.0, Rfam 14.9, Ensembl release 109 and Ensembl Bacteria release 56.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper"
+     ],
+     "source_locator": "Paper: Data availability"
+    },
+    {
+     "label": "Context limits",
+     "value": "1024 tokens in pretraining, including the [CLS] and [EOS] tokens; sequences longer than 1022 nucleotides were randomly cropped. RoPE encodes positions; the sources do not give a hard limit at inference.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper"
+     ],
+     "source_locator": "Paper: Methods (pre-training)"
+    },
+    {
+     "label": "Weights licence",
+     "value": "CC BY 4.0, as stated in the README's Model Parameters License section and the Zenodo record.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-readme",
+      "model-pages-20261127-batch10-rinalmo-source-zenodo"
+     ],
+     "source_locator": "README: License; Zenodo metadata"
+    },
+    {
+     "label": "Code licence",
+     "value": "Apache-2.0 (Apache License, Version 2.0), from the LICENSE file and the README's code licence section.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-license",
+      "model-pages-20261127-batch10-rinalmo-source-readme"
+     ],
+     "source_locator": "LICENSE; README: RiNALMo Code License"
+    },
+    {
+     "label": "Access",
+     "value": "Code: https://github.com/lbcb-sci/RiNALMo. Weights: https://zenodo.org/records/15043668 (direct downloads, no sign-in step described). The repository's get_pretrained_model loader instead downloads a model named giga-v1 with gdown, using the file id in model2gdisk.json; the sources do not say whether it is the same file as the Zenodo giga weights.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-readme",
+      "model-pages-20261127-batch10-rinalmo-source-pretrained",
+      "model-pages-20261127-batch10-rinalmo-source-model-map"
+     ],
+     "source_locator": "README: header, Installation; rinalmo/pretrained.py; rinalmo/resources/model2gdisk.json"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "Open licences: code is Apache-2.0 and weights are CC BY 4.0, with fine-tuned task weights published as well as pretrained ones.",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-license",
+      "model-pages-20261127-batch10-rinalmo-source-readme"
+     ],
+     "source_locator": "LICENSE; README: License, Installation"
+    },
+    {
+     "text": "The authors report that fine-tuned RiNALMo generalises to RNA families not seen in training for secondary structure prediction, where other deep learning methods struggled.",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper"
+     ],
+     "source_locator": "Paper: Results (inter-family generalisation)"
+    },
+    {
+     "text": "Three sizes let users trade accuracy against compute; the authors conclude that model size matters for downstream performance.",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper"
+     ],
+     "source_locator": "Paper: Methods (model sizes)"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Pretraining used inputs of at most 1024 tokens; longer RNAs were cropped.",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper"
+     ],
+     "source_locator": "Paper: Methods"
+    },
+    {
+     "text": "The Quick Start needs a CUDA GPU (Python 3.8 or later, CUDA 11.8 or later) and flash-attn 2.3.2. The giga model was pretrained on seven 80 GB A100 GPUs; inference memory needs are not stated.",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-readme",
+      "model-pages-20261127-batch10-rinalmo-source-paper"
+     ],
+     "source_locator": "README: Quick Start; paper Methods"
+    },
+    {
+     "text": "Trained on non-coding RNA only; the sources do not describe pretraining on mRNA or coding sequences.",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-paper"
+     ],
+     "source_locator": "Paper: Methods (pre-training dataset)"
+    }
+   ],
+   "diagram": {
+    "title": "RiNALMo workflow",
+    "steps": [
+     "RNA sequence (U replaced by T), up to 1022 nucleotides",
+     "One token per nucleotide, with [CLS] and [EOS]",
+     "33-block transformer encoder with RoPE and SwiGLU (giga)",
+     "Per-nucleotide representations and CLS embedding",
+     "Task head: secondary structure, splice site, ribosome loading or family"
+    ],
+    "caption": "Data flow for the 650M giga model as described in the paper and README. Task heads are fine-tuned; fine-tuned weights for these tasks are published.",
+    "source_ids": [
+     "model-pages-20261127-batch10-rinalmo-source-paper",
+     "model-pages-20261127-batch10-rinalmo-source-readme"
+    ],
+    "source_locator": "Paper: Methods; README: Usage"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "Parameter counts for the smaller models differ between the paper (148M, 33.5M), the README (150M, 35M) and Zenodo (150M, 33M); the sources do not explain why.",
+    "The supplementary tables with per-size hyperparameters (Supplementary Table S1) were not read.",
+    "Inference GPU memory needs are not stated.",
+    "The README does not show inference with the mega or micro weights."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Written from the lbcb-sci/RiNALMo README, LICENSE, rinalmo/pretrained.py, rinalmo/resources/model2gdisk.json and rinalmo/config.py at commit 2c2c5c14, the Zenodo record 15043668 API response, and the full text of Penić et al. 2025 (Nature Communications) from PMC, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "lit-microbial-20261011-virobench-model-rinalmo",
+   "summary": "Install RiNALMo from the repository at a pinned commit and print nucleotide representations for two short RNA sequences with the 650M giga model.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "Python 3.8 or later and CUDA 11.8 or later, as the README states, and a CUDA GPU (the example uses cuda:0). GPU memory needs are not stated.",
+    "Internet access: get_pretrained_model downloads the giga-v1 weights with gdown into ~/.cache/rinalmo_pretrained.",
+    "Code is Apache-2.0; weights are CC BY 4.0."
+   ],
+   "steps": [
+    {
+     "title": "Install",
+     "shell": "git clone https://github.com/lbcb-sci/RiNALMo\ncd RiNALMo\ngit checkout --detach 2c2c5c14a5ae609d8c560a5d9ca32e51e0288955\npip install .\npip install flash-attn==2.3.2",
+     "explanation": "The README's Quick Start installation, with a checkout line added to pin the commit this page read.",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-readme"
+     ],
+     "source_locator": "README: Quick Start - Inference"
+    },
+    {
+     "title": "Get nucleotide representations",
+     "shell": "python - <<'PY'\nimport torch\nfrom rinalmo.pretrained import get_pretrained_model\n\nDEVICE = \"cuda:0\"\n\nmodel, alphabet = get_pretrained_model(model_name=\"giga-v1\")\nmodel = model.to(device=DEVICE)\nmodel.eval()\nseqs = [\"ACUUUGGCCA\", \"CCCGGU\"]\n\ntokens = torch.tensor(alphabet.batch_tokenize(seqs), dtype=torch.int64, device=DEVICE)\nwith torch.no_grad(), torch.cuda.amp.autocast():\n  outputs = model(tokens)\n\nprint(outputs[\"representation\"])\nPY",
+     "explanation": "The README's Quick Start example, unchanged, wrapped in a shell heredoc. It downloads the giga-v1 weights on first use.",
+     "source_ids": [
+      "model-pages-20261127-batch10-rinalmo-source-readme",
+      "model-pages-20261127-batch10-rinalmo-source-pretrained"
+     ],
+     "source_locator": "README: Quick Start - Inference; rinalmo/pretrained.py"
+    }
+   ],
+   "outputs": [
+    "The tensor of nucleotide representations for the two input sequences, printed to the terminal."
+   ],
+   "limitations": [
+    "These commands were read from the repository and have not been executed by Rewire.",
+    "The loader only offers giga-v1; using the mega or micro weights from Zenodo is not shown for inference in the README.",
+    "The weights download through gdown, and the guide does not pin them to a checksum."
+   ],
+   "source_ids": [
+    "model-pages-20261127-batch10-rinalmo-source-readme",
+    "model-pages-20261127-batch10-rinalmo-source-pretrained"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "This page is meant for both RiNALMo records (lit-microbial-20261011-virobench-model-rinalmo and lit-rna-20261011-rnalm-zeroshot-model-rinalmo). The paper text from PMC is CC BY-NC-ND 4.0, so store_bytes is false for it. Structured parameter counts use the paper's figures. config.py also defines a nano configuration (6 blocks, 320 dimensions) with no published weights; it is not mentioned on the page. No Hugging Face repository from the authors was found or used.",
+  "no_run_guide_reason": ""
+ },
+ "gfm2-20261011-you2026-model-splicebert": {
+  "slug": "splicebert",
+  "new_source_ids": [
+   "model-pages-20261127-batch10-splicebert-source-readme",
+   "model-pages-20261127-batch10-splicebert-source-license",
+   "model-pages-20261127-batch10-splicebert-source-models-readme",
+   "model-pages-20261127-batch10-splicebert-source-download",
+   "model-pages-20261127-batch10-splicebert-source-zenodo",
+   "model-pages-20261127-batch10-splicebert-source-paper"
+  ],
+  "profile": {
+   "summary": "SpliceBERT is a language model of primary RNA sequence, the full transcript including introns, trained on over 2 million sequences from 72 vertebrates. It reads up to 1024 nucleotides, one token per nucleotide, and outputs an embedding for each position. The authors use it to study RNA splicing: to find splice sites and branchpoints and to score whether a variant is likely to disrupt splicing.",
+   "summary_source_ids": [
+    "model-pages-20261127-batch10-splicebert-source-paper",
+    "model-pages-20261127-batch10-splicebert-source-readme"
+   ],
+   "summary_source_locator": "Paper: Results, Methods, Discussion; README introduction",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "SpliceBERT is a small BERT model trained by masked language modelling on primary RNA sequences, meaning whole transcripts including introns, from 72 vertebrate genomes. Each nucleotide is one token. The authors use its nucleotide embeddings and attention weights to study splicing: embeddings separate real splice sites from look-alike sites, and a score of how the model's predictions around a variant change (the paper's KL-context score) helps flag splice-disrupting variants. Fine-tuned, it predicts branchpoints and splice sites across species.",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-paper"
+     ],
+     "source_locator": "Paper: Introduction, Results"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "One Zenodo archive (record 7995778, version v0.1-alpha) holds three checkpoints that differ in training data and fragment length. The paper pretrained SpliceBERT in two stages, first on fixed 510 nt fragments and then, continuing from that model, on 64 to 1024 nt fragments (7 days on 8 NVIDIA V100 GPUs, then 3 days on 4); it does not name the released folders. Most analyses in the paper use the vertebrate model and compare it with SpliceBERT-human. The repository has a download script and notebooks for each analysis section, and lists the package versions used (Python 3.9.7, transformers 4.24.0, PyTorch 1.12.1). A result should name the checkpoint folder (SpliceBERT.1024nt, SpliceBERT.510nt or SpliceBERT-human.510nt) and the Zenodo record.",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-zenodo",
+      "model-pages-20261127-batch10-splicebert-source-models-readme",
+      "model-pages-20261127-batch10-splicebert-source-readme",
+      "model-pages-20261127-batch10-splicebert-source-download",
+      "model-pages-20261127-batch10-splicebert-source-paper"
+     ],
+     "source_locator": "Zenodo metadata; models/README.md; README: Reproduce the analysis; download.sh"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "RNA language model (BERT-style masked language model) of primary RNA (pre-mRNA) sequence, used mainly to study RNA splicing.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-readme",
+      "model-pages-20261127-batch10-splicebert-source-paper"
+     ],
+     "source_locator": "README introduction; paper Results"
+    },
+    {
+     "label": "Architecture",
+     "value": "BERT encoder with six transformer layers, hidden size 512 and 16 attention heads, absolute position embeddings, and a maximum input length of 1024. An optional custom implementation uses FlashAttention.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-paper",
+      "model-pages-20261127-batch10-splicebert-source-readme"
+     ],
+     "source_locator": "Paper: Methods (model architecture); README: How to use"
+    },
+    {
+     "label": "Inputs",
+     "value": "Primary RNA sequences, exons and introns, one token per nucleotide (N, A, C, G, T); U is written as T and the letters are separated by spaces before tokenising.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-paper",
+      "model-pages-20261127-batch10-splicebert-source-readme"
+     ],
+     "source_locator": "Paper: Methods, Results; README example"
+    },
+    {
+     "label": "Outputs",
+     "value": "Nucleotide embeddings (hidden states of each layer) and masked-nucleotide logits; heads can be added for token or sequence classification.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-readme",
+      "model-pages-20261127-batch10-splicebert-source-paper"
+     ],
+     "source_locator": "README example; paper Methods"
+    },
+    {
+     "label": "Parameters",
+     "value": "About 19.4 million (SpliceBERT, paper Methods). The paper says SpliceBERT-human has an identical architecture to SpliceBERT. It does not name the three released checkpoint folders or give separate counts for them.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-paper"
+     ],
+     "source_locator": "Paper: Methods (model architecture)"
+    },
+    {
+     "label": "Training data",
+     "value": "Over 2 million primary RNA sequences, about 65 billion nucleotides, extracted from the reference genomes and gene annotations of 72 vertebrates from the UCSC Genome Browser; 50,000 sequences were held out for validation. SpliceBERT-human.510nt was trained on human sequences only.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-paper",
+      "model-pages-20261127-batch10-splicebert-source-models-readme"
+     ],
+     "source_locator": "Paper: Methods (pretraining data), Data availability; models/README.md"
+    },
+    {
+     "label": "Known versions",
+     "value": "Three checkpoints in one Zenodo archive (models.tar.gz): SpliceBERT.1024nt (variable-length fragments of 64 to 1024 nt), SpliceBERT.510nt (fixed 510 nt) and SpliceBERT-human.510nt (human only, fixed 510 nt).",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-models-readme",
+      "model-pages-20261127-batch10-splicebert-source-zenodo"
+     ],
+     "source_locator": "models/README.md; Zenodo file list"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "Not reported as a date. Genome assembly versions are listed in the paper's Supplementary Table S3, which was not read.",
+     "status": "unextracted",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-paper"
+     ],
+     "source_locator": "Paper: Methods (pretraining data)"
+    },
+    {
+     "label": "Context limits",
+     "value": "1024 nucleotides for SpliceBERT.1024nt, which was trained on 64 to 1024 nt fragments; the README warns it may not work below 64 nt. The 510nt models expect exactly 510 nt (excluding [CLS] and [SEP]) without fine-tuning.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-paper",
+      "model-pages-20261127-batch10-splicebert-source-readme",
+      "model-pages-20261127-batch10-splicebert-source-models-readme"
+     ],
+     "source_locator": "Paper: Discussion; README example; models/README.md"
+    },
+    {
+     "label": "Weights licence",
+     "value": "CC BY 4.0, the licence of the Zenodo record that holds models.tar.gz.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-zenodo"
+     ],
+     "source_locator": "Zenodo metadata: license"
+    },
+    {
+     "label": "Code licence",
+     "value": "BSD-3-Clause, from the repository LICENSE file.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-license"
+     ],
+     "source_locator": "LICENSE"
+    },
+    {
+     "label": "Access",
+     "value": "Code: https://github.com/chenkenbio/SpliceBERT (the README also refers to github.com/biomed-AI/SpliceBERT). Weights: https://doi.org/10.5281/zenodo.7995778, file models.tar.gz, a direct download.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-readme",
+      "model-pages-20261127-batch10-splicebert-source-zenodo"
+     ],
+     "source_locator": "README: Download SpliceBERT, Reproduce the analysis; Zenodo"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "Small model, about 19.4 million parameters; the README recommends a GPU with at least 4 GB memory and says CPU-only use is possible but slow.",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-paper",
+      "model-pages-20261127-batch10-splicebert-source-readme"
+     ],
+     "source_locator": "Paper Methods; README: System requirements"
+    },
+    {
+     "text": "Trained on primary transcripts including introns from 72 vertebrates, including the sequence around splice sites and branchpoints; the authors report it beats a human-only version in cross-species splice site prediction.",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-paper"
+     ],
+     "source_locator": "Paper: Results"
+    },
+    {
+     "text": "Open licences: BSD-3-Clause code and CC BY 4.0 weights, loadable with the standard Hugging Face transformers BERT classes.",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-license",
+      "model-pages-20261127-batch10-splicebert-source-zenodo",
+      "model-pages-20261127-batch10-splicebert-source-readme"
+     ],
+     "source_locator": "LICENSE; Zenodo; README"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Inputs are limited to 1024 nt, and the model may not work below 64 nt; the 510nt checkpoints expect exactly 510 nt.",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-paper",
+      "model-pages-20261127-batch10-splicebert-source-readme",
+      "model-pages-20261127-batch10-splicebert-source-models-readme"
+     ],
+     "source_locator": "Paper Discussion; README; models/README.md"
+    },
+    {
+     "text": "Pretrained on vertebrate RNA only; the authors also note masked-token accuracy is limited by the small model and data set.",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-paper"
+     ],
+     "source_locator": "Paper: Discussion"
+    },
+    {
+     "text": "The FlashAttention path needs mixed precision and does not support attention masks, so sequences in a batch must have the same length.",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-readme"
+     ],
+     "source_locator": "README: Examples"
+    }
+   ],
+   "diagram": {
+    "title": "SpliceBERT workflow",
+    "steps": [
+     "Primary RNA sequence, 64 to 1024 nt",
+     "U to T, one token per nucleotide, [CLS] and [SEP] added",
+     "Six-layer BERT encoder pretrained on 72 vertebrates",
+     "Nucleotide embeddings, attention weights and masked-nucleotide logits",
+     "Splice site, branchpoint or variant effect analysis"
+    ],
+    "caption": "Data flow for SpliceBERT.1024nt as described in the paper and README. Downstream classifiers are the user's own or fine-tuned heads.",
+    "source_ids": [
+     "model-pages-20261127-batch10-splicebert-source-readme",
+     "model-pages-20261127-batch10-splicebert-source-paper"
+    ],
+    "source_locator": "README example; paper Methods and Results"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "The paper gives about 19.4 million parameters for SpliceBERT and says SpliceBERT-human has an identical architecture, but it does not name the released checkpoint folders, so no count is tied to a specific folder.",
+    "The genome assembly versions (Supplementary Table S3) were not read, so no training data date is given.",
+    "The weights archive was not opened; folder names come from models/README.md.",
+    "Only the Zenodo weights were used; Hugging Face was not checked for an author copy."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Written from the chenkenbio/SpliceBERT README, LICENSE, models/README.md and download.sh at commit dc1d8781, the Zenodo record 7995778 API response, and the full text of Chen et al. 2024 (Briefings in Bioinformatics) from PMC, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "gfm2-20261011-you2026-model-splicebert",
+   "summary": "Download the SpliceBERT weights from Zenodo and compute nucleotide embeddings and masked-nucleotide logits for one sequence with the Hugging Face transformers API.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "PyTorch and Hugging Face transformers, installed by following their official installation pages; the README gives no pinned install command. The authors used Python 3.9.7, transformers 4.24.0 and PyTorch 1.12.1.",
+    "A Linux system with an NVIDIA GPU of at least 4 GB memory is recommended; CPU-only runs are possible but slow.",
+    "About 218 MB for models.tar.gz (217,605,407 bytes per Zenodo). Code is BSD-3-Clause; weights are CC BY 4.0."
+   ],
+   "steps": [
+    {
+     "title": "Download and unpack the weights",
+     "shell": "wget -c -O models.tar.gz https://zenodo.org/record/7995778/files/models.tar.gz?download=1 && tar -xzvf models.tar.gz",
+     "explanation": "The weights line from the repository's download.sh. It unpacks the three checkpoints; set SPLICEBERT_PATH in the next step to the folder of the one you want, for example SpliceBERT.1024nt.",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-download",
+      "model-pages-20261127-batch10-splicebert-source-models-readme",
+      "model-pages-20261127-batch10-splicebert-source-zenodo"
+     ],
+     "source_locator": "download.sh; models/README.md; Zenodo file list"
+    },
+    {
+     "title": "Compute embeddings and logits",
+     "shell": "python - <<'PY'\nSPLICEBERT_PATH = \"/path/to/SpliceBERT/models/model_folder\"  # set the path to the folder of pre-trained SpliceBERT\nimport torch\nfrom transformers import AutoTokenizer, AutoModel, AutoModelForMaskedLM, AutoModelForTokenClassification\n\n# load tokenizer\ntokenizer = AutoTokenizer.from_pretrained(SPLICEBERT_PATH)\n\n# prepare input sequence\nseq = \"ACGUACGuacguaCGu\"  ## WARNING: this is just a demo. SpliceBERT may not work on sequences shorter than 64nt as it was trained on sequences of 64-1024nt in length\nseq = ' '.join(list(seq.upper().replace(\"U\", \"T\"))) # U -> T and add whitespace\ninput_ids = tokenizer.encode(seq) # N -> 5, A -> 6, C -> 7, G -> 8, T(U) -> 9. NOTE: a [CLS] and a [SEP] token will be added to the start and the end of seq\ninput_ids = torch.as_tensor(input_ids) # convert python list to Tensor\ninput_ids = input_ids.unsqueeze(0) # add batch dimension, shape: (batch_size, sequence_length)\n\n# use huggerface's official API to use SpliceBERT\n# get nucleotide embeddings (hidden states)\nmodel = AutoModel.from_pretrained(SPLICEBERT_PATH) # load model\nlast_hidden_state = model(input_ids).last_hidden_state # get hidden states from last layer\nhiddens_states = model(input_ids, output_hidden_states=True).hidden_states # hidden states from the embedding layer (nn.Embedding) and the 6 transformer encoder layers\n\n# get nucleotide type logits in masked language modeling\nmodel = AutoModelForMaskedLM.from_pretrained(SPLICEBERT_PATH) # load model\nlogits = model(input_ids).logits # shape: (batch_size, sequence_length, vocab_size)\nPY",
+     "explanation": "The first part of the README's official-API example, wrapped in a shell heredoc. The README's lines that create fine-tuning heads are left out, because the sequence-classification line uses a class the example does not import. Replace the placeholder path, and use a real sequence of 64 to 1024 nt; the demo sequence is shorter than the model supports.",
+     "source_ids": [
+      "model-pages-20261127-batch10-splicebert-source-readme"
+     ],
+     "source_locator": "README: Examples (official API)"
+    }
+   ],
+   "outputs": [
+    "Tensors held in memory: the last-layer hidden states, the hidden states of the embedding layer and all six encoder layers, and masked-language-model logits of shape (batch_size, sequence_length, vocab_size). The example prints nothing."
+   ],
+   "limitations": [
+    "These commands were read from the repository and have not been executed by Rewire.",
+    "The folder names inside models.tar.gz are taken from models/README.md; the archive itself was not opened.",
+    "The demo sequence is shorter than 64 nt, which the README warns may not work."
+   ],
+   "source_ids": [
+    "model-pages-20261127-batch10-splicebert-source-readme",
+    "model-pages-20261127-batch10-splicebert-source-download",
+    "model-pages-20261127-batch10-splicebert-source-models-readme"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "This page is meant for both SpliceBERT records (gfm2-20261011-you2026-model-splicebert and lit-genomics-20261011-geneb-model-splicebert). The README and Zenodo record point to github.com/biomed-AI/SpliceBERT, while the files read here come from chenkenbio/SpliceBERT, whose saved GitHub API response (artifacts/gh-repo.json) gives full_name chenkenbio/SpliceBERT and fork false; no saved file shows how the two addresses are related. The chenkenbio repository is cited. The structured released date is the Zenodo record's publication date. The paper gives about 19.4 million parameters for SpliceBERT without naming a checkpoint folder, so the structured parameter fields are null.",
+  "no_run_guide_reason": ""
+ },
+ "gfm2-20261011-datta2026-model-generator-v2": {
+  "slug": "generator",
+  "new_source_ids": [
+   "model-pages-20261126-batch1-generator-source-readme",
+   "model-pages-20261126-batch1-generator-source-license",
+   "model-pages-20261127-batch10-generator-source-requirements",
+   "model-pages-20261127-batch10-generator-source-hf-card-v2",
+   "model-pages-20261127-batch10-generator-source-hf-config-v2",
+   "model-pages-20261126-batch1-generator-source-hf-card",
+   "model-pages-20261126-batch1-generator-source-hf-config",
+   "model-pages-20261127-batch10-generator-source-hf-api-eukaryote-12b",
+   "model-pages-20261127-batch10-generator-source-hf-api-eukaryote-3b",
+   "model-pages-20261127-batch10-generator-source-hf-api-v2-eukaryote-12b",
+   "model-pages-20261127-batch10-generator-source-hf-api-v2-eukaryote-3b",
+   "model-pages-20261127-batch10-generator-source-hf-api-v2-prokaryote-12b",
+   "model-pages-20261127-batch10-generator-source-hf-api-v2-prokaryote-3b",
+   "model-pages-20261127-batch10-generator-source-hf-config-eukaryote-3b",
+   "model-pages-20261127-batch10-generator-source-hf-config-v2-eukaryote-3b",
+   "model-pages-20261127-batch10-generator-source-hf-config-v2-prokaryote-12b",
+   "model-pages-20261127-batch10-generator-source-hf-config-v2-prokaryote-3b",
+   "model-pages-20261127-batch10-generator-source-hf-list",
+   "model-pages-20261127-batch10-generator-source-paper",
+   "model-pages-20261126-batch1-generator-source-paper"
+  ],
+  "profile": {
+   "summary": "GENERator is a family of generative DNA language models that read DNA as six-base tokens and predict what comes next, like a text language model. The models handle long inputs (16,384 tokens, given as 98k base pairs in the first release) and are used to generate DNA sequences, score the effect of variants, and provide embeddings for classification tasks. The first release was trained on 386 billion nucleotides of eukaryotic DNA from RefSeq; the v2 series adds new eukaryote models and prokaryote models, at 1.2B and 3B parameters.",
+   "summary_source_ids": [
+    "model-pages-20261127-batch10-generator-source-paper",
+    "model-pages-20261126-batch1-generator-source-hf-card",
+    "model-pages-20261126-batch1-generator-source-readme"
+   ],
+   "summary_source_locator": "Paper Figure 1 caption, Section 4; v1 card; README",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "GENERator is a decoder-only transformer, built on the LLaMA framework, that predicts the next 6-mer token of a DNA sequence. Grouping six bases per token lets a 16,384-token window cover long stretches of DNA. The authors compared tokenizers for this autoregressive setting and found 6-mers best, with BPE close to random on their sequence recovery test. For the first release they trained only on gene-centric regions of eukaryotic RefSeq genomes rather than whole genomes, which gave lower loss for the whole-genome model but better downstream results for the gene-centric one. Training sequences start at a random offset of 0 to 5 bases so the model sees different 6-mer framings.",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-paper"
+     ],
+     "source_locator": "Paper Sections 2.2.1, 4.1, 4.3"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "There are two generations. The first release (February 2025) has eukaryote models at 1.2B and 3B parameters. The v2 series (November 2025) adds new eukaryote models and prokaryote models at the same two sizes, described in a separate technical report on bioRxiv. The 1.2B configurations of the first release and v2 are identical; the v2 card adds a per-base sequence scoring function. The README asks users of the prokaryote models to re-download weights updated on 2026-07-06. A result should name the full checkpoint name, including v2 and eukaryote or prokaryote, and its Hugging Face revision. This page read GENERator-v2-eukaryote-1.2b-base at revision c41b0018 and GENERator-eukaryote-1.2b-base at revision 5e872c94. The paper gives the 1B model's pretraining compute as 11,776 A100-hours (368 hours on 32 GPUs) in Appendix B and as 11,793 A100-hours in its resource table (Table S16); the two figures conflict and the paper does not explain the difference. Table S16 gives 29,625 A100-hours for the 3B model.",
+     "source_ids": [
+      "model-pages-20261126-batch1-generator-source-readme",
+      "model-pages-20261127-batch10-generator-source-hf-card-v2",
+      "model-pages-20261127-batch10-generator-source-paper"
+     ],
+     "source_locator": "README: News; v2 model card; paper Appendix B"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "Generative DNA language model family (autoregressive transformer decoder) used for sequence generation, variant effect scoring and as a source of embeddings for fine-tuning.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-paper",
+      "model-pages-20261127-batch10-generator-source-hf-card-v2"
+     ],
+     "source_locator": "Paper Figure 1 caption; v2 model card: How to use"
+    },
+    {
+     "label": "Architecture",
+     "value": "Decoder-only transformer based on the LLaMA framework with a 6-mer tokenizer. The 1.2B configuration (first release and v2 are identical): 26 layers, hidden size 2048, intermediate size 5632, 32 attention heads with 4 key-value heads, vocabulary 4128, RoPE theta 500000. The 3B configurations have 30 layers and hidden size 3072. The paper's Table S12 gives the same figures (26 and 30 layers, hidden size 2048 and 3072, 32 heads with 4 KV heads).",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-paper",
+      "model-pages-20261127-batch10-generator-source-hf-config-v2",
+      "model-pages-20261126-batch1-generator-source-hf-config",
+      "model-pages-20261127-batch10-generator-source-hf-config-v2-eukaryote-3b"
+     ],
+     "source_locator": "Paper Section 4.3 and Table S12; config.json files"
+    },
+    {
+     "label": "Inputs",
+     "value": "DNA sequences, tokenised into 6-mers. For generation the input length should be a multiple of 6, by left padding with A or left truncation; otherwise an out-of-vocabulary token is appended. The v2 scoring function accepts any length.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch1-generator-source-readme",
+      "model-pages-20261127-batch10-generator-source-hf-card-v2"
+     ],
+     "source_locator": "README: Important Notice; v2 model card Example 3"
+    },
+    {
+     "label": "Outputs",
+     "value": "Generated DNA continuations; hidden-state embeddings (separator token, last DNA token or mean pooling); and, in v2, per-base probabilities of A, T, C and G from model.score_sequence, which can be turned into sequence log-likelihoods.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-hf-card-v2"
+     ],
+     "source_locator": "v2 model card: Examples 1 to 3"
+    },
+    {
+     "label": "Parameters",
+     "value": "1,162,061,824 (each 1.2B checkpoint) and 2,998,262,784 (each 3B checkpoint), from the Hugging Face safetensors counts of all six base models.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-hf-api-eukaryote-12b",
+      "model-pages-20261127-batch10-generator-source-hf-api-eukaryote-3b",
+      "model-pages-20261127-batch10-generator-source-hf-api-v2-eukaryote-12b",
+      "model-pages-20261127-batch10-generator-source-hf-api-v2-eukaryote-3b",
+      "model-pages-20261127-batch10-generator-source-hf-api-v2-prokaryote-12b",
+      "model-pages-20261127-batch10-generator-source-hf-api-v2-prokaryote-3b"
+     ],
+     "source_locator": "Hugging Face API safetensors field for each checkpoint"
+    },
+    {
+     "label": "Training data",
+     "value": "DNA from the RefSeq database. The first-release eukaryote models were trained on a gene-centric functional corpus of 386 billion nucleotides from all eukaryotic organisms in RefSeq (gene loci with exons, introns, UTRs and nearby regulatory regions). The README lists 422B for the v2 eukaryote models and 515B for the v2 prokaryote models; the v2 data are not described further in the sources read.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-paper",
+      "model-pages-20261126-batch1-generator-source-readme"
+     ],
+     "source_locator": "Paper Section 4.1; README model table"
+    },
+    {
+     "label": "Known versions",
+     "value": "Six base checkpoints: first release GENERator-eukaryote-1.2b-base and -3b-base; v2 GENERator-v2-eukaryote-1.2b-base and -3b-base; and v2 GENERator-v2-prokaryote-1.2b-base and -3b-base. The README notes an important update to the prokaryote weights on 2026-07-06. The same account also publishes GENERanno annotation models, not covered here.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch1-generator-source-readme",
+      "model-pages-20261127-batch10-generator-source-hf-list"
+     ],
+     "source_locator": "README: model table, News; GenerTeam model listing"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "Not reported. The sources read do not date the RefSeq download.",
+     "status": "unreported",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-paper"
+     ],
+     "source_locator": "Paper Section 4.1"
+    },
+    {
+     "label": "Context limits",
+     "value": "16,384 tokens (6-mers), the maximum sequence length in pretraining and max_position_embeddings in the config.json of all six checkpoints. The paper's Table S12 lists a context length of 16,384 (98,304 bp) for both sizes. The first-release card describes this as a context length of 98k base pairs. The README says sliding-window attention extended the context to 1 million bp on one A100 GPU.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-paper",
+      "model-pages-20261127-batch10-generator-source-hf-config-v2",
+      "model-pages-20261127-batch10-generator-source-hf-config-v2-prokaryote-3b",
+      "model-pages-20261126-batch1-generator-source-hf-card",
+      "model-pages-20261126-batch1-generator-source-readme"
+     ],
+     "source_locator": "Paper Appendix B and Table S12; config.json files; v1 model card; README: Dependencies"
+    },
+    {
+     "label": "Weights licence",
+     "value": "MIT, as declared in the Hugging Face metadata of all six checkpoints.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-hf-card-v2",
+      "model-pages-20261127-batch10-generator-source-hf-api-eukaryote-3b",
+      "model-pages-20261127-batch10-generator-source-hf-api-v2-prokaryote-3b"
+     ],
+     "source_locator": "Model card metadata; API cardData"
+    },
+    {
+     "label": "Code licence",
+     "value": "MIT, from the repository LICENSE file.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch1-generator-source-license"
+     ],
+     "source_locator": "LICENSE"
+    },
+    {
+     "label": "Access",
+     "value": "Code: https://github.com/GenerTeam/GENERator. Weights: https://huggingface.co/GenerTeam, one repository per checkpoint (for example https://huggingface.co/GenerTeam/GENERator-v2-eukaryote-1.2b-base), none gated.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch1-generator-source-readme",
+      "model-pages-20261127-batch10-generator-source-hf-api-eukaryote-12b",
+      "model-pages-20261127-batch10-generator-source-hf-api-v2-eukaryote-12b",
+      "model-pages-20261127-batch10-generator-source-hf-api-v2-prokaryote-12b"
+     ],
+     "source_locator": "README model table; API gated field"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "Long context for a transformer: 16,384 6-mer tokens, which the first-release card gives as 98k base pairs.",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-hf-config-v2",
+      "model-pages-20261126-batch1-generator-source-hf-card"
+     ],
+     "source_locator": "config.json; v1 card"
+    },
+    {
+     "text": "Fast generation by the authors' measurement: tens of times faster than Evo2 at comparable sizes on one L40S GPU.",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-paper"
+     ],
+     "source_locator": "Paper Figure 2 caption"
+    },
+    {
+     "text": "Code and weights are MIT licensed and not gated, and the repository has scripts for variant effect prediction, sequence recovery, classification and fine-tuning.",
+     "source_ids": [
+      "model-pages-20261126-batch1-generator-source-license",
+      "model-pages-20261126-batch1-generator-source-readme",
+      "model-pages-20261127-batch10-generator-source-hf-api-v2-eukaryote-12b"
+     ],
+     "source_locator": "LICENSE; README Downstream; API"
+    },
+    {
+     "text": "Separate eukaryote and prokaryote models in v2, so users can match the model to their organisms.",
+     "source_ids": [
+      "model-pages-20261126-batch1-generator-source-readme"
+     ],
+     "source_locator": "README model table"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "The 6-mer tokenizer means generation inputs must be a multiple of 6 bases long, or the output can degrade into repeats such as AAAAAA.",
+     "source_ids": [
+      "model-pages-20261126-batch1-generator-source-readme"
+     ],
+     "source_locator": "README: Important Notice"
+    },
+    {
+     "text": "The card examples need a CUDA GPU and FlashAttention 2, and the models have 1.2 to 3 billion parameters. Inference memory needs are not stated.",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-hf-card-v2",
+      "model-pages-20261126-batch1-generator-source-readme"
+     ],
+     "source_locator": "v2 card examples; README Dependencies"
+    },
+    {
+     "text": "The first-release models were trained on gene-centric regions of eukaryotic genomes only; the v2 training data and methods are described in a bioRxiv report that was not read here.",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-paper",
+      "model-pages-20261127-batch10-generator-source-hf-card-v2"
+     ],
+     "source_locator": "Paper Section 4.1; v2 card"
+    }
+   ],
+   "diagram": {
+    "title": "GENERator workflow",
+    "steps": [
+     "DNA sequence, length a multiple of 6 for generation",
+     "6-mer tokens, up to 16,384",
+     "LLaMA-style transformer decoder, next-token prediction",
+     "Generated DNA, hidden-state embeddings, or per-base probabilities (v2)",
+     "Downstream use: design, variant scoring, classification"
+    ],
+    "caption": "Data flow as described in the paper, README and v2 model card. Classification uses fine-tuning scripts in the repository.",
+    "source_ids": [
+     "model-pages-20261127-batch10-generator-source-paper",
+     "model-pages-20261127-batch10-generator-source-hf-card-v2",
+     "model-pages-20261126-batch1-generator-source-readme"
+    ],
+    "source_locator": "Paper; v2 card; README"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "The GENERator-v2 technical report (bioRxiv 10.64898/2026.01.27.702015) was not read; no open full text was saved. What changed in v2 training is therefore not described.",
+    "Model cards of the 3B and prokaryote checkpoints were not read; only their config.json files and API metadata were.",
+    "Inference GPU memory needs are not stated."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Written from the GenerTeam/GENERator README, LICENSE and requirements.txt at commit 5132e2c3, the model cards and config.json files of GENERator-v2-eukaryote-1.2b-base (revision c41b0018) and GENERator-eukaryote-1.2b-base (revision 5e872c94), the config.json files of the other four checkpoints, Hugging Face API responses for all six base checkpoints, and the arXiv 2502.07272 abstract page and HTML full text (v5), all fetched on 2026-11-27. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "gfm2-20261011-datta2026-model-generator-v2",
+   "summary": "Install the repository's requirements at a pinned commit and generate 32 tokens of continuation for two DNA sequences with GENERator-v2-eukaryote-1.2b-base.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "Python 3.10, as the README states, and a CUDA GPU; the card example uses FlashAttention 2 and bfloat16. GPU memory needs are not stated.",
+    "Internet access to download the weights from Hugging Face (not gated). The README suggests the mirror https://hf-mirror.com if huggingface.co is unreachable.",
+    "Code and weights are MIT licensed."
+   ],
+   "steps": [
+    {
+     "title": "Get the code and install requirements",
+     "shell": "git clone https://github.com/GenerTeam/GENERator.git\ncd GENERator\ngit checkout --detach 5132e2c35da5d5e9a7dcec7484901be4de864bf6\npip install -r requirements.txt\npip install flash-attn --no-build-isolation",
+     "explanation": "The README's dependency steps with a checkout line added to pin the commit this page read. The README lists FlashAttention as recommended for long sequences; it is installed here because the card example requests flash_attention_2.",
+     "source_ids": [
+      "model-pages-20261126-batch1-generator-source-readme",
+      "model-pages-20261127-batch10-generator-source-hf-card-v2"
+     ],
+     "source_locator": "README: Dependencies; v2 card"
+    },
+    {
+     "title": "Generate sequences",
+     "shell": "python - <<'PY'\nimport torch\nfrom transformers import AutoTokenizer, AutoModelForCausalLM\n\nmodel = AutoModelForCausalLM.from_pretrained(\n    \"GenerTeam/GENERator-v2-eukaryote-1.2b-base\",\n    attn_implementation=\"flash_attention_2\",\n    trust_remote_code=True,\n    dtype=torch.bfloat16,\n).cuda().eval()\n\ntokenizer = AutoTokenizer.from_pretrained(\n    \"GenerTeam/GENERator-v2-eukaryote-1.2b-base\",\n    trust_remote_code=True,\n)\n\n# Define input sequences.\nsequences = [\n    \"ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG\",\n    \"ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\"\n]\n\n# Truncate each sequence to the nearest multiple of 6\nprocessed_sequences = [\"<s>\" + seq[len(seq)%6:] for seq in sequences]\n\n# Tokenize the sequences\ninputs = tokenizer(\n    processed_sequences,\n    add_special_tokens=False,\n    return_tensors=\"pt\",\n    padding=True,\n    padding_side=\"left\",\n).to(\"cuda\")\n\n# Generate the sequences\nwith torch.inference_mode():\n    outputs = model.generate(**inputs, max_new_tokens=32, do_sample=False)\n\n# Decode the generated sequences\ndecoded_sequences = tokenizer.batch_decode(outputs, skip_special_tokens=True)\n\n# Print the decoded sequences\nprint(decoded_sequences)\nPY",
+     "explanation": "Example 1 from the v2 model card, unchanged, wrapped in a shell heredoc.",
+     "source_ids": [
+      "model-pages-20261127-batch10-generator-source-hf-card-v2"
+     ],
+     "source_locator": "v2 model card: Example 1"
+    }
+   ],
+   "outputs": [
+    "A list of the two input sequences followed by their generated continuations, printed to the terminal."
+   ],
+   "limitations": [
+    "These commands were read from the repository and model card and have not been executed by Rewire.",
+    "requirements.txt pins transformers[torch]==4.49.0; the card does not say which transformers version its example was written for.",
+    "Greedy decoding (do_sample=False) is used, as in the card."
+   ],
+   "source_ids": [
+    "model-pages-20261126-batch1-generator-source-readme",
+    "model-pages-20261127-batch10-generator-source-hf-card-v2",
+    "model-pages-20261127-batch10-generator-source-requirements"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "The record ID ends in generator-v2 but the record name and description cover the whole GENERator family, so the page describes both generations. The v2 technical report is only on bioRxiv: https://www.biorxiv.org/content/10.64898/2026.01.27.702015v1.full.pdf (not fetched, per run rules). The README news item says the 2026-07-06 update applies to GENERator-prokaryote-1.2b-base and -3b-base but links to the v2 prokaryote repository; the page reports it as an update to the prokaryote weights without resolving the naming.",
+  "no_run_guide_reason": ""
+ },
+ "intake-404-20261126-model-mirrordna": {
+  "slug": "mirrordna",
+  "new_source_ids": [
+   "model-pages-20261127-batch10-mirrordna-source-readme",
+   "model-pages-20261127-batch10-mirrordna-source-license",
+   "model-pages-20261127-batch10-mirrordna-source-weights-readme",
+   "model-pages-20261127-batch10-mirrordna-source-requirements",
+   "model-pages-20261127-batch10-mirrordna-source-info-tiny",
+   "model-pages-20261127-batch10-mirrordna-source-info-duplex",
+   "model-pages-20261127-batch10-mirrordna-source-code",
+   "model-pages-20261127-batch10-mirrordna-source-hf-card",
+   "model-pages-20261127-batch10-mirrordna-source-hf-api-mirrordna-tiny",
+   "model-pages-20261127-batch10-mirrordna-source-hf-api-mirrordna-duplex",
+   "model-pages-20261127-batch10-mirrordna-source-hf-api-chunker-rcaug"
+  ],
+  "profile": {
+   "summary": "MirrorDNA is a very small DNA language model, 2.35M parameters for the main model, that learns its own way of splitting DNA into tokens. Its tokenizer is built so that a sequence and its reverse complement, the two strands of the same DNA, are always split into mirror-image pieces, so both strands get the same tokens. It is pretrained on the human genome and fine-tuned for DNA classification and regression tasks, giving features that either ignore strand or keep it, depending on the task.",
+   "summary_source_ids": [
+    "model-pages-20261127-batch10-mirrordna-source-hf-card",
+    "model-pages-20261127-batch10-mirrordna-source-hf-api-mirrordna-tiny"
+   ],
+   "summary_source_locator": "Model card: opening paragraph, Intended use; Hugging Face API",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "DNA is double-stranded, so the same stretch can be read in either direction as its reverse complement. MirrorDNA learns how to cut a sequence into chunks (its tokens) with a symmetric boundary router built so that a sequence and its reverse complement are always cut into mirror-image chunks, whatever the parameter values. Both strands therefore get the same tokens. Bases pass through an encoder, the router chooses chunk boundaries and a transformer works on the chunks. A decoder produces per-base features at full resolution, from which the model computes its output logits; pretraining is masked language modelling with 15% of bases masked. For downstream tasks the model gives pooled features that do not depend on strand, or orientation-aware features for labels that do, such as promoters or splice sites.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-hf-card",
+      "model-pages-20261127-batch10-mirrordna-source-readme",
+      "model-pages-20261127-batch10-mirrordna-source-code"
+     ],
+     "source_locator": "Model card; README: Repository layout, Using the model; rcchunk.py forward"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "Three checkpoints were released with one pretraining recipe: the main MirrorDNA model, a duplex-encoder variant, and a control without the equivariance guarantee that relies on reverse-complement augmentation instead. The repository includes the weights, a numerical test of the equivariance guarantee, a two-minute quick start on a small test data set, and scripts to rerun every pretraining, baseline and analysis step of the paper. A result should name the checkpoint folder or Hugging Face repository and its revision; this page read the repository at commit 9c432fc4 and mirrordna-tiny on Hugging Face at revision 11bedeae.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-weights-readme",
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "weights/README.md; README: Quick start, Reproducing the paper"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "Small DNA language model with a learned, reverse-complement-equivariant tokenizer, pretrained by masked language modelling and used mainly through fine-tuning for sequence classification and regression.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-hf-card"
+     ],
+     "source_locator": "Model card: opening paragraph, Pretraining, Intended use"
+    },
+    {
+     "label": "Architecture",
+     "value": "An encoder over bases (shared-weight convolutional in MirrorDNA, cross-strand gated duplex in MirrorDNA-duplex), a symmetric boundary router that cuts the sequence into chunks, a chunk transformer, a decoder and task heads. The released configurations use width 96, 4 encoder layers, 4 main layers, 2 decoder layers, 4 heads and a target chunk ratio of 4.0.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-readme",
+      "model-pages-20261127-batch10-mirrordna-source-weights-readme",
+      "model-pages-20261127-batch10-mirrordna-source-info-tiny"
+     ],
+     "source_locator": "README: Repository layout; weights/README.md; pretrain_info.json"
+    },
+    {
+     "label": "Inputs",
+     "value": "DNA sequences encoded one base per position (A, C, G, T, N as 0 to 4).",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "README: Using the model"
+    },
+    {
+     "label": "Outputs",
+     "value": "Chunk boundaries (the learned tokenisation), strand-invariant pooled sequence features, and orientation-aware pooled features for strand-dependent labels; after fine-tuning, class predictions on both strands.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "README: Using the model; Fine-tuning"
+    },
+    {
+     "label": "Parameters",
+     "value": "2,348,356 (mirrordna-tiny), 2,496,964 (mirrordna-duplex), 2,515,588 (chunker-rcaug), from the Hugging Face safetensors counts; the weights README rounds these to 2.35M, 2.50M and 2.52M.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-hf-api-mirrordna-tiny",
+      "model-pages-20261127-batch10-mirrordna-source-hf-api-mirrordna-duplex",
+      "model-pages-20261127-batch10-mirrordna-source-hf-api-chunker-rcaug",
+      "model-pages-20261127-batch10-mirrordna-source-weights-readme"
+     ],
+     "source_locator": "Hugging Face API safetensors field; weights/README.md"
+    },
+    {
+     "label": "Training data",
+     "value": "Human reference genome hg38, Basenji/Enformer training intervals on chromosomes 1 to 22 and X, in 1,024-bp windows; 2^20 bases per step for 10,000 steps (10.5B bases), with 15% of bases masked.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-hf-card",
+      "model-pages-20261127-batch10-mirrordna-source-weights-readme",
+      "model-pages-20261127-batch10-mirrordna-source-info-tiny"
+     ],
+     "source_locator": "Model card: Pretraining; weights/README.md; pretrain_info.json"
+    },
+    {
+     "label": "Known versions",
+     "value": "Three checkpoints: mirrordna-tiny (MirrorDNA, the main model), mirrordna-duplex (MirrorDNA-duplex) and chunker-rcaug, a non-equivariant control with the duplex architecture trained with reverse-complement augmentation. All share the same pretraining recipe.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-weights-readme",
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "weights/README.md; README model table"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "Not reported as a date. The training data are the hg38 reference genome with Basenji/Enformer intervals.",
+     "status": "unreported",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-hf-card"
+     ],
+     "source_locator": "Model card: Pretraining"
+    },
+    {
+     "label": "Context limits",
+     "value": "1,024 bp, the pretraining window. The sources do not state a hard maximum; the repository's gene-strand task builder also offers 2,048 to 16,384 bp windows for a length test.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-hf-card",
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "Model card: Pretraining, Intended use; README: Reproducing the paper"
+    },
+    {
+     "label": "Weights licence",
+     "value": "MIT, as declared in the Hugging Face metadata of all three checkpoints; the weights are also in the MIT-licensed GitHub repository.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-hf-api-mirrordna-tiny",
+      "model-pages-20261127-batch10-mirrordna-source-hf-api-chunker-rcaug",
+      "model-pages-20261127-batch10-mirrordna-source-hf-card"
+     ],
+     "source_locator": "Hugging Face API cardData; model card metadata"
+    },
+    {
+     "label": "Code licence",
+     "value": "MIT, from the repository LICENSE file.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-license",
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "LICENSE; README: License"
+    },
+    {
+     "label": "Access",
+     "value": "Code and weights: https://github.com/NIRJHOR-DATTA/MirrorDNA (weights in weights/). Weights also on Hugging Face: https://huggingface.co/nirjhor123/mirrordna-tiny, https://huggingface.co/nirjhor123/mirrordna-duplex and https://huggingface.co/nirjhor123/chunker-rcaug, none gated.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-readme",
+      "model-pages-20261127-batch10-mirrordna-source-hf-api-mirrordna-tiny",
+      "model-pages-20261127-batch10-mirrordna-source-hf-api-mirrordna-duplex",
+      "model-pages-20261127-batch10-mirrordna-source-hf-api-chunker-rcaug"
+     ],
+     "source_locator": "README: Installation, model table; API gated field"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "Reverse-complement equivariance is exact by construction, so both strands of a sequence get the same tokens without relying on data augmentation; the repository includes a test that checks this.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-hf-card",
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "Model card; README Quick start"
+    },
+    {
+     "text": "Very small (2.35M to 2.52M parameters) and plain PyTorch with no custom kernels, running on GPU or CPU on Linux, Windows and macOS.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-weights-readme",
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "weights/README.md; README Installation"
+    },
+    {
+     "text": "Code, weights and full reproduction scripts are MIT licensed and included in one repository.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-license",
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "LICENSE; README"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Pretrained on the human genome only, with 1-kb windows; the authors say larger models are more accurate on several benchmarks.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-hf-card"
+     ],
+     "source_locator": "Model card: Intended use and limitations"
+    },
+    {
+     "text": "Intended as a research model for DNA sequence classification and regression, mainly with fine-tuning.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-hf-card"
+     ],
+     "source_locator": "Model card: Intended use and limitations"
+    },
+    {
+     "text": "The paper is a recent bioRxiv preprint and the model card's citation is not yet filled in; the paper was not read for this page.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-hf-card",
+      "model-pages-20261127-batch10-mirrordna-source-readme",
+      "intake-404-20261126-source-learning-strand-equivariant-tokenizations-of-dna-with-mirror"
+     ],
+     "source_locator": "Model card: Citation; README paper badge"
+    }
+   ],
+   "diagram": {
+    "title": "MirrorDNA workflow",
+    "steps": [
+     "DNA sequence, one base per position (1-kb windows in pretraining)",
+     "Encoder over bases",
+     "Symmetric boundary router: mirror-image chunks on both strands",
+     "Chunk transformer",
+     "Pooled features (strand-invariant or orientation-aware) for a task head"
+    ],
+    "caption": "Data flow as described in the README, model card and code. A decoder also gives per-base features at full resolution, used for the output logits.",
+    "source_ids": [
+     "model-pages-20261127-batch10-mirrordna-source-readme",
+     "model-pages-20261127-batch10-mirrordna-source-hf-card",
+     "model-pages-20261127-batch10-mirrordna-source-code"
+    ],
+    "source_locator": "README: Repository layout, Using the model; model card; rcchunk.py"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "The paper (bioRxiv 10.64898/2026.11.04.764207) was not read; bioRxiv was not contacted in this run and no open full text was saved. Benchmark results and the detailed router design are therefore not described.",
+    "Model cards of mirrordna-duplex and chunker-rcaug were not read; their descriptions come from the repository's weights README.",
+    "The page quotes rcchunk.py only for the forward pass that produces per-base decoder features and logits; the router design in that file is not described here."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Written from the NIRJHOR-DATTA/MirrorDNA README, LICENSE, requirements.txt, weights/README.md and two pretrain_info.json files and rcchunk.py at commit 9c432fc4, the nirjhor123/mirrordna-tiny model card at revision 11bedeae, and Hugging Face API responses for the three checkpoints, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "intake-404-20261126-model-mirrordna",
+   "summary": "Install MirrorDNA at a pinned commit, check the equivariance guarantee, and run the quick start, which shows the learned chunks and fine-tunes the bundled model on a small gene-strand data set.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "Python 3.10 or 3.11 and PyTorch 2.1 or newer, as the README states. Runs on GPU or CPU; for NVIDIA Blackwell GPUs the README gives a CUDA 12.8 PyTorch build.",
+    "No downloads beyond pip packages: the weights and the test data set are in the repository.",
+    "Code and weights are MIT licensed."
+   ],
+   "steps": [
+    {
+     "title": "Install",
+     "shell": "git clone https://github.com/NIRJHOR-DATTA/MirrorDNA.git\ncd MirrorDNA\ngit checkout --detach 9c432fc4ce1e4869ddb0cf5f72f21ee7cddbac1b\npip install -r requirements.txt",
+     "explanation": "The README's installation commands, with a checkout line added to pin the commit this page read.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "README: Installation"
+    },
+    {
+     "title": "Check the equivariance guarantee",
+     "shell": "python test_equivariance.py",
+     "explanation": "Runs the numerical check on random weights; the README says it takes seconds on CPU and ends with PASS.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "README: Quick start step 1"
+    },
+    {
+     "title": "Run the quick start",
+     "shell": "python example/quickstart.py --weights weights/mirrordna-tiny --finetune",
+     "explanation": "Loads the bundled main model, prints the chunks of a sequence and its reverse complement, checks the guarantee on random 1-kb inputs and fine-tunes for a few epochs on example/data/gene_strand_tss_small.npz.",
+     "source_ids": [
+      "model-pages-20261127-batch10-mirrordna-source-readme"
+     ],
+     "source_locator": "README: Quick start step 2"
+    }
+   ],
+   "outputs": [
+    "The equivariance test ends with PASS. The quick start prints the learned chunks of a sequence and its reverse complement, the guarantee check on random 1-kb inputs, and fine-tuning results on the 200 test windows, as the README describes."
+   ],
+   "limitations": [
+    "These commands were read from the repository and have not been executed by Rewire.",
+    "The quick start's fine-tuning uses a 400-window toy data set; its results are not benchmark results."
+   ],
+   "source_ids": [
+    "model-pages-20261127-batch10-mirrordna-source-readme"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "No twin record. The paper is a bioRxiv preprint: https://www.biorxiv.org/content/10.64898/2026.11.04.764207v1.full.pdf (not fetched, per run rules). Coverage is marked reviewed because the README and a model card were read, though the paper was not. artifacts/pretrain_info-chunker-rcaug.json was saved but not cited.",
+  "no_run_guide_reason": ""
+ }
+}
