@@ -104,6 +104,19 @@ jobs:
 
       # A source this run cannot fetch (gone, refused, behind a login) is recorded as failed with
       # its reason and does not stop the others. `archive status` and the summary count them.
+      # Without this the runner holds only the public objects, and the fetch below downloads every
+      # restricted source again from its publisher on every run: 47 minutes on 27 November 2026.
+      - name: Fill the rest of the cache from the bucket
+        if: ${{ !inputs.dry_run }}
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          npm run -s archive -- pull --from r2 --json > "$RUNNER_TEMP/pull-r2.json" || true
+          node -e 'const s = require(`${process.env.RUNNER_TEMP}/pull-r2.json`); console.log(`held ${s.already_held}, downloaded ${s.downloaded}, failed ${(s.failed || []).length}`)' || true
+
       - name: Fetch every source that is not yet held
         if: ${{ !inputs.dry_run }}
         run: |
@@ -134,7 +147,7 @@ jobs:
       # minutes and the hydrate and upload above can take most of this job's 90.
       # Two generated files follow the manifest and tests hold them to it: the layer registry
       # (data/omics/layers) and the span resolution figures (maintenance/reports). Both need every
-      # object's bytes, so the cache is completed from the bucket first. The rebuilt registry is
+      # object's bytes, which the cache holds by now (bucket, then fetch). The rebuilt registry is
       # compared with the committed one: pdftotext output can differ between versions, and a
       # rebuild that rewrites existing rows is refused instead of committed.
       - name: Rebuild the layer registry and the span figures
@@ -148,7 +161,6 @@ jobs:
           if [ -z "$(git status --porcelain data/archive/objects)" ]; then echo "The manifest did not change."; exit 0; fi
           sudo apt-get install -y -q poppler-utils >/dev/null
           pdftotext -v 2>&1 | head -1
-          npm run -s archive -- pull --from r2 --json > "$RUNNER_TEMP/pull-r2.json" || true
           cp data/omics/layers/registry.jsonl "$RUNNER_TEMP/registry.before.jsonl"
           npm run -s layers -- build | tail -8
           python3 scripts/omics/layers/compare-registry.py "$RUNNER_TEMP/registry.before.jsonl"
