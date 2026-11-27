@@ -1,0 +1,80 @@
+{
+ "genomic-sequence-element-annotation": {
+  "name": "Choose a DNA sequence model for genomic element annotation",
+  "description": "Which DNA sequence model, and which way of using it, classifies genomic elements such as promoters, enhancers, splice sites and histone marks most accurately for my sequences?",
+  "question": "Which DNA sequence model, and which way of using it, classifies genomic elements such as promoters, enhancers, splice sites and histone marks most accurately for my sequences?",
+  "intended_users": [
+   "Researchers choosing a DNA sequence model to annotate or classify regions of a genome",
+   "Method developers comparing a new DNA sequence model with published ones"
+  ],
+  "evidence_gaps": [
+   "The evidence comes from four studies: GenBench, SegmentNT, the Nucleotide Transformer benchmark and GUANinE v1.1. GUANinE contributes only two regression tasks. The models they cover overlap only partly, so a model ranked well in one may be missing from the others.",
+   "Simple comparators are in the evidence (GUANinE's 5-mer and GC-content baselines, GenBench's CNN, a raw-sequence probe in the Nucleotide Transformer benchmark), but none has been named as the baseline these models must beat.",
+   "GENEB's results are not used yet: each model's score mixes element categories with species and virus classification and with averages over all tasks, and the categories have to be separated first.",
+   "BEND, DART-Eval and Gene-MTEB results cannot be used yet: their scored results have not passed review or are recorded in a form that cannot be linked. BEND's reviewed tests are variant effect tasks, which this page excludes.",
+   "Automated source review only. No human scientific review, and nothing here was reproduced."
+  ]
+ },
+ "rna-structure-prediction": {
+  "evidence_gaps": [
+   "The evidence comes from two studies. The independent benchmark of Ludaic and Elofsson 2026 tests ten methods on structures released after their training cut-offs. The RhoFold+ developers' table covers six CASP15 targets, each scored on the best of five predictions picked against the true structure.",
+   "The ordering of AlphaFold 3 and RhoFold+ rests on the RhoFold+ developers' table. Without it no model is compared in two studies.",
+   "No test measures whether a method's confidence tells a good prediction from a bad one, so how far to trust one model for one RNA is not answered here.",
+   "Easy and hard sets are kept apart, except the two interface tests (RNA-RNA and RNA-protein), which pool both.",
+   "Automated source review only. No human scientific review."
+  ]
+ },
+ "single-cell-data-integration": {
+  "evidence_gaps": [
+   "The evidence comes from two studies: the HyCell technical report, which scores frozen embeddings of eleven pretrained models and PCA on seven held-out atlases, and Kedzierska et al. 2025, which scores zero-shot embeddings of single-cell foundation models beside Harmony, scVI and highly variable gene selection. HyCell is the developer's own evaluation.",
+   "Both studies score embeddings with scIB metrics; neither runs the methods on a user's own batches end to end.",
+   "scIB's own published comparison has not passed review, and SCMBench's RNA-ATAC integration is held until one of its sources clears review.",
+   "Automated source review only. No human scientific review."
+  ]
+ },
+ "protein-function-annotation": {
+  "description": "Which method predicts the functions of protein sequences, such as Gene Ontology terms or enzyme classes, most accurately on held-out proteins?",
+  "question": "Which method predicts the functions of protein sequences, such as Gene Ontology terms or enzyme classes, most accurately on held-out proteins?",
+  "evidence_gaps": [
+   "The evidence comes from one study, the HyPLM technical report, run by the developer of one of the compared models. It probes frozen protein language model embeddings on Gene Ontology and enzyme-class tasks with fixed splits. One study cannot settle the question.",
+   "The splits do not state a sequence identity cut between training and test proteins, so these results do not say how a method does on proteins with no close annotated relative. The DGEB enzyme-class test set is 128 proteins.",
+   "CAFA3's prospective evaluation, where proteins are annotated after predictions are submitted, has not passed review; it is the stronger evidence for this question once reviewed.",
+   "No baseline, such as transferring the annotation of the nearest sequence match, has been named.",
+   "Automated source review only. No human scientific review."
+  ]
+ },
+ "protein-representation-property-prediction": {
+  "output": "Per-task scores for each model's frozen representation under the same probe and split.",
+  "evidence_gaps": [
+   "The evidence on the board comes from one study, the HyPLM technical report, by the developer of one of the compared models. It ran HyPLM-Flash and 28 public checkpoints from 13 families; 12 of the systems it reports are compared on the tasks linked here. One study cannot settle the question.",
+   "A Rewire run on one rhodopsin wavelength split found an amino-acid composition baseline (Spearman 0.42) ahead of frozen ESM-2 probes (Spearman -0.22 and -0.15). Each system in that run is recorded on its own, so the board does not compare them.",
+   "FLIP and PFMBench results are recorded in a form that cannot be linked yet, TAPE's have not passed review, and the DeepProtein benchmark's are held until one of its sources clears review.",
+   "Each task is one split of one dataset.",
+   "Automated source review only. No human scientific review."
+  ]
+ },
+ "protein-design-quality": {
+  "evidence_gaps": [
+   "The evidence comes from one study, the Genie 3 paper's Table 3, which compares 13 method and version rows at short monomer lengths. It is the developer's own table, and 11 of the 13 rows are versions not linked to a model, so only two models can be compared.",
+   "Scaffold-Lab's unconditional generation results, the second study this question needs, are held until one of its sources clears review. ProteinBench's generation tracks are recorded in a form that cannot be linked yet.",
+   "Designability is measured by self-consistency through a structure predictor, so a model that matches the predictor's biases scores well. No experimental outcome is linked.",
+   "Automated source review only. No human scientific review."
+  ]
+ },
+ "glycan-property-prediction": {
+  "evidence_gaps": [
+   "The evidence comes from one study, the GlycanGT paper's Supplementary Table S4, which compares GlycanGT with four graph baselines (GlycanAA, Graphormer, RGCN, SweetNet) on the GlycanML tasks. It is the GlycanGT developers' own table, and on class accuracy GlycanAA scores above GlycanGT (0.746 against 0.694). One study cannot settle the question.",
+   "GlycanML's own published results cannot be linked yet, because they name methods rather than the exact versions run.",
+   "Most results carry a standard deviation over three seeds.",
+   "Automated source review only. No human scientific review."
+  ]
+ },
+ "viral-microbial-sequence-classification": {
+  "evidence_gaps": [
+   "The evidence comes from two studies: Bůžková et al. 2026's RVDB viral classification, which also compares the best embedding with BLAST, and GenBench's species and SARS-CoV-2 variant tasks. Neither holds out whole genera, so classifying sequences unlike anything in the reference is not tested.",
+   "In the BLAST comparison the embedding side is the best configuration from the 33-class test, so the same result appears in both tests.",
+   "ViroBench, which does hold out genera and deposit dates, is held while a question about one of its sources is open. CAMI's results have not passed review.",
+   "Automated source review only. No human scientific review."
+  ]
+ }
+}

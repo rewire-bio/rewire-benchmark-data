@@ -1,0 +1,104 @@
+{
+ "withdraw": [
+  [
+   "genomic-sequence-element-annotation",
+   [
+    "lit-genomics-20261011-genbench-protocol-long-splice-mean",
+    "lit-genomics-20261011-genbench-protocol-drosophila-enhancer-activity-mean",
+    "lit-genomics-20261011-genbench-protocol-short-human-core-promoter-detection",
+    "lit-genomics-20261011-genbench-protocol-short-human-promoter-detection",
+    "lit-genomics-20261011-genbench-protocol-short-human-transcription-factor-prediction",
+    "lit-genomics-20261011-genbench-protocol-short-mouse-transcription-factor-prediction",
+    "lit-genomics-20261011-genbench-protocol-short-yeast-epigenetic-marks-prediction"
+   ],
+   "A mean of GenBench rows that are tied on their own (GenBench review: Table 4 multi-dataset rows are means of Table 10 rows), so its results would be counted twice."
+  ],
+  [
+   "genomic-sequence-element-annotation",
+   [
+    "lit-genomics-20261011-geneb-protocol-full",
+    "lit-genomics-20261011-geneb-protocol-1shot",
+    "lit-genomics-20261011-geneb-protocol-10shot"
+   ],
+   "Each model's one evaluation holds 13 category results, among them species classification, virus and phage, and splice sites, plus micro and macro averages over all tasks; a judgement cannot keep only the element categories, so the protocol must be split by category before it is tied."
+  ],
+  [
+   "single-cell-data-integration",
+   [
+    "hycell-20261106-protocol-composite-score"
+   ],
+   "The composite sums biological conservation, batch correction and annotation transfer; annotation transfer belongs to the cell-type use case, and this use case's setting says the two integration scores are not summed."
+  ],
+  [
+   "protein-representation-property-prediction",
+   [
+    "hyplm-flash-20261106-protocol-regression-ten-split-average"
+   ],
+   "An average over ten regression splits that includes the FLIP stability split this use case excludes, fluorescence, which no evaluation passes, and splits that are tied on their own."
+  ]
+ ],
+ "regrade": [
+  [
+   "genomic-sequence-element-annotation",
+   "direct",
+   [
+    "lit-genomics-20261011-genbench-protocol-long-splice-splice-acceptor",
+    "lit-genomics-20261011-genbench-protocol-long-splice-splice-donar",
+    "lit-genomics-20261011-genbench-protocol-short-human-splice-site-detection",
+    "lit-genomics-20261011-ntbench-protocol-splice-acceptor-fine-tuning",
+    "lit-genomics-20261011-ntbench-protocol-splice-acceptor-probing",
+    "lit-genomics-20261011-ntbench-protocol-splice-donor-fine-tuning",
+    "lit-genomics-20261011-ntbench-protocol-splice-donor-probing",
+    "lit-genomics-20261011-ntbench-protocol-splice-site-all-fine-tuning",
+    "lit-genomics-20261011-ntbench-protocol-splice-site-all-probing",
+    "segmentnt-supplement-2025-task-splice-acceptor-auprc",
+    "segmentnt-supplement-2025-task-splice-acceptor-mcc",
+    "segmentnt-supplement-2025-task-splice-donor-auprc",
+    "segmentnt-supplement-2025-task-splice-donor-mcc"
+   ],
+   "Classifying or annotating splice sites from sequence, an element type this use case's question names."
+  ],
+  [
+   "rna-structure-prediction",
+   "proxy",
+   [
+    "rhofold-2024-casp15-natural-task-r1107-rmsd",
+    "rhofold-2024-casp15-natural-task-r1107-sum-z-gdt-ts-tm-score",
+    "rhofold-2024-casp15-natural-task-r1108-rmsd",
+    "rhofold-2024-casp15-natural-task-r1108-sum-z-gdt-ts-tm-score",
+    "rhofold-2024-casp15-natural-task-r1116-rmsd",
+    "rhofold-2024-casp15-natural-task-r1116-sum-z-gdt-ts-tm-score",
+    "rhofold-2024-casp15-natural-task-r1117-rmsd",
+    "rhofold-2024-casp15-natural-task-r1117-sum-z-gdt-ts-tm-score",
+    "rhofold-2024-casp15-natural-task-r1149-rmsd",
+    "rhofold-2024-casp15-natural-task-r1149-sum-z-gdt-ts-tm-score",
+    "rhofold-2024-casp15-natural-task-r1156-rmsd",
+    "rhofold-2024-casp15-natural-task-r1156-sum-z-gdt-ts-tm-score"
+   ],
+   "One CASP15 target in the RhoFold+ developer's retrospective table, scored on the best of five candidates picked against the true structure: an upper bound on one target, not a prospective prediction."
+  ],
+  [
+   "protein-representation-property-prediction",
+   "proxy",
+   [
+    "hyplm-flash-20261106-protocol-humanppi"
+   ],
+   "Classifying whether a pair of proteins interacts: a probe of the representation on a pair, not a measured property of one protein."
+  ]
+ ],
+ "reason": [
+  [
+   "single-cell-data-integration",
+   "hycell-20261106-protocol-cd4-split-nmi-chemistry",
+   "How far a two-group split of CD4 T cells follows the sequencing chemistry: a measure of batch leakage in the embedding, on one split."
+  ]
+ ],
+ "add": [
+  [
+   "protein-representation-property-prediction",
+   "rewire-protocol-flip2-rhomax-by-wild-type-v1",
+   "proxy",
+   "Rhodopsin absorption wavelength predicted from frozen ESM-2 embeddings by a ridge probe, beside an amino-acid composition ridge baseline, on one held-out wild-type split run by Rewire: a measured protein property, on one split of one landscape."
+  ]
+ ]
+}

@@ -1,0 +1,137 @@
+[
+ {
+  "slug": "genomic-sequence-element-annotation",
+  "relevance": "direct",
+  "reason": "The task is to classify or annotate a genomic element from sequence, which is this use case's endpoint, with one score per model under a stated training regime.",
+  "include": [
+   "^lit-genomics-20261011-genbench-protocol-",
+   "^lit-genomics-20261011-geneb-protocol-(full|1shot|10shot)$",
+   "^segmentnt-supplement-2025-task-",
+   "^lit-genomics-20261011-ntbench-protocol-(?!normalised)"
+  ],
+  "exclude": [
+   "splice"
+  ]
+ },
+ {
+  "slug": "genomic-sequence-element-annotation",
+  "relevance": "proxy",
+  "reason": "Splice donor and acceptor classification from sequence is element annotation, but the splicing use cases hold the same tasks, so it is kept as proxy here to avoid presenting one comparison as two independent ones.",
+  "include": [
+   "^lit-genomics-20261011-ntbench-protocol-splice-",
+   "^segmentnt-supplement-2025-task-splice-",
+   "^lit-genomics-20261011-genbench-protocol-(long-splice-|short-human-splice-site-detection$)"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "rna-structure-prediction",
+  "relevance": "direct",
+  "reason": "Accuracy of a predicted RNA structure against the experimental structure on targets released after the methods' training cut-offs, which is the use case's endpoint.",
+  "include": [
+   "^lit-rna-20261011-rna3d-protocol-",
+   "^rhofold-2024-casp15-natural-task-"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "rna-sequence-property-prediction",
+  "relevance": "direct",
+  "reason": "Agreement between a model's zero-shot scores and measured deep mutational scanning fitness, or classification of an RNA's family or type from its embeddings: sequence-to-property prediction, the use case's endpoint.",
+  "include": [
+   "^lit-rna-20261011-rnagym-protocol-",
+   "^lit-rna-20261011-rnalm-zeroshot-protocol-t(6|7|8|9|10|11)-"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "single-cell-data-integration",
+  "relevance": "direct",
+  "reason": "scIB batch-correction and biological-conservation scores for each embedding on the same held-out atlases, which is the trade-off this use case asks about.",
+  "include": [
+   "^hycell-20261106-protocol-(batch-correction|bio-conservation)$"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "single-cell-data-integration",
+  "relevance": "proxy",
+  "reason": "A composite of conservation, batch correction and annotation transfer: it answers the question only through its components, whose weighting is the report's own choice.",
+  "include": [
+   "^hycell-20261106-protocol-composite-score$"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "single-cell-data-integration",
+  "relevance": "proxy",
+  "reason": "Whether an embedding separates two known cell states, or orders a differentiation, after integration: evidence that biology survived the correction, on one split each.",
+  "include": [
+   "^hycell-20261106-protocol-(cd4-split|gd-t-split|pseudotime)"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "protein-function-annotation",
+  "relevance": "direct",
+  "reason": "Gene Ontology or enzyme-class prediction from a protein's sequence representation, scored on a held-out split, which is the use case's endpoint.",
+  "include": [
+   "^hyplm-flash-20261106-protocol-(go-(bp|cc|mf)|ec-(classification-dgeb|deepfri-split|saprot-split))$"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "gene-regulatory-network-inference",
+  "relevance": "direct",
+  "reason": "A submitted ranked transcription-factor-to-gene network scored by geneRNIB's official pipeline against held-out data, which is the use case's endpoint.",
+  "include": [
+   "^perturbpfn-20261115-protocol-genernib-"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "protein-representation-property-prediction",
+  "relevance": "direct",
+  "reason": "A measured protein property predicted by a probe trained on each model's frozen representation under one split, which is the use case's endpoint.",
+  "include": [
+   "^hyplm-flash-20261106-protocol-(aav|gb1|amylase|hydrolase|meltome|metal-ion-binding|thermostability|localization|humanppi|regression-ten-split)"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "protein-representation-property-prediction",
+  "relevance": "proxy",
+  "reason": "Residue contact precision and archaeal retrieval from frozen embeddings: representation quality on a structural or retrieval task rather than a measured property.",
+  "include": [
+   "^hyplm-flash-20261106-protocol-(contacts-|arch-retrieval-dgeb$)"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "protein-design-quality",
+  "relevance": "direct",
+  "reason": "Designability, diversity or novelty of unconditionally generated backbones, measured in silico, which is the use case's endpoint.",
+  "include": [
+   "^genie3-2026-table3-task-"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "glycan-property-prediction",
+  "relevance": "direct",
+  "reason": "A glycan property or taxonomic rank predicted from structure and scored by accuracy or macro-F1 on the GlycanML split, which is the use case's endpoint.",
+  "include": [
+   "^glycangt-2026-table-s4-task-"
+  ],
+  "exclude": []
+ },
+ {
+  "slug": "genomic-sequence-element-annotation",
+  "relevance": "proxy",
+  "reason": "Candidate regulatory element and chromatin accessibility propensity, scored by Spearman correlation: the same models and probes on a regression over element propensity rather than an element label.",
+  "include": [
+   "^lit-genomics-20261011-guanine-protocol-(ccre-propensity|dnase-propensity)$"
+  ],
+  "exclude": []
+ }
+]

@@ -80,6 +80,21 @@ So the label updates by itself when judgements become active or are withheld. Do
 3. A different worker reviews the judgement (`review-evidence`), lists the evaluations it checked in `reviewed_evaluations`, sets it to `source_checked`, and records its pins with `npm run use-cases:repin -- <review.md> <claim-id>...`. Summaries are reviewed and pinned the same way, after the judgements they describe.
 4. To withdraw a judgement, set its claim to `excluded` (or `superseded`, with a `supersedes` link from its replacement). Earlier releases keep the evidence they served.
 
+### Rules for mapping tests to a use case
+
+These apply to every judgement, whether it is drafted by hand, proposed by a script or added because a similar test is already mapped. Mapping batches that skipped them had 30 to 55 percent of their judgements rejected by an independent check.
+
+1. Choose each test by reading its own record: name, description, datasets, metric and limitations. Never select tests by a pattern over ids, by benchmark, or by precedent alone.
+2. Write the reason for that one test from its own record, and quote the passage it relies on. A reason shared by many tests is a sign they were not read.
+3. Check parents and parts. If a test is a mean, macro, total or "all" row, a second partition of the same items (by conservation, location or difficulty), or a set that contains another tied test, tie the parts or the whole, never both. If one evaluation mixes categories the use case treats differently, it cannot be tied until it is split.
+4. Check the use case's exclusions and variant or data classes against each test: a stratum near splice sites is splicing, a somatic hotspot set is not germline, coding SNVs are not missense only. Rows that compare no models (one model's tracks or ablations, figures copied from other papers) are not comparisons.
+5. Check every factual sentence in a reason or on the page by query against the store, including claims about other use cases, and recount every number after the ties are final. A second worker reviews before anything is committed as reviewed.
+6. A result chosen against the truth is optimistic and at most proxy: the best of several candidates picked using the true answer, or the best track or setting chosen on the test labels.
+7. The metric must bear on the question. An absolute correlation hides a reversed ranking, a binarisation the source does not describe cannot be judged, and a call rate with no truth is not accuracy.
+8. The grade follows the definition of relevance. It is not a way to avoid double counting: untie the duplicate instead.
+9. Check that studies are independent before a page counts them. Two versions of one paper, or two studies scoring the same truth set, are one piece of evidence.
+10. The use case's question must not promise a condition its evidence does not test, such as "no close annotated relative" when no source states the split.
+
 The documentation sources that some use cases cite keep their reviewed bytes in `data/omics/use-cases/sources/`, bound by `data/omics/use-cases/review.json`; releases publish them at `/omics/sources/<sha256>.md`.
 
 The move from the old `inputs.json` file to records is batch `data/omics/use-case-records-20261009/`: all 26 use cases and 100 mappings round-trip to the same artifact, apart from the new presentation fields.

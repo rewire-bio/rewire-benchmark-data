@@ -25,9 +25,36 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 | Work | State |
 | --- | --- |
 | Checkpoint and benchmark task facts on the records, so the website can show them | On the records: `checkpoints` on 199 model records (465 entries) and `benchmark_tasks` on 98 benchmarks (535 entries). The website does not show them yet |
-| Leaderboards per use case on the website | Each release publishes a board per use case (`public/omics/boards/<release_id>.json`, [boards.md](boards.md)): 20 of 31 have a ranking. The website does not show them yet |
+| Leaderboards per use case on the website | Each release publishes a board per use case (`public/omics/boards/<release_id>.json`, [boards.md](boards.md)). 39 use cases now, 25 of them with an ordering. The website does not show them yet |
 | Review of the differences found inside papers and code | 65 are in a register, checked against saved files; ten reports are drafted for the owner |
 | Running the run guides | Not started |
+
+## Use cases
+
+Eight use cases were added on 27 November from evidence that was in the store and tied to no use case
+([use-case-pages-2026-11-27.md](reviews/use-cases/use-case-pages-2026-11-27.md),
+[fixes](reviews/use-cases/use-case-pages-fixes-2026-11-27.md),
+[verification](reviews/use-cases/use-case-pages-verified-2026-11-27.md),
+[second pass](reviews/use-cases/use-case-mapping-second-pass-2026-11-27.md)): genomic element annotation,
+RNA structure, single-cell integration, protein function annotation, protein representation probing,
+protein design quality, glycan properties, and viral and microbial sequence classification. Four rest
+on one study and say so, and none has had a literature search. RNA sequence properties and gene
+regulatory network inference were held after verification; the verification review says what would
+make each publishable. What they still need:
+
+- A check by the verifier of the second pass's changes. Every other judgement and page sentence
+  added on 27 November has been verified independently.
+- A literature pass, so each can carry `evidence_checked`.
+- Reviewed protocol records for CAFA3, BEELINE, scIB, CAMI and TAPE, and a cleared source for
+  Scaffold-Lab, SCMBench and DeepProtein. These are the second study for function annotation, network
+  inference, integration, design and representation probing.
+- Protocol records for the task-only benchmarks (BEND, DART-Eval, GUE, Genomic Benchmarks, Gene-MTEB,
+  mRNABench, NABench, BEACON, ProteinBench, the Open Problems integration tasks). Their results are in
+  the store but a judgement must name a protocol.
+- ViroBench (genus-disjoint and temporal hold-outs) for viral classification: its source carries an
+  open evidence concern. CAMI's protocols are unreviewed.
+- Baselines: none of the nine names a conventional comparator, because no source in the store
+  establishes one for these questions.
 
 ## Pages
 
