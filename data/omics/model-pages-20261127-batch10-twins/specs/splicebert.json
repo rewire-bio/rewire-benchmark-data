@@ -1,0 +1,787 @@
+{
+ "record_id": "lit-genomics-20261011-geneb-model-splicebert",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "chenkenbio/SpliceBERT README.md at commit dc1d8781",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/chenkenbio/SpliceBERT/dc1d8781f6f167c70421c3f8b809772637031d98/README.md",
+   "url": "https://github.com/chenkenbio/SpliceBERT",
+   "version": "git commit dc1d8781f6f167c70421c3f8b809772637031d98",
+   "media_type": "text/markdown",
+   "sha256": "439b8b877ce39476722560d32676958a5229d60185a02bb4381eedd345723334",
+   "retrieved_at": "2026-11-27T03:39:39Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "chenkenbio/SpliceBERT LICENSE at commit dc1d8781",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/chenkenbio/SpliceBERT/dc1d8781f6f167c70421c3f8b809772637031d98/LICENSE",
+   "url": "https://github.com/chenkenbio/SpliceBERT",
+   "version": "git commit dc1d8781f6f167c70421c3f8b809772637031d98",
+   "media_type": "text/plain",
+   "sha256": "3cca180f2830fc54b994468cc06abc8a4437b413678b9ab5d607b73d3cd1b872",
+   "retrieved_at": "2026-11-27T03:39:56Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "models-readme",
+   "name": "chenkenbio/SpliceBERT models/README.md at commit dc1d8781",
+   "description": "Description of the released model weights, pinned to a commit.",
+   "file": "artifacts/models-readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/chenkenbio/SpliceBERT/dc1d8781f6f167c70421c3f8b809772637031d98/models/README.md",
+   "url": "https://github.com/chenkenbio/SpliceBERT",
+   "version": "git commit dc1d8781f6f167c70421c3f8b809772637031d98",
+   "media_type": "text/markdown",
+   "sha256": "c3b1bd9529b0c677b14856d54510fd9b80b1ffd02f3105c10476a046b95b3e7c",
+   "retrieved_at": "2026-11-27T03:40:35Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "download",
+   "name": "chenkenbio/SpliceBERT download.sh at commit dc1d8781",
+   "description": "Script that downloads the weights and data from Zenodo, pinned to a commit.",
+   "file": "artifacts/download.sh",
+   "artifact_url": "https://raw.githubusercontent.com/chenkenbio/SpliceBERT/dc1d8781f6f167c70421c3f8b809772637031d98/download.sh",
+   "url": "https://github.com/chenkenbio/SpliceBERT",
+   "version": "git commit dc1d8781f6f167c70421c3f8b809772637031d98",
+   "media_type": "text/x-shellscript",
+   "sha256": "c3329d364a0c951889fa97af8b8e20c8773b30345f0501a1ab72c7a04a6c4e39",
+   "retrieved_at": "2026-11-27T03:40:26Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 7995778 metadata (SpliceBERT weights and data), as served on 2026-11-27",
+   "description": "Zenodo API response for the weights and data record: description, licence, version and file list.",
+   "file": "artifacts/zenodo.json",
+   "artifact_url": "https://zenodo.org/api/records/7995778",
+   "url": "https://zenodo.org/records/7995778",
+   "version": "As served on 2026-11-27; the response may change",
+   "media_type": "application/json",
+   "sha256": "bfabd2197a42cef308bbee8887151b06c2d61262fa4fc88d1b9e158fceedcde4",
+   "retrieved_at": "2026-11-27T03:39:59Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Chen et al. 2024, Briefings in Bioinformatics 25(3), PMC11009468 full text XML",
+   "description": "Full text of the peer-reviewed SpliceBERT paper from PubMed Central.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=11009468&rettype=xml",
+   "url": "https://doi.org/10.1093/bib/bbae163",
+   "version": "PMC11009468.1, as served on 2026-11-27",
+   "media_type": "application/xml",
+   "sha256": "e8b4242e497ced684c851b98e5fd83683b3be9fdcc1e060ea314a8a903c0a4b4",
+   "retrieved_at": "2026-11-27T03:40:11Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "SpliceBERT is a language model of primary RNA sequence, the full transcript including introns, trained on over 2 million sequences from 72 vertebrates. It reads up to 1024 nucleotides, one token per nucleotide, and outputs an embedding for each position. The authors use it to study RNA splicing: to find splice sites and branchpoints and to score whether a variant is likely to disrupt splicing.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Results, Methods, Discussion; README introduction",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "pretrained by MLM on over 2 million RNA sequences from 72 vertebrates"
+   },
+   {
+    "source": "@paper",
+    "text": "The inputs to SpliceBERT are primary RNA sequences, including both exonic and intronic regions of genes."
+   },
+   {
+    "source": "@paper",
+    "text": "SpliceBERT can only process sequences no longer than 1024 nt"
+   },
+   {
+    "source": "@readme",
+    "text": "It can be used to study RNA splicing and other biological problems related to RNA sequence."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "SpliceBERT is a small BERT model trained by masked language modelling on primary RNA sequences, meaning whole transcripts including introns, from 72 vertebrate genomes. Each nucleotide is one token. The authors use its nucleotide embeddings and attention weights to study splicing: embeddings separate real splice sites from look-alike sites, and a score of how the model's predictions around a variant change (the paper's KL-context score) helps flag splice-disrupting variants. Fine-tuned, it predicts branchpoints and splice sites across species.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Introduction, Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we collected primary RNA sequences from 72 vertebrates and developed a pre-trained language model, SpliceBERT, by masked language modeling on them."
+     },
+     {
+      "source": "@paper",
+      "text": "Here, we simply encoded each nucleotide (A, G, C, T/U) as a token"
+     },
+     {
+      "source": "@paper",
+      "text": "SpliceBERT achieved the highest normalized mutual information (NMI) score"
+     },
+     {
+      "source": "@paper",
+      "text": "KL-context score"
+     },
+     {
+      "source": "@paper",
+      "text": "This suggests that SpliceBERT compares favorably to the models pretrained on only human sequences in cross-species prediction."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "One Zenodo archive (record 7995778, version v0.1-alpha) holds three checkpoints that differ in training data and fragment length. The paper pretrained SpliceBERT in two stages, first on fixed 510 nt fragments and then, continuing from that model, on 64 to 1024 nt fragments (7 days on 8 NVIDIA V100 GPUs, then 3 days on 4); it does not name the released folders. Most analyses in the paper use the vertebrate model and compare it with SpliceBERT-human. The repository has a download script and notebooks for each analysis section, and lists the package versions used (Python 3.9.7, transformers 4.24.0, PyTorch 1.12.1). A result should name the checkpoint folder (SpliceBERT.1024nt, SpliceBERT.510nt or SpliceBERT-human.510nt) and the Zenodo record.",
+    "source_ids": [
+     "@zenodo",
+     "@models-readme",
+     "@readme",
+     "@download",
+     "@paper"
+    ],
+    "source_locator": "Zenodo metadata; models/README.md; README: Reproduce the analysis; download.sh",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"version\": \"v0.1-alpha\""
+     },
+     {
+      "source": "@models-readme",
+      "text": "SpliceBERT-human.510nt"
+     },
+     {
+      "source": "@readme",
+      "text": "`Python (3.9.7)`"
+     },
+     {
+      "source": "@readme",
+      "text": "`transformers (4.24.0)`"
+     },
+     {
+      "source": "@readme",
+      "text": "`pytorch (1.12.1)`"
+     },
+     {
+      "source": "@download",
+      "text": "wget -c -O models.tar.gz https://zenodo.org/record/7995778/files/models.tar.gz?download=1 && tar -xzvf models.tar.gz"
+     },
+     {
+      "source": "@paper",
+      "text": "In the first stage, it was pretrained with sequences of a fixed length of 510 nt"
+     },
+     {
+      "source": "@paper",
+      "text": "In the second stage, we continued pretraining the model obtained from the first stage on sequences of variable length between 64 and 1024 nt"
+     },
+     {
+      "source": "@paper",
+      "text": "The first stage took 7 days on 8 NVIDIA V100 graphics processing units (GPUs), and the second stage took 3 days on 4 NVIDIA V100 GPUs."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "RNA language model (BERT-style masked language model) of primary RNA (pre-mRNA) sequence, used mainly to study RNA splicing.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README introduction; paper Results",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "is a primary RNA sequence language model pre-trained on over 2 million vertebrate RNA sequences."
+     },
+     {
+      "source": "@readme",
+      "text": "It can be used to study RNA splicing and other biological problems related to RNA sequence."
+     },
+     {
+      "source": "@paper",
+      "text": "pretrained by MLM on over 2 million RNA sequences from 72 vertebrates"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "BERT encoder with six transformer layers, hidden size 512 and 16 attention heads, absolute position embeddings, and a maximum input length of 1024. An optional custom implementation uses FlashAttention.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods (model architecture); README: How to use",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "consisting of six Transformer"
+     },
+     {
+      "source": "@paper",
+      "text": "The hidden layer size and attention head number are 512 and 16, respectively. Positional information is encoded by absolution position embedding, and the maximum length of input sequence is set to 1024."
+     },
+     {
+      "source": "@readme",
+      "text": "SpliceBERT is implemented with [Huggingface](https://huggingface.co/docs/transformers/index) `transformers` and [FlashAttention](https://github.com/Dao-AILab/flash-attention) in PyTorch."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Primary RNA sequences, exons and introns, one token per nucleotide (N, A, C, G, T); U is written as T and the letters are separated by spaces before tokenising.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Methods, Results; README example",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The inputs to SpliceBERT are primary RNA sequences, including both exonic and intronic regions of genes."
+     },
+     {
+      "source": "@paper",
+      "text": "Here, we simply encoded each nucleotide (A, G, C, T/U) as a token"
+     },
+     {
+      "source": "@readme",
+      "text": "seq = ' '.join(list(seq.upper().replace(\"U\", \"T\"))) # U -> T and add whitespace"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Nucleotide embeddings (hidden states of each layer) and masked-nucleotide logits; heads can be added for token or sequence classification.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README example; paper Methods",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "last_hidden_state = model(input_ids).last_hidden_state # get hidden states from last layer"
+     },
+     {
+      "source": "@readme",
+      "text": "logits = model(input_ids).logits # shape: (batch_size, sequence_length, vocab_size)"
+     },
+     {
+      "source": "@paper",
+      "text": "the outputs are embeddings of nucleotides that can be used to make predictions in pretraining and downstream tasks"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "About 19.4 million (SpliceBERT, paper Methods). The paper says SpliceBERT-human has an identical architecture to SpliceBERT. It does not name the three released checkpoint folders or give separate counts for them.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods (model architecture)",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "SpliceBERT has about 19.4 million learnable parameters."
+     },
+     {
+      "source": "@paper",
+      "text": "we developed another model with identical architecture to SpliceBERT but was pretrained on only human RNA sequences, namely, SpliceBERT-human."
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Over 2 million primary RNA sequences, about 65 billion nucleotides, extracted from the reference genomes and gene annotations of 72 vertebrates from the UCSC Genome Browser; 50,000 sequences were held out for validation. SpliceBERT-human.510nt was trained on human sequences only.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@models-readme"
+    ],
+    "source_locator": "Paper: Methods (pretraining data), Data availability; models/README.md",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we constructed a dataset including over 2 million sequences and approximately covering 65 billion nucleotides"
+     },
+     {
+      "source": "@paper",
+      "text": "We reserved 50 000 randomly selected sequences for validation"
+     },
+     {
+      "source": "@paper",
+      "text": "The reference genomes and gene annotations of the 72 vertebrates were downloaded from UCSC Genome Browser"
+     },
+     {
+      "source": "@models-readme",
+      "text": "SpliceBERT-human.510nt: pre-trained on human mRNA sequence fragments of 510nt (fixed length)"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Three checkpoints in one Zenodo archive (models.tar.gz): SpliceBERT.1024nt (variable-length fragments of 64 to 1024 nt), SpliceBERT.510nt (fixed 510 nt) and SpliceBERT-human.510nt (human only, fixed 510 nt).",
+    "status": "source_checked",
+    "source_ids": [
+     "@models-readme",
+     "@zenodo"
+    ],
+    "source_locator": "models/README.md; Zenodo file list",
+    "quotes": [
+     {
+      "source": "@models-readme",
+      "text": "SpliceBERT.1024nt: pre-trained on vertebrate mRNA sequence fragments from 64nt to 1024nt (variable length)"
+     },
+     {
+      "source": "@models-readme",
+      "text": "SpliceBERT.510nt: pre-trained on vertebrate mRNA sequence fragments of 510nt (fixed length)"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"key\": \"models.tar.gz\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not reported as a date. Genome assembly versions are listed in the paper's Supplementary Table S3, which was not read.",
+    "status": "unextracted",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods (pretraining data)"
+   },
+   {
+    "label": "Context limits",
+    "value": "1024 nucleotides for SpliceBERT.1024nt, which was trained on 64 to 1024 nt fragments; the README warns it may not work below 64 nt. The 510nt models expect exactly 510 nt (excluding [CLS] and [SEP]) without fine-tuning.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@models-readme"
+    ],
+    "source_locator": "Paper: Discussion; README example; models/README.md",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "SpliceBERT can only process sequences no longer than 1024 nt"
+     },
+     {
+      "source": "@readme",
+      "text": "SpliceBERT may not work on sequences shorter than 64nt as it was trained on sequences of 64-1024nt in length"
+     },
+     {
+      "source": "@models-readme",
+      "text": "may not work properly on sequences whose length is not 510nt (excluding [CLS] and [SEP]) without finetuning"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "CC BY 4.0, the licence of the Zenodo record that holds models.tar.gz.",
+    "status": "source_checked",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo metadata: license",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "BSD-3-Clause, from the repository LICENSE file.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "BSD 3-Clause License"
+     },
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2023, Ken Chen"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/chenkenbio/SpliceBERT (the README also refers to github.com/biomed-AI/SpliceBERT). Weights: https://doi.org/10.5281/zenodo.7995778, file models.tar.gz, a direct download.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@zenodo"
+    ],
+    "source_locator": "README: Download SpliceBERT, Reproduce the analysis; Zenodo",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "https://zenodo.org/record/7995778/files/models.tar.gz?download=1"
+     },
+     {
+      "source": "@readme",
+      "text": "git clone git@github.com:biomed-AI/SpliceBERT.git"
+     },
+     {
+      "source": "@zenodo",
+      "text": "See https://github.com/biomed-AI/SpliceBERT for the codes."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Small model, about 19.4 million parameters; the README recommends a GPU with at least 4 GB memory and says CPU-only use is possible but slow.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper Methods; README: System requirements",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "SpliceBERT has about 19.4 million learnable parameters."
+     },
+     {
+      "source": "@readme",
+      "text": "We recommend running SpliceBERT on a Linux system with a NVIDIA GPU of at least 4GB memory."
+     }
+    ]
+   },
+   {
+    "text": "Trained on primary transcripts including introns from 72 vertebrates, including the sequence around splice sites and branchpoints; the authors report it beats a human-only version in cross-species splice site prediction.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The inputs to SpliceBERT are primary RNA sequences, including both exonic and intronic regions of genes."
+     },
+     {
+      "source": "@paper",
+      "text": "from 72 vertebrates"
+     },
+     {
+      "source": "@paper",
+      "text": "In particular, SpliceBERT surpassed that of SpliceBERT-human and DNABERT by an average of 1.6% and 2.1%, respectively."
+     }
+    ]
+   },
+   {
+    "text": "Open licences: BSD-3-Clause code and CC BY 4.0 weights, loadable with the standard Hugging Face transformers BERT classes.",
+    "source_ids": [
+     "@license",
+     "@zenodo",
+     "@readme"
+    ],
+    "source_locator": "LICENSE; Zenodo; README",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "BSD 3-Clause License"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+     },
+     {
+      "source": "@readme",
+      "text": "model = AutoModel.from_pretrained(SPLICEBERT_PATH) # load model"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Inputs are limited to 1024 nt, and the model may not work below 64 nt; the 510nt checkpoints expect exactly 510 nt.",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@models-readme"
+    ],
+    "source_locator": "Paper Discussion; README; models/README.md",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "SpliceBERT can only process sequences no longer than 1024 nt"
+     },
+     {
+      "source": "@readme",
+      "text": "SpliceBERT may not work on sequences shorter than 64nt"
+     },
+     {
+      "source": "@models-readme",
+      "text": "may not work properly on sequences whose length is not 510nt"
+     }
+    ]
+   },
+   {
+    "text": "Pretrained on vertebrate RNA only; the authors also note masked-token accuracy is limited by the small model and data set.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Second, SpliceBERT was only pretrained on vertebrate RNA sequences, which make up only a small fraction of eukaryotes."
+     },
+     {
+      "source": "@paper",
+      "text": "This is likely due to the limited size of our model and pretraining dataset."
+     }
+    ]
+   },
+   {
+    "text": "The FlashAttention path needs mixed precision and does not support attention masks, so sequences in a batch must have the same length.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Examples",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Note that flash-attention requires automatic mixed precision (amp) mode to be enabled and currently it does not support"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "SpliceBERT workflow",
+   "steps": [
+    "Primary RNA sequence, 64 to 1024 nt",
+    "U to T, one token per nucleotide, [CLS] and [SEP] added",
+    "Six-layer BERT encoder pretrained on 72 vertebrates",
+    "Nucleotide embeddings, attention weights and masked-nucleotide logits",
+    "Splice site, branchpoint or variant effect analysis"
+   ],
+   "caption": "Data flow for SpliceBERT.1024nt as described in the paper and README. Downstream classifiers are the user's own or fine-tuned heads.",
+   "source_ids": [
+    "@readme",
+    "@paper"
+   ],
+   "source_locator": "README example; paper Methods and Results",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "a [CLS] and a [SEP] token will be added to the start and the end of seq"
+    },
+    {
+     "source": "@readme",
+     "text": "it was trained on sequences of 64-1024nt in length"
+    },
+    {
+     "source": "@paper",
+     "text": "consisting of six Transformer"
+    },
+    {
+     "source": "@paper",
+     "text": "from 72 vertebrates"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The paper gives about 19.4 million parameters for SpliceBERT and says SpliceBERT-human has an identical architecture, but it does not name the released checkpoint folders, so no count is tied to a specific folder.",
+   "The genome assembly versions (Supplementary Table S3) were not read, so no training data date is given.",
+   "The weights archive was not opened; folder names come from models/README.md.",
+   "Only the Zenodo weights were used; Hugging Face was not checked for an author copy."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Written from the chenkenbio/SpliceBERT README, LICENSE, models/README.md and download.sh at commit dc1d8781, the Zenodo record 7995778 API response, and the full text of Chen et al. 2024 (Briefings in Bioinformatics) from PMC, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Download the SpliceBERT weights from Zenodo and compute nucleotide embeddings and masked-nucleotide logits for one sequence with the Hugging Face transformers API.",
+  "prerequisites": [
+   "PyTorch and Hugging Face transformers, installed by following their official installation pages; the README gives no pinned install command. The authors used Python 3.9.7, transformers 4.24.0 and PyTorch 1.12.1.",
+   "A Linux system with an NVIDIA GPU of at least 4 GB memory is recommended; CPU-only runs are possible but slow.",
+   "About 218 MB for models.tar.gz (217,605,407 bytes per Zenodo). Code is BSD-3-Clause; weights are CC BY 4.0."
+  ],
+  "steps": [
+   {
+    "title": "Download and unpack the weights",
+    "shell": "wget -c -O models.tar.gz https://zenodo.org/record/7995778/files/models.tar.gz?download=1 && tar -xzvf models.tar.gz",
+    "explanation": "The weights line from the repository's download.sh. It unpacks the three checkpoints; set SPLICEBERT_PATH in the next step to the folder of the one you want, for example SpliceBERT.1024nt.",
+    "source_ids": [
+     "@download",
+     "@models-readme",
+     "@zenodo"
+    ],
+    "source_locator": "download.sh; models/README.md; Zenodo file list",
+    "quotes": [
+     {
+      "source": "@download",
+      "text": "wget -c -O models.tar.gz https://zenodo.org/record/7995778/files/models.tar.gz?download=1 && tar -xzvf models.tar.gz"
+     },
+     {
+      "source": "@models-readme",
+      "text": "SpliceBERT.1024nt"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"size\": 217605407"
+     }
+    ]
+   },
+   {
+    "title": "Compute embeddings and logits",
+    "shell": "python - <<'PY'\nSPLICEBERT_PATH = \"/path/to/SpliceBERT/models/model_folder\"  # set the path to the folder of pre-trained SpliceBERT\nimport torch\nfrom transformers import AutoTokenizer, AutoModel, AutoModelForMaskedLM, AutoModelForTokenClassification\n\n# load tokenizer\ntokenizer = AutoTokenizer.from_pretrained(SPLICEBERT_PATH)\n\n# prepare input sequence\nseq = \"ACGUACGuacguaCGu\"  ## WARNING: this is just a demo. SpliceBERT may not work on sequences shorter than 64nt as it was trained on sequences of 64-1024nt in length\nseq = ' '.join(list(seq.upper().replace(\"U\", \"T\"))) # U -> T and add whitespace\ninput_ids = tokenizer.encode(seq) # N -> 5, A -> 6, C -> 7, G -> 8, T(U) -> 9. NOTE: a [CLS] and a [SEP] token will be added to the start and the end of seq\ninput_ids = torch.as_tensor(input_ids) # convert python list to Tensor\ninput_ids = input_ids.unsqueeze(0) # add batch dimension, shape: (batch_size, sequence_length)\n\n# use huggerface's official API to use SpliceBERT\n# get nucleotide embeddings (hidden states)\nmodel = AutoModel.from_pretrained(SPLICEBERT_PATH) # load model\nlast_hidden_state = model(input_ids).last_hidden_state # get hidden states from last layer\nhiddens_states = model(input_ids, output_hidden_states=True).hidden_states # hidden states from the embedding layer (nn.Embedding) and the 6 transformer encoder layers\n\n# get nucleotide type logits in masked language modeling\nmodel = AutoModelForMaskedLM.from_pretrained(SPLICEBERT_PATH) # load model\nlogits = model(input_ids).logits # shape: (batch_size, sequence_length, vocab_size)\nPY",
+    "explanation": "The first part of the README's official-API example, wrapped in a shell heredoc. The README's lines that create fine-tuning heads are left out, because the sequence-classification line uses a class the example does not import. Replace the placeholder path, and use a real sequence of 64 to 1024 nt; the demo sequence is shorter than the model supports.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Examples (official API)",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "SPLICEBERT_PATH = \"/path/to/SpliceBERT/models/model_folder\""
+     },
+     {
+      "source": "@readme",
+      "text": "tokenizer = AutoTokenizer.from_pretrained(SPLICEBERT_PATH)"
+     },
+     {
+      "source": "@readme",
+      "text": "input_ids = tokenizer.encode(seq)"
+     },
+     {
+      "source": "@readme",
+      "text": "model = AutoModel.from_pretrained(SPLICEBERT_PATH) # load model"
+     },
+     {
+      "source": "@readme",
+      "text": "model = AutoModelForMaskedLM.from_pretrained(SPLICEBERT_PATH) # load model"
+     },
+     {
+      "source": "@readme",
+      "text": "model = AutoModelForSequenceClassification.from_pretrained(SPLICEBERT_PATH, num_labels=3)"
+     },
+     {
+      "source": "@readme",
+      "text": "it was trained on sequences of 64-1024nt in length"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Tensors held in memory: the last-layer hidden states, the hidden states of the embedding layer and all six encoder layers, and masked-language-model logits of shape (batch_size, sequence_length, vocab_size). The example prints nothing."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The folder names inside models.tar.gz are taken from models/README.md; the archive itself was not opened.",
+   "The demo sequence is shorter than 64 nt, which the README warns may not work."
+  ],
+  "source_ids": [
+   "@readme",
+   "@download",
+   "@models-readme"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "SpliceBERT.1024nt",
+   "parameters": null,
+   "context_length": 1024,
+   "context_unit": "bases",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/chenkenbio/SpliceBERT",
+   "weights_url": "https://zenodo.org/records/7995778",
+   "gated": false,
+   "released": "2023-06-02",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "SpliceBERT can only process sequences no longer than 1024 nt"
+    },
+    {
+     "source": "@models-readme",
+     "text": "SpliceBERT.1024nt: pre-trained on vertebrate mRNA sequence fragments from 64nt to 1024nt (variable length)"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2023-06-02\""
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+    }
+   ]
+  },
+  {
+   "checkpoint": "SpliceBERT.510nt",
+   "parameters": null,
+   "context_length": 510,
+   "context_unit": "bases",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/chenkenbio/SpliceBERT",
+   "weights_url": "https://zenodo.org/records/7995778",
+   "gated": false,
+   "released": "2023-06-02",
+   "quotes": [
+    {
+     "source": "@models-readme",
+     "text": "SpliceBERT.510nt: pre-trained on vertebrate mRNA sequence fragments of 510nt (fixed length)"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2023-06-02\""
+    }
+   ]
+  },
+  {
+   "checkpoint": "SpliceBERT-human.510nt",
+   "parameters": null,
+   "context_length": 510,
+   "context_unit": "bases",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/chenkenbio/SpliceBERT",
+   "weights_url": "https://zenodo.org/records/7995778",
+   "gated": false,
+   "released": "2023-06-02",
+   "quotes": [
+    {
+     "source": "@models-readme",
+     "text": "SpliceBERT-human.510nt: pre-trained on human mRNA sequence fragments of 510nt (fixed length)"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"publication_date\": \"2023-06-02\""
+    }
+   ]
+  }
+ ],
+ "notes": "This page is meant for both SpliceBERT records (gfm2-20261011-you2026-model-splicebert and lit-genomics-20261011-geneb-model-splicebert). The README and Zenodo record point to github.com/biomed-AI/SpliceBERT, while the files read here come from chenkenbio/SpliceBERT, whose saved GitHub API response (artifacts/gh-repo.json) gives full_name chenkenbio/SpliceBERT and fork false; no saved file shows how the two addresses are related. The chenkenbio repository is cited. The structured released date is the Zenodo record's publication date. The paper gives about 19.4 million parameters for SpliceBERT without naming a checkpoint folder, so the structured parameter fields are null."
+}
