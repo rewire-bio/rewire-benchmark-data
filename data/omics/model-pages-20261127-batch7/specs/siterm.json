@@ -1,0 +1,814 @@
+{
+ "record_id": "uc20260930-model-siterm",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "songlab-cal/CherryML README.md at commit 8ff221a4",
+   "description": "Official repository README, pinned to a commit. Covers CherryML, FastCherries and SiteRM.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/songlab-cal/CherryML/8ff221a468810f672a086ba6d27fd163d96159cc/README.md",
+   "url": "https://github.com/songlab-cal/CherryML",
+   "version": "git commit 8ff221a468810f672a086ba6d27fd163d96159cc",
+   "media_type": "text/markdown",
+   "sha256": "c067f34ed4a9d508d0efd9d3ab04f62f58e960dbc1d3771676cd7f737f01b171",
+   "retrieved_at": "2026-11-26T23:30:31Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "songlab-cal/CherryML LICENSE at commit 8ff221a4",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/songlab-cal/CherryML/8ff221a468810f672a086ba6d27fd163d96159cc/LICENSE",
+   "url": "https://github.com/songlab-cal/CherryML",
+   "version": "git commit 8ff221a468810f672a086ba6d27fd163d96159cc",
+   "media_type": "text/plain",
+   "sha256": "dbf7a320b6d378458a2f3f1591aa33f50159379d52b69653a85901eb83652280",
+   "retrieved_at": "2026-11-26T23:34:55Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Prillo, Wu and Song, Ultrafast classical phylogenetic method beats large protein language models on variant effect prediction, NeurIPS 2024, text layer",
+   "description": "Text layer taken with pdftotext from the NeurIPS proceedings PDF (PDF kept as artifacts/paper-neurips.pdf, sha256 0a5ac82350fdc3020d513c70a4daa559969302ec5c9f48baeaf05208a5bc7340).",
+   "file": "artifacts/paper-neurips.txt",
+   "artifact_url": "https://proceedings.neurips.cc/paper_files/paper/2024/file/eb2f4fb51ac3b8dc4aac9cf71b0e7799-Paper-Conference.pdf",
+   "url": "https://proceedings.neurips.cc/paper_files/paper/2024/hash/eb2f4fb51ac3b8dc4aac9cf71b0e7799-Abstract-Conference.html",
+   "version": "NeurIPS 2024 proceedings version",
+   "media_type": "text/plain",
+   "sha256": "12fd3eed0d3206d44d524aeba223c31718ffe2f6b1e044016cf47e0d4003cac8",
+   "retrieved_at": "2026-11-26T23:34:52Z",
+   "store_bytes": false
+  },
+  {
+   "key": "api",
+   "name": "songlab-cal/CherryML cherryml/_siterm_public_api.py at commit 8ff221a4",
+   "description": "The module that defines learn_site_specific_rate_matrices, with the repository's own test functions calling it on a protein alignment.",
+   "file": "artifacts/siterm_public_api.py",
+   "artifact_url": "https://raw.githubusercontent.com/songlab-cal/CherryML/8ff221a468810f672a086ba6d27fd163d96159cc/cherryml/_siterm_public_api.py",
+   "url": "https://github.com/songlab-cal/CherryML",
+   "version": "git commit 8ff221a468810f672a086ba6d27fd163d96159cc",
+   "media_type": "text/x-python",
+   "sha256": "bef3b0f26fe46e027954287e014f6a212a16af2adc1133426c7f8f28e49edea2",
+   "retrieved_at": "2026-11-26T23:59:32Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "pg-script",
+   "name": "OATML-Markslab/ProteinGym scripts/scoring_DMS_zero_shot/scoring_SiteRM_substitutions.sh at commit 144fe22b",
+   "description": "The scoring script the CherryML README points to for reproducing the SiteRM ProteinGym results.",
+   "file": "artifacts/proteingym-scoring_SiteRM_substitutions.sh",
+   "artifact_url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/scripts/scoring_DMS_zero_shot/scoring_SiteRM_substitutions.sh",
+   "url": "https://github.com/OATML-Markslab/ProteinGym",
+   "version": "git commit 144fe22b07dfaeec2b366f2346203a9838a55b4c",
+   "media_type": "text/x-shellscript",
+   "sha256": "a6b416dedb1a4654ecd814586879150bc18f4596305abb40af26653c0f56aac0",
+   "retrieved_at": "2026-11-26T23:34:58Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "SiteRM is a phylogenetic model, not a neural network. Given a multiple sequence alignment of a protein family, it fits a separate 21 by 21 amino acid substitution rate matrix for every column of the alignment, with the classical LG rate matrix as a prior. For variant effect prediction it scores a mutant by the log probability of mutating away from the wild-type residue at each site after one unit of evolutionary time, summed over sites. It is distributed inside the CherryML Python package, together with FastCherries, the fast tree estimator that makes the fitting practical.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Abstract and section 4; README: Introduction",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "we develop a new, rich phylogenetic model called SiteRM, which can estimate a general site-specific rate matrix for each column of an MSA."
+   },
+   {
+    "source": "@readme",
+    "text": "SiteRM is an extension of the LG model that allows for a *different* rate matrix for each site of the MSA."
+   },
+   {
+    "source": "@paper",
+    "text": "score(xmut , xwt ) = log p(xmut |xwt , t = 1) ="
+   },
+   {
+    "source": "@readme",
+    "text": "FastCherries is a drop-in replacement for FastTree which speeds up the tree estimation step of CherryML by 10-100x."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "SiteRM extends the LG model of amino acid evolution by giving each alignment column its own rate matrix. Fitting runs in two steps: FastCherries estimates the cherries of the tree and the per-site rates from the alignment alone, then CherryML's optimiser estimates a rate matrix per site, regularised towards a prior matrix. The authors use the LG matrix as the prior with regularisation strength 0.5, so half the counts come from pseudocounts, and they treat the gap as a 21st state. A variant is scored as the sum over mutated sites of the log transition probability from the wild-type residue to the mutant residue at evolutionary time t = 1, which makes it an independent-sites model with additive per-site effects conditioned on the wild type.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: sections 3.4 and 4; README: Introduction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "SiteRM is an extension of the LG model that allows for a *different* rate matrix for each site of the MSA."
+     },
+     {
+      "source": "@readme",
+      "text": "FastCherries is a drop-in replacement for FastTree which speeds up the tree estimation step of CherryML by 10-100x."
+     },
+     {
+      "source": "@paper",
+      "text": "We trained the SiteRM model on the MSAs provided by the ProteinGym benchmark. Duplicate sequences were removed. We used FastCherries with the LG rate matrix and 20 rate categories to estimate cherries and site rates."
+     },
+     {
+      "source": "@paper",
+      "text": "with the LG rate matrix as a prior and with regularization strength λ = 0.5 such that exactly half the data comes from pseudocounts and the other half from empirical counts."
+     },
+     {
+      "source": "@paper",
+      "text": "We found that modeling the gap as its own state improved performance, so that our best model uses 21 × 21 site-specific rate matrices, with the 21 × 21 rate matrix learnt from the LG paper’s Pfam dataset as the prior."
+     },
+     {
+      "source": "@paper",
+      "text": "score(xmut , xwt ) = log p(xmut |xwt , t = 1) ="
+     },
+     {
+      "source": "@paper",
+      "text": "We use t = 1 for variant effect prediction, which means we explore a neighborhood of one expected"
+     },
+     {
+      "source": "@paper",
+      "text": "(1) is an independent-sites model, which uses additive per-site effects."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "There are no weights: the model is fitted from the alignment each time it is used, so a result is defined by the alignments, the code version and the settings. The settings that matter are the prior rate matrix, the regularisation strength, the number of rate categories, the alphabet used for site rates against the alphabet used for the rate matrices, the evolutionary time, and the number of epochs. The ProteinGym scoring script fixes regularisation strength 0.5, evolutionary time 1.0, the lg.txt prior for tree estimation and lg_with_gaps.txt for regularisation, and device cpu. The package is on PyPI as cherryml, so a result should also name the package version or the commit used.",
+    "source_ids": [
+     "@readme",
+     "@pg-script"
+    ],
+    "source_locator": "README: SiteRM/FastCherries Python API; ProteinGym scoring script",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You can train the SiteRM model (or just run FastCherries) with the function `learn_site_specific_rate_matrices`. You can import it with `from cherryml import learn_site_specific_rate_matrices`."
+     },
+     {
+      "source": "@readme",
+      "text": "regularization_strength: float = 0.5,"
+     },
+     {
+      "source": "@readme",
+      "text": "num_rate_categories: int = 20,"
+     },
+     {
+      "source": "@readme",
+      "text": "alphabet_for_site_rate_estimation: Optional[List[str]] = None,"
+     },
+     {
+      "source": "@pg-script",
+      "text": "regularization_strength=0.5"
+     },
+     {
+      "source": "@pg-script",
+      "text": "evolutionary_time=1.0"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install cherryml"
+     }
+    ]
+   },
+   {
+    "title": "Why an independent-sites model",
+    "body": "The authors argue that the gain over models that learn interactions between sites comes from conditioning on the wild-type residue, which the competing approaches do not do, and from being able to fit family and site specific matrices on very large alignments without overfitting. The largest alignment they processed had about 454,000 distinct sequences of length 364, which took FastCherries about 1,000 seconds on one CPU core, plus about one second per site for the rate matrices.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: sections 4 and 5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We attribute our increased performance to conceptual advances in our probabilistic treatment of evolutionary data and our ability to handle extremely large MSAs."
+     },
+     {
+      "source": "@paper",
+      "text": "We attribute the remarkable performance of our independent-sites model to conditioning on the wild-type, which is absent from competing approaches, and to our ability to estimate family- and site-specific rate matrices without overfitting."
+     },
+     {
+      "source": "@paper",
+      "text": "largest MSA processed by FastCherries had approximately 454K distinct sequences, each of length 364."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Independent-sites phylogenetic substitution model: a per-column amino acid rate matrix fitted from an alignment, used for variant effect prediction.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Abstract; README: Introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we develop a new, rich phylogenetic model called SiteRM, which can estimate a general site-specific rate matrix for each column of an MSA."
+     },
+     {
+      "source": "@readme",
+      "text": "SiteRM is an extension of the LG model that allows for a *different* rate matrix for each site of the MSA."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "No neural network. A 21 by 21 continuous-time Markov rate matrix per alignment column, fitted by coordinate ascent with a quantised time grid, regularised towards a prior rate matrix, on top of cherries and site rates from FastCherries.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: section 3.4; README: Python API",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We found that modeling the gap as its own state improved performance, so that our best model uses 21 × 21 site-specific rate matrices, with the 21 × 21 rate matrix learnt from the LG paper’s Pfam dataset as the prior."
+     },
+     {
+      "source": "@paper",
+      "text": "with the LG rate matrix as a prior and with regularization strength λ = 0.5 such that exactly half the data comes from pseudocounts and the other half from empirical counts."
+     },
+     {
+      "source": "@readme",
+      "text": "quantization_grid_num_steps: Number of quantization points to use will"
+     },
+     {
+      "source": "@readme",
+      "text": "FastCherries is a drop-in replacement for FastTree which speeds up the tree estimation step of CherryML by 10-100x."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A multiple sequence alignment of the protein family, as a dictionary from sequence name to aligned sequence, with an alphabet and a prior rate matrix. A tree may be supplied; if not, FastCherries estimates one. For scoring, the wild-type sequence and the mutants.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Python API arguments; Paper: section 4",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "msa: Dictionary mapping each leaf in the tree to the states (e.g."
+     },
+     {
+      "source": "@readme",
+      "text": "regularization_rate_matrix: Rate matrix to use to regularize the learnt"
+     },
+     {
+      "source": "@readme",
+      "text": "tree: If `None`, then FastCherries will be used to estimate the tree."
+     },
+     {
+      "source": "@paper",
+      "text": "score(xmut , xwt ) = log p(xmut |xwt , t = 1) ="
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "A 3D NumPy array holding the learnt rate matrix per site, the learnt site rates, the learnt tree and timings. For variant effect prediction, the matrices give one log probability per mutated site, summed into a score per variant.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Python API Returns; Paper: equation 1",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "- \"learnt_rate_matrices\": A 3D numpy array with the learnt rate matrix per site."
+     },
+     {
+      "source": "@readme",
+      "text": "- \"learnt_site_rates\": A List[float] with the learnt site rate per"
+     },
+     {
+      "source": "@paper",
+      "text": "score(xmut , xwt ) = log p(xmut |xwt , t = 1) ="
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "No trained weights. The fitted quantity is one 21 by 21 rate matrix per alignment column, estimated afresh for each protein family.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: section 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We found that modeling the gap as its own state improved performance, so that our best model uses 21 × 21 site-specific rate matrices, with the 21 × 21 rate matrix learnt from the LG paper’s Pfam dataset as the prior."
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "No pretraining corpus. For the ProteinGym results the model was fitted on the alignments provided by the ProteinGym benchmark, with duplicate sequences removed, using the LG rate matrix (estimated on a 2008 Pfam version) as the prior.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: section 4; README: Introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We trained the SiteRM model on the MSAs provided by the ProteinGym benchmark. Duplicate sequences were removed. We used FastCherries with the LG rate matrix and 20 rate categories to estimate cherries and site rates."
+     },
+     {
+      "source": "@paper",
+      "text": "We found that modeling the gap as its own state improved performance, so that our best model uses 21 × 21 site-specific rate matrices, with the 21 × 21 rate matrix learnt from the LG paper’s Pfam dataset as the prior."
+     },
+     {
+      "source": "@readme",
+      "text": "the LG rate matrix [Le and Gascuel 2008] was estimated under the LG model using a specific dataset (a version of Pfam from 2008)."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One method, released in the CherryML package alongside FastCherries and the earlier CherryML estimators. No model checkpoints exist; the README's Python API function is learn_site_specific_rate_matrices, with vectorised and non-vectorised implementations.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Introduction and Python API",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "this package implements the FastCherries phylogeny estimator and the SiteRM model:"
+     },
+     {
+      "source": "@readme",
+      "text": "You can train the SiteRM model (or just run FastCherries) with the function `learn_site_specific_rate_matrices`. You can import it with `from cherryml import learn_site_specific_rate_matrices`."
+     },
+     {
+      "source": "@readme",
+      "text": "We offer two different implementation of SiteRM training, a \"vectorized\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not applicable: the model is fitted on the user's alignment at run time. The prior LG matrix was estimated on a version of Pfam from 2008.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Introduction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "a version of Pfam from 2008"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "No fixed limit. The authors report fitting an alignment of about 454,000 distinct sequences of length 364, and the package offers a non-vectorised implementation for when memory is short.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: section 4; README: Python API",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "largest MSA processed by FastCherries had approximately 454K distinct sequences, each of length 364."
+     },
+     {
+      "source": "@readme",
+      "text": "This non-vectorized implementation makes sense if RAM memory becomes a bottleneck (e.g. if working on a personal computer)."
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not applicable: no weights are released. The code is BSD 3-Clause.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "BSD 3-Clause License"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "BSD-3-Clause, copyright 2022 Song Lab at Cal, per the repository LICENSE file.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "BSD 3-Clause License"
+     },
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2022, Song Lab @ Cal"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code: https://github.com/songlab-cal/CherryML, or pip install cherryml. No weights to download. The ProteinGym scoring script lives in https://github.com/OATML-Markslab/ProteinGym.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@pg-script"
+    ],
+    "source_locator": "README: Installation and ProteinGym results; ProteinGym scoring script",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install cherryml"
+     },
+     {
+      "source": "@readme",
+      "text": "To reproduce the results of the SiteRM model on the ProteinGym benchmark, please refer to the ProteinGym repository on GitHub (https://github.com/OATML-Markslab/ProteinGym) and follow their standard workflow."
+     },
+     {
+      "source": "@pg-script",
+      "text": "python -m proteingym.baselines.SiteRM.compute_fitness \\"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Runs on CPU and scales to very large alignments: the authors report about 1,000 seconds on one core for an alignment of roughly 454,000 sequences, and FastCherries is 10 to 100 times faster than FastTree.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: section 4; README: Introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "largest MSA processed by FastCherries had approximately 454K distinct sequences, each of length 364."
+     },
+     {
+      "source": "@readme",
+      "text": "FastCherries is a drop-in replacement for FastTree which speeds up the tree estimation step of CherryML by 10-100x."
+     }
+    ]
+   },
+   {
+    "text": "The whole ProteinGym substitution benchmark is reported to take about two hours on eight CPU cores of a laptop.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: ProteinGym results",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "With 8 cores, the DMS zero shot benchmark takes just two hours on my MacBook laptop."
+     }
+    ]
+   },
+   {
+    "text": "The authors report an AUC of 0.911 on the human clinical benchmark and say SiteRM beats ESM1v and ESM-IF1 on Spearman, AUC, MCC and NDCG in their table; these are the authors' own claims.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: section 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "on the human clinical benchmark, Supplementary Table S2 shows that SiteRM achieves an AUC of 0.911"
+     },
+     {
+      "source": "@paper",
+      "text": "SiteRM outperforms the large protein language model ESM1v and its inverse-folding version ESM-IF1 on Spearman correlation, AUC, MCC and NDCG."
+     }
+    ]
+   },
+   {
+    "text": "No weights to manage: the model is fitted from the alignment, so there is nothing to version except the code and the settings.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Python API",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You can train the SiteRM model (or just run FastCherries) with the function `learn_site_specific_rate_matrices`. You can import it with `from cherryml import learn_site_specific_rate_matrices`."
+     },
+     {
+      "source": "@readme",
+      "text": "- \"learnt_rate_matrices\": A 3D numpy array with the learnt rate matrix per site."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "An alignment is required for every protein, and the quality and depth of that alignment set the result.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Python API; Paper: section 4",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Learn a rate matrix per site given an MSA (and optionally a tree)."
+     },
+     {
+      "source": "@paper",
+      "text": "We trained the SiteRM model on the MSAs provided by the ProteinGym benchmark. Duplicate sequences were removed. We used FastCherries with the LG rate matrix and 20 rate categories to estimate cherries and site rates."
+     }
+    ]
+   },
+   {
+    "text": "Sites are modelled independently, so interactions between positions are not represented; the authors present this as a deliberate choice.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract and section 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we show that despite being an independent-sites model, our SiteRM model outperforms large protein language models that learn complex residueresidue interactions between different sites."
+     },
+     {
+      "source": "@paper",
+      "text": "(1) is an independent-sites model, which uses additive per-site effects."
+     }
+    ]
+   },
+   {
+    "text": "The method assumes time-reversible evolution and carries a small asymptotic bias, which the authors list as limitations.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Limitations",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "One limitation of our current method is that it assumes – just like essentially all of phylogenetics – that the model of protein evolution is time-reversible, thereby constraining the set of possible rate matrices."
+     },
+     {
+      "source": "@paper",
+      "text": "our method does exhibit a small but non-zero amount of asymptotic bias which may matter in some other downstream applications."
+     }
+    ]
+   },
+   {
+    "text": "Installation has system dependencies (compilers, Boost, GSL, MPI) and was tested on Ubuntu 20.04 with Python 3.10; third-party phylogenetics tools are built locally if missing.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: System requirements",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "CherryML has been tested on an Ubuntu system (20.04) with Python (3.10)."
+     },
+     {
+      "source": "@readme",
+      "text": "All third-party software, including FastTree [Price et al. 2010] (`FastTree` program), PhyML [Guindon et al. 2010] (`phyml` program), and XRATE [Klosterman et al. 2006] (`xrate` program), will be automatically installed locally into this repository by our code if you have not installed it already on your system."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "SiteRM workflow",
+   "steps": [
+    "Alignment of the protein family",
+    "FastCherries: cherries and site rates",
+    "Per-site rate matrix, regularised to the LG prior",
+    "Transition probabilities at time t = 1",
+    "Sum log probabilities over mutated sites",
+    "Score per variant"
+   ],
+   "caption": "How SiteRM scores a variant, as the paper describes.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "Paper: sections 3.4 and 4; README: Introduction",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We trained the SiteRM model on the MSAs provided by the ProteinGym benchmark. Duplicate sequences were removed. We used FastCherries with the LG rate matrix and 20 rate categories to estimate cherries and site rates."
+    },
+    {
+     "source": "@paper",
+     "text": "with the LG rate matrix as a prior and with regularization strength λ = 0.5 such that exactly half the data comes from pseudocounts and the other half from empirical counts."
+    },
+    {
+     "source": "@paper",
+     "text": "score(xmut , xwt ) = log p(xmut |xwt , t = 1) ="
+    },
+    {
+     "source": "@paper",
+     "text": "We use t = 1 for variant effect prediction, which means we explore a neighborhood of one expected"
+    },
+    {
+     "source": "@readme",
+     "text": "FastCherries is a drop-in replacement for FastTree which speeds up the tree estimation step of CherryML by 10-100x."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No per-assay numbers are repeated here; the paper's Table 1 and supplementary tables hold them.",
+   "The README documents the SiteRM API but gives no worked example; the Python step here comes from a test function inside the module, which uses the equal-rates prior rather than the LG prior of the paper.",
+   "The site-specific rate matrices the authors say they planned to release for the TrRosetta families were not located in the sources read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read the README, LICENSE and cherryml/_siterm_public_api.py of songlab-cal/CherryML at commit 8ff221a468810f672a086ba6d27fd163d96159cc, the full text of the NeurIPS 2024 proceedings paper, and the SiteRM substitution scoring script of OATML-Markslab/ProteinGym at commit 144fe22b07dfaeec2b366f2346203a9838a55b4c, all fetched on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the cherryml package and fit site-specific rate matrices for one alignment with the SiteRM training function.",
+  "prerequisites": [
+   "Python 3.10 on Ubuntu 20.04 is the tested setup.",
+   "System packages listed in the README: autoconf, automake, gcc, libboost-dev, libboost-regex-dev, libgsl-dev, libopenmpi-dev, mpich, pkg-config, wget, zlib1g-dev, and open-mpi.",
+   "CPU is enough. The vectorised implementation can use a GPU with device=\"cuda\"; the non-vectorised one is CPU only and uses less memory.",
+   "An alignment for the protein family, and a prior rate matrix such as the LG matrix shipped in the repository."
+  ],
+  "steps": [
+   {
+    "title": "Install the package",
+    "shell": "pip install cherryml",
+    "explanation": "The README's user install. A developer install from source is also described, with a conda environment on Python 3.10 and a cython build step.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install cherryml"
+     },
+     {
+      "source": "@readme",
+      "text": "conda create --name cherryml-dev python=3.10"
+     }
+    ]
+   },
+   {
+    "title": "Get the repository for the prior matrices and the test alignment",
+    "shell": "git clone https://github.com/songlab-cal/CherryML.git\ncd CherryML\ngit checkout --detach 8ff221a468810f672a086ba6d27fd163d96159cc",
+    "explanation": "The commands below read rate matrices under data/rate_matrices/ and an alignment under tests/data/, and the README's own examples read alignments under demo_data/. These clone and checkout lines are added to get the repository at the commit this page was written from.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: End-to-end worked-out application",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--initial_tree_estimator_rate_matrix_path data/rate_matrices/lg.txt"
+     },
+     {
+      "source": "@readme",
+      "text": "The training MSAs are already located at `demo_data/plant_train` in this repository"
+     }
+    ]
+   },
+   {
+    "title": "Fit SiteRM on one protein alignment",
+    "shell": "python - <<'PY'\nfrom cherryml import learn_site_specific_rate_matrices\nfrom cherryml import io as cherryml_io\nfrom cherryml.utils import get_amino_acids\n\nmsa = cherryml_io.read_msa(\"tests/data/Aln0037_txt-gb_phyml.txt\")\nres_dict = learn_site_specific_rate_matrices(\n    tree=None,\n    msa=msa,\n    alphabet=get_amino_acids(),\n    regularization_rate_matrix=cherryml_io.read_rate_matrix(\"data/rate_matrices/equ.txt\"),\n    regularization_strength=0.5,\n    alphabet_for_site_rate_estimation=get_amino_acids(),\n    rate_matrix_for_site_rate_estimation=cherryml_io.read_rate_matrix(\"data/rate_matrices/equ.txt\"),\n    num_epochs=30,\n)\nprint(res_dict[\"learnt_rate_matrices\"].shape)\nprint(len(res_dict[\"learnt_site_rates\"]))\nPY",
+    "explanation": "The repository's own test function test_learn_site_specific_rate_matrices_real_vectorized_GOAT_with_fast_cherries_proteins, wrapped in a shell heredoc and run from the repository root. Its os.path.join of the module directory is replaced by the alignment's path from the repository root, and the two print lines are added. tree=None lets FastCherries estimate the tree. For the paper's variant effect setting, use the LG prior at data/rate_matrices/lg.txt and lg_with_gaps.txt instead of equ.txt, as the ProteinGym script does.",
+    "source_ids": [
+     "@api",
+     "@readme",
+     "@pg-script"
+    ],
+    "source_locator": "cherryml/_siterm_public_api.py: test_learn_site_specific_rate_matrices_real_vectorized_GOAT_with_fast_cherries_proteins; README: Python API; ProteinGym script",
+    "quotes": [
+     {
+      "source": "@api",
+      "text": "msa = cherryml_io.read_msa(os.path.join(dir_path, \"../tests/data/Aln0037_txt-gb_phyml.txt\"))"
+     },
+     {
+      "source": "@api",
+      "text": "regularization_rate_matrix=cherryml_io.read_rate_matrix(\"data/rate_matrices/equ.txt\"),"
+     },
+     {
+      "source": "@api",
+      "text": "alphabet=get_amino_acids(),"
+     },
+     {
+      "source": "@api",
+      "text": "num_epochs=30,"
+     },
+     {
+      "source": "@api",
+      "text": "from cherryml.utils import get_amino_acids"
+     },
+     {
+      "source": "@api",
+      "text": "site_rate_matrices = res_dict[\"learnt_rate_matrices\"]"
+     },
+     {
+      "source": "@readme",
+      "text": "You can train the SiteRM model (or just run FastCherries) with the function `learn_site_specific_rate_matrices`. You can import it with `from cherryml import learn_site_specific_rate_matrices`."
+     },
+     {
+      "source": "@readme",
+      "text": "- \"learnt_rate_matrices\": A 3D numpy array with the learnt rate matrix per site."
+     },
+     {
+      "source": "@pg-script",
+      "text": "export regularization_rate_matrix_path=\"proteingym/baselines/SiteRM/lg_with_gaps.txt\""
+     }
+    ]
+   },
+   {
+    "title": "Or reproduce the ProteinGym substitution scores",
+    "shell": "git clone https://github.com/OATML-Markslab/ProteinGym.git\ncd ProteinGym\ngit checkout --detach 144fe22b07dfaeec2b366f2346203a9838a55b4c\ncd scripts/scoring_DMS_zero_shot/\nbash scoring_SiteRM_substitutions.sh",
+    "explanation": "This runs in the ProteinGym repository, not CherryML, so the clone and checkout lines pin it to the commit the script was read from. The CherryML README directs readers there, and the script installs cherryml itself, then calls proteingym.baselines.SiteRM.compute_fitness over the benchmark assays. The README says to follow it with merge_all_scores.sh and performance_substitutions.sh, and that num_processes can be set to the cores available.",
+    "source_ids": [
+     "@readme",
+     "@pg-script"
+    ],
+    "source_locator": "README: ProteinGym results; ProteinGym scoring script",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "cd into `scripts/scoring_DMS_zero_shot/` and run the `scoring_SiteRM_substitutions.sh` script"
+     },
+     {
+      "source": "@pg-script",
+      "text": "python -m proteingym.baselines.SiteRM.compute_fitness \\"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install cherryml"
+     },
+     {
+      "source": "@readme",
+      "text": "With 8 cores, the DMS zero shot benchmark takes just two hours on my MacBook laptop."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "From the Python call: the shape of the array of per-site rate matrices and the number of learnt site rates. From the ProteinGym script: score files under the SiteRM output folder set by output_scores_folder."
+  ],
+  "limitations": [
+   "These commands were read from the repository and the ProteinGym script and have not been executed by Rewire.",
+   "The Python step is a test function from inside the package, adapted to run from the repository root; it is not a documented public example.",
+   "pip install cherryml is not pinned to a version in the README, so the installed code may differ from the commit read here.",
+   "The clinical benchmark run is much longer: the README says around a full day because there are ten times more alignments."
+  ],
+  "source_ids": [
+   "@readme",
+   "@pg-script"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "SiteRM (fitted per alignment, no released weights)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": null,
+   "code_url": "https://github.com/songlab-cal/CherryML",
+   "weights_url": null,
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@license",
+     "text": "BSD 3-Clause License"
+    },
+    {
+     "source": "@readme",
+     "text": "You can train the SiteRM model (or just run FastCherries) with the function `learn_site_specific_rate_matrices`. You can import it with `from cherryml import learn_site_specific_rate_matrices`."
+    }
+   ]
+  }
+ ],
+ "notes": "SiteRM has no weights: it is fitted on the user's alignment, so Parameters and Weights licence are marked inapplicable. It ships inside the CherryML package together with FastCherries and the earlier CherryML work, which are separate methods from the same group. The ProteinGym scoring script was fetched from the ProteinGym repository at the commit already attached to this record, because the CherryML README directs readers there for the benchmark run."
+}

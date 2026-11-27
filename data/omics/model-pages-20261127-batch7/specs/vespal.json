@@ -1,0 +1,768 @@
+{
+ "record_id": "uc20260930-model-vespal",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "Rostlab/VESPA README.md at commit 34fd1ab1",
+   "description": "Official repository README, pinned to a commit. It holds the pipeline description and every command.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/Rostlab/VESPA/34fd1ab1b7fdc2b4e1a241fdae1db5c2f09d8944/README.md",
+   "url": "https://github.com/Rostlab/VESPA",
+   "version": "git commit 34fd1ab1b7fdc2b4e1a241fdae1db5c2f09d8944",
+   "media_type": "text/markdown",
+   "sha256": "a657d7025da813d445759658320f88b308f03ab32a3892293b6a314d35409e54",
+   "retrieved_at": "2026-11-26T23:46:57Z",
+   "store_bytes": false
+  },
+  {
+   "key": "license",
+   "name": "Rostlab/VESPA LICENSE at commit 34fd1ab1",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/Rostlab/VESPA/34fd1ab1b7fdc2b4e1a241fdae1db5c2f09d8944/LICENSE",
+   "url": "https://github.com/Rostlab/VESPA",
+   "version": "git commit 34fd1ab1b7fdc2b4e1a241fdae1db5c2f09d8944",
+   "media_type": "text/plain",
+   "sha256": "91b65277959ec273763d28ef002e83a6b3fba57c7a35436c9e5b66536333d720",
+   "retrieved_at": "2026-11-26T23:47:31Z",
+   "store_bytes": false
+  },
+  {
+   "key": "pyproject",
+   "name": "Rostlab/VESPA pyproject.toml at commit 34fd1ab1",
+   "description": "Package definition: name, version, licence, Python range, dependencies and the command line entry points.",
+   "file": "artifacts/pyproject.toml",
+   "artifact_url": "https://raw.githubusercontent.com/Rostlab/VESPA/34fd1ab1b7fdc2b4e1a241fdae1db5c2f09d8944/pyproject.toml",
+   "url": "https://github.com/Rostlab/VESPA",
+   "version": "git commit 34fd1ab1b7fdc2b4e1a241fdae1db5c2f09d8944",
+   "media_type": "text/plain",
+   "sha256": "6d016527339d7b9661a56641097275e4f310cb3b951cc046f56960e55e1bcdb1",
+   "retrieved_at": "2026-11-26T23:47:34Z",
+   "store_bytes": false
+  },
+  {
+   "key": "models-tree",
+   "name": "GitHub listing of the models folder of Rostlab/VESPA at commit 34fd1ab1",
+   "description": "GitHub API listing of the trained model files shipped in the repository, with sizes.",
+   "file": "artifacts/models-tree.json",
+   "artifact_url": "https://api.github.com/repos/Rostlab/VESPA/git/trees/34fd1ab1b7fdc2b4e1a241fdae1db5c2f09d8944:models",
+   "url": "https://github.com/Rostlab/VESPA",
+   "version": "git commit 34fd1ab1b7fdc2b4e1a241fdae1db5c2f09d8944",
+   "media_type": "application/json",
+   "sha256": "42a4c95684fe49ec38c174aa3480efed904d54afb2dcb1f96e99f391d5ec440c",
+   "retrieved_at": "2026-11-26T23:47:49Z",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Marquet et al. 2021, Human Genetics 141, full text (PMC8716573)",
+   "description": "Full text of the VESPA and VESPAl paper as NCBI PMC JATS XML.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=8716573&rettype=xml",
+   "url": "https://doi.org/10.1007/s00439-021-02411-y",
+   "version": "PMC8716573 as served by NCBI on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "103e209c160401f1e0c9acee7dd5e9b7c4cd10ddbbee7e0632eb8f081b789693",
+   "retrieved_at": "2026-11-26T23:46:50Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "VESPAl is the light version of VESPA, a predictor of the effect of single amino acid substitutions in a protein. It needs only the protein sequence: no alignment and no structure. It embeds the sequence with the ProtT5 protein language model, predicts how conserved each residue is, and then scores each substitution with a logistic regression ensemble that takes that conservation prediction together with BLOSUM62 substitution scores. Unlike full VESPA it leaves out the language model substitution probabilities, which the authors say costs a small drop in accuracy and makes whole proteomes affordable.",
+  "summary_source_ids": [
+   "@readme",
+   "@paper"
+  ],
+  "summary_source_locator": "README: header; paper: Abstract",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "**VESPA** is a simple, yet powerful Single Amino Acid Variant (SAV) effect predictor based on embeddings of the Protein Language Model"
+   },
+   {
+    "source": "@readme",
+    "text": "by using the computationally more efficient method VESPA-light (**VESPAl**) with only step (2) as input for a small drop in prediction performance"
+   },
+   {
+    "source": "@paper",
+    "text": "by excluding substitution probabilities to allow proteome-wide analysis to complete after the coffee break on a single machine"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "VESPAl is the light version of VESPA. It keeps the first two steps of the pipeline, embedding the sequence with ProtT5 and predicting per-residue conservation in nine classes, and then scores a variant from that conservation prediction together with BLOSUM62 substitution scores. It leaves out the third step, the per-variant log-odds ratios of masked marginal probabilities, which is the step that needs a GPU. The scorer is the same kind of balanced logistic regression ensemble as VESPA, trained on rotated cross-validation splits of the Eff10k set of binary variant effect annotations, and the repository ships it as a separate model file, VESPAl-10LR_Cons_Blsm.pkl, next to VESPA's VESPA-10LR_Cons_Blsm_Prob.pkl.",
+    "source_ids": [
+     "@readme",
+     "@paper",
+     "@models-tree"
+    ],
+    "source_locator": "README: header and Step 3; paper: Abstract and Methods; GitHub models folder listing",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "by using the computationally more efficient method VESPA-light (**VESPAl**) with only step (2) as input for a small drop in prediction performance"
+     },
+     {
+      "source": "@paper",
+      "text": "for a small drop in prediction performance, we created a computationally more efficient method, dubbed VESPA-light (or short: VESPAl), by excluding substitution probabilities"
+     },
+     {
+      "source": "@readme",
+      "text": "This step requires a GPU! The two models **VESPA** and **VESPAl** differ in their predictive performance but also in the required input. If you are only interested in running **VESPAl**, you can skip this step."
+     },
+     {
+      "source": "@models-tree",
+      "text": "\"path\":\"VESPAl-10LR_Cons_Blsm.pkl\""
+     },
+     {
+      "source": "@paper",
+      "text": "we trained a balanced logistic regression (LR) ensemble method as implemented in SciKit"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "There is one released version of the software rather than a family of checkpoints: pyproject.toml gives the package as vespa-effect version 1.0.2 at the commit read here, and the trained models ship inside the repository as three files, ProtT5cons_checkpoint.pt for the conservation predictor and one pickle each for VESPA and VESPAl. A result should name the package version or the commit, and the ProtT5 weights used for the embeddings, because those are downloaded separately at run time into the cache folder the command names. The README also offers an experimental install of the v0.9.0-beta release from GitHub.",
+    "source_ids": [
+     "@pyproject",
+     "@models-tree",
+     "@readme"
+    ],
+    "source_locator": "pyproject.toml; GitHub models folder listing; README: Quickstart and Installation from current Github Release",
+    "quotes": [
+     {
+      "source": "@pyproject",
+      "text": "name = \"vespa-effect\"\nversion = \"1.0.2\""
+     },
+     {
+      "source": "@models-tree",
+      "text": "\"path\":\"ProtT5cons_checkpoint.pt\""
+     },
+     {
+      "source": "@models-tree",
+      "text": "\"path\":\"VESPA-10LR_Cons_Blsm_Prob.pkl\""
+     },
+     {
+      "source": "@readme",
+      "text": "`--prott5_weights_cache` followed by a folder path specifies the location of a caching folder (or preloaded ProtT5 weigths)."
+     },
+     {
+      "source": "@readme",
+      "text": "python -m pip install https://github.com/Rostlab/VESPA/releases/download/v0.9.0-beta/vespa-0.9.0b0.tar.gz"
+     }
+    ]
+   },
+   {
+    "title": "Precomputed predictions and services",
+    "body": "Some predictions are published rather than computed. The README points to precomputed VESPA and VESPAl predictions for 39 deep mutational scanning experiments in the paper's supplementary file 3, and to VESPAl predictions for the whole human proteome and for the fly proteome on Zenodo. The paper says the methods are also available through bioembeddings.com, the repository and PredictProtein.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Precomputed VESPA and VESPAl predictions; paper: Abstract and Data availability",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Precomputed **VESPA** and **VESPAl** predictions are currently available for 39 _DMS experiments_ here"
+     },
+     {
+      "source": "@readme",
+      "text": "**VESPAl** predictions are available for the [_human proteome_](https://doi.org/10.5281/zenodo.5905863)"
+     },
+     {
+      "source": "@paper",
+      "text": "All methods and data sets are freely available for local and online execution through bioembeddings.com"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Supervised variant effect predictor: a logistic regression ensemble on top of protein language model features, scoring single amino acid substitutions without alignments.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: header; paper: Methods, Supervised prediction of SAV effect scores",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "is a simple, yet powerful Single Amino Acid Variant (SAV) effect predictor based on embeddings of the Protein Language Model"
+     },
+     {
+      "source": "@paper",
+      "text": "we trained a balanced logistic regression (LR) ensemble method as implemented in SciKit"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Two stages: a supervised nine-class conservation predictor over ProtT5 embeddings, then an ensemble of ten logistic regressions taking that conservation prediction and BLOSUM62 scores. The log-odds step that VESPA adds is left out.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper",
+     "@models-tree"
+    ],
+    "source_locator": "README: header, Step 2 and Step 3; paper: Fig. 1 caption; models folder listing",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "with only step (2) as input for a small drop in prediction performance"
+     },
+     {
+      "source": "@paper",
+      "text": "Input embedding into supervised method (here: logistic regression, FNN or CNN) to predict conservation in 9-classes as defined by ConSurf-DB"
+     },
+     {
+      "source": "@models-tree",
+      "text": "\"path\":\"VESPAl-10LR_Cons_Blsm.pkl\""
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "One FASTA file of wild-type sequences, with any number of sequences, and optionally a mutations file listing protein ID and substitution per line. No alignment and no structure.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Input Files; Mutations file",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "**Required**: A single `FASTA` file containing all your wildtype sequences (note: this file can contain any number of sequences)."
+     },
+     {
+      "source": "@readme",
+      "text": "A simple text file with a protein ID and one mutation per-line"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "One semicolon separated CSV file per protein with a row per substitution and the predicted effect score, optionally a single HDF5 file holding a 20 by L matrix per sequence. A map.json links the numbered CSV files to sequence IDs.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: VESPA and VESPAl output",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "will generate one .csv (with semicolon separator) file per protein in the output folder"
+     },
+     {
+      "source": "@readme",
+      "text": "The file contains one 20xL-shaped matrix per sequence-ID."
+     },
+     {
+      "source": "@readme",
+      "text": "A lookup file `map.json` will be created in the output directory containing a dictionary mapping from number to sequence ID."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported as a count. The scorer is an ensemble of ten logistic regressions shipped as a pickle of about 5 kB, and the conservation predictor checkpoint is 3,708,479 bytes; the ProtT5 language model it uses is downloaded separately and is not part of this release.",
+    "status": "source_checked",
+    "source_ids": [
+     "@models-tree",
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "GitHub models folder listing; paper: Methods; README: Quickstart",
+    "quotes": [
+     {
+      "source": "@models-tree",
+      "text": "\"size\":3708479"
+     },
+     {
+      "source": "@paper",
+      "text": "This resulted in ten individual LRs trained on separate datasets."
+     },
+     {
+      "source": "@readme",
+      "text": "the weights will be downloaded into this folder or just reused if already present"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Eff10k for the effect scorer: 100,737 binary variant effect annotations from 9,594 proteins, taken from the SNAP2 development set. ConSurf10k for the conservation predictor: 10,507 proteins or domains split into 9,392 training, 555 validation and 519 test sequences. No deep mutational scanning data was used for fitting.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data sets; Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "It contained 100,737 binary SAV-effect annotations (neutral: 39,700, effect: 61,037) from 9594 proteins."
+     },
+     {
+      "source": "@paper",
+      "text": "with 10,507 proteins (or domains) was randomly partitioned into training (9392 sequences), cross-training/validation (555), and test (519) sets"
+     },
+     {
+      "source": "@paper",
+      "text": "predicted SAV effect magnitude without any optimization on DMS data"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One software release rather than several checkpoints: vespa-effect 1.0.2 at the commit read here, which ships both VESPAl and the other of the pair. The README also offers an experimental install of the earlier v0.9.0-beta GitHub release.",
+    "status": "source_checked",
+    "source_ids": [
+     "@pyproject",
+     "@readme",
+     "@models-tree"
+    ],
+    "source_locator": "pyproject.toml; README: Installation from current Github Release; models folder listing",
+    "quotes": [
+     {
+      "source": "@pyproject",
+      "text": "version = \"1.0.2\""
+     },
+     {
+      "source": "@readme",
+      "text": "vespa-0.9.0b0.tar.gz"
+     },
+     {
+      "source": "@models-tree",
+      "text": "\"path\":\"VESPAl-10LR_Cons_Blsm.pkl\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "No date is stated. The training sets Eff10k and ConSurf10k are dated only by their own publications.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Data sets",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "No sequence length limit is stated for the predictor itself. The conservation training set excluded proteins longer than 10,000 residues, and the ProtT5 model used for embeddings has its own limit, which these sources do not give.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, ConSurf10k",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "longer than 10,000 residues"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "AGPL-3.0-or-later, the licence of the package that contains them: the trained models ship inside the repository and the pip package rather than as a separate weights release.",
+    "status": "source_checked",
+    "source_ids": [
+     "@pyproject",
+     "@license",
+     "@models-tree"
+    ],
+    "source_locator": "pyproject.toml; LICENSE file; models folder listing",
+    "quotes": [
+     {
+      "source": "@pyproject",
+      "text": "license = 'AGPL-3.0-or-later'"
+     },
+     {
+      "source": "@pyproject",
+      "text": "\"models/*\""
+     },
+     {
+      "source": "@license",
+      "text": "GNU AFFERO GENERAL PUBLIC LICENSE"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "AGPL-3.0-or-later, as pyproject.toml declares and the repository LICENSE file carries in full.",
+    "status": "source_checked",
+    "source_ids": [
+     "@pyproject",
+     "@license"
+    ],
+    "source_locator": "pyproject.toml; LICENSE file",
+    "quotes": [
+     {
+      "source": "@pyproject",
+      "text": "license = 'AGPL-3.0-or-later'"
+     },
+     {
+      "source": "@license",
+      "text": "Version 3, 19 November 2007"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code and trained models at https://github.com/Rostlab/VESPA, installable as the pip package vespa-effect. Precomputed predictions for the human proteome at https://doi.org/10.5281/zenodo.5905863 and for the fly proteome at https://doi.org/10.5281/zenodo.6322184. The paper also names bioembeddings.com and PredictProtein as services.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper",
+     "@pyproject"
+    ],
+    "source_locator": "README: Usage and Precomputed predictions; paper: Abstract; pyproject.toml",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install vespa-effect"
+     },
+     {
+      "source": "@readme",
+      "text": "for the [__fly (drosophila melanogaster) proteome__](https://doi.org/10.5281/zenodo.6322184)"
+     },
+     {
+      "source": "@paper",
+      "text": "https://github.com/Rostlab/VESPA"
+     },
+     {
+      "source": "@pyproject",
+      "text": "repository = \"https://github.com/Rostlab/VESPA\""
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Needs no multiple sequence alignment and no structure: one FASTA file is the whole input.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header; Input Files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "**V**ariant **E**ffect **S**core **P**rediction without **A**lignments"
+     },
+     {
+      "source": "@readme",
+      "text": "**Required**: A single `FASTA` file containing all your wildtype sequences"
+     }
+    ]
+   },
+   {
+    "text": "Installs as one pip package with five command line tools, and the trained models are included rather than downloaded from elsewhere.",
+    "source_ids": [
+     "@readme",
+     "@pyproject"
+    ],
+    "source_locator": "README: Usage; pyproject.toml scripts and include",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The preferred method to install **VESPA** is via pip"
+     },
+     {
+      "source": "@pyproject",
+      "text": "vespa_conspred = 'vespa.scripts.conspred:main'"
+     },
+     {
+      "source": "@pyproject",
+      "text": "\"models/*\""
+     }
+    ]
+   },
+   {
+    "text": "It does not need the log-odds step, so with precomputed embeddings it runs without a GPU, and the authors report the human proteome in 40 minutes on one Nvidia Quadro RTX 8000.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Quickstart optional notes and Step 3; paper: Abstract",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Then running **VESPAl** will not require a GPU."
+     },
+     {
+      "source": "@paper",
+      "text": "Our method predicted SAV effects for the entire human proteome (~ 20 k proteins) within 40 min on one Nvidia Quadro RTX 8000."
+     }
+    ]
+   },
+   {
+    "text": "Predictions are already published for whole proteomes, so for human or fly proteins nothing needs to be run at all.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Precomputed VESPA and VESPAl predictions",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "**VESPAl** predictions are available for the [_human proteome_](https://doi.org/10.5281/zenodo.5905863) (downloaded 22/01/17)"
+     }
+    ]
+   },
+   {
+    "text": "The default run scores every possible substitution in the input sequences, so no mutation list has to be prepared.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Quickstart; Input Files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "note: per default all mutations are considered"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "It is the reduced model: the developers say leaving out the substitution probabilities costs a small drop in prediction performance compared with VESPA.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: header; paper: Abstract",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "for a small drop in prediction performance"
+     },
+     {
+      "source": "@paper",
+      "text": "for a small drop in prediction performance, we created a computationally more efficient method, dubbed VESPA-light"
+     }
+    ]
+   },
+   {
+    "text": "A GPU is still needed to make the ProtT5 embeddings in the first place, unless embeddings are supplied; the README recommends at least 12 GB of VRAM for that step.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Quickstart warning and optional notes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "**WARNING** Creating embeddings requires a powerful GPU (we recommend at least 12GB of VRAM)."
+     },
+     {
+      "source": "@readme",
+      "text": "If you already have precomputed embeddings available, you can use those instead of generating new ones"
+     }
+    ]
+   },
+   {
+    "text": "The licence is AGPL-3.0-or-later, which is a copyleft licence covering the code and the included models; this matters for anyone embedding it in a service.",
+    "source_ids": [
+     "@pyproject",
+     "@license"
+    ],
+    "source_locator": "pyproject.toml; LICENSE file",
+    "quotes": [
+     {
+      "source": "@pyproject",
+      "text": "license = 'AGPL-3.0-or-later'"
+     },
+     {
+      "source": "@license",
+      "text": "GNU AFFERO GENERAL PUBLIC LICENSE"
+     }
+    ]
+   },
+   {
+    "text": "It scores single amino acid substitutions only, so insertions and deletions are out of scope.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header; Mutations file",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Single Amino Acid Variant (SAV) effect predictor"
+     },
+     {
+      "source": "@readme",
+      "text": "The SAV string has the format: `<Original Amino Acid><Position><Replacement Amino Acid>`"
+     }
+    ]
+   },
+   {
+    "text": "The Python range is narrow, at least 3.8 and below 3.11, and the pinned dependencies include torch 1.9 and transformers 4.10 era versions.",
+    "source_ids": [
+     "@pyproject"
+    ],
+    "source_locator": "pyproject.toml dependencies",
+    "quotes": [
+     {
+      "source": "@pyproject",
+      "text": "python = \">=3.8,<3.11\""
+     },
+     {
+      "source": "@pyproject",
+      "text": "torch = \"^1.9.0\""
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "VESPAl workflow",
+   "steps": [
+    "FASTA file of wild-type sequences",
+    "ProtT5 embeddings (vespa_emb)",
+    "Nine-class per-residue conservation prediction (vespa_conspred)",
+    "Logistic regression ensemble on conservation plus BLOSUM62",
+    "CSV of VESPAl scores for every substitution"
+   ],
+   "caption": "The substeps as the repository README sets them out, with the command for each.",
+   "source_ids": [
+    "@readme"
+   ],
+   "source_locator": "README: The substeps of VESPA and VESPAl",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "vespa_emb data/sequences.fasta -o data/embeddings.h5  --prott5_weights_cache data/cache"
+    },
+    {
+     "source": "@readme",
+     "text": "vespa_conspred data/embeddings.h5 -o data/conspred.h5"
+    },
+    {
+     "source": "@readme",
+     "text": "vespa_run data/conspred_probs.h5 data/sequences.fasta --output predictions/"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count is given for the logistic regression ensemble or the conservation predictor beyond the file sizes.",
+   "The sources do not say which ProtT5 revision is downloaded at run time.",
+   "The exact size of the accuracy drop against full VESPA is given in the paper's figures and tables, which were not read here, only as a small drop in the text.",
+   "No sequence length limit is stated for the predictor."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: the Rostlab/VESPA README.md, LICENSE and pyproject.toml at commit 34fd1ab1b7fdc2b4e1a241fdae1db5c2f09d8944, the GitHub listing of its models folder at that commit, and the full text of Marquet et al. 2021 from NCBI PMC (PMC8716573). No command was executed and no human review is claimed."
+  }
+ },
+ "structured": [
+  {
+   "checkpoint": "VESPAl-10LR_Cons_Blsm.pkl (vespa-effect 1.0.2)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "AGPL-3.0-or-later",
+   "weights_licence": "AGPL-3.0-or-later",
+   "code_url": "https://github.com/Rostlab/VESPA",
+   "weights_url": "https://github.com/Rostlab/VESPA",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@models-tree",
+     "text": "\"path\":\"VESPAl-10LR_Cons_Blsm.pkl\""
+    },
+    {
+     "source": "@pyproject",
+     "text": "version = \"1.0.2\""
+    },
+    {
+     "source": "@pyproject",
+     "text": "license = 'AGPL-3.0-or-later'"
+    }
+   ]
+  }
+ ],
+ "run_guide": {
+  "summary": "Install the pip package and score every possible single amino acid substitution in a FASTA file with VESPAl.",
+  "prerequisites": [
+   "Python at least 3.8 and below 3.11, as pyproject.toml requires.",
+   "A GPU for the embedding step: the README recommends at least 12 GB of VRAM. With precomputed embeddings the README says VESPAl needs no GPU.",
+   "A FASTA file of wild-type sequences, and optionally a mutations file.",
+   "Disk space for the ProtT5 weights, which are downloaded into the cache folder on first run."
+  ],
+  "steps": [
+   {
+    "title": "Install the package",
+    "shell": "pip install vespa-effect",
+    "explanation": "The install the README prefers. It brings the trained VESPAl model with it.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install vespa-effect"
+     }
+    ]
+   },
+   {
+    "title": "Run VESPAl on a FASTA file",
+    "shell": "vespa data/sequences.fasta --prott5_weights_cache data/cache",
+    "explanation": "The README quickstart. It runs VESPAl for all possible mutations by default, creating a vespa_run_directory with the input features and an output folder of CSV predictions. The cache folder keeps the ProtT5 weights between runs.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Quickstart",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "vespa data/sequences.fasta --prott5_weights_cache data/cache"
+     },
+     {
+      "source": "@readme",
+      "text": "By default, this runs **VESPAl** for all possible mutations."
+     }
+    ]
+   },
+   {
+    "title": "Or run the substeps, reusing embeddings to avoid a GPU",
+    "shell": "vespa_emb data/sequences.fasta -o data/embeddings.h5  --prott5_weights_cache data/cache\nvespa_conspred data/embeddings.h5 -o data/conspred.h5\nvespa_run data/conspred_probs.h5 data/sequences.fasta --output predictions/",
+    "explanation": "The three README substeps for VESPAl: embed, predict conservation, then score. The README says that with existing embeddings, passing use_existing_embeddings, VESPAl needs no GPU. Note that the README's embedding step writes conspred.h5 while its run step reads conspred_probs.h5, as printed.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Step 1, Step 2, Step 4",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "vespa_conspred data/embeddings.h5 -o data/conspred.h5"
+     },
+     {
+      "source": "@readme",
+      "text": "vespa_run data/conspred_probs.h5 data/sequences.fasta --output predictions/"
+     },
+     {
+      "source": "@readme",
+      "text": "you can use those instead of generating new ones by adding `--use_existing_embeddings` followed by the file location. Then running **VESPAl** will not require a GPU."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A vespa_run_directory, or the output directory given, holding one semicolon separated CSV per sequence with a row per substitution and its score, plus map.json linking file numbers to sequence IDs.",
+   "Optionally an HDF5 file with a 20 by L matrix per sequence, where fields that were not computed hold -1."
+  ],
+  "limitations": [
+   "These commands were read from the repository README at commit 34fd1ab1b7fdc2b4e1a241fdae1db5c2f09d8944 and have not been executed by Rewire.",
+   "The README's substep file names are inconsistent between the conservation step and the run step; they are reproduced as printed.",
+   "The ProtT5 weights are downloaded at run time, so the exact language model revision used is not pinned by the sources."
+  ],
+  "source_ids": [
+   "@readme",
+   "@pyproject"
+  ]
+ },
+ "notes": "VESPAl and VESPA are two models from one repository and one paper, and this record covers the light one. The pair cannot be separated by source: the same pip package, README and commit serve both, and the records 13-vespa and 14-vespal should keep the same sources while differing in which pipeline steps and which model file they describe. The trained models are not released as separate weights: they ship inside the repository and the pip package, so the weights licence is the package licence, AGPL-3.0-or-later. No release date is stated, so structured.released is null. The input.json for this record lists the paper full text as an existing source, so no ProteinGym README was fetched here; the companion record 13-vespa carries that file."
+}

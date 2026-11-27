@@ -1,0 +1,710 @@
+{
+ "record_id": "lit-protein-20261011-deepprotein-model-chemllm-7b",
+ "sources": [
+  {
+   "key": "hf-card",
+   "name": "AI4Chem/ChemLLM-7B-Chat model card at revision b8b2ea19",
+   "description": "Hugging Face model card of ChemLLM-7B-Chat, pinned to a revision. It holds the usage instructions and the licence statement.",
+   "file": "artifacts/hf-card.md",
+   "artifact_url": "https://huggingface.co/AI4Chem/ChemLLM-7B-Chat/raw/b8b2ea19e48f53d190fe8dced94572717f8e89a2/README.md",
+   "url": "https://huggingface.co/AI4Chem/ChemLLM-7B-Chat",
+   "version": "Hugging Face revision b8b2ea19e48f53d190fe8dced94572717f8e89a2",
+   "media_type": "text/markdown",
+   "sha256": "7abae185f5d99b80bfcd78346fe87955c246564646bd147eaa1f9fad7c2e946e",
+   "retrieved_at": "2026-11-26T23:41:36Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "hf-config",
+   "name": "AI4Chem/ChemLLM-7B-Chat config.json at revision b8b2ea19",
+   "description": "Model configuration file of the released checkpoint, pinned to a revision.",
+   "file": "artifacts/hf-config.json",
+   "artifact_url": "https://huggingface.co/AI4Chem/ChemLLM-7B-Chat/raw/b8b2ea19e48f53d190fe8dced94572717f8e89a2/config.json",
+   "url": "https://huggingface.co/AI4Chem/ChemLLM-7B-Chat",
+   "version": "Hugging Face revision b8b2ea19e48f53d190fe8dced94572717f8e89a2",
+   "media_type": "application/json",
+   "sha256": "55dc096bdc77c67c1a66012f563edbf4f917e529e3e971c09140aae0f00fdc42",
+   "retrieved_at": "2026-11-26T23:41:40Z",
+   "store_bytes": true
+  },
+  {
+   "key": "hf-api",
+   "name": "Hugging Face metadata for AI4Chem/ChemLLM-7B-Chat, as served on 2026-11-26",
+   "description": "Hugging Face API response: revision, licence field, gating and the safetensors parameter count.",
+   "file": "artifacts/hf-api.json",
+   "artifact_url": "https://huggingface.co/api/models/AI4Chem/ChemLLM-7B-Chat?expand[]=safetensors&expand[]=sha&expand[]=cardData&expand[]=gated&expand[]=createdAt&expand[]=lastModified",
+   "url": "https://huggingface.co/AI4Chem/ChemLLM-7B-Chat",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "cf65f0197e36ad9eb2f53344d4660823eb0f131526235d82f07dcaaacf9cc2b5",
+   "retrieved_at": "2026-11-26T23:41:28Z",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Zhang et al., ChemLLM: A Chemical Large Language Model, arXiv 2402.06852, text layer of the PDF",
+   "description": "Text extracted with pdftotext from the arXiv PDF of the ChemLLM paper. The PDF is saved beside it as paper.pdf.",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2402.06852",
+   "url": "https://arxiv.org/abs/2402.06852",
+   "version": "arXiv 2402.06852, as served on 2026-11-26",
+   "media_type": "text/plain",
+   "sha256": "0c0e80c3b658d741eb029be91ae479838ad659082f18c1c6d290b39a6d7c0a87",
+   "retrieved_at": "2026-11-26T23:30:00Z",
+   "store_bytes": false
+  },
+  {
+   "key": "arxiv-meta",
+   "name": "arXiv API metadata for 2402.06852, as served on 2026-11-26",
+   "description": "arXiv API response giving the paper title, authors and dates.",
+   "file": "artifacts/arxiv-meta.xml",
+   "artifact_url": "http://export.arxiv.org/api/query?id_list=2402.06852",
+   "url": "https://arxiv.org/abs/2402.06852",
+   "version": "As served on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "7c87d90579f6156f485483f4bf66085e0cfcf37bab22a79057da50ba896a6db6",
+   "retrieved_at": "2026-11-26T23:41:43Z",
+   "store_bytes": false
+  },
+  {
+   "key": "bench",
+   "name": "DeepProtein paper full text (PMC12553333), which prompted ChemLLM-7B for protein tasks",
+   "description": "Full text of Xie and Fu 2025 as NCBI PMC JATS XML, the benchmark paper behind this record.",
+   "file": "artifacts/deepprotein-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12553333&rettype=xml",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12553333/",
+   "version": "PMC12553333 as served by NCBI on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "6cc4bdb5678a0761dc6cd1fbc6998dfa1d2a7bab7b5c5e8a38b014cd22adce1a",
+   "retrieved_at": "2026-11-26T23:28:56Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "ChemLLM-7B-Chat is a chat language model for chemistry. It is built from InternLM2-Base-7B by instruction tuning, first on a general question and answer corpus and then on a mixture of that corpus with 7 million chemistry question and answer pairs assembled from chemical databases. It answers chemistry questions in text and accepts molecule notations such as SMILES. It is in this database because the DeepProtein benchmark prompted it for protein properties without fine-tuning it, not because its developers designed it for proteins.",
+  "summary_source_ids": [
+   "@hf-card",
+   "@paper",
+   "@bench"
+  ],
+  "summary_source_locator": "Model card: title and System Prompt Best Practice; paper: ChemLLM, a large language model for chemistry; DeepProtein: large language models",
+  "summary_quotes": [
+   {
+    "source": "@hf-card",
+    "text": "ChemLLM-7B-Chat, The First Open-source Large Language Model for Chemistry and Molecule Science, Build based on InternLM-2"
+   },
+   {
+    "source": "@paper",
+    "text": "we fine-tune our model using a mixture of ChemData and Multi-Corpus"
+   },
+   {
+    "source": "@hf-card",
+    "text": "Chepybara can accept SMILES (Simplified Molecular Input Line Entry System) string"
+   },
+   {
+    "source": "@bench",
+    "text": "we did not fine-tune them on the downstream tasks due to limited GPU resources"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "ChemLLM is a chat language model, not a protein model. It starts from InternLM2-Base-7B and is instruction tuned in two stages. The first stage uses Multi-Corpus, 1.7 million question and answer pairs collected from Hugging Face, to build general language ability. The second stage mixes ChemData, 7 million instruction tuning question and answer pairs built from chemical databases with a template method, with Multi-Corpus again, so that chemical knowledge is added without losing general ability. The released config is an InternLM2 causal language model with 32 layers, hidden size 4096 and 32 attention heads.",
+    "source_ids": [
+     "@paper",
+     "@hf-config"
+    ],
+    "source_locator": "Paper: ChemLLM, a large language model for chemistry; ChemData; config.json",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Our chemical model is\ntrained based on the InternLM2-Base-7B model"
+     },
+     {
+      "source": "@paper",
+      "text": "the pipeline leverages Multi-Corpus, a\ncomprehensive corpus of 1.7M Q&A pairs collected from Hugging Face"
+     },
+     {
+      "source": "@paper",
+      "text": "we fine-tune our model using a mixture of ChemData and Multi-Corpus"
+     },
+     {
+      "source": "@paper",
+      "text": "ChemData\ncontains 7M Instruction Tuning Q&A"
+     },
+     {
+      "source": "@hf-config",
+      "text": "\"num_hidden_layers\": 32,"
+     },
+     {
+      "source": "@hf-config",
+      "text": "\"hidden_size\": 4096,"
+     }
+    ]
+   },
+   {
+    "title": "What it is built for",
+    "body": "The developers describe ChemLLM as a model for chemistry and molecule science, able to hold a dialogue about chemical tasks. The card's recommended system prompt says the model accepts SMILES strings, prefers to answer with IUPAC names, writes reactions as SMARTS and also accepts SELFIES. Nothing in the model's own sources describes protein sequence tasks. Its appearance in this database comes from the DeepProtein benchmark, which prompted it for protein properties and reports that it was not fine-tuned for them.",
+    "source_ids": [
+     "@hf-card",
+     "@bench"
+    ],
+    "source_locator": "Model card: title and System Prompt Best Practice; DeepProtein: large language models",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "ChemLLM-7B-Chat: LLM for Chemistry and Molecule Science"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Chepybara can accept SMILES (Simplified Molecular Input Line Entry System) string, and prefer output IUPAC names"
+     },
+     {
+      "source": "@bench",
+      "text": "Their generalization ability to protein-related tasks has not been explored before."
+     },
+     {
+      "source": "@bench",
+      "text": "we did not fine-tune them on the downstream tasks due to limited GPU resources"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The checkpoint read here is AI4Chem/ChemLLM-7B-Chat at revision b8b2ea19, 7,737,708,544 parameters by the Hugging Face safetensors count, stored in bfloat16. The card marks this version as superseded and points to two later ones, ChemLLM-7B-Chat-1.5-DPO and ChemLLM-7B-Chat-1.5-SFT. The card's news list dates version 1.0 to January 2024 and the 1.5 releases to 2 April 2024. A result should name which of these it used, since the DeepProtein tables say only ChemLLM-7B.",
+    "source_ids": [
+     "@hf-api",
+     "@hf-card"
+    ],
+    "source_locator": "Hugging Face API response; model card: notice at the top and News",
+    "quotes": [
+     {
+      "source": "@hf-api",
+      "text": "\"sha\":\"b8b2ea19e48f53d190fe8dced94572717f8e89a2\""
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"total\":7737708544"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Better using New version of ChemLLM!"
+     },
+     {
+      "source": "@hf-card",
+      "text": "ChemLLM-1.5 released! Two versions are available"
+     },
+     {
+      "source": "@hf-card",
+      "text": "ChemLLM-7B-Chat ver 1.0 open-sourced.[2024-1-17]"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Chat large language model for chemistry, prompted rather than trained for protein questions in the benchmark that produced this record.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@bench"
+    ],
+    "source_locator": "Model card: title; DeepProtein: large language models",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "The First Open-source Large Language Model for Chemistry and Molecule Science"
+     },
+     {
+      "source": "@bench",
+      "text": "Instead we directly performed inference on downstream tasks where appropriate prompt templates should be carefully designed here."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "InternLM2 causal decoder (InternLM2ForCausalLM): 32 layers, hidden size 4096, intermediate size 14336, 32 attention heads with 8 key and value heads, vocabulary 92,544, bfloat16 weights.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-config"
+    ],
+    "source_locator": "config.json",
+    "quotes": [
+     {
+      "source": "@hf-config",
+      "text": "\"InternLM2ForCausalLM\""
+     },
+     {
+      "source": "@hf-config",
+      "text": "\"intermediate_size\": 14336,"
+     },
+     {
+      "source": "@hf-config",
+      "text": "\"num_key_value_heads\": 8,"
+     },
+     {
+      "source": "@hf-config",
+      "text": "\"vocab_size\": 92544"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Chat text. The card's example passes a plain question, and its template section formats system, user and assistant turns with <|im_start|> and <|im_end|> markers. The suggested system prompt accepts SMILES, SMARTS and SELFIES strings. In the benchmark the protein sequence was placed in a prompt asking for a property.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@bench"
+    ],
+    "source_locator": "Model card: Usage, Dialogue Templates; DeepProtein: prompt template appendix",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "prompt = \"What is Molecule of Ibuprofen?\""
+     },
+     {
+      "source": "@hf-card",
+      "text": "You can format it into this InternLM2 Dialogue format like,"
+     },
+     {
+      "source": "@bench",
+      "text": "What is the {protein_property} of the given protein sequence {protein_sequence}?"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Generated text. The card's example decodes the generated tokens and prints them.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Usage",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "print(tokenizer.decode(outputs[0], skip_special_tokens=True))"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "7,737,708,544 for ChemLLM-7B-Chat, from the Hugging Face safetensors count at the revision read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-api"
+    ],
+    "source_locator": "Hugging Face API response, safetensors total",
+    "quotes": [
+     {
+      "source": "@hf-api",
+      "text": "\"safetensors\":{\"parameters\":{\"BF16\":7737708544},\"total\":7737708544}"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Multi-Corpus, 1.7 million question and answer pairs from Hugging Face, then a mixture of Multi-Corpus and ChemData, 7 million chemistry instruction tuning pairs built from PubChem, ChEMBL, ChEBI, ZINC, USPTO and other repositories. No protein task data.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: ChemData; ChemLLM, a large language model for chemistry",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we have collected chemical data from a vast selection of online repositories, including PubChem"
+     },
+     {
+      "source": "@paper",
+      "text": "ChemData, a large-scale dataset curated for fine-tuning chemical LLMs"
+     },
+     {
+      "source": "@paper",
+      "text": "1.7M Q&A pairs collected from Hugging Face"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "ChemLLM-7B-Chat version 1.0, read here at revision b8b2ea19e48f53d190fe8dced94572717f8e89a2, plus two later versions the card recommends instead: AI4Chem/ChemLLM-7B-Chat-1.5-DPO and AI4Chem/ChemLLM-7B-Chat-1.5-SFT.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@hf-api"
+    ],
+    "source_locator": "Model card: notice at the top and News; Hugging Face API response",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "[AI4Chem/ChemLLM-7B-Chat-1.5-DPO](https://huggingface.co/AI4Chem/ChemLLM-7B-Chat-1.5-DPO)"
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"sha\":\"b8b2ea19e48f53d190fe8dced94572717f8e89a2\""
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "No cutoff date is stated. The card's news list dates the 1.0 release to January 2024 and the arXiv preprint to 10 February 2024.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: News",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "ChemLLM-7B-Chat ver 1.0 released. https://chemllm.org/ [2024-1-18]"
+     },
+     {
+      "source": "@hf-card",
+      "text": "ChemLLM arXiv preprint released.[ChemLLM: A Chemical Large Language Model](https://arxiv.org/abs/2402.06852)[2024-2-10]"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "32,768 tokens, as max_position_embeddings in the released config.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-config"
+    ],
+    "source_locator": "config.json",
+    "quotes": [
+     {
+      "source": "@hf-config",
+      "text": "\"max_position_embeddings\": 32768,"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Open for academic research and free commercial use, by the card's own licence section, with a commercial licence to be requested from the developers. The card's metadata field says apache-2.0, which the same section applies to the code.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card",
+     "@hf-api"
+    ],
+    "source_locator": "Model card: Open Source License; front matter; Hugging Face API cardData",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "The code is licensed under Apache-2.0, while model weights are fully open for academic research and also allow **free** commercial usage."
+     },
+     {
+      "source": "@hf-card",
+      "text": "To apply for a commercial license, or other questions and collaborations, please contact"
+     },
+     {
+      "source": "@hf-api",
+      "text": "\"license\":\"apache-2.0\""
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0, as the card's licence section states for the code. No code repository of the developers' own was found; the card's example uses the Hugging Face transformers library with trust_remote_code, so the modelling code ships in the weights repository.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Open Source License; Usage",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "The code is licensed under Apache-2.0"
+     },
+     {
+      "source": "@hf-card",
+      "text": "trust_remote_code=True"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Weights at https://huggingface.co/AI4Chem/ChemLLM-7B-Chat, not gated. The developers also run a demo at https://chemllm.org/ and an API documented at https://api.chemllm.org/docs.",
+    "status": "source_checked",
+    "source_ids": [
+     "@hf-api",
+     "@hf-card"
+    ],
+    "source_locator": "Hugging Face API response; model card: News and Demo",
+    "quotes": [
+     {
+      "source": "@hf-api",
+      "text": "\"gated\":false"
+     },
+     {
+      "source": "@hf-card",
+      "text": "Have a try on [Demo Site](https://chemllm.org/#/chat) or [API Reference](https://api.chemllm.org/docs)"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Loads from the Hugging Face transformers library in a few lines, with the generation settings given on the card.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Usage",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "model = AutoModelForCausalLM.from_pretrained(model_name_or_id, torch_dtype=torch.float16, device_map=\"auto\",trust_remote_code=True)"
+     }
+    ]
+   },
+   {
+    "text": "The developers state that the weights allow free commercial use as well as academic research, which is unusual for a domain chat model.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Open Source License",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "model weights are fully open for academic research and also allow **free** commercial usage"
+     }
+    ]
+   },
+   {
+    "text": "A long context of 32,768 tokens in the released config, so long prompts and dialogues fit.",
+    "source_ids": [
+     "@hf-config"
+    ],
+    "source_locator": "config.json",
+    "quotes": [
+     {
+      "source": "@hf-config",
+      "text": "\"max_position_embeddings\": 32768,"
+     }
+    ]
+   },
+   {
+    "text": "The developers report chemistry results comparable to GPT-4 on the core chemical tasks of their own ChemBench benchmark.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "ChemLLM achieves results comparable to GPT-4 on the\ncore chemical tasks"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "It is a chemistry chat model. Nothing in its own sources claims protein sequence ability, and the benchmark that produced this record says generalisation to protein tasks had not been explored and that the model was prompted, not fine-tuned.",
+    "source_ids": [
+     "@bench",
+     "@hf-card"
+    ],
+    "source_locator": "DeepProtein: large language models; model card: title",
+    "quotes": [
+     {
+      "source": "@bench",
+      "text": "Their generalization ability to protein-related tasks has not been explored before."
+     },
+     {
+      "source": "@bench",
+      "text": "Due to computational constraints, fine-tuning 7B-scale models is resource-intensive; therefore, we focus on evaluating their performance instead."
+     },
+     {
+      "source": "@hf-card",
+      "text": "LLM for Chemistry and Molecule Science"
+     }
+    ]
+   },
+   {
+    "text": "The developers mark this checkpoint as superseded and recommend the 1.5 DPO or SFT versions instead.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: notice at the top",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Better using New version of ChemLLM!"
+     }
+    ]
+   },
+   {
+    "text": "It generates free text, so a numeric or categorical answer has to be parsed out of the reply, and the developers warn that answers can be wrong.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Disclaimer; Usage",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "LLM may generate incorrect answers, Please pay attention to proofreading at your own risk."
+     },
+     {
+      "source": "@hf-card",
+      "text": "print(tokenizer.decode(outputs[0], skip_special_tokens=True))"
+     }
+    ]
+   },
+   {
+    "text": "Loading the model requires trusting and running code that ships inside the weights repository, and the card's example assumes a CUDA device.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Usage",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "trust_remote_code=True"
+     },
+     {
+      "source": "@hf-card",
+      "text": "inputs = tokenizer(prompt, return_tensors=\"pt\").to(\"cuda\")"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "ChemLLM prompting workflow",
+   "steps": [
+    "System prompt plus user question as chat text",
+    "InternLM2 tokenizer and chat markers",
+    "7.7B parameter InternLM2 decoder, instruction tuned on ChemData",
+    "Generated reply, decoded to text",
+    "For a benchmark, the answer is parsed out of the reply"
+   ],
+   "caption": "The path the model card's usage example follows, with the benchmark's prompt as the input.",
+   "source_ids": [
+    "@hf-card",
+    "@bench"
+   ],
+   "source_locator": "Model card: Usage and Dialogue Templates; DeepProtein: prompt template appendix",
+   "quotes": [
+    {
+     "source": "@hf-card",
+     "text": "outputs = model.generate(**inputs, generation_config=generation_config)"
+    },
+    {
+     "source": "@hf-card",
+     "text": "<|im_start|>system"
+    },
+    {
+     "source": "@bench",
+     "text": "You are an AI assistant specializing in protein property prediction."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The weights licence is described in prose on the card rather than as a licence text, and no licence file was found in the weights repository, so the exact terms for redistribution are unclear.",
+   "No code repository of the developers' own was located, so there is no pinned commit for the training or evaluation code.",
+   "The later 1.5 DPO and SFT checkpoints that the card recommends were not read here.",
+   "Which ChemLLM checkpoint the DeepProtein benchmark actually ran is not stated in that paper beyond the name ChemLLM-7B."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: the Hugging Face model card, config.json and API metadata for AI4Chem/ChemLLM-7B-Chat at revision b8b2ea19e48f53d190fe8dced94572717f8e89a2; the text layer of the arXiv PDF of arXiv 2402.06852 and its arXiv API metadata; and the DeepProtein paper full text from NCBI PMC. No command was executed and no human review is claimed."
+  }
+ },
+ "structured": [
+  {
+   "checkpoint": "AI4Chem/ChemLLM-7B-Chat",
+   "parameters": 7737708544,
+   "context_length": 32768,
+   "context_unit": "tokens",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "custom-open",
+   "code_url": null,
+   "weights_url": "https://huggingface.co/AI4Chem/ChemLLM-7B-Chat",
+   "gated": false,
+   "released": "2024-01-17",
+   "quotes": [
+    {
+     "source": "@hf-api",
+     "text": "\"total\":7737708544"
+    },
+    {
+     "source": "@hf-config",
+     "text": "\"max_position_embeddings\": 32768,"
+    },
+    {
+     "source": "@hf-card",
+     "text": "The code is licensed under Apache-2.0, while model weights are fully open for academic research and also allow **free** commercial usage."
+    },
+    {
+     "source": "@hf-card",
+     "text": "ChemLLM-7B-Chat ver 1.0 open-sourced.[2024-1-17]"
+    }
+   ]
+  }
+ ],
+ "run_guide": {
+  "summary": "Install transformers, then load ChemLLM-7B-Chat and generate an answer to one question with the settings the card gives.",
+  "prerequisites": [
+   "Python with the transformers package and torch.",
+   "A CUDA GPU: the card's example moves the inputs to cuda and loads the model in float16 with device_map auto.",
+   "Enough memory for a 7.7 billion parameter model in half precision, as the Hugging Face parameter count gives its size.",
+   "Willingness to run the modelling code shipped in the weights repository, since the example passes trust_remote_code."
+  ],
+  "steps": [
+   {
+    "title": "Install transformers",
+    "shell": "pip install transformers",
+    "explanation": "The install line the card gives before its usage example.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Usage",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "Install `transformers`,\n```\npip install transformers\n```"
+     }
+    ]
+   },
+   {
+    "title": "Load the model and ask one question",
+    "shell": "python3 - <<'PY'\nfrom transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig\nimport torch\n\nmodel_name_or_id = \"AI4Chem/ChemLLM-7B-Chat\"\n\nmodel = AutoModelForCausalLM.from_pretrained(model_name_or_id, torch_dtype=torch.float16, device_map=\"auto\",trust_remote_code=True)\ntokenizer = AutoTokenizer.from_pretrained(model_name_or_id,trust_remote_code=True)\n\nprompt = \"What is Molecule of Ibuprofen?\"\n\ninputs = tokenizer(prompt, return_tensors=\"pt\").to(\"cuda\")\n\ngeneration_config = GenerationConfig(\n    do_sample=True,\n    top_k=1,\n    temperature=0.9,\n    max_new_tokens=500,\n    repetition_penalty=1.5,\n    pad_token_id=tokenizer.eos_token_id\n)\n\noutputs = model.generate(**inputs, generation_config=generation_config)\nprint(tokenizer.decode(outputs[0], skip_special_tokens=True))\nPY",
+    "explanation": "The card's usage example, wrapped in a shell heredoc and otherwise unchanged. It downloads the weights on first use. For a chemistry dialogue the card recommends wrapping the prompt in the InternLM2 chat template and adding its suggested system prompt.",
+    "source_ids": [
+     "@hf-card"
+    ],
+    "source_locator": "Model card: Usage; System Prompt Best Practice",
+    "quotes": [
+     {
+      "source": "@hf-card",
+      "text": "model_name_or_id = \"AI4Chem/ChemLLM-7B-Chat\""
+     },
+     {
+      "source": "@hf-card",
+      "text": "outputs = model.generate(**inputs, generation_config=generation_config)"
+     },
+     {
+      "source": "@hf-card",
+      "text": "You can use the same Dialogue Templates and System Prompt from [Agent Chepybara](https://chemllm.org/) to get a better response in local inference."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "The decoded reply printed to standard output."
+  ],
+  "limitations": [
+   "These commands were read from the model card at revision b8b2ea19e48f53d190fe8dced94572717f8e89a2 and have not been executed by Rewire.",
+   "No transformers version is pinned by the card; the released config was written by transformers 4.37.0.dev0.",
+   "The sources give no guide for protein property prompting beyond the template printed in the DeepProtein appendix."
+  ],
+  "source_ids": [
+   "@hf-card"
+  ]
+ },
+ "notes": "This record is a chemistry chat model that a protein benchmark prompted; the page says so plainly rather than describing it as a protein model. The weights licence is stated only in prose on the card (open for academic research and free commercial use, with a commercial licence on request), so the structured row uses custom-open rather than an SPDX identifier, while the code licence is Apache-2.0 from the same sentence and from the card metadata. The DeepProtein tables name only ChemLLM-7B, and the card recommends the later 1.5 DPO and SFT versions, so a reviewer should treat the benchmarked checkpoint as unconfirmed. No GitHub repository was found under AI4Chem/ChemLLM (the API returned not found), so no code commit is pinned."
+}

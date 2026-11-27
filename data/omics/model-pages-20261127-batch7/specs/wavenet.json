@@ -1,0 +1,749 @@
+{
+ "record_id": "uc20260930-model-wavenet",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "debbiemarkslab/SeqDesign README.md at commit 11d34274",
+   "description": "Official repository README of SeqDesign, the code released with the paper, pinned to a commit on the v3 branch.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/debbiemarkslab/SeqDesign/11d3427498663caec73c36f90e38558db8cd8f16/README.md",
+   "url": "https://github.com/debbiemarkslab/SeqDesign",
+   "version": "git commit 11d3427498663caec73c36f90e38558db8cd8f16",
+   "media_type": "text/markdown",
+   "sha256": "9744fb71428662d77532eb9c7cca48fbeaf710aa33cc178e6f79e698dbf1988c",
+   "retrieved_at": "2026-11-26T23:54:49Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "install",
+   "name": "debbiemarkslab/SeqDesign INSTALL.md at commit 11d34274",
+   "description": "Installation instructions and the software versions the developers tested, pinned to a commit.",
+   "file": "artifacts/install.md",
+   "artifact_url": "https://raw.githubusercontent.com/debbiemarkslab/SeqDesign/11d3427498663caec73c36f90e38558db8cd8f16/INSTALL.md",
+   "url": "https://github.com/debbiemarkslab/SeqDesign",
+   "version": "git commit 11d3427498663caec73c36f90e38558db8cd8f16",
+   "media_type": "text/markdown",
+   "sha256": "b8d2a6a0054c72fc6058652f3bf4db4412c332471c3e95e57ad55904573ff17a",
+   "retrieved_at": "2026-11-26T23:55:02Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "debbiemarkslab/SeqDesign LICENSE at commit 11d34274",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/debbiemarkslab/SeqDesign/11d3427498663caec73c36f90e38558db8cd8f16/LICENSE",
+   "url": "https://github.com/debbiemarkslab/SeqDesign",
+   "version": "git commit 11d3427498663caec73c36f90e38558db8cd8f16",
+   "media_type": "text/plain",
+   "sha256": "1979e07edb353eb25d88aa315f12bfebbfa1aff91c4f3ac1f85ee0d56eaa85b7",
+   "retrieved_at": "2026-11-26T23:55:05Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Shin et al. 2021, Nature Communications 12:2403, full text (PMC8065141)",
+   "description": "Full text of the paper behind this record as NCBI PMC JATS XML.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=8065141&rettype=xml",
+   "url": "https://doi.org/10.1038/s41467-021-22732-w",
+   "version": "PMC8065141 as served by NCBI on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "5416a34ff8c052f26ff58b47037a71a673d44755772382ebe090ac6fa57844df",
+   "retrieved_at": "2026-11-26T23:54:53Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "proteingym-readme",
+   "name": "OATML-Markslab/ProteinGym README.md at commit 144fe22b",
+   "description": "README of the benchmark that produced this record, pinned to the commit the record cites, used only for the baseline listing.",
+   "file": "artifacts/proteingym-readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/README.md",
+   "url": "https://github.com/OATML-Markslab/ProteinGym",
+   "version": "git commit 144fe22b07dfaeec2b366f2346203a9838a55b4c",
+   "media_type": "text/markdown",
+   "sha256": "321487a8de52c6cfa647a658f61150dd72e0acb0125470524fb94d1f8b23321a",
+   "retrieved_at": "2026-11-26T23:29:56Z",
+   "licence": "MIT",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "This is the autoregressive sequence model released as SeqDesign by Shin and colleagues, which ProteinGym lists as WaveNet. It learns the probability of a protein sequence residue by residue from a set of unaligned family sequences, using a dilated convolutional network rather than a recurrent one. Because it needs no alignment it can score insertions and deletions as well as single substitutions, by comparing the log probability of a mutant sequence with the wild type, and the same trained model can generate new sequences. There is no pretrained checkpoint: a model is trained for each protein family.",
+  "summary_source_ids": [
+   "@readme",
+   "@paper"
+  ],
+  "summary_source_locator": "README: header; paper: Abstract and Methods",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "SeqDesign is a generative, unsupervised model for biological sequences."
+   },
+   {
+    "source": "@readme",
+    "text": "It is capable of learning functional constraints from unaligned sequences\nin order to predict the effects of mutations and generate novel sequences,\nincluding insertions and deletions."
+   },
+   {
+    "source": "@paper",
+    "text": "we parameterize this process with dilated convolutional neural networks"
+   },
+   {
+    "source": "@paper",
+    "text": "The model performs state-of-art prediction of missense and indel effects"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The model learns the probability of a protein sequence one residue at a time, from unaligned sequences of a protein family. Instead of a recurrent network it uses a residual causal dilated convolutional network: six blocks of nine dilated convolutional layers, with weight normalisation and layer normalisation, dropout at 0.5 after each block and L2 regularisation on the weights. The authors say the number of blocks and layers was chosen to cover protein sequences of any length. To score a variant, the model gives the log probability of the mutant sequence; because no alignment is needed, insertions and deletions can be scored as well as substitutions.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Results and Methods, model architecture; README: header and Mutation effect prediction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we use a residual causal dilated convolutional neural network architecture with six blocks of nine dilated convolutional layers and both weight normalization"
+     },
+     {
+      "source": "@paper",
+      "text": "where the number of blocks and layers were chosen to cover protein sequences of any length"
+     },
+     {
+      "source": "@paper",
+      "text": "place Dropout layers (<italic toggle=\"yes\">p</italic> = 0.5) immediately after each of the six residual blocks"
+     },
+     {
+      "source": "@readme",
+      "text": "It is capable of learning functional constraints from unaligned sequences\nin order to predict the effects of mutations and generate novel sequences,\nincluding insertions and deletions."
+     }
+    ]
+   },
+   {
+    "title": "How a model is trained and used",
+    "body": "A model is fitted per protein family: the training input is a FASTA file of that family's sequences, with an optional weight appended to each header, and the README's single command trains it. Prediction then scores a FASTA of variants into a CSV. The README offers two prediction settings: deterministic, with dropout kept at 1.0 and one sample, or an average of 500 samples at dropout 0.5. The same trained model can also generate new sequences. In the paper, six models are built for each family, three replicates in each of the two reading directions, each trained for 250,000 updates with Adam, batch size 30 and channel size 48.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Usage; paper: Methods, training",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Given a fasta file of training sequences, run:"
+     },
+     {
+      "source": "@readme",
+      "text": "Sequences are uniformly weighted by default. To set sequence\nweights, append `:` and a weight to each fasta header, e.g. `:1.0`."
+     },
+     {
+      "source": "@readme",
+      "text": "Average of 500 samples:"
+     },
+     {
+      "source": "@paper",
+      "text": "Six models are built for each family: three replicates in both the N-to-C and C-to-N directions, respectively."
+     },
+     {
+      "source": "@paper",
+      "text": "Each model is trained for 250,000 updates using Adam with default parameters"
+     },
+     {
+      "source": "@paper",
+      "text": "We use a batch size of 30 for all sequence families tested."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The code has several versions and no single pretrained checkpoint. The branch read here is v3, which the README says works with Python 3 and TensorFlow 1; the v2 branch holds the Python 2.7 code used in the preprint, and a separate PyTorch port is linked. The paper's code availability note gives the repository and a Zenodo deposit. Because a model is trained per family, a reported result has to name the training sequence set, the branch or commit, the reading direction and replicate, and the prediction setting (deterministic or the 500 sample average).",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: header and Usage; paper: Code availability",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This version of the codebase is compatible with Python 3 and Tensorflow 1."
+     },
+     {
+      "source": "@readme",
+      "text": "For the Python 2.7 version used in the preprint, see the \n[v2 branch](https://github.com/debbiemarkslab/SeqDesign/tree/v2)."
+     },
+     {
+      "source": "@readme",
+      "text": "A PyTorch version is available [here](https://github.com/aaronkollasch/seqdesign-pytorch)"
+     },
+     {
+      "source": "@paper",
+      "text": "All code used for model training, mutation effect prediction, sequence generation, and library generation is also available on the github repository"
+     }
+    ]
+   },
+   {
+    "title": "How this record was benchmarked",
+    "body": "The record comes from ProteinGym, whose README lists a baseline called WaveNet, citing this paper, and gives its input modality as MSA. The developers' own sources do not use the name WaveNet: the paper calls the architecture a residual causal dilated convolutional network and the released code is called SeqDesign, which the README describes as learning from unaligned sequences. So ProteinGym gives the input modality as MSA while the developers describe the model as alignment free. The sources read here do not say how ProteinGym prepared that input.",
+    "source_ids": [
+     "@proteingym-readme",
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "ProteinGym README: baseline table; SeqDesign README: header; paper: Methods",
+    "quotes": [
+     {
+      "source": "@proteingym-readme",
+      "text": "WaveNet | MSA | [Shin, J., Riesselman, A.J., Kollasch, A.W., McMahon, C., Simon, E., Sander, C., Manglik, A., Kruse, A.C., & Marks, D.S. (2021). Protein design and variant prediction using autoregressive generative models."
+     },
+     {
+      "source": "@readme",
+      "text": "SeqDesign is a generative, unsupervised model for biological sequences."
+     },
+     {
+      "source": "@paper",
+      "text": "we parameterize this process with dilated convolutional neural networks"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Autoregressive generative sequence model, trained per protein family, used for variant effect prediction and for sequence design.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: header; paper: Abstract",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "SeqDesign is a generative, unsupervised model for biological sequences."
+     },
+     {
+      "source": "@paper",
+      "text": "We introduce a deep generative model adapted from natural language processing for prediction and design of diverse functional sequences without the need for alignments."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Residual causal dilated convolutional network: six blocks of nine dilated convolutional layers, weight normalisation and layer normalisation, dropout 0.5 after each block, channel size 48 in the published runs.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, model architecture",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we use a residual causal dilated convolutional neural network architecture with six blocks of nine dilated convolutional layers"
+     },
+     {
+      "source": "@paper",
+      "text": "Channel sizes of 24 and 48 were tested for all protein families, and channel size 48 was chosen for further use."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Unaligned protein sequences in FASTA format: a family set for training, with optional per sequence weights in the headers, and a FASTA of variant sequences for scoring.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage, Training and Mutation effect prediction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Given a fasta file of training sequences, run:"
+     },
+     {
+      "source": "@readme",
+      "text": "--input <input>.fa --output <output>.csv"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "A CSV of log probabilities for the input sequences, used as variant effect scores, or newly generated sequences from the generation script.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Mutation effect prediction; Sequence generation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "calc_logprobs_seqs_fr --sess <your_sess> --dropout-p 1.0 --num-samples 1 --input <input>.fa --output <output>.csv"
+     },
+     {
+      "source": "@readme",
+      "text": "generate_sample_seqs_fr --sess <your_sess>"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "No parameter count is reported. The sources give the shape instead: six blocks of nine dilated convolutional layers at channel size 48.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, model architecture",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "six blocks of nine dilated convolutional layers"
+     },
+     {
+      "source": "@paper",
+      "text": "channel size 48 was chosen for further use"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "The sequences of the protein family being modelled, supplied by the user; the paper used forty datasets of experimental mutation effects together with their sequence families. There is no single pretrained corpus.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Training; paper: Methods, Data collection",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Given a fasta file of training sequences"
+     },
+     {
+      "source": "@paper",
+      "text": "Forty datasets which include experimental mutation effects, the sequence families"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Three code lines rather than model checkpoints: the v3 branch read here (Python 3 and TensorFlow 1, commit 11d3427498663caec73c36f90e38558db8cd8f16), the v2 branch used in the preprint (Python 2.7), and a separate PyTorch port at aaronkollasch/seqdesign-pytorch.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This version of the codebase is compatible with Python 3 and Tensorflow 1."
+     },
+     {
+      "source": "@readme",
+      "text": "see the \n[v2 branch](https://github.com/debbiemarkslab/SeqDesign/tree/v2)"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not applicable: no pretrained model with a corpus date is released. Each model is trained by the user on a family sequence set of their own.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage, Training",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "No length limit is stated. The authors say the number of blocks and layers was chosen to cover protein sequences of any length.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, model architecture",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "chosen to cover protein sequences of any length"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "No pretrained weights are released, so there is no separate weights licence; whatever a user trains is theirs. The code and the data in the repository are under MIT.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE file; README: Data availability",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License Copyright (c) 2020 Debora Marks Lab"
+     },
+     {
+      "source": "@readme",
+      "text": "See the [examples](examples) directory to download training sequences,\nmutation effect predictions, and generated sequences."
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, as the repository LICENSE file states.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE file",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code at https://github.com/debbiemarkslab/SeqDesign, with a Zenodo deposit given in the paper as 10.5281/zenodo.4606785, and a PyTorch port at https://github.com/aaronkollasch/seqdesign-pytorch. Training sequences, predictions and generated sequences are downloadable from the repository's examples directory.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Code availability; README: Data availability and header",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "https://github.com/debbiemarkslab/SeqDesign"
+     },
+     {
+      "source": "@paper",
+      "text": "10.5281/zenodo.4606785"
+     },
+     {
+      "source": "@readme",
+      "text": "A PyTorch version is available"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "It needs no alignment, so it can score insertions and deletions as well as substitutions, which alignment based predictors cannot.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Abstract; README: header",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The model performs state-of-art prediction of missense and indel effects"
+     },
+     {
+      "source": "@readme",
+      "text": "including insertions and deletions"
+     }
+    ]
+   },
+   {
+    "text": "The authors state it works where alignments are not robust, naming indels, disordered proteins and antibody design as the cases they had in mind.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Such applications include the prediction of variant effects of indels, disordered proteins, and the design of proteins such as antibodies due to the highly variable complementarity determining regions."
+     }
+    ]
+   },
+   {
+    "text": "One trained model serves both scoring and design: the authors report designing and testing a library of about 100,000 nanobodies with better expression than a synthetic library a thousand times larger.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Abstract; README: Usage",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we successfully design and test a diverse 10<sup>5</sup>-nanobody library that shows better expression than a 1000-fold larger synthetic library"
+     },
+     {
+      "source": "@readme",
+      "text": "### Sequence generation"
+     }
+    ]
+   },
+   {
+    "text": "The code is MIT licensed, with three one line commands for training, scoring and generation, and the paper's data and predictions are downloadable from the repository.",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE file; README: Usage and Data availability",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@readme",
+      "text": "run_autoregressive_fr --dataset <your_dataset>.fa"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "No pretrained model is released: a model has to be trained for each protein family before anything can be scored.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Usage, Training; paper: Methods",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Given a fasta file of training sequences, run:"
+     },
+     {
+      "source": "@paper",
+      "text": "Six models are built for each family"
+     }
+    ]
+   },
+   {
+    "text": "A GPU is recommended, especially for training, and the published runs trained six models per family for 250,000 updates each, so reproducing a result is costly.",
+    "source_ids": [
+     "@install",
+     "@paper"
+    ],
+    "source_locator": "INSTALL.md: Installation; paper: Methods, training",
+    "quotes": [
+     {
+      "source": "@install",
+      "text": "We recommend using SeqDesign with a GPU that supports CUDA, especially for training."
+     },
+     {
+      "source": "@paper",
+      "text": "Each model is trained for 250,000 updates using Adam"
+     }
+    ]
+   },
+   {
+    "text": "The environment is old: the tested versions are Python 3.7 with TensorFlow 1.15 on Ubuntu 18.04, which is awkward on current machines.",
+    "source_ids": [
+     "@install"
+    ],
+    "source_locator": "INSTALL.md: Used software and versions tested",
+    "quotes": [
+     {
+      "source": "@install",
+      "text": "tensorflow - 1.15"
+     },
+     {
+      "source": "@install",
+      "text": "Tested on Ubuntu 18.04 LTS"
+     }
+    ]
+   },
+   {
+    "text": "Scores depend on choices a user must make: the prediction setting (deterministic, or an average of 500 samples at dropout 0.5) and which of the replicate models and reading directions are used.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Mutation effect prediction; paper: Methods",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "calc_logprobs_seqs_fr --sess <your_sess> --dropout-p 0.5 --num-samples 500 --input <input>.fa --output <output>.csv"
+     },
+     {
+      "source": "@paper",
+      "text": "three replicates in both the N-to-C and C-to-N directions"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "SeqDesign workflow",
+   "steps": [
+    "FASTA file of unaligned family sequences, optionally weighted",
+    "Train the residual dilated convolutional model on that family",
+    "Score a FASTA of variants: log probability per sequence",
+    "CSV of scores, or newly generated sequences"
+   ],
+   "caption": "Training, scoring and generation as the repository README gives them.",
+   "source_ids": [
+    "@readme"
+   ],
+   "source_locator": "README: Usage",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "run_autoregressive_fr --dataset <your_dataset>.fa"
+    },
+    {
+     "source": "@readme",
+     "text": "calc_logprobs_seqs_fr --sess <your_sess> --dropout-p 1.0 --num-samples 1 --input <input>.fa --output <output>.csv"
+    },
+    {
+     "source": "@readme",
+     "text": "generate_sample_seqs_fr --sess <your_sess>"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No parameter count is given, only the layer and channel counts.",
+   "No pretrained weights exist, so nothing can be downloaded and run without training first.",
+   "The repository's examples directory, which holds the worked commands and the downloadable data, was not read.",
+   "How ProteinGym prepared the family sequences it trained on, and which replicate or prediction setting it used, is not stated in the sources read here."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: README.md, INSTALL.md and LICENSE of debbiemarkslab/SeqDesign at commit 11d3427498663caec73c36f90e38558db8cd8f16 on the v3 branch; the full text of Shin et al. 2021 from NCBI PMC (PMC8065141); and the ProteinGym README at commit 144fe22b07dfaeec2b366f2346203a9838a55b4c. No command was executed and no human review is claimed."
+  }
+ },
+ "structured": [
+  {
+   "checkpoint": "SeqDesign v3 branch (no pretrained weights; one model trained per family)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": null,
+   "code_url": "https://github.com/debbiemarkslab/SeqDesign",
+   "weights_url": null,
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@license",
+     "text": "MIT License"
+    },
+    {
+     "source": "@readme",
+     "text": "This version of the codebase is compatible with Python 3 and Tensorflow 1."
+    }
+   ]
+  }
+ ],
+ "run_guide": {
+  "summary": "Install the package at the pinned commit, train a model on one protein family and score a set of variants.",
+  "prerequisites": [
+   "A GPU with CUDA is recommended, especially for training, per INSTALL.md.",
+   "The versions the developers tested: Python 3.7, TensorFlow 1.15, numpy 1.15, scipy 0.19 and sklearn 0.18, on Ubuntu 18.04 LTS.",
+   "A FASTA file of the protein family's sequences for training, and a FASTA file of the variant sequences to score.",
+   "Training time: the published models were each trained for 250,000 updates, so plan for a long run."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/debbiemarkslab/SeqDesign.git\ncd SeqDesign\ngit checkout --detach 11d3427498663caec73c36f90e38558db8cd8f16",
+    "explanation": "The README and INSTALL.md assume the repository is already cloned, so these lines fetch it and detach at the commit of the v3 branch read for this page.",
+    "source_ids": [
+     "@readme",
+     "@install"
+    ],
+    "source_locator": "README: Installation; INSTALL.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "See [INSTALL.md](INSTALL.md)."
+     },
+     {
+      "source": "@install",
+      "text": "Then install SeqDesign:"
+     }
+    ]
+   },
+   {
+    "title": "Install the dependencies and the package",
+    "shell": "pip install -r requirements_gpu.txt\npython setup.py install",
+    "explanation": "The GPU install from INSTALL.md. On a machine without a GPU, INSTALL.md says to use requirements.txt instead.",
+    "source_ids": [
+     "@install"
+    ],
+    "source_locator": "INSTALL.md: Installation",
+    "quotes": [
+     {
+      "source": "@install",
+      "text": "pip install -r requirements_gpu.txt"
+     },
+     {
+      "source": "@install",
+      "text": "If no GPU is available, use:  \n```shell script\npip install -r requirements.txt\n```"
+     },
+     {
+      "source": "@install",
+      "text": "python setup.py install"
+     }
+    ]
+   },
+   {
+    "title": "Train a model on one family",
+    "shell": "run_autoregressive_fr --dataset <your_dataset>.fa",
+    "explanation": "The README's training command, where the dataset is a FASTA of the family's sequences. Sequences are weighted uniformly unless a weight is appended to each header after a colon.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage, Training",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "run_autoregressive_fr --dataset <your_dataset>.fa"
+     },
+     {
+      "source": "@readme",
+      "text": "Sequences are uniformly weighted by default."
+     }
+    ]
+   },
+   {
+    "title": "Score variants with the trained model",
+    "shell": "calc_logprobs_seqs_fr --sess <your_sess> --dropout-p 1.0 --num-samples 1 --input <input>.fa --output <output>.csv",
+    "explanation": "The README's deterministic prediction command, where sess is the trained session from the previous step. For the sampled variant the README gives dropout 0.5 with 500 samples. Each script accepts -h for its other arguments.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Usage, Mutation effect prediction",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "calc_logprobs_seqs_fr --sess <your_sess> --dropout-p 1.0 --num-samples 1 --input <input>.fa --output <output>.csv"
+     },
+     {
+      "source": "@readme",
+      "text": "Run each script with the `-h` argument to see additional arguments."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A trained session that the prediction and generation scripts take with the sess argument.",
+   "A CSV of log probabilities for the input sequences, which are the variant effect scores."
+  ],
+  "limitations": [
+   "These commands were read from the repository README and INSTALL.md at commit 11d3427498663caec73c36f90e38558db8cd8f16 and have not been executed by Rewire.",
+   "The placeholder names (your_dataset, your_sess, input, output) are the README's own and must be replaced.",
+   "The examples directory, which holds the worked training, prediction and generation examples, was not read here."
+  ],
+  "source_ids": [
+   "@readme",
+   "@install"
+  ]
+ },
+ "notes": "The record is named Wavenet after the ProteinGym baseline table. The developers do not use that name: the released software is SeqDesign and the paper describes a residual causal dilated convolutional network, which is the WaveNet style of architecture. This page therefore treats SeqDesign as the model's own release and says where the name comes from. ProteinGym lists the input modality as MSA while the developers describe the model as alignment free and trained on unaligned family sequences; the sources read here do not resolve how ProteinGym prepared that training input, and a reviewer may want to check the ProteinGym scoring scripts. There are no pretrained weights at all, so weights_licence and weights_url are null and the run guide trains a model. The v2 branch holds the preprint's Python 2.7 code and a separate PyTorch port exists, so a result must say which line it used."
+}
