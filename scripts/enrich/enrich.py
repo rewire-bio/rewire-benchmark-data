@@ -154,7 +154,9 @@ def select(work, tier, count, kind="model"):
                 if link["relation"] == "evaluation" and link["target_id"] in owner:
                     s = owner[link["target_id"]]; results[parent.get(s, s)] += 1
     names = collections.Counter(m["name"] for m in records)
-    todo = [m for m in records if m["attributes"].get("depth_tier") == tier and "profile" not in m["attributes"] and names[m["name"]] == 1]
+    # An excluded or disputed record is not published, and the store refuses a profile on one.
+    todo = [m for m in records if m["attributes"].get("depth_tier") == tier and "profile" not in m["attributes"] and names[m["name"]] == 1
+            and m.get("status") not in ("excluded", "disputed")]
     todo.sort(key=lambda m: (-results[m["id"]], -len(protocols[m["id"]])))
     datasets = {d["id"]: d["name"] for d in load("data/entities/datasets.jsonl")} if kind == "benchmark" else {}
     for n, m in enumerate(todo[:count], 1):
