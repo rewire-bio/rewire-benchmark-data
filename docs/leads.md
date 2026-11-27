@@ -7,7 +7,7 @@ current result. Each was found while writing the model and benchmark pages of 26
 stated on the page concerned; the eight whose evidence comes from the upgrade pass of existing pages (folder
 `upgrade1`) are not yet on a committed page.
 
-The register holds 65 leads. None has been raised with anyone. The owner of this repository raises them himself;
+The register holds 73 leads. Eight were added on 27 November from the full text of the cdsFM preprint, which covers DeCodon and EnCodon; those eight are not yet on a committed page and have not been checked by a second pass, which their `basis` says. None has been raised with anyone. The owner of this repository raises them himself;
 Reports for the ten judged most worth raising are drafted and held by the owner until he posts them.
 
 ## How a lead was admitted
@@ -73,13 +73,13 @@ Two moderate leads with high impact should be read with these.
 
 ## Counts
 
-By kind: readme_vs_code 11, licence_conflict 11, paper_vs_weights 11, paper_vs_code 7, paper_internal 7, card_vs_config 6, other 5, abstract_vs_body 4, benchmark_vs_developer 2, address_dead 1.
+By kind: paper_vs_weights 16, readme_vs_code 11, licence_conflict 11, paper_internal 10, paper_vs_code 7, card_vs_config 6, other 5, abstract_vs_body 4, benchmark_vs_developer 2, address_dead 1.
 
 | Strength | High | Medium | Low | All |
 | --- | --- | --- | --- | --- |
-| strong | 7 | 16 | 12 | 35 |
-| moderate | 4 | 8 | 8 | 20 |
-| weak | 0 | 0 | 10 | 10 |
+| strong | 7 | 20 | 13 | 40 |
+| moderate | 4 | 10 | 8 | 22 |
+| weak | 0 | 0 | 11 | 11 |
 
 6 leads have no named place to raise them: seqc2-gain-calls-paper-vs-deposit, dreams-mist-retrieval-match-rule, zero-shot-rna-benchmark-zenodo-link, seqc2-ascatngs-version, casp16-affinity-maximum-tau, ppi-embedding-ogbl-ppa-species-count.
 
