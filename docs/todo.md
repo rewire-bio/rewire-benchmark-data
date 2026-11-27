@@ -26,7 +26,7 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 | --- | --- |
 | Checkpoint and benchmark task facts on the records, so the website can show them | An attribute for each is being added; the facts are already in `kb/` |
 | Leaderboards per use case on the website | Built as a query (`kb/board.py`); not on the site |
-| Review of the differences found inside papers and code | About 60 are listed in `docs/reviews/`; 3 are reviewed |
+| Review of the differences found inside papers and code | 65 are in a register, checked against saved files; ten reports are drafted for the owner |
 | Running the run guides | Not started |
 
 ## Pages
@@ -83,11 +83,12 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 
 ## Differences found in the sources
 
-16. **About 60 differences** between a paper and its code, an abstract and its results, or a model
-    card and its weights are recorded in the batch reviews. Three have been through the control
-    method of [rebuild.md](rebuild.md). First step: put them in one register with both passages
-    and their sources, check each against the saved files, rank them, and draft the strongest as
-    reports for the owner to send. Agents do not post to other organisations.
+16. **65 differences** between a paper and its code, an abstract and its results, or a model
+    card and its weights are in one register (`kb/curation/source_leads.jsonl`, guide in
+    [leads.md](leads.md)), each with both passages quoted from saved files and graded. Ten are
+    drafted as reports for the owner to send. Agents do not post to other organisations. First
+    step: the owner posts the ones he chooses. About 40 small items (counts, names, two dead
+    addresses) were not checked and are listed in `source_leads_left_out.jsonl`.
 17. **Outcomes go in the store.** Every lead's outcome, report and reply is recorded as a
     discrepancy review, not only in an issue.
 
