@@ -129,6 +129,9 @@ jobs:
           npm run boards:check
           # The prepared file with the discrepancies, then the website package.
           npm run serving -- --require-discrepancies
+          # Every page of every use case must fit the website's response budget, read from the
+          # prepared file the website serves; a release that cannot be served is not published.
+          npm run use-cases:check-pages
           npm run validate:benchmark-literature
           npm run export:benchmark-literature
           npm run refresh -- export
