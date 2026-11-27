@@ -1,0 +1,915 @@
+{
+  "record_id": "uc-clinical-20260930-benchmark-oncovi-study",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "PMC full text XML of the OncoVI paper (Journal of Molecular Diagnostics, PMC13269341)",
+      "description": "The JATS full text from NCBI E-utilities, including the Materials and Methods sections describing each data set and the pipeline, and the Results sections reporting performance on each one.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13269341",
+      "url": "https://doi.org/10.1016/j.jmoldx.2026.03.004",
+      "version": "PMC13269341, version of record",
+      "media_type": "text/xml",
+      "licence": "CC BY 4.0",
+      "store_bytes": true,
+      "sha256": "01ef03521b6052bece4d81110a594582616cddb1a1eff49832f9defbb9117f36",
+      "retrieved_at": "2026-11-27T01:21:43Z"
+    },
+    {
+      "key": "readme",
+      "name": "MGCarta/oncovi README.md at commit 75d56d0175544cd4732b63a4c69cf46b1b1aeb23",
+      "description": "Official repository file, pinned to a commit. It gives the point thresholds for each class, the software requirements, the setup and resource preparation steps, and the command that runs OncoVI on the example input.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/MGCarta/oncovi/75d56d0175544cd4732b63a4c69cf46b1b1aeb23/README.md",
+      "url": "https://github.com/MGCarta/oncovi",
+      "version": "git commit 75d56d0175544cd4732b63a4c69cf46b1b1aeb23",
+      "media_type": "text/markdown",
+      "store_bytes": false,
+      "sha256": "df511527787cd43722cc33a42969a2088288c93968395398923afddb82951c8e",
+      "retrieved_at": "2026-11-27T01:35:05Z"
+    }
+  ],
+  "profile": {
+    "summary": "This is the evaluation published with OncoVI, a Python tool that automates the ClinGen, CGC and VICC oncogenicity guidelines for somatic variants. OncoVI's classifications are compared against four reference sets: 93 variants supplied by the guideline authors, 7,802 real-world variants from the Erlangen Molecular Tumor Board, 691 ClinVar variants with curated oncogenicity classifications, and a 135-variant subset of the tumour board variants that three expert cancer biologists reclassified under the guidelines. Every comparison is a three-class agreement rate between OncoVI and the reference. It shows how far an automated reading of the guidelines matches guideline authors, a tumour board and ClinVar.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Abstract; Materials and Methods, the four data set sections; Results",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "To harmonize and automate oncogenicity classification, Oncogenicity Variant Interpreter (OncoVI), an open-source, Python-based implementation of the Clinical Genome Resource/Cancer Genomics Consortium/Variant Interpretation for Cancer Consortium oncogenicity guidelines, was developed."
+      },
+      {
+        "source": "@paper",
+        "text": "OncoVI achieved an accuracy of 80% on a gold standard set of 93 somatic variants provided by the guidelines, with a sensitivity of 88% for oncogenic/likely oncogenic variants."
+      },
+      {
+        "source": "@paper",
+        "text": "When applied to a real-world set of 7802 variants from 557 participants previously evaluated by the Molecular Tumor Board (MTB) Erlangen, OncoVI showed 79% concordance with the prior MTB assessment of variant impact on protein function."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether software can apply the oncogenicity guidelines and reach the same class a human assessor would. For each variant OncoVI collects evidence from public resources, decides which of the 11 oncogenic and five benign criteria are triggered, sums their points and maps the total to a class: 10 or more is oncogenic, 6 to 9 likely oncogenic, 0 to 5 a variant of uncertain significance, minus 1 to minus 6 likely benign, and minus 7 or lower benign. The comparisons then ask how often that class matches the guideline authors' own classification, a tumour board's assessment of protein function, ClinVar's curated oncogenicity call, and a blinded expert reclassification under the same guidelines.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Abstract; Results, first paragraph. Repository: README.md, figure caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "OncoVI automatically performs functional annotation, collects relevant evidence from the integrated resources, evaluates each criterion, and provides a final oncogenicity classification."
+          },
+          {
+            "source": "@paper",
+            "text": "using an IF-ELSE logic for each criterion, OncoVI assigned the associated points and provided the oncogenicity classification based on the calculated variant-specific score"
+          },
+          {
+            "source": "@readme",
+            "text": "score≥10:Oncogenic (O), 6≤score≤9:Likely Oncogenic (LO), 0≤score≤5:Variant of uncertain significance (VUS), -6≤score≤-1:Likely Benign (LB), score≤-7:Benign (B)"
+          },
+          {
+            "source": "@readme",
+            "text": "The figure shows the implemented criteria in OncoVI (11 and five criteria for evidence of oncogenic and benign effect respectively)"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Four sets, each with a different reference. The standard operating procedure set is 93 variants taken from Supplementary Tables 1 and 3 of the guideline paper, with the triggered criteria, scores and classifications as the authors published them; genomic coordinates for 23 of them had to be derived by hand from the DNA change. The tumour board set is 7,802 unique somatic variants across 489 genes from 557 people seen by the Comprehensive Cancer Center Erlangen-EMN tumour board between February 2022 and February 2024, sequenced from formalin-fixed tissue with the TruSight Oncology 500 assay and classified into five classes by three expert cancer biologists. The ClinVar set is the 691 somatic variants, out of 6,113, that had an NCBI-curated oncogenicity classification as of 12 April 2025. The validation set is 135 tumour board variants chosen after the fact from the confusion matrix, taking every strong disagreement plus random variants from selected cells, which the same three experts then reclassified under the guidelines while blinded to how OncoVI implements the criteria.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, Standard Operating Procedure Data Set, Molecular Tumor Board Data Set, Validation Data Set, ClinVar Data Set; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The SOP data set contains 93 variants, retrieved from Supplementary Tables 1 and 3 (see Horak et al<xref rid=\"bib8\" ref-type=\"bibr\"><sup>8</sup></xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "The remaining 23 variants from Supplementary Table 1 (see Horak et al<xref rid=\"bib8\" ref-type=\"bibr\"><sup>8</sup></xref>) lacked these details, which were manually derived from the DNA change."
+          },
+          {
+            "source": "@paper",
+            "text": "The real-world Molecular Tumor Board (MTB) data set comprises 7802 unique somatic variants across 489 genes, identified in a cohort of 557 individuals with various tumor diagnoses, enrolled in the MTB of the Comprehensive Cancer Center Erlangen-EMN (Erlangen, Germany) from February 2022 to February 2024."
+          },
+          {
+            "source": "@paper",
+            "text": "Formalin-fixed, paraffin-embedded patient tissue was sequenced on a NextSeq500 using the TruSight Oncology 500 assay (Illumina, Inc., San Diego, CA), which investigates 523 cancer-related genes."
+          },
+          {
+            "source": "@paper",
+            "text": "The ClinVar data set includes 691 somatic variants with available oncogenicity classification in ClinVar"
+          },
+          {
+            "source": "@paper",
+            "text": "These variants were chosen <italic toggle=\"yes\">a posteriori</italic> based on the analysis of the entire MTB data set (<xref rid=\"appsec1\" ref-type=\"sec\">Supplemental Table S2</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "while remaining blinded to OncoVI implementation of the criteria"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Variants are annotated by a Python pipeline built on Ensembl VEP version 111.0 against GRCh38, with the dbNSFP 4.5a and SpliceAI plugins, keeping only coding consequences, dropping variants with a global gnomAD frequency of 0.025 or more, and preferring the MANE canonical transcript. OncoVI then queries the knowledgebases behind each criterion and produces a class. For scoring, the five classes are collapsed to three (oncogenic or likely oncogenic, uncertain, benign or likely benign) and compared with the reference as accuracy or concordance, with per-class sensitivity, confusion matrices, and stratification by gene class and by functional consequence. Scores assigned by OncoVI and by the reference are compared by correlation on the variants where the classes agree.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, Variant Annotation via the VEP-Based In-House Pipeline and Data Analysis and Statistical Analysis; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the variants are functionally annotated with the VEP from Ensembl (VEP version 111.0, January 2024) using GRCh38 and Reference Sequence Database<xref rid=\"bib35\" ref-type=\"bibr\"><sup>35</sup></xref> as preferred cache"
+          },
+          {
+            "source": "@paper",
+            "text": "Two VEP plugins, dbNSFP version 4.5a and spliceAI, were used to retrieve scores from predictive algorithms."
+          },
+          {
+            "source": "@paper",
+            "text": "the filter_vep tool removed from the VCF the variants without consequence and/or with a global gnomAD population frequency ≥0.025"
+          },
+          {
+            "source": "@paper",
+            "text": "the canonical transcript according to the Matched Annotation from NCBI and EBI (MANE) project<xref rid=\"bib36\" ref-type=\"bibr\"><sup>36</sup></xref> was favored"
+          },
+          {
+            "source": "@paper",
+            "text": "To evaluate OncoVI performance, variants were grouped into O/LO, B/LB, and VUS classes."
+          },
+          {
+            "source": "@paper",
+            "text": "Spearman correlations were computed using cor.test() from the stats package."
+          }
+        ]
+      },
+      {
+        "title": "Reported results",
+        "body": "On the guideline authors' 93 variants OncoVI reached 81% accuracy (75 of 93), with sensitivity 88% (38 of 43) for oncogenic or likely oncogenic and 83% (10 of 12) for benign or likely benign, and the scores correlated with the guideline authors' at r = 0.87. On the 7,802 tumour board variants the three-class concordance was 78% (6,060 of 7,802), which breaks down as 97% for uncertain variants (3,955 of 4,092) but 43% for benign or likely benign (961 of 2,261). On the 691 ClinVar variants it was 83% (573 of 691), with sensitivity 84% (362 of 431) for oncogenic or likely oncogenic and no variant crossing between the oncogenic and benign extremes. The validation set is the striking one: the experts' guideline-based reclassification agreed with the earlier tumour board assessment for only 34% of the 135 variants (46 of 135), and OncoVI agreed with the tumour board on 22% (30 of 135) but with the experts' reclassification on 80% (108 of 135).",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Performance on the SOP, MTB and ClinVar data sets and Comparative Analysis with Expert Re-Assessment",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "OncoVI achieved 81% accuracy (<italic toggle=\"yes\">n</italic> = 75/93 correctly classified variants), with a sensitivity of 88% (<italic toggle=\"yes\">n</italic> = 38/43) and 83% (<italic toggle=\"yes\">n</italic> = 10/12) for the O/LO and B/LB class, respectively (<xref rid=\"fig2\" ref-type=\"fig\">Figure 2</xref>A)."
+          },
+          {
+            "source": "@paper",
+            "text": "a strong positive correlation (<italic toggle=\"yes\">r</italic> = 0.87, <italic toggle=\"yes\">P</italic> &lt; 2.2 × 10<sup>–</sup><sup>16</sup>) between the variant-specific scores assigned by the SOP and by OncoVI was observed"
+          },
+          {
+            "source": "@paper",
+            "text": "the MTB classification into P/LP, VUS, and B/LB was 78% (<italic toggle=\"yes\">n</italic> = 6060/7802 variants), in line with the accuracy observed for the SOP data set (81%; <italic toggle=\"yes\">n</italic> = 75/93)"
+          },
+          {
+            "source": "@paper",
+            "text": "VUS and B/LB classes had an agreement of 97% (<italic toggle=\"yes\">n</italic> = 3955/4092) and 43% (<italic toggle=\"yes\">n</italic> = 961/2261), respectively"
+          },
+          {
+            "source": "@paper",
+            "text": "OncoVI correctly classified 83% of the variants (<italic toggle=\"yes\">n</italic> = 573/691) with a sensitivity of 84% (<italic toggle=\"yes\">n</italic> = 362/431) for the O/LO class."
+          },
+          {
+            "source": "@paper",
+            "text": "Experts' classification based on the oncogenicity guidelines had an agreement of 34% (<italic toggle=\"yes\">n</italic> = 46/135 variants) with the earlier MTB assessment"
+          },
+          {
+            "source": "@paper",
+            "text": "Although OncoVI agreement with the previous MTB assessment was 22% (<italic toggle=\"yes\">n</italic> = 30/135) (<xref rid=\"appsec1\" ref-type=\"sec\">Supplemental Figure S5</xref>A), the agreement with experts' re-assessment reached 80% (<italic toggle=\"yes\">n</italic> = 108/135) (<xref rid=\"fig4\" ref-type=\"fig\">Figure 4</xref>B)."
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "OncoVI is distributed as a repository with a conda setup, a resource preparation script, a VEP installation path and an example input. It supports GRCh38 only, takes variants as text or VCF, and writes a tab-delimited Excel file holding the annotation fields, the variant-specific score, the classification and the triggered criteria. The repository also ships OncoVI_mod, a version that avoids the licensed OncoKB resource by defining oncogene and tumour suppressor roles from COSMIC instead.",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "Repository: README.md, Get started, Test OncoVI on an exemplary set of variants and OncoVI_mod. Paper: Results",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "OncoVI supports only variants in human genome assembly GRCh38. No other genome assemblies are currently supported."
+          },
+          {
+            "source": "@readme",
+            "text": "Variants in both text format and in variant call format (VCF) are accepted by OncoVI. No other formats are currently supported."
+          },
+          {
+            "source": "@readme",
+            "text": "The current output format produced by OncoVI is a tab-delimited excel file."
+          },
+          {
+            "source": "@readme",
+            "text": "In OncoVI_mod, the role of tumour suppressor genes and oncogenes is defined using COSMIC only and the other resources available to OncoVI."
+          },
+          {
+            "source": "@paper",
+            "text": "The code for the implementation of the oncogenicity guidelines in OncoVI is available at <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/MGCarta/oncovi\" id=\"intref0010\"><italic toggle=\"yes\">https://github.com/MGCarta/oncovi"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Four. SOP set: 93 somatic variants from the guideline authors, classified by them as 14 oncogenic, 29 likely oncogenic, 38 uncertain, 6 likely benign and 6 benign. Molecular Tumor Board set: 7,802 unique somatic variants across 489 genes from 557 individuals. ClinVar set: 691 somatic variants across 227 genes with an NCBI oncogenicity classification, out of 6,113 candidates, comprising 1 benign, 1 likely benign, 373 likely oncogenic, 58 oncogenic and 258 uncertain. Validation set: 135 tumour board variants across 104 genes, reclassified by three experts.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, the four data set sections; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "SOP oncogenicity classification had assigned the variants to five classes as follows: oncogenic: 14, likely oncogenic: 29, VUS: 38, likely benign: 6, and benign: 6 (<xref rid=\"appsec1\" ref-type=\"sec\">Supplemental Table S1</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "comprises 7802 unique somatic variants across 489 genes, identified in a cohort of 557 individuals"
+          },
+          {
+            "source": "@paper",
+            "text": "691 variants (11%; <italic toggle=\"yes\">n</italic> = 691/6113) (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited\" id=\"intref0095\"><italic toggle=\"yes\">https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited</italic></ext-link>, last accessed April 12, 2025) involving 227 genes were classified as benign: 1, likely benign: 1, likely oncogenic: 373, oncogenic: 58, or uncertain significance: 258 (ClinVar data set)"
+          },
+          {
+            "source": "@paper",
+            "text": "These 135 variants involved 104 different genes (67 OGs, 61 TSGs, and 7 with an unknown role), and were mainly truncating (<italic toggle=\"yes\">n</italic> = 63), missense (<italic toggle=\"yes\">n</italic> = 50), or splice site variants."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "None in the machine learning sense: OncoVI is a rule implementation, so every variant in every set is scored and compared, with no training or held-out portion. The only derived subset is the 135-variant validation set, which was selected after the fact from the tumour board confusion matrix: all variants with the strongest disagreement plus randomly chosen variants from the cells where OncoVI said uncertain or oncogenic.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, Validation Data Set; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the validation data set was generated on the basis of the obtained confusion matrix between MTB and OncoVI classifications by considering: all the variants with the strongest disagreement"
+          },
+          {
+            "source": "@paper",
+            "text": "randomly chosen variants from the confusion matrix cells corresponding to OncoVI classification as VUS and O/LO, with a higher number from the MTB P/LP variants classified as VUS by OncoVI"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Three-class agreement, higher better: accuracy or concordance between OncoVI's class and the reference's, reported as a percentage with the counts, plus per-class sensitivity and a confusion matrix. Correlation between OncoVI's variant-specific score and the reference's score is reported for the variants where the classes agree. Agreement is also stratified by gene class (oncogene against tumour suppressor) and by functional consequence.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; Figure 2, 3 and 4 captions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To evaluate OncoVI performance, variants were grouped into O/LO, B/LB, and VUS classes."
+          },
+          {
+            "source": "@paper",
+            "text": "Confusion matrix of the agreement between the SOP and OncoVI in classifying the variants of the SOP data set."
+          },
+          {
+            "source": "@paper",
+            "text": "When evaluating the performance stratified by gene classes (OGs versus TSGs), differently from the SOP data set, higher concordance for variants in OGs compared with TSGs was observed (82.5% versus 76.0%)"
+          },
+          {
+            "source": "@paper",
+            "text": "the performance stratified by functional consequence showed higher concordance for missense variants compared with truncating alterations (78.2% versus 49.4%)"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "No other software is compared. The reference points are human: the guideline authors' own published classifications, the tumour board's five-class assessment of protein function, ClinVar's NCBI-curated oncogenicity classification, and three expert cancer biologists reclassifying under the guidelines. The repository adds an internal comparison between OncoVI and OncoVI_mod, which drops the licensed OncoKB resource, reported in a separate document rather than in the paper.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Materials and Methods, the data set sections; Results. Repository: README.md, OncoVI_mod",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "ClinVar oncogenicity classification was considered as ground truth to evaluate OncoVI performance on the ClinVar data set."
+          },
+          {
+            "source": "@paper",
+            "text": "Three expert cancer biologists (L.T., A.Hö., and C.S.) assessed variants in terms of their effect on the wild-type protein function and categorized them into five classes"
+          },
+          {
+            "source": "@paper",
+            "text": "No tools currently automate all the guidelines for standardized oncogenicity classification."
+          },
+          {
+            "source": "@readme",
+            "text": "contains a comparison of the results obtained with OncoVI and those with OncoVI_mod on the \"Molecular Tumour Board data set\""
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Blinding on the one comparison where it applies: the three experts reclassified the 135 validation variants while blinded to how OncoVI implements the criteria, although they were given the list of resources OncoVI uses for each criterion and had themselves produced the original tumour board classification. For the other three sets no control applies, because OncoVI is a rule implementation with no training data. The criteria were, however, interpreted by the OncoVI authors where the guideline text was unclear, and resources were chosen by them where the guidelines suggested none.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, Validation Data Set; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "while remaining blinded to OncoVI implementation of the criteria"
+          },
+          {
+            "source": "@paper",
+            "text": "each expert was provided with the list of the resources used by OncoVI for each criterion"
+          },
+          {
+            "source": "@paper",
+            "text": "Each criterion was interpreted whenever its biological meaning resulted unclear from the SOP textual indication."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "No intervals on the agreement rates. The paper reports counts behind every percentage, correlation coefficients with p values for the score comparisons, and Fisher exact tests for the association between triggered criteria and correct classification, with significance at p of 0.05 or below. There are no replicates: the classifications are deterministic given the resources, and resource versions are pinned in the methods rather than varied.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, Data Analysis and Statistical Analysis; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Odds ratios were calculated to test the association between OncoVI triggered criteria and the correct classification of oncogenic/likely oncogenic variants of the SOP data set. Statistical significance was tested via a two-sided Fisher exact test, with <italic toggle=\"yes\">P</italic> ≤ 0.05 considered statistically significant."
+          },
+          {
+            "source": "@paper",
+            "text": "the variant-specific scores assigned by experts and those by OncoVI showed a strong positive correlation (<italic toggle=\"yes\">r</italic> = 0.7, <italic toggle=\"yes\">P</italic> &lt; 2.2 × 10<sup>–</sup><sup>16</sup>)"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "One somatic variant in a human tumour, given as genomic coordinates with reference and alternate alleles, carrying a human-assigned oncogenicity or pathogenicity class. Across the sets the variants are mostly missense and truncating, with splice site, in-frame, synonymous, untranslated region and upstream changes also present.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, ClinVar Data Set; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Chromosome, PositionVCF, ReferenceAlleleVCF, and AlternateAlleleVCF in the hg38 genome build were used to generate the input VCF file"
+          },
+          {
+            "source": "@paper",
+            "text": "most variants were truncating (<italic toggle=\"yes\">n</italic> = 313), including nonsense, frameshift, and start-loss variants, followed by missense variants (<italic toggle=\"yes\">n</italic> = 280)"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human only. The variants come from human tumour samples and public human variant databases, and the tool accepts only genome assembly GRCh38.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Materials and Methods, Molecular Tumor Board Data Set. Repository: README.md",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "identified in a cohort of 557 individuals with various tumor diagnoses"
+          },
+          {
+            "source": "@readme",
+            "text": "OncoVI supports only variants in human genome assembly GRCh38."
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Targeted tumour sequencing for the real-world sets: formalin-fixed paraffin-embedded tissue on a NextSeq500 with the TruSight Oncology 500 assay covering 523 cancer-related genes, processed with the vendor Local App version 2.2 to call small variants, copy number variants, fusions and splice variants. The labels themselves are expert or curator judgements, not assay readouts; the SOP and ClinVar sets carry no assay of their own.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, Molecular Tumor Board Data Set",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "sequenced on a NextSeq500 using the TruSight Oncology 500 assay (Illumina, Inc., San Diego, CA), which investigates 523 cancer-related genes"
+          },
+          {
+            "source": "@paper",
+            "text": "The pipeline performs demultiplexing, FASTQ generation, DNA/RNA alignment to the human reference genome (University of California, Santa Cruz, hg19), and calling of single and multiple nucleotide variants, copy number variants, fusions, and splice variants."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Genomic coordinates on GRCh38, as a text table or a VCF, and whatever the integrated public resources return for them. The pipeline uses VEP annotation with dbNSFP and SpliceAI scores, gnomAD frequencies, ClinVar, COSMIC and, in the default configuration, the licensed OncoKB; no sequence model or structure is involved.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "Repository: README.md, Input data and OncoVI_mod. Paper: Materials and Methods, Variant Annotation via the VEP-Based In-House Pipeline",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Variants in both text format and in variant call format (VCF) are accepted by OncoVI."
+          },
+          {
+            "source": "@readme",
+            "text": "This would allow users to run OncoVI without requiring access to the licensed OncoKB resource."
+          },
+          {
+            "source": "@paper",
+            "text": "Eventually, the pipeline interrogates several knowledgebases to retrieve existing biomedical information of the somatic variants."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "None. OncoVI is a deterministic rule engine: each criterion is coded as IF-ELSE logic over the resources, points are summed and the class follows from fixed thresholds. Nothing is trained, fitted or tuned on any of the four reference sets.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Results, first paragraph. Repository: README.md, figure caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "using an IF-ELSE logic for each criterion, OncoVI assigned the associated points and provided the oncogenicity classification based on the calculated variant-specific score"
+          },
+          {
+            "source": "@readme",
+            "text": "obtained as the sum of the points associated to the criteria triggered by OncoVI for the variant"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The reference sets are of different kinds and the weak spots show up differently in each: guideline authors' own variants, a real tumour board cohort, ClinVar curation and a blinded expert reclassification.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, the four data set sections; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To assess the validity of its implementation and used resources, OncoVI was tested on the SOP data set, a data set of 93 somatic variants provided by the guideline authors."
+          },
+          {
+            "source": "@paper",
+            "text": "ClinVar oncogenicity classification was considered as ground truth to evaluate OncoVI performance on the ClinVar data set."
+          },
+          {
+            "source": "@paper",
+            "text": "the expert cancer biologists re-evaluated a subset of 135 MTB variants (“validation data set”) using the oncogenicity guidelines and the resources used by OncoVI"
+          }
+        ]
+      },
+      {
+        "text": "Disagreements are followed up rather than left as a percentage. The validation set deliberately includes every strongest disagreement, and the paper traces where the score sat relative to a class threshold, for example that 55% of the oncogenic variants OncoVI called uncertain scored four or five, just under the cutoff.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, Validation Data Set; Results, Performance on the ClinVar Data Set",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "all the variants with the strongest disagreement"
+          },
+          {
+            "source": "@paper",
+            "text": "55% (<italic toggle=\"yes\">n</italic> = 38/69) of the variants had variant-specific scores of four and five (ie, close to the upper score limit of the VUS class)"
+          }
+        ]
+      },
+      {
+        "text": "Every percentage is reported with its counts, so each figure can be traced to the exact set it belongs to, and the resource and tool versions behind the annotation are pinned in the methods.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; Materials and Methods, Variant Annotation via the VEP-Based In-House Pipeline",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "OncoVI correctly classified 83% of the variants (<italic toggle=\"yes\">n</italic> = 573/691)"
+          },
+          {
+            "source": "@paper",
+            "text": "(VEP version 111.0, January 2024)"
+          },
+          {
+            "source": "@paper",
+            "text": "Two VEP plugins, dbNSFP version 4.5a and spliceAI, were used"
+          }
+        ]
+      },
+      {
+        "text": "The code is public with a documented setup, and a variant that avoids the licensed OncoKB resource is provided so the tool can be run without it.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Results. Repository: README.md, Get started and OncoVI_mod",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The code for the implementation of the oncogenicity guidelines in OncoVI is available at <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/MGCarta/oncovi\" id=\"intref0010\"><italic toggle=\"yes\">https://github.com/MGCarta/oncovi"
+          },
+          {
+            "source": "@readme",
+            "text": "The resources and scripts required to run OncoVI without OncoKB are provided in this repository."
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The references disagree with each other more than the tool disagrees with them. On the 135 validation variants the experts' guideline-based reclassification matched the same experts' earlier tumour board assessment for only 34%, so an agreement rate against the tumour board (22% here, 78% over the full cohort) measures the reference as much as the tool.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Comparative Analysis with Expert Re-Assessment",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Experts' classification based on the oncogenicity guidelines had an agreement of 34% (<italic toggle=\"yes\">n</italic> = 46/135 variants) with the earlier MTB assessment"
+          },
+          {
+            "source": "@paper",
+            "text": "Although OncoVI agreement with the previous MTB assessment was 22% (<italic toggle=\"yes\">n</italic> = 30/135) (<xref rid=\"appsec1\" ref-type=\"sec\">Supplemental Figure S5</xref>A), the agreement with experts' re-assessment reached 80% (<italic toggle=\"yes\">n</italic> = 108/135)"
+          }
+        ]
+      },
+      {
+        "text": "The 80% agreement on the validation set is not an independent estimate. That set was chosen after seeing the confusion matrix, it is enriched for disagreements, and the experts were given the resources OncoVI uses for each criterion before reclassifying.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, Validation Data Set",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "These variants were chosen <italic toggle=\"yes\">a posteriori</italic> based on the analysis of the entire MTB data set (<xref rid=\"appsec1\" ref-type=\"sec\">Supplemental Table S2</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "each expert was provided with the list of the resources used by OncoVI for each criterion"
+          }
+        ]
+      },
+      {
+        "text": "Agreement is uneven across variant kinds in a way the headline figures hide: on the tumour board set the benign and likely benign class agrees at 43% against 97% for uncertain, and truncating alterations agree at 49.4% against 78.2% for missense.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Performance of OncoVI on the Molecular Tumor Board Data Set",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "VUS and B/LB classes had an agreement of 97% (<italic toggle=\"yes\">n</italic> = 3955/4092) and 43% (<italic toggle=\"yes\">n</italic> = 961/2261), respectively"
+          },
+          {
+            "source": "@paper",
+            "text": "higher concordance for missense variants compared with truncating alterations (78.2% versus 49.4%)"
+          }
+        ]
+      },
+      {
+        "text": "Results depend on resources that move and on one that is licensed: the default configuration uses OncoKB, ClinVar was read on 12 April 2025, and the criteria rest on the authors' own reading of the guideline text where it was unclear. The README states that an MIT licence applies to the scripts in the repository, while resources it uses such as OncoKB and COSMIC need separate licence agreements.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Materials and Methods, ClinVar Data Set; Results. Repository: README.md",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "variant_summary.txt.gz, last accessed April 12, 2025"
+          },
+          {
+            "source": "@paper",
+            "text": "Then, the resources suggested by the SOP were adopted or, when there was no suggestion, identified from publicly available databases."
+          },
+          {
+            "source": "@readme",
+            "text": "This would allow users to run OncoVI without requiring access to the licensed OncoKB resource."
+          },
+          {
+            "source": "@readme",
+            "text": "The MIT license file applies to only the scripts within this repository."
+          },
+          {
+            "source": "@readme",
+            "text": "OncoVI makes use of resources that require a dedicated license agreement, such as [OncoKB](https://www.oncokb.org/terms) and [COSMIC](https://www.cosmickb.org/licensing/)."
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "OncoVI evaluation workflow",
+      "steps": [
+        "somatic variants as GRCh38 coordinates, from the guideline tables, the Erlangen tumour board, ClinVar or the validation subset",
+        "VEP annotation with dbNSFP and SpliceAI, coding consequences only, MANE transcript preferred",
+        "criteria evaluated against the integrated knowledgebases by IF-ELSE logic",
+        "points summed into a variant-specific score and mapped to one of five classes",
+        "classes collapsed to oncogenic, uncertain and benign and compared with the reference",
+        "accuracy, per-class sensitivity and a confusion matrix per data set"
+      ],
+      "caption": "How each agreement figure in the OncoVI study is produced.",
+      "source_ids": [
+        "@paper",
+        "@readme"
+      ],
+      "source_locator": "Paper: Materials and Methods and Results. Repository: README.md, figure caption",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "the variants are functionally annotated with the VEP from Ensembl (VEP version 111.0, January 2024) using GRCh38"
+        },
+        {
+          "source": "@paper",
+          "text": "using an IF-ELSE logic for each criterion, OncoVI assigned the associated points"
+        },
+        {
+          "source": "@paper",
+          "text": "To evaluate OncoVI performance, variants were grouped into O/LO, B/LB, and VUS classes."
+        },
+        {
+          "source": "@readme",
+          "text": "score≥10:Oncogenic (O), 6≤score≤9:Likely Oncogenic (LO)"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The per-variant tables (Supplemental Tables S1 to S8) and the stratified results in Supplemental Table S6 are supplementary files that were not fetched, so the per-set breakdowns beyond those quoted in the text are not covered.",
+      "The confusion matrices in Figures 2 to 4 print their counts on the figures; only the values given in the prose are recorded here.",
+      "The sources read give no release date or version tag for the repository, and the resource snapshots behind the published figures are described by access date only."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the PMC full text XML of the OncoVI paper (PMC13269341, Journal of Molecular Diagnostics), including the Materials and Methods sections on the four data sets, the annotation pipeline and the statistical analysis, and the Results sections for each data set; and the MGCarta/oncovi README.md at commit 75d56d0175544cd4732b63a4c69cf46b1b1aeb23. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Install OncoVI in a conda environment, prepare its resources and VEP cache, and classify the example variant set.",
+    "prerequisites": [
+      "conda 24.11.1 or later and Python 3.8.8 or later, as the README's requirements list them.",
+      "The Ensembl VEP conda package at version 111 or later, with the dbNSFP and SpliceAI plugin data.",
+      "Variants on GRCh38 only, as text or VCF.",
+      "Access to the resources OncoVI queries; the default configuration includes the licensed OncoKB, and OncoVI_mod is provided for users without it.",
+      "The README states that the MIT licence applies only to the scripts in the repository; OncoKB and COSMIC need their own licence agreements."
+    ],
+    "steps": [
+      {
+        "title": "Get the code at the pinned commit",
+        "shell": "git clone https://github.com/MGCarta/oncovi.git\ncd oncovi\ngit checkout --detach 75d56d0175544cd4732b63a4c69cf46b1b1aeb23",
+        "explanation": "The clone line is the README's; the cd and checkout lines were added here to pin the commit these steps were read from.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md, Get started",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "git clone https://github.com/MGCarta/oncovi.git"
+          }
+        ]
+      },
+      {
+        "title": "Create the environment and install the packages",
+        "shell": "conda create --name envpy310 python=3.10\nconda activate envpy310\npip install pandas\npip install colorama\npip install openpyxl",
+        "explanation": "The five commands the README gives under Create the conda environment and install the required packages.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md, Create the conda environment and install the required packages",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "conda create --name envpy310 python=3.10"
+          },
+          {
+            "source": "@readme",
+            "text": "conda activate envpy310"
+          },
+          {
+            "source": "@readme",
+            "text": "pip install pandas"
+          },
+          {
+            "source": "@readme",
+            "text": "pip install openpyxl"
+          }
+        ]
+      },
+      {
+        "title": "Install Ensembl VEP",
+        "shell": "conda install bioconda::ensembl-vep",
+        "explanation": "The README's manual VEP installation step. Its following steps download and extract the cache files and set up the dbNSFP and SpliceAI plugins, whose paths are site-specific and are therefore not reproduced as commands here.",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "Repository: README.md, Instructions to set up VEP manually. Paper: Materials and Methods, Variant Annotation via the VEP-Based In-House Pipeline",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "conda install bioconda::ensembl-vep"
+          },
+          {
+            "source": "@paper",
+            "text": "Two VEP plugins, dbNSFP version 4.5a and spliceAI, were used to retrieve scores from predictive algorithms."
+          }
+        ]
+      },
+      {
+        "title": "Run OncoVI on the example variants",
+        "shell": "cd src\npython 02_VEP_based_pipeline.py -i ../testdata/SOP_table_union.txt",
+        "explanation": "The README's own run command, with its cd step. The example input is the guideline authors' variant table, which is the SOP data set used in the paper.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md, Test OncoVI on an exemplary set of variants",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "python 02_VEP_based_pipeline.py -i ../testdata/SOP_table_union.txt"
+          },
+          {
+            "source": "@readme",
+            "text": "# ~/oncovi/testdata/SOP_table_union.txt"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "A tab-delimited Excel file of the variants that passed annotation and classification, holding the VEP and ClinVar annotation fields, the variant-specific score (Points), the oncogenicity classification (Classification) and the triggered criteria (Criteria). An example output is included in the repository."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "The resource preparation script and the VEP cache and plugin downloads need site-specific paths, so the steps here stop short of reproducing the paper's results end to end.",
+      "No published command computes the agreement rates in the paper; OncoVI produces classifications and the comparisons were done separately in R.",
+      "The default configuration depends on the licensed OncoKB resource; the repository's OncoVI_mod avoids it but gives different oncogene and tumour suppressor assignments."
+    ],
+    "source_ids": [
+      "@readme",
+      "@paper"
+    ]
+  },
+  "structured": [
+    {
+      "task": "OncoVI three-class assessment: Guideline SOP variants",
+      "dataset": "SOP data set from Horak et al. Supplementary Tables 1 and 3",
+      "size": 93,
+      "size_unit": "somatic variants",
+      "split": "no split, all variants classified",
+      "primary_metric": "accuracy against the SOP classification",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1016/j.jmoldx.2026.03.004",
+      "code_url": "https://github.com/MGCarta/oncovi",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The SOP data set contains 93 variants, retrieved from Supplementary Tables 1 and 3 (see Horak et al<xref rid=\"bib8\" ref-type=\"bibr\"><sup>8</sup></xref>)."
+        },
+        {
+          "source": "@paper",
+          "text": "OncoVI achieved 81% accuracy (<italic toggle=\"yes\">n</italic> = 75/93 correctly classified variants)"
+        },
+        {
+          "source": "@paper",
+          "text": "The code for the implementation of the oncogenicity guidelines in OncoVI is available at <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/MGCarta/oncovi\" id=\"intref0010\"><italic toggle=\"yes\">https://github.com/MGCarta/oncovi"
+        },
+        {
+          "source": "@readme",
+          "text": "The MIT license file applies to only the scripts within this repository."
+        }
+      ]
+    },
+    {
+      "task": "OncoVI three-class assessment: Erlangen MTB variants",
+      "dataset": "Molecular Tumor Board data set, Comprehensive Cancer Center Erlangen-EMN",
+      "size": 7802,
+      "size_unit": "unique somatic variants across 489 genes",
+      "split": "no split, all variants classified",
+      "primary_metric": "concordance with the MTB assessment",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1016/j.jmoldx.2026.03.004",
+      "code_url": "https://github.com/MGCarta/oncovi",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "comprises 7802 unique somatic variants across 489 genes, identified in a cohort of 557 individuals"
+        },
+        {
+          "source": "@paper",
+          "text": "the MTB classification into P/LP, VUS, and B/LB was 78% (<italic toggle=\"yes\">n</italic> = 6060/7802 variants)"
+        },
+        {
+          "source": "@readme",
+          "text": "The MIT license file applies to only the scripts within this repository."
+        }
+      ]
+    },
+    {
+      "task": "OncoVI three-class assessment: ClinVar April 2025 oncogenicity assertions",
+      "dataset": "ClinVar somatic variants with an NCBI oncogenicity classification, accessed 12 April 2025",
+      "size": 691,
+      "size_unit": "somatic variants across 227 genes",
+      "split": "no split, all variants with an available oncogenicity classification",
+      "primary_metric": "accuracy against the ClinVar classification",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1016/j.jmoldx.2026.03.004",
+      "code_url": "https://github.com/MGCarta/oncovi",
+      "data_url": "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The ClinVar data set includes 691 somatic variants with available oncogenicity classification in ClinVar (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited\" id=\"intref0080\"><italic toggle=\"yes\">https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited</italic></ext-link>, variant_summary.txt.gz, last accessed April 12, 2025<italic toggle=\"yes\">)."
+        },
+        {
+          "source": "@paper",
+          "text": "OncoVI correctly classified 83% of the variants (<italic toggle=\"yes\">n</italic> = 573/691) with a sensitivity of 84% (<italic toggle=\"yes\">n</italic> = 362/431) for the O/LO class."
+        },
+        {
+          "source": "@paper",
+          "text": "involving 227 genes"
+        },
+        {
+          "source": "@readme",
+          "text": "The MIT license file applies to only the scripts within this repository."
+        }
+      ]
+    },
+    {
+      "task": "OncoVI three-class assessment: MTB selected expert reassessment",
+      "dataset": "validation data set of MTB variants reclassified by three experts under the oncogenicity guidelines",
+      "size": 135,
+      "size_unit": "somatic variants across 104 genes",
+      "split": "selected a posteriori from the MTB confusion matrix, enriched for disagreements",
+      "primary_metric": "agreement with the experts' guideline-based reclassification",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1016/j.jmoldx.2026.03.004",
+      "code_url": "https://github.com/MGCarta/oncovi",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The validation data set of 135 somatic variants was generated from the MTB data set to validate the implementation of the oncogenicity criteria in OncoVI."
+        },
+        {
+          "source": "@paper",
+          "text": "the agreement with experts' re-assessment reached 80% (<italic toggle=\"yes\">n</italic> = 108/135) (<xref rid=\"fig4\" ref-type=\"fig\">Figure 4</xref>B)"
+        },
+        {
+          "source": "@paper",
+          "text": "These 135 variants involved 104 different genes (67 OGs, 61 TSGs, and 7 with an unknown role)"
+        },
+        {
+          "source": "@readme",
+          "text": "The MIT license file applies to only the scripts within this repository."
+        }
+      ]
+    }
+  ],
+  "notes": "Written from the PMC full text (PMC13269341, CC BY) and the MGCarta/oncovi README at commit 75d56d0175544cd4732b63a4c69cf46b1b1aeb23. Points for a human. First, the abstract says 80% accuracy on the 93-variant SOP set while the Results section says 81% (75 of 93); both are recorded as printed and the structured entry uses the Results figure. Second, the abstract says 79% concordance on the tumour board set while the Results section says 78% (6,060 of 7,802); the same applies. Third, the validation set's 80% agreement is against the experts' reclassification, not against the original tumour board assessment, which OncoVI matched on 22% of the same 135 variants; the two must not be mixed. Fourth, the variant counts here are per data set as the methods and results print them, and the data sets overlap: the 135 validation variants are a subset of the 7,802. Fifth, no data are released for the tumour board cohort, so data_licence is null; code_licence is MIT because the README states that the MIT licence applies to the repository's scripts."
+}

@@ -1,0 +1,669 @@
+{
+  "record_id": "cnv-20261009-benchmark-seqc2-hcc1395-somatic-cnv",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Masood, Ren et al. 2024, Evaluation of somatic copy number variation detection by NGS technologies and bioinformatics tools on a hyper-diploid cancer genome (Genome Biology), PMC full-text XML",
+      "description": "NCBI PMC JATS XML of the published article PMC11188507, fetched through E-utilities efetch.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&rettype=xml&id=11188507",
+      "url": "https://doi.org/10.1186/s13059-024-03294-8",
+      "version": "Genome Biol 2024, PMC11188507",
+      "media_type": "application/xml",
+      "sha256": "8c998389a030f2b4c50661f5235af9f3b59a826795ea09b7c7d62f6c423b8e2a",
+      "retrieved_at": "2026-11-27T01:10:19Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    },
+    {
+      "key": "zenodo-benchmark",
+      "name": "Zenodo record 10081398, SEQC2 CNV benchmark sets",
+      "description": "Zenodo API record JSON for the CNV benchmark set deposit cited by the paper.",
+      "file": "artifacts/zenodo-10081398.json",
+      "artifact_url": "https://zenodo.org/api/records/10081398",
+      "url": "https://doi.org/10.5281/zenodo.10081398",
+      "version": "Zenodo record 10081398, published 2023-11-08",
+      "media_type": "application/json",
+      "sha256": "e55cc5fba9c68866fd50eb5184937c941ab1637aabaaa4984aa30db41a91b031",
+      "retrieved_at": "2026-11-27T01:27:51Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    },
+    {
+      "key": "zenodo-raw",
+      "name": "Zenodo record 10081574, SEQC2 CNV raw call sets",
+      "description": "Zenodo API record JSON for the raw call set and scripts deposit cited by the paper.",
+      "file": "artifacts/zenodo-10081574.json",
+      "artifact_url": "https://zenodo.org/api/records/10081574",
+      "url": "https://doi.org/10.5281/zenodo.10081574",
+      "version": "Zenodo record 10081574, published 2023-11-08",
+      "media_type": "application/json",
+      "sha256": "d9187ff56640bb0be0b9502367e4f37d27475e94e3bdb4475ac09e17bfe8165a",
+      "retrieved_at": "2026-11-27T01:27:54Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    },
+    {
+      "key": "benchmark-bed",
+      "name": "ngs_benchmark_cnvs_gain_loss_loh.bed from Zenodo record 10081398",
+      "description": "The high-confidence gain, loss and LOH interval file from the benchmark deposit.",
+      "file": "artifacts/ngs_benchmark_cnvs_gain_loss_loh.bed",
+      "artifact_url": "https://zenodo.org/api/records/10081398/files/ngs_benchmark_cnvs_gain_loss_loh.bed/content",
+      "url": "https://doi.org/10.5281/zenodo.10081398",
+      "version": "Zenodo record 10081398",
+      "media_type": "text/plain",
+      "sha256": "661e520f64c270a42d19a23ba2c300629726d3f646c25d5f6be9401cc3324a9d",
+      "retrieved_at": "2026-11-27T01:28:04Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "A SEQC2 study that built a high-confidence set of somatic copy number gains, losses and loss-of-heterozygosity (LOH) regions for the hyper-diploid breast cancer cell line HCC1395, and used it to score six CNV callers on whole-genome and whole-exome tumour and normal sequencing under varied conditions. The truth set comes from agreement across 21 WGS replicates and six callers (five for LOH), checked against microarrays and Bionano. It is useful to cancer genomics groups choosing a CNV caller or validating a somatic CNV pipeline.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Results, 'Study design' and 'Establishment of CNV reference call set'",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "This study rigorously evaluated six CNV callers: ascatNgs, CNVkit, FACETS, DRAGEN, HATCHet, and Control-FREEC."
+      },
+      {
+        "source": "@paper",
+        "text": "High-confidence CNV clusters in the cancer cell line were defined by the consensus scores across 21 WGS replicates with six callers (126), in combination of supporting evidence from three orthogonal technologies, Affymetrix CytoScan, Illumina Array, and Bionano."
+      },
+      {
+        "source": "@paper",
+        "text": "Only five callers detected LOH: CNVkit, Control-FREEC, DRAGEN, FACETS, and HATCHet, resulting in 105 call sets (21 replicates × 5 callers)."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "How reproducibly and accurately somatic CNV callers detect copy gain, copy loss and LOH in a cancer genome whose ploidy is not two (HCC1395 ploidy 2.85), and how sequencing centre, WGS versus WES, FFPE fixation, tumour purity, read coverage, DNA input and library protocol change the result.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Background; Results, 'Study design'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "whose genome ploidy was determined as 2.85"
+          },
+          {
+            "source": "@paper",
+            "text": "The WGS on tumor sample purity (SPP) dataset, comprising varying tumor and normal gDNA mixtures with tumor purities ranging from 5 to 100% and different read coverage amounts (ranging from 10 to 300X coverage)."
+          },
+          {
+            "source": "@paper",
+            "text": "The FFPE samples dataset, which included four time points for fixing time in both WGS and WES analyses."
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "For gains and losses, six callers were run on 21 fresh tumour and matched normal WGS replicates from six sequencing centres, giving 126 call sets. LOH calls come from the five callers that report LOH (CNVkit, Control-FREEC, DRAGEN, FACETS, HATCHet), giving 105 call sets, with their own score cut-offs for the confidence levels. Overlapping calls were split into disjoint intervals and scored for reproducibility within centre, across centres and across callers, then given strong, medium, weak or neutral confidence. The benchmark keeps strong-evidence calls and medium or weak calls supported by at least two of three orthogonal technologies (Affymetrix CytoScan, Illumina BeadChip, Bionano); neutral calls are excluded. The paper reports 346 gain calls (1525.6 Mb), 33 loss calls (87.9 Mb) and 320 LOH calls (1490.4 Mb). The deposited BED file holds 307 gain intervals (1503.9 Mb, counted from the saved file) against the paper's 346; its 33 loss and 320 LOH rows match the paper.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, 'Establishment of CNV reference call set' and 'Validation of CNV call sets'; Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "A total of 21 fresh tumor and matched normal WGS replicates were generated"
+          },
+          {
+            "source": "@paper",
+            "text": "This resulted in 126 call sets"
+          },
+          {
+            "source": "@paper",
+            "text": "The CNV benchmark sets comprised strong-evidence calls and medium/weak- evidence calls supported by at least two of the three orthogonal technologies. Neutral-evidence calls were excluded from the benchmark set."
+          },
+          {
+            "source": "@paper",
+            "text": "This rigorous validation process resulted in CNV benchmark sets for HCC1395, comprising 346 high-confidence gain calls spanning 1525.6 Mb, 33 high-confidence loss calls covering 87.9 Mb, and 320 high-confidence LOH calls encompassing 1490.4 Mb"
+          },
+          {
+            "source": "@paper",
+            "text": "Only five callers detected LOH: CNVkit, Control-FREEC, DRAGEN, FACETS, and HATCHet, resulting in 105 call sets (21 replicates × 5 callers)."
+          },
+          {
+            "source": "@paper",
+            "text": "LOH regions with an aggregated group score greater than 8 were classified as strong evidence calls"
+          },
+          {
+            "source": "@benchmark-bed",
+            "text": "chr1\t115746\t207666\tgain"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "A call set is scored by genomic overlap with the high-confidence set: precision is the fraction of called CNV regions that match, recall the fraction of high-confidence regions that are called, and F1 their harmonic mean, computed with BEDTools. Reproducibility between call sets uses the Jaccard index of region lengths. Chr6p, chr16q, chrX and gap regions are excluded. The authors state that only the qualitative class (gain, loss, LOH) is benchmark-grade; copy number values and breakpoints are not.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, 'Reproducibility calculation' and 'Calculation of precision, recall, and F1 score'; Discussion",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Precision is the fraction of CNV-affected regions of a query set which are the same with high-confident calls’ regions. Recall is the fraction of CNV-affected regions of high-confidence calls which are called by a query set. F1 score is the harmonic mean of the precision and recall."
+          },
+          {
+            "source": "@paper",
+            "text": "The Jaccard index was utilized to evaluate the reproducibility or similarity of two scall sets."
+          },
+          {
+            "source": "@paper",
+            "text": "CNVs on the p-arm of chr6, q-arm of chr16, chrX, and gap regions (including centromere regions and telomere regions) were excluded from this analysis."
+          },
+          {
+            "source": "@paper",
+            "text": "The copy number calls which were derived from the median of called values by six callers should not be used as “gold-standard” for benchmarking study. In addition, break points of CNV segment were the best estimate and thus imprecise."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "SEQC2 HCC1395 tumour and HCC1395BL normal data: 21 WGS and 12 WES replicates, plus purity and coverage (SPP), library and DNA input (LBP) and FFPE datasets. The paper reports 346 gain, 33 loss and 320 LOH calls; the deposited BED file has 307 gain, 33 loss and 320 LOH rows.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "A total of 21 fresh tumor and matched normal WGS replicates were generated"
+          },
+          {
+            "source": "@paper",
+            "text": "Subsequently, the callers were applied to a WES dataset comprising 12 replicates across six centers."
+          },
+          {
+            "source": "@paper",
+            "text": "This rigorous validation process resulted in CNV benchmark sets for HCC1395, comprising 346 high-confidence gain calls spanning 1525.6 Mb, 33 high-confidence loss calls covering 87.9 Mb, and 320 high-confidence LOH calls encompassing 1490.4 Mb"
+          },
+          {
+            "source": "@paper",
+            "text": "comprising 346 high-confidence gain calls spanning 1525.6 Mb, 33 high-confidence loss calls covering 87.9 Mb, and 320 high-confidence LOH calls encompassing 1490.4 Mb"
+          },
+          {
+            "source": "@benchmark-bed",
+            "text": "chr1\t115746\t207666\tgain"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "None: one cell line, and every query call set is scored against the whole truth set. The truth set was itself derived from the same callers' WGS calls.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Using the WGS datasets, a reference CNV call set was established and validated against CNV calls derived from three orthogonal technologies: Affymetrix CytoScan, Illumina BeadChip, and Bionano."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Region-based precision, recall and F1 (higher is better) against the truth set; Jaccard index for reproducibility between call sets.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Precision, recall, and F1 score were calculated by comparing the set of CNV calls with high-confident calls defined in this study."
+          },
+          {
+            "source": "@paper",
+            "text": "The Jaccard index was utilized to evaluate the reproducibility or similarity of two scall sets."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Six callers: ascatNgs, CNVkit, FACETS, DRAGEN, HATCHet and Control-FREEC.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, 'Study design'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This study rigorously evaluated six CNV callers: ascatNgs, CNVkit, FACETS, DRAGEN, HATCHet, and Control-FREEC."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "None in the machine learning sense. The truth set is built from the same callers that are then scored (six for gains and losses, five for LOH), with orthogonal array and Bionano support required for medium and weak calls.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The CNV benchmark sets comprised strong-evidence calls and medium/weak- evidence calls supported by at least two of the three orthogonal technologies. Neutral-evidence calls were excluded from the benchmark set."
+          },
+          {
+            "source": "@paper",
+            "text": "Only five callers detected LOH: CNVkit, Control-FREEC, DRAGEN, FACETS, and HATCHet, resulting in 105 call sets (21 replicates × 5 callers)."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Replicates across centres and callers are the main measure of variability; precision and recall are shown per replicate in figures. No confidence intervals are given for caller accuracy.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The intra-caller concordance surpassed inter-caller concordance overall."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A genomic interval called as copy gain, copy loss or LOH.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@benchmark-bed"
+        ],
+        "source_locator": "Paper: Results; benchmark BED",
+        "quotes": [
+          {
+            "source": "@benchmark-bed",
+            "text": "chr1\t115746\t207666\tgain"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human (HCC1395 triple-negative breast cancer cell line and matched normal HCC1395BL).",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, CNVkit",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "of SEQC-II triple-negative breast cancer cell line HCC1395 were analyzed using CNVkit"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Illumina short-read WGS and WES; Affymetrix CytoScan HD and Illumina CytoSNP-850K arrays and Bionano optical mapping as orthogonal support.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Using the WGS datasets, a reference CNV call set was established and validated against CNV calls derived from three orthogonal technologies: Affymetrix CytoScan, Illumina BeadChip, and Bionano."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Tumour and matched normal sequencing alignments (BAM files) from the SEQC2 FTP site; callers may use their own purity and ploidy estimation.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Availability of data and materials; Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "All data (bam files) used in this study were downloaded from NCBI’s ftp site:"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Inapplicable: the methods are CNV callers run with chosen parameters, not trained models.",
+        "status": "inapplicable",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results"
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The truth set combines agreement across 21 WGS replicates from six centres and six callers (five for LOH) with three orthogonal technologies.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Figure 1 legend",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "High-confidence CNV clusters in the cancer cell line were defined by the consensus scores across 21 WGS replicates with six callers (126), in combination of supporting evidence from three orthogonal technologies, Affymetrix CytoScan, Illumina Array, and Bionano."
+          },
+          {
+            "source": "@paper",
+            "text": "Only five callers detected LOH: CNVkit, Control-FREEC, DRAGEN, FACETS, and HATCHet, resulting in 105 call sets (21 replicates × 5 callers)."
+          }
+        ]
+      },
+      {
+        "text": "It tests conditions labs meet in practice: FFPE, low tumour purity, low coverage and low DNA input.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, 'Study design'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The WGS on tumor sample purity (SPP) dataset, comprising varying tumor and normal gDNA mixtures with tumor purities ranging from 5 to 100% and different read coverage amounts (ranging from 10 to 300X coverage)."
+          },
+          {
+            "source": "@paper",
+            "text": "encompassing samples prepared with three library preparation protocols (TruSeq, TruSeq-nano, Nextera flex) with varying DNA input amounts (ranging from 1 to 250 ng)"
+          }
+        ]
+      },
+      {
+        "text": "The truth set and raw call sets are on Zenodo under CC BY 4.0, and the sequencing data are on the NCBI FTP site.",
+        "source_ids": [
+          "@zenodo-benchmark",
+          "@paper"
+        ],
+        "source_locator": "Zenodo record 10081398; Paper: Availability of data and materials",
+        "quotes": [
+          {
+            "source": "@zenodo-benchmark",
+            "text": "\"id\": \"cc-by-4.0\""
+          },
+          {
+            "source": "@paper",
+            "text": "CNV benchmark sets and scripts used for statistical analysis are available at Zenodo"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The truth set is built from the same callers it is used to score (six for gains and losses, five of them for LOH), which can favour callers that agree with the consensus.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Using the WGS datasets, a reference CNV call set was established and validated against CNV calls derived from three orthogonal technologies: Affymetrix CytoScan, Illumina BeadChip, and Bionano."
+          },
+          {
+            "source": "@paper",
+            "text": "Only five callers detected LOH: CNVkit, Control-FREEC, DRAGEN, FACETS, and HATCHet, resulting in 105 call sets (21 replicates × 5 callers)."
+          }
+        ]
+      },
+      {
+        "text": "Only the class of each call is trusted; copy number values and breakpoints are not suitable as a gold standard.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Discussion",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The copy number calls which were derived from the median of called values by six callers should not be used as “gold-standard” for benchmarking study. In addition, break points of CNV segment were the best estimate and thus imprecise."
+          }
+        ]
+      },
+      {
+        "text": "One cell line, with few loss calls (33), and chr6p, chr16q and chrX excluded.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This rigorous validation process resulted in CNV benchmark sets for HCC1395, comprising 346 high-confidence gain calls spanning 1525.6 Mb, 33 high-confidence loss calls covering 87.9 Mb, and 320 high-confidence LOH calls encompassing 1490.4 Mb"
+          },
+          {
+            "source": "@paper",
+            "text": "CNVs on the p-arm of chr6, q-arm of chr16, chrX, and gap regions (including centromere regions and telomere regions) were excluded from this analysis."
+          }
+        ]
+      },
+      {
+        "text": "Caller accuracy is reported in figures only; no per-caller table, and no leaderboard.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Figure 5",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Precision, recall, and F1 score were calculated by comparing the set of CNV calls with high-confident calls defined in this study."
+          }
+        ]
+      },
+      {
+        "text": "The paper and the deposited truth set file disagree on gain calls. The paper reports 346 high-confidence gain calls spanning 1525.6 Mb, while the deposited ngs_benchmark_cnvs_gain_loss_loh.bed has 307 gain intervals spanning 1503.9 Mb (counted from the saved file); the loss (33) and LOH (320) counts agree. A user who downloads the file will score against 307 gain intervals.",
+        "source_ids": [
+          "@paper",
+          "@benchmark-bed"
+        ],
+        "source_locator": "Paper: Results, CNV benchmark sets; deposited BED file from Zenodo 10081398",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "comprising 346 high-confidence gain calls spanning 1525.6 Mb, 33 high-confidence loss calls covering 87.9 Mb, and 320 high-confidence LOH calls encompassing 1490.4 Mb"
+          },
+          {
+            "source": "@benchmark-bed",
+            "text": "chr1\t115746\t207666\tgain"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "SEQC2 HCC1395 CNV benchmark",
+      "steps": [
+        "21 WGS replicates from six centres",
+        "Six callers give 126 call sets (five give 105 for LOH)",
+        "Score interval reproducibility and confidence",
+        "Keep strong calls and orthogonally supported calls",
+        "Score query call sets by precision, recall and F1"
+      ],
+      "caption": "How the truth set is built and used.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Results; Methods",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "A total of 21 fresh tumor and matched normal WGS replicates were generated"
+        },
+        {
+          "source": "@paper",
+          "text": "This resulted in 126 call sets"
+        },
+        {
+          "source": "@paper",
+          "text": "The CNV benchmark sets comprised strong-evidence calls and medium/weak- evidence calls supported by at least two of the three orthogonal technologies. Neutral-evidence calls were excluded from the benchmark set."
+        },
+        {
+          "source": "@paper",
+          "text": "Precision, recall, and F1 score were calculated by comparing the set of CNV calls with high-confident calls defined in this study."
+        },
+        {
+          "source": "@paper",
+          "text": "Only five callers detected LOH: CNVkit, Control-FREEC, DRAGEN, FACETS, and HATCHet, resulting in 105 call sets (21 replicates × 5 callers)."
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "Additional file 1 (supplementary figures and tables) and the raw call set zip were not fetched.",
+      "No step-by-step instructions for scoring a new call set against the truth set were found."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the PMC XML of Genome Biol 2024 (PMC11188507), Zenodo records 10081398 and 10081574, and the benchmark BED file from record 10081398, on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": null,
+  "no_run_guide_reason": "The paper describes precision, recall and F1 computed with BEDTools but gives no commands for scoring a new call set; the scripts deposit (Zenodo 10081574) was not opened.",
+  "structured": [
+    {
+      "task": "Somatic copy number gain detection",
+      "dataset": "SEQC2 HCC1395 CNV benchmark set, gain calls",
+      "size": 346,
+      "size_unit": "high-confidence gain calls as the paper reports them (the deposited BED file at the data_url has 307 gain intervals, 1503.9 Mb, counted from the saved file)",
+      "split": null,
+      "primary_metric": "F1 score",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": "https://doi.org/10.5281/zenodo.10081398",
+      "data_licence": "CC-BY-4.0",
+      "code_licence": null,
+      "released": "2023-11-08",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "This rigorous validation process resulted in CNV benchmark sets for HCC1395, comprising 346 high-confidence gain calls spanning 1525.6 Mb, 33 high-confidence loss calls covering 87.9 Mb, and 320 high-confidence LOH calls encompassing 1490.4 Mb"
+        },
+        {
+          "source": "@paper",
+          "text": "Precision is the fraction of CNV-affected regions of a query set which are the same with high-confident calls’ regions. Recall is the fraction of CNV-affected regions of high-confidence calls which are called by a query set. F1 score is the harmonic mean of the precision and recall."
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "\"id\": \"cc-by-4.0\""
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "\"publication_date\": \"2023-11-08\""
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "10.5281/zenodo.10081398"
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "\"doi_url\": \"https://doi.org/10.5281/zenodo.10081398\""
+        },
+        {
+          "source": "@benchmark-bed",
+          "text": "chr1\t115746\t207666\tgain"
+        }
+      ]
+    },
+    {
+      "task": "Somatic copy number loss detection",
+      "dataset": "SEQC2 HCC1395 CNV benchmark set, loss calls",
+      "size": 33,
+      "size_unit": "high-confidence loss calls",
+      "split": null,
+      "primary_metric": "F1 score",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": "https://doi.org/10.5281/zenodo.10081398",
+      "data_licence": "CC-BY-4.0",
+      "code_licence": null,
+      "released": "2023-11-08",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "This rigorous validation process resulted in CNV benchmark sets for HCC1395, comprising 346 high-confidence gain calls spanning 1525.6 Mb, 33 high-confidence loss calls covering 87.9 Mb, and 320 high-confidence LOH calls encompassing 1490.4 Mb"
+        },
+        {
+          "source": "@paper",
+          "text": "Precision is the fraction of CNV-affected regions of a query set which are the same with high-confident calls’ regions. Recall is the fraction of CNV-affected regions of high-confidence calls which are called by a query set. F1 score is the harmonic mean of the precision and recall."
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "\"id\": \"cc-by-4.0\""
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "\"publication_date\": \"2023-11-08\""
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "10.5281/zenodo.10081398"
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "\"doi_url\": \"https://doi.org/10.5281/zenodo.10081398\""
+        }
+      ]
+    },
+    {
+      "task": "Somatic LOH detection",
+      "dataset": "SEQC2 HCC1395 CNV benchmark set, LOH calls",
+      "size": 320,
+      "size_unit": "high-confidence LOH calls",
+      "split": null,
+      "primary_metric": "F1 score",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": "https://doi.org/10.5281/zenodo.10081398",
+      "data_licence": "CC-BY-4.0",
+      "code_licence": null,
+      "released": "2023-11-08",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "This rigorous validation process resulted in CNV benchmark sets for HCC1395, comprising 346 high-confidence gain calls spanning 1525.6 Mb, 33 high-confidence loss calls covering 87.9 Mb, and 320 high-confidence LOH calls encompassing 1490.4 Mb"
+        },
+        {
+          "source": "@paper",
+          "text": "Precision is the fraction of CNV-affected regions of a query set which are the same with high-confident calls’ regions. Recall is the fraction of CNV-affected regions of high-confidence calls which are called by a query set. F1 score is the harmonic mean of the precision and recall."
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "\"id\": \"cc-by-4.0\""
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "\"publication_date\": \"2023-11-08\""
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "10.5281/zenodo.10081398"
+        },
+        {
+          "source": "@zenodo-benchmark",
+          "text": "\"doi_url\": \"https://doi.org/10.5281/zenodo.10081398\""
+        }
+      ]
+    }
+  ],
+  "notes": "Count mismatch worth a human look: the paper prints 346 gain, 33 loss and 320 LOH calls (699 in all), and its Discussion says CNV (688). The deposited ngs_benchmark_cnvs_gain_loss_loh.bed has 660 rows: 307 gain, 33 loss and 320 LOH (counted by Rewire from the saved file). The structured sizes use the paper's numbers. The paper names ascatNgs v2.5.1 in its methods text but 4.2.1 in its methods table. The record has no protocols or results in the store."
+}

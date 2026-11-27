@@ -1,0 +1,543 @@
+{
+ "record_id": "ucc-research-benchmark-mprabc",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "DeGroat and Kreimer 2026, Massively parallel reporter assay-informed modeling improves prediction of context-specific enhancer-gene regulatory interactions (Nucleic Acids Research), PMC full-text XML",
+   "description": "NCBI PMC JATS XML of the published article PMC13232518, fetched through E-utilities efetch.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&rettype=xml&id=13232518",
+   "url": "https://doi.org/10.1093/nar/gkag554",
+   "version": "Nucleic Acids Res gkag554, PMC13232518",
+   "media_type": "application/xml",
+   "sha256": "f5bec609be87f0b8af0879c2f2295b7500ad5398098f0084a23d4f5ce507aad6",
+   "retrieved_at": "2026-11-27T01:10:05Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "licence",
+   "name": "KreimerLab/MPRabc LICENSE at commit bf95d8f0",
+   "description": "Repository licence file, pinned to a commit. The repository has no README.",
+   "file": "artifacts/licence.txt",
+   "artifact_url": "https://raw.githubusercontent.com/KreimerLab/MPRabc/bf95d8f0fdff85e7364de31fa6d70a209b44a4b6/LICENSE",
+   "url": "https://github.com/KreimerLab/MPRabc",
+   "version": "git commit bf95d8f0fdff85e7364de31fa6d70a209b44a4b6",
+   "media_type": "text/plain",
+   "sha256": "bc67dfbc5a980a2ab732fbaed4df97e3f2d7db769825d8313725350958dc835a",
+   "retrieved_at": "2026-11-27T01:21:09Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 17822027, datasets used in the MPRabc analyses",
+   "description": "Zenodo API record JSON for the analysis datasets deposit.",
+   "file": "artifacts/zenodo.json",
+   "artifact_url": "https://zenodo.org/api/records/17822027",
+   "url": "https://doi.org/10.5281/zenodo.17822027",
+   "version": "Zenodo record 17822027, published 2025-12-04",
+   "media_type": "application/json",
+   "sha256": "148912dd0687be4ac0c32bb0dc1b62b4b1eed09b5d1f00fad7280b1e60613d16",
+   "retrieved_at": "2026-11-27T01:21:12Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "github-repo",
+   "name": "GitHub API repository record for KreimerLab/MPRabc",
+   "description": "JSON from gh api repos/KreimerLab/MPRabc, saved on retrieval; shows the licence GitHub detects.",
+   "file": "artifacts/github-repo.json",
+   "artifact_url": "https://api.github.com/repos/KreimerLab/MPRabc",
+   "url": "https://github.com/KreimerLab/MPRabc",
+   "version": "as returned on 2026-11-27",
+   "media_type": "application/json",
+   "sha256": "f018317a9a5401887f5f940c692eea8fe40169c9d21018b9891b1bb998bffdf2",
+   "retrieved_at": "2026-11-27T01:45:40Z",
+   "store_bytes": true
+  },
+  {
+   "key": "github-tree",
+   "name": "GitHub API file tree of KreimerLab/MPRabc at commit bf95d8f0",
+   "description": "JSON from gh api repos/KreimerLab/MPRabc/git/trees/bf95d8f0fdff85e7364de31fa6d70a209b44a4b6?recursive=1: the list of files at the pinned commit.",
+   "file": "artifacts/github-tree.json",
+   "artifact_url": "https://api.github.com/repos/KreimerLab/MPRabc/git/trees/bf95d8f0fdff85e7364de31fa6d70a209b44a4b6?recursive=1",
+   "url": "https://github.com/KreimerLab/MPRabc",
+   "version": "git commit bf95d8f0fdff85e7364de31fa6d70a209b44a4b6",
+   "media_type": "application/json",
+   "sha256": "7fc183d9c80714465511cc04e9be7e23410d9fcf578a5690f7e6a0a1e71c4127",
+   "retrieved_at": "2026-11-27T01:45:40Z",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "The MPRabc paper's evaluation of enhancer-gene link predictors on K562 cells. Predicted links are scored against a gold-standard set of 10 356 CRISPRi perturbations (471 positive, 9885 negative) using the benchmarking pipeline of Gschwind et al., with area under the precision-recall curve as the main metric. It is useful to regulatory genomics researchers comparing enhancer-gene models, but it is one paper's run on one cell line.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Methods, 'Benchmarking'",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "We report performance on a dataset containing 10 356 CRISPRi perturbations (471 positive, 9885 negative)"
+   },
+   {
+    "source": "@paper",
+    "text": "The pipeline assesses predictions by intersecting model scores with these labeled pairs and computing the area under the precision–recall curve (AUPRC)."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether a model can tell which candidate enhancers regulate which genes in K562 cells. The truth set is enhancer-gene pairs tested by CRISPR interference: a pair is positive when perturbing the enhancer significantly reduced the gene's expression. The paper uses the systematic benchmarking pipeline of Gschwind et al., which pools CRISPR perturbation results into a gold standard and asks how well model scores recover them.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Introduction; Methods, 'ENCODE-rE2G' and 'Benchmarking'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The systematic benchmarking pipeline aggregates evidence from clustered regularly interspaced short palindromic repeats (CRISPR)-based perturbations into a gold-standard set of E–G interactions and evaluates model predictions by quantifying their ability to recover these experimentally validated links"
+     },
+     {
+      "source": "@paper",
+      "text": "Positive examples were E–G pairings validated by CRISPR interference (CRISPRi) perturbations that significantly reduced the target gene’s expression; all other candidate pairings lacking this evidence were treated as negatives"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Candidate enhancers are DNase-seq peaks called with MACS2, resized to 500 bp, keeping the top 150 000 by read count; every candidate within 5 000 000 bp of a gene's TSS forms a candidate pair. DNase-seq, H3K27ac ChIP-seq and Hi-C come from ENCODE. Models are evaluated on predefined CRISPRi datasets from Gschwind et al., and the paper reports the K562 set of 10 356 perturbations. MPRabc itself was trained on K562 CRISPRi-labelled pairs, as Gschwind et al. recommend.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'Dataset', 'ENCODE-rE2G' and 'Benchmarking'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Peaks were resized to 500 bp, and the top 150 000 peaks ranked by total read count were retained for downstream analyses."
+     },
+     {
+      "source": "@paper",
+      "text": "We considered all candidate CREs within a 5 000 000-bp window of each gene’s transcription start site (TSS) as potential E–G interactions."
+     },
+     {
+      "source": "@paper",
+      "text": "DNase-seq, chromatin immunoprecipitation followed by sequencing (ChIP-seq) for histone H3 lysine 27 acetylation (H3K27ac), and high-throughput chromosome conformation capture (Hi-C) datasets were obtained from the ENCODE project"
+     },
+     {
+      "source": "@paper",
+      "text": "does not perform cross-validation. Instead, models are evaluated on predefined CRISPRi datasets provided by Gschwind"
+     },
+     {
+      "source": "@paper",
+      "text": "We trained and benchmarked our model using the K562 cell line, as recommended by Gschwind"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Model scores are intersected with the labelled pairs and AUPRC is computed; precision at 70% recall is the secondary metric, using the pipeline's default operating point. Uncertainty comes from 10 000 bootstrap replicates of the labelled pairs, with 95% percentile intervals. The paper reports MPRabc at AUPRC 0.707 (95% CI 0.663 to 0.746), against the ABC model at 0.612 and ENCODE-rE2G at 0.634, and ablations that drop the MPRALegNet or Sei features.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'Benchmarking'; Results; Table 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The pipeline assesses predictions by intersecting model scores with these labeled pairs and computing the area under the precision–recall curve (AUPRC)."
+     },
+     {
+      "source": "@paper",
+      "text": "We adhered to the pipeline’s default settings, using the threshold corresponding to 70% recall for binary predictions."
+     },
+     {
+      "source": "@paper",
+      "text": "Specifically, the pipeline generated 10 000 bootstrap replicates of labeled E–G pairs and recomputed AUPRC for each replicate."
+     },
+     {
+      "source": "@paper",
+      "text": "We report 95% confidence intervals (CIs) using the percentile method"
+     },
+     {
+      "source": "@paper",
+      "text": "MPRabc achieved an AUPRC of 0.707 (95% CI: 0.663–0.746), the highest performance among E–G predictors with comparable inputs"
+     },
+     {
+      "source": "@paper",
+      "text": "MPRabc outperformed the ABC model (AUPRC = 0.612; 95% CI: 0.567–0.656) and ENCODE-rE2G (AUPRC = 0.634; 95% CI: 0.587–0.684)."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "The K562 CRISPRi gold-standard set from Gschwind et al.: 10 356 perturbations, 471 positive and 9885 negative. Features use ENCODE DNase-seq, H3K27ac ChIP-seq and Hi-C.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'Dataset' and 'Benchmarking'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We report performance on a dataset containing 10 356 CRISPRi perturbations (471 positive, 9885 negative)"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "No cross-validation: models are scored on the predefined CRISPRi datasets. MPRabc's training labels also come from K562 CRISPRi perturbations, and the paper does not say whether training and evaluation pairs are disjoint.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'ENCODE-rE2G' and 'Benchmarking'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "does not perform cross-validation. Instead, models are evaluated on predefined CRISPRi datasets provided by Gschwind"
+     },
+     {
+      "source": "@paper",
+      "text": "the CRISPRi validation datasets were sourced from this line"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "AUPRC (higher is better); precision at 70% recall (higher is better).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'Benchmarking'; Table 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Performance is evaluated using AUPRC and precision at fixed recall (0.7); values are reported as means (95% bootstrap CIs)."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "The ABC model and ENCODE-rE2G, plus ablations of MPRabc (MPRALegNet only, Sei only) and a megamap Hi-C variant; Figure 2D compares further predictors.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Table 3; Figure 2D",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "MPRabc outperformed the ABC model (AUPRC = 0.612; 95% CI: 0.567–0.656) and ENCODE-rE2G (AUPRC = 0.634; 95% CI: 0.587–0.684)."
+     },
+     {
+      "source": "@paper",
+      "text": "To examine the contribution of individual feature groups and their relative impact on performance, we performed systematic ablations starting from the ENCODE-rE2G baseline"
+     },
+     {
+      "source": "@paper",
+      "text": "Comparison of AUPRC values across E–G prediction models."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "None described. Training and evaluation both use K562 CRISPRi data and the pipeline does not cross-validate; the paper does not describe holding out pairs, genes or chromosomes.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'ENCODE-rE2G' and 'Benchmarking'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We trained and benchmarked our model using the K562 cell line, as recommended by Gschwind"
+     },
+     {
+      "source": "@paper",
+      "text": "does not perform cross-validation. Instead, models are evaluated on predefined CRISPRi datasets provided by Gschwind"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "95% percentile confidence intervals from 10 000 bootstrap replicates of the labelled pairs.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'Benchmarking'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Specifically, the pipeline generated 10 000 bootstrap replicates of labeled E–G pairs and recomputed AUPRC for each replicate."
+     },
+     {
+      "source": "@paper",
+      "text": "We report 95% confidence intervals (CIs) using the percentile method"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "A candidate enhancer-gene pair.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'ENCODE-rE2G'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We considered all candidate CREs within a 5 000 000-bp window of each gene’s transcription start site (TSS) as potential E–G interactions."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human (K562 cell line) for this evaluation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'ENCODE-rE2G'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We trained and benchmarked our model using the K562 cell line, as recommended by Gschwind"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "CRISPR interference perturbations with gene expression readout for labels; DNase-seq, H3K27ac ChIP-seq and Hi-C for features.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Positive examples were E–G pairings validated by CRISPR interference (CRISPRi) perturbations that significantly reduced the target gene’s expression; all other candidate pairings lacking this evidence were treated as negatives"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "The paper compares predictors that use DNase-seq, H3K27ac ChIP-seq and Hi-C; MPRabc adds sequence-predicted MPRA activity and Sei features. The saved sources do not state input rules for other submissions.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results; Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "MPRabc achieved an AUPRC of 0.707 (95% CI: 0.663–0.746), the highest performance among E–G predictors with comparable inputs"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Supervised training is allowed: MPRabc is an L2-regularised logistic regression trained on CRISPRi-labelled pairs.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'ENCODE-rE2G'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "ENCODE-rE2G uses a logistic regression model to which we added L2 regularization"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Uses an existing, standard pipeline and gold standard (Gschwind et al.), so numbers are comparable with other predictors scored the same way.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'Benchmarking'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This is the standard metric for E–G interaction prediction model performance."
+     },
+     {
+      "source": "@paper",
+      "text": "does not perform cross-validation. Instead, models are evaluated on predefined CRISPRi datasets provided by Gschwind"
+     }
+    ]
+   },
+   {
+    "text": "Reports bootstrap confidence intervals for every AUPRC and precision value.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Performance is evaluated using AUPRC and precision at fixed recall (0.7); values are reported as means (95% bootstrap CIs)."
+     }
+    ]
+   },
+   {
+    "text": "Code, trained models and analysis datasets are released under the MIT licence.",
+    "source_ids": [
+     "@paper",
+     "@zenodo"
+    ],
+    "source_locator": "Paper: Data availability; Zenodo record 17822027",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "under an MIT license. The analysis of the E–G interaction networks is available at"
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"license\": {\"id\": \"mit-license\"}"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Training and evaluation both use K562 CRISPRi data and the pipeline does not cross-validate; the paper does not show that evaluated pairs were excluded from training.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'ENCODE-rE2G' and 'Benchmarking'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We trained and benchmarked our model using the K562 cell line, as recommended by Gschwind"
+     },
+     {
+      "source": "@paper",
+      "text": "does not perform cross-validation. Instead, models are evaluated on predefined CRISPRi datasets provided by Gschwind"
+     }
+    ]
+   },
+   {
+    "text": "One cell line and a class imbalance of 471 positives to 9885 negatives; AUPRC values depend on that ratio.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, 'Benchmarking'",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "471 positive, 9885 negative"
+     }
+    ]
+   },
+   {
+    "text": "This is one paper's evaluation, with no leaderboard. At the reviewed commit the MPRabc repository holds model files under models/ and featurisation scripts under utils/; its file list has no README or evaluation instructions.",
+    "source_ids": [
+     "@github-tree",
+     "@paper"
+    ],
+    "source_locator": "KreimerLab/MPRabc at commit bf95d8f0; Paper: Data availability",
+    "quotes": [
+     {
+      "source": "@github-tree",
+      "text": "\"path\":\"utils/mpralegnet_predictions.py\""
+     },
+     {
+      "source": "@paper",
+      "text": "under an MIT license. The analysis of the E–G interaction networks is available at"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "MPRabc K562 evaluation",
+   "steps": [
+    "DNase-seq peaks to candidate enhancer-gene pairs",
+    "Model scores each pair",
+    "Intersect with K562 CRISPRi gold standard",
+    "AUPRC and precision at 70% recall",
+    "Bootstrap 95% intervals"
+   ],
+   "caption": "How the paper scores enhancer-gene predictors with the Gschwind et al. pipeline.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Methods, 'ENCODE-rE2G' and 'Benchmarking'",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We considered all candidate CREs within a 5 000 000-bp window of each gene’s transcription start site (TSS) as potential E–G interactions."
+    },
+    {
+     "source": "@paper",
+     "text": "The pipeline assesses predictions by intersecting model scores with these labeled pairs and computing the area under the precision–recall curve (AUPRC)."
+    },
+    {
+     "source": "@paper",
+     "text": "Specifically, the pipeline generated 10 000 bootstrap replicates of labeled E–G pairs and recomputed AUPRC for each replicate."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The Gschwind et al. benchmarking pipeline and its CRISPRi data files were not fetched; the paper describes them only in summary.",
+   "Whether the evaluation pairs overlap MPRabc's training pairs is not stated.",
+   "The repository's file list has no README, so there are no run instructions."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the PMC XML of Nucleic Acids Res gkag554 (PMC13232518), the KreimerLab/MPRabc file list and LICENSE at commit bf95d8f0fdff85e7364de31fa6d70a209b44a4b6, and Zenodo record 17822027, on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "The MPRabc repository's file list at the reviewed commit has no README or evaluation instructions, and the paper describes the Gschwind et al. pipeline without commands.",
+ "structured": [
+  {
+   "task": "K562 CRISPRi enhancer-gene evaluation",
+   "dataset": "K562 CRISPRi dataset (Gschwind et al.)",
+   "size": 10356,
+   "size_unit": "CRISPRi perturbations",
+   "split": "predefined CRISPRi datasets, no cross-validation",
+   "primary_metric": "AUPRC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/KreimerLab/MPRabc",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We report performance on a dataset containing 10 356 CRISPRi perturbations (471 positive, 9885 negative)"
+    },
+    {
+     "source": "@paper",
+     "text": "does not perform cross-validation. Instead, models are evaluated on predefined CRISPRi datasets provided by Gschwind"
+    },
+    {
+     "source": "@paper",
+     "text": "This is the standard metric for E–G interaction prediction model performance."
+    },
+    {
+     "source": "@paper",
+     "text": "under an MIT license. The analysis of the E–G interaction networks is available at"
+    },
+    {
+     "source": "@github-repo",
+     "text": "\"html_url\":\"https://github.com/KreimerLab/MPRabc\""
+    }
+   ]
+  }
+ ],
+ "notes": "The record groups the paper's K562 evaluation; the underlying gold standard and pipeline belong to Gschwind et al. (ENCODE-rE2G), which may deserve its own benchmark record. The Zenodo record 17822027 holds the paper's analysis datasets (Data.zip); it is not shown to contain the CRISPRi gold standard. A second deposit, https://doi.org/10.5281/zenodo.20162603, is named in the paper and was not fetched."
+}

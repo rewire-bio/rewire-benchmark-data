@@ -1,0 +1,958 @@
+{
+  "record_id": "rna-pathogen-20261011-tisza2026-benchmark-virus-profilers",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "PMC full text XML of the EsViritu paper (Tisza et al., PMC13648648)",
+      "description": "The JATS full text from NCBI E-utilities, including the Results on the three benchmark experiments and the Methods sections on tools and parameters, positive controls, negative controls, mock communities, the Virus Pathogen Database and code and data availability.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13648648",
+      "url": "https://doi.org/10.64898/2026.09.29.755457",
+      "version": "PMC13648648, preprint record",
+      "media_type": "text/xml",
+      "licence": "CC BY-NC 4.0",
+      "store_bytes": false,
+      "sha256": "45ee7f5b816e467fb97f8d552bab3eda24a4c7aa6892bc593590861229f81e8f",
+      "retrieved_at": "2026-11-27T01:43:13Z"
+    },
+    {
+      "key": "zenodo",
+      "name": "Zenodo record 23043160 API response, Data for EsViritu Benchmarking",
+      "description": "The Zenodo API record for the benchmark's own data deposit, which carries the licence, the publication date and the file list including the modified database and the per-experiment result archives.",
+      "file": "artifacts/zenodo-benchmark-data.json",
+      "artifact_url": "https://zenodo.org/api/records/23043160",
+      "url": "https://doi.org/10.5281/zenodo.23043160",
+      "version": "record 23043160, published 2026-09-29",
+      "media_type": "application/json",
+      "licence": "CC BY 4.0",
+      "store_bytes": true,
+      "sha256": "ead5eb661f9c944ba950f3349f86f6b7ee5cfd37540614e2b2ab99f3a1d304a2",
+      "retrieved_at": "2026-11-27T01:48:23Z"
+    },
+    {
+      "key": "readme",
+      "name": "cmmr/EsViritu README.md at commit 74a44dadc0ce9c5beb507c7032ef24d02c2e1c26",
+      "description": "Official repository file for the tool under test, pinned to a commit. It gives the Bioconda install, the database download with its checksum, and the run commands and required inputs.",
+      "file": "artifacts/esviritu-readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/cmmr/EsViritu/74a44dadc0ce9c5beb507c7032ef24d02c2e1c26/README.md",
+      "url": "https://github.com/cmmr/EsViritu",
+      "version": "git commit 74a44dadc0ce9c5beb507c7032ef24d02c2e1c26",
+      "media_type": "text/markdown",
+      "licence": "MIT",
+      "store_bytes": true,
+      "sha256": "ebcb93e9935e97ce433126ebef5fb97548356e54d5241a5ecd29668b0d422ed7",
+      "retrieved_at": "2026-11-27T01:48:29Z"
+    }
+  ],
+  "profile": {
+    "summary": "This is the benchmark published with EsViritu, a virus taxonomic profiler, not an independent suite. Five profilers (EsViritu, Kraken2, Centrifuger, Metabuli and Sylph) are run over a sweep of their own sensitivity and specificity parameters, all querying the same Virus Pathogen Database, on three sets: synthetic reads from seven real virus genomes 75.9% to 95.6% identical to their closest reference, seven pathogen-free negative control libraries, and six mock communities of mutated virus genomes in a bacterial and human background. It measures what a reader of a metagenomic virus report needs to know: how few reads a tool needs to call a divergent virus, how often it calls something that is not there, and how close the profile is to the true composition.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Abstract; Methods, Tools and parameters, Positive controls, Negative controls, Mock communities",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "We compared <italic toggle=\"yes\">EsViritu</italic> v1.3.1 against <italic toggle=\"yes\">Kraken2</italic> v2.17.1<sup><xref rid=\"R19\" ref-type=\"bibr\">19</xref></sup>, <italic toggle=\"yes\">Centrifuger</italic> v1.1.1-r309<sup><xref rid=\"R26\" ref-type=\"bibr\">26</xref></sup>, <italic toggle=\"yes\">Metabuli</italic> v1.2.0<sup><xref rid=\"R27\" ref-type=\"bibr\">27</xref></sup>, and <italic toggle=\"yes\">Sylph</italic> v0.9.0<sup><xref rid=\"R28\" ref-type=\"bibr\">28</xref></sup>."
+      },
+      {
+        "source": "@paper",
+        "text": "All tools queried the same <italic toggle=\"yes\">EsViritu</italic> Virus Pathogen Database, so reference content was held constant across the comparison."
+      },
+      {
+        "source": "@paper",
+        "text": "We evaluated five tools across real virus genomes as positive controls spanning 76% to 95% ANI to their closest database reference, pathogen-free negative controls drawn from a variety of environmental and animal backgrounds and mutated mock communities with realistic abundance structure."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Three properties, each with its own set. Sensitivity to divergence and depth: how often a tool reports the right family from synthetic reads of a genome that sits well below the identity of anything in the database, at 1, 10, 100 and 1,000 reads. Specificity: how many false-positive reads and false species a tool reports on libraries that contain no pathogen. Profile accuracy: how close a tool's community profile is to the known composition of a mock community, by detection and by relative abundance, at every taxonomic rank. The authors' framing is that a profiler must do both halves at once, reporting a virus from a single read without ever reporting one that is absent.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Methods, Positive controls, Negative controls, Mock communities",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The ideal profiler would simultaneously do two things: report viruses at single-read sensitivity so that ultra-low-abundance pathogens are not missed and hold near-perfect specificity so that a pathogen is never falsely reported."
+          },
+          {
+            "source": "@paper",
+            "text": "at depths of 1, 10, 100, and 1,000 reads with ten independent permutations per depth. A detection was scored when a tool reported the corresponding family."
+          },
+          {
+            "source": "@paper",
+            "text": "A profiler is only useful if it reports nothing when no pathogen is present"
+          },
+          {
+            "source": "@paper",
+            "text": "Profiles were scored against ground truth at every rank for detection (F1) and abundance (Bray-Curtis dissimilarity<sup><xref rid=\"R46\" ref-type=\"bibr\">46</xref></sup>, Pearson correlation), with profiles normalized to relative abundance per tool."
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Every tool builds its own index from the same genome sequences and the same NCBI taxonomy dump, which is the design feature that makes the comparison about algorithms rather than reference content. The database is Virus Pathogen Database v3.2.4 with one change: the taxonomic labels were taken only from the NCBI TaxDump of 1 June 2026, erasing the custom subspecies labels the standard version uses, and this modified v3.2.4b is deposited on Zenodo. The positive controls are reads synthesised with bbtools randomreads.sh from seven reference genomes spanning 75.9% to 95.6% identity to their closest database entry. The negative controls are seven pathogen-free libraries: human genome mock reads, mouse RNA, anaerobic digester, freshwater, marine water, hot springs and soil. The mock communities are six sets, three of 90 genomes drawn at random from the database and three of 60 genomes with at most one assembly per family, each mutated to a ladder of 80, 85, 90, 95, 98 and 100% identity, with 10,000 viral read pairs in total per community and a background of 100 random bacterial genomes plus the human genome at 50,000,000 reads (50,010,000 reads per community).",
+        "source_ids": [
+          "@paper",
+          "@zenodo"
+        ],
+        "source_locator": "Paper: Methods, Tools and parameters, Positive controls, Negative controls, Mock communities, Virus Pathogen Database. Zenodo record: files and licence",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "All tools were able to use identical genome sequences from the Virus Pathogen Database and the same NCBI TaxDump file to create the tool specific database file."
+          },
+          {
+            "source": "@paper",
+            "text": "the taxonomic hierarchy labels were pulled exclusively from the NCBI TaxDump from 2026–06-01, erasing any custom subspecies labels (e.g. for norovirus) that the standard v3.2.4 uses. This modified version “v3.2.4b” is available on Zenodo"
+          },
+          {
+            "source": "@paper",
+            "text": "Synthetic read sets were generated from seven reference genomes spanning 75.9% to 95.6% ANI to their closest database reference (Table S25)"
+          },
+          {
+            "source": "@paper",
+            "text": "Pathogen-free samples were drawn from seven sources spanning host and synthetic backgrounds (human genome mock reads, mouse RNA) and environmental backgrounds (anaerobic digester, freshwater, marine water, hot springs, soil) (Table S16)."
+          },
+          {
+            "source": "@paper",
+            "text": "Six mock communities were built in two designs: three communities of 90 viral genomes drawn randomly from the Virus Pathogen Database, and three communities of 60 genomes drawn with no more than one assembly per family."
+          },
+          {
+            "source": "@paper",
+            "text": "10,000 read pairs were synthesized for viruses, then a background of 100 random bacterial genomes plus the human genome was added at 50,000,000 reads (50,010,000 total reads/mock community)."
+          },
+          {
+            "source": "@zenodo",
+            "text": "DB_v324b.tar.gz: Virus Pathogen Database with"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Each tool is run over a grid of the parameters that govern its sensitivity and specificity, and a single headline setting is then chosen per tool as the one that maximises specificity while keeping as much sensitivity as possible. Detection in the positive controls is modelled by Firth-penalised logistic regression of detection on tool, depth and genome, with EsViritu as the reference level and Benjamini-Hochberg correction on the tool contrasts, chosen because the most and least sensitive tools separate completely; each genome is summarised by its LD50, the depth at which detection reaches 50%. The negative controls are compared with Friedman tests, post-hoc Wilcoxon tests with Benjamini-Hochberg correction and Kendall's W effect sizes. Mock community profiles are scored at every rank for F1, Bray-Curtis dissimilarity and correlation, with abundance calibration by Lin's concordance correlation coefficient in a pooled and a resolvable stratum, and under two definitions of ground truth: strict provenance lineage, and divergence-capped, which caps the rank a tool can be credited with by the genome's identity to its reference.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Tools and parameters, Positive controls, Negative controls, Mock communities; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Each tool was run across a grid of its sensitivity- and specificity-governing parameters."
+          },
+          {
+            "source": "@paper",
+            "text": "Detection was modeled with Firth-penalized logistic regression<sup><xref rid=\"R43\" ref-type=\"bibr\">43</xref></sup> (detected ~ tool × depth + genome, <italic toggle=\"yes\">EsViritu</italic> as reference, genome as a fixed block) to handle complete separation for the most and least sensitive tools."
+          },
+          {
+            "source": "@paper",
+            "text": "False-positive read percentage and false-species counts were compared across tools using Friedman tests<sup><xref rid=\"R45\" ref-type=\"bibr\">45</xref></sup> with post-hoc Wilcoxon tests (Benjamini-Hochberg corrected) and Kendall’s W effect sizes."
+          },
+          {
+            "source": "@paper",
+            "text": "Abundance calibration used Lin’s concordance correlation coefficient<sup><xref rid=\"R47\" ref-type=\"bibr\">47</xref></sup>, computed in a pooled stratum (all detected genomes) and a resolvable stratum (ANI at least 95%, single-clade)."
+          },
+          {
+            "source": "@paper",
+            "text": "the latter using an ANI-to-rank cap (98%-100%: subspecies, 90%-95% species, 80%-85% genus); both modes are reported"
+          },
+          {
+            "source": "@paper",
+            "text": "These benchmarks allowed us to generate “headline” parameters for each tool that maximized specificity but retained as much sensitivity as possible (see <xref rid=\"S8\" ref-type=\"sec\">Methods</xref>)"
+          }
+        ]
+      },
+      {
+        "title": "Reported results",
+        "body": "On the positive controls Metabuli was the most sensitive tool, reaching 50% detection at or near a single read for most genomes and detecting more often than EsViritu (odds ratio 127.6, p = 0.012); EsViritu held single-read sensitivity down to 85.05% identity, Kraken2 and Centrifuger at their headline settings detected nothing below 85% identity and reached single-read sensitivity only at 95%, and Sylph failed to reach 50% detection in six of the seven genomes at any depth. The negative controls reverse the order: EsViritu in short-read mode and Sylph at all parameters were effectively clean, each with a median of zero false species and EsViritu with one spurious call in total, while the settings that made the other tools competitive on sensitivity produced very high false-positive counts, Centrifuger going from near zero to hundreds of thousands of false hits per library depending on one parameter. On the mock communities the paper reports EsViritu as better than or equal to every other tool on virtually all communities, ranks and metrics, under both ground-truth definitions. The headline settings chosen were EsViritu sr, Centrifuger minimum hit length 100 with minimum score 0, Kraken2 confidence 0.5 with minimum hit group 2, Metabuli precision 1 with minimum score 0.15, and Sylph 10 k-mers per genome.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Metabuli</italic> reached 50% detection at the lowest depths across the panel, with most LD50 values at or near a single read. <italic toggle=\"yes\">EsViritu</italic> held read-level sensitivity (LD50 near one read) down to 85.05% ANI"
+          },
+          {
+            "source": "@paper",
+            "text": "Kraken2</italic> and <italic toggle=\"yes\">Centrifuger</italic> with these settings did not detect genomes below 85% ANI and did not reach single read sensitivity until 95% ANI. <italic toggle=\"yes\">Sylph</italic>, by contrast, did not reach 50% detection in six of the seven genomes at any tested depth."
+          },
+          {
+            "source": "@paper",
+            "text": "The model-estimated detection probability for <italic toggle=\"yes\">EsViritu</italic> was 0.995. Only <italic toggle=\"yes\">Metabuli</italic> detected more often (odds ratio 127.6 versus <italic toggle=\"yes\">EsViritu</italic>, p = 0.012; estimated detection probability 0.99996)"
+          },
+          {
+            "source": "@paper",
+            "text": "EsViritu</italic> (<italic toggle=\"yes\">sr</italic> mode) and <italic toggle=\"yes\">Sylph</italic> (all parameters) were effectively clean, each with a median of zero false species and <italic toggle=\"yes\">EsViritu</italic> with one spurious call across all samples."
+          },
+          {
+            "source": "@paper",
+            "text": "going from near-0 false positive reads when using <italic toggle=\"yes\">minimum hit length=100</italic>, but becoming unspecific in more permissive settings (hundreds of thousands of false hits/read library)"
+          },
+          {
+            "source": "@paper",
+            "text": "EsViritu</italic>, regardless of parameter choice and ground truth definition, performed better than or as well as any other tool on virtually all communities, ranks, and metrics"
+          },
+          {
+            "source": "@paper",
+            "text": "(<italic toggle=\"yes\">EsViritu=sr; Centrifuger=minimum-hit-length:100, minimum score:0; Kraken2=confidence score:0.5, minimum-hit-group:2; Metabuli=precision:1, minimum score:0.15; Sylph=10 k-mers-per-genome</italic>)"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The benchmark's own inputs and results are deposited on Zenodo, including the modified database and the positive, negative and mock result archives, and the processing and analysis repository is released with a stable tag. The tool under test installs from Bioconda in two commands, needs its database downloaded from Zenodo (about 400 MB decompressed, with a published md5), and is run per sample with a reads file, a sample name and an output directory. Reproducing the comparison itself needs the other four tools built against the same database, which the paper describes but the sources read do not give as commands.",
+        "source_ids": [
+          "@readme",
+          "@paper",
+          "@zenodo"
+        ],
+        "source_locator": "Repository: README.md, Installation and Running the tool. Paper: Code and data availability. Zenodo record: files",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "`mamba create -n EsViritu bioconda::esviritu`"
+          },
+          {
+            "source": "@readme",
+            "text": "Download the database (\\~400 MB when decompressed). EsViritu v1.0.0 or higher requires DB v3.1.0 or higher!"
+          },
+          {
+            "source": "@paper",
+            "text": "The processing and analysis repo for the benchmarks are maintained on <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://github.com/tiszalab/esviritu_benchmarks\" ext-link-type=\"uri\">GitHub</ext-link> with stable release <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://github.com/tiszalab/esviritu_benchmarks/releases/tag/2026-09-29\" ext-link-type=\"uri\">2026-09-29a</ext-link>."
+          },
+          {
+            "source": "@zenodo",
+            "text": "mock_results.tar.gz: Output files for all tools for mock ben"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Three sets, all synthetic or pathogen-free. Positive controls: synthetic read sets from seven real virus genomes at 75.9% to 95.6% identity to their closest database reference, at four depths with ten permutations each. Negative controls: seven pathogen-free libraries (human genome mock reads, mouse RNA, anaerobic digester, freshwater, marine water, hot springs, soil). Mock communities: six communities, three of 90 genomes and three of 60 genomes, each at 50,010,000 total reads. The shared reference is Virus Pathogen Database v3.2.4b, built from 63 virus families and described elsewhere in the paper as nearly 20,000 genomes.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Positive controls, Negative controls, Mock communities, Virus Pathogen Database; Discussion",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Synthetic read sets were generated from seven reference genomes spanning 75.9% to 95.6% ANI to their closest database reference"
+          },
+          {
+            "source": "@paper",
+            "text": "we ran all five tools on seven pathogen-free samples spanning host, synthetic, and environmental backgrounds (human genome mock reads, lab mouse RNA, anaerobic digester, freshwater, marine water, hot springs, and soil)"
+          },
+          {
+            "source": "@paper",
+            "text": "(50,010,000 total reads/mock community)"
+          },
+          {
+            "source": "@paper",
+            "text": "sequences and metadata were downloaded from NCBI Virus for the 63 virus families in which there is plausible evidence of human, animal, or plant infection"
+          },
+          {
+            "source": "@paper",
+            "text": "combines the comprehensiveness of nearly 20,000 publicly-available virus genomes across 63 families"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "There is no train and test split: none of the tools is trained here, and each is run on every sample. The structure is by experiment and by condition: read depth (1, 10, 100, 1,000) with ten permutations for the positive controls, background type for the negative controls, and the identity ladder (80, 85, 90, 95, 98, 100%) and community design (90 random genomes or 60 one-per-family) for the mock communities. Two ground-truth definitions are applied to the mock communities. The paper is inconsistent on where the divergence-capped metrics apply: the Methods say only the one-per-family communities were measured with them, while the Results say both strict and divergence-capped metrics are reported for all six communities in Fig. S2.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Positive controls and Mock communities; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "In all communities the genomes were mutated with a sequence simulator to a ladder of 80%, 85%, 90%, 95%, 98%, and 100% ANI to their references."
+          },
+          {
+            "source": "@paper",
+            "text": "due to difficulty modeling true abundances in the “random” communities, only the “one-per-family” mock communities were measured in the <italic toggle=\"yes\">divergence-capped</italic> metrics"
+          },
+          {
+            "source": "@paper",
+            "text": "at depths of 1, 10, 100, and 1,000 reads with ten independent permutations per depth"
+          },
+          {
+            "source": "@paper",
+            "text": "We report both <italic toggle=\"yes\">strict</italic> and <italic toggle=\"yes\">divergence-capped</italic> metrics for all six communities and all tool/parameter combinations"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Per experiment. Positive controls: detection probability, higher better, and LD50, the depth giving 50% detection, lower better. Negative controls: false-positive read percentage and false species counts, lower better. Mock communities: F1 with precision and recall for detection, higher better, and Bray-Curtis dissimilarity, lower better, with Pearson and Spearman correlation to ground truth and Lin's concordance correlation coefficient for abundance calibration, all computed at every taxonomic rank.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Positive controls, Negative controls, Mock communities; Figure 3 caption; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "LD50, the depth giving 50% detection, was estimated per genome and plotted against ANI"
+          },
+          {
+            "source": "@paper",
+            "text": "False-positive read percentage and false-species counts were compared across tools"
+          },
+          {
+            "source": "@paper",
+            "text": "each tool’s “headline” (best) setting was compared for Bray-Curtis Dissimilarity (lower=better), F1 score (higher=better"
+          },
+          {
+            "source": "@paper",
+            "text": "These metrics measure both detection (F1, precision, recall) and abundance (Bray-Curtis dissimilarity, Pearson, and Spearman correlation)"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Four other profilers at pinned versions: Kraken2 v2.17.1, Centrifuger v1.1.1-r309, Metabuli v1.2.0 and Sylph v0.9.0, each run across a sweep of its own thresholds, for example Kraken2's confidence score from 0 to 0.5 and minimum hit group from 2 to 5. EsViritu v1.3.1 is the tool under test and was run in both its short-read sr and sensitive sense configurations.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Tools and parameters; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We compared <italic toggle=\"yes\">EsViritu</italic> v1.3.1 against <italic toggle=\"yes\">Kraken2</italic> v2.17.1<sup><xref rid=\"R19\" ref-type=\"bibr\">19</xref></sup>, <italic toggle=\"yes\">Centrifuger</italic> v1.1.1-r309<sup><xref rid=\"R26\" ref-type=\"bibr\">26</xref></sup>, <italic toggle=\"yes\">Metabuli</italic> v1.2.0<sup><xref rid=\"R27\" ref-type=\"bibr\">27</xref></sup>, and <italic toggle=\"yes\">Sylph</italic> v0.9.0<sup><xref rid=\"R28\" ref-type=\"bibr\">28</xref></sup>."
+          },
+          {
+            "source": "@paper",
+            "text": "EsViritu</italic> was run in both its sensitive “<italic toggle=\"yes\">sense</italic>” and short-read “<italic toggle=\"yes\">sr</italic>” configurations."
+          },
+          {
+            "source": "@paper",
+            "text": "we tested confidence score (0 – 0.5) and minimum-hit-group (number of overlapping k-mers required per call) (2 – 5) thresholds"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "The controls here are about reference content and divergence rather than training data. All five tools index the same genomes and the same taxonomy dump, so none has a richer reference than another; the custom subspecies labels were stripped so that no tool is credited or penalised for labels only one database version carries; the positive control genomes are deliberately 75.9% to 95.6% identical to anything in the database; and the mock community genomes are mutated away from their references on a ladder down to 80%. The divergence-capped ground truth caps the rank a tool may be credited with at a given identity, which stops a tool scoring for a species call it cannot support.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Tools and parameters, Positive controls, Mock communities; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "All tools queried the same <italic toggle=\"yes\">EsViritu</italic> Virus Pathogen Database, so reference content was held constant across the comparison."
+          },
+          {
+            "source": "@paper",
+            "text": "To allow cross-tool compatibility, the taxonomic hierarchy labels were pulled exclusively from the NCBI TaxDump from 2026–06-01"
+          },
+          {
+            "source": "@paper",
+            "text": "the latter using an ANI-to-rank cap (98%-100%: subspecies, 90%-95% species, 80%-85% genus)"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Replication and formal tests, but not intervals on most headline numbers. Ten independent permutations per genome and depth in the positive controls, feeding a Firth-penalised logistic regression with Benjamini-Hochberg corrected tool contrasts and reported odds ratios with p values; Friedman tests with post-hoc Wilcoxon tests, Benjamini-Hochberg correction and Kendall's W for the negative controls; six independent communities for the mock analysis, with results reported under both ground-truth definitions as a robustness check. Divergence is treated descriptively because it is confounded with genome, one genome per identity level.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Positive controls, Negative controls, Mock communities; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "ten independent permutations per depth"
+          },
+          {
+            "source": "@paper",
+            "text": "because ANI is confounded with genome (one genome per ANI level), divergence is treated descriptively rather than as a fitted coefficient"
+          },
+          {
+            "source": "@paper",
+            "text": "Tool-versus-<italic toggle=\"yes\">EsViritu</italic> contrasts used Benjamini-Hochberg correction<sup><xref rid=\"R44\" ref-type=\"bibr\">44</xref></sup>."
+          },
+          {
+            "source": "@paper",
+            "text": "finding that <italic toggle=\"yes\">EsViritu</italic> is robust to these permutations"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "Depends on the experiment. Positive controls: one synthetic read set from one genome at one depth, scored as detected or not when the tool reports the corresponding family. Negative controls: one pathogen-free sequencing library, scored by the false-positive reads and false species in it. Mock communities: one community profile, compared with the known composition at each taxonomic rank.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Positive controls, Negative controls, Mock communities",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "A detection was scored when a tool reported the corresponding family."
+          },
+          {
+            "source": "@paper",
+            "text": "counted false-positive reads and false species"
+          },
+          {
+            "source": "@paper",
+            "text": "Profiles were scored against ground truth at every rank"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Viruses of humans, animals and plants as the targets, drawn from the 63 families in the Virus Pathogen Database. The backgrounds are host and environmental: human, mouse, 100 random bacterial genomes, and environmental metagenomes from an anaerobic digester, freshwater, marine water, hot springs and soil. The database itself was screened against human, dog, mouse, cow, macaque, chicken, cat and rat genomes to mask host-derived regions.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Virus Pathogen Database, Negative controls, Mock communities",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "for the 63 virus families in which there is plausible evidence of human, animal, or plant infection"
+          },
+          {
+            "source": "@paper",
+            "text": "Genomes were aligned with minimap2 to human (GCF_000001405.40), dog (GCF_011100685.1), mouse (GCF_000001635.27), cow (GCF_002263795.3), macaque (GCF_003339765.1), chicken (GCF_016699485.2), cat (GCF_018350175.1), and rat (GCF_036323735.1) genomes."
+          },
+          {
+            "source": "@paper",
+            "text": "a background of 100 random bacterial genomes plus the human genome"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "None in the wet-lab sense for the benchmark itself: the positive controls and mock communities are simulated reads, generated with bbtools randomreads.sh and with InSilicoSeq using log-normal abundance distributions and a NovaSeq error model. The negative controls are real sequencing libraries, but from pathogen-free host, synthetic and environmental material rather than from a clinical specimen with a reference test.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Positive controls, Negative controls, Mock communities",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For this experiment, reads were synthesized with bbtools randomreads.sh."
+          },
+          {
+            "source": "@paper",
+            "text": "Reads were synthesized with InSilicoSeq, using log-normal distributions and Novaseq error model."
+          },
+          {
+            "source": "@paper",
+            "text": "Pathogen-free samples were drawn from seven sources spanning host and synthetic backgrounds"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Sequencing reads and the shared reference database, nothing else. Each tool builds its index from the same FASTA and taxonomy dump and is given the read set; EsViritu takes a FASTQ (gzipped allowed), a sample name and an output directory, with paired, unpaired or interleaved input.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, Tools and parameters. Repository: README.md, Running the tool",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "All tools were able to use identical genome sequences from the Virus Pathogen Database and the same NCBI TaxDump file to create the tool specific database file."
+          },
+          {
+            "source": "@readme",
+            "text": "`-r`: reads file FASTQ format (can be gzipped .gz)"
+          },
+          {
+            "source": "@readme",
+            "text": "**Using paired end input .fastq files. Must be exactly 2 files.**"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "No training. Each tool is a reference-based classifier run at fixed parameter settings; the only tuning is the published parameter sweep, from which one headline setting per tool is chosen to maximise specificity while keeping as much sensitivity as possible. The sweep and the headline choice are made on the same benchmark data.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Tools and parameters; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Each tool was run across a grid of its sensitivity- and specificity-governing parameters."
+          },
+          {
+            "source": "@paper",
+            "text": "These benchmarks allowed us to generate “headline” parameters for each tool that maximized specificity but retained as much sensitivity as possible"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The reference set is held constant. All five tools build their index from the same genomes and the same taxonomy dump, and the subspecies labels unique to one database version were removed so no tool is scored on labels another cannot see.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Tools and parameters",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "All tools queried the same <italic toggle=\"yes\">EsViritu</italic> Virus Pathogen Database, so reference content was held constant across the comparison."
+          },
+          {
+            "source": "@paper",
+            "text": "erasing any custom subspecies labels (e.g. for norovirus) that the standard v3.2.4 uses"
+          }
+        ]
+      },
+      {
+        "text": "Each tool is swept across its own sensitivity and specificity parameters rather than run at one setting, which is what exposes that the settings making a tool competitive on detection are the ones that flood the negative controls.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Tools and parameters; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Each tool was run across a grid of its sensitivity- and specificity-governing parameters."
+          },
+          {
+            "source": "@paper",
+            "text": "the parameters that allowed them to perform well at the positive control benchmark also caused them to call a very high number of false positive reads and species"
+          }
+        ]
+      },
+      {
+        "text": "Sensitivity and specificity are tested on separate purpose-built sets, with replication and formal statistics: ten permutations per genome and depth with a regression that handles complete separation, and Friedman with post-hoc Wilcoxon tests on the negative controls.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Positive controls and Negative controls",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Detection was modeled with Firth-penalized logistic regression<sup><xref rid=\"R43\" ref-type=\"bibr\">43</xref></sup> (detected ~ tool × depth + genome, <italic toggle=\"yes\">EsViritu</italic> as reference, genome as a fixed block) to handle complete separation for the most and least sensitive tools."
+          },
+          {
+            "source": "@paper",
+            "text": "using Friedman tests<sup><xref rid=\"R45\" ref-type=\"bibr\">45</xref></sup> with post-hoc Wilcoxon tests (Benjamini-Hochberg corrected) and Kendall’s W effect sizes"
+          }
+        ]
+      },
+      {
+        "text": "Two ground-truth definitions are reported rather than one. The divergence-capped truth refuses credit for a species call on a genome too divergent to support it, and results under the strict definition are reported alongside as a robustness check.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Mock communities; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "both modes are reported"
+          },
+          {
+            "source": "@paper",
+            "text": "We report both <italic toggle=\"yes\">strict</italic> and <italic toggle=\"yes\">divergence-capped</italic> metrics for all six communities and all tool/parameter combinations in <xref rid=\"SD1\" ref-type=\"supplementary-material\">Fig. S2"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The benchmark was built and run by the developers of the tool it favours, and EsViritu's own database is the shared reference, so the comparison is on home ground even though the content is identical for all tools.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Methods, Tools and parameters; Code and data availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Here we present EsViritu, a taxonomic profiler that pairs an iterative greedy clustering algorithm and lowest-common-ancestor taxonomic refinement with a curated Virus Pathogen Database"
+          },
+          {
+            "source": "@paper",
+            "text": "EsViritu is available on <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://bioconda.github.io/recipes/esviritu/README.html\" ext-link-type=\"uri\">Bioconda</ext-link> and the source code is on GitHub at <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://github.com/cmmr/EsViritu\" ext-link-type=\"uri\">cmmr/EsViritu"
+          }
+        ]
+      },
+      {
+        "text": "No clinical specimen is involved. Every positive signal is simulated and every negative is a pathogen-free library, so the benchmark says nothing about agreement with a reference diagnostic test on real patient samples.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Positive controls, Negative controls, Mock communities",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Reads were synthesized with InSilicoSeq, using log-normal distributions and Novaseq error model."
+          },
+          {
+            "source": "@paper",
+            "text": "Pathogen-free samples were drawn from seven sources spanning host and synthetic backgrounds (human genome mock reads, mouse RNA) and environmental backgrounds"
+          }
+        ]
+      },
+      {
+        "text": "The positive control panel is seven genomes, one per identity level, and the paper says identity is therefore confounded with genome and treats divergence descriptively. The headline parameter settings are also chosen on the same data they are then reported on.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Positive controls; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "because ANI is confounded with genome (one genome per ANI level), divergence is treated descriptively rather than as a fitted coefficient"
+          },
+          {
+            "source": "@paper",
+            "text": "These benchmarks allowed us to generate “headline” parameters for each tool that maximized specificity but retained as much sensitivity as possible"
+          }
+        ]
+      },
+      {
+        "text": "One comparison is not like for like: Sylph reports a k-mer containment sequence abundance that the authors say was not readily comparable to the other abundance metrics, so its abundance results are not on the same footing.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Mock communities; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Sylph</italic> reports a k-mer-containment sequence-abundance value and was not readily comparable to other abundance metrics."
+          }
+        ]
+      },
+      {
+        "text": "The article is a preprint record under a non-commercial licence, and most per-tool numbers live in supplementary tables rather than the text, so the figures a reader can quote from the article itself are limited.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: permissions; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This work is licensed under a <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://creativecommons.org/licenses/by-nc/4.0/\">Creative Commons Attribution-NonCommercial 4.0 International License"
+          },
+          {
+            "source": "@paper",
+            "text": "Table S9-S12, S21-S24"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Tisza et al. virus profiler benchmark workflow",
+      "steps": [
+        "one shared reference: Virus Pathogen Database v3.2.4b with NCBI TaxDump labels",
+        "each of five tools builds its own index from those sequences",
+        "three input sets: synthetic reads from seven divergent genomes, seven pathogen-free libraries, six mutated mock communities",
+        "each tool run across its parameter grid, then one headline setting chosen",
+        "detection probability and LD50, false-positive reads and species, F1 and Bray-Curtis per rank",
+        "Firth regression, Friedman and Wilcoxon tests, under strict and divergence-capped ground truth"
+      ],
+      "caption": "How the five profilers are compared on the same database.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Methods, Tools and parameters, Positive controls, Negative controls, Mock communities",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "All tools were able to use identical genome sequences from the Virus Pathogen Database and the same NCBI TaxDump file to create the tool specific database file."
+        },
+        {
+          "source": "@paper",
+          "text": "Each tool was run across a grid of its sensitivity- and specificity-governing parameters."
+        },
+        {
+          "source": "@paper",
+          "text": "A detection was scored when a tool reported the corresponding family."
+        },
+        {
+          "source": "@paper",
+          "text": "Profiles were scored against ground truth at every rank for detection (F1) and abundance (Bray-Curtis dissimilarity<sup><xref rid=\"R46\" ref-type=\"bibr\">46</xref></sup>, Pearson correlation)"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The supplementary tables that hold the per-tool, per-parameter numbers (including Tables S2, S6 and S9, which the three stored protocols are drawn from) were not fetched, so only the figures printed in the article text are recorded.",
+      "No per-tool F1 or Bray-Curtis value is printed in the article text; those appear in Figure 3B and the supplementary tables.",
+      "The benchmark's own processing and analysis repository is https://github.com/tiszalab/esviritu_benchmarks, release 2026-09-29a; its code was not saved or reviewed here.",
+      "The paper gives counts of genomes in the database only loosely (63 families, nearly 20,000 genomes in the Discussion), so no exact database size is recorded."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the PMC full text XML of the EsViritu paper (PMC13648648), including the Results and the Methods sections on tools and parameters, positive controls, negative controls, mock communities, the Virus Pathogen Database and code and data availability; the Zenodo API record for deposit 23043160; and the cmmr/EsViritu README.md at commit 74a44dadc0ce9c5beb507c7032ef24d02c2e1c26. The bioRxiv copy at https://www.biorxiv.org/content/early/2026/09/30/2026.09.29.755457 was not requested. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Install the tool under test from Bioconda, download and verify its database, and profile a read set; the benchmark's own inputs and results are on Zenodo.",
+    "prerequisites": [
+      "conda, with mamba preferred for creating the environment.",
+      "About 400 MB of disk for the decompressed database, downloaded from Zenodo and checked against its published md5.",
+      "Reads in FASTQ format, gzipped allowed, as paired, unpaired or interleaved files.",
+      "The tool is MIT licensed and the benchmark data deposit is CC BY 4.0; the article itself is CC BY-NC 4.0.",
+      "Reproducing the full comparison also needs Kraken2 v2.17.1, Centrifuger v1.1.1-r309, Metabuli v1.2.0 and Sylph v0.9.0 built against the same database, which the sources read describe but do not give as commands."
+    ],
+    "steps": [
+      {
+        "title": "Install EsViritu",
+        "shell": "mamba create -n EsViritu bioconda::esviritu\nconda activate EsViritu\nEsViritu -h",
+        "explanation": "The three commands the README gives for the stable Bioconda release, including the help check it suggests.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md, Stable release via Bioconda",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "`mamba create -n EsViritu bioconda::esviritu`"
+          },
+          {
+            "source": "@readme",
+            "text": "`conda activate EsViritu`"
+          },
+          {
+            "source": "@readme",
+            "text": "`EsViritu -h`"
+          }
+        ]
+      },
+      {
+        "title": "Download and verify the database",
+        "shell": "mkdir esviritu_DB && cd esviritu_DB\nwget https://zenodo.org/records/17716199/files/esviritu_db_v3.2.4.tar.gz\nmd5sum esviritu_db_v3.2.4.tar.gz\ntar -xvf esviritu_db_v3.2.4.tar.gz\nrm esviritu_db_v3.2.4.tar.gz\nconda env config vars set ESVIRITU_DB=/path/to/esviritu_DB/v3.2.4",
+        "explanation": "The README's database steps in order, including the checksum it says should return 24d85c1ec3cbffff12e921d2f39c91b2 and the optional environment variable. Note that the benchmark used a modified build of this database, v3.2.4b, which is in the benchmark's own Zenodo deposit.",
+        "source_ids": [
+          "@readme",
+          "@paper",
+          "@zenodo"
+        ],
+        "source_locator": "Repository: README.md, Download the database. Paper: Methods, Tools and parameters. Zenodo record: files",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "`wget https://zenodo.org/records/17716199/files/esviritu_db_v3.2.4.tar.gz`"
+          },
+          {
+            "source": "@readme",
+            "text": "should return `24d85c1ec3cbffff12e921d2f39c91b2  esviritu_db_v3.2.4.tar.gz`"
+          },
+          {
+            "source": "@readme",
+            "text": "`conda env config vars set ESVIRITU_DB=/path/to/esviritu_DB/v3.2.4`"
+          },
+          {
+            "source": "@paper",
+            "text": "This modified version “v3.2.4b” is available on Zenodo (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://doi.org/10.5281/zenodo.23043160\" ext-link-type=\"uri\">10.5281/zenodo.23043160</ext-link>)."
+          },
+          {
+            "source": "@zenodo",
+            "text": "DB_v324b.tar.gz: Virus Pathogen Database with"
+          }
+        ]
+      },
+      {
+        "title": "Profile a read set",
+        "shell": "EsViritu -r /path/to/reads/myreads.R1.fastq /path/to/reads/myreads.R2.fastq -s sample_ABC -o myproject_EsViritu1 -p paired",
+        "explanation": "The README's paired-end example. The three required inputs are the reads file or files, a sample name without spaces and an output directory, which may be shared between samples; the -p flag selects paired, unpaired or interleaved input.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md, Running the tool",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "EsViritu -r /path/to/reads/myreads.R1.fastq /path/to/reads/myreads.R2.fastq -s sample_ABC -o myproject_EsViritu1 -p paired"
+          },
+          {
+            "source": "@readme",
+            "text": "`-s`: sample name (no spaces)"
+          },
+          {
+            "source": "@readme",
+            "text": "`-o`: output directory (may be shared with other samples)"
+          }
+        ]
+      },
+      {
+        "title": "Get the benchmark's own data and results",
+        "shell": "curl -o esviritu_benchmarks_data.tar.gz \"https://zenodo.org/api/records/23043160/files/esviritu_benchmarks_data.tar.gz/content\"\ncurl -o pos_results.tar.gz \"https://zenodo.org/api/records/23043160/files/pos_results.tar.gz/content\"\ncurl -o neg_results.tar.gz \"https://zenodo.org/api/records/23043160/files/neg_results.tar.gz/content\"\ncurl -o mock_results.tar.gz \"https://zenodo.org/api/records/23043160/files/mock_results.tar.gz/content\"",
+        "explanation": "The paper says all data to reproduce the analyses are in this Zenodo deposit. The four file names are keys from the deposit's own API record; the addresses are built from that record's id and keys, since the paper gives only the DOI.",
+        "source_ids": [
+          "@paper",
+          "@zenodo"
+        ],
+        "source_locator": "Paper: Code and data availability. Zenodo record: id and files",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "All data to reproduce the analyses have been uploaded to Zenodo (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://doi.org/10.5281/zenodo.23043160\" ext-link-type=\"uri\">10.5281/zenodo.23043160</ext-link>)."
+          },
+          {
+            "source": "@zenodo",
+            "text": "esviritu_benchmarks_data.tar.gz"
+          },
+          {
+            "source": "@zenodo",
+            "text": "pos_results.tar.gz: Output files for all tools for positive"
+          },
+          {
+            "source": "@zenodo",
+            "text": "neg_results.tar.gz: Output files for all tools for negative benchmarks"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "Per-sample EsViritu output in the chosen output directory: an abundance table and report, with reconstructed consensus sequences, as the paper describes the pipeline.",
+      "From the Zenodo deposit, the benchmark's input read tables, the modified database and the positive, negative and mock result archives."
+    ],
+    "limitations": [
+      "These commands were read from the repository, the paper and the Zenodo record and have not been executed by Rewire.",
+      "They install and run one of the five tools. No published command reproduces the comparison: the other four tools' index builds and parameter sweeps are described in the Methods, and the benchmark's processing and analysis repository, https://github.com/tiszalab/esviritu_benchmarks (release 2026-09-29a), was not saved or reviewed here.",
+      "The benchmark used EsViritu v1.3.1 and database v3.2.4b; Bioconda installs the current release (the README notes v1.3.5 on 26 October 2026) and the download above is the unmodified v3.2.4.",
+      "The database download address and md5 are the README's; the Zenodo file addresses were constructed from the deposit's API record."
+    ],
+    "source_ids": [
+      "@readme",
+      "@paper",
+      "@zenodo"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Positive-control virus detection by read depth",
+      "dataset": "synthetic read sets from seven real virus genomes at 75.9% to 95.6% ANI to their closest reference",
+      "size": 7,
+      "size_unit": "genomes, at four depths with ten permutations each",
+      "split": "read depth 1, 10, 100 and 1,000, one genome per ANI level",
+      "primary_metric": "detection probability",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.5281/zenodo.23043160",
+      "code_url": "https://github.com/tiszalab/esviritu_benchmarks",
+      "data_url": "https://doi.org/10.5281/zenodo.23043160",
+      "data_licence": "CC-BY-4.0",
+      "code_licence": null,
+      "released": "2026-09-29",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Synthetic read sets were generated from seven reference genomes spanning 75.9% to 95.6% ANI to their closest database reference (Table S25), at depths of 1, 10, 100, and 1,000 reads with ten independent permutations per depth."
+        },
+        {
+          "source": "@paper",
+          "text": "The model-estimated detection probability for <italic toggle=\"yes\">EsViritu</italic> was 0.995."
+        },
+        {
+          "source": "@zenodo",
+          "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+        },
+        {
+          "source": "@zenodo",
+          "text": "\"publication_date\": \"2026-09-29\""
+        },
+        {
+          "source": "@paper",
+          "text": "The processing and analysis repo for the benchmarks are maintained on <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://github.com/tiszalab/esviritu_benchmarks\" ext-link-type=\"uri\">GitHub</ext-link> with stable release"
+        }
+      ]
+    },
+    {
+      "task": "False positives in seven pathogen-free libraries",
+      "dataset": "seven pathogen-free read libraries from host, synthetic and environmental backgrounds",
+      "size": 7,
+      "size_unit": "pathogen-free sequencing libraries",
+      "split": "one library per background type, no partition",
+      "primary_metric": "false species count",
+      "metric_direction": "lower",
+      "results_url": "https://doi.org/10.5281/zenodo.23043160",
+      "code_url": "https://github.com/tiszalab/esviritu_benchmarks",
+      "data_url": "https://doi.org/10.5281/zenodo.23043160",
+      "data_licence": "CC-BY-4.0",
+      "code_licence": null,
+      "released": "2026-09-29",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we ran all five tools on seven pathogen-free samples spanning host, synthetic, and environmental backgrounds (human genome mock reads, lab mouse RNA, anaerobic digester, freshwater, marine water, hot springs, and soil) and counted false-positive reads and false species"
+        },
+        {
+          "source": "@paper",
+          "text": "EsViritu</italic> (<italic toggle=\"yes\">sr</italic> mode) and <italic toggle=\"yes\">Sylph</italic> (all parameters) were effectively clean, each with a median of zero false species and <italic toggle=\"yes\">EsViritu</italic> with one spurious call across all samples."
+        },
+        {
+          "source": "@zenodo",
+          "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+        },
+        {
+          "source": "@zenodo",
+          "text": "neg_results.tar.gz: Output files for all tools for negative benchmarks"
+        },
+        {
+          "source": "@paper",
+          "text": "The processing and analysis repo for the benchmarks are maintained on <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://github.com/tiszalab/esviritu_benchmarks\" ext-link-type=\"uri\">GitHub</ext-link> with stable release"
+        }
+      ]
+    },
+    {
+      "task": "Mutated virus mock-community profiling against ground truth",
+      "dataset": "six mock communities of mutated virus genomes in a bacterial and human background",
+      "size": 6,
+      "size_unit": "mock communities, each of 50,010,000 reads",
+      "split": "three communities of 90 random genomes and three of 60 one-per-family genomes, ANI ladder 80 to 100%",
+      "primary_metric": "F1",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.5281/zenodo.23043160",
+      "code_url": "https://github.com/tiszalab/esviritu_benchmarks",
+      "data_url": "https://doi.org/10.5281/zenodo.23043160",
+      "data_licence": "CC-BY-4.0",
+      "code_licence": null,
+      "released": "2026-09-29",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Six mock communities were built in two designs: three communities of 90 viral genomes drawn randomly from the Virus Pathogen Database, and three communities of 60 genomes drawn with no more than one assembly per family."
+        },
+        {
+          "source": "@paper",
+          "text": "10,000 read pairs were synthesized for viruses, then a background of 100 random bacterial genomes plus the human genome was added at 50,000,000 reads (50,010,000 total reads/mock community)."
+        },
+        {
+          "source": "@paper",
+          "text": "Profiles were scored against ground truth at every rank for detection (F1) and abundance (Bray-Curtis dissimilarity<sup><xref rid=\"R46\" ref-type=\"bibr\">46</xref></sup>, Pearson correlation)"
+        },
+        {
+          "source": "@zenodo",
+          "text": "\"license\": {\"id\": \"cc-by-4.0\"}"
+        },
+        {
+          "source": "@zenodo",
+          "text": "mock_results.tar.gz: Output files for all tools for mock ben"
+        },
+        {
+          "source": "@paper",
+          "text": "The processing and analysis repo for the benchmarks are maintained on <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://github.com/tiszalab/esviritu_benchmarks\" ext-link-type=\"uri\">GitHub</ext-link> with stable release"
+        }
+      ]
+    }
+  ],
+  "notes": "Written from the PMC record of the preprint (PMC13648648, CC BY-NC 4.0), the Zenodo API record for the benchmark's data deposit (10.5281/zenodo.23043160, CC BY 4.0) and the cmmr/EsViritu README at commit 74a44dadc0ce9c5beb507c7032ef24d02c2e1c26 (MIT). The bioRxiv PDF address, which this run was told not to request, is https://www.biorxiv.org/content/early/2026/09/30/2026.09.29.755457. Points for a human. First, the sizes here are the number of units in each experiment (7 genomes, 7 libraries, 6 communities), not read counts; the read counts are quoted separately and the per-tool numbers in Tables S2, S6 and S9, which the stored protocols come from, were not fetched. Second, the database used for the benchmark is a modified build, v3.2.4b, with the NCBI taxonomy labels substituted; results are therefore not directly comparable with runs on the standard v3.2.4. Third, the tool version benchmarked is EsViritu v1.3.1, while the README read here announces v1.3.5 on Bioconda, so a fresh install is not the benchmarked version. Fourth, the headline parameter settings for all five tools were chosen on these same benchmark data. Fifth, the results_url and data_url are both the Zenodo deposit because no leaderboard or results page exists; the paper gives the benchmark's analysis repository as https://github.com/tiszalab/esviritu_benchmarks, release 2026-09-29a, which was not saved or reviewed."
+}

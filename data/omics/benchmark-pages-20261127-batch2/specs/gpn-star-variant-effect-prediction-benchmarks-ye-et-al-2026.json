@@ -1,0 +1,1200 @@
+{
+  "record_id": "gpn-star-20261116-benchmark-gpn-star-vep",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "PMC full text XML of the GPN-Star paper (Nature, PMC13736532)",
+      "description": "The JATS full text from NCBI E-utilities, including the Results sections on each benchmark, the Fig. 2 and Fig. 4 captions and the data and code availability statements. The Methods are not in the article body; it points to the Supplementary Information.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13736532",
+      "url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "version": "PMC13736532, version of record 2026",
+      "media_type": "text/xml",
+      "licence": "CC BY 4.0",
+      "store_bytes": true,
+      "sha256": "42bdb401c3469d343a2528c3700c282e4df80dcbac5f7f3a1e58fb653861d7f4",
+      "retrieved_at": "2026-11-27T01:52:15Z"
+    },
+    {
+      "key": "si",
+      "name": "Text layer of the GPN-Star Supplementary Information PDF",
+      "description": "Text extracted with pdftotext -layout from the publisher's Supplementary Information PDF. The PDF is kept beside it as artifacts/si.pdf. It carries the methods, the evaluation benchmark definitions, the training and held-out chromosome split and the supplementary tables.",
+      "file": "artifacts/si.txt",
+      "artifact_url": "https://static-content.springer.com/esm/art%3A10.1038%2Fs41586-026-11005-5/MediaObjects/41586_2026_11005_MOESM1_ESM.pdf",
+      "url": "https://doi.org/10.1038/s41586-026-11005-5",
+      "version": "Supplementary Information to the 2026 version of record",
+      "media_type": "text/plain",
+      "store_bytes": false,
+      "sha256": "9af2ded49370c6129f4c1e138832aae86f08bc1ff10e7fb3e86def1c31ba0776",
+      "retrieved_at": "2026-11-27T01:53:10Z"
+    },
+    {
+      "key": "hf-collection",
+      "name": "Hugging Face API record for the songlab/GPN-Star collection",
+      "description": "The API response for the collection the paper's data availability statement names, listing the released models and the benchmark and alignment datasets.",
+      "file": "artifacts/hf-collection.json",
+      "artifact_url": "https://huggingface.co/api/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129",
+      "url": "https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129",
+      "version": "collection songlab/gpn-star-68c0c055acc2ee51d5c4f129",
+      "media_type": "application/json",
+      "store_bytes": true,
+      "sha256": "34296aacaa01a9e6d7c5f14710e773690405e3d5fb27fc91adbdd818e8048bef",
+      "retrieved_at": "2026-11-27T01:52:38Z"
+    }
+  ],
+  "profile": {
+    "summary": "These are the variant effect prediction benchmarks the GPN-Star authors assembled to evaluate their alignment- and phylogeny-aware genomic language model. Seven classification tasks pit curated pathogenic or causal variants against common or non-causal controls (ClinVar and COSMIC missense, OMIM and HGMD non-coding, UK Biobank fine-mapped coding and non-coding, and promoter variants), scored by area under the precision-recall curve; a deep mutational scanning task reports Spearman correlation on 31 human protein assays; and two further tasks measure gnomAD rare versus common enrichment and gene discovery in rare variant association testing. The benchmark datasets are published on Hugging Face, so the comparison is reusable even though the paper's own role was to show one model.",
+    "summary_source_ids": [
+      "@paper",
+      "@si"
+    ],
+    "summary_source_locator": "Paper: Fig. 2 caption; Results; Data availability. Supplementary Information: Evaluation Benchmarks",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "Classification performance measured by AUPRC is shown in <bold>a</bold>–<bold>c</bold> and <bold>e</bold>–<bold>h</bold>; bar heights and dot positions indicate the AUPRC computed on the complete benchmark set and the error bars are 95% confidence intervals from 1,000 class-stratified bootstrap resamples."
+      },
+      {
+        "source": "@paper",
+        "text": "Here we systematically evaluate the performance of GPN-Star across a comprehensive set of benchmarks."
+      },
+      {
+        "source": "@paper",
+        "text": "The pretrained models, training datasets and benchmark datasets are available on Hugging Face"
+      },
+      {
+        "source": "@si",
+        "text": "ProteinGym [31]: downloaded the 31 human protein data from ProteinGym v0.1 processed"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether a genome-wide score separates variants that matter from variants that do not, across the settings where that question is asked in practice. Coding: pathogenic against benign missense in ClinVar, cancer-frequent against population-common missense in COSMIC, and fitness measured by deep mutational scanning. Non-coding: curated pathogenic regulatory variants from OMIM and HGMD against common controls, and fine-mapped GWAS variants with high against low posterior inclusion probability. Then two uses rather than classifications: whether the score's deleterious tail is enriched for rare gnomAD variants, and whether adding the score as an annotation finds more genes in rare variant association testing.",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Results, Pathogenic coding variants, Pathogenic non-coding variants, Fine-mapped variants in GWAS, Rare variant association testing, Genome-wide evolutionary constraints. Supplementary Information: Evaluation Benchmarks",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Our evaluation of coding variants focused on missense variants, the most prevalent class."
+          },
+          {
+            "source": "@paper",
+            "text": "We evaluated the models on classifying non-coding pathogenic variants from the OMIM<sup><xref rid=\"CR38\" ref-type=\"bibr\">38</xref></sup> and HGMD<sup><xref rid=\"CR39\" ref-type=\"bibr\">39</xref></sup> databases, both of which contain expert-curated annotations of human disease-associated variants."
+          },
+          {
+            "source": "@paper",
+            "text": "we evaluated its performance in classifying putatively causal versus non-causal missense variants resulting from fine-mapping of GWAS variants across 65 traits from the UK Biobank<sup><xref rid=\"CR42\" ref-type=\"bibr\">42"
+          },
+          {
+            "source": "@si",
+            "text": "Enrichment of rare (singletons) vs. common (MAF > 5%) gnomAD"
+          },
+          {
+            "source": "@paper",
+            "text": "we explored its use in rare variant association testing (RVAT), an important but challenging task in statistical genetics"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Each task reuses a published resource at a stated version and, for the non-coding tasks, a matched control design taken from TraitGym. ClinVar is release 20220924, pathogenic against benign missense. COSMIC frequent mutations are those in more than 0.1% of whole-genome or whole-exome samples in MutantCensus v98, against gnomAD common missense. ProteinGym contributes 31 human protein assays from v0.1, restricted to amino acid substitutions reachable by a single nucleotide change, taking the most deleterious such change by CADD. For OMIM and HGMD, each pathogenic variant is matched with nine control variants on chromosome, molecular consequence and distance to the transcription start site; for fine-mapped non-coding variants the matching adds LD score and minor allele frequency, while for fine-mapped coding variants only allele frequency is matched. The gnomAD task uses v3.1.2 allele frequencies and follows the GPN-MSA protocol: the deleterious tail is cut at the threshold giving 30 false discoveries and rare variants are subsampled to the number of common variants in each consequence category.",
+        "source_ids": [
+          "@si"
+        ],
+        "source_locator": "Supplementary Information: Evaluation Benchmarks, Datasets",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "ClinVar [24]: downloaded release 20220924. The goal is to classify missense variants labeled as “Pathogenic” vs. “Benign” and the metric is the area under the receiving precision-recall curve (AUPRC)."
+          },
+          {
+            "source": "@si",
+            "text": "Frequent mutations in cancer are defined as more than 0.1% of samples containing the mutation from the COSMIC Mutant- Census v98 dataset, restricting to whole-genome or whole-exome samples."
+          },
+          {
+            "source": "@si",
+            "text": "retaining only amino acid substitutions achievable with a single nucleotide change, and selecting the most deleterious nucleotide change according to CADD among all those that lead to the same amino acid substitution"
+          },
+          {
+            "source": "@si",
+            "text": "Each pathogenic variant was matched with nine control variants—matched by chromosome, consequence and distance to transcription start site (TSS)."
+          },
+          {
+            "source": "@si",
+            "text": "Each positive variant was matched with nine control variants—matched by chromosome, consequence, distance to transcription start site (TSS), LD score and MAF. We processed coding variants from the same source"
+          },
+          {
+            "source": "@si",
+            "text": "the threshold defined by allowing a small number of false discoveries, here we use 30"
+          },
+          {
+            "source": "@si",
+            "text": "we subsampled the rare variants in each category to the same number of common variants"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "AUPRC on the complete benchmark set, with 95% confidence intervals from 1,000 class-stratified bootstrap resamples, for the seven classification tasks; Spearman correlation per assay for ProteinGym, shown as a distribution over the 31 assays. One rule keeps the comparison fair across many models: for each benchmark only variants for which every compared model has a prediction are used. The rare variant association testing experiment runs DeepRVAT on 34 UK Biobank quantitative traits using whole-exome data from 161,822 unrelated individuals of European ancestry, keeping variants below 0.1% minor allele frequency, with and without the three GPN-Star scores as added annotations, repeated three times with different random seeds; the outcome is the number of significant genes at family-wise error rate below 0.05 and how many of those replicate in larger published studies.",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Fig. 2 caption; Results, Rare variant association testing. Supplementary Information: Evaluation Benchmarks",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the error bars are 95% confidence intervals from 1,000 class-stratified bootstrap resamples"
+          },
+          {
+            "source": "@paper",
+            "text": "Spearman correlations with deep mutational scanning fitness scores for 31 human–protein assays in ProteinGym; each point is one assay."
+          },
+          {
+            "source": "@si",
+            "text": "For each benchmark presented in this paper, we only include variants where all the compared models have available predictions when computing the performance metrics."
+          },
+          {
+            "source": "@paper",
+            "text": "we performed RVAT experiments using DeepRVAT on 34 quantitative traits in UK Biobank with the WES data from 161,822 unrelated individuals of European ancestry, retaining variants with minor allele frequency (MAF) &lt;0.1% (<xref rid=\"Sec14\" ref-type=\"sec\">Methods</xref>). To account for differences in stochastic model initialization, this procedure was run three times with different random seeds."
+          },
+          {
+            "source": "@paper",
+            "text": "resulted in an increase in the number of discovered genes at a family-wise error rate &lt;0.05 (on average across runs, 402 genes compared with 383 from the original method)"
+          }
+        ]
+      },
+      {
+        "title": "The models compared",
+        "body": "The comparison set is unusually wide and is pinned in the supplementary methods: classical conservation scores PhyloP and PhastCons at three evolutionary timescales, the ensemble CADD v1.7 raw scores, single-sequence genomic language models Nucleotide Transformer 2.5B multispecies and Evo 2 at 7B and 40B with an 8,192 base pair context, the earlier alignment model GPN-MSA, protein language models ESM-1b, ESM-2 and ESM-3-open, the sequence-to-function models Enformer, Borzoi and AlphaGenome, the allele-frequency-informed AlphaMissense and PrimateAI-3D, the promoter-specific PromoterAI, SpeciesLM and GPN-Promoter, and Roulette mutation rate estimates. Most scores were taken precomputed from the original authors or from TraitGym rather than recomputed.",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Results; Extended Data Fig. 1 caption. Supplementary Information: Compared models",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We compared our models with major genome-wide variant effect predictors, including classical evolutionary methods (PhyloP and PhastCons) that also use WGA, the ensemble model CADD<sup><xref rid=\"CR25\" ref-type=\"bibr\">25</xref></sup>, recent single-sequence gLMs (Nucleotide Transformer 2.5B multispecies and Evo 2 40B) and GPN-MSA."
+          },
+          {
+            "source": "@paper",
+            "text": "we included three prominent sequence-to-function models—Enformer<sup><xref rid=\"CR35\" ref-type=\"bibr\">35</xref></sup>, Borzoi<sup><xref rid=\"CR36\" ref-type=\"bibr\">36</xref></sup> and AlphaGenome<sup><xref rid=\"CR37\" ref-type=\"bibr\">37</xref></sup>—which are trained on extensive functional genomics data"
+          },
+          {
+            "source": "@si",
+            "text": "CADD [85]: downloaded precomputed CADD v1.7 raw scores."
+          },
+          {
+            "source": "@si",
+            "text": "Evo 2 [4]: computed LLR using the 40B and 7B models with a context size of 8192-bp as in the paper."
+          },
+          {
+            "source": "@si",
+            "text": "AlphaGenome [37]: obtained scores through the official API, following the Enformer/Borzoi protocol in TraitGym [2] but replacing the L2 aggregation across tracks with a max operation, as recommended"
+          }
+        ]
+      },
+      {
+        "title": "Reported results",
+        "body": "The paper reports GPN-Star first on every benchmark. On ClinVar missense, GPN-Star (V) has the highest AUPRC, matching ESM-1b and beating ESM-2 and ESM-3-open. On OMIM and HGMD non-coding variants GPN-Star (M) is best, and the sequence-to-function models do substantially worse than alignment-based and phylogenetic models. On fine-mapped coding variants GPN-Star (M) leads, with AlphaMissense and PrimateAI-3D substantially outperformed despite their use of allele frequency; on fine-mapped non-coding variants it leads again, with Evo 2 of limited value. On promoter variants it beats the promoter-specific models by a wide margin. Adding all three GPN-Star scores to DeepRVAT raised the significant gene count from 383 to 402 on average and the replicating subset from 338 to 353. No cross-model score is printed in text form; the AUPRC values for competing models are only in Fig. 2 and Extended Data Fig. 1. For reference, the ablation table in the Supplementary Information (Supplementary Table 3), which compares GPN-Star architecture variants trained the same way rather than competing models, gives the default GPN-Star architecture (mean of three initialisations) 0.896 on ClinVar, 0.391 on COSMIC, 0.383 on ProteinGym, 0.239 on fine-mapped coding, 0.713 on OMIM, 0.222 on fine-mapped non-coding and 0.570 on HGMD.",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Results, Pathogenic coding variants, Pathogenic non-coding variants, Fine-mapped variants in GWAS, Rare variant association testing. Supplementary Information: Supplementary Table 3",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "GPN-Star (V) achieved the highest area under the precision-recall curve (AUPRC), matching the performance of the protein language model ESM-1b<sup><xref rid=\"CR26\" ref-type=\"bibr\">26</xref></sup> while outperforming ESM-2 (ref. <sup><xref rid=\"CR27\" ref-type=\"bibr\">27</xref></sup>) and ESM-3-open<sup><xref rid=\"CR28\" ref-type=\"bibr\">28</xref></sup> (Fig. <xref rid=\"Fig2\" ref-type=\"fig\">2a</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "GPN-Star (M) achieved the best performance on both benchmarks (Fig. <xref rid=\"Fig2\" ref-type=\"fig\">2e,f</xref>). Notably, the sequence-to-function models performed substantially worse than alignment-based gLMs and phylogenetic models on this task"
+          },
+          {
+            "source": "@paper",
+            "text": "despite leveraging population allele frequency information, both AlphaMissense and PrimateAI-3D were substantially outperformed by GPN-Star in this task (Fig. <xref rid=\"Fig2\" ref-type=\"fig\">2c</xref>)"
+          },
+          {
+            "source": "@paper",
+            "text": "on average 353 compared with 338"
+          },
+          {
+            "source": "@si",
+            "text": "GPN-Star default                                  0.896 (0.897)    0.391 (0.395)    0.383 (0.384)    0.239 (0.241)     0.713 (0.716)   0.222 (0.223)    0.570 (0.571)"
+          },
+          {
+            "source": "@si",
+            "text": "All compared models were trained with the same dataset"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The benchmark datasets, the pretrained models and the whole-genome alignments are published in one Hugging Face collection, and precomputed GPN-Star scores for every possible single nucleotide variant in the human genome and five model organisms are released separately. The code to train, run inference and reproduce the main analyses is on GitHub with a Zenodo archive. To score a new model on these benchmarks a user needs the dataset repositories from the collection, for example clinvar_vs_benign, cosmic, omim_traitgym, ukb_finemapped_coding, ukb_finemapped_nc_traitgym and gnomad_balanced, and should apply the paper's rule of keeping only variants that every compared model can score.",
+        "source_ids": [
+          "@paper",
+          "@hf-collection",
+          "@si"
+        ],
+        "source_locator": "Paper: Data availability and Code availability. Hugging Face collection record: items. Supplementary Information: Evaluation Benchmarks",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Precomputed GPN-Star predictions for all possible single nucleotide variants in the human genome and the five model organisms are available on Hugging Face"
+          },
+          {
+            "source": "@paper",
+            "text": "Code to train the model, run inference and reproduce the main analyses is available at GitHub (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://github.com/songlab-cal/gpn\" ext-link-type=\"uri\">https://github.com/songlab-cal/gpn</ext-link>) and Zenodo (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"10.5281/zenodo.21501177\" ext-link-type=\"doi\">https://doi.org/10.5281/zenodo.21501177</ext-link>)"
+          },
+          {
+            "source": "@hf-collection",
+            "text": "songlab/clinvar_vs_benign"
+          },
+          {
+            "source": "@hf-collection",
+            "text": "songlab/ukb_finemapped_nc_traitgym"
+          },
+          {
+            "source": "@si",
+            "text": "For each benchmark presented in this paper, we only include variants where all the compared models have available predictions"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Ten tasks over eight sources: ClinVar release 20220924 (pathogenic against benign missense), COSMIC MutantCensus v98 against gnomAD v3 common missense, ProteinGym v0.1 restricted to 31 human protein assays, OMIM and HGMD curated pathogenic regulatory variants against gnomAD common controls at nine controls per positive, UK Biobank fine-mapped variants across 65 traits (coding) and 83 traits (non-coding), promoter subsets of the OMIM and fine-mapped sets, gnomAD v3.1.2 allele frequencies, and UK Biobank whole-exome data for 34 quantitative traits. The variant counts per benchmark are printed only in the figure panel headings, which are images, so no count is recorded here.",
+        "status": "source_checked",
+        "source_ids": [
+          "@si",
+          "@paper"
+        ],
+        "source_locator": "Supplementary Information: Evaluation Benchmarks, Datasets. Paper: Fig. 2 caption; Results",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "ClinVar [24]: downloaded release 20220924."
+          },
+          {
+            "source": "@si",
+            "text": "COSMIC [29]: downloaded data processed by ref. [22]."
+          },
+          {
+            "source": "@si",
+            "text": "ProteinGym [31]: downloaded the 31 human protein data from ProteinGym v0.1 processed"
+          },
+          {
+            "source": "@si",
+            "text": "gnomAD [30]. The gnomAD v3.1.2 allele frequency data were downloaded from their official website"
+          },
+          {
+            "source": "@paper",
+            "text": "GWAS fine-mapped putatively causal versus non-causal non-coding variants across 83 UK Biobank traits."
+          },
+          {
+            "source": "@paper",
+            "text": "Sample sizes (positive versus negative class) are shown in each panel heading."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Two different things are split here. The benchmarks themselves are evaluated whole, with no train and test division, because the scores are zero-shot; the structure comes from the matched control design (nine controls per positive for OMIM, HGMD and fine-mapped non-coding, matched on chromosome, consequence and distance to the transcription start site, plus LD score and allele frequency for the latter, and allele frequency only for fine-mapped coding). The model's own training split keeps chromosomes 1 to 20, X and Y for training, chromosome 21 for validation and chromosome 22 as the held-out test chromosome, which is the chromosome used for the gnomAD allele frequency analyses.",
+        "status": "source_checked",
+        "source_ids": [
+          "@si",
+          "@paper"
+        ],
+        "source_locator": "Supplementary Information: Evaluation Benchmarks, Supplementary Table 1. Paper: Results, Genome-wide evolutionary constraints",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "Train. Val. Held-out"
+          },
+          {
+            "source": "@si",
+            "text": "hg38       1-20,"
+          },
+          {
+            "source": "@paper",
+            "text": "obtained predictions for all gnomAD v.3 variants on chromosome 22, the held-out chromosome not used in training GPN-Star"
+          },
+          {
+            "source": "@si",
+            "text": "Each pathogenic variant was matched with nine control variants—matched by chromosome, consequence and distance to transcription start site (TSS)."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "AUPRC for the seven classification benchmarks, higher better, computed on the complete benchmark set with 95% bootstrap intervals. Spearman correlation per assay for ProteinGym, higher better. For the gnomAD analysis, enrichment of rare over common variants in the deleterious tail at a threshold giving 30 false discoveries, higher better, plus mean minor allele frequency by quantile bin. For rare variant association testing, the number of significant genes at family-wise error rate below 0.05 and the number replicating larger studies, higher better.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Fig. 2 and Fig. 4 captions; Results. Supplementary Information: Evaluation Benchmarks and Supplementary Table 3",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Classification performance measured by AUPRC is shown in <bold>a</bold>–<bold>c</bold> and <bold>e</bold>–<bold>h"
+          },
+          {
+            "source": "@si",
+            "text": "The performance metric is Spearman’s ρ for ProteinGym and AUPRC for all the other benchmarks."
+          },
+          {
+            "source": "@paper",
+            "text": "Enrichment of rare (singletons) versus common (MAF &gt; 5%) gnomAD variants in the tail of deleterious scores (the threshold was chosen such that each score yielded 30 false discoveries)"
+          },
+          {
+            "source": "@paper",
+            "text": "number of significant genes (<italic toggle=\"yes\">x</italic> axis) versus the number replicating previous larger studies (<italic toggle=\"yes\">y</italic> axis)"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "PhyloP and PhastCons at vertebrate, mammal and primate timescales; CADD v1.7; GPN-MSA; Nucleotide Transformer 2.5B multispecies; Evo 2 at 7B and 40B; ESM-1b, ESM-2 and ESM-3-open; Enformer, Borzoi and AlphaGenome; AlphaMissense and PrimateAI-3D; PromoterAI, SpeciesLM and GPN-Promoter; and Roulette mutation rate estimates. Scores were largely taken precomputed from the original publications or from TraitGym.",
+        "status": "source_checked",
+        "source_ids": [
+          "@si",
+          "@paper"
+        ],
+        "source_locator": "Supplementary Information: Compared models. Paper: Results; Extended Data Fig. 1 caption",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "ESM-1b [26]: log-likelihood ratio (LLR) precomputed by ref. [95] was downloaded in pro- cessed form from ref. [22]."
+          },
+          {
+            "source": "@si",
+            "text": "Nucleotide Transformer [3]: computed LLR using the v1 2.5B multispecies model."
+          },
+          {
+            "source": "@paper",
+            "text": "including GPN-Star, PhyloP and PhastCons with all three evolutionary timescales, Evo 2 with two parameter sizes and Roulette mutation rate estimates in the comparison"
+          },
+          {
+            "source": "@paper",
+            "text": "including the promoter-specific models PromoterAI, SpeciesLM and GPN-Promoter"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Several, and one acknowledged conflict. Chromosome 22 is held out of the model's training and is the chromosome used for the gnomAD analyses. Controls are matched to positives on chromosome, consequence and distance to the transcription start site, and for fine-mapped variants also on LD score and allele frequency, so a score cannot win by exploiting location or frequency. Only variants scored by every compared model are included. The authors also note the opposite problem for two comparators: AlphaMissense and PrimateAI-3D use human population allele frequencies in training and so gain an advantage on ClinVar, where allele frequency defines the benign class, and they report a frequency-adjusted variant of their own model alongside. Nothing is said about whether the ClinVar or HGMD variants themselves influenced any model's training corpus beyond that.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Results, Genome-wide evolutionary constraints. Supplementary Information: Evaluation Benchmarks; Supplementary Figure 1 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "chromosome 22, the held-out chromosome not used in training GPN-Star"
+          },
+          {
+            "source": "@si",
+            "text": "For each benchmark presented in this paper, we only include variants where all the compared models have available predictions when computing the performance metrics."
+          },
+          {
+            "source": "@si",
+            "text": "These two models leverage human population allele frequencies during training and thus gain an advantage in predicting ClinVar variants, as allele frequencies are used to define benign variants."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "95% confidence intervals from 1,000 class-stratified bootstrap resamples on every AUPRC, and a boxplot over 31 assays for ProteinGym showing median, mean, quartiles and whiskers. The rare variant association testing experiment is repeated with three random seeds and reported as an average with each initialisation plotted. The ablation table reports the mean and the maximum over three random initialisations. No significance tests between models are reported.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Fig. 2 caption; Results, Rare variant association testing. Supplementary Information: Supplementary Table 3 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the error bars are 95% confidence intervals from 1,000 class-stratified bootstrap resamples"
+          },
+          {
+            "source": "@paper",
+            "text": "In each box, the centre line is the median, the diamond is the mean, the bounds are the 25th and 75th percentiles and the whiskers are the most extreme values within 1.5 times the interquartile range."
+          },
+          {
+            "source": "@paper",
+            "text": "Each set of three same-coloured points denotes three random initializations."
+          },
+          {
+            "source": "@si",
+            "text": "the numbers inside the parentheses are the max metrics"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "One single nucleotide variant in the human genome for the classification and enrichment tasks, with its molecular consequence from Ensembl VEP under the most severe consequence rule. For ProteinGym the unit scored is a variant but the reported value is one Spearman correlation per assay. For rare variant association testing the unit is a gene and trait pair.",
+        "status": "source_checked",
+        "source_ids": [
+          "@si",
+          "@paper"
+        ],
+        "source_locator": "Supplementary Information: Evaluation Benchmarks. Paper: Fig. 2 caption; Results, Rare variant association testing",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "Molecular consequences of variants were obtained with Ensembl VEP annotator [90] with the --most_severe flag."
+          },
+          {
+            "source": "@paper",
+            "text": "each point is one assay"
+          },
+          {
+            "source": "@paper",
+            "text": "RVAT is typically carried out at the gene level by aggregating variants in each gene"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human for all ten tasks on this record. The wider paper also evaluates models for mouse, chicken, fruit fly, nematode and Arabidopsis against pathogenic or lethal variant sets, but those are separate benchmarks.",
+        "status": "source_checked",
+        "source_ids": [
+          "@si",
+          "@paper"
+        ],
+        "source_locator": "Supplementary Information: Evaluation Benchmarks, Homo sapiens. Paper: Results, GPN-Star for model organisms",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "Evaluation Benchmarks Homo sapiens"
+          },
+          {
+            "source": "@paper",
+            "text": "For the <italic toggle=\"yes\">M. musculus</italic> model, we used pathogenic variants from the MMRdb database (<xref rid=\"Sec14\" ref-type=\"sec\">Methods</xref>)."
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Only one task rests on a measurement: ProteinGym's deep mutational scanning fitness scores for 31 human proteins. The other labels are database annotations or statistical inferences: expert curation in ClinVar, OMIM and HGMD, sample frequency in COSMIC, posterior inclusion probability from GWAS fine-mapping, and population allele frequency in gnomAD.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Fig. 2 caption; Results. Supplementary Information: Evaluation Benchmarks",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Spearman correlations with deep mutational scanning fitness scores for 31 human–protein assays in ProteinGym"
+          },
+          {
+            "source": "@paper",
+            "text": "both of which contain expert-curated annotations of human disease-associated variants"
+          },
+          {
+            "source": "@si",
+            "text": "The goal is to classify variants with high vs. low posterior inclusion probability (PIP) and the metric is the AUPRC."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Unrestricted in practice: the benchmarks compare whatever each model reads. The model under test uses whole-genome alignments and a species tree rather than a single sequence, the comparators range from single-sequence genomic language models to protein language models, sequence-to-function models trained on functional genomics data, and methods that use human population allele frequencies. The one constraint applied is that a model must produce a score for a variant for that variant to count.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Abstract; Results. Supplementary Information: Compared models and Evaluation Benchmarks",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "a phylogeny-aware architecture that leverages whole-genome alignments and species trees to model evolutionary relationships explicitly"
+          },
+          {
+            "source": "@paper",
+            "text": "which are trained on extensive functional genomics data and have been widely applied to non-coding variant interpretation"
+          },
+          {
+            "source": "@si",
+            "text": "we only include variants where all the compared models have available predictions"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Zero-shot for the classification and correlation benchmarks: scores are model likelihoods or published conservation and ensemble scores, with no fitting to the benchmark labels. Two exceptions sit on top of the scores: a logistic regression used for the embedding classification analyses under leave-one-chromosome-out cross-validation, and the rare variant association testing, where the GPN-Star scores are fed as annotations into DeepRVAT, which is itself trained.",
+        "status": "source_checked",
+        "source_ids": [
+          "@si",
+          "@paper"
+        ],
+        "source_locator": "Supplementary Information: embedding analysis. Paper: Results, Rare variant association testing",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "Models were trained on all chromosomes except the held-out chromosome used for prediction, following a leave-one-chromosome-out cross-validation scheme."
+          },
+          {
+            "source": "@paper",
+            "text": "enhancing the annotations used in the published version with all three GPN-Star predictions during both the training and association testing phases"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The control design is matched rather than random: nine controls per positive, matched on chromosome, consequence and distance to the transcription start site, with LD score and allele frequency added for fine-mapped non-coding variants, which removes the easiest shortcuts on non-coding tasks.",
+        "source_ids": [
+          "@si"
+        ],
+        "source_locator": "Supplementary Information: Evaluation Benchmarks, Datasets",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "Each pathogenic variant was matched with nine control variants—matched by chromosome, consequence and distance to transcription start site (TSS)."
+          },
+          {
+            "source": "@si",
+            "text": "matched by chromosome, consequence, distance to transcription start site (TSS), LD score and MAF"
+          }
+        ]
+      },
+      {
+        "text": "The comparison is run on the same variant sets for every model, with the explicit rule that a variant counts only if all compared models can score it, and the models are pinned with versions and score provenance in the supplementary methods.",
+        "source_ids": [
+          "@si"
+        ],
+        "source_locator": "Supplementary Information: Evaluation Benchmarks and Compared models",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "For each benchmark presented in this paper, we only include variants where all the compared models have available predictions when computing the performance metrics."
+          },
+          {
+            "source": "@si",
+            "text": "CADD [85]: downloaded precomputed CADD v1.7 raw scores."
+          }
+        ]
+      },
+      {
+        "text": "The benchmark datasets themselves are released, not just the results: the Hugging Face collection holds the per-task datasets alongside the models and alignments, and the analysis code is archived on Zenodo.",
+        "source_ids": [
+          "@paper",
+          "@hf-collection"
+        ],
+        "source_locator": "Paper: Data availability and Code availability. Hugging Face collection record: items",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The pretrained models, training datasets and benchmark datasets are available on Hugging Face"
+          },
+          {
+            "source": "@hf-collection",
+            "text": "songlab/omim_traitgym"
+          },
+          {
+            "source": "@hf-collection",
+            "text": "songlab/gnomad_balanced"
+          }
+        ]
+      },
+      {
+        "text": "An unfair advantage held by two comparators is stated rather than hidden: AlphaMissense and PrimateAI-3D use allele frequency in training while ClinVar's benign class is defined by allele frequency, and the authors add a frequency-adjusted version of their own model for that comparison.",
+        "source_ids": [
+          "@si"
+        ],
+        "source_locator": "Supplementary Information: Supplementary Figure 1 caption",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "These two models leverage human population allele frequencies during training and thus gain an advantage in predicting ClinVar variants"
+          },
+          {
+            "source": "@si",
+            "text": "The method GPN-Star (V) + gnomAD AF is adjusting GPN-Star (V) predictions by assigning the most benign score to those variants with allele frequency > 2 × 10−4 in gnomAD v3."
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The benchmarks were assembled by the authors of the model that wins them, and the paper reports GPN-Star as best or joint best on every task.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "GPN-Star achieves state-of-the-art performance across a wide range of variant effect prediction tasks in both coding and non-coding regions of t"
+          },
+          {
+            "source": "@paper",
+            "text": "GPN-Star (M) continued to outperform all other models on this benchmark (Fig. <xref rid=\"Fig2\" ref-type=\"fig\">2g</xref>)."
+          }
+        ]
+      },
+      {
+        "text": "The numbers are in pictures. The AUPRC values and the per-benchmark sample sizes appear only in the Fig. 2 and Extended Data Fig. 1 panels and their headings, so a reader cannot take a model's score, or a benchmark's size, from the text. The only per-benchmark figures in text form are in the ablation table, which compares architecture variants rather than competing models.",
+        "source_ids": [
+          "@paper",
+          "@si"
+        ],
+        "source_locator": "Paper: Fig. 2 caption; Extended Data Fig. 1 caption. Supplementary Information: Supplementary Table 3 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Sample sizes (positive vs. negative class) are shown in the heading of each panel."
+          },
+          {
+            "source": "@si",
+            "text": "Supplementary Table 3: Ablation studies."
+          },
+          {
+            "source": "@si",
+            "text": "All compared models were trained with the same dataset (multiz100way with training interval curation) and hyperparameters"
+          }
+        ]
+      },
+      {
+        "text": "Two of the label sources are not released with the benchmark or are frozen in time: HGMD data were obtained already curated from another study (ref. 91) rather than released with this benchmark, and ClinVar is release 20220924, so the ClinVar task reflects curation as of September 2022.",
+        "source_ids": [
+          "@si"
+        ],
+        "source_locator": "Supplementary Information: Evaluation Benchmarks, Datasets",
+        "quotes": [
+          {
+            "source": "@si",
+            "text": "ClinVar [24]: downloaded release 20220924."
+          },
+          {
+            "source": "@si",
+            "text": "HGMD [39]: downloaded curated data from ref. [91] and processed it similarly to the Mendelian traits dataset in TraitGym [2]."
+          }
+        ]
+      },
+      {
+        "text": "The rare variant association testing result is a small average difference under a design that cannot be rerun by most readers: 402 against 383 significant genes and 353 against 338 replicating, averaged over three seeds, on UK Biobank exome data for 161,822 individuals of European ancestry, which is controlled-access and one ancestry group only.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Rare variant association testing",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "(on average across runs, 402 genes compared with 383 from the original method)"
+          },
+          {
+            "source": "@paper",
+            "text": "with the WES data from 161,822 unrelated individuals of European ancestry"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "GPN-Star variant effect prediction benchmarks",
+      "steps": [
+        "published label sources: ClinVar, COSMIC, ProteinGym, OMIM, HGMD, UK Biobank fine-mapping, gnomAD",
+        "positives matched to nine controls on chromosome, consequence and distance to the transcription start site",
+        "every compared model scores every variant; variants missing a score from any model are dropped",
+        "AUPRC per benchmark with 1,000 class-stratified bootstrap intervals, Spearman per ProteinGym assay",
+        "gnomAD rare versus common enrichment in the deleterious tail at 30 false discoveries",
+        "scores added to DeepRVAT as annotations, three seeds, significant and replicating gene counts"
+      ],
+      "caption": "How each reported benchmark figure is produced.",
+      "source_ids": [
+        "@paper",
+        "@si"
+      ],
+      "source_locator": "Paper: Fig. 2 and Fig. 4 captions; Results. Supplementary Information: Evaluation Benchmarks",
+      "quotes": [
+        {
+          "source": "@si",
+          "text": "Each pathogenic variant was matched with nine control variants"
+        },
+        {
+          "source": "@si",
+          "text": "we only include variants where all the compared models have available predictions"
+        },
+        {
+          "source": "@paper",
+          "text": "the error bars are 95% confidence intervals from 1,000 class-stratified bootstrap resamples"
+        },
+        {
+          "source": "@paper",
+          "text": "Enrichment of rare (singletons) versus common (MAF &gt; 5%) gnomAD variants in the tail of deleterious scores"
+        },
+        {
+          "source": "@paper",
+          "text": "comparing DeepRVAT with and without the three GPN-Star predictions (V, M and P)"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "No benchmark size could be recorded: the positive and negative class counts are printed in figure panel headings, which are images, and the text does not repeat them.",
+      "The AUPRC of each competing model is likewise only in Fig. 2 and Extended Data Fig. 1; the figures recorded here are the ablation table's architecture variants, not the cross-model comparison.",
+      "The Supplementary Information PDF's text layer was read, but its figures and some rotated tables do not extract reliably, so parts of Supplementary Tables 3 to 11 were not read in full.",
+      "The licence of the Supplementary Information file is not stated in the file itself, so its bytes are not stored even though the article is CC BY 4.0.",
+      "The individual benchmark dataset repositories on Hugging Face were listed through the collection record but not fetched, so their licences and row counts are unknown."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the PMC full text XML of the GPN-Star paper (PMC13736532, Nature 2026), including the Results, the Fig. 2 and Fig. 4 captions, the Extended Data captions and the data and code availability statements; the text layer of the publisher's Supplementary Information PDF, in particular the Evaluation Benchmarks and Compared models sections, Supplementary Table 1 and Supplementary Table 3; and the Hugging Face API record for the songlab/GPN-Star collection. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Get the published benchmark datasets and the precomputed scores from Hugging Face, and the analysis code from GitHub, then score a model on the same variants under the paper's inclusion rule.",
+    "prerequisites": [
+      "A Hugging Face client or the datasets library to pull the collection's dataset repositories.",
+      "The gpn code from GitHub, or its Zenodo archive, for training, inference and the analysis scripts.",
+      "For the HGMD benchmark, access to the curated HGMD data, which the supplementary methods obtain from a third party rather than release.",
+      "For the rare variant association testing experiment, controlled access to UK Biobank whole-exome data.",
+      "The article is CC BY 4.0; no licence for the benchmark dataset repositories was read."
+    ],
+    "steps": [
+      {
+        "title": "Get the analysis code",
+        "shell": "git clone https://github.com/songlab-cal/gpn.git\ncd gpn",
+        "explanation": "The repository named in the paper's code availability statement, which says it holds the code to train, run inference and reproduce the main analyses. No commit is pinned here because the sources read name only the repository and its Zenodo archive.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Code availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Code to train the model, run inference and reproduce the main analyses is available at GitHub (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://github.com/songlab-cal/gpn\" ext-link-type=\"uri\">https://github.com/songlab-cal/gpn</ext-link>) and Zenodo (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"10.5281/zenodo.21501177\" ext-link-type=\"doi\">https://doi.org/10.5281/zenodo.21501177</ext-link>)"
+          }
+        ]
+      },
+      {
+        "title": "Download the benchmark datasets",
+        "shell": "python - <<'PY'\nfrom datasets import load_dataset\n\nfor name in [\n    \"songlab/clinvar_vs_benign\",\n    \"songlab/cosmic\",\n    \"songlab/omim_traitgym\",\n    \"songlab/ukb_finemapped_coding\",\n    \"songlab/ukb_finemapped_nc_traitgym\",\n    \"songlab/gnomad_balanced\",\n]:\n    ds = load_dataset(name)\n    print(name, ds)\nPY",
+        "explanation": "The dataset repository names are the items of the Hugging Face collection that the paper's data availability statement points to as holding the benchmark datasets. The loading loop is written here; the sources read give no loading example of their own.",
+        "source_ids": [
+          "@paper",
+          "@hf-collection"
+        ],
+        "source_locator": "Paper: Data availability. Hugging Face collection record: items",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The pretrained models, training datasets and benchmark datasets are available on Hugging Face (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129\" ext-link-type=\"uri\">https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129</ext-link>)"
+          },
+          {
+            "source": "@hf-collection",
+            "text": "songlab/clinvar_vs_benign"
+          },
+          {
+            "source": "@hf-collection",
+            "text": "songlab/cosmic"
+          },
+          {
+            "source": "@hf-collection",
+            "text": "songlab/ukb_finemapped_coding"
+          },
+          {
+            "source": "@hf-collection",
+            "text": "songlab/gnomad_balanced"
+          }
+        ]
+      },
+      {
+        "title": "Get the precomputed GPN-Star scores to compare against",
+        "shell": "python - <<'PY'\nfrom datasets import load_dataset\n\nds = load_dataset(\"songlab/gpn-star-scores\")\nprint(ds)\nPY",
+        "explanation": "The paper releases precomputed predictions for every possible single nucleotide variant in the human genome and the five model organisms; the collection lists that dataset repository as gpn-star-scores. Scoring a new model means producing its own score for the same variants and then, following the paper, keeping only variants that every compared model can score.",
+        "source_ids": [
+          "@paper",
+          "@hf-collection",
+          "@si"
+        ],
+        "source_locator": "Paper: Data availability. Hugging Face collection record: items. Supplementary Information: Evaluation Benchmarks",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Precomputed GPN-Star predictions for all possible single nucleotide variants in the human genome and the five model organisms are available on Hugging Face"
+          },
+          {
+            "source": "@hf-collection",
+            "text": "songlab/gpn-star-scores"
+          },
+          {
+            "source": "@si",
+            "text": "we only include variants where all the compared models have available predictions when computing the performance metrics"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "The benchmark datasets as Hugging Face datasets, one per task, and the precomputed per-variant GPN-Star scores.",
+      "With the repository's analysis code, the paper's main tables and figures; the sources read do not name the individual scripts."
+    ],
+    "limitations": [
+      "These steps were assembled from the paper's availability statements and the collection listing and have not been executed by Rewire.",
+      "No command in the sources read computes an AUPRC or a bootstrap interval; the metric definitions are in the supplementary methods and the scripts were not identified.",
+      "Two benchmarks cannot be fully reproduced from the released data: the HGMD data were obtained already curated from another study rather than released, and the rare variant association testing needs UK Biobank access.",
+      "No commit or revision is pinned for the code repository or the dataset repositories, so a later download may differ."
+    ],
+    "source_ids": [
+      "@paper",
+      "@hf-collection",
+      "@si"
+    ]
+  },
+  "structured": [
+    {
+      "task": "ClinVar pathogenic vs benign missense, AUPRC",
+      "dataset": "ClinVar release 20220924 missense variants (Hugging Face collection item songlab/clinvar_vs_benign)",
+      "size": null,
+      "size_unit": null,
+      "split": "no split, zero-shot scoring of the whole set",
+      "primary_metric": "AUPRC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": "https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@si",
+          "text": "ClinVar [24]: downloaded release 20220924. The goal is to classify missense variants labeled as “Pathogenic” vs. “Benign” and the metric is the area under the receiving precision-recall curve (AUPRC)."
+        },
+        {
+          "source": "@hf-collection",
+          "text": "songlab/clinvar_vs_benign"
+        },
+        {
+          "source": "@paper",
+          "text": "Code to train the model, run inference and reproduce the main analyses is available at GitHub (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://github.com/songlab-cal/gpn\" ext-link-type=\"uri\">https://github.com/songlab-cal/gpn</ext-link>)"
+        },
+        {
+          "source": "@paper",
+          "text": "The pretrained models, training datasets and benchmark datasets are available on Hugging Face (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129\""
+        }
+      ]
+    },
+    {
+      "task": "COSMIC frequent vs gnomAD common missense, AUPRC",
+      "dataset": "COSMIC MutantCensus v98 frequent missense variants against gnomAD v3 common missense (Hugging Face collection item songlab/cosmic)",
+      "size": null,
+      "size_unit": null,
+      "split": "no split, zero-shot scoring of the whole set",
+      "primary_metric": "AUPRC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": "https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@si",
+          "text": "The task is to classify COSMIC frequent vs. gnomAD [30] common missense variants, and the metric is the AUPRC."
+        },
+        {
+          "source": "@si",
+          "text": "more than 0.1% of samples containing the mutation from the COSMIC Mutant- Census v98 dataset"
+        },
+        {
+          "source": "@hf-collection",
+          "text": "songlab/cosmic"
+        },
+        {
+          "source": "@paper",
+          "text": "The pretrained models, training datasets and benchmark datasets are available on Hugging Face (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129\""
+        }
+      ]
+    },
+    {
+      "task": "ProteinGym human deep mutational scanning, mean Spearman",
+      "dataset": "31 human protein assays from ProteinGym v0.1",
+      "size": 31,
+      "size_unit": "human protein deep mutational scanning assays",
+      "split": "no split; only substitutions reachable by a single nucleotide change are kept",
+      "primary_metric": "Spearman correlation",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Spearman correlations with deep mutational scanning fitness scores for 31 human–protein assays in ProteinGym; each point is one assay."
+        },
+        {
+          "source": "@si",
+          "text": "ProteinGym [31]: downloaded the 31 human protein data from ProteinGym v0.1 processed"
+        },
+        {
+          "source": "@si",
+          "text": "retaining only amino acid substitutions achievable with a single nucleotide change"
+        }
+      ]
+    },
+    {
+      "task": "OMIM pathogenic vs gnomAD common regulatory variants, AUPRC",
+      "dataset": "OMIM Mendelian trait regulatory variants from TraitGym against gnomAD common controls (Hugging Face collection item songlab/omim_traitgym)",
+      "size": null,
+      "size_unit": null,
+      "split": "nine controls per positive, matched on chromosome, consequence and distance to the transcription start site",
+      "primary_metric": "AUPRC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": "https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@si",
+          "text": "OMIM [38]: downloaded processed Mendelian traits dataset from TraitGym [2]."
+        },
+        {
+          "source": "@si",
+          "text": "Each pathogenic variant was matched with nine control variants—matched by chromosome, consequence and distance to transcription start site (TSS). The task is to classify pathogenic vs. common regulatory variants and the metric is the AUPRC."
+        },
+        {
+          "source": "@hf-collection",
+          "text": "songlab/omim_traitgym"
+        },
+        {
+          "source": "@paper",
+          "text": "The pretrained models, training datasets and benchmark datasets are available on Hugging Face (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129\""
+        }
+      ]
+    },
+    {
+      "task": "HGMD pathogenic vs gnomAD common regulatory variants, AUPRC",
+      "dataset": "HGMD curated pathogenic regulatory variants against gnomAD common controls",
+      "size": null,
+      "size_unit": null,
+      "split": "nine controls per positive, matched on chromosome, consequence and distance to the transcription start site",
+      "primary_metric": "AUPRC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@si",
+          "text": "HGMD [39]: downloaded curated data from ref. [91] and processed it similarly to the Mendelian traits dataset in TraitGym [2]."
+        },
+        {
+          "source": "@si",
+          "text": "The goal is to classify pathogenic vs. common regulatory variants and the metric is the AUPRC."
+        },
+        {
+          "source": "@paper",
+          "text": "GPN-Star (M) achieved the best performance on both benchmarks (Fig. <xref rid=\"Fig2\" ref-type=\"fig\">2e,f</xref>)."
+        }
+      ]
+    },
+    {
+      "task": "UK Biobank fine-mapped coding variants, AUPRC",
+      "dataset": "GWAS fine-mapped missense variants across 65 UK Biobank traits (Hugging Face collection item songlab/ukb_finemapped_coding)",
+      "size": null,
+      "size_unit": null,
+      "split": "causal (PIP above 0.9) against non-causal (PIP below 0.01), controls matched on allele frequency only",
+      "primary_metric": "AUPRC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": "https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "GWAS fine-mapped putatively causal (PIP &gt; 0.9) versus non-causal (PIP &lt; 0.01) missense variants across 65 UK Biobank traits."
+        },
+        {
+          "source": "@si",
+          "text": "but only matched MAF, similar to GeneticsGym [93]. The goal is to classify variants with high vs. low posterior inclusion probability (PIP) and the metric is the AUPRC."
+        },
+        {
+          "source": "@hf-collection",
+          "text": "songlab/ukb_finemapped_coding"
+        },
+        {
+          "source": "@paper",
+          "text": "The pretrained models, training datasets and benchmark datasets are available on Hugging Face (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129\""
+        }
+      ]
+    },
+    {
+      "task": "UK Biobank fine-mapped non-coding variants, AUPRC",
+      "dataset": "GWAS fine-mapped non-coding variants across 83 UK Biobank traits, from TraitGym (Hugging Face collection item songlab/ukb_finemapped_nc_traitgym)",
+      "size": null,
+      "size_unit": null,
+      "split": "nine controls per positive, matched on chromosome, consequence, distance to the transcription start site, LD score and allele frequency",
+      "primary_metric": "AUPRC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": "https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "GWAS fine-mapped putatively causal versus non-causal non-coding variants across 83 UK Biobank traits."
+        },
+        {
+          "source": "@si",
+          "text": "Each positive variant was matched with nine control variants—matched by chromosome, consequence, distance to transcription start site (TSS), LD score and MAF."
+        },
+        {
+          "source": "@hf-collection",
+          "text": "songlab/ukb_finemapped_nc_traitgym"
+        },
+        {
+          "source": "@paper",
+          "text": "The pretrained models, training datasets and benchmark datasets are available on Hugging Face (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"https://huggingface.co/collections/songlab/gpn-star-68c0c055acc2ee51d5c4f129\""
+        }
+      ]
+    },
+    {
+      "task": "Promoter variants (OMIM and fine-mapped), AUPRC",
+      "dataset": "OMIM pathogenic and GWAS fine-mapped variants located in promoter regions",
+      "size": null,
+      "size_unit": null,
+      "split": null,
+      "primary_metric": "AUPRC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We therefore evaluated GPN-Star on promoter variants in OMIM and compared its performance with other methods, including three promoter-specific models: PromoterAI"
+        },
+        {
+          "source": "@paper",
+          "text": "For fine-mapped variants located in promoter regions, GPN-Star (M) again outperformed all models, including the promoter-specific models PromoterAI, SpeciesLM and GPN-Promoter"
+        },
+        {
+          "source": "@paper",
+          "text": "Classification performance measured by AUPRC is shown in <bold>a</bold>"
+        },
+        {
+          "source": "@paper",
+          "text": "GWAS fine-mapped causal versus non-causal (<italic toggle=\"yes\">x</italic> axis) promoter variants."
+        }
+      ]
+    },
+    {
+      "task": "gnomAD rare versus common enrichment in the deleterious tail, odds ratio",
+      "dataset": "gnomAD v3.1.2 variants on chromosome 22, singletons against variants above 5% minor allele frequency",
+      "size": null,
+      "size_unit": null,
+      "split": "chromosome 22, the model's held-out chromosome; rare variants subsampled to the number of common variants per consequence category",
+      "primary_metric": "enrichment of rare over common variants in the deleterious tail at 30 false discoveries",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": "https://gnomad.broadinstitute.org/data",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Enrichment of rare (singletons) versus common (MAF &gt; 5%) gnomAD variants in the tail of deleterious scores (the threshold was chosen such that each score yielded 30 false discoveries)"
+        },
+        {
+          "source": "@paper",
+          "text": "obtained predictions for all gnomAD v.3 variants on chromosome 22, the held-out chromosome not used in training GPN-Star"
+        },
+        {
+          "source": "@si",
+          "text": "The gnomAD v3.1.2 allele frequency data were downloaded from their official website https://gnomad.broadinstitute.org/data."
+        },
+        {
+          "source": "@si",
+          "text": "we subsampled the rare variants in each category to the same number of common variants"
+        }
+      ]
+    },
+    {
+      "task": "DeepRVAT rare variant association testing, significant genes",
+      "dataset": "UK Biobank whole-exome data, 34 quantitative traits",
+      "size": 34,
+      "size_unit": "quantitative traits, 161,822 unrelated individuals of European ancestry",
+      "split": "variants below 0.1% minor allele frequency, three random seeds",
+      "primary_metric": "number of significant genes at family-wise error rate below 0.05",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we performed RVAT experiments using DeepRVAT on 34 quantitative traits in UK Biobank with the WES data from 161,822 unrelated individuals of European ancestry, retaining variants with minor allele frequency (MAF) &lt;0.1% (<xref rid=\"Sec14\" ref-type=\"sec\">Methods</xref>)."
+        },
+        {
+          "source": "@paper",
+          "text": "(on average across runs, 402 genes compared with 383 from the original method)"
+        }
+      ]
+    },
+    {
+      "task": "DeepRVAT rare variant association testing, replicated genes",
+      "dataset": "UK Biobank whole-exome data, 34 quantitative traits, replication in larger published studies",
+      "size": 34,
+      "size_unit": "quantitative traits, 161,822 unrelated individuals of European ancestry",
+      "split": "variants below 0.1% minor allele frequency, three random seeds",
+      "primary_metric": "number of significant gene and phenotype associations replicating larger studies",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41586-026-11005-5",
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "there were also more gene–phenotype associations that replicated in conventional RVAT studies on UK Biobank with larger sample sizes<sup><xref rid=\"CR45\" ref-type=\"bibr\">45</xref>,<xref rid=\"CR46\" ref-type=\"bibr\">46</xref></sup> (<xref rid=\"Sec14\" ref-type=\"sec\">Methods</xref>) (on average 353 compared with 338)"
+        },
+        {
+          "source": "@paper",
+          "text": "number of significant genes (<italic toggle=\"yes\">x</italic> axis) versus the number replicating previous larger studies (<italic toggle=\"yes\">y</italic> axis)"
+        }
+      ]
+    }
+  ],
+  "notes": "Written from the PMC full text (PMC13736532, CC BY 4.0), the text layer of the publisher's Supplementary Information PDF and the Hugging Face collection record. Points for a human. First, no size could be recorded for any of the seven classification benchmarks: the positive and negative class counts appear only in the Fig. 2 and Extended Data Fig. 1 panel headings, which are images. The two sizes that are recorded are 31 ProteinGym human protein assays and 34 UK Biobank traits, and the trait counts for the fine-mapped sets (65 coding, 83 non-coding) are quoted in the split text rather than used as sizes. Second, the figures quoted from Supplementary Table 3 are an ablation over GPN-Star's own architecture variants, not a comparison with other models, so they must not be read as this benchmark's leaderboard. Third, the article's Methods section contains only a pointer to the Supplementary Information, so every methodological statement here comes from that file. Fourth, the SI PDF's extraction is imperfect (rotated tables and figures), so parts of the supplementary tables were not read. Fifth, data_licence and code_licence are null throughout because no licence is stated for the benchmark dataset repositories or the gpn repository in the sources read, and the HGMD benchmark rests on a licensed database that is not released. Sixth, chromosome 22 is the model's held-out chromosome and is the one used for the gnomAD analyses, which is a control for that task but does not apply to the other benchmarks. The structured list has eleven entries for the ten tasks the summary and fact Datasets describe: the DeepRVAT experiment is one task with two outcome counts (significant genes and replicated genes), so it has two entries. The promoter-variant entry has no data_url because no saved file names a separate dataset for the promoter subsets. The data_url for the five Hugging Face datasets is the collection address the paper's data availability statement prints; each entry's dataset field names the collection item id."
+}

@@ -1,0 +1,1113 @@
+{
+  "record_id": "agront-2024-plant-genomic-benchmark",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "PMC full text XML of the AgroNT paper (Communications Biology 2024, PMC11233511)",
+      "description": "The JATS full text from NCBI E-utilities, including Table 1, the Results sections on each task and the Methods sections that describe how each dataset and split was built.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=11233511",
+      "url": "https://www.nature.com/articles/s42003-024-06465-2",
+      "version": "PMC11233511, version of record 2024",
+      "media_type": "text/xml",
+      "licence": "CC BY 4.0",
+      "store_bytes": true,
+      "sha256": "65b573374560e5f01cb4d932c4a1d357570d7a2fb027566926bb40aab280026d",
+      "retrieved_at": "2026-11-27T01:10:44Z"
+    },
+    {
+      "key": "hf-dataset",
+      "name": "Hugging Face dataset API record for InstaDeepAI/plant-genomic-benchmark",
+      "description": "The API response for the benchmark's data repository, which carries its licence, its DOI and the revision read here.",
+      "file": "artifacts/hf-dataset.json",
+      "artifact_url": "https://huggingface.co/api/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "version": "revision 78ec8156c2ffb3e5475277fdb7eb603294224e53",
+      "media_type": "application/json",
+      "store_bytes": true,
+      "sha256": "cfce282a3f45adfdcaa73e5a97317d317bb81b097d35ba1c4ef504e4b34bcac4",
+      "retrieved_at": "2026-11-27T01:10:44Z"
+    },
+    {
+      "key": "hf-card",
+      "name": "InstaDeepAI/plant-genomic-benchmark dataset card at revision 78ec8156c2ffb3e5475277fdb7eb603294224e53",
+      "description": "The dataset card from the benchmark's Hugging Face repository, pinned to a revision. It lists the eight tasks, the task types, the sequence lengths, the train, validation and test counts per dataset, and a loading example.",
+      "file": "artifacts/hf-readme.md",
+      "artifact_url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark/raw/78ec8156c2ffb3e5475277fdb7eb603294224e53/README.md",
+      "url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "version": "revision 78ec8156c2ffb3e5475277fdb7eb603294224e53",
+      "media_type": "text/markdown",
+      "store_bytes": false,
+      "sha256": "a746bdd68b6dd5ff46569c856af8ae4d9ebba8984ea1285b5cd713d461ed622e",
+      "retrieved_at": "2026-11-27T01:10:58Z"
+    }
+  ],
+  "profile": {
+    "summary": "The Plant Genomic Benchmark (PGB) is the set of eight supervised plant genomics tasks released with AgroNT, a DNA language model trained on 48 plant genomes. The tasks cover polyadenylation sites, splice sites, long non-coding RNA, promoter strength, terminator strength, chromatin accessibility, tissue-specific gene expression and an intergenic enhancer set, over 32 datasets in the paper's Table 1 (31 in the released dataset card's size table) with sequences from 101 to 6000 base pairs. It is for comparing deep learning methods on plant sequence prediction, in a field the authors say lacked a shared benchmark.",
+    "summary_source_ids": [
+      "@paper",
+      "@hf-card"
+    ],
+    "summary_source_locator": "Paper: Abstract, Introduction and Table 1. Dataset card: Dataset Overview",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "Given the lack of comprehensive benchmarks in the context of deep learning-based methods in plant genomic research, we propose the use of the datasets covering several distinct genomic prediction tasks compiled here as the Plant Genomic Benchmark (PGB)."
+      },
+      {
+        "source": "@paper",
+        "text": "We present AgroNT, a foundational large language model trained on genomes from 48 plant species with a predominant focus on crop species."
+      },
+      {
+        "source": "@hf-card",
+        "text": "This dataset features the 8 evaluation tasks presented in the AgroNT (A Foundational Large Language Model for Edible Plant Genomes) paper."
+      },
+      {
+        "source": "@hf-card",
+        "text": "|pro_seq.m_esculenta|16852|1229|812|"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether a model can predict functional annotations and quantitative measurements from plant DNA sequence. The eight tasks span regulatory features, RNA processing and gene expression: binary classification of polyadenylation sites, splice sites, long non-coding RNA and intergenic enhancer regions; regression on promoter and terminator strength; multi-label classification of chromatin accessibility; and multi-output regression of tissue-specific gene expression. The authors' stated aim is a shared assessment for deep learning methods in plant genomics, with attention to species that are little studied.",
+        "source_ids": [
+          "@paper",
+          "@hf-card"
+        ],
+        "source_locator": "Paper: Introduction, Table 1. Dataset card: Dataset Overview",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We assessed the performance of AgroNT across several prediction tasks ranging from regulatory features, RNA processing, and gene expression"
+          },
+          {
+            "source": "@paper",
+            "text": "Our aim is to enhance and provide a comprehensive assessment of the performance of deep learning methods in plant genomic studies."
+          },
+          {
+            "source": "@hf-card",
+            "text": "The tasks cover single output regression, multi output regression, binary classification, and multi-label classification"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Each task is a reuse or a rebuild of published data. Table 1 names the source of each: polyadenylation, lncRNA, gene expression and the enhancer set were compiled for this study, splice sites come from Baten et al., promoter strength from Jores et al., terminator strength from Gorjifard et al. and chromatin accessibility from Zhao et al. Polyadenylation sequences are 400 bp with the poly(A) site at position 301, and negatives were made by shifting that position by 1 to 50 bases, giving twice as many negatives as positives. The lncRNA negatives are mRNA sequences matched to each lncRNA on length and GC content. Promoter sequences are the 170 bp windows from -165 to +5 around annotated transcription start sites, measured by STARR-seq in two systems, tobacco leaves and maize protoplasts; terminators are 170 nucleotides from -150 to +20 around a cleavage and polyadenylation site, and the terminator study also added randomised sequences of varying GC content. For promoters, terminators and chromatin accessibility the authors downloaded the original studies' own train and test sets so their numbers can be compared with the original models.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1; Methods, Polyadenylation site prediction, Splicing site prediction, lncRNA prediction, Promoter and terminator strength prediction, Chromatin profiles prediction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Polyadenylation</td><td colspan=\"1\" rowspan=\"1\">6</td><td colspan=\"1\" rowspan=\"1\">2</td><td colspan=\"1\" rowspan=\"1\">400</td><td colspan=\"1\" rowspan=\"1\">This study"
+          },
+          {
+            "source": "@paper",
+            "text": "Each sequence had a length of 400 bp, with the upstream 300 bp and downstream 100 bp sequence relative to the respective poly(A) site cluster (PAC). The poly(A) site itself was located at the 301st position."
+          },
+          {
+            "source": "@paper",
+            "text": "we performed a matching process between lncRNA and mRNA sequences based on both sequence length and GC content"
+          },
+          {
+            "source": "@paper",
+            "text": "which were defined as -165 to +5 bp relative to annotated transcription start sites (TSSs), and their strength was measured in two systems: tobacco leaves and maize protoplasts"
+          },
+          {
+            "source": "@paper",
+            "text": "These were defined as a 170 nucleotide sequence from position -150 to +20 relative to a cleavage and polyadenylation site."
+          },
+          {
+            "source": "@paper",
+            "text": "To enable direct comparison with the CNN model trained in the original publication, we downloaded their training and test datasets"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "A submission is a fine-tuned model's predictions on each task's held-out test split, scored with the metric the task's source study used. The authors report AUROC and AUPRC for the imbalanced classification tasks (splice sites, polyadenylation, lncRNA, chromatin accessibility), the coefficient of determination R2 for promoter and terminator strength, and for gene expression the R2 of a linear model between predicted and observed levels on held-out genes. Fine-tuning in the paper uses IA3, which injects re-scaling vectors at the model's activations and updates about 1% of the parameters. The dataset card's size table gives the train, validation and test counts for each of the 31 datasets it lists; several tasks have no validation split, and the card notes that lncRNA fine-tuning was done on all six species datasets together because each is small.",
+        "source_ids": [
+          "@paper",
+          "@hf-card"
+        ],
+        "source_locator": "Paper: Methods, Fine-tuning strategy, Splicing site prediction, Promoter and terminator strength prediction, Chromatin profiles prediction; Fig. 5 caption. Dataset card: Dataset Sizes",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we evaluated the performance of the models using both the AUROC and AUPRC"
+          },
+          {
+            "source": "@paper",
+            "text": "we used the coefficient of determination (<italic toggle=\"yes\">R</italic><sup>2</sup>) to evaluate the performance of promoter and terminator strength prediction"
+          },
+          {
+            "source": "@paper",
+            "text": "We fine-tune our pre-trained model with IA<sup>3</sup>"
+          },
+          {
+            "source": "@paper",
+            "text": "allowing us to achieve high levels of performance while only computing gradient updates for approximately 1% of the model parameters"
+          },
+          {
+            "source": "@hf-card",
+            "text": "|promoter_strength.leaf|58179|6825|7154|"
+          },
+          {
+            "source": "@hf-card",
+            "text": "It is important to note that fine-tuning for lncrna was carried out using all datasets in a single training."
+          }
+        ]
+      },
+      {
+        "title": "Promoter and terminator strength tasks",
+        "body": "These two tasks are regression on STARR-seq activity of 170 bp sequences from Arabidopsis thaliana, Zea mays and Sorghum bicolor, measured separately in tobacco leaves and in maize protoplasts, with terminator data covering Arabidopsis thaliana and Zea mays and over 50,000 terminators. The dataset card splits each task into a leaf and a protoplast dataset: 7154 and 7595 test sequences for promoter strength, 4806 and 4811 for terminator strength. The paper reports R2 of 0.7 in the maize system and 0.73 in the tobacco system for promoters, and 0.67 and 0.77 for terminators. Figure 3e and 3f compare AgroNT with the two CNN models from the original studies across plant species: on promoters AgroNT was ahead in every species and system, by 3 R2 points on average, and on terminators it matched or beat the CNN in 5 of 6 datasets.",
+        "source_ids": [
+          "@paper",
+          "@hf-card"
+        ],
+        "source_locator": "Paper: Results, Promoter and terminator activity prediction; Fig. 3 caption; Methods, Promoter and terminator strength prediction. Dataset card: Dataset Sizes",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "value of 0.7 and 0.73 in the maize system and tobacco model, respectively"
+          },
+          {
+            "source": "@paper",
+            "text": "AgroNT outperformed a CNN-based model aimed to predict promoter strength<sup><xref ref-type=\"bibr\" rid=\"CR40\">40</xref></sup> across all plant species and systems, on average, by 3"
+          },
+          {
+            "source": "@paper",
+            "text": "AgroNT either surpassed or matched the performance of the CNN-based model in 5 out of 6 datasets, and only slightly underperformed in one"
+          },
+          {
+            "source": "@paper",
+            "text": "a second STARR-seq-based study that measured the activity of over 50,000 terminators from <italic toggle=\"yes\">Arabidopsis thaliana</italic> and <italic toggle=\"yes\">Zea mays</italic>"
+          },
+          {
+            "source": "@hf-card",
+            "text": "|terminator_strength.leaf|43294|5309|4806|"
+          },
+          {
+            "source": "@hf-card",
+            "text": "|terminator_strength.protoplast|43289|5309|4811|"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The benchmark is distributed as a Hugging Face dataset with one configuration per dataset, loaded by name with the datasets library. The AgroNT weights are published separately on Hugging Face and through the InstaDeep nucleotide-transformer repository. No scoring script is published with the data, so the metrics have to be computed by the user, and the paper states that the pre-training code is proprietary and not released.",
+        "source_ids": [
+          "@hf-card",
+          "@paper"
+        ],
+        "source_locator": "Dataset card: Example Usage. Paper: Data availability and Code availability",
+        "quotes": [
+          {
+            "source": "@hf-card",
+            "text": "dataset = load_dataset(\"InstaDeepAI/plant-genomic-benchmark\",task_name=task_name)"
+          },
+          {
+            "source": "@paper",
+            "text": "The pre-trained AgroNT model has been made publicly available via HuggingFace at"
+          },
+          {
+            "source": "@paper",
+            "text": "The code for pre-training the model has not been made available as it is proprietary."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Eight tasks. Table 1 of the paper, and the summary table on the dataset card, list 32 datasets with six for gene expression; the dataset card's size table lists 31 datasets, with five gene expression datasets (Glycine max, Oryza sativa, Solanum lycopersicum, Zea mays, Arabidopsis thaliana). Table 1 gives the number of datasets per task: polyadenylation 6, splicing site 2, lncRNA 6, promoter strength 2, terminator strength 2, chromatin accessibility 7, gene expression 6, enhancer region 1. Sequence lengths run from 170 bp (promoters and terminators) and 398 to 400 bp (splice and poly(A) sites) to 1000 bp (chromatin accessibility and enhancers) and 6000 bp (gene expression), with lncRNA sequences from 101 to 6000 bp. Test counts per dataset range from 360 (lncRNA in cassava) to 377,873 (Arabidopsis donor splice sites).",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@hf-card"
+        ],
+        "source_locator": "Paper: Table 1. Dataset card: task table and Dataset Sizes",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Splicing site</td><td colspan=\"1\" rowspan=\"1\">2</td><td colspan=\"1\" rowspan=\"1\">2</td><td colspan=\"1\" rowspan=\"1\">398</td><td colspan=\"1\" rowspan=\"1\">Baten et al."
+          },
+          {
+            "source": "@paper",
+            "text": "Chromatin accessibility</td><td colspan=\"1\" rowspan=\"1\">7</td><td colspan=\"1\" rowspan=\"1\">9-19</td><td colspan=\"1\" rowspan=\"1\">1000</td><td colspan=\"1\" rowspan=\"1\">Zhao et al."
+          },
+          {
+            "source": "@hf-card",
+            "text": "| LncRNA    | 6    | Binary Classification    | 101-6000  |"
+          },
+          {
+            "source": "@hf-card",
+            "text": "|lncrna.m_esculenta|4934|---|360|"
+          },
+          {
+            "source": "@hf-card",
+            "text": "|splicing.arabidopsis_thaliana_donor|2588034|---|377873|"
+          },
+          {
+            "source": "@hf-card",
+            "text": "| Gene Expression    | 6        | Multi-Variable Regression  | 6000 |"
+          },
+          {
+            "source": "@hf-card",
+            "text": "|gene_exp.arabidopsis_thaliana|25731|3401|3402|"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Fixed train, validation and test counts per dataset on the dataset card, with the split rule differing by task. Polyadenylation and lncRNA test sets are restricted to sequences from a single sampled chromosome per species, with chromosomes 1A, 1B and 1D for Triticum aestivum; the splice site test set is chromosome 5 of Arabidopsis thaliana; chromatin accessibility uses the same validation and test chromosomes as the Zhao et al. study; promoter, terminator and chromatin accessibility reuse the original studies' train and test sets. Polyadenylation, splicing and lncRNA have no validation split on the card.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@hf-card"
+        ],
+        "source_locator": "Paper: Methods, Polyadenylation site prediction, Splicing site prediction, lncRNA prediction, Chromatin profiles prediction. Dataset card: Dataset Sizes",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To prevent data leakage, we limited the test set, for each plant species, to sequences that were exclusively derived from a single sampled chromosome."
+          },
+          {
+            "source": "@paper",
+            "text": "To prevent data leakage, the test set was limited to chromosome 5."
+          },
+          {
+            "source": "@paper",
+            "text": "In the case of <italic toggle=\"yes\">Triticum aestivum</italic>, the test set was limited to chromosomes 1A, 1B, and 1D."
+          },
+          {
+            "source": "@paper",
+            "text": "To ensure a fair comparison with the Zhao et al. predictions we selected the same chromosomes used as validation and test sets for each plant species."
+          },
+          {
+            "source": "@hf-card",
+            "text": "|poly_a.arabidopsis_thaliana|170835|---|30384|"
+          },
+          {
+            "source": "@hf-card",
+            "text": "|gene_exp.arabidopsis_thaliana|25731|3401|3402|"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Per task, with higher better in every case. AUROC and AUPRC for polyadenylation, splice site, lncRNA and chromatin accessibility; the coefficient of determination R2 for promoter and terminator strength; for gene expression the R2 of a linear model between predicted and observed levels on held-out genes; AUC for the cassava intergenic enhancer set.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Splicing site prediction, lncRNA prediction, Promoter and terminator strength prediction, Chromatin profiles prediction; Results, in silico mutagenesis; Fig. 5 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we evaluated the performance of the models using both the AUROC and AUPRC"
+          },
+          {
+            "source": "@paper",
+            "text": "As in both these studies, we used the coefficient of determination (<italic toggle=\"yes\">R</italic><sup>2</sup>) to evaluate the performance of promoter and terminator strength prediction."
+          },
+          {
+            "source": "@paper",
+            "text": "coefficient of determination (<italic toggle=\"yes\">R</italic><sup>2</sup>) from a linear model between predicted and observed values are shown"
+          },
+          {
+            "source": "@paper",
+            "text": "AgroNT demonstrated strong performance in detecting intergenic enhancer sequences, achieving an AUC value of 0.88"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "The models from the source studies, task by task: two CNN models for promoter and terminator strength (Figure 3e and 3f), the Zhao et al. chromatin accessibility predictions, and lncRNA-LSTM for the Zea mays lncRNA dataset of Meng et al., where AgroNT reached an AUC of 0.991 against the reported 0.9934. The paper also compares its gene expression results with two earlier models for Arabidopsis thaliana and Zea mays and reports up to a three-fold improvement.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Fig. 3 caption; Results, lncRNA prediction and gene expression; Methods, Chromatin profiles prediction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The performance of AgroNT in predicting promoter and terminators (<bold>f</bold>) compared to two different CNN-based models across plant species."
+          },
+          {
+            "source": "@paper",
+            "text": "AgroNT exhibited almost perfect performance with an AUC of 0.991, which was comparable to the reported performance of lncRNA-LSTM (0.9934)."
+          },
+          {
+            "source": "@paper",
+            "text": "AgroNT demonstrates up to a three-fold improvement in performance"
+          },
+          {
+            "source": "@paper",
+            "text": "To ensure a fair comparison with the Zhao et al. predictions we selected the same chromosomes used as validation and test sets for each plant species."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Chromosome-level separation on the tasks the authors built: the polyadenylation and lncRNA test sets hold only sequences from one sampled chromosome per species, and the splice site test set is chromosome 5. Chromatin accessibility reuses the validation and test chromosomes of the source study. The lncRNA negatives are matched to the positives on length and GC content so that length alone cannot solve the task. No sequence identity cut-off between train and test is described, and nothing is said about overlap between the test sequences and the 48 genomes used for pre-training.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Polyadenylation site prediction, Splicing site prediction, lncRNA prediction, Chromatin profiles prediction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To prevent data leakage, we created a test set for each plant species that exclusively consisted of sequences derived from a single sampled chromosome."
+          },
+          {
+            "source": "@paper",
+            "text": "To prevent data leakage, the test set was limited to chromosome 5."
+          },
+          {
+            "source": "@paper",
+            "text": "To prevent the model from relying solely on sequence length for classification and to encourage the learning of more meaningful features, we performed a matching process between lncRNA and mRNA sequences based on both sequence length and GC content."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Only for the lncRNA task. There the authors resampled the matched mRNA negatives five times per species and report the spread: the median range of the difference in AUROC across resamplings is 1.6 to 3.9 points and in AUPRC 2.5 to 4.6 points. No seeds, replicates or confidence intervals are described for the other tasks.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, lncRNA prediction; Results, lncRNA prediction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we also independently resampled 5 times matches numbers of mRNAs used as negative sequences, for each species separately"
+          },
+          {
+            "source": "@paper",
+            "text": "with a median range of the difference in AUROC values across resamplings ranging from 1.6 to 3.9 points and AUPRC values from 2.5 to 4.6 across species"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "One example is a DNA sequence window with a label or a measured value: a 400 bp window centred on a candidate poly(A) site, a 398 bp splice site window, an lncRNA or mRNA transcript sequence, a 170 bp promoter or terminator with its STARR-seq strength, a 1000 bp window labelled for open chromatin or enhancer activity, or a 6000 bp gene-proximal window with expression levels across tissues.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@hf-card"
+        ],
+        "source_locator": "Paper: Table 1; Methods, Polyadenylation site prediction, Chromatin profiles prediction. Dataset card: task table",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we emphasize that the model was trained to predict whether a given sequence had a poly(A) site at the 301st position or not"
+          },
+          {
+            "source": "@paper",
+            "text": "We generated the same number of training sequences samples, each of size 1000 bp, retrieved from a reference genome."
+          },
+          {
+            "source": "@hf-card",
+            "text": "| Gene Expression    | 6        | Multi-Variable Regression  | 6000 |"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Edible and model plants, plus one alga. Named across the tasks: Arabidopsis thaliana, Oryza sativa (japonica and indica), Zea mays, Sorghum bicolor, Setaria italica, Brachypodium distachyon, Glycine max, Solanum lycopersicum, Triticum aestivum, Medicago truncatula, Trifolium pratense, Manihot esculenta (cassava) and Chlamydomonas reinhardtii. The promoter and terminator assays were read out in tobacco leaves and maize protoplasts rather than in the source species.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@hf-card"
+        ],
+        "source_locator": "Paper: Methods, Polyadenylation site prediction, Chromatin profiles prediction, Promoter and terminator strength prediction. Dataset card: Dataset Sizes",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we focused on five specific species: <italic toggle=\"yes\">Oryza sativa L</italic>. (japonica and indica), <italic toggle=\"yes\">Arabidopsis thaliana</italic>"
+          },
+          {
+            "source": "@paper",
+            "text": "six plant species including <italic toggle=\"yes\">Arabidopsis thaliana</italic>, <italic toggle=\"yes\">Oryza sativa</italic>, <italic toggle=\"yes\">Zea mays</italic>, <italic toggle=\"yes\">Setaria italica</italic>, <italic toggle=\"yes\">Sorghum bicolor</italic>, and <italic toggle=\"yes\">Brachypodium distachyon</italic>"
+          },
+          {
+            "source": "@hf-card",
+            "text": "|lncrna.t_aestivum|11252|---|1810|"
+          },
+          {
+            "source": "@paper",
+            "text": "their strength was measured in two systems: tobacco leaves and maize protoplasts"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "STARR-seq for promoter and terminator strength, ATAC-seq for chromatin accessibility, RNA-seq for tissue-specific gene expression, and PRO-seq based intergenic enhancer calls in cassava. The polyadenylation labels come from the curated PlantAPAdb catalogue of alternative polyadenylation sites, the splice site labels from an existing annotated dataset, and the lncRNA labels from the GreeNC database.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@hf-card"
+        ],
+        "source_locator": "Paper: Methods, Promoter and terminator strength prediction, Chromatin profiles prediction, gene expression prediction, Polyadenylation site prediction. Dataset card: Dataset Sizes and ISM section",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we used the publicly available self-transcribing active regulatory region sequencing (STARR-seq) assays"
+          },
+          {
+            "source": "@paper",
+            "text": "The compiled dataset is based on transposase-accessible chromatin with sequencing (ATAC-seq) data from multiple tissues of six plant species"
+          },
+          {
+            "source": "@paper",
+            "text": "We obtained data for alternative polyadenylation (APA) sites from PlantAPAdb, which currently represents the most comprehensive manually curated catalog of APA sites in several plants."
+          },
+          {
+            "source": "@hf-card",
+            "text": "|pro_seq.m_esculenta|16852|1229|812|"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "DNA sequence only. Every task gives a fixed-length nucleotide window, and the paper's own model reads a sequence of up to about 6000 bp tokenised into 6-mers. No alignment, structure or annotation input is described as part of a task.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@hf-card"
+        ],
+        "source_locator": "Paper: Fig. 1 caption. Dataset card: task table",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The input is a ~ 6000 base pair (bp) DNA sequence randomly selected from 48 plant species' reference genomes. Each sequence is tokenized into a 6-mer"
+          },
+          {
+            "source": "@hf-card",
+            "text": "| Name    | # of Datasets(Species) | Task Type    | Sequence Length (base pair) |"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Supervised fine-tuning on each task's training split. The paper fine-tunes with IA3, a parameter-efficient method that updates about 1% of the model's parameters, and notes that for lncRNA the six species datasets were fine-tuned together in a single training run because each is small. The benchmark itself does not restrict the adaptation method.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@hf-card"
+        ],
+        "source_locator": "Paper: Methods, Fine-tuning strategy. Dataset card: note under Dataset Sizes",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "After pre-training our model with the MLM objective we further fine-tune the model in a supervised learning setting using several annotated, plant genomics datasets."
+          },
+          {
+            "source": "@paper",
+            "text": "We fine-tune our pre-trained model with IA<sup>3</sup>"
+          },
+          {
+            "source": "@hf-card",
+            "text": "fine-tuning for lncrna was carried out using all datasets in a single training"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The data are published in one place with a DOI and with per-dataset train, validation and test counts, loadable by task name, which makes the splits reusable rather than something each user rebuilds.",
+        "source_ids": [
+          "@hf-card",
+          "@hf-dataset"
+        ],
+        "source_locator": "Dataset card: Dataset Sizes and Example Usage. Hugging Face API record: tags",
+        "quotes": [
+          {
+            "source": "@hf-card",
+            "text": "task_name='terminator_strength.protoplast' # one of the task names from the above table"
+          },
+          {
+            "source": "@hf-dataset",
+            "text": "\"doi:10.57967/hf/2464\""
+          }
+        ]
+      },
+      {
+        "text": "On the tasks the authors built, test sets are separated by chromosome rather than at random, and for the lncRNA task the negative mRNA sequences are matched to the positives on length and GC content.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Polyadenylation site prediction, Splicing site prediction, lncRNA prediction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To prevent data leakage, we limited the test set, for each plant species, to sequences that were exclusively derived from a single sampled chromosome."
+          },
+          {
+            "source": "@paper",
+            "text": "mRNA sequences were selected if they had a length equal to or less than 100 bp compared to the corresponding lncRNA sequence"
+          }
+        ]
+      },
+      {
+        "text": "Where a task comes from an earlier study, the authors kept that study's train and test sets and its metric, so a new result can be put beside the original model's.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Promoter and terminator strength prediction, Chromatin profiles prediction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To enable direct comparison with the CNN model trained in the original publication, we downloaded their training and test datasets"
+          },
+          {
+            "source": "@paper",
+            "text": "As in the Zhao et al. study, we evaluated the performance of the models using the area under the AUROC and AUPRC metrics."
+          }
+        ]
+      },
+      {
+        "text": "The benchmark covers more than one model species: twelve plants and one alga appear across the tasks, including under-studied crops such as cassava, which the authors give as a reason for the work.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Introduction and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "highlight its particular relevance for under-researched plant species"
+          },
+          {
+            "source": "@paper",
+            "text": "we focused on five specific species: <italic toggle=\"yes\">Oryza sativa L</italic>. (japonica and indica), <italic toggle=\"yes\">Arabidopsis thaliana</italic>"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The data licence is non-commercial and share-alike: the Hugging Face repository is marked cc-by-nc-sa-4.0, so commercial use is not permitted even though the paper itself is CC BY 4.0.",
+        "source_ids": [
+          "@hf-dataset",
+          "@hf-card"
+        ],
+        "source_locator": "Hugging Face API record: cardData.license and tags. Dataset card: front matter",
+        "quotes": [
+          {
+            "source": "@hf-dataset",
+            "text": "\"license\":\"cc-by-nc-sa-4.0\""
+          },
+          {
+            "source": "@hf-card",
+            "text": "license: cc-by-nc-sa-4.0"
+          }
+        ]
+      },
+      {
+        "text": "The benchmark was assembled by the authors of the model it was first used to evaluate, and in the paper AgroNT is the method that wins on it.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract and Introduction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Finally, we propose the use of the diverse datasets compiled here as the Plants Genomic Benchmark (PGB)"
+          },
+          {
+            "source": "@paper",
+            "text": "We show that AgroNT can obtain state-of-the-art predictions for regulatory annotations, promoter/terminator strength, tissue-specific gene expression, and prioritize functional variants."
+          }
+        ]
+      },
+      {
+        "text": "No evaluation code or leaderboard comes with the data. The dataset card gives only a loading example, the paper says the pre-training code is proprietary, and the headline comparisons in Figure 3e and 3f are figures, so a reader has to take the per-species values from the figure data files rather than from a table.",
+        "source_ids": [
+          "@paper",
+          "@hf-card"
+        ],
+        "source_locator": "Paper: Code availability; Fig. 3 caption. Dataset card: Example Usage and Data source for Figures 2-8",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The code for pre-training the model has not been made available as it is proprietary."
+          },
+          {
+            "source": "@hf-card",
+            "text": "Text files containing the data used to plot Figures 2 to 8 from Mendoza-Revilla & Trop et al., 2024."
+          },
+          {
+            "source": "@paper",
+            "text": "The performance of AgroNT in predicting promoter and terminators (<bold>f</bold>) compared to two different CNN-based models across plant species."
+          }
+        ]
+      },
+      {
+        "text": "Three tasks have no validation split on the dataset card (polyadenylation, splicing and lncRNA), so any model selection on those tasks has to come out of the training data.",
+        "source_ids": [
+          "@hf-card"
+        ],
+        "source_locator": "Dataset card: Dataset Sizes",
+        "quotes": [
+          {
+            "source": "@hf-card",
+            "text": "|poly_a.oryza_sativa_indica_group|98139|---|16776|"
+          },
+          {
+            "source": "@hf-card",
+            "text": "|splicing.arabidopsis_thaliana_acceptor|1704844|---|250084|"
+          },
+          {
+            "source": "@hf-card",
+            "text": "|lncrna.z_mays|8423|---|1629|"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Plant Genomic Benchmark workflow",
+      "steps": [
+        "eight tasks compiled from published plant assays",
+        "fixed per-species train, validation and test splits, test held out by chromosome where the authors built the data",
+        "model fine-tuned on each task, in the paper with IA3",
+        "predictions on the test split",
+        "AUROC and AUPRC for classification, R2 for regression",
+        "comparison with the source study's own model"
+      ],
+      "caption": "How a model is scored on PGB, as the AgroNT paper describes it.",
+      "source_ids": [
+        "@paper",
+        "@hf-card"
+      ],
+      "source_locator": "Paper: Table 1; Methods, Fine-tuning strategy and the per-task Methods. Dataset card: Dataset Sizes",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The tasks upon which we fine-tune include single output regression, multi output regression, binary classification, multi-label classification."
+        },
+        {
+          "source": "@paper",
+          "text": "To prevent data leakage, we limited the test set, for each plant species, to sequences that were exclusively derived from a single sampled chromosome."
+        },
+        {
+          "source": "@paper",
+          "text": "we evaluated the performance of the models using both the AUROC and AUPRC"
+        },
+        {
+          "source": "@hf-card",
+          "text": "| Task Name    | # Train Samples | # Validation Samples   | # Test Samples |"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "Table 1 gives six gene expression datasets while the dataset card lists five gene_exp datasets and the Methods describe five plants. The disagreement is unresolved by the sources read.",
+      "The dataset card's per-task test counts are not broken down by species for promoter and terminator strength, so the per-species results in Figure 3e and 3f cannot be matched to a test-set size.",
+      "Figures 3e, 3f and the other comparison panels print no numbers in the text; their values live in the figure data files in the Hugging Face repository, which were not fetched.",
+      "No source read states a licence for the benchmark's evaluation code, and the GitHub repository that distributes the model reports no recognised licence identifier.",
+      "The paper does not say whether the test sequences overlap the 48 genomes used for pre-training."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the PMC full text XML of the AgroNT paper (PMC11233511, Communications Biology 2024), including Table 1, the per-task Results and Methods and the data and code availability notes; and the Hugging Face dataset card and API record for InstaDeepAI/plant-genomic-benchmark at revision 78ec8156c2ffb3e5475277fdb7eb603294224e53. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Install the datasets library and load one PGB task's train, validation and test splits from Hugging Face.",
+    "prerequisites": [
+      "The Hugging Face datasets library.",
+      "Acceptance of the data terms: the repository is marked cc-by-nc-sa-4.0, which does not allow commercial use.",
+      "For the model side, the AgroNT weights from huggingface.co/InstaDeepAI/agro-nucleotide-transformer-1b; the pre-training code is stated to be proprietary and is not released."
+    ],
+    "steps": [
+      {
+        "title": "Install the datasets library",
+        "shell": "pip install datasets",
+        "explanation": "The dataset card's example imports load_dataset from the datasets library; this line installs it. No version is given by the sources.",
+        "source_ids": [
+          "@hf-card"
+        ],
+        "source_locator": "Dataset card: Example Usage",
+        "quotes": [
+          {
+            "source": "@hf-card",
+            "text": "from datasets import load_dataset"
+          }
+        ]
+      },
+      {
+        "title": "Load one task",
+        "shell": "python - <<'PY'\nfrom datasets import load_dataset\n\ntask_name = 'terminator_strength.protoplast'  # one of the task names from the dataset card table\n\ndataset = load_dataset(\"InstaDeepAI/plant-genomic-benchmark\", task_name=task_name)\nprint(dataset)\nPY",
+        "explanation": "The three lines inside the heredoc are the dataset card's own example, with the heredoc and the print added here so the step runs on its own. Any name from the card's size table can replace the task name, for example promoter_strength.leaf or lncrna.z_mays.",
+        "source_ids": [
+          "@hf-card"
+        ],
+        "source_locator": "Dataset card: Example Usage and Dataset Sizes",
+        "quotes": [
+          {
+            "source": "@hf-card",
+            "text": "from datasets import load_dataset task_name='terminator_strength.protoplast' # one of the task names from the above table dataset = load_dataset(\"InstaDeepAI/plant-genomic-benchmark\",task_name=task_name)"
+          },
+          {
+            "source": "@hf-card",
+            "text": "|promoter_strength.protoplast|61051|7162|7595|"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "A DatasetDict for the chosen task with the splits the dataset card lists for it: train and test for the polyadenylation, splicing and lncRNA tasks, and train, validation and test for the others."
+    ],
+    "limitations": [
+      "These commands were read from the dataset card and have not been executed by Rewire.",
+      "No scoring or fine-tuning script is published with the benchmark, so there is no command that produces a score. The metric for each task has to be computed by the user: AUROC and AUPRC for the classification tasks, R2 for the regression tasks.",
+      "The data are under a non-commercial share-alike licence."
+    ],
+    "source_ids": [
+      "@hf-card",
+      "@paper"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Polyadenylation",
+      "dataset": "poly_a, 6 species datasets",
+      "size": null,
+      "size_unit": null,
+      "split": "test set from a single sampled chromosome per species",
+      "primary_metric": "AUROC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s42003-024-06465-2",
+      "code_url": null,
+      "data_url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "data_licence": "CC-BY-NC-SA-4.0",
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Polyadenylation</td><td colspan=\"1\" rowspan=\"1\">6</td><td colspan=\"1\" rowspan=\"1\">2</td><td colspan=\"1\" rowspan=\"1\">400</td><td colspan=\"1\" rowspan=\"1\">This study"
+        },
+        {
+          "source": "@paper",
+          "text": "To prevent data leakage, we limited the test set, for each plant species, to sequences that were exclusively derived from a single sampled chromosome."
+        },
+        {
+          "source": "@paper",
+          "text": "we evaluated the performance of the models using both the AUROC and AUPRC"
+        },
+        {
+          "source": "@hf-dataset",
+          "text": "\"license\":\"cc-by-nc-sa-4.0\""
+        }
+      ]
+    },
+    {
+      "task": "Splicing site",
+      "dataset": "splicing.arabidopsis_thaliana_donor and splicing.arabidopsis_thaliana_acceptor",
+      "size": null,
+      "size_unit": null,
+      "split": "test set limited to chromosome 5",
+      "primary_metric": "AUPRC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s42003-024-06465-2",
+      "code_url": null,
+      "data_url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "data_licence": "CC-BY-NC-SA-4.0",
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "To prevent data leakage, the test set was limited to chromosome 5."
+        },
+        {
+          "source": "@paper",
+          "text": "Given the highly imbalanced nature of the dataset, with 76,871 acceptor sequences and 2,157,898 non-acceptor sequences, as well as 76,659 donor sequences and 3,311,934 non-donor sequences, we evaluated the performance of the models using both the AUROC and AUPRC."
+        },
+        {
+          "source": "@hf-card",
+          "text": "|splicing.arabidopsis_thaliana_donor|2588034|---|377873|"
+        },
+        {
+          "source": "@hf-dataset",
+          "text": "\"license\":\"cc-by-nc-sa-4.0\""
+        }
+      ]
+    },
+    {
+      "task": "LncRNA",
+      "dataset": "lncrna, 6 species datasets",
+      "size": null,
+      "size_unit": null,
+      "split": "test set from a single sampled chromosome per species, 1A, 1B and 1D for Triticum aestivum",
+      "primary_metric": "AUROC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s42003-024-06465-2",
+      "code_url": null,
+      "data_url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "data_licence": "CC-BY-NC-SA-4.0",
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@hf-card",
+          "text": "| LncRNA    | 6    | Binary Classification    | 101-6000  |"
+        },
+        {
+          "source": "@paper",
+          "text": "In the case of <italic toggle=\"yes\">Triticum aestivum</italic>, the test set was limited to chromosomes 1A, 1B, and 1D."
+        },
+        {
+          "source": "@paper",
+          "text": "We evaluated the performance of the models using both the AUROC and AUPRC."
+        },
+        {
+          "source": "@hf-dataset",
+          "text": "\"license\":\"cc-by-nc-sa-4.0\""
+        }
+      ]
+    },
+    {
+      "task": "Promoter strength, tobacco leaf system",
+      "dataset": "promoter_strength.leaf",
+      "size": 7154,
+      "size_unit": "test sequences",
+      "split": "the train and test sets of the original STARR-seq study",
+      "primary_metric": "R2",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s42003-024-06465-2",
+      "code_url": null,
+      "data_url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "data_licence": "CC-BY-NC-SA-4.0",
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@hf-card",
+          "text": "|promoter_strength.leaf|58179|6825|7154|"
+        },
+        {
+          "source": "@paper",
+          "text": "their strength was measured in two systems: tobacco leaves and maize protoplasts"
+        },
+        {
+          "source": "@paper",
+          "text": "To enable direct comparison with the CNN model trained in the original publication, we downloaded their training and test datasets"
+        },
+        {
+          "source": "@paper",
+          "text": "we used the coefficient of determination (<italic toggle=\"yes\">R</italic><sup>2</sup>) to evaluate the performance of promoter and terminator strength prediction"
+        },
+        {
+          "source": "@hf-dataset",
+          "text": "\"license\":\"cc-by-nc-sa-4.0\""
+        }
+      ]
+    },
+    {
+      "task": "Promoter strength, maize protoplast system",
+      "dataset": "promoter_strength.protoplast",
+      "size": 7595,
+      "size_unit": "test sequences",
+      "split": "the train and test sets of the original STARR-seq study",
+      "primary_metric": "R2",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s42003-024-06465-2",
+      "code_url": null,
+      "data_url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "data_licence": "CC-BY-NC-SA-4.0",
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@hf-card",
+          "text": "|promoter_strength.protoplast|61051|7162|7595|"
+        },
+        {
+          "source": "@paper",
+          "text": "their strength was measured in two systems: tobacco leaves and maize protoplasts"
+        },
+        {
+          "source": "@paper",
+          "text": "we used the coefficient of determination (<italic toggle=\"yes\">R</italic><sup>2</sup>) to evaluate the performance of promoter and terminator strength prediction"
+        },
+        {
+          "source": "@hf-dataset",
+          "text": "\"license\":\"cc-by-nc-sa-4.0\""
+        }
+      ]
+    },
+    {
+      "task": "Terminator strength, tobacco leaf system",
+      "dataset": "terminator_strength.leaf",
+      "size": 4806,
+      "size_unit": "test sequences",
+      "split": "the train and test sets of the original terminator STARR-seq study",
+      "primary_metric": "R2",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s42003-024-06465-2",
+      "code_url": null,
+      "data_url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "data_licence": "CC-BY-NC-SA-4.0",
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@hf-card",
+          "text": "|terminator_strength.leaf|43294|5309|4806|"
+        },
+        {
+          "source": "@paper",
+          "text": "the training and test datasets available at <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/lampoona/Terminators-Plant-STARR-seq\">https://github.com/lampoona/Terminators-Plant-STARR-seq</ext-link>"
+        },
+        {
+          "source": "@paper",
+          "text": "we used the coefficient of determination (<italic toggle=\"yes\">R</italic><sup>2</sup>) to evaluate the performance of promoter and terminator strength prediction"
+        },
+        {
+          "source": "@hf-dataset",
+          "text": "\"license\":\"cc-by-nc-sa-4.0\""
+        }
+      ]
+    },
+    {
+      "task": "Terminator strength, maize protoplast system",
+      "dataset": "terminator_strength.protoplast",
+      "size": 4811,
+      "size_unit": "test sequences",
+      "split": "the train and test sets of the original terminator STARR-seq study",
+      "primary_metric": "R2",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s42003-024-06465-2",
+      "code_url": null,
+      "data_url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "data_licence": "CC-BY-NC-SA-4.0",
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@hf-card",
+          "text": "|terminator_strength.protoplast|43289|5309|4811|"
+        },
+        {
+          "source": "@paper",
+          "text": "the training and test datasets available at <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/lampoona/Terminators-Plant-STARR-seq\">https://github.com/lampoona/Terminators-Plant-STARR-seq</ext-link>"
+        },
+        {
+          "source": "@paper",
+          "text": "we used the coefficient of determination (<italic toggle=\"yes\">R</italic><sup>2</sup>) to evaluate the performance of promoter and terminator strength prediction"
+        },
+        {
+          "source": "@hf-dataset",
+          "text": "\"license\":\"cc-by-nc-sa-4.0\""
+        }
+      ]
+    },
+    {
+      "task": "Chromatin accessibility",
+      "dataset": "chromatin_access, 7 datasets",
+      "size": null,
+      "size_unit": null,
+      "split": "the validation and test chromosomes of the Zhao et al. study",
+      "primary_metric": "AUROC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s42003-024-06465-2",
+      "code_url": null,
+      "data_url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "data_licence": "CC-BY-NC-SA-4.0",
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Chromatin accessibility</td><td colspan=\"1\" rowspan=\"1\">7</td><td colspan=\"1\" rowspan=\"1\">9-19</td><td colspan=\"1\" rowspan=\"1\">1000</td><td colspan=\"1\" rowspan=\"1\">Zhao et al."
+        },
+        {
+          "source": "@paper",
+          "text": "To ensure a fair comparison with the Zhao et al. predictions we selected the same chromosomes used as validation and test sets for each plant species."
+        },
+        {
+          "source": "@paper",
+          "text": "As in the Zhao et al. study, we evaluated the performance of the models using the area under the AUROC and AUPRC metrics."
+        },
+        {
+          "source": "@hf-dataset",
+          "text": "\"license\":\"cc-by-nc-sa-4.0\""
+        }
+      ]
+    },
+    {
+      "task": "Gene expression",
+      "dataset": "gene_exp, species datasets",
+      "size": null,
+      "size_unit": null,
+      "split": "held-out genes, with a validation and a test split per species on the dataset card",
+      "primary_metric": "R2",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s42003-024-06465-2",
+      "code_url": null,
+      "data_url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "data_licence": "CC-BY-NC-SA-4.0",
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "coefficient of determination (<italic toggle=\"yes\">R</italic><sup>2</sup>) from a linear model between predicted and observed values are shown"
+        },
+        {
+          "source": "@paper",
+          "text": "Tissue expression profiles between observed (upper panels) and predicted gene expression levels (lower panels) on holdout genes."
+        },
+        {
+          "source": "@hf-card",
+          "text": "|gene_exp.zea_mays|34493|4483|4483|"
+        },
+        {
+          "source": "@hf-dataset",
+          "text": "\"license\":\"cc-by-nc-sa-4.0\""
+        }
+      ]
+    },
+    {
+      "task": "Enhancer region",
+      "dataset": "pro_seq.m_esculenta",
+      "size": 812,
+      "size_unit": "test sequences",
+      "split": "fixed train, validation and test split on the dataset card",
+      "primary_metric": "AUC",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s42003-024-06465-2",
+      "code_url": null,
+      "data_url": "https://huggingface.co/datasets/InstaDeepAI/plant-genomic-benchmark",
+      "data_licence": "CC-BY-NC-SA-4.0",
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@hf-card",
+          "text": "|pro_seq.m_esculenta|16852|1229|812|"
+        },
+        {
+          "source": "@paper",
+          "text": "Enhancer region</td><td colspan=\"1\" rowspan=\"1\">1</td><td colspan=\"1\" rowspan=\"1\">2</td><td colspan=\"1\" rowspan=\"1\">1000</td><td colspan=\"1\" rowspan=\"1\">This study"
+        },
+        {
+          "source": "@paper",
+          "text": "AgroNT demonstrated strong performance in detecting intergenic enhancer sequences, achieving an AUC value of 0.88"
+        },
+        {
+          "source": "@hf-dataset",
+          "text": "\"license\":\"cc-by-nc-sa-4.0\""
+        }
+      ]
+    }
+  ],
+  "notes": "Written from the PMC full text of the AgroNT paper (PMC11233511) and the benchmark's Hugging Face dataset card and API record at revision 78ec8156c2ffb3e5475277fdb7eb603294224e53. Points for a human. First, the paper calls the benchmark both the Plant Genomic Benchmark and the Plants Genomic Benchmark, including in Table 1's caption. Second, Table 1 says six gene expression datasets, while the card lists five gene_exp datasets and the Methods describe five plants, so the gene expression entry carries no dataset count. Third, the record's twelve stored protocols are per species within the promoter and terminator systems (A. thaliana, S. bicolor, Z. mays in maize protoplasts and tobacco leaves), but no source read prints a per-species test count: the card's counts are per system across species, so they are recorded here against the system-level datasets only, and the per-species values of Figure 3e and 3f live in the figure data files in the Hugging Face repository. Fourth, the leaf and protoplast dataset names are matched to the tobacco leaf and maize protoplast systems the Methods describe; the card itself does not spell that out. Fifth, where a task has several datasets with separate test counts, size is null rather than a sum. Sixth, the data are cc-by-nc-sa-4.0, so the dataset card bytes are not stored; the paper XML is CC BY 4.0 and is stored. Seventh, released is null on every entry: the Hugging Face API record gives only the repository's last-modified time (2024-06-02), which is not a release date, and no saved file states when the benchmark was released."
+}

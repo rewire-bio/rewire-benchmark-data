@@ -1,0 +1,910 @@
+{
+  "record_id": "gfm-guides-20261014-esm1b-benchmark-brandes2023-clinvar-multiresidue",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "PMC full text XML of Brandes et al., Nature Genetics 2023 (PMC10484790)",
+      "description": "The JATS full text from NCBI E-utilities, including the Results section on multiresidue variants, the Fig. 6 legend and the Methods sections on generalised effect scores, baselines, AUC metrics and significance testing.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=10484790",
+      "url": "https://doi.org/10.1038/s41588-023-01465-0",
+      "version": "PMC10484790, version of record 2023",
+      "media_type": "text/xml",
+      "licence": "CC BY 4.0",
+      "store_bytes": true,
+      "sha256": "fcaf6dd42b3cd0e808c04e399264e03a1011ad83cf93e135dc2b7a2c271416ae",
+      "retrieved_at": "2026-11-27T01:21:31Z"
+    },
+    {
+      "key": "readme",
+      "name": "ntranoslab/esm-variants README.md at commit 0c33758a5073e5d6e673d9a16a40e5b0af46851d",
+      "description": "Official repository file, pinned to a commit. It lists the published benchmark files, the installation dependencies and the two scoring commands.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/ntranoslab/esm-variants/0c33758a5073e5d6e673d9a16a40e5b0af46851d/README.md",
+      "url": "https://github.com/ntranoslab/esm-variants",
+      "version": "git commit 0c33758a5073e5d6e673d9a16a40e5b0af46851d",
+      "media_type": "text/markdown",
+      "licence": "MIT",
+      "store_bytes": true,
+      "sha256": "40f4b62c1a02b0656ce8682389b6ba6d1ae018c820735687a8263b6f35a5a78c",
+      "retrieved_at": "2026-11-27T01:27:09Z"
+    },
+    {
+      "key": "indel-benchmark",
+      "name": "ntranoslab/esm-variants benchmarks/ClinVar_indel_benchmark_with_predictions.csv at commit 0c33758a5073e5d6e673d9a16a40e5b0af46851d",
+      "description": "The published in-frame indel benchmark table with every method's scores. Counted here: 3470 rows, 1791 with label 1 and 1679 with label 0, and 2248 deletions, 937 insertions and 285 delins.",
+      "file": "artifacts/clinvar-indel-benchmark.csv",
+      "artifact_url": "https://raw.githubusercontent.com/ntranoslab/esm-variants/0c33758a5073e5d6e673d9a16a40e5b0af46851d/benchmarks/ClinVar_indel_benchmark_with_predictions.csv",
+      "url": "https://github.com/ntranoslab/esm-variants/blob/0c33758a5073e5d6e673d9a16a40e5b0af46851d/benchmarks/ClinVar_indel_benchmark_with_predictions.csv",
+      "version": "git commit 0c33758a5073e5d6e673d9a16a40e5b0af46851d",
+      "media_type": "text/csv",
+      "licence": "MIT",
+      "store_bytes": true,
+      "sha256": "122d892a15b5c05ac244479f250dda9369e0821a6540f210ce9321b55b4ad8da",
+      "retrieved_at": "2026-11-27T01:27:19Z"
+    }
+  ],
+  "profile": {
+    "summary": "These are the two labelled sets Brandes et al. built to test whether a protein language model can score coding variants that are not single amino acid substitutions. One holds 3,470 in-frame insertions, deletions and deletion-insertion combinations from ClinVar, 1,791 pathogenic and 1,679 benign; the other holds 36,000 or so ClinVar stop-gain variants, split by whether the new stop codon is expected to trigger nonsense-mediated decay. Both are scored by ROC-AUC for separating pathogenic from benign. They are useful to anyone asking whether a sequence model's likelihood scores transfer from missense variants to indels and truncations.",
+    "summary_source_ids": [
+      "@paper",
+      "@indel-benchmark"
+    ],
+    "summary_source_locator": "Paper: Results, ESM1b can predict the effects of multiresidue variants; Fig. 6 legend. Repository: the indel benchmark table",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "the distribution of ESM1b effect scores over 1,679 benign and 1,791 pathogenic in-frame indels from ClinVar"
+      },
+      {
+        "source": "@paper",
+        "text": "over variants expected to either (1) not undergo NMD (3,672 pathogenic and 147 benign variants), (2) undergo NMD (32,362 pathogenic and 198 benign variants) or (3) all stop-gain variants (36,034 pathogenic and 345 benign variants)"
+      },
+      {
+        "source": "@indel-benchmark",
+        "text": "variant_index,rsid,label,seq_source,seq_ids,start_pos,end_pos,ref,alt"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether an effect score separates pathogenic from benign variants in two classes of coding variant that most variant effect predictors cannot handle: in-frame indels, which change the length of the protein, and stop gains, which truncate it. The authors' point is that a protein language model can be applied to any amino acid sequence, so it can score these as well as missense variants. The stop-gain set is further split by nonsense-mediated decay, because a truncation often acts at the transcript level rather than through the protein sequence a language model sees.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, ESM1b can predict the effects of multiresidue variants",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Unlike most VEP methods, protein language models can assess any amino acid sequence and, therefore, be leveraged to predict the effects of any coding mutation, including in-frame indels and stop gains."
+          },
+          {
+            "source": "@paper",
+            "text": "We use the term ‘indels’ to include insertions, deletions and deletion–insertion (delins) combinations."
+          },
+          {
+            "source": "@paper",
+            "text": "ESM1b is a protein language model trained to assess protein sequence variations, while the effects of stop-gains are often at the transcript level through nonsense-mediated decay (NMD)"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Both sets are drawn from ClinVar, with labels downloaded from the ClinVar variant_summary table, and the authors say only high-confidence variants were included, with the processing described in the Supplementary Methods. The published indel table holds 3,470 rows against RefSeq NM transcripts, each with the wild-type and mutated sequence, the affected window, the number of amino acids affected and the length difference, labelled 1 for 1,791 variants and 0 for 1,679; its mut_type column gives 2,248 deletions, 937 insertions and 285 delins. The stop-gain set is partitioned with the 50 base pair rule, which treats a transcript as likely to undergo decay only if the new stop codon falls more than 50 bases upstream of the last exon junction in the coding region, applied using exon annotations from the human genome.",
+        "source_ids": [
+          "@paper",
+          "@indel-benchmark",
+          "@readme"
+        ],
+        "source_locator": "Paper: Data availability; Methods, Baseline scores of indel and stop-gain variant effects; Fig. 6 legend. Repository: the indel benchmark table and README",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "ClinVar labels for missense, indel and stop-gain variants were downloaded directly from ClinVar’s website"
+          },
+          {
+            "source": "@paper",
+            "text": "Only high-confidence variants were included (<xref rid=\"MOESM1\" ref-type=\"media\">Supplementary Methods</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "The 50 bp rule asserts that a transcript is likely to undergo NMD only if a stop codon is introduced more than 50 base pairs upstream of the last exon junction within its coding region<sup><xref ref-type=\"bibr\" rid=\"CR45\">45</xref></sup>. We applied the 50 bp rule based on exon annotations in the human genome (<xref rid=\"MOESM1\" ref-type=\"media\">Supplementary Methods</xref>)."
+          },
+          {
+            "source": "@indel-benchmark",
+            "text": "full_ref_seq,site_ref_seq,site_alt_seq,full_alt_seq,num_aa_affected,ref_alt_length_diff,mut_type"
+          },
+          {
+            "source": "@readme",
+            "text": "ClinVar labels of missense variants in all protein isoforms and of indels and stop-gains are available"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "A method supplies one score per variant and the whole set is treated as a single classification task, scored by global ROC-AUC rather than averaged per gene; the authors argue a global figure is more informative for clinical use because variants are compared across genes. For indels the model score is the pseudo-log-likelihood ratio between the mutated and wild-type sequences, in three variants: plain, weighted by sequence length, and absolute valued. For stop gains the score is the lowest log-likelihood ratio among all possible missense variants in the region lost after the new stop codon. Differences between methods are tested by a permutation test over 2,000 iterations, shuffling the scores between variants, with one-tailed empirical p values and a floor of p below 0.001. Uncertainty on the stop-gain figures comes from bootstrapping 140 pathogenic and 140 benign variants from each group over 20 iterations.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Generalized effect scores for indels and stop-gain variants, AUC metrics for pathogenicity classification, Testing for significant performance differences",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The effect score of an in-frame indel is the PLLR between the mutated and WT sequences"
+          },
+          {
+            "source": "@paper",
+            "text": "We refer to the PLLR score described above as ‘vanilla’ PLLR, while also considering the following two minor variations: (1) weighted PLLR and (2) absolute-valued PLLR"
+          },
+          {
+            "source": "@paper",
+            "text": "defined as the LLR score assigned to the missense variant predicted to be the most deleterious among all possible missense variants in the lost region of the protein"
+          },
+          {
+            "source": "@paper",
+            "text": "We treated the entire set of pathogenic and benign variants (from ClinVar<sup><xref ref-type=\"bibr\" rid=\"CR10\">10</xref></sup> or HGMD/gnomAD<sup><xref ref-type=\"bibr\" rid=\"CR9\">9</xref>,<xref ref-type=\"bibr\" rid=\"CR26\">26</xref></sup>) as a single genome-wide classification task to calculate a global ROC-AUC."
+          },
+          {
+            "source": "@paper",
+            "text": "statistical significance was determined through permutation tests. In each iteration, we shuffled the effect scores assigned by each method between the benchmark’s variants, and recalculated the output metric"
+          },
+          {
+            "source": "@paper",
+            "text": "The empirical one-tailed <italic toggle=\"yes\">P</italic> value was the fraction of 2,000 iterations where the difference in output metric was as extreme as that with the actual, nonpermuted effect scores."
+          },
+          {
+            "source": "@paper",
+            "text": "In each bootstrapping iteration, we randomly sampled 140 pathogenic and 140 benign variants from each of the three groups of stop-gain variants"
+          }
+        ]
+      },
+      {
+        "title": "Reported results",
+        "body": "On the indel set the absolute-valued score reaches ROC-AUC 0.874, ahead of the plain 0.869 and the weighted 0.861, and all three beat CADD at 0.835; on delins variants alone the gap is wider, 0.887 against 0.671. The three sequence-similarity baselines are near or below 0.6: edit distance 0.501, pairwise alignment 0.586, BlastP 0.581. On stop gains, ESM1b scores 0.734 on variants not expected to undergo decay but only 0.565 on those that are, and on the non-decay group it beats the number of residues lost (0.649) and the fraction of the protein lost (0.599). The authors also estimate from the score distribution that 52% of in-frame indel variants of uncertain significance in ClinVar are pathogenic.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, ESM1b can predict the effects of multiresidue variants",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The absolute-value PLLR marginally outperforms (ROC-AUC = 0.874) the vanilla (0.869) and weighted PLLR (0.861)."
+          },
+          {
+            "source": "@paper",
+            "text": "All variations of ESM1b PLLR scores outperform CADD (0.835)"
+          },
+          {
+            "source": "@paper",
+            "text": "The performance gap is especially significant for delins variants (ESM1b = 0.887, CADD = 0.671)."
+          },
+          {
+            "source": "@paper",
+            "text": "(1) edit distance (0.501), (2) pairwise sequence alignment (0.586) and (3) BlastP (0.581)"
+          },
+          {
+            "source": "@paper",
+            "text": "ESM1b is a good classifier for variants not resulting in NMD according to the 50 bp rule<sup><xref ref-type=\"bibr\" rid=\"CR45\">45</xref></sup> (ROC-AUC = 0.734) but performs poorly (0.565) over variants expected to cause NMD (Fig. <xref rid=\"Fig6\" ref-type=\"fig\">6d</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "ESM1b substantially outperforms two baseline models scoring stop-gains based on the total number of residues lost (0.649) or their fraction of the WT protein length (0.599)"
+          },
+          {
+            "source": "@paper",
+            "text": "estimating that 52% of these indels are pathogenic (compared to 42% pathogenicity rate estimated for missense VUS)"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The repository publishes both benchmark tables with every method's scores already in them, so a comparison can be reproduced from the files alone. To score new variants, install the listed dependencies and run the multi-residue scoring script, which takes a CSV of wild-type sequence, mutated sequence and start position; a separate script scores all possible missense substitutions in a FASTA file, which is the route used for stop gains.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md, Repository Contents, Installation and Usage",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "These files contain all benchmark data, VEP predictions used for performance evaluation, and results, except HGMD variants (see below)."
+          },
+          {
+            "source": "@readme",
+            "text": "pip3 install tqdm numpy pandas biopython torch fair-esm"
+          },
+          {
+            "source": "@readme",
+            "text": "python3 esm_score_multi_residue_mutations.py --input-csv-file /path/to/input.csv --output-csv-file /path/to/output.csv"
+          },
+          {
+            "source": "@readme",
+            "text": "The input CSV file for multi-residue mutations should have three fields:"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Two ClinVar-derived sets. In-frame indels: 3,470 variants, 1,791 pathogenic and 1,679 benign, which the published table splits into 2,248 deletions, 937 insertions and 285 delins. Stop gains: 36,034 pathogenic and 345 benign variants in the Fig. 6d legend, split into 3,672 pathogenic with 147 benign not expected to undergo nonsense-mediated decay and 32,362 pathogenic with 198 benign expected to undergo it.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@indel-benchmark"
+        ],
+        "source_locator": "Paper: Fig. 6 legend. Repository: the indel benchmark table, label and mut_type columns",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the distribution of ESM1b effect scores over 1,679 benign and 1,791 pathogenic in-frame indels from ClinVar"
+          },
+          {
+            "source": "@paper",
+            "text": "Right: partitioning of the 3,470 in-frame indels into deletions, insertions and deletion–insertion combinations (delins)."
+          },
+          {
+            "source": "@paper",
+            "text": "over variants expected to either (1) not undergo NMD (3,672 pathogenic and 147 benign variants), (2) undergo NMD (32,362 pathogenic and 198 benign variants) or (3) all stop-gain variants (36,034 pathogenic and 345 benign variants)"
+          },
+          {
+            "source": "@indel-benchmark",
+            "text": "variant_index,rsid,label,seq_source"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "No train, validation or test split: each set is evaluated whole as a single classification task, which the authors can do because the method is unsupervised. The only partitioning is by variant class for reporting: deletions, insertions and delins for the indel set, and the 50 base pair decay rule for the stop-gain set.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, AUC metrics for pathogenicity classification; Discussion; Fig. 6 legend",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We treated the entire set of pathogenic and benign variants (from ClinVar<sup><xref ref-type=\"bibr\" rid=\"CR10\">10</xref></sup> or HGMD/gnomAD<sup><xref ref-type=\"bibr\" rid=\"CR9\">9</xref>,<xref ref-type=\"bibr\" rid=\"CR26\">26</xref></sup>) as a single genome-wide classification task to calculate a global ROC-AUC."
+          },
+          {
+            "source": "@paper",
+            "text": "As an unsupervised method, ESM1b poses no risk of information leakage from the training to the test sets in clinical (for example, ClinVar and HGMD) or population genetics (for example, gnomAD) datasets"
+          },
+          {
+            "source": "@paper",
+            "text": "Right: partitioning of the 3,470 in-frame indels into deletions, insertions and deletion–insertion combinations (delins)."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Global ROC-AUC on pathogenic versus benign, higher better, computed over the whole set rather than averaged per gene. Elsewhere in the paper a label-balanced PRC-AUC is also used, obtained by downsampling each class to 80% of the minority class 100 times and averaging, but the indel and stop-gain figures are reported as ROC-AUC.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, AUC metrics for pathogenicity classification; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we primarily used ROC-AUC (Fig. <xref rid=\"Fig2\" ref-type=\"fig\">2b,e–h</xref>), the standard evaluation metric for binary classifiers<sup><xref ref-type=\"bibr\" rid=\"CR61\">61"
+          },
+          {
+            "source": "@paper",
+            "text": "we randomly downsampled each dataset into an equal number of pathogenic and benign variants (80% of the variants in the minority class) and calculated the PRC-AUC over the balanced dataset"
+          },
+          {
+            "source": "@paper",
+            "text": "The absolute-value PLLR marginally outperforms (ROC-AUC = 0.874) the vanilla (0.869) and weighted PLLR (0.861)."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "On indels, one published predictor and three simple scores: CADD, plus Levenshtein edit distance, a pairwise alignment score (match 2, mismatch minus 1) and BlastP with BLOSUM62 and gap penalties. On stop gains, no published predictor at all, and three simple scores: number of residues lost, percentage of residues lost, and the binary 50 base pair rule. The authors state why: nearly all indel and stop-gain predictors are trained on clinical databases, which would make evaluation on ClinVar circular, and CADD is the exception they could use.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Baseline scores of indel and stop-gain variant effects",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The vast majority of these have been trained on clinical databases like ClinVar, leading to circularity issues when evaluating them on the same benchmarks. Therefore, we compared ESM1b to only one other VEP method (CADD) over the ClinVar benchmark of in-frame indels (Fig. <xref rid=\"Fig6\" ref-type=\"fig\">6b</xref>) and none over stop-gain variants (Fig. <xref rid=\"Fig6\" ref-type=\"fig\">6d</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "For in-frame indels, we considered baseline scores based on the followings: (1) edit distance, (2) pairwise alignment and (3) BlastP."
+          },
+          {
+            "source": "@paper",
+            "text": "For stop-gain variants, we considered the following baseline scores: (1) the number of residues lost, (2) the percentage of residues lost (relative to the WT sequence length) and (3) the 50 bp rule."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "The main control is the choice of comparators, not a data split. Because the evaluated method is unsupervised, the authors argue there is no leakage from training into these ClinVar sets, and they exclude predictors trained on clinical databases to avoid circularity, which is why only CADD appears on indels and nothing on stop gains. The sets themselves are restricted to high-confidence ClinVar variants. No sequence identity cut-off between the indel set and anything else is described.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Discussion; Methods, Baseline scores of indel and stop-gain variant effects; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "As an unsupervised method, ESM1b poses no risk of information leakage from the training to the test sets"
+          },
+          {
+            "source": "@paper",
+            "text": "leading to circularity issues when evaluating them on the same benchmarks"
+          },
+          {
+            "source": "@paper",
+            "text": "Only high-confidence variants were included (<xref rid=\"MOESM1\" ref-type=\"media\">Supplementary Methods</xref>)."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Bootstrapped standard deviations on the stop-gain figures and permutation p values on the indel comparison. For Fig. 6d, 140 pathogenic and 140 benign variants were sampled from each group over 20 iterations, and the error bars are the standard deviation of the resulting ROC-AUCs. For Fig. 6b, one-tailed p values from 2,000 permutations are reported for the difference between CADD and each ESM1b score, with p below 0.001 when no permutation matched the observed gap. No error bars are reported for the indel ROC-AUCs themselves.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, AUC metrics for pathogenicity classification and Testing for significant performance differences; Fig. 6 legend",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Following 20 iterations, we calculated the mean ROC-AUC and s.d. (presented as error bars in Fig. <xref rid=\"Fig6\" ref-type=\"fig\">6d</xref>) for each condition."
+          },
+          {
+            "source": "@paper",
+            "text": "Error bars correspond to s.d. of the ROC-AUC scores centered around the mean (estimated by bootstrapping)."
+          },
+          {
+            "source": "@paper",
+            "text": "One-tailed <italic toggle=\"yes\">P</italic> values are shown for the differences between the performance of CADD and the ESM1b-based effect scores (<xref rid=\"Sec8\" ref-type=\"sec\">Methods</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "If no permutations gave a difference as large as the one measured for the true effect scores, we reported <italic toggle=\"yes\">P</italic> &lt; 0.001."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "One coding variant in a human protein-coding transcript, labelled pathogenic or benign. For the indel set the published row carries the wild-type and mutated protein sequence, the start and end position, the reference and alternative alleles, the number of amino acids affected and the length difference, against RefSeq NM transcripts. For the stop-gain set the variant is a substitution creating a premature stop codon.",
+        "status": "source_checked",
+        "source_ids": [
+          "@indel-benchmark",
+          "@paper"
+        ],
+        "source_locator": "Repository: the indel benchmark table header and seq_source column. Paper: Fig. 6 legend",
+        "quotes": [
+          {
+            "source": "@indel-benchmark",
+            "text": "start_pos,end_pos,ref,alt,full_ref_seq,site_ref_seq,site_alt_seq,full_alt_seq,num_aa_affected,ref_alt_length_diff,mut_type"
+          },
+          {
+            "source": "@indel-benchmark",
+            "text": "refseq_NM"
+          },
+          {
+            "source": "@paper",
+            "text": "Illustrated example: substitution of a glutamine into a stop codon at position 25."
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human only. The variants come from ClinVar, the scoring is against human protein isoforms, and the 50 base pair rule was applied using exon annotations in the human genome.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Baseline scores of indel and stop-gain variant effects; Data availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We applied the 50 bp rule based on exon annotations in the human genome (<xref rid=\"MOESM1\" ref-type=\"media\">Supplementary Methods</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "ClinVar labels for missense, indel and stop-gain variants were downloaded directly from ClinVar’s website"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "None. The labels are clinical assertions from ClinVar, restricted to high-confidence entries, not experimental measurements. Deep mutational scanning data are used elsewhere in the same paper, but not in these two sets.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Data availability; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "ClinVar labels for missense, indel and stop-gain variants were downloaded directly from ClinVar’s website"
+          },
+          {
+            "source": "@paper",
+            "text": "Only high-confidence variants were included (<xref rid=\"MOESM1\" ref-type=\"media\">Supplementary Methods</xref>)."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Protein sequence for the evaluated method: the wild-type and mutated amino acid sequences, with no alignment or structure. Where a sequence exceeds the model's 1,022 amino acid limit, the score is computed on a window containing the affected region with 511 residues of context before it and enough after to fill the limit. The stop-gain score needs the position of the new stop codon, and the 50 base pair rule needs exon annotations, which is transcript-level information used for the partition rather than by the model.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, Generalized effect scores for indels and stop-gain variants. Repository: README.md, Usage",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Given the protein length limit of ESM1b, if either the WT or mutated sequences exceed 1,022 amino acids, PLLR is calculated using subsequences that satisfy this constraint."
+          },
+          {
+            "source": "@paper",
+            "text": "Before the indel, we include a segment of 511 residues (or as many as there are)."
+          },
+          {
+            "source": "@readme",
+            "text": "`wt_seq`: the wild type (original) protein sequence"
+          },
+          {
+            "source": "@readme",
+            "text": "`start_pos`: the starting position (1-indexed) of the mutation relative to the wild type sequence"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Zero-shot. The scores are likelihood ratios from a pretrained protein language model with no fitting to these labels; the only choices are which of the three pseudo-log-likelihood ratio forms to use for indels, and taking the minimum missense score over the lost region for stop gains. CADD, the one published comparator, is a supervised method.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results and Fig. 6 legend; Discussion",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "CADD (a supervised VEP method)"
+          },
+          {
+            "source": "@paper",
+            "text": "As an unsupervised method, ESM1b poses no risk of information leakage from the training to the test sets"
+          },
+          {
+            "source": "@paper",
+            "text": "We considered the following three variations of ESM1b PLLR scores: (1) vanilla PLLR, (2) weighted PLLR (accounting for indel size) and (3) absolute-valued PLLR"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Both labelled sets are published as tables with every compared method's scores in them, so the reported ROC-AUCs can be recomputed without rerunning any model, and the counts check out: the indel file has 3,470 rows, 1,791 labelled 1 and 1,679 labelled 0.",
+        "source_ids": [
+          "@readme",
+          "@indel-benchmark",
+          "@paper"
+        ],
+        "source_locator": "Repository: README.md, Benchmarks; the indel benchmark table. Paper: Fig. 6 legend",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "- `ClinVar_indel_benchmark_with_predictions.csv`"
+          },
+          {
+            "source": "@indel-benchmark",
+            "text": "ESM1b_PLL,ESM1b_wPLL,ESM1b_aPLL,CADD_score"
+          },
+          {
+            "source": "@paper",
+            "text": "the distribution of ESM1b effect scores over 1,679 benign and 1,791 pathogenic in-frame indels from ClinVar"
+          }
+        ]
+      },
+      {
+        "text": "The authors exclude comparators that were trained on ClinVar rather than reporting flattering comparisons, and say so explicitly, which is why only CADD appears on indels.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Baseline scores of indel and stop-gain variant effects",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The vast majority of these have been trained on clinical databases like ClinVar, leading to circularity issues when evaluating them on the same benchmarks."
+          }
+        ]
+      },
+      {
+        "text": "The stop-gain set is split by expected nonsense-mediated decay, which exposes where a protein-sequence model fails: 0.734 on variants not expected to undergo decay against 0.565 on those that are. The authors report the weak half rather than only the aggregate.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, ESM1b can predict the effects of multiresidue variants; Fig. 6 legend",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "ESM1b is a good classifier for variants not resulting in NMD according to the 50 bp rule<sup><xref ref-type=\"bibr\" rid=\"CR45\">45</xref></sup> (ROC-AUC = 0.734) but performs poorly (0.565) over variants expected to cause NMD (Fig. <xref rid=\"Fig6\" ref-type=\"fig\">6d</xref>)."
+          }
+        ]
+      },
+      {
+        "text": "Simple sequence-similarity baselines are included, which gives a floor for the indel task: edit distance scores 0.501, close to chance, so the task is not solved by noticing that the sequence changed.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results and Methods, Baseline scores of indel and stop-gain variant effects",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Both ESM1b and CADD outperformed the following three baseline models: (1) edit distance (0.501), (2) pairwise sequence alignment (0.586) and (3) BlastP (0.581)."
+          },
+          {
+            "source": "@paper",
+            "text": "All three scores share the same premise that the more dissimilar the WT and mutated sequences are, the more likely the indel to be damaging."
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The stop-gain set is extremely unbalanced: 345 benign against 36,034 pathogenic overall, and only 147 benign in the non-decay group that the headline 0.734 is computed on. ROC-AUC on such a set rests on a few hundred negatives, which is why the authors bootstrap 140 of each class rather than reporting a single number.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Fig. 6 legend; Methods, AUC metrics for pathogenicity classification",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "(3) all stop-gain variants (36,034 pathogenic and 345 benign variants)"
+          },
+          {
+            "source": "@paper",
+            "text": "In each bootstrapping iteration, we randomly sampled 140 pathogenic and 140 benign variants from each of the three groups of stop-gain variants"
+          }
+        ]
+      },
+      {
+        "text": "Almost nothing can be compared against. On stop gains no published predictor is evaluated at all, and on indels only CADD, so these sets rank one model against three simple scores rather than against the field.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Baseline scores of indel and stop-gain variant effects",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we compared ESM1b to only one other VEP method (CADD) over the ClinVar benchmark of in-frame indels (Fig. <xref rid=\"Fig6\" ref-type=\"fig\">6b</xref>) and none over stop-gain variants (Fig. <xref rid=\"Fig6\" ref-type=\"fig\">6d</xref>)"
+          },
+          {
+            "source": "@paper",
+            "text": "While numerous VEP methods predict missense variant effects (46 evaluated here; Figs. <xref rid=\"Fig2\" ref-type=\"fig\">2</xref> and <xref rid=\"Fig3\" ref-type=\"fig\">3</xref>), few handle indel and stop-gain variants."
+          }
+        ]
+      },
+      {
+        "text": "The labels are clinical assertions, so the benchmark inherits ClinVar's biases, and the rule for what counts as high confidence is in the Supplementary Methods rather than the article. The stop-gain partition also depends on the 50 base pair rule being correct, which is a heuristic rather than a measurement.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; Methods, Baseline scores of indel and stop-gain variant effects",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Only high-confidence variants were included (<xref rid=\"MOESM1\" ref-type=\"media\">Supplementary Methods</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "The 50 bp rule asserts that a transcript is likely to undergo NMD only if a stop codon is introduced more than 50 base pairs upstream of the last exon junction within its coding region<sup><xref ref-type=\"bibr\" rid=\"CR45\">45</xref></sup>."
+          }
+        ]
+      },
+      {
+        "text": "The two counts given for the stop-gain groups do not agree between the Fig. 6d legend and the Methods: the legend says 32,362 pathogenic in the decay group and 36,034 overall, while the bootstrapping description says 32,441 and 36,113. A user should check the published stop-gain file before quoting either.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Fig. 6 legend; Methods, AUC metrics for pathogenicity classification",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "(2) undergo NMD (32,362 pathogenic and 198 benign variants) or (3) all stop-gain variants (36,034 pathogenic and 345 benign variants)"
+          },
+          {
+            "source": "@paper",
+            "text": "(3,672 pathogenic and 147 benign variants not expected to lead to NMD, 32,441 pathogenic and 198 benign variants expected to lead to NMD, and 36,113 pathogenic and 345 benign variants overall)"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Brandes et al. multiresidue variant benchmarks",
+      "steps": [
+        "ClinVar pathogenic and benign labels, high-confidence entries only",
+        "in-frame indel set of 3,470 variants; stop-gain set split by the 50 base pair decay rule",
+        "score each variant: pseudo-log-likelihood ratio for indels, worst missense score in the lost region for stop gains",
+        "global ROC-AUC over the whole set",
+        "permutation test against CADD, bootstrapped error bars for stop gains"
+      ],
+      "caption": "How each reported ROC-AUC on the indel and stop-gain sets is produced.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Results, Fig. 6 legend and Methods sections on effect scores, AUC metrics and significance testing",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Only high-confidence variants were included (<xref rid=\"MOESM1\" ref-type=\"media\">Supplementary Methods</xref>)."
+        },
+        {
+          "source": "@paper",
+          "text": "Right: partitioning of the 3,470 in-frame indels into deletions, insertions and deletion–insertion combinations (delins)."
+        },
+        {
+          "source": "@paper",
+          "text": "The effect score of an in-frame indel is the PLLR between the mutated and WT sequences"
+        },
+        {
+          "source": "@paper",
+          "text": "we primarily used ROC-AUC (Fig. <xref rid=\"Fig2\" ref-type=\"fig\">2b,e–h</xref>), the standard evaluation metric for binary classifiers<sup><xref ref-type=\"bibr\" rid=\"CR61\">61"
+        },
+        {
+          "source": "@paper",
+          "text": "statistical significance was determined through permutation tests"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The Supplementary Methods, which hold the rules for building both ClinVar sets and for applying the 50 base pair rule, are a separate file that was not fetched; the repository points at the bioRxiv preprint for them, which this run was told not to request.",
+      "The stop-gain benchmark file in the repository is gzipped and was not fetched, so the disagreement between the Fig. 6d legend counts and the Methods counts could not be resolved.",
+      "Fig. 6b and 6d print their ROC-AUC values only on the figure; the values recorded here are those quoted in the prose, and Supplementary Table 2 was not read.",
+      "No release date for either benchmark file is stated by the sources read, and no ClinVar release version is given in the article text."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the PMC full text XML of Brandes et al. (PMC10484790, Nature Genetics 2023), including the Results section on multiresidue variants, the Fig. 6 legend, the Methods sections on generalised effect scores, baselines, AUC metrics and significance testing, and the data and code availability statements; and two files of the ntranoslab/esm-variants repository (README.md and benchmarks/ClinVar_indel_benchmark_with_predictions.csv) at commit 0c33758a5073e5d6e673d9a16a40e5b0af46851d. The indel table's rows and labels were counted. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Get the published benchmark tables, and score new multi-residue variants with the repository's command-line tool.",
+    "prerequisites": [
+      "Python with tqdm, numpy, pandas, biopython, torch and fair-esm, as the README's install line lists.",
+      "The ESM1b weights, which fair-esm downloads; the README notes the model comes from Meta AI's official repository.",
+      "For scoring a new set, a CSV with wt_seq, mut_seq and start_pos columns.",
+      "The code is MIT licensed. ClinVar labels are public; the HGMD part of the wider paper is not, but neither of these two benchmarks uses it."
+    ],
+    "steps": [
+      {
+        "title": "Get the code and the published benchmarks",
+        "shell": "git clone https://github.com/ntranoslab/esm-variants.git\ncd esm-variants\ngit checkout --detach 0c33758a5073e5d6e673d9a16a40e5b0af46851d",
+        "explanation": "The clone and cd lines are the README's; the checkout line was added here to pin the commit these steps were read from. The clone brings down the indel and stop-gain benchmark tables, which already contain every compared method's scores.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md, Installation and Benchmarks",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "git clone https://github.com/ntranoslab/esm-variants.git cd esm-variants"
+          },
+          {
+            "source": "@readme",
+            "text": "- `ClinVar_indel_benchmark_with_predictions.csv` - `ClinVar_stop_gains_benchmark_with_predictions.csv.gz`"
+          }
+        ]
+      },
+      {
+        "title": "Install the dependencies",
+        "shell": "pip3 install tqdm numpy pandas biopython torch fair-esm",
+        "explanation": "The one install line the README gives.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md, Installation",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "pip3 install tqdm numpy pandas biopython torch fair-esm"
+          }
+        ]
+      },
+      {
+        "title": "Score multi-residue variants",
+        "shell": "python3 esm_score_multi_residue_mutations.py --input-csv-file /path/to/input.csv --output-csv-file /path/to/output.csv",
+        "explanation": "The README's command for in-frame indels and other multi-residue changes. The input CSV needs wt_seq, mut_seq and start_pos; the wild-type and mutated sequences for every variant in the indel benchmark are already columns of the published table.",
+        "source_ids": [
+          "@readme",
+          "@indel-benchmark"
+        ],
+        "source_locator": "Repository: README.md, Usage; the indel benchmark table header",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "python3 esm_score_multi_residue_mutations.py --input-csv-file /path/to/input.csv --output-csv-file /path/to/output.csv"
+          },
+          {
+            "source": "@readme",
+            "text": "`mut_seq`: the mutated protein sequence"
+          },
+          {
+            "source": "@indel-benchmark",
+            "text": "full_ref_seq,site_ref_seq,site_alt_seq,full_alt_seq"
+          }
+        ]
+      },
+      {
+        "title": "Score all missense substitutions, the route used for stop gains",
+        "shell": "python3 esm_score_missense_mutations.py --input-fasta-file /path/to/input.fasta --output-csv-file /path/to/output.csv",
+        "explanation": "The README's other command. A stop-gain score in the paper is the lowest of the missense log-likelihood ratios over the region lost after the new stop codon, so this is the script that produces the underlying scores; the paper does not publish a command that performs that minimisation.",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "Repository: README.md, Usage. Paper: Fig. 6 legend",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "python3 esm_score_missense_mutations.py --input-fasta-file /path/to/input.fasta --output-csv-file /path/to/output.csv"
+          },
+          {
+            "source": "@paper",
+            "text": "defined as the LLR score assigned to the missense variant predicted to be the most deleterious among all possible missense variants in the lost region of the protein"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "A CSV of effect scores for the variants given, written to the path passed to the script.",
+      "The cloned repository's benchmark tables, which already hold the ESM1b, CADD and baseline scores for the 3,470 indels and the stop-gain set, plus Table_of_results.xlsx."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "No published command computes the reported ROC-AUCs, the permutation tests or the bootstrapped error bars; the repository publishes the scored tables and the scoring tools only.",
+      "The stop-gain pipeline is not a single command: the minimisation over missense scores in the lost region and the 50 base pair partition are described in the paper, not shipped as a script in the files read."
+    ],
+    "source_ids": [
+      "@readme",
+      "@paper",
+      "@indel-benchmark"
+    ]
+  },
+  "structured": [
+    {
+      "task": "ClinVar in-frame indel pathogenicity",
+      "dataset": "ClinVar_indel_benchmark_with_predictions.csv",
+      "size": 3470,
+      "size_unit": "variants, 1791 pathogenic and 1679 benign",
+      "split": "no split, the whole set evaluated as one classification task",
+      "primary_metric": "ROC-AUC",
+      "metric_direction": "higher",
+      "results_url": "https://github.com/ntranoslab/esm-variants/blob/0c33758a5073e5d6e673d9a16a40e5b0af46851d/benchmarks/ClinVar_indel_benchmark_with_predictions.csv",
+      "code_url": "https://github.com/ntranoslab/esm-variants",
+      "data_url": "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "the distribution of ESM1b effect scores over 1,679 benign and 1,791 pathogenic in-frame indels from ClinVar"
+        },
+        {
+          "source": "@paper",
+          "text": "Right: partitioning of the 3,470 in-frame indels into deletions, insertions and deletion–insertion combinations (delins)."
+        },
+        {
+          "source": "@paper",
+          "text": "We treated the entire set of pathogenic and benign variants (from ClinVar<sup><xref ref-type=\"bibr\" rid=\"CR10\">10</xref></sup> or HGMD/gnomAD<sup><xref ref-type=\"bibr\" rid=\"CR9\">9</xref>,<xref ref-type=\"bibr\" rid=\"CR26\">26</xref></sup>) as a single genome-wide classification task to calculate a global ROC-AUC."
+        },
+        {
+          "source": "@paper",
+          "text": "ClinVar labels for missense, indel and stop-gain variants were downloaded directly from ClinVar’s website (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz\">https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz</ext-link>)"
+        },
+        {
+          "source": "@indel-benchmark",
+          "text": "ESM1b_PLL,ESM1b_wPLL,ESM1b_aPLL,CADD_score"
+        }
+      ]
+    },
+    {
+      "task": "ClinVar stop-gain pathogenicity, variants not expected to undergo NMD",
+      "dataset": "ClinVar_stop_gains_benchmark_with_predictions.csv.gz, non-NMD group",
+      "size": 3819,
+      "size_unit": "variants, 3672 pathogenic and 147 benign",
+      "split": "stop codon not more than 50 base pairs upstream of the last exon junction, by the 50 bp rule",
+      "primary_metric": "ROC-AUC",
+      "metric_direction": "higher",
+      "results_url": "https://github.com/ntranoslab/esm-variants/blob/0c33758a5073e5d6e673d9a16a40e5b0af46851d/benchmarks/ClinVar_stop_gains_benchmark_with_predictions.csv.gz",
+      "code_url": "https://github.com/ntranoslab/esm-variants",
+      "data_url": "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "over variants expected to either (1) not undergo NMD (3,672 pathogenic and 147 benign variants)"
+        },
+        {
+          "source": "@paper",
+          "text": "The 50 bp rule asserts that a transcript is likely to undergo NMD only if a stop codon is introduced more than 50 base pairs upstream of the last exon junction within its coding region<sup><xref ref-type=\"bibr\" rid=\"CR45\">45</xref></sup>."
+        },
+        {
+          "source": "@paper",
+          "text": "ESM1b is a good classifier for variants not resulting in NMD according to the 50 bp rule<sup><xref ref-type=\"bibr\" rid=\"CR45\">45</xref></sup> (ROC-AUC = 0.734)"
+        },
+        {
+          "source": "@readme",
+          "text": "- `ClinVar_stop_gains_benchmark_with_predictions.csv.gz`"
+        }
+      ]
+    },
+    {
+      "task": "ClinVar stop-gain pathogenicity, variants expected to undergo NMD",
+      "dataset": "ClinVar_stop_gains_benchmark_with_predictions.csv.gz, NMD group",
+      "size": 32560,
+      "size_unit": "variants, 32362 pathogenic and 198 benign as the Fig. 6d legend gives them",
+      "split": "stop codon more than 50 base pairs upstream of the last exon junction, by the 50 bp rule",
+      "primary_metric": "ROC-AUC",
+      "metric_direction": "higher",
+      "results_url": "https://github.com/ntranoslab/esm-variants/blob/0c33758a5073e5d6e673d9a16a40e5b0af46851d/benchmarks/ClinVar_stop_gains_benchmark_with_predictions.csv.gz",
+      "code_url": "https://github.com/ntranoslab/esm-variants",
+      "data_url": "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "(2) undergo NMD (32,362 pathogenic and 198 benign variants)"
+        },
+        {
+          "source": "@paper",
+          "text": "but performs poorly (0.565) over variants expected to cause NMD (Fig. <xref rid=\"Fig6\" ref-type=\"fig\">6d</xref>)"
+        },
+        {
+          "source": "@readme",
+          "text": "- `ClinVar_stop_gains_benchmark_with_predictions.csv.gz`"
+        }
+      ]
+    },
+    {
+      "task": "ClinVar stop-gain pathogenicity, all variants",
+      "dataset": "ClinVar_stop_gains_benchmark_with_predictions.csv.gz, all variants",
+      "size": 36379,
+      "size_unit": "variants, 36034 pathogenic and 345 benign as the Fig. 6d legend gives them",
+      "split": "no split, all stop-gain variants together",
+      "primary_metric": "ROC-AUC",
+      "metric_direction": "higher",
+      "results_url": "https://github.com/ntranoslab/esm-variants/blob/0c33758a5073e5d6e673d9a16a40e5b0af46851d/benchmarks/ClinVar_stop_gains_benchmark_with_predictions.csv.gz",
+      "code_url": "https://github.com/ntranoslab/esm-variants",
+      "data_url": "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "(3) all stop-gain variants (36,034 pathogenic and 345 benign variants)"
+        },
+        {
+          "source": "@paper",
+          "text": "Assessment of ESM1b and three baseline models as classifiers of pathogenic versus benign stop-gain variants"
+        },
+        {
+          "source": "@readme",
+          "text": "- `ClinVar_stop_gains_benchmark_with_predictions.csv.gz`"
+        }
+      ]
+    }
+  ],
+  "notes": "Written from the PMC full text (PMC10484790, CC BY 4.0) and two files of ntranoslab/esm-variants (MIT) at commit 0c33758a5073e5d6e673d9a16a40e5b0af46851d. Points for a human. First, the stop-gain counts disagree between the Fig. 6d legend (32,362 and 36,034 pathogenic) and the Methods bootstrapping description (32,441 and 36,113); the legend figures are used here and the sizes in the three stop-gain entries are the legend's pathogenic plus benign sums, so they should be checked against the published stop-gain file before being quoted anywhere. Second, the indel entry's size was verified against the published table: 3470 rows, 1791 with label 1, 1679 with label 0, and mut_type counts of 2248 deletions, 937 insertions and 285 delins. Third, data_licence is null because no licence is stated for ClinVar-derived labels in the sources read. Fourth, the ROC-AUC values appear on the figures and in the prose; Supplementary Table 2 holds the full evaluations and was not read. Fifth, the saved indel benchmark CSV is about 15 MB, which the applier may not want in the repository even though its licence allows it."
+}

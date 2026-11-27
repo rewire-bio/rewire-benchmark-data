@@ -1,0 +1,694 @@
+{
+  "record_id": "gpn-paper-20261116-benchmark-athaliana-variant-effect",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Benegas, Batra and Song 2023, DNA language models are powerful predictors of genome-wide variant effects (PNAS), PMC full-text XML",
+      "description": "NCBI PMC JATS XML of the published PNAS article PMC10622914, fetched through E-utilities efetch. Same file as the copy saved for the GPN held-out sequence modelling record.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&rettype=xml&id=10622914",
+      "url": "https://doi.org/10.1073/pnas.2311219120",
+      "version": "PNAS 120(44) e2311219120, PMC10622914",
+      "media_type": "application/xml",
+      "sha256": "18448cffb45272d6c72a9aa3bc096e648f592efb4ea11bf792ec355d78a48075",
+      "retrieved_at": "2026-11-27T01:09:54Z",
+      "licence": "CC BY-NC-ND 4.0",
+      "store_bytes": false
+    },
+    {
+      "key": "docs-gpn",
+      "name": "songlab-cal/gpn docs/models/gpn.md at commit dc5fd287",
+      "description": "Official repository documentation page for the GPN model family, pinned to a commit.",
+      "file": "artifacts/docs-gpn.md",
+      "artifact_url": "https://raw.githubusercontent.com/songlab-cal/gpn/dc5fd287599f2955a79d010bca0e0f7f8178c67e/docs/models/gpn.md",
+      "url": "https://github.com/songlab-cal/gpn",
+      "version": "git commit dc5fd287599f2955a79d010bca0e0f7f8178c67e",
+      "media_type": "text/markdown",
+      "sha256": "8bc702e8f5831b421bcfad8bffe1975320d2b66b5da851ccd09a2a750c5e4f23",
+      "retrieved_at": "2026-11-27T01:11:50Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "analysis-readme",
+      "name": "songlab-cal/gpn analysis/gpn_arabidopsis/README.md at archive commit 30dee6cf",
+      "description": "README of the paper's analysis code, preserved in the historical analysis archive (tag analysis-archive-2026-08-18).",
+      "file": "artifacts/analysis-readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/songlab-cal/gpn/30dee6cf45849dfdcfc043ca8baf44fd6ba51d74/analysis/gpn_arabidopsis/README.md",
+      "url": "https://github.com/songlab-cal/gpn/tree/analysis-archive-2026-08-18/analysis/gpn_arabidopsis",
+      "version": "git commit 30dee6cf45849dfdcfc043ca8baf44fd6ba51d74",
+      "media_type": "text/markdown",
+      "sha256": "d00455ccb57544d9764a6136e30559e7d239fabba9ededc4dbbead820e1b348e",
+      "retrieved_at": "2026-11-27T01:14:07Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "analysis-archive",
+      "name": "songlab-cal/gpn release/analysis-archive.md at commit dc5fd287",
+      "description": "Maintainer manifest describing the historical analysis archive and its status.",
+      "file": "artifacts/analysis-archive.md",
+      "artifact_url": "https://raw.githubusercontent.com/songlab-cal/gpn/dc5fd287599f2955a79d010bca0e0f7f8178c67e/release/analysis-archive.md",
+      "url": "https://github.com/songlab-cal/gpn",
+      "version": "git commit dc5fd287599f2955a79d010bca0e0f7f8178c67e",
+      "media_type": "text/markdown",
+      "sha256": "10568cc014459b7f07ee9e6bba0dec64e9f9d81cfe19280e66a1d13af0b4c70e",
+      "retrieved_at": "2026-11-27T01:11:53Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "licence",
+      "name": "songlab-cal/gpn LICENSE at commit dc5fd287",
+      "description": "Repository licence file, pinned to a commit.",
+      "file": "artifacts/licence.txt",
+      "artifact_url": "https://raw.githubusercontent.com/songlab-cal/gpn/dc5fd287599f2955a79d010bca0e0f7f8178c67e/LICENSE",
+      "url": "https://github.com/songlab-cal/gpn",
+      "version": "git commit dc5fd287599f2955a79d010bca0e0f7f8178c67e",
+      "media_type": "text/plain",
+      "sha256": "cef312cb27bc4aae45e0ca7130643ca36f9aa4165ef09bcddf5ba5eb6fb76e90",
+      "retrieved_at": "2026-11-27T01:14:52Z",
+      "licence": "MIT",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "The GPN paper's own test of unsupervised, genome-wide variant effect prediction in Arabidopsis thaliana. A variant score is checked by whether its most extreme tail is enriched for rare variants in the 1001 Genomes data and for GWAS hits in the AraGWAS Catalog, using Fisher's exact test, with phyloP and phastCons conservation scores as comparators. There is no labelled truth set and no train or test split: the endpoint is population genetic signal.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Abstract; Results, 'Unsupervised Variant Effect Prediction'; Materials and Methods, 'Variant Effect Prediction'",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "To evaluate the capability of identifying putative functional variants, we assessed the enrichment of rare versus common variants in the tail of genome-wide score distributions."
+      },
+      {
+        "source": "@paper",
+        "text": "We hypothesized that GWAS hits may be enriched in regions with low GPN scores."
+      },
+      {
+        "source": "@paper",
+        "text": "-value with Fisher’s exact test."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether a genome-wide variant score puts likely functional variants in its lowest tail. Three readouts are used: how variant consequence types rank under in silico mutagenesis of a 1-Mb region; enrichment of rare over common variants among the lowest-scoring 1001 Genomes SNPs; and enrichment of GWAS hits among the lowest-scoring AraGWAS variants. The paper scores variants with the log-likelihood ratio of the alternate to the reference allele.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, 'Unsupervised Variant Effect Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "GPN can be employed to calculate a pathogenicity or functionality score for any single-nucleotide polymorphism (SNP) in the genome using the log-likelihood ratio between the alternate and reference allele"
+          },
+          {
+            "source": "@paper",
+            "text": "We first computed GPN scores for in silico mutagenesis of SNPs within a 1-Mb region and aggregated the results across variant types"
+          },
+          {
+            "source": "@paper",
+            "text": "To evaluate the capability of identifying putative functional variants, we assessed the enrichment of rare versus common variants in the tail of genome-wide score distributions."
+          },
+          {
+            "source": "@paper",
+            "text": "We hypothesized that GWAS hits may be enriched in regions with low GPN scores."
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "In silico mutagenesis covers all possible SNPs in Chr5:3,500,000-4,500,000, annotated with Ensembl VEP; types with at least 1,000 variants are compared. The rare versus common set is over 10 million SNPs from the 1001 Genomes genotype matrix, where rare means allele count 1 and common means allele frequency above 5%. The GWAS set is AraGWAS summary statistics for 462 phenotypes (minimum allele count 6), with hits defined by the permutation-based threshold AraGWAS recommends, or by Bonferroni as a sensitivity check. The figure legend describes around half a million GWAS-tested variants.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, 'Variant Effect Prediction'; Figure 6 legend",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "All possible SNPs in the region Chr5:3,500,000-4,500,000 were generated and their consequences annotated with Ensembl Variant Effect Predictor"
+          },
+          {
+            "source": "@paper",
+            "text": "We compared scores for variant types with at least 1,000 variants, and we excluded variants with different consequences in different transcripts."
+          },
+          {
+            "source": "@paper",
+            "text": "we analyzed over 10 million SNPs from naturally occurring accessions of the 1001 Genomes Project"
+          },
+          {
+            "source": "@paper",
+            "text": "We defined rare variants as those with allele count equal to 1 (to be precise, it is two alleles in the same homozygous accession), and common variants as those with allele frequency above 5%."
+          },
+          {
+            "source": "@paper",
+            "text": "GWAS summary statistics for all 462 phenotypes were downloaded through the AraGWAS API, with the default threshold of minimum allele count of 6"
+          },
+          {
+            "source": "@paper",
+            "text": "The summary statistics include information on whether an association is significant according to a permutation-based approach recommended ("
+          },
+          {
+            "source": "@paper",
+            "text": "GPN scores were analyzed for around half a million variants tested in AraGWAS."
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Each score is thresholded at a quantile (varied from 0.1% to 10%) to call variants putatively functional, and the odds ratio and P-value come from Fisher's exact test. Rare versus common is reported at the lowest 0.1%; GWAS enrichment at the lowest 1%. For GWAS, scores are also combined with linkage disequilibrium (GPN x LD, a weighted sum over squared correlations within 100 kb), and the same transform is applied to phyloP and phastCons; the unweighted LD Score is a baseline. When comparing with phyloP and phastCons, variants those scores cannot cover are excluded. In silico mutagenesis ranks variant consequence types by the first percentile of their GPN scores; a side analysis compares the share of repeat variants below the first missense decile across models with repeat loss weights 0, 0.1 and 1.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; Materials and Methods, 'Variant Effect Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Model scores were defined as pathogenic or benign based on a quantile threshold that we varied from 0.1% to 10%."
+          },
+          {
+            "source": "@paper",
+            "text": "-value with Fisher’s exact test."
+          },
+          {
+            "source": "@paper",
+            "text": "Putative functional SNPs, defined as the lowest 0.1% of GPN scores, exhibit a 5.5-fold enrichment in rare variants"
+          },
+          {
+            "source": "@paper",
+            "text": "LD scores are 10.3-fold enriched in GWAS hits compared to the upper 99% of GPN"
+          },
+          {
+            "source": "@paper",
+            "text": "was calculated within a radius of 100 kb around each variant"
+          },
+          {
+            "source": "@paper",
+            "text": "the unweighted sum of LD with a given variant:"
+          },
+          {
+            "source": "@paper",
+            "text": "When comparing to phyloP and phastCons, we excluded variants where these scores are undefined (due to the lack of whole-genome alignment)."
+          },
+          {
+            "source": "@paper",
+            "text": "More precisely, in models with 0.0 and 0.1 down-weighting, respectively, 8% and 9% of repeat variants are ranked before the first decile of missense variants."
+          },
+          {
+            "source": "@paper",
+            "text": "The ranking of variant types based on the lowest percentile of GPN scores is generally consistent with established notions of deleteriousness"
+          },
+          {
+            "source": "@paper",
+            "text": "These represent a substantial decrease compared to the 27% observed in the model without any down-weighting"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Three sets: all possible SNPs in Chr5:3,500,000-4,500,000 (in silico mutagenesis); over 10 million 1001 Genomes SNPs (rare versus common); AraGWAS summary statistics for 462 phenotypes, around half a million tested variants (GWAS enrichment).",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results and Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "All possible SNPs in the region Chr5:3,500,000-4,500,000 were generated and their consequences annotated with Ensembl Variant Effect Predictor"
+          },
+          {
+            "source": "@paper",
+            "text": "we analyzed over 10 million SNPs from naturally occurring accessions of the 1001 Genomes Project"
+          },
+          {
+            "source": "@paper",
+            "text": "GWAS summary statistics for all 462 phenotypes were downloaded through the AraGWAS API, with the default threshold of minimum allele count of 6"
+          },
+          {
+            "source": "@paper",
+            "text": "GPN scores were analyzed for around half a million variants tested in AraGWAS."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "None. Every variant is scored by an unsupervised model; the score's tail is compared with the rest. The model itself held out A. thaliana chromosome 5 in training, but the 1001 Genomes and GWAS analyses are genome-wide.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Model scores were defined as pathogenic or benign based on a quantile threshold that we varied from 0.1% to 10%."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Odds ratio from Fisher's exact test (higher is better) for rare versus common and for GWAS hits. For in silico mutagenesis, the paper ranks consequence types by the first percentile of GPN scores, and separately compares the share of repeat variants below the first missense decile across repeat loss weights.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "-value with Fisher’s exact test."
+          },
+          {
+            "source": "@paper",
+            "text": "More precisely, in models with 0.0 and 0.1 down-weighting, respectively, 8% and 9% of repeat variants are ranked before the first decile of missense variants."
+          },
+          {
+            "source": "@paper",
+            "text": "The ranking of variant types based on the lowest percentile of GPN scores is generally consistent with established notions of deleteriousness"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "phyloP and phastCons conservation scores from 18 Brassicales species, abs(phyloP), their LD-weighted versions, the unweighted LD Score, GPN models with other repeat weights, and a GPN trained on A. thaliana alone.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results; Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "which are conservation scores derived from a broader set of 18 Brassicales species"
+          },
+          {
+            "source": "@paper",
+            "text": "We also considered the alternative abs(phyloP) (the absolute value of phyloP), but it did not achieve a significant enrichment."
+          },
+          {
+            "source": "@paper",
+            "text": "the unweighted sum of LD with a given variant:"
+          },
+          {
+            "source": "@paper",
+            "text": "The model trained on only a single species performs substantially worse"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Not applicable in the usual sense: no labels are used in training. The paper does not discuss whether population allele frequencies or GWAS results relate to the model's training genomes.",
+        "status": "unreported",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods"
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Fisher's exact test P-values accompany the odds ratios; no confidence intervals, seeds or replicates are given in the text.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, 'Variant Effect Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "-value with Fisher’s exact test."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A single-nucleotide variant.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "GPN can be employed to calculate a pathogenicity or functionality score for any single-nucleotide polymorphism (SNP) in the genome using the log-likelihood ratio between the alternate and reference allele"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Arabidopsis thaliana only.",
+        "status": "source_checked",
+        "source_ids": [
+          "@analysis-readme",
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods",
+        "quotes": [
+          {
+            "source": "@analysis-readme",
+            "text": "# GPN application to *Arabidopsis thaliana*"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Population genotyping (1001 Genomes allele counts and frequencies) and genome-wide association studies (AraGWAS); consequence labels from Ensembl VEP. No functional assay.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The 1001 Genomes genotype matrix was downloaded from"
+          },
+          {
+            "source": "@paper",
+            "text": "GWAS summary statistics for all 462 phenotypes were downloaded through the AraGWAS API, with the default threshold of minimum allele count of 6"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Any genome-wide variant score. GPN uses sequence context only; the comparators use whole-genome alignments, and the GWAS scores add an LD matrix.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We scored variants by masking the position and calculating the log-likelihood ratio between the alternate and reference allele."
+          },
+          {
+            "source": "@paper",
+            "text": "When comparing to phyloP and phastCons, we excluded variants where these scores are undefined (due to the lack of whole-genome alignment)."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Zero-shot: scores come from the pretrained model with no training on labels.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods, 'Variant Effect Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We scored variants by masking the position and calculating the log-likelihood ratio between the alternate and reference allele."
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Genome-wide: coding and non-coding variants are scored on one scale and judged against the same population and GWAS signals.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To evaluate the capability of identifying putative functional variants, we assessed the enrichment of rare versus common variants in the tail of genome-wide score distributions."
+          }
+        ]
+      },
+      {
+        "text": "Results are reported across thresholds from 0.1% to 10% and with two GWAS significance rules, so a reader can see how much a result depends on the cut-off.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results and Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Model scores were defined as pathogenic or benign based on a quantile threshold that we varied from 0.1% to 10%."
+          },
+          {
+            "source": "@paper",
+            "text": "yields lower odds ratios for all methods, but GPN"
+          }
+        ]
+      },
+      {
+        "text": "Data sources are public: 1001 Genomes, AraGWAS and the PlantRegMap conservation scores, with download addresses in the methods.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Materials and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The 1001 Genomes genotype matrix was downloaded from"
+          },
+          {
+            "source": "@paper",
+            "text": "Conservation scores were downloaded from"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "No labelled truth set: rare versus common enrichment and GWAS hits are proxies for function, not measured effects.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To evaluate the capability of identifying putative functional variants, we assessed the enrichment of rare versus common variants in the tail of genome-wide score distributions."
+          }
+        ]
+      },
+      {
+        "text": "The ranking against comparators depends on the threshold and the variant class; the authors say GPN is comparable to phyloP and phastCons at less stringent thresholds.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, 'Benchmarking using allele frequencies in 1001 genomes'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "GPN performs comparably to phyloP and phastCons when using less stringent thresholds for defining putative functional SNPs"
+          },
+          {
+            "source": "@paper",
+            "text": "GPN also achieves significant odds ratios when computed only within particular variant classes, but its performance relative to phyloP and phastCons varies"
+          }
+        ]
+      },
+      {
+        "text": "Comparator odds ratios are printed only in figures, and the paper-specific analysis code is in an unmaintained archive.",
+        "source_ids": [
+          "@paper",
+          "@analysis-archive"
+        ],
+        "source_locator": "Paper: Figures 5D, 6D, 6E; release/analysis-archive.md",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Comparison of odds ratios obtained with different models ("
+          },
+          {
+            "source": "@analysis-archive",
+            "text": "The archived code is scientific provenance, not supported software. It may rely on institutional absolute paths, unavailable large inputs, mutable external"
+          }
+        ]
+      },
+      {
+        "text": "One plant species only; this is the authors' own evaluation with no leaderboard.",
+        "source_ids": [
+          "@analysis-readme"
+        ],
+        "source_locator": "Paper: Materials and Methods",
+        "quotes": [
+          {
+            "source": "@analysis-readme",
+            "text": "# GPN application to *Arabidopsis thaliana*"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "GPN Arabidopsis variant effect evaluation",
+      "steps": [
+        "Score each SNP by masked log-likelihood ratio",
+        "Call the lowest quantile putatively functional",
+        "Cross-tabulate against rare versus common or GWAS hit status",
+        "Fisher's exact test odds ratio",
+        "Compare with phyloP, phastCons and LD Score"
+      ],
+      "caption": "How the paper evaluates unsupervised variant scores without a labelled truth set.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Materials and Methods, 'Variant Effect Prediction'",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We scored variants by masking the position and calculating the log-likelihood ratio between the alternate and reference allele."
+        },
+        {
+          "source": "@paper",
+          "text": "Model scores were defined as pathogenic or benign based on a quantile threshold that we varied from 0.1% to 10%."
+        },
+        {
+          "source": "@paper",
+          "text": "-value with Fisher’s exact test."
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "Exact variant counts for the in silico mutagenesis and rare versus common comparisons are not quoted here; the text gives 'over 10 million' for the 1001 Genomes SNPs. For GWAS, the Fig. 6 legend gives n = 510,462 for the full variant set and n = 453,281 for the variants with whole-genome alignment, both written in MathML.",
+      "Comparator odds ratios are only in bar charts.",
+      "The SI Appendix figures for other thresholds (Figures S8, S9, S11, S12) were not read for this record."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the PMC XML of PNAS 120(44) e2311219120 (PMC10622914) and songlab-cal/gpn files at commits dc5fd287599f2955a79d010bca0e0f7f8178c67e and 30dee6cf45849dfdcfc043ca8baf44fd6ba51d74, on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": null,
+  "no_run_guide_reason": "The enrichment analyses are only in the unmaintained analysis archive. Its README gives a conda environment and says the analysis is in a Snakefile and notebooks, with no command to reproduce the results.",
+  "structured": [
+    {
+      "task": "Rare versus common variant enrichment in the lowest 0.1% of scores",
+      "dataset": "1001 Genomes",
+      "size": null,
+      "size_unit": null,
+      "split": "no split; genome-wide",
+      "primary_metric": "odds ratio (Fisher's exact test)",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Putative functional SNPs, defined as the lowest 0.1% of GPN scores, exhibit a 5.5-fold enrichment in rare variants"
+        },
+        {
+          "source": "@paper",
+          "text": "-value with Fisher’s exact test."
+        },
+        {
+          "source": "@licence",
+          "text": "MIT License"
+        },
+        {
+          "source": "@docs-gpn",
+          "text": "https://github.com/songlab-cal/gpn"
+        }
+      ]
+    },
+    {
+      "task": "GWAS hit enrichment in the lowest 1% of scores",
+      "dataset": "AraGWAS Catalog",
+      "size": 510462,
+      "size_unit": "variants tested in AraGWAS (full set); the comparison with phyloP and phastCons uses the 453,281 variants with whole-genome alignment",
+      "split": "no split; genome-wide",
+      "primary_metric": "odds ratio (Fisher's exact test)",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "LD scores are 10.3-fold enriched in GWAS hits compared to the upper 99% of GPN"
+        },
+        {
+          "source": "@paper",
+          "text": "-value with Fisher’s exact test."
+        },
+        {
+          "source": "@licence",
+          "text": "MIT License"
+        },
+        {
+          "source": "@docs-gpn",
+          "text": "https://github.com/songlab-cal/gpn"
+        },
+        {
+          "source": "@paper",
+          "text": "Odds ratios with the full variant set (<inline-formula><mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" id=\"i28\" display=\"inline\" overflow=\"scroll\"><mml:mrow><mml:mi>n</mml:mi><mml:mo>=</mml:mo><mml:mn>510</mml:mn><mml:mo>,</mml:mo><mml:mn>462</mml:mn>"
+        },
+        {
+          "source": "@paper",
+          "text": "<mml:mn>453</mml:mn><mml:mo>,</mml:mo><mml:mn>281</mml:mn></mml:mrow></mml:math></inline-formula> variants with whole-genome alignment)"
+        }
+      ]
+    },
+    {
+      "task": "In silico mutagenesis: ranking of variant consequence types",
+      "dataset": "All possible SNPs in Chr5:3,500,000-4,500,000",
+      "size": null,
+      "size_unit": null,
+      "split": "1-Mb region",
+      "primary_metric": "first percentile of GPN score per variant type (ranking); repeat share below the first missense decile reported only as a comparison of repeat loss weights (8% at weight 0, 9% at 0.1, 27% at 1)",
+      "metric_direction": null,
+      "results_url": null,
+      "code_url": "https://github.com/songlab-cal/gpn",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "All possible SNPs in the region Chr5:3,500,000-4,500,000 were generated and their consequences annotated with Ensembl Variant Effect Predictor"
+        },
+        {
+          "source": "@paper",
+          "text": "More precisely, in models with 0.0 and 0.1 down-weighting, respectively, 8% and 9% of repeat variants are ranked before the first decile of missense variants."
+        },
+        {
+          "source": "@licence",
+          "text": "MIT License"
+        },
+        {
+          "source": "@docs-gpn",
+          "text": "https://github.com/songlab-cal/gpn"
+        },
+        {
+          "source": "@paper",
+          "text": "The ranking of variant types based on the lowest percentile of GPN scores is generally consistent with established notions of deleteriousness"
+        },
+        {
+          "source": "@paper",
+          "text": "across categories, sorted by first percentile (dashed vertical lines)."
+        },
+        {
+          "source": "@paper",
+          "text": "These represent a substantial decrease compared to the 27% observed in the model without any down-weighting"
+        },
+        {
+          "source": "@paper",
+          "text": "the proportion of low GPN scores for repe"
+        }
+      ]
+    }
+  ],
+  "notes": "Shares one paper and repository with gpn-paper-20261116-benchmark-athaliana-model-quality; files here are copies of those fetched for that record, with that fetch's timestamps. The paper is CC BY-NC-ND 4.0, so its file is not marked for redistribution. The in silico mutagenesis entry's readout is a ranking of variant consequence types, not a single score, so its metric_direction is null."
+}

@@ -1,0 +1,1065 @@
+{
+  "record_id": "dna-pathogen-20261012-metagenn-benchmark",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "PMC full text XML of the MetageNN paper (BMC Bioinformatics 2024, PMC11022314)",
+      "description": "The JATS full text from NCBI E-utilities, including Table 1, the per-setting Results sections and the Methods sections on the test datasets, the databases and the evaluation metrics.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=11022314",
+      "url": "https://doi.org/10.1186/s12859-024-05760-3",
+      "version": "PMC11022314, version of record 2024",
+      "media_type": "text/xml",
+      "licence": "CC BY 4.0",
+      "store_bytes": true,
+      "sha256": "6d2560b0a1a6bd7f7f96a0d0b432eac935ade2f8e1527ea5b239f1ddc87be100",
+      "retrieved_at": "2026-11-27T01:16:13Z"
+    },
+    {
+      "key": "readme",
+      "name": "csb5/MetageNN README.md at commit d7c858cee1b88bf78fb1ea7d120b3be180a52b69",
+      "description": "Official repository file, pinned to a commit. It gives the requirements step, the k-mer counting command, the settings files and the training command.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/csb5/MetageNN/d7c858cee1b88bf78fb1ea7d120b3be180a52b69/README.md",
+      "url": "https://github.com/csb5/MetageNN",
+      "version": "git commit d7c858cee1b88bf78fb1ea7d120b3be180a52b69",
+      "media_type": "text/markdown",
+      "store_bytes": false,
+      "sha256": "0e53262ac481de388924d3c9fa5a90704f418bc7317d79559307700c58a2195f",
+      "retrieved_at": "2026-11-27T01:16:20Z"
+    },
+    {
+      "key": "data-readme",
+      "name": "csb5/MetageNN data/README.txt at commit d7c858cee1b88bf78fb1ea7d120b3be180a52b69",
+      "description": "The note in the repository's data folder, which says where the isolate read sets and the reference genomes come from.",
+      "file": "artifacts/data-readme.txt",
+      "artifact_url": "https://raw.githubusercontent.com/csb5/MetageNN/d7c858cee1b88bf78fb1ea7d120b3be180a52b69/data/README.txt",
+      "url": "https://github.com/csb5/MetageNN/blob/d7c858cee1b88bf78fb1ea7d120b3be180a52b69/data/README.txt",
+      "version": "git commit d7c858cee1b88bf78fb1ea7d120b3be180a52b69",
+      "media_type": "text/plain",
+      "store_bytes": false,
+      "sha256": "a5d210d27142045169039d270fc9a1c16454096f687d5e23f6981fba7e06ba6d",
+      "retrieved_at": "2026-11-27T01:16:26Z"
+    },
+    {
+      "key": "genome-list",
+      "name": "csb5/MetageNN data/main_database_list_of_genomes.txt at commit d7c858cee1b88bf78fb1ea7d120b3be180a52b69",
+      "description": "The list of reference genome assemblies in the main database, one file name per line. Counted here: 516 lines.",
+      "file": "artifacts/main-database-genomes.txt",
+      "artifact_url": "https://raw.githubusercontent.com/csb5/MetageNN/d7c858cee1b88bf78fb1ea7d120b3be180a52b69/data/main_database_list_of_genomes.txt",
+      "url": "https://github.com/csb5/MetageNN/blob/d7c858cee1b88bf78fb1ea7d120b3be180a52b69/data/main_database_list_of_genomes.txt",
+      "version": "git commit d7c858cee1b88bf78fb1ea7d120b3be180a52b69",
+      "media_type": "text/plain",
+      "store_bytes": false,
+      "sha256": "3fe8b0461b7cb80f1f2c4a414e4bd9a892f2878cd430c4934ea5bfe91d671d57",
+      "retrieved_at": "2026-11-27T01:16:40Z"
+    },
+    {
+      "key": "settings",
+      "name": "csb5/MetageNN settings/MetageNN_settings_main_database.json at commit d7c858cee1b88bf78fb1ea7d120b3be180a52b69",
+      "description": "The hyperparameter file the repository's training script loads for the main database, read for what it sets.",
+      "file": "artifacts/settings-main-database.json",
+      "artifact_url": "https://raw.githubusercontent.com/csb5/MetageNN/d7c858cee1b88bf78fb1ea7d120b3be180a52b69/settings/MetageNN_settings_main_database.json",
+      "url": "https://github.com/csb5/MetageNN/blob/d7c858cee1b88bf78fb1ea7d120b3be180a52b69/settings/MetageNN_settings_main_database.json",
+      "version": "git commit d7c858cee1b88bf78fb1ea7d120b3be180a52b69",
+      "media_type": "application/json",
+      "store_bytes": false,
+      "sha256": "c62284b5c80738322705138dc6d7c58d4ebbd27f035e4d65e0a5d5007cb7f40b",
+      "retrieved_at": "2026-11-27T01:16:29Z"
+    }
+  ],
+  "profile": {
+    "summary": "This is the evaluation published with MetageNN, a long-read taxonomic classifier. Six tools assign Oxford Nanopore reads from 81 verified bacterial isolates to a genus, all of them indexing the same 516 reference genomes, in two settings: when the read's own species is in the database, and when it is not. The same tools are then run on 30 pseudo-mock communities built from the out-of-database isolates, and Table 1 records each tool's database size and classification speed. It is useful to someone choosing a read classifier and wanting to know how each behaves when the species is missing from the reference set.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Results summary; Methods, Test datasets and Databases; Table 1",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "we obtained ONT reads and corresponding genomes for 81 bacterial strains"
+      },
+      {
+        "source": "@paper",
+        "text": "To perform a fair evaluation, all baselines used the same database of genomes."
+      },
+      {
+        "source": "@paper",
+        "text": "This resulted in a list of 516 genomes (belonging to 505 species and 311 genera)."
+      },
+      {
+        "source": "@paper",
+        "text": "We created 30 pseudo-communities consisting of ONT reads from species out of the database."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether a tool can put a long read in the right genus, and what happens when the read's species has no genome in the reference database. The authors set the problem up around that gap: the SRA has Nanopore data for only 489 unique bacterial species while RefSeq had complete genomes for more than 6800, so a classifier is often asked about a species it has never seen. The second question is cost: how much disk the database needs and how many reads per second the tool classifies.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, MetageNN model; Results for Species out of the database settings; Table 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "has ONT data for only 489 unique bacterial species."
+          },
+          {
+            "source": "@paper",
+            "text": "Frequently the correct genome of interest may not be part of the reference database, and a classifier’s ability to appropriately handle this scenario is an important attribute"
+          },
+          {
+            "source": "@paper",
+            "text": "Memory requirements for database storage and speed for each method on ONT data"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "The test data are real Nanopore reads with a checked ground truth. The authors searched the SRA for R.9.4.1 Nanopore datasets from bacterial isolates whose species had a RefSeq genome, confirmed the strain name matched, then assembled each read set with Flye and two rounds of medaka polishing and required average nucleotide identity above 99% to the reference. That left 81 strains, subsampled to about 20,000 reads each. The 47 strains whose genome is in the reference set form the Species in the database set and the remaining 34 form the Species out of the database set. The main database is the 47 genomes expanded about tenfold with randomly chosen RefSeq representative genomes, giving 516 genomes across 505 species and 311 genera; the repository's list of those assemblies has 516 lines. A smaller 47-genome database was used only for model and hyperparameter choices and for the comparison against other deep learning classifiers.",
+        "source_ids": [
+          "@paper",
+          "@genome-list"
+        ],
+        "source_locator": "Paper: Methods, Test datasets and Databases. Repository: data/main_database_list_of_genomes.txt",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we scanned NCBI’s Sequence Read Archive (SRA)"
+          },
+          {
+            "source": "@paper",
+            "text": "we ensured that the match was correct by assembling (Flye"
+          },
+          {
+            "source": "@paper",
+            "text": "We included reads from 47 species (out of 81) in this dataset that we refer to as the “Species in the database” dataset."
+          },
+          {
+            "source": "@paper",
+            "text": "In this case, we used the reads from the remaining 34 isolates."
+          },
+          {
+            "source": "@paper",
+            "text": "To reduce the computational resources required, we subsampled reads to have around 20,000 per bacterial isolate used."
+          },
+          {
+            "source": "@paper",
+            "text": "we expanded the initial list of genomes from the “small database” approximately 10 times by randomly selecting additional genomes from the RefSeq representative genomes list"
+          },
+          {
+            "source": "@genome-list",
+            "text": "GCF_016806835.2_ASM1680683v2_genomic.fna"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Every tool indexes the same main database, and the non-machine-learning tools are run at their default settings. Reads are classified at genus rank and scored by sensitivity, precision and F1 per bacterial isolate, then averaged across isolates within a dataset; differences against MetageNN are tested with a Wilcoxon rank sum test. Error bars in the figures are the standard deviation across isolates. MetageNN itself was trained on 8x coverage of the main database genomes, about 17 million 1 kbp sequences, with 200 validation sequences per genome, and classifies a read by splitting it into non-overlapping 1 kbp chunks and taking a majority vote, accepting a call only at probability 0.5 or above. GeNet was given a matched parameter count and the same training data so that the difference between the two is mainly how they encode a long read.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Databases; Evaluation metrics; Experimental setup; Fig. 3 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We report classification performance in terms of sensitivity, precision and F1 scores."
+          },
+          {
+            "source": "@paper",
+            "text": "we report the average sensitivity, precision and F1 score across bacterial isolates per dataset tested. We also employed Wilcoxon’s Rank Sum Test to compare MetageNN’s performance relative to the baselines"
+          },
+          {
+            "source": "@paper",
+            "text": "We built all non-machine-learning taxonomic classifier indices using the genomes in the “main database” and these tools were run using its default settings."
+          },
+          {
+            "source": "@paper",
+            "text": "MetageNN was trained with a dataset having 8× coverage of genomes from the “main database” to predict the genus of origin for a read."
+          },
+          {
+            "source": "@paper",
+            "text": "predictions on ONT reads were obtained by segmenting into non-overlapping 1 kbp chunks and using a majority voting strategy (tie broken by highest mean prediction probability). Then, predictions with a probability score greater or equal to 0.5 were considered as classified"
+          },
+          {
+            "source": "@paper",
+            "text": "We extended GeNet to have a similar capacity (number of parameters) as MetageNN so that the difference between the two methods is primarily in how they encode long reads."
+          },
+          {
+            "source": "@paper",
+            "text": "error bars represent standard deviation across ONT bacterial isolates"
+          }
+        ]
+      },
+      {
+        "title": "The community-level test",
+        "body": "Thirty pseudo-mock communities were assembled from the reads of the out-of-database isolates, each with a random number of species between 20 and 34 and up to 100,000 reads log-distributed across them. Two things are reported: the percentage of reads a tool classifies, and sensitivity, precision and F1 for the presence or absence of a genus at cumulative read thresholds of 0.001%, 0.1% and 1% of the reads in the dataset, which is about 1, 100 and 1000 reads. GeNet was dropped from this comparison because of its performance in the read-level test. MetageNN classified 93.26% of the reads, ahead of MMseqs2 at 85.49%, Kraken2 at 64.90%, MEGAN-LR at 53.06% and MetaMaps at 37.30%.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Experimental setup for the pseudo-mock analysis; Read classification results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The number of species in each pseudo-mock was randomly selected between 20 and 34 species in the “Species out of the database” list and we sampled a maximum of 100,000 reads log-distributed across the species"
+          },
+          {
+            "source": "@paper",
+            "text": "We used a percentage threshold of 0.001, 0.1 and 1% of the total number of reads in each dataset (which provides approximately 1, 100, and 1000 minimum reads per threshold)."
+          },
+          {
+            "source": "@paper",
+            "text": "We tested the same tools used in Baselines (except GeNet due to its poor performance presented in Fig."
+          },
+          {
+            "source": "@paper",
+            "text": "MetageNN outperformed all existing tools classifying 93.26% of the reads from species out of the database at the genus level. This result was followed by MMseqs2, Kraken2, MEGAN-LR and MetaMaps with 85.49%, 64.90%, 53.06% and 37.30%, respectively."
+          }
+        ]
+      },
+      {
+        "title": "Reported results",
+        "body": "The two settings separate the tools. When the species is in the database, Kraken2, MetaMaps and MEGAN-LR have the best average F1, sensitivity and precision and beat MetageNN. When it is not, MetageNN has the highest sensitivity along with MMseqs2, improving on MetaMaps, Kraken2, GeNet and MEGAN-LR by 100%, 23%, 17% and 36%; its precision is slightly lower than MetaMaps, Kraken2 and MMseqs2, and only the gap to MEGAN-LR is significant. Over both sets together MMseqs2 is first on F1 and sensitivity with 0.85 and 0.81, then Kraken2 with 0.83 and 0.79. Every tool does worse when three or fewer species share the tested genus. Table 1 gives database size and speed: MetageNN uses 0.839 GB at 1424 reads per second, against 3.7 GB for Kraken2, 5.1 GB for MEGAN-LR and 27.8 GB for MMseqs2.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results for all genomes; Results for Species in the database settings; Results for Species out of the database settings; Table 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Kraken2, MetaMaps, and MEGAN-LR presented the best average F1, sensitivity, and precision scores, outperforming MetageNN, while MetageNN significantly improved over GeNet in all metrics tested."
+          },
+          {
+            "source": "@paper",
+            "text": "Overall, MetageNN presented the highest sensitivity scores along with MMseqs2, significantly improving over MetaMaps, Kraken2, GeNet and MEGAN-LR by 100%, 23%, 17% and 36%, respectively."
+          },
+          {
+            "source": "@paper",
+            "text": "For F1 and sensitivity scores, MMseqs2 achieved the highest average with 0.85 and 0.81, respectively, followed by Kraken2 with 0.83 and 0.79, respectively."
+          },
+          {
+            "source": "@paper",
+            "text": "We noted that all tools had a lower performance for groups having three or fewer references"
+          },
+          {
+            "source": "@paper",
+            "text": ">MetageNN</td><td char=\".\" align=\"char\" colspan=\"1\" rowspan=\"1\">0.839</td><td char=\".\" align=\"char\" colspan=\"1\" rowspan=\"1\">1424</td>"
+          },
+          {
+            "source": "@paper",
+            "text": ">MMseqs2</td><td char=\".\" align=\"char\" colspan=\"1\" rowspan=\"1\">27.8</td><td char=\".\" align=\"char\" colspan=\"1\" rowspan=\"1\">588</td>"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The repository publishes the model code, the genome and isolate lists and the hyperparameter files, not the benchmark harness. Requirements are installed by a shell script. Sequences are turned into canonical 6-mer profiles with the Phylopythia k-mer counter, fasta2kmers2, and training is one command that reads a settings JSON. Only the small-database training set, at 1x coverage, is offered for download, through a link in the data folder; the main-database training data and the test read sets are not in the repository, only lists of the SRA identifiers and RefSeq assemblies they come from.",
+        "source_ids": [
+          "@readme",
+          "@data-readme"
+        ],
+        "source_locator": "Repository: README.md, Requirements, Counting k-mers, Settings and Training; data/README.txt",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "bash install_requirements.sh"
+          },
+          {
+            "source": "@readme",
+            "text": "fasta2kmers2 -i save_file -j 6 -k 6 -s 0 -l 0 -n 1 -f k_mers_counted.6mer"
+          },
+          {
+            "source": "@readme",
+            "text": "python code/MetageNN_train.py -s settings/MetageNN_settings_small_database.json"
+          },
+          {
+            "source": "@readme",
+            "text": "A link is also provided to download the \"small database\" training dataset (1x coverage) that can be used to train MetageNN."
+          },
+          {
+            "source": "@data-readme",
+            "text": "SRA isolates used (list_of_sra_ids_species_in.txt and list_of_sra_ids_species_out.txt) are publicly avalaible at https://www.ncbi.nlm.nih.gov/sra"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Three test sets plus one reference database. Species in the database: Nanopore reads from 47 bacterial isolates, about 20,000 reads each. Species out of the database: reads from the remaining 34 isolates. Mock, Species out of DB: 30 pseudo-mock communities of 20 to 34 species each with up to 100,000 reads. The shared main database holds 516 genome assemblies covering 505 species and 311 genera; the repository's list of those assemblies has 516 lines. A separate small database of the 47 genomes was used for parameter choices only.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@genome-list"
+        ],
+        "source_locator": "Paper: Methods, Test datasets and Databases; Experimental setup for the pseudo-mock analysis. Repository: data/main_database_list_of_genomes.txt",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We included reads from 47 species (out of 81) in this dataset that we refer to as the “Species in the database” dataset."
+          },
+          {
+            "source": "@paper",
+            "text": "In this case, we used the reads from the remaining 34 isolates."
+          },
+          {
+            "source": "@paper",
+            "text": "we subsampled reads to have around 20,000 per bacterial isolate used"
+          },
+          {
+            "source": "@paper",
+            "text": "We created 30 pseudo-communities consisting of ONT reads from species out of the database."
+          },
+          {
+            "source": "@paper",
+            "text": "This resulted in a list of 516 genomes (belonging to 505 species and 311 genera)."
+          },
+          {
+            "source": "@paper",
+            "text": "it includes only genomes of the 47 species (47 genomes) listed in the “Species in the database”"
+          },
+          {
+            "source": "@genome-list",
+            "text": "GCF_017487345.1_ASM1748734v1_genomic.fna"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "The split is by whether the test species is in the reference database, not by random sampling. Training sequences are 1 kbp windows sampled from the database genomes (8x coverage of the main database, about 17 million samples; 1x coverage of the small database, about 235,000 sequences), validation is 200 sequences per genome drawn the same way with different seeds, and the test reads are real Nanopore reads from isolates. The 34 out-of-database isolates have no genome in the database at all.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Test datasets and Databases; Experimental setup",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The second dataset simulates the scenario in which the test reads are from a species whose genome is not in the reference database"
+          },
+          {
+            "source": "@paper",
+            "text": "There were approximately 17 million samples in the training dataset."
+          },
+          {
+            "source": "@paper",
+            "text": "For validation, we generated a dataset containing 200 sequences for each of the 516 genomes."
+          },
+          {
+            "source": "@paper",
+            "text": "we randomly sampled 1× coverage of sequences with a fixed length of 1kbp from the 47 genomes found in the “small database” (approximately 235,000 sequences in total). Validation data was created in the same way as the training dataset, but with fewer samples (200 sequences per genome) and sampling using different seeds."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Sensitivity, precision and F1 at genus rank, higher better, averaged across bacterial isolates for the read-level tests and across the 30 communities for the community-level test, where presence of a genus is decided at cumulative read thresholds of 0.001%, 0.1% and 1%. The community test also reports the percentage of reads classified, higher better. Table 1 reports database memory in GB, lower better, and speed in reads per second, higher better.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Evaluation metrics; Experimental setup for the pseudo-mock analysis; Table 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "for each taxon, sensitivity describes the proportion of reads originating from it that is classified as such; precision indicates the proportion of correctly classified reads for that taxa, and F1 is the harmonic mean of precision and recall"
+          },
+          {
+            "source": "@paper",
+            "text": "The first one is the percentage of reads classified per tool (read classification). The second one is sensitivity, precision and F1 scores at the community level for the genus rank"
+          },
+          {
+            "source": "@paper",
+            "text": "Memory requirements for database storage and speed for each method on ONT data"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Five classifiers beside MetageNN: MetaMaps and MEGAN-LR (alignment based, with minimap2 alignments for MEGAN-LR), MMseqs2 with a nucleotide database, Kraken2 for k-mer matching, and GeNet as the deep learning representative. DeepMicrobes and GeNet were also compared on the small database for training and inference cost and for robustness to simulated errors; GeNet was dropped from the community-level test.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Baselines (both sections); Results; Experimental setup for the pseudo-mock analysis",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We selected five taxonomic classifiers that are representative of different approaches."
+          },
+          {
+            "source": "@paper",
+            "text": "As alignment-based taxonomic classifiers methods designed for long-read technologies, we selected MetaMaps"
+          },
+          {
+            "source": "@paper",
+            "text": "Although a taxonomy classifier for metagenomic contigs, we also included MMseqs2 (nucleotide-based database)"
+          },
+          {
+            "source": "@paper",
+            "text": "As a representative of k-mer matching methods, we selected Kraken2"
+          },
+          {
+            "source": "@paper",
+            "text": "DeepMicrobes is based on recurrent neural networks, which means that for each k-mer it will perform forward and backward propagation."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Two. The Species out of the database setting removes the test species' genome from the reference set altogether, and the results are further stratified by how many species share the tested genus (exactly one, two or three, more than three), which separates the easy cases from the hard ones. Within the model's own data, validation sequences are drawn with different seeds from the training sequences. Test reads are real reads whose identity was confirmed by assembly and an average nucleotide identity above 99% to the reference, so the ground truth does not come from the classifier under test.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Test datasets; Results for Species out of the database settings; Experimental setup",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we stratified them into three groups based on the number of references available for the taxa being tested"
+          },
+          {
+            "source": "@paper",
+            "text": "Validation data was created in the same way as the training dataset, but with fewer samples (200 sequences per genome) and sampling using different seeds."
+          },
+          {
+            "source": "@paper",
+            "text": "verifying that the average nucleotide identity (ANI) to the reference was &gt; 99%"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Spread across isolates and a significance test, but no repeated runs. Figure error bars are the standard deviation across the ONT bacterial isolates, and MetageNN is compared with each baseline by Wilcoxon rank sum test with significance marked on the figures. No seeds, repeated trainings or confidence intervals for the aggregate numbers are reported.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Evaluation metrics; Fig. 3 and Fig. 4 captions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We also employed Wilcoxon’s Rank Sum Test to compare MetageNN’s performance relative to the baselines and report statistical significance for these comparisons."
+          },
+          {
+            "source": "@paper",
+            "text": "Bar plots (error bars represent standard deviation across ONT bacterial isolates)"
+          },
+          {
+            "source": "@paper",
+            "text": "Statistical significance bars are displayed on top, where * stands for digits after the decimal p-value point i.e., “****” signifies 1e−4"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "One example is an Oxford Nanopore sequencing read, classified to a genus; MetageNN works on non-overlapping 1 kbp chunks of that read and votes. For the community-level test the unit is instead a pseudo-mock community, and the call is whether a genus is present in it.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Experimental setup; Experimental setup for the pseudo-mock analysis",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "predictions on ONT reads were obtained by segmenting into non-overlapping 1 kbp chunks and using a majority voting strategy"
+          },
+          {
+            "source": "@paper",
+            "text": "sensitivity, precision and F1 scores at the community level for the genus rank (i.e., the presence or absence of a genus based on a predefined threshold of cumulative read counts)"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Bacteria only. 81 bacterial strains provide the reads, and the main database holds 516 bacterial genome assemblies across 505 species and 311 genera from RefSeq. No host, virus, fungus or archaeon is part of the evaluation.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@data-readme"
+        ],
+        "source_locator": "Paper: Methods, Test datasets and Databases. Repository: data/README.txt",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we obtained ONT reads and corresponding genomes for 81 bacterial strains"
+          },
+          {
+            "source": "@paper",
+            "text": "This resulted in a list of 516 genomes (belonging to 505 species and 311 genera)."
+          },
+          {
+            "source": "@data-readme",
+            "text": "Genomes used (main_database_list_of_genomes.txt and small_database_list_of_genomes.txt) are publicly avalaible at https://www.ncbi.nlm.nih.gov/refseq/"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Oxford Nanopore whole-genome sequencing of bacterial isolates on R.9.4.1 flow cells, taken from the SRA. The labels are not an assay readout: each read's true genus follows from the isolate it was sequenced from, after the strain match was confirmed by assembly and average nucleotide identity. Simulated reads from the BadReads tool were used separately to test robustness at 95%, 90% and 80% median accuracy.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Test datasets; Experimental setup for the small-database experiments",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we scanned NCBI’s Sequence Read Archive (SRA)"
+          },
+          {
+            "source": "@paper",
+            "text": "to create synthetic ONT long reads by introducing sequencing errors on the 1kbp sequences from the validation dataset. We generated three test datasets representing scenarios with low, moderate and high sequencing error rates (median accuracy 95%, 90% and 80%, respectively)."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Nucleotide sequence and the shared reference database, nothing else. Every tool indexes the same 516 genomes; MetageNN reads only canonical 6-mer profiles of 1 kbp windows, which the authors chose because short k-mer profiles are less disturbed by sequencing errors and are read-length agnostic.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, Databases and MetageNN model. Repository: README.md, Counting k-mers",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To perform a fair evaluation, all baselines used the same database of genomes."
+          },
+          {
+            "source": "@paper",
+            "text": "This adaptation is aided by the use of small values for <italic toggle=\"yes\">k</italic> (e.g. 6), as such k-mer-profiles are more robust to sequencing errors (a single base error affects fewer k-mers)."
+          },
+          {
+            "source": "@readme",
+            "text": "In the example above, we counted canonical 6mers given an input file in fasta format."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Mixed by tool, which is part of the comparison. The learned models (MetageNN, GeNet, DeepMicrobes) are trained from scratch on sequences sampled from the database genomes, with early stopping on validation loss and hyperparameters tuned on the 1x dataset; MetageNN took three days on four GPUs and GeNet about six. The alignment and k-mer tools are not trained: their indices are built from the same genomes and they run at default settings.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@settings"
+        ],
+        "source_locator": "Paper: Methods, Experimental setup (both sections). Repository: settings/MetageNN_settings_main_database.json",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "MetageNN was trained using four GPUs and converged (early stopping) after three days of training."
+          },
+          {
+            "source": "@paper",
+            "text": "GeNet training converged in approximately six days with four GPUs. We fine-tuned the hyperparameters of GeNet and MetageNN using the 1× dataset"
+          },
+          {
+            "source": "@paper",
+            "text": "these tools were run using its default settings"
+          },
+          {
+            "source": "@settings",
+            "text": "\"layer_dim\": 3000,"
+          },
+          {
+            "source": "@settings",
+            "text": "\"epochs\": 500,"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Every tool queries the same 516-genome database and the non-learned tools run at their defaults, so the comparison is not confounded by different reference sets.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Databases; Experimental setup",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To perform a fair evaluation, all baselines used the same database of genomes."
+          },
+          {
+            "source": "@paper",
+            "text": "We built all non-machine-learning taxonomic classifier indices using the genomes in the “main database” and these tools were run using its default settings."
+          }
+        ]
+      },
+      {
+        "text": "The ground truth is checked rather than assumed: each isolate's strain match was confirmed by assembling its reads and requiring average nucleotide identity above 99% to the reference genome.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Test datasets",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we ensured that the match was correct by assembling (Flye"
+          }
+        ]
+      },
+      {
+        "text": "The missing-genome case is tested directly and then stratified by how many species share the tested genus, which shows that all tools degrade when three or fewer references are available.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results for Species out of the database settings",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we stratified them into three groups based on the number of references available for the taxa being tested"
+          },
+          {
+            "source": "@paper",
+            "text": "We noted that all tools had a lower performance for groups having three or fewer references"
+          }
+        ]
+      },
+      {
+        "text": "Cost is reported beside accuracy: Table 1 gives each tool's database memory and reads per second on the same data, so a reader can see what a given accuracy costs.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Memory requirements for database storage and speed for each method on ONT data"
+          },
+          {
+            "source": "@paper",
+            "text": ">Kraken2</td><td char=\".\" align=\"char\" colspan=\"1\" rowspan=\"1\">3.7</td><td char=\".\" align=\"char\" colspan=\"1\" rowspan=\"1\"><bold>13.471</bold></td>"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The benchmark was designed and run by the developers of one of the tools in it, and MetageNN is the tool it is built to show, including the choice to drop GeNet from the community-level comparison.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results summary; Experimental setup for the pseudo-mock analysis",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We present MetageNN, a memory-efficient long-read taxonomic classifier that is robust to sequencing errors and missing genomes."
+          },
+          {
+            "source": "@paper",
+            "text": "We tested the same tools used in Baselines (except GeNet due to its poor performance presented in Fig."
+          }
+        ]
+      },
+      {
+        "text": "The reference database is small by clinical standards: 516 genomes over 505 species, where the authors note RefSeq had complete genomes for more than 6800 bacterial species. A tool's behaviour here need not carry over to a full-size index.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Databases and MetageNN model",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This resulted in a list of 516 genomes (belonging to 505 species and 311 genera)."
+          },
+          {
+            "source": "@paper",
+            "text": "database has complete genomes for &gt; 6800 unique bacterial species (May 2022)"
+          }
+        ]
+      },
+      {
+        "text": "Scope is narrow: bacterial isolates only, genus rank only, one sequencing chemistry (R.9.4.1 Nanopore), and the authors call the model itself a proof of concept.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, Test datasets and Experimental setup. Repository: README.md",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "suitable ONT datasets (R.9.4.1 flow cell)"
+          },
+          {
+            "source": "@paper",
+            "text": "to predict the genus of origin for a read"
+          },
+          {
+            "source": "@readme",
+            "text": "MetageNN is a proof of concept memory-efficient long-read taxonomic classifier"
+          }
+        ]
+      },
+      {
+        "text": "The per-tool sensitivity, precision and F1 values live only in bar plots (Figures 3 and 4), and no result table or file of them is published, so a reader cannot read exact numbers for most comparisons. The repository ships the model code and the data lists, not a runner for the benchmark, and only the 1x small-database training set is offered for download.",
+        "source_ids": [
+          "@paper",
+          "@readme",
+          "@data-readme"
+        ],
+        "source_locator": "Paper: Fig. 3 and Fig. 4 captions; Availability of data and materials. Repository: README.md, Data; data/README.txt",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Average values of sensitivity, precision and F1 are shown on the top along with statistical significance bars on top"
+          },
+          {
+            "source": "@paper",
+            "text": "MetageNN’s model source code and the list of reference genomes and bacterial isolates data used are available at"
+          },
+          {
+            "source": "@readme",
+            "text": "You can find the list of genomes used to train (either small or the main database) as well as the list of isolates used to test at /data."
+          },
+          {
+            "source": "@data-readme",
+            "text": "SRA isolates used (list_of_sra_ids_species_in.txt and list_of_sra_ids_species_out.txt) are publicly avalaible at https://www.ncbi.nlm.nih.gov/sra"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "MetageNN benchmark workflow",
+      "steps": [
+        "81 ONT isolate read sets from the SRA, strain match confirmed by assembly and ANI above 99%",
+        "split into 47 species in the database and 34 species out of it",
+        "all tools index the same 516-genome main database",
+        "reads classified to genus, 20,000 per isolate",
+        "sensitivity, precision and F1 averaged across isolates, Wilcoxon test against MetageNN",
+        "30 pseudo-mock communities for community-level presence or absence",
+        "database memory and reads per second in Table 1"
+      ],
+      "caption": "How the MetageNN evaluation is put together, from isolate reads to the reported comparisons.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Methods, Test datasets, Databases and Evaluation metrics; Experimental setup for the pseudo-mock analysis; Table 1",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we obtained ONT reads and corresponding genomes for 81 bacterial strains"
+        },
+        {
+          "source": "@paper",
+          "text": "We included reads from 47 species (out of 81) in this dataset that we refer to as the “Species in the database” dataset."
+        },
+        {
+          "source": "@paper",
+          "text": "To perform a fair evaluation, all baselines used the same database of genomes."
+        },
+        {
+          "source": "@paper",
+          "text": "we report the average sensitivity, precision and F1 score across bacterial isolates per dataset tested"
+        },
+        {
+          "source": "@paper",
+          "text": "We created 30 pseudo-communities consisting of ONT reads from species out of the database."
+        },
+        {
+          "source": "@paper",
+          "text": "Memory requirements for database storage and speed for each method on ONT data"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The per-tool sensitivity, precision and F1 values are printed only on bar plots in Figures 3 and 4; no table or data file of them is published, so only the values quoted in the prose could be recorded.",
+      "No source read gives the number of reads in each test set after subsampling, only about 20,000 per isolate and a maximum of 100,000 per pseudo-mock community.",
+      "The repository states no licence, and the GitHub API reports none, so the terms for the code and the data lists are unknown.",
+      "The repository has no benchmark runner: the commands published cover k-mer counting and training MetageNN on the small database, not reproducing the comparison against the five baselines.",
+      "The settings file for the main database names a training array at 1x coverage with 236,212 samples, which does not match the paper's description of 8x coverage and about 17 million samples for the main-database model; the sources read do not resolve this."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the PMC full text XML of the MetageNN paper (PMC11022314, BMC Bioinformatics 2024), including Table 1, the Results sections and the Methods sections on test datasets, databases, baselines, experimental setup and evaluation metrics; and four files of the csb5/MetageNN repository (README.md, data/README.txt, data/main_database_list_of_genomes.txt and settings/MetageNN_settings_main_database.json) at commit d7c858cee1b88bf78fb1ea7d120b3be180a52b69. The genome list was counted at 516 lines. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Install the repository's requirements, turn genome segments into 6-mer profiles, and train MetageNN on the small database with its published settings file.",
+    "prerequisites": [
+      "The dependencies installed by the repository's install_requirements.sh.",
+      "The Phylopythia k-mer counting tool, fasta2kmers2, from the kmer_counting repository the README references.",
+      "The small-database training set at 1x coverage, downloaded through the link in the repository's data folder.",
+      "The saved main-database settings file sets gpus to 0; the small-database settings file was not read. The paper trained MetageNN on four GPUs."
+    ],
+    "steps": [
+      {
+        "title": "Get the code at the pinned commit",
+        "shell": "git clone https://github.com/csb5/MetageNN\ncd MetageNN\ngit checkout --detach d7c858cee1b88bf78fb1ea7d120b3be180a52b69",
+        "explanation": "The repository address is the one the paper's availability note gives. The clone and checkout lines were added here to pin the version these steps were read from.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Availability of data and materials",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "MetageNN’s model source code and the list of reference genomes and bacterial isolates data used are available at"
+          },
+          {
+            "source": "@paper",
+            "text": "https://github.com/csb5/MetageNN"
+          }
+        ]
+      },
+      {
+        "title": "Install the requirements",
+        "shell": "bash install_requirements.sh",
+        "explanation": "The single command the README gives under Requirements.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md, Requirements",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "bash install_requirements.sh"
+          }
+        ]
+      },
+      {
+        "title": "Count canonical 6-mers for the sampled sequences",
+        "shell": "fasta2kmers2 -i path_to_file/genome_segments.fasta -j 6 -k 6 -s 0 -l 0 -n 1 -f k_mers_counted.6mer",
+        "explanation": "The README's own k-mer counting command, with its save_file variable substituted into the -i flag. It counts canonical 6-mers of a FASTA file of sequences sampled from genomes; the paper used 1 kbp sequences.",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "Repository: README.md, Counting k-mers. Paper: Methods, Experimental setup",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "save_file = 'path_to_file/genome_segments.fasta' fasta2kmers2 -i save_file -j 6 -k 6 -s 0 -l 0 -n 1 -f k_mers_counted.6mer"
+          },
+          {
+            "source": "@paper",
+            "text": "we randomly sampled 1× coverage of sequences with a fixed length of 1kbp from the 47 genomes found in the “small database”"
+          }
+        ]
+      },
+      {
+        "title": "Train on the small database",
+        "shell": "python code/MetageNN_train.py -s settings/MetageNN_settings_small_database.json",
+        "explanation": "The README's training command. The settings file holds the hyperparameters and the paths the loader expects; the main-database file, read here, sets a layer width of 3000, a 6144-dimensional k-mer input, 500 epochs, a learning rate of 0.001, a batch size of 1024 and the training arrays it loads.",
+        "source_ids": [
+          "@readme",
+          "@settings"
+        ],
+        "source_locator": "Repository: README.md, Training and Settings; settings/MetageNN_settings_main_database.json",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "python code/MetageNN_train.py -s settings/MetageNN_settings_small_database.json"
+          },
+          {
+            "source": "@readme",
+            "text": "In the /settings folder you will find JSON files containing the best hyperparameters for MetageNN for both databases"
+          },
+          {
+            "source": "@settings",
+            "text": "\"k_mer_dim\": 6144,"
+          },
+          {
+            "source": "@settings",
+            "text": "\"batch_size\": 1024,"
+          },
+          {
+            "source": "@settings",
+            "text": "\"dataset_file_x\": \"data/training.1x.6mer.npy\","
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "A trained model written to the folder named by save_folder in the settings file, which is models."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "They train the model; they do not reproduce the benchmark. No published command runs the five baselines, builds their indices or computes the sensitivity, precision and F1 values in the figures.",
+      "The main-database training data and the isolate read sets are not distributed: the repository gives only the lists of RefSeq assemblies and SRA identifiers, and only the small-database 1x training set is downloadable.",
+      "The repository states no licence."
+    ],
+    "source_ids": [
+      "@readme",
+      "@paper",
+      "@settings"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Genus-level read classification, Species in the database",
+      "dataset": "ONT reads from 47 bacterial isolates whose genome is in the main database",
+      "size": 47,
+      "size_unit": "bacterial isolates, about 20,000 reads each",
+      "split": "species whose reference genome is in the 516-genome main database",
+      "primary_metric": "F1",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1186/s12859-024-05760-3",
+      "code_url": "https://github.com/csb5/MetageNN",
+      "data_url": "https://www.ncbi.nlm.nih.gov/sra",
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2024-04-16",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We included reads from 47 species (out of 81) in this dataset that we refer to as the “Species in the database” dataset."
+        },
+        {
+          "source": "@paper",
+          "text": "we subsampled reads to have around 20,000 per bacterial isolate used"
+        },
+        {
+          "source": "@paper",
+          "text": "We report classification performance in terms of sensitivity, precision and F1 scores."
+        },
+        {
+          "source": "@paper",
+          "text": "Kraken2, MetaMaps, and MEGAN-LR presented the best average F1, sensitivity, and precision scores, outperforming MetageNN"
+        },
+        {
+          "source": "@paper",
+          "text": "<event event-type=\"pmc-release\"><date><day>16</day><month>04</month><year>2024</year></date></event>"
+        },
+        {
+          "source": "@data-readme",
+          "text": "SRA isolates used (list_of_sra_ids_species_in.txt and list_of_sra_ids_species_out.txt) are publicly avalaible at https://www.ncbi.nlm.nih.gov/sra"
+        }
+      ]
+    },
+    {
+      "task": "Genus-level read classification, Species out of the database",
+      "dataset": "ONT reads from the remaining 34 bacterial isolates, whose genome is absent from the main database",
+      "size": 34,
+      "size_unit": "bacterial isolates, about 20,000 reads each",
+      "split": "species with no reference genome in the 516-genome main database",
+      "primary_metric": "sensitivity",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1186/s12859-024-05760-3",
+      "code_url": "https://github.com/csb5/MetageNN",
+      "data_url": "https://www.ncbi.nlm.nih.gov/sra",
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2024-04-16",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "In this case, we used the reads from the remaining 34 isolates."
+        },
+        {
+          "source": "@paper",
+          "text": "we subsampled reads to have around 20,000 per bacterial isolate used"
+        },
+        {
+          "source": "@paper",
+          "text": "Overall, MetageNN presented the highest sensitivity scores along with MMseqs2, significantly improving over MetaMaps, Kraken2, GeNet and MEGAN-LR by 100%, 23%, 17% and 36%, respectively."
+        },
+        {
+          "source": "@paper",
+          "text": "<event event-type=\"pmc-release\"><date><day>16</day><month>04</month><year>2024</year></date></event>"
+        }
+      ]
+    },
+    {
+      "task": "Community-level genus detection, Mock Species out of DB",
+      "dataset": "30 ONT pseudo-mock communities built from the out-of-database isolates",
+      "size": 30,
+      "size_unit": "pseudo-mock communities of 20 to 34 species, up to 100,000 reads each",
+      "split": "communities drawn only from species absent from the reference database",
+      "primary_metric": "percentage of reads classified",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1186/s12859-024-05760-3",
+      "code_url": "https://github.com/csb5/MetageNN",
+      "data_url": "https://www.ncbi.nlm.nih.gov/sra",
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2024-04-16",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We created 30 pseudo-communities consisting of ONT reads from species out of the database."
+        },
+        {
+          "source": "@paper",
+          "text": "The number of species in each pseudo-mock was randomly selected between 20 and 34 species in the “Species out of the database” list and we sampled a maximum of 100,000 reads log-distributed across the species"
+        },
+        {
+          "source": "@paper",
+          "text": "MetageNN outperformed all existing tools classifying 93.26% of the reads from species out of the database at the genus level."
+        },
+        {
+          "source": "@paper",
+          "text": "<event event-type=\"pmc-release\"><date><day>16</day><month>04</month><year>2024</year></date></event>"
+        }
+      ]
+    },
+    {
+      "task": "Database storage requirement on ONT data",
+      "dataset": "the 516-genome main database, indexed by each tool",
+      "size": 516,
+      "size_unit": "reference genome assemblies in the indexed database",
+      "split": "not applicable, one shared database for all tools",
+      "primary_metric": "database memory in GB",
+      "metric_direction": "lower",
+      "results_url": "https://doi.org/10.1186/s12859-024-05760-3",
+      "code_url": "https://github.com/csb5/MetageNN",
+      "data_url": "https://www.ncbi.nlm.nih.gov/refseq/",
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2024-04-16",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Memory requirements for database storage and speed for each method on ONT data"
+        },
+        {
+          "source": "@paper",
+          "text": "This resulted in a list of 516 genomes (belonging to 505 species and 311 genera)."
+        },
+        {
+          "source": "@paper",
+          "text": "<event event-type=\"pmc-release\"><date><day>16</day><month>04</month><year>2024</year></date></event>"
+        },
+        {
+          "source": "@data-readme",
+          "text": "Genomes used (main_database_list_of_genomes.txt and small_database_list_of_genomes.txt) are publicly avalaible at https://www.ncbi.nlm.nih.gov/refseq/"
+        }
+      ]
+    },
+    {
+      "task": "Classification speed on ONT data",
+      "dataset": "ONT isolate reads classified against the 516-genome main database",
+      "size": null,
+      "size_unit": null,
+      "split": "not applicable, one shared database for all tools",
+      "primary_metric": "reads per second",
+      "metric_direction": "higher",
+      "results_url": "https://doi.org/10.1186/s12859-024-05760-3",
+      "code_url": "https://github.com/csb5/MetageNN",
+      "data_url": "https://www.ncbi.nlm.nih.gov/sra",
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2024-04-16",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": ">MEGAN-LR</td><td char=\".\" align=\"char\" colspan=\"1\" rowspan=\"1\">5.1</td><td char=\".\" align=\"char\" colspan=\"1\" rowspan=\"1\">606</td>"
+        },
+        {
+          "source": "@paper",
+          "text": "MetageNN requires &lt; 1/4th of the database storage used by Kraken2, MEGAN-LR and MMseqs2 and is &gt; 7× faster than MetaMaps and GeNet"
+        },
+        {
+          "source": "@paper",
+          "text": "<event event-type=\"pmc-release\"><date><day>16</day><month>04</month><year>2024</year></date></event>"
+        }
+      ]
+    }
+  ],
+  "notes": "Written from the PMC full text (PMC11022314, CC BY 4.0) and five files of the csb5/MetageNN repository at commit d7c858cee1b88bf78fb1ea7d120b3be180a52b69. Points for a human. First, the repository states no licence and the GitHub API reports none, so code_licence and data_licence are null and the repository files are kept but not stored. Second, Table 1 prints Kraken2's speed as 13.471 reads per second, which reads like a thousands separator for 13,471 given that it is marked the best performer in that column; it is quoted as printed and not reinterpreted here. Third, the main-database settings file in the repository points at a 1x training array of 236,212 samples while the paper describes the main-database model as trained on 8x coverage and about 17 million samples, so the published settings file may not be the one behind the reported results. Fourth, the per-tool sensitivity, precision and F1 values are only in bar plots, so the entries here carry the metric and the split but the figures quoted are limited to those printed in the prose. Fifth, the released date is the PMC release date of 16 April 2024 printed in the article's publication history."
+}

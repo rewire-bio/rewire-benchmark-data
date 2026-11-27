@@ -1,0 +1,1035 @@
+{
+  "record_id": "uc-clinical-20260930-benchmark-talos-study",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "PMC full text XML of the Talos paper (Nature Medicine, PMC13472938)",
+      "description": "The JATS full text from NCBI E-utilities, including Table 1, the Results sections on each cohort and on the Exomiser comparison and iterative reanalysis, and the Methods sections on inputs, the Exomiser comparison, statistics and reproducibility.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13472938",
+      "url": "https://www.nature.com/articles/s41591-026-04477-5",
+      "version": "PMC13472938, version of record 2026",
+      "media_type": "text/xml",
+      "licence": "CC BY-NC-ND 4.0",
+      "store_bytes": false,
+      "sha256": "aed4d4f17412785f9d0e0b9c4fff72db3cc843227e1278cc55f4c4d4e1581af5",
+      "retrieved_at": "2026-11-27T01:43:17Z"
+    },
+    {
+      "key": "readme",
+      "name": "populationgenomics/talos README.md at commit d279709d4c8b601b2280ccf3fe5edb480f7a77f6",
+      "description": "Official repository file, pinned to a commit. It gives the Nextflow and Docker quick start, the annotation resource preparation, the input columns and the outputs.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/populationgenomics/talos/d279709d4c8b601b2280ccf3fe5edb480f7a77f6/README.md",
+      "url": "https://github.com/populationgenomics/talos",
+      "version": "git commit d279709d4c8b601b2280ccf3fe5edb480f7a77f6",
+      "media_type": "text/markdown",
+      "licence": "MIT",
+      "store_bytes": true,
+      "sha256": "fa42230657dfde22cf77b117440f08d7f5c5fe86dce3c5c2d30709b459a4097b",
+      "retrieved_at": "2026-11-27T01:43:50Z"
+    }
+  ],
+  "profile": {
+    "summary": "This is the evaluation published with Talos, an open-source tool that automates variant prioritisation for rare disease reanalysis. It is not a reusable suite: the reference is the set of diagnoses already known in two cohorts, 401 Acute Care Genomics probands and 688 Rare Genomes Project families, each reprocessed through one standardised calling pipeline. The measures are how many known diagnoses Talos returns and how many candidate variants a human must read to find them, reported separately for trios, singletons and the whole cohort and under default and strict filtering. A paired comparison against Exomiser and a prospective deployment on 4,735 undiagnosed individuals are reported alongside.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Abstract; Results, Assessing Talos performance; Table 1",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "We developed Talos, an open-source tool that automates variant prioritization by integrating dynamically updated gene−disease and variant-level evidence with inheritance-aware filtering and validated its performance using data from 1,089 individuals with rare disease."
+      },
+      {
+        "source": "@paper",
+        "text": "We assessed the performance of Talos using two previously analyzed cohorts that included both diagnosed and undiagnosed individuals."
+      },
+      {
+        "source": "@paper",
+        "text": "Trio-based analysis identified 90% of known diagnoses, returning 1.3 variants per case on average."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Two quantities in tension. Sensitivity: of the diagnoses already known in a cohort, how many does the tool put in front of an analyst. Workload: how many candidate variants the analyst has to read, per proband and per diagnosis. The cohorts were chosen so that the tool could be measured against manual analysis and with and without parental data, which is why every figure is reported separately for trios, singletons and the full cohort. The design question behind it is whether automated reanalysis can be run often enough to be sustainable, which is why the burden per case matters as much as the recall.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Results, Assessing Talos performance; Table 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "These cohorts were selected to enable benchmarking against manual analysis and to evaluate performance with and without parental data."
+          },
+          {
+            "source": "@paper",
+            "text": "Automation and optimization for high specificity will be necessary to ensure scalability, adoption and sustainability of iterative reanalysis."
+          },
+          {
+            "source": "@paper",
+            "text": "Results of Talos analysis in evaluation cohorts"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Both cohorts were reprocessed from raw sequencing data through one pipeline, GATK for short variants, GATK-SV for structural variants in genomes and GATK-gCNV for copy number variants in exomes, and Talos was evaluated against the variants that pipeline detected. That matters for the denominator: of 208 known diagnoses in the ACG trios, 196 (94%) were detectable by the pipeline, and of 57 in the RGP trios, 54 (95%) were. The ACG cohort is 401 critically ill infants and children given ultra-rapid clinical genomic testing in Australia between 2018 and 2022, 115 exomes and 286 genomes, 94% trios, with a prior manual diagnostic yield of 55%. The RGP cohort is 688 families recruited remotely across the United States and sequenced at the Broad Institute before September 2022, 298 singletons and 390 trios, prior yield 15.4%, median proband age 26 years.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Assessing Talos performance, Acute Care Genomics cohort, Rare Genomes Project cohort; Table 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Each cohort was reprocessed from raw sequencing data using a standardized pipeline incorporating Genome Analysis Toolkit (GATK) for short variant calling, GATK-SV for SV detection in genomes and GATK-gCNV for CNV analysis in exomes (<xref rid=\"Sec10\" ref-type=\"sec\">Methods</xref>). The performance of Talos was evaluated against the set of variants detected by this pipeline."
+          },
+          {
+            "source": "@paper",
+            "text": "Of the 208 trios with known diagnoses in the ACG cohort, pathogenic variants were detectable within the GATK/GATK-SV/GATK-gCNV pipeline for 196 (94%; Table <xref rid=\"Tab1\" ref-type=\"table\">1</xref>), with the remaining 11 diagnoses attributable to variant types not reliably captured by these tools, including STR expansions or low-level mosaic variants."
+          },
+          {
+            "source": "@paper",
+            "text": "ultra-rapid clinical genomic testing had been performed as a first-tier test in 401 critically ill infants and children between 2018 and 2022 as part of a national Australian study"
+          },
+          {
+            "source": "@paper",
+            "text": "Sequencing was performed as exomes (<italic toggle=\"yes\">n</italic> = 115) or genomes (<italic toggle=\"yes\">n</italic> = 286), with most cases analyzed as trios (378/401, 94%; Fig. <xref rid=\"Fig2\" ref-type=\"fig\">2</xref>)."
+          },
+          {
+            "source": "@paper",
+            "text": "we analyzed data from 688 RGP-enrolled families (298 singletons and 390 trios) with genome sequencing performed by the Broad Institute prior to September 2022"
+          },
+          {
+            "source": "@paper",
+            "text": "Of the 57 trios with known diagnoses in the RGP cohort, pathogenic variants were detectable within the GATK/GATK-SV/GATK-gCNV pipeline for 54 (95%)"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Talos is run on the reprocessed call sets and its returned candidates are compared with the known diagnoses. Two filtering settings are reported: default, and strict, which requires a phenotype match. Each cell of Table 1 gives the diagnoses found with the percentage of detectable diagnoses, the total candidate variants, candidates per proband and candidates per diagnosis. Success for Talos is simply that the causative variant is returned under default settings, since Talos returns an unranked set rather than a ranking. Against Exomiser, success is defined by rank position (top 1, top 5, top 10, or unconstrained), and because the two tools run on the same families the comparison uses McNemar's exact test on the discordant pairs with two-sided p values. The tool is described as deterministic and automated, so its output does not depend on the investigator, although prior diagnoses were known at evaluation time.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1; Methods, Exomiser comparison and Statistics and reproducibility",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Success for Talos was defined as the causative variant being returned under Talos default settings. Success for Exomiser was defined as the causative variant ranking within the top 1, top 5 or top 10 variants per family, plus an unconstrained ‘all’ condition."
+          },
+          {
+            "source": "@paper",
+            "text": "Because outcomes are paired within the same families, we compared tools using McNemarʼs exact test applied to the discordant pairs (Talos-only versus Exomiser-only) at each threshold, reporting two-sided <italic toggle=\"yes\">P</italic> values."
+          },
+          {
+            "source": "@paper",
+            "text": "Talos itself is a deterministic, automated pipeline whose output is generated without investigator input"
+          },
+          {
+            "source": "@paper",
+            "text": "Talos strict filtering (phenotype match required)"
+          }
+        ]
+      },
+      {
+        "title": "Reported results",
+        "body": "In the ACG trios Talos returned 177 of the 196 detectable diagnoses (90%) from 487 candidate variants, 1.3 per proband and 2.8 per diagnosis; across the full ACG cohort 186 of 208 (89%) from 523 candidates. Singletons cost more per diagnosis: 170 of 208 (82%) from 729 candidates, 4.3 per diagnosis. In the RGP cohort the trios gave 47 of 54 (87%) at 1.3 candidates per proband but 11.0 candidates per diagnosis, and the full cohort 80 of 93 (86%) at 13.7 per diagnosis. Strict filtering lowers both: for example 164 of 196 (83%) in ACG trios at 2.5 candidates per diagnosis. Against Exomiser on 194 ACG trio families with SNV or indel diagnoses, Exomiser found 172 (89%) with all variants considered, 164 (85%) in its top 10, 157 (81%) in its top five and 127 (65%) at rank one; McNemar's test found no difference at all-variants or top 10 and favoured Talos at top five and top one. In the prospective cohort of 4,735 undiagnosed individuals, Talos output led to 241 new diagnoses in 238 individuals, a 5.1% additional yield, all later classified pathogenic or likely pathogenic by accredited laboratories; across 29 monthly cycles, 92% of those diagnoses came in a cohort's first cycle and later cycles returned an average of five new candidate variants per 1,000 cases.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1; Results, Acute Care Genomics cohort, Rare Genomes Project cohort, Comparison with other tools, Iterative reanalysis in research and clinical datasets",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Known diagnoses<sup>a</sup></td><td colspan=\"1\" rowspan=\"1\">196</td><td colspan=\"1\" rowspan=\"1\">208</td><td colspan=\"1\" rowspan=\"1\">208</td><td colspan=\"1\" rowspan=\"1\">54</td><td colspan=\"1\" rowspan=\"1\">93</td><td colspan=\"1\" rowspan=\"1\">93</td></tr><tr><td colspan=\"7\" rowspan=\"1\">Talos default filtering</td></tr><tr><td colspan=\"1\" rowspan=\"1\"> Diagnoses</td><td colspan=\"1\" rowspan=\"1\">177 (90%)</td><td colspan=\"1\" rowspan=\"1\">170 (82%)</td><td colspan=\"1\" rowspan=\"1\">186 (89%)</td><td colspan=\"1\" rowspan=\"1\">47 (87%)</td><td colspan=\"1\" rowspan=\"1\">81 (87%)</td><td colspan=\"1\" rowspan=\"1\">80 (86%)</td></tr><tr><td colspan=\"1\" rowspan=\"1\"> Candidate variants</td><td colspan=\"1\" rowspan=\"1\">487</td><td colspan=\"1\" rowspan=\"1\">729</td><td colspan=\"1\" rowspan=\"1\">523</td><td colspan=\"1\" rowspan=\"1\">519</td><td colspan=\"1\" rowspan=\"1\">1,491</td><td colspan=\"1\" rowspan=\"1\">1,095</td></tr><tr><td colspan=\"1\" rowspan=\"1\"> Candidates per proband</td><td colspan=\"1\" rowspan=\"1\">1.3</td><td colspan=\"1\" rowspan=\"1\">1.8</td><td colspan=\"1\" rowspan=\"1\">1.3</td><td colspan=\"1\" rowspan=\"1\">1.3</td><td colspan=\"1\" rowspan=\"1\">2.2</td><td colspan=\"1\" rowspan=\"1\">1.6</td></tr><tr><td colspan=\"1\" rowspan=\"1\"> Candidates per diagnoses</td><td colspan=\"1\" rowspan=\"1\">2.8</td><td colspan=\"1\" rowspan=\"1\">4.3</td><td colspan=\"1\" rowspan=\"1\">2.8</td><td colspan=\"1\" rowspan=\"1\">11.0</td><td colspan=\"1\" rowspan=\"1\">18.4</td><td colspan=\"1\" rowspan=\"1\">13.7"
+          },
+          {
+            "source": "@paper",
+            "text": "Talos strict filtering (phenotype match required)</td></tr><tr><td colspan=\"1\" rowspan=\"1\"> Diagnoses</td><td colspan=\"1\" rowspan=\"1\">164 (83%)</td><td colspan=\"1\" rowspan=\"1\">160 (77%)</td><td colspan=\"1\" rowspan=\"1\">173 (83%)</td><td colspan=\"1\" rowspan=\"1\">45 (83%)</td><td colspan=\"1\" rowspan=\"1\">78 (84%)</td><td colspan=\"1\" rowspan=\"1\">77 (83%)"
+          },
+          {
+            "source": "@paper",
+            "text": "When all variants prioritized by Exomiser were considered, it successfully identified the causative variant in 172 families (89%), with the lowest-ranked diagnosis at 32."
+          },
+          {
+            "source": "@paper",
+            "text": "The causative variant was identified in 164 families (85%) when only the top 10 ranked variants were considered, in 157 families (81%) when limited to the top five and in 127 families (65%) when only the highest-ranked variants were reviewed."
+          },
+          {
+            "source": "@paper",
+            "text": "This showed no significant difference at the all-variants and top 10 settings (Talos-only 12 versus Exomiser-only 12, <italic toggle=\"yes\">P</italic> = 1; 18 versus 10, <italic toggle=\"yes\">P</italic> = 0.18, respectively) but favored Talos at top five and top one (25 versus 10, <italic toggle=\"yes\">P</italic> = 0.017; 53 versus 8, <italic toggle=\"yes\">P</italic> &lt; 0.0001, respectively)."
+          },
+          {
+            "source": "@paper",
+            "text": "Review of Talos output identified 268 likely causative variants consistent with 241 new diagnoses in 238 individuals (5.1% additional yield; Fig. <xref rid=\"Fig3\" ref-type=\"fig\">3</xref> and Supplementary Table <xref rid=\"MOESM1\" ref-type=\"media\">1</xref>). All likely causative variants were subsequently classified as P/LP by accredited clinical laboratories."
+          },
+          {
+            "source": "@paper",
+            "text": "Whereas 221 diagnoses (92%) were identified as part of the initial cycle of reanalysis upon entry into the program, 20 diagnoses (8%) were obtained as part of iterative monthly cycles."
+          },
+          {
+            "source": "@paper",
+            "text": "later cycles returned an average of five new candidate variants per 1,000 cases"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "Talos is a Nextflow workflow with its dependencies in Docker, run locally or on a cluster. Build the image, download the external annotation resources into a large_files directory, run the preparation workflow that formats ClinVar, PanelApp and AlphaMissense into Hail tables, then run the combined annotation and analysis workflow from a single input TSV naming the cohort, its VCF, the data type, a pedigree and a config file. The annotation workflow is run once per dataset and only the prioritisation workflow is rerun for later reanalysis. Output is a JSON of candidate variants per proband with variant-level and gene-level evidence, inheritance checks and phenotype match tags, plus optional HTML reports and a simplified TSV.",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "Repository: README.md, Quick Start, Download Annotation Resources, Run Preparation Workflow, Run Annotation and Talos Combined Workflow, Outputs. Paper: Methods, Talos input requirements",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Talos is implemented using **Nextflow**, with all dependencies containerised via Docker. The example workflows can be run locally or on a cluster."
+          },
+          {
+            "source": "@readme",
+            "text": "Talos requires several large external resources (e.g. reference genome, gnomAD, AlphaMissense, Phenotype data). These are expected in a `large_files` directory."
+          },
+          {
+            "source": "@readme",
+            "text": "- *.json file listing all candidate variants for each proband"
+          },
+          {
+            "source": "@paper",
+            "text": "The variant annotation workflow needs to be run only once per dataset. For subsequent reanalyses, only the variant prioritization workflow is rerun, using updated annotation sources."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Two evaluation cohorts and one prospective deployment. ACG: 401 probands, 208 known diagnoses in the full cohort and 377 trios. RGP: 688 families (298 singletons, 390 trios), 93 known diagnoses in the full cohort, 106 prior diagnoses in the cohort overall. Prospective: 4,735 undiagnosed or partially diagnosed individuals, 3,739 exomes and 996 genomes, of whom 3,737 were analysed as singletons. The abstract describes the validation as 1,089 individuals, which is the 401 plus 688.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1; Abstract; Results, Iterative reanalysis in research and clinical datasets",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "ACG cohort</th><th colspan=\"3\" rowspan=\"1\">RGP cohort</th></tr></thead><tbody><tr><td colspan=\"1\" rowspan=\"1\"/><td colspan=\"1\" rowspan=\"1\">Trio only</td><td colspan=\"1\" rowspan=\"1\">Singleton</td><td colspan=\"1\" rowspan=\"1\">Full cohort</td><td colspan=\"1\" rowspan=\"1\">Trio only</td><td colspan=\"1\" rowspan=\"1\">Singleton</td><td colspan=\"1\" rowspan=\"1\">Full cohort</td></tr><tr><td colspan=\"1\" rowspan=\"1\"> Probands</td><td colspan=\"1\" rowspan=\"1\">377</td><td colspan=\"1\" rowspan=\"1\">401</td><td colspan=\"1\" rowspan=\"1\">401</td><td colspan=\"1\" rowspan=\"1\">390</td><td colspan=\"1\" rowspan=\"1\">688</td><td colspan=\"1\" rowspan=\"1\">688"
+          },
+          {
+            "source": "@paper",
+            "text": "validated its performance using data from 1,089 individuals with rare disease"
+          },
+          {
+            "source": "@paper",
+            "text": "The full cohort of 4,735 individuals included 3,739 who had exome sequencing and 996 with genome sequencing. Most were analyzed as singletons (<italic toggle=\"yes\">n</italic> = 3,737), with 998 probands sequenced as part of a trio."
+          },
+          {
+            "source": "@paper",
+            "text": "Prior analysis identified 106 molecular diagnoses, the diagnostic yield of 15.4% reflective of a cohort with previous uninformative clinical testing."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "No train and test split: Talos is a rule and evidence pipeline, not a trained model, so every case in a cohort is analysed. The reported partitions are by family structure (trio only, singleton, full cohort) within each cohort, and by filtering setting (default or strict with phenotype matching). The denominator for sensitivity is the diagnoses detectable by the standardised calling pipeline, not all prior diagnoses.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1 and its footnote; Methods, Statistics and reproducibility",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Known diagnoses where the pathogenic variant(s) were detectable using the standardized GATK/GATK-SV/GATK-gCNV analysis pipeline described in the"
+          },
+          {
+            "source": "@paper",
+            "text": "Cohort sizes reflect the full set of eligible individuals available from each contributing study"
+          },
+          {
+            "source": "@paper",
+            "text": "No data were excluded from the analyses; individuals harboring diagnostic variants in classes not reliably detected by the standardized pipeline (for example, STR expansions, low-level mosaic variants and retrotransposon insertions) were retained and are reported as missed diagnoses were applicable."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Diagnoses recovered, as a count and a percentage of the detectable known diagnoses, higher better; and review burden as candidate variants in total, per proband and per diagnosis, lower better. For the prospective cohort the measure is additional diagnostic yield as a percentage of individuals. The Exomiser comparison adds rank-budget recall at top 1, top 5, top 10 and unconstrained, with McNemar's exact test p values on the discordant pairs.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1; Methods, Exomiser comparison; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Candidates per proband</td><td colspan=\"1\" rowspan=\"1\">1.3</td><td colspan=\"1\" rowspan=\"1\">1.8</td><td colspan=\"1\" rowspan=\"1\">1.3</td><td colspan=\"1\" rowspan=\"1\">1.3</td><td colspan=\"1\" rowspan=\"1\">2.2</td><td colspan=\"1\" rowspan=\"1\">1.6"
+          },
+          {
+            "source": "@paper",
+            "text": "Success for Exomiser was defined as the causative variant ranking within the top 1, top 5 or top 10 variants per family, plus an unconstrained ‘all’ condition."
+          },
+          {
+            "source": "@paper",
+            "text": "241 new diagnoses in 238 individuals (5.1% additional yield"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Two kinds. The manual clinical and research analysis that produced the known diagnoses in each cohort is the reference standard. Exomiser v.14 in its default configuration is the one competing tool, run on the same ACG trio SNV and indel call sets.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Comparison with other tools; Methods, Exomiser comparison",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we benchmarked this aspect of its performance against Exomiser, a widely used tool<sup><xref ref-type=\"bibr\" rid=\"CR28\">28</xref></sup>. SNVs and indel call sets from the ACG cohort were analyzed using Exomiser v.14 with default configuration."
+          },
+          {
+            "source": "@paper",
+            "text": "We benchmarked Talos against Exomiser (v.14, default configuration) on the same ACG trios with known SNV or indel diagnoses."
+          },
+          {
+            "source": "@paper",
+            "text": "The cohorts had previously undergone a range of clinical and research analyses, which together contributed to the set of known diagnoses used for benchmarking."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Weak, and the paper says so plainly: the investigators were not blinded and the prior diagnoses were known at evaluation time, which was necessary to benchmark against manual analysis. The protections are that Talos is deterministic and produces its output without investigator input, that both cohorts were reprocessed through one standardised pipeline so the tool is measured against a fixed call set, and that Exomiser ran on the same families. There is no held-out cohort and no prespecified threshold.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Statistics and reproducibility; Results, Assessing Talos performance",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The investigators were not blinded to allocation during experiments and outcome assessment; for the validation cohorts, prior diagnoses were known at the time of evaluation to enable benchmarking against manual analysis"
+          },
+          {
+            "source": "@paper",
+            "text": "The experiments were not randomized; the study used a benchmarking design in observational cohorts rather than a randomized comparison."
+          },
+          {
+            "source": "@paper",
+            "text": "The performance of Talos was evaluated against the set of variants detected by this pipeline."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Little. Counts and percentages are reported without confidence intervals, and no statistical method was used to predetermine sample size. The only inferential statistics are the McNemar exact test p values for the paired Talos against Exomiser comparison at each rank budget. Reproducibility rests on the pipeline being deterministic and on versioning the external annotation sources at run time, which the authors say allows exact reproduction of a given reanalysis cycle.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Statistics and reproducibility and Exomiser comparison",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "No statistical method was used to predetermine sample size."
+          },
+          {
+            "source": "@paper",
+            "text": "We used the exact version because the number of discordant pairs was modest."
+          },
+          {
+            "source": "@paper",
+            "text": "External annotation sources (PanelApp Australia, ClinVar and gnomAD) are versioned at runtime, enabling exact reproduction of any individual reanalysis cycle."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A case: one proband, with or without parents, and the variant calls for that family. Success or failure is per family (did the known causative variant come back), and the burden measures count candidate variants per proband and per diagnosis.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1; Methods, Exomiser comparison",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Candidates per diagnoses</td><td colspan=\"1\" rowspan=\"1\">2.8</td><td colspan=\"1\" rowspan=\"1\">4.3</td><td colspan=\"1\" rowspan=\"1\">2.8</td><td colspan=\"1\" rowspan=\"1\">11.0</td><td colspan=\"1\" rowspan=\"1\">18.4</td><td colspan=\"1\" rowspan=\"1\">13.7"
+          },
+          {
+            "source": "@paper",
+            "text": "Success for Talos was defined as the causative variant being returned under Talos default settings."
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human. All three cohorts are people with rare disease: critically ill infants and children in Australia, families recruited across the United States and Puerto Rico, and patients referred for genomic testing in Australia.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Acute Care Genomics cohort, Rare Genomes Project cohort, Iterative reanalysis",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "401 critically ill infants and children between 2018 and 2022 as part of a national Australian study"
+          },
+          {
+            "source": "@paper",
+            "text": "enabling direct partnership with families and advocacy groups to enroll participants from all 50 US states and Puerto Rico"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Clinical exome and genome sequencing, reprocessed from raw data with GATK for short variants, GATK-SV for structural variants and GATK-gCNV for copy number variants. The labels are not assay readouts but clinical diagnoses: the variants previously reported for each case, and for the prospective cohort, variants later classified pathogenic or likely pathogenic by accredited laboratories and submitted to ClinVar.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Assessing Talos performance and Iterative reanalysis; Data availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Each cohort was reprocessed from raw sequencing data using a standardized pipeline incorporating Genome Analysis Toolkit (GATK) for short variant calling"
+          },
+          {
+            "source": "@paper",
+            "text": "All likely causative variants were subsequently classified as P/LP by accredited clinical laboratories."
+          },
+          {
+            "source": "@paper",
+            "text": "Clinically reported variants have been submitted to ClinVar under accession numbers SUB15793101, SUB15793127 and SUB15796069."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Variant calls and family and phenotype metadata, not sequence. Mandatory: SNV and indel calls as single-sample or multi-sample VCF, a pedigree in PED format and a TOML configuration. Optional: structural and copy number variant calls, Human Phenotype Ontology terms per individual, and a previous results JSON to keep first-seen dates. The paper asks that input variants not be prefiltered beyond standard quality control so that Talos's own filtering applies consistently. Talos also draws on external resources: PanelApp Australia, ClinVar through ClinvArbitration, gnomAD and AlphaMissense.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, Talos input requirements; Methods, Statistics and reproducibility. Repository: README.md, inputs and annotation resources",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Pedigree information (mandatory): provided in PED format</p></list-item><list-item><p id=\"Par55\">Phenotype data (optional): encoded as Human Phenotype Ontology (HPO) terms per individual"
+          },
+          {
+            "source": "@paper",
+            "text": "input variant data should not be prefiltered beyond standard quality control"
+          },
+          {
+            "source": "@readme",
+            "text": "- **history**: path to a previous results JSON file, used to maintain first-seen dates"
+          },
+          {
+            "source": "@readme",
+            "text": "Talos requires several large external resources (e.g. reference genome, gnomAD, AlphaMissense, Phenotype data)."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "None of the machine learning kind. Talos applies logic modules, inheritance-aware filtering, allele frequency filtering and phenotype matching against versioned external evidence; nothing is trained on these cohorts. The only setting varied in the evaluation is default against strict filtering, and Exomiser was run at its default configuration.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Table 1; Methods, Exomiser comparison",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "automates variant prioritization by integrating dynamically updated gene−disease and variant-level evidence with inheritance-aware filtering"
+          },
+          {
+            "source": "@paper",
+            "text": "Talos strict filtering (phenotype match required)"
+          },
+          {
+            "source": "@paper",
+            "text": "Exomiser (v.14, default configuration)"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Sensitivity and review burden are reported together, per family structure and per filtering setting, so the cost of each gain is visible: the ACG trios return 90% of detectable diagnoses at 1.3 candidates per proband, while RGP singletons return 87% at 18.4 candidates per diagnosis.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Candidates per diagnoses</td><td colspan=\"1\" rowspan=\"1\">2.8</td><td colspan=\"1\" rowspan=\"1\">4.3</td><td colspan=\"1\" rowspan=\"1\">2.8</td><td colspan=\"1\" rowspan=\"1\">11.0</td><td colspan=\"1\" rowspan=\"1\">18.4</td><td colspan=\"1\" rowspan=\"1\">13.7"
+          },
+          {
+            "source": "@paper",
+            "text": "Diagnoses</td><td colspan=\"1\" rowspan=\"1\">177 (90%)</td><td colspan=\"1\" rowspan=\"1\">170 (82%)</td><td colspan=\"1\" rowspan=\"1\">186 (89%)</td><td colspan=\"1\" rowspan=\"1\">47 (87%)</td><td colspan=\"1\" rowspan=\"1\">81 (87%)</td><td colspan=\"1\" rowspan=\"1\">80 (86%)"
+          }
+        ]
+      },
+      {
+        "text": "The denominator is honest about what the calling pipeline can see. Diagnoses due to variant classes the pipeline does not capture reliably, such as repeat expansions and low-level mosaics, are kept in the cohort and reported as missed, and the detectable subset is stated (196 of 208 in ACG trios, 54 of 57 in RGP trios).",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Acute Care Genomics cohort and Rare Genomes Project cohort; Methods, Statistics and reproducibility",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "with the remaining 11 diagnoses attributable to variant types not reliably captured by these tools, including STR expansions or low-level mosaic variants"
+          },
+          {
+            "source": "@paper",
+            "text": "individuals harboring diagnostic variants in classes not reliably detected by the standardized pipeline (for example, STR expansions, low-level mosaic variants and retrotransposon insertions) were retained and are reported as missed diagnoses were applicable"
+          }
+        ]
+      },
+      {
+        "text": "The comparison with Exomiser is paired and analysed as such, with McNemar's exact test on discordant families and a stated reason why unpaired tests would be wrong, and it is reported at several review budgets rather than at one flattering cut.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Exomiser comparison; Results, Comparison with other tools",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Tests that assume independent samples, such as two-sample proportion tests or Fisherʼs exact test, are not suitable for these paired comparisons."
+          },
+          {
+            "source": "@paper",
+            "text": "This showed no significant difference at the all-variants and top 10 settings"
+          }
+        ]
+      },
+      {
+        "text": "The tool is open source, containerised and reproducible by design: Docker and Nextflow with the study's configuration files published, and the external evidence sources versioned at run time.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, Statistics and reproducibility; Code availability. Repository: README.md, Quick Start",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Talos is open-source and packaged within a fixed software environment (Docker, Nextflow), with all configuration files used in this study provided with the code (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/populationgenomics/talos\">https://github.com/populationgenomics/talos</ext-link>)"
+          },
+          {
+            "source": "@readme",
+            "text": "docker build -f docker/Dockerfile -t talos:12.3.2 ."
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The evaluation was run by the tool's own developers on cohorts whose diagnoses were already known, without blinding or randomisation, so the recall figures are not an independent prospective estimate.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Statistics and reproducibility",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The investigators were not blinded to allocation during experiments and outcome assessment"
+          },
+          {
+            "source": "@paper",
+            "text": "The experiments were not randomized; the study used a benchmarking design in observational cohorts rather than a randomized comparison."
+          }
+        ]
+      },
+      {
+        "text": "No uncertainty is attached to the headline numbers. Every diagnosis count, percentage and candidates-per-case figure in Table 1 is a point estimate with no interval, and the only p values in the study are for the Exomiser comparison.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1; Methods, Statistics and reproducibility",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Candidate variants</td><td colspan=\"1\" rowspan=\"1\">487</td><td colspan=\"1\" rowspan=\"1\">729</td><td colspan=\"1\" rowspan=\"1\">523</td><td colspan=\"1\" rowspan=\"1\">519</td><td colspan=\"1\" rowspan=\"1\">1,491</td><td colspan=\"1\" rowspan=\"1\">1,095"
+          },
+          {
+            "source": "@paper",
+            "text": "No statistical method was used to predetermine sample size."
+          }
+        ]
+      },
+      {
+        "text": "The cohorts cannot be downloaded openly, so a third party can rerun the benchmark only after gaining controlled access. The RGP data are under controlled access via dbGaP (phs003047). The Australian Genomics data, including genome and exome sequencing data, are available for ethically approved secondary health and medical research use, subject to participant consent, on application to the cohort's data access committee with evidence of ethics approval. What is public without application is the tool and its configuration.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Data availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Access is granted via controlled-access mechanisms on the NHGRI AnVIL platform."
+          },
+          {
+            "source": "@paper",
+            "text": "Sequence data and metadata for the RGP (<ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://raregenomes.org/\">https://raregenomes.org/</ext-link>) are available via the database of Genotypes and Phenotypes (dbGaP) under accession number <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"http://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs003047.v1.p1\">phs003047</ext-link> (GREGoR dataset)."
+          },
+          {
+            "source": "@paper",
+            "text": "Deidentified genomic and clinical data from the Australian Genomics cohorts analyzed in this study are available for ethically approved secondary HMB research use, subject to participant consent."
+          },
+          {
+            "source": "@paper",
+            "text": "Each application is reviewed by a data access committee, typically over 6"
+          }
+        ]
+      },
+      {
+        "text": "Results depend on moving evidence sources and on local gene panels. Candidates during iterative reanalysis are returned only when the supporting evidence has changed, and the annotation sources are PanelApp Australia, ClinVar and gnomAD at whatever version was current, so a reanalysis elsewhere or later will not give the same output.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Iterative reanalysis; Methods, Statistics and reproducibility",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "During iterative reanalysis, Talos only returns candidate variants where the supporting evidence has changed since the previous round, such as updates to ClinVar or PanelApp Australia annotations."
+          },
+          {
+            "source": "@paper",
+            "text": "External annotation sources (PanelApp Australia, ClinVar and gnomAD) are versioned at runtime"
+          }
+        ]
+      },
+      {
+        "text": "The article itself is under a non-commercial, no-derivatives licence, so the text and tables cannot be redistributed or adapted freely, although the code is MIT.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: permissions. Repository: README.md",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Open Access</bold> This article is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License"
+          },
+          {
+            "source": "@readme",
+            "text": "Talos is implemented using **Nextflow**, with all dependencies containerised via Docker."
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Talos evaluation workflow",
+      "steps": [
+        "two cohorts with diagnoses already known from manual analysis",
+        "reprocessed from raw data with GATK, GATK-SV and GATK-gCNV",
+        "detectable diagnoses fixed as the denominator",
+        "Talos run under default and strict filtering",
+        "diagnoses recovered and candidate variants counted per proband and per diagnosis",
+        "paired comparison with Exomiser at four rank budgets, McNemar's exact test"
+      ],
+      "caption": "How each figure in Table 1 and the Exomiser comparison is produced.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Results, Assessing Talos performance and Comparison with other tools; Table 1; Methods, Exomiser comparison",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "These cohorts were selected to enable benchmarking against manual analysis and to evaluate performance with and without parental data."
+        },
+        {
+          "source": "@paper",
+          "text": "Each cohort was reprocessed from raw sequencing data using a standardized pipeline incorporating Genome Analysis Toolkit (GATK) for short variant calling, GATK-SV for SV detection in genomes and GATK-gCNV for CNV analysis in exomes (<xref rid=\"Sec10\" ref-type=\"sec\">Methods</xref>)."
+        },
+        {
+          "source": "@paper",
+          "text": "Known diagnoses where the pathogenic variant(s) were detectable using the standardized GATK/GATK-SV/GATK-gCNV analysis pipeline described in the"
+        },
+        {
+          "source": "@paper",
+          "text": "Talos strict filtering (phenotype match required)"
+        },
+        {
+          "source": "@paper",
+          "text": "Because outcomes are paired within the same families, we compared tools using McNemarʼs exact test applied to the discordant pairs"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "Extended Data Table 5 (cost estimates), Extended Data Fig. 1 (which variants each tool found) and Supplementary Table 1 (the new diagnoses) were not fetched, so only the figures printed in the article text are recorded.",
+      "No per-case or per-variant data are published, so nothing here could be verified against a released file.",
+      "The repository was read at its current commit, which is version 12.3.2 of the Docker tag, not the version used in the study; the paper does not state which Talos release produced its numbers.",
+      "The paper gives no release date for the tool and no leaderboard or results page exists for the cohorts."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the PMC full text XML of the Talos paper (PMC13472938, Nature Medicine), including Table 1, the Results sections on both evaluation cohorts, the Exomiser comparison, iterative reanalysis and resource requirements, and the Methods sections on inputs, the Exomiser comparison and statistics and reproducibility, plus the data and code availability statements; and the populationgenomics/talos README.md at commit d279709d4c8b601b2280ccf3fe5edb480f7a77f6. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Build the Talos container, prepare its annotation resources, and run the annotation and analysis workflow over a cohort's VCF and pedigree.",
+    "prerequisites": [
+      "Nextflow and Docker, as the README's requirements list them.",
+      "The external annotation resources (reference genome, gnomAD, AlphaMissense, phenotype data) downloaded into a large_files directory, plus up-to-date ClinVar and PanelApp dumps prepared by the preparation workflow.",
+      "A cohort VCF (single-sample or multi-sample), a pedigree in PED format and a TOML config; optional structural variant calls, HPO terms per individual and a previous results JSON.",
+      "A single machine is enough: the study's analyses ran on one virtual machine with 16 cores and 64 GB of memory.",
+      "The code is MIT licensed. The study's own cohorts are not public."
+    ],
+    "steps": [
+      {
+        "title": "Get the code at the pinned commit",
+        "shell": "git clone https://github.com/populationgenomics/talos.git\ncd talos\ngit checkout --detach d279709d4c8b601b2280ccf3fe5edb480f7a77f6",
+        "explanation": "The repository address is the one the paper's code availability statement gives; the checkout line was added here to pin the commit these steps were read from.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Code availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Code availability</title><p>Talos: <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/populationgenomics/talos\">https://github.com/populationgenomics/talos</ext-link>."
+          }
+        ]
+      },
+      {
+        "title": "Build the container",
+        "shell": "docker build -f docker/Dockerfile -t talos:12.3.2 .",
+        "explanation": "The README's build command. It notes that Talos uses Hail, which has been validated only on Java 11 and Python 3.10 and 3.11, so the default base image is an older one; a modern base can be chosen with build arguments at the user's own risk.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md, Install Requirements",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "docker build -f docker/Dockerfile -t talos:12.3.2 ."
+          },
+          {
+            "source": "@readme",
+            "text": "Talos utilises [Hail](https://github.com/hail-is/hail), which at time of writing has only been validated on Java 11 and Python 3.10 & 3.11."
+          }
+        ]
+      },
+      {
+        "title": "Prepare the annotation resources",
+        "shell": "bash large_files/gather_files.sh\nnextflow \\\n    -c nextflow.config \\\n    run preparation.nf \\\n    --processed_annotations <static path for prepared files> \\\n    --large_files <path to the downloaded resources>",
+        "explanation": "The README links to a script, large_files/gather_files.sh, that performs the initial download of the required resources but gives no command for it; the bash line above was written here from that link. The README gives the preparation workflow command that formats ClinVar and PanelApp into Hail tables and reformats AlphaMissense. The two paths are placeholders; processed_annotations should be a static directory reused by later runs.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "Repository: README.md, Download Annotation Resources and Run Preparation Workflow",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "See [large_files/README.md](large_files/README.md) for detail on where to obtain them, and a [script](large_files/gather_files.sh) which will handle the initial download of all required resources."
+          },
+          {
+            "source": "@readme",
+            "text": "nextflow \\ -c nextflow.config \\ run preparation.nf \\ [--processed_annotations <path>] \\ [--large_files <path>]"
+          },
+          {
+            "source": "@readme",
+            "text": "The parameter `processed_annotations` should point to a static directory where talos-generated files can be stored"
+          }
+        ]
+      },
+      {
+        "title": "Run the annotation and analysis workflow",
+        "shell": "nextflow \\\n  -c nextflow.config \\\n  run main.nf \\\n  --input_tsv nextflow/inputs/test.tsv \\\n  -output-dir <path_to_output_dir>",
+        "explanation": "The README's run of the combined workflow, using the example input TSV it ships. Each row of that TSV names a cohort, its VCF, the data type, a pedigree and a config, with optional columns for history and more. The annotation stage needs running only once per dataset; later reanalyses rerun only the prioritisation stage.",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "Repository: README.md, Run Annotation and Talos Combined Workflow. Paper: Methods, Talos input requirements",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "nextflow \\ -c nextflow.config \\"
+          },
+          {
+            "source": "@readme",
+            "text": "--input_tsv nextflow/inputs/test.tsv \\"
+          },
+          {
+            "source": "@readme",
+            "text": "The [annotation workflow](nextflow/annotation.nf) pre-processes and annotates variants. This workflow only needs to be run once per dataset, with the resulting MatrixTable(s) re-used with each iterative analysis."
+          },
+          {
+            "source": "@paper",
+            "text": "For subsequent reanalyses, only the variant prioritization workflow is rerun, using updated annotation sources."
+          },
+          {
+            "source": "@readme",
+            "text": "-output-dir <path_to_output_dir>"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "A JSON file of candidate variants per proband with variant-level and gene-level evidence, inheritance checks and phenotype match tags, written under a path of the form {workflow.outputDir}/{cohort}_outputs.",
+      "Optional HTML reports for analysts and a simplified TSV for Seqr ingestion.",
+      "Reanalysis metadata per variant: first_seen and evidence_last_updated."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "They run the tool; they do not reproduce the paper's evaluation, which needs the ACG and RGP cohorts and their known diagnoses, neither of which is public.",
+      "The resource download and the two path arguments are site-specific, and the external evidence sources change over time, so the same command will give different candidates on a different date.",
+      "The README is read at the current commit, whose Docker tag is 12.3.2; the paper does not say which version produced its results."
+    ],
+    "source_ids": [
+      "@readme",
+      "@paper"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Talos diagnosis recovery and workload: ACG trio",
+      "dataset": "Acute Care Genomics cohort, trios only",
+      "size": 377,
+      "size_unit": "probands, with 196 detectable known diagnoses",
+      "split": "trio only, default filtering, against diagnoses detectable by the GATK pipeline",
+      "primary_metric": "diagnoses recovered as a percentage of detectable known diagnoses",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41591-026-04477-5",
+      "code_url": "https://github.com/populationgenomics/talos",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "ACG cohort</th><th colspan=\"3\" rowspan=\"1\">RGP cohort</th></tr></thead><tbody><tr><td colspan=\"1\" rowspan=\"1\"/><td colspan=\"1\" rowspan=\"1\">Trio only</td><td colspan=\"1\" rowspan=\"1\">Singleton</td><td colspan=\"1\" rowspan=\"1\">Full cohort</td><td colspan=\"1\" rowspan=\"1\">Trio only</td><td colspan=\"1\" rowspan=\"1\">Singleton</td><td colspan=\"1\" rowspan=\"1\">Full cohort</td></tr><tr><td colspan=\"1\" rowspan=\"1\"> Probands</td><td colspan=\"1\" rowspan=\"1\">377</td><td colspan=\"1\" rowspan=\"1\">401</td><td colspan=\"1\" rowspan=\"1\">401</td><td colspan=\"1\" rowspan=\"1\">390</td><td colspan=\"1\" rowspan=\"1\">688</td><td colspan=\"1\" rowspan=\"1\">688"
+        },
+        {
+          "source": "@paper",
+          "text": "Known diagnoses<sup>a</sup></td><td colspan=\"1\" rowspan=\"1\">196</td><td colspan=\"1\" rowspan=\"1\">208</td><td colspan=\"1\" rowspan=\"1\">208</td><td colspan=\"1\" rowspan=\"1\">54</td><td colspan=\"1\" rowspan=\"1\">93</td><td colspan=\"1\" rowspan=\"1\">93</td></tr><tr><td colspan=\"7\" rowspan=\"1\">Talos default filtering</td></tr><tr><td colspan=\"1\" rowspan=\"1\"> Diagnoses</td><td colspan=\"1\" rowspan=\"1\">177 (90%)</td><td colspan=\"1\" rowspan=\"1\">170 (82%)</td><td colspan=\"1\" rowspan=\"1\">186 (89%)</td><td colspan=\"1\" rowspan=\"1\">47 (87%)</td><td colspan=\"1\" rowspan=\"1\">81 (87%)</td><td colspan=\"1\" rowspan=\"1\">80 (86%)"
+        },
+        {
+          "source": "@paper",
+          "text": "Code availability</title><p>Talos: <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"https://github.com/populationgenomics/talos\">https://github.com/populationgenomics/talos</ext-link>."
+        }
+      ]
+    },
+    {
+      "task": "Talos diagnosis recovery and workload: ACG singleton",
+      "dataset": "Acute Care Genomics cohort, analysed as singletons",
+      "size": 401,
+      "size_unit": "probands, with 208 detectable known diagnoses",
+      "split": "singleton analysis of the same cohort, default filtering",
+      "primary_metric": "diagnoses recovered as a percentage of detectable known diagnoses",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41591-026-04477-5",
+      "code_url": "https://github.com/populationgenomics/talos",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Probands</td><td colspan=\"1\" rowspan=\"1\">377</td><td colspan=\"1\" rowspan=\"1\">401</td><td colspan=\"1\" rowspan=\"1\">401</td><td colspan=\"1\" rowspan=\"1\">390</td><td colspan=\"1\" rowspan=\"1\">688</td><td colspan=\"1\" rowspan=\"1\">688"
+        },
+        {
+          "source": "@paper",
+          "text": "Diagnoses</td><td colspan=\"1\" rowspan=\"1\">177 (90%)</td><td colspan=\"1\" rowspan=\"1\">170 (82%)</td><td colspan=\"1\" rowspan=\"1\">186 (89%)</td><td colspan=\"1\" rowspan=\"1\">47 (87%)</td><td colspan=\"1\" rowspan=\"1\">81 (87%)</td><td colspan=\"1\" rowspan=\"1\">80 (86%)"
+        },
+        {
+          "source": "@paper",
+          "text": "Candidates per diagnoses</td><td colspan=\"1\" rowspan=\"1\">2.8</td><td colspan=\"1\" rowspan=\"1\">4.3</td><td colspan=\"1\" rowspan=\"1\">2.8</td><td colspan=\"1\" rowspan=\"1\">11.0</td><td colspan=\"1\" rowspan=\"1\">18.4</td><td colspan=\"1\" rowspan=\"1\">13.7"
+        }
+      ]
+    },
+    {
+      "task": "Talos diagnosis recovery and workload: ACG full",
+      "dataset": "Acute Care Genomics cohort, full",
+      "size": 401,
+      "size_unit": "probands, with 208 detectable known diagnoses",
+      "split": "full cohort as sequenced, default filtering",
+      "primary_metric": "diagnoses recovered as a percentage of detectable known diagnoses",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41591-026-04477-5",
+      "code_url": "https://github.com/populationgenomics/talos",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Probands</td><td colspan=\"1\" rowspan=\"1\">377</td><td colspan=\"1\" rowspan=\"1\">401</td><td colspan=\"1\" rowspan=\"1\">401</td><td colspan=\"1\" rowspan=\"1\">390</td><td colspan=\"1\" rowspan=\"1\">688</td><td colspan=\"1\" rowspan=\"1\">688"
+        },
+        {
+          "source": "@paper",
+          "text": "Diagnoses</td><td colspan=\"1\" rowspan=\"1\">177 (90%)</td><td colspan=\"1\" rowspan=\"1\">170 (82%)</td><td colspan=\"1\" rowspan=\"1\">186 (89%)</td><td colspan=\"1\" rowspan=\"1\">47 (87%)</td><td colspan=\"1\" rowspan=\"1\">81 (87%)</td><td colspan=\"1\" rowspan=\"1\">80 (86%)</td></tr><tr><td colspan=\"1\" rowspan=\"1\"> Candidate variants</td><td colspan=\"1\" rowspan=\"1\">487</td><td colspan=\"1\" rowspan=\"1\">729</td><td colspan=\"1\" rowspan=\"1\">523</td><td colspan=\"1\" rowspan=\"1\">519</td><td colspan=\"1\" rowspan=\"1\">1,491</td><td colspan=\"1\" rowspan=\"1\">1,095"
+        },
+        {
+          "source": "@paper",
+          "text": "Primary manual diagnostic analysis yielded a molecular diagnosis in 55% (220/401) of probands"
+        }
+      ]
+    },
+    {
+      "task": "Talos diagnosis recovery and workload: RGP trio",
+      "dataset": "Rare Genomes Project cohort, trios only",
+      "size": 390,
+      "size_unit": "families, with 54 detectable known diagnoses",
+      "split": "trio only, default filtering, against diagnoses detectable by the GATK pipeline",
+      "primary_metric": "diagnoses recovered as a percentage of detectable known diagnoses",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41591-026-04477-5",
+      "code_url": "https://github.com/populationgenomics/talos",
+      "data_url": "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs003047",
+      "data_licence": "controlled-access",
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Of the 57 trios with known diagnoses in the RGP cohort, pathogenic variants were detectable within the GATK/GATK-SV/GATK-gCNV pipeline for 54 (95%)"
+        },
+        {
+          "source": "@paper",
+          "text": "These candidates included 47 of the 54 diagnoses possible (87%)."
+        },
+        {
+          "source": "@paper",
+          "text": "available via the database of Genotypes and Phenotypes (dbGaP) under accession number <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"http://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs003047.v1.p1\">phs003047</ext-link> (GREGoR dataset)"
+        },
+        {
+          "source": "@paper",
+          "text": "Access is granted via controlled-access mechanisms on the NHGRI AnVIL platform."
+        }
+      ]
+    },
+    {
+      "task": "Talos diagnosis recovery and workload: RGP singleton",
+      "dataset": "Rare Genomes Project cohort, analysed as singletons",
+      "size": 688,
+      "size_unit": "families, with 93 detectable known diagnoses",
+      "split": "singleton analysis of the same cohort, default filtering",
+      "primary_metric": "diagnoses recovered as a percentage of detectable known diagnoses",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41591-026-04477-5",
+      "code_url": "https://github.com/populationgenomics/talos",
+      "data_url": "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs003047",
+      "data_licence": "controlled-access",
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Probands</td><td colspan=\"1\" rowspan=\"1\">377</td><td colspan=\"1\" rowspan=\"1\">401</td><td colspan=\"1\" rowspan=\"1\">401</td><td colspan=\"1\" rowspan=\"1\">390</td><td colspan=\"1\" rowspan=\"1\">688</td><td colspan=\"1\" rowspan=\"1\">688"
+        },
+        {
+          "source": "@paper",
+          "text": "Diagnoses</td><td colspan=\"1\" rowspan=\"1\">177 (90%)</td><td colspan=\"1\" rowspan=\"1\">170 (82%)</td><td colspan=\"1\" rowspan=\"1\">186 (89%)</td><td colspan=\"1\" rowspan=\"1\">47 (87%)</td><td colspan=\"1\" rowspan=\"1\">81 (87%)</td><td colspan=\"1\" rowspan=\"1\">80 (86%)</td></tr><tr><td colspan=\"1\" rowspan=\"1\"> Candidate variants</td><td colspan=\"1\" rowspan=\"1\">487</td><td colspan=\"1\" rowspan=\"1\">729</td><td colspan=\"1\" rowspan=\"1\">523</td><td colspan=\"1\" rowspan=\"1\">519</td><td colspan=\"1\" rowspan=\"1\">1,491</td><td colspan=\"1\" rowspan=\"1\">1,095</td></tr><tr><td colspan=\"1\" rowspan=\"1\"> Candidates per proband</td><td colspan=\"1\" rowspan=\"1\">1.3</td><td colspan=\"1\" rowspan=\"1\">1.8</td><td colspan=\"1\" rowspan=\"1\">1.3</td><td colspan=\"1\" rowspan=\"1\">1.3</td><td colspan=\"1\" rowspan=\"1\">2.2</td><td colspan=\"1\" rowspan=\"1\">1.6"
+        },
+        {
+          "source": "@paper",
+          "text": "under accession number <ext-link xmlns:xlink=\"http://www.w3.org/1999/xlink\" ext-link-type=\"uri\" xlink:href=\"http://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs003047.v1.p1\">phs003047</ext-link> (GREGoR dataset)"
+        }
+      ]
+    },
+    {
+      "task": "Talos diagnosis recovery and workload: RGP full",
+      "dataset": "Rare Genomes Project cohort, full",
+      "size": 688,
+      "size_unit": "families, with 93 detectable known diagnoses",
+      "split": "full cohort as sequenced (298 singletons and 390 trios), default filtering",
+      "primary_metric": "diagnoses recovered as a percentage of detectable known diagnoses",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41591-026-04477-5",
+      "code_url": "https://github.com/populationgenomics/talos",
+      "data_url": "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs003047",
+      "data_licence": "controlled-access",
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we analyzed data from 688 RGP-enrolled families (298 singletons and 390 trios) with genome sequencing performed by the Broad Institute prior to September 2022"
+        },
+        {
+          "source": "@paper",
+          "text": "Diagnoses</td><td colspan=\"1\" rowspan=\"1\">177 (90%)</td><td colspan=\"1\" rowspan=\"1\">170 (82%)</td><td colspan=\"1\" rowspan=\"1\">186 (89%)</td><td colspan=\"1\" rowspan=\"1\">47 (87%)</td><td colspan=\"1\" rowspan=\"1\">81 (87%)</td><td colspan=\"1\" rowspan=\"1\">80 (86%)"
+        },
+        {
+          "source": "@paper",
+          "text": "Candidates per diagnoses</td><td colspan=\"1\" rowspan=\"1\">2.8</td><td colspan=\"1\" rowspan=\"1\">4.3</td><td colspan=\"1\" rowspan=\"1\">2.8</td><td colspan=\"1\" rowspan=\"1\">11.0</td><td colspan=\"1\" rowspan=\"1\">18.4</td><td colspan=\"1\" rowspan=\"1\">13.7"
+        }
+      ]
+    },
+    {
+      "task": "Exomiser rank-budget recovery in ACG trios",
+      "dataset": "ACG trio families with known SNV or indel diagnoses",
+      "size": 194,
+      "size_unit": "families with a known SNV or indel diagnosis",
+      "split": "same families as the Talos comparison, Exomiser v.14 default configuration",
+      "primary_metric": "families whose causative variant is found, by rank budget",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41591-026-04477-5",
+      "code_url": "https://github.com/populationgenomics/talos",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "In the ACG cohort trios, 194 families had known diagnoses attributable to SNVs or indels."
+        },
+        {
+          "source": "@paper",
+          "text": "When all variants prioritized by Exomiser were considered, it successfully identified the causative variant in 172 families (89%), with the lowest-ranked diagnosis at 32."
+        },
+        {
+          "source": "@paper",
+          "text": "in 127 families (65%) when only the highest-ranked variants were reviewed"
+        }
+      ]
+    },
+    {
+      "task": "Talos programme reanalysis yield",
+      "dataset": "prospective cohort of undiagnosed or partially diagnosed individuals",
+      "size": 4735,
+      "size_unit": "individuals",
+      "split": "unselected deployment cohort, 29 monthly reanalysis cycles",
+      "primary_metric": "additional diagnostic yield as a percentage of individuals",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41591-026-04477-5",
+      "code_url": "https://github.com/populationgenomics/talos",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We next evaluated real-world utility through deployment of Talos at scale in a large, unselected cohort of 4,735 individuals who had undergone prior genomic testing but remained undiagnosed"
+        },
+        {
+          "source": "@paper",
+          "text": "241 new diagnoses in 238 individuals (5.1% additional yield"
+        },
+        {
+          "source": "@paper",
+          "text": "Twenty-nine cycles of iterative monthly reanalysis were performed."
+        }
+      ]
+    }
+  ],
+  "notes": "Written from the PMC full text (PMC13472938) and the populationgenomics/talos README at commit d279709d4c8b601b2280ccf3fe5edb480f7a77f6 (MIT). Points for a human. First, the article is CC BY-NC-ND 4.0, so its bytes are kept but not stored. Second, the sizes in the structured entries are the proband or family counts of each exact Table 1 column, and each one names its own detectable-diagnosis denominator in size_unit; the denominators differ from the prior diagnosis counts (208 detectable of 220 prior in ACG, 93 of 106 in RGP), and the ACG trio column covers 377 probands while its 196 detectable diagnoses come from the 208 trios with known diagnoses, which is how Table 1 prints it. Third, the abstract's headline 90% and 1.3 variants per case are the ACG trio figures, not cohort-wide. Fourth, the Exomiser entry's 194 families are those with a known SNV or indel diagnosis, a smaller set than the 196 detectable diagnoses used for Talos, so the two percentages are not directly comparable. Fifth, the RGP data_url is the dbGaP study the paper names and the access is controlled, so data_licence is recorded as controlled-access rather than an SPDX identifier; the Australian cohorts have no public data address. Sixth, the repository was read at its current commit and the paper does not state which Talos version produced the published numbers."
+}
