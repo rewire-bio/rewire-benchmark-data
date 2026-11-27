@@ -22,6 +22,10 @@ each SPARQL answer is cached as JSON (answers/), so a rerun only repeats the SQL
 query runs as rdf-kg-mcp runs it: the bundle's prefixes, the union of all graphs as the default
 graph, and parameters put in the way bind_params does.
 
+Last, search: the records it indexes and their classes are compared with the subjects and types
+rdf-kg-mcp indexes, and every gold pair of scripts/kg/search-gold.rq is searched, with recall at 3
+and 5 printed per bucket (about four minutes). `--only search` runs only this part.
+
 Rows are compared after both sides are written in one form: IRIs in full, literals by their
 lexical form (numbers compared as decimals), unbound as None. Where the query orders its rows,
 the order of the ORDER BY keys must match and rows that tie on every key are compared as a set.
@@ -182,6 +186,8 @@ def check_inputs(store, manifest, kb) -> list[str]:
             {(s, o) for s, o in pairs(f"SELECT DISTINCT ?s ?t WHERE {{ GRAPH <{graph}asserted> {{ ?s a ?t }} FILTER(STRSTARTS(STR(?s), STR(id:))) }}") if record(s)},
             None),
         "rb:within": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}inferred> {{ ?s rb:within ?o }} }}"), flat(kb.within)),
+        "rb:assessedBy": (pairs("SELECT ?s ?o WHERE { ?s rb:assessedBy ?o }"), flat(kb.out.get("assessed_by", {}))),
+        "rb:resultOn": (pairs("SELECT ?s ?o WHERE { ?s rb:resultOn ?o }"), flat(kb.result_on())),
         "rb:servedEvaluation": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}release> {{ ?s rb:servedEvaluation ?o }} }}"), flat(kb.served)),
         "rb:servedBaseline": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}release> {{ ?s rb:servedBaseline ?o }} }}"), flat(kb.baselines)),
         "rb:runReceipt": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}release> {{ ?s rb:runReceipt ?o }} }}"), flat(kb.receipts)),
@@ -240,20 +246,46 @@ def compare(name: str, params: dict, answer: dict, mine: list[dict]) -> list[str
 
 
 def order_key(row: dict, key: str):
+    if key.startswith("rank:"):
+        return queries.severity_rank(row[key[5:]])
     if key.startswith("lcase:"):
         value = row[key[6:]]
         return value.lower() if isinstance(value, str) else value
     return row[key]
 
 
-def parameter_sets(db_path: str) -> list[tuple[str, dict]]:
+def discrepancy_sets(report: list[dict], use_cases: list[str], db_path: str) -> list[tuple[str, dict]]:
+    """Every severity, systems in many findings and in few, systems of settled and resolved
+    findings, every discrepancy with a review history and some without, every use case, and
+    parameters that should give no rows: a configuration, a previous ID, records of other kinds."""
+    import sqlite3
+    from collections import Counter
+    sets = [("open_discrepancies", {})] + [("open_discrepancies", {"severity": s}) for s in ("high", "medium", "low", "none")]
+    counts = Counter(s for f in report for s in f["systems"])
+    systems = [s for s, _ in counts.most_common(8)] + [s for s, n in sorted(counts.items()) if n == 1][:4]
+    systems += [s for f in report if f["review_state"] != "open" for s in f["systems"]]
+    db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    systems += [r[0] for r in db.execute(
+        "SELECT from_id FROM link WHERE relation = 'configuration_of' AND to_id = ? ORDER BY from_id LIMIT 1", (systems[0],))]
+    db.close()
+    systems += [use_cases[0], "no-such-record"]
+    sets += [("discrepancies_for_system", {"system": s}) for s in dict.fromkeys(systems)]
+    histories = [f["id"] for f in report if f["actions"]] + [f["id"] for f in report if not f["actions"]][:3]
+    histories += [p for f in report for p in f["previous_ids"]][:2] + [systems[0]]
+    sets += [("discrepancy_history", {"discrepancy": d}) for d in dict.fromkeys(histories)]
+    sets += [("contested_results_for_use_case", {"use_case": u}) for u in use_cases + [systems[0]]]
+    return sets
+
+
+def parameter_sets(db_path: str, report: list[dict]) -> list[tuple[str, dict]]:
     """Realistic parameters: every use case, models with many and few results, benchmarks,
     protocols and results, and records that are not of the kind a query expects."""
     import sqlite3
     db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     one = lambda sql, *a: [r[0] for r in db.execute(sql, a)]
     use_cases = one("SELECT id FROM record WHERE kind = 'use_case' ORDER BY id")
-    sets = [("rank_for_use_case", {"use_case": u}) for u in use_cases]
+    sets = discrepancy_sets(report, use_cases, db_path)
+    sets += [("rank_for_use_case", {"use_case": u}) for u in use_cases]
     sets.append(("rank_for_use_case", {"use_case": "esm2-t33-650m-ur50d"}))
     sets.append(("gaps", {}))
     for tier in (1, 2, 3):
@@ -292,13 +324,90 @@ def parameter_sets(db_path: str) -> list[tuple[str, dict]]:
     return sets
 
 
+def check_search_inputs(store, manifest, records) -> list[str]:
+    """The records search indexes and their classes, against the subjects rdf-kg-mcp indexes
+    (any label, description or declared search text outside the ontology graph) and their types."""
+    import pyoxigraph as ox
+    ontology = ox.NamedNode(manifest["graphs"]["ontology"])
+    predicates = [*manifest["label_predicates"], "rdfs:comment", "skos:definition", "obo:IAO_0000115", "dcterms:description",
+                  *manifest.get("search", {}).get("text_predicates", [])]
+    prefixes = {**manifest["prefixes"], "skos": "http://www.w3.org/2004/02/skos/core#", "obo": "http://purl.obolibrary.org/obo/"}
+    full = lambda name: prefixes[name.split(":", 1)[0]] + name.split(":", 1)[1]
+    theirs = set()
+    for predicate in dict.fromkeys(map(full, predicates)):
+        for quad in store.quads_for_pattern(None, ox.NamedNode(predicate), None):
+            if quad.graph_name != ontology and isinstance(quad.object, ox.Literal) and quad.object.value.strip():
+                theirs.add(quad.subject.value)
+    index = records.index
+    ours = set(index.docs)
+    problems = []
+    status = "same" if theirs == ours else "DIFFERENT"
+    print(f"{status:9} input search documents: graph {len(theirs)}, sqlite {len(ours)}")
+    if theirs != ours:
+        problems.append(f"search documents: only graph {sorted(theirs - ours)[:3]}, only sqlite {sorted(ours - theirs)[:3]}")
+        print(f"    {problems[-1]}")
+    rdf_type = ox.NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+    wrong = []
+    for subject in sorted(theirs & ours):
+        graph_types = {records.compact(q.object.value) for q in store.quads_for_pattern(ox.NamedNode(subject), rdf_type, None)}
+        if graph_types != set(index.types.get(subject, ())):
+            wrong.append((subject, sorted(graph_types), index.types.get(subject)))
+    status = "same" if not wrong else "DIFFERENT"
+    print(f"{status:9} input search classes of {len(theirs & ours)} documents")
+    if wrong:
+        problems.append(f"search classes differ for {len(wrong)}: {wrong[:3]}")
+        print(f"    {problems[-1]}")
+    return problems
+
+
+# rdf-kg-mcp itself finds 97.0% of the gold pairs of bundle 2026-11-26-36acdf5e0cfa in its top 5.
+SEARCH_FLOOR = 0.95
+
+
+def search_gold(store, records, misses: int = 5) -> int:
+    """Run scripts/kg/search-gold.rq on the bundle and search the database for each pair, as
+    rdf-kg-mcp's scripts/search_recall.py does: the expected record's class as the types filter,
+    and the query's own record dropped before ranking. Prints recall at 3 and 5 by bucket."""
+    fields = ("bucket", "query", "expected", "type", "self")
+    pairs = []
+    for solution in store.query((ROOT / "scripts" / "kg" / "search-gold.rq").read_text("utf-8"), use_default_graph_as_union=True):
+        row = {f: solution[f].value for f in fields if solution[f] is not None}
+        if all(row.get(k) for k in ("bucket", "query", "expected")):
+            pairs.append(tuple(row.get(f) for f in fields))
+    pairs = list(dict.fromkeys(pairs))
+    started = time.time()
+    hits: dict[str, list] = {}
+    for bucket, text, expected, cls, own in pairs:
+        found = records.search(text, types=[cls] if cls else None, limit=6)["results"]
+        iris = [r["iri"] for r in found if r["iri"] != own]
+        rank = iris.index(expected) + 1 if expected in iris[:5] else None
+        h = hits.setdefault(bucket, [0, 0, 0, []])
+        h[0] += 1
+        h[1] += rank is not None and rank <= 3
+        h[2] += rank is not None
+        if rank is None and len(h[3]) < misses:
+            h[3].append(f"{text!r} for {records.compact(expected)}")
+    for bucket, (n, at3, at5, missed) in sorted(hits.items()):
+        print(f"search    {bucket}: {n} pairs, expected record in the top 3 for {at3}, top 5 for {at5}")
+        for m in missed:
+            print(f"    missed {m}")
+    total = sum(h[0] for h in hits.values())
+    found = sum(h[2] for h in hits.values())
+    print(f"search    all gold pairs: {total}; top 3 {sum(h[1] for h in hits.values())}, top 5 {found}; "
+          f"{time.time() - started:.0f} s")
+    if found < SEARCH_FLOOR * total:
+        print(f"DIFFERENT search finds fewer than {SEARCH_FLOOR:.0%} of the gold pairs in its top 5")
+        return 1
+    return 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--bundle", default="kb/build/oracle/bundle")
     parser.add_argument("--db", default="kb/build/oracle.sqlite")
     parser.add_argument("--use-cases", default="kb/build/oracle/use-cases.json")
     parser.add_argument("--discrepancies", default="kb/build/oracle/discrepancies.json")
-    parser.add_argument("--only", help="run only this query")
+    parser.add_argument("--only", help="run only these queries (names separated by commas; search for the search checks)")
     parser.add_argument("--load-only", action="store_true")
     args = parser.parse_args()
     bundle = Path(args.bundle)
@@ -308,8 +417,8 @@ def main() -> None:
     kb = queries.KB(args.db, use_cases=args.use_cases, discrepancies=args.discrepancies)
     failures = len(check_inputs(store, manifest, kb))
     summary: dict[str, list] = {}
-    for name, params in parameter_sets(args.db):
-        if args.only and name != args.only:
+    for name, params in parameter_sets(args.db, kb.report):
+        if args.only and name not in args.only.split(","):
             continue
         answer = sparql_answer(store, manifest, bundle, name, params)
         started = time.time()
@@ -327,6 +436,10 @@ def main() -> None:
         same = sum(r[0] for r in runs)
         print(f"{name}: {same} of {len(runs)} parameter sets equal; rows {sum(r[1] for r in runs)}; "
               f"graph {sum(r[2] for r in runs):.1f} s, sqlite {sum(r[3] for r in runs):.1f} s in total")
+    if not args.only or "search" in args.only.split(","):
+        records = queries.Records(args.db, discrepancies=args.discrepancies)
+        failures += len(check_search_inputs(store, manifest, records))
+        failures += search_gold(store, records)
     sys.exit(1 if failures else 0)
 
 

@@ -4,10 +4,17 @@ Usage:
   python3 kb/queries.py --list
   python3 kb/queries.py <query name> [--param name=value ...] [--db kb/build/kb.sqlite]
                         [--use-cases FILE] [--discrepancies FILE] [--format json|table]
+  python3 kb/queries.py search|describe_resource|dataset_info [--param name=value ...]
+                        [--db kb/build/kb.sqlite] [--discrepancies FILE]
 
-Each query in scripts/kg/product_queries.py QUERIES has a function here with the same parameters,
-returning rows as dicts with the columns the SPARQL query selects, in the same order. The
-comparison with the graph is kb/tools/compare_queries.py.
+Each named query of the graph bundle (scripts/kg/build.py NAMED_QUERIES: the four discrepancy
+queries and the five of scripts/kg/product_queries.py) has a function here with the same
+parameters, returning rows as dicts with the columns the SPARQL query selects, in the same order.
+The comparison with the graph is kb/tools/compare_queries.py.
+
+Records holds the three rdf-kg-mcp tools the agents call besides the queries: search (ranked as
+rdf-kg-mcp ranks, see kb/search.py), describe_resource (one record with its links out and in, by
+name) and dataset_info. They print one JSON object rather than rows.
 
 The graph the SPARQL queries read is replaced by the same facts taken from the database:
 
@@ -23,6 +30,7 @@ The graph the SPARQL queries read is replaced by the same facts taken from the d
                   public.omics.releases.<id>.use-cases.json.gz of serving/<id>. Without one
                   nothing is served and only run receipts are known, as in a bundle built before
                   a release is cut: rank_for_use_case then returns no rows.
+  derived         The discrepancy queries read discrepancies.json as the derived graph holds it.
   findings        The unsettled discrepancies each result takes part in, from discrepancies.json
                   (kb/discrepancies.py writes it). Without --discrepancies they are found from the
                   database first, which adds about ten seconds.
@@ -40,7 +48,7 @@ import re
 import sqlite3
 import sys
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
@@ -183,9 +191,45 @@ def literals(value, how: str) -> list:
     return out
 
 
+def severity_rank(severity: str) -> int:
+    """The ?rank the discrepancy queries order by: high, medium, then anything else."""
+    return {"high": 0, "medium": 1}.get(severity, 2)
+
+
 def concat(items) -> str | None:
     """GROUP_CONCAT(DISTINCT ...; separator=" "), with the items sorted."""
     return " ".join(sorted(set(items))) or None
+
+
+def load_report(path: str | None, db_path: str) -> dict:
+    """discrepancies.json, or the same found from the database when no file is given."""
+    if path:
+        return json.loads(Path(path).read_text("utf-8"))
+    import discrepancies as d
+    db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    graph = d.Graph(db)
+    db.close()
+    return {"release_id": None, "discrepancies": d.derive(
+        graph, d.default_directions(ROOT / "data" / "vocab" / "metric.ttl"), d.load_rules(ROOT)).report}
+
+
+def public_ids(rows, sources, links) -> set[str]:
+    """The records the graph holds: not excluded or disputed, a result only once checked, and
+    nothing that cites or links to a record left out. rows are (id, kind, name, status)."""
+    refs: dict[str, set[str]] = defaultdict(set)
+    for record_id, source_id in sources:
+        refs[source_id].add(record_id)
+    for from_id, _, to_id in links:
+        refs[to_id].add(from_id)
+    blocked = {r for r, kind, _, status in rows if status in ("excluded", "disputed")
+               or (kind == "result" and status not in ("source_checked", "reproduced", "superseded"))}
+    queue = list(blocked)
+    while queue:
+        for dependent in refs.get(queue.pop(), ()):
+            if dependent not in blocked:
+                blocked.add(dependent)
+                queue.append(dependent)
+    return {r for r, *_ in rows} - blocked
 
 
 class KB:
@@ -195,22 +239,9 @@ class KB:
                  discrepancies: str | None = None):
         db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
         rows = db.execute("SELECT id, kind, name, status FROM record").fetchall()
-        refs: dict[str, set[str]] = defaultdict(set)
         sources = db.execute("SELECT record_id, source_id FROM record_source ORDER BY record_id, position").fetchall()
         links = db.execute("SELECT from_id, relation, to_id FROM link ORDER BY from_id, position").fetchall()
-        for record_id, source_id in sources:
-            refs[source_id].add(record_id)
-        for from_id, _, to_id in links:
-            refs[to_id].add(from_id)
-        blocked = {r for r, kind, _, status in rows if status in ("excluded", "disputed")
-                   or (kind == "result" and status not in ("source_checked", "reproduced", "superseded"))}
-        queue = list(blocked)
-        while queue:
-            for dependent in refs.get(queue.pop(), ()):
-                if dependent not in blocked:
-                    blocked.add(dependent)
-                    queue.append(dependent)
-        public = {r for r, *_ in rows} - blocked
+        public = public_ids(rows, sources, links)
 
         self.kind: dict[str, str] = {}
         self.label: dict[str, str] = {}
@@ -257,7 +288,7 @@ class KB:
         db.close()
         self.out = {p: {s: sorted(o, key=str) for s, o in by.items()} for p, by in out.items()}
         self.inv: dict[str, dict[str, list]] = {}
-        for p in ("subject", "evaluation", "system", *PARENT):
+        for p in ("subject", "evaluation", "system", "assessment", *PARENT):
             inverse = defaultdict(list)
             for s, objects in self.out.get(p, {}).items():
                 for o in objects:
@@ -347,14 +378,8 @@ class KB:
                 self.served_of[evaluation].add(judgement)
 
     def _findings(self, path: str | None, db_path: str) -> None:
-        if path:
-            report = json.loads(Path(path).read_text("utf-8"))["discrepancies"]
-        else:
-            import discrepancies as d
-            db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-            graph = d.Graph(db)
-            db.close()
-            report = d.derive(graph, d.default_directions(ROOT / "data" / "vocab" / "metric.ttl"), d.load_rules(ROOT)).report
+        report = load_report(path, db_path)["discrepancies"]
+        self.report = report
         self.findings: dict[str, set] = defaultdict(set)
         for finding in report:
             if finding["review_state"] in SETTLED:
@@ -731,6 +756,86 @@ class KB:
         rows.sort(key=lambda r: (step_rank[r["step"]], r["date"] is not None, r["date"] or "", r["record"]))
         return rows
 
+    # ---- the discrepancy queries (scripts/kg/build.py NAMED_QUERIES), from discrepancies.json ----
+
+    def finding_rows(self, finding: dict) -> dict:
+        """The derived-graph facts of one finding that the queries select."""
+        return {"discrepancy": node(finding["id"]), "severity": finding["severity"],
+                "state": iri(concept("discrepancy-state", finding["review_state"])),
+                "rule": iri(concept("discrepancy-rule", finding["rule"])) if finding["rule"] else None,
+                "scope": finding["scope"], "summary": finding["summary"]}
+
+    def open_discrepancies(self, severity: str | None = None) -> list[dict]:
+        rows = []
+        for finding in self.report:
+            # A resolved finding has no rule or scope, which the query requires.
+            if finding["review_state"] in SETTLED or finding["rule"] is None or finding["scope"] is None:
+                continue
+            if severity is not None and finding["severity"] != severity:
+                continue
+            f = self.finding_rows(finding)
+            rows.append({k: f[k] for k in ("discrepancy", "severity", "state", "rule", "scope", "summary")})
+        return sorted(rows, key=lambda r: (severity_rank(r["severity"]), r["discrepancy"]))
+
+    def discrepancies_for_system(self, system: str) -> list[dict]:
+        system = expand(system)
+        rows = []
+        for finding in self.report:
+            systems = {node(s) for s in finding["systems"]}
+            if system not in systems:
+                continue
+            f = self.finding_rows(finding)
+            for other in sorted(systems - {system}):
+                rows.append({"discrepancy": f["discrepancy"], "other": other, "otherName": self.label.get(other),
+                             "severity": f["severity"], "state": f["state"], "summary": f["summary"]})
+        return sorted(rows, key=lambda r: (severity_rank(r["severity"]), r["discrepancy"]))
+
+    def discrepancy_history(self, discrepancy: str) -> list[dict]:
+        """Only the current ID has actions: an ID listed in previous_ids returns nothing."""
+        discrepancy = expand(discrepancy)
+        rows = []
+        for finding in self.report:
+            if node(finding["id"]) != discrepancy:
+                continue
+            for action in finding["actions"]:
+                url = action.get("report_url") or action.get("investigation_url")
+                rows.append({
+                    "revision": action["revision"],
+                    "actionType": iri(concept("discrepancy-action", action["action"])) if action["action"] else None,
+                    "state": iri(concept("discrepancy-state", action["state"])), "date": action["date"],
+                    "url": iri(url) if url else None, "nextCheck": action.get("next_check"),
+                    "claim": node(action["claim_id"]),
+                })
+        return sorted(rows, key=lambda r: r["revision"])
+
+    def result_on(self) -> dict[str, set]:
+        """rb:resultOn: a result to the protocol, task or benchmark its evaluation was assessed on."""
+        if not hasattr(self, "_result_on"):
+            self._result_on = defaultdict(set)
+            for result, evaluations in self.out.get("evaluation", {}).items():
+                for evaluation in evaluations:
+                    self._result_on[result].update(self.objects(evaluation, "assessment"))
+        return self._result_on
+
+    def contested_results_for_use_case(self, use_case: str) -> list[dict]:
+        use_case = expand(use_case)
+        protocols = set(self.objects(use_case, "assessed_by"))
+        if not protocols:
+            return []
+        on = self.result_on()
+        rows = {}
+        for finding in self.report:
+            if finding["review_state"] in SETTLED:
+                continue
+            f = self.finding_rows(finding)
+            for role, key in (("outlier", "outlier_results"), ("consensus", "consensus_results"), ("party", "party_results")):
+                for result in map(node, finding.get(key) or []):
+                    if on.get(result, set()) & protocols:
+                        row = {"result": result, "role": role, "discrepancy": f["discrepancy"], "severity": f["severity"],
+                               "state": f["state"], "summary": f["summary"]}
+                        rows[(result, role, f["discrepancy"])] = row
+        return sorted(rows.values(), key=lambda r: (severity_rank(r["severity"]), r["discrepancy"], r["role"], r["result"]))
+
     def run(self, name: str, **params) -> list[dict]:
         spec = QUERIES[name]
         unknown = set(params) - {p["name"] for p in spec["params"]}
@@ -742,7 +847,211 @@ class KB:
         return getattr(self, name)(**{k: v for k, v in params.items() if v is not None})
 
 
+LOCAL_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$|^$")
+
+
+class Records:
+    """The record tools the agents used from rdf-kg-mcp: search, describe_resource and
+    dataset_info, answered from kb.sqlite and discrepancies.json. Nothing is loaded until a
+    tool needs it; the search index is built on the first search (about three seconds).
+    Without a discrepancies file the findings are derived from the database when first needed
+    (about ten seconds); discrepancies="none" leaves them out, so search and describe_resource
+    then know no discrepancy."""
+
+    def __init__(self, db_path: str = "kb/build/kb.sqlite", discrepancies: str | None = None):
+        self.db_path = db_path
+        self.discrepancies_path = discrepancies
+        self.db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        mapping = json.loads((ROOT / "data" / "ontology" / "mapping.json").read_text("utf-8"))
+        prefixes = {**mapping["prefixes"], **PREFIXES, "skos": "http://www.w3.org/2004/02/skos/core#"}
+        self.prefixes = prefixes
+        self.namespaces = sorted(((ns, p) for p, ns in prefixes.items()), key=lambda x: -len(x[0]))
+        self.kind_class = {kind: entry["types"][0] for kind, entry in mapping["classes"].items()}
+
+    def compact(self, value: str) -> str:
+        """A prefixed name where one fits, as rdf-kg-mcp writes IDs and classes."""
+        for ns, prefix in self.namespaces:
+            if value.startswith(ns) and LOCAL_NAME.match(value[len(ns):]):
+                return f"{prefix}:{value[len(ns):]}"
+        return f"<{value}>"
+
+    def full(self, value: str) -> str:
+        value = value.strip()
+        prefix, _, rest = value.partition(":")
+        if rest and prefix in self.prefixes and not rest.startswith("//"):
+            return self.prefixes[prefix] + rest
+        return expand(value)
+
+    @property
+    def report(self) -> dict:
+        if not hasattr(self, "_report"):
+            self._report = ({"release_id": None, "discrepancies": []} if self.discrepancies_path == "none"
+                            else load_report(self.discrepancies_path, self.db_path))
+        return self._report
+
+    @property
+    def public(self) -> set[str]:
+        if not hasattr(self, "_public"):
+            self._public = public_ids(self.db.execute("SELECT id, kind, name, status FROM record").fetchall(),
+                                      self.db.execute("SELECT record_id, source_id FROM record_source").fetchall(),
+                                      self.db.execute("SELECT from_id, relation, to_id FROM link").fetchall())
+        return self._public
+
+    @property
+    def index(self):
+        if not hasattr(self, "_index"):
+            import search as s
+            self._index = s.build(self.db, self.public, self.report["discrepancies"], lambda v: literals(v, "text"))
+        return self._index
+
+    def search(self, text: str, types: list[str] | str | None = None, limit: int = 20, offset: int = 0) -> dict:
+        """Records and discrepancies ranked by how well text matches their names, descriptions and
+        search text. types limits the results to these classes (prefixed names or IRIs, such as
+        rb:Model) or record kinds (model)."""
+        import search as s
+        if not s.words(text):
+            raise ValueError("text must contain at least one letter or digit")
+        if isinstance(types, str):
+            types = [t for t in types.split(",") if t.strip()]
+        wanted = [self.kind_class.get(t.strip(), None) or self.compact(self.full(t)) for t in types or []]
+        limit, offset = min(max(1, int(limit)), 200), max(0, int(offset))
+        index = self.index
+        scores, matched = index.score(text)
+        if wanted:
+            scores = {k: v for k, v in scores.items() if set(wanted) & set(index.types.get(k, ()))}
+        ranked = index.rank(scores)
+        results = []
+        for key in ranked[offset:offset + limit]:
+            classes = index.types.get(key, [])
+            kind = next((k for k, c in self.kind_class.items() if classes and c == classes[0]), None)
+            results.append({"id": self.compact(key), "iri": key, "label": index.labels.get(key),
+                            "kind": kind or ("discrepancy" if "rb:Discrepancy" in classes else None),
+                            "types": sorted(classes), "score": round(scores[key], 3), "matched": sorted(matched[key])})
+        return {"query": text, "types": wanted, "total": len(ranked), "offset": offset, "results": results}
+
+    def name_of(self, record_id: str) -> tuple[str | None, str | None]:
+        row = self.db.execute("SELECT kind, name FROM record WHERE id = ?", (record_id,)).fetchone()
+        return (row[0], row[1]) if row else (None, None)
+
+    def describe_resource(self, iri: str, direction: str = "both", limit: int = 50, offset: int = 0) -> dict:
+        """One record as the store holds it, with the name and kind of every record it cites or
+        links to, the records that cite or link to it (paged; limit and offset apply to these),
+        and the discrepancies it takes part in."""
+        from migrate import rebuild
+        if direction not in ("out", "in", "both"):
+            raise ValueError("direction must be 'out', 'in' or 'both'")
+        target = self.full(iri)
+        record_id = target[len(ID):] if target.startswith(ID) else target
+        limit, offset = min(max(0, int(limit)), 500), max(0, int(offset))
+        out: dict = {"id": record_id, "iri": node(record_id)}
+        finding = next((f for f in self.report["discrepancies"] if f["id"] == record_id), None)
+        if finding is not None:
+            return {**out, "kind": "discrepancy", "public": True, "discrepancy": finding}
+        if self.db.execute("SELECT 1 FROM record WHERE id = ?", (record_id,)).fetchone() is None:
+            return {**out, "found": False, "note": "No record has this ID. Use search to find records by name."}
+        record = rebuild(self.db, record_id)
+        out.update(kind=record["kind"], name=record.get("name"), public=record_id in self.public)
+        if direction in ("out", "both"):
+            out["record"] = record
+            out["sources"] = [{"id": s, "kind": k, "name": n} for s in record["source_ids"] for k, n in [self.name_of(s)]]
+            out["links_out"] = [{"relation": link["relation"], "id": link["target_id"], "kind": k, "name": n}
+                                for link in record["links"] for k, n in [self.name_of(link["target_id"])]]
+        if direction in ("in", "both"):
+            incoming = self.db.execute(
+                """SELECT relation, from_id, kind, name FROM (
+                     SELECT l.relation, l.from_id, r.kind, r.name FROM link l JOIN record r ON r.id = l.from_id WHERE l.to_id = ?
+                     UNION ALL
+                     SELECT 'cites', rs.record_id, r.kind, r.name FROM record_source rs JOIN record r ON r.id = rs.record_id WHERE rs.source_id = ?)
+                   ORDER BY relation, from_id""", (record_id, record_id)).fetchall()
+            counts = Counter(relation for relation, *_ in incoming)
+            out["links_in"] = {"total": len(incoming), "by_relation": dict(sorted(counts.items())), "offset": offset,
+                               "links": [{"relation": r, "id": i, "kind": k, "name": n} for r, i, k, n in incoming[offset:offset + limit]]}
+        roles = []
+        for f in self.report["discrepancies"]:
+            for role, key in (("system", "systems"), ("outlier", "outlier_results"), ("consensus", "consensus_results"),
+                              ("party", "party_results"), ("outlier source", "outlier_sources"),
+                              ("consensus source", "consensus_sources"), ("party source", "party_sources")):
+                if record_id in (f.get(key) or []):
+                    roles.append({"id": f["id"], "role": role, "label": f["label"], "severity": f["severity"],
+                                  "state": f["review_state"]})
+        out["discrepancies"] = roles
+        return out
+
+    def dataset_info(self) -> dict:
+        """What the agents print when they start: the commit of this checkout, the release the
+        discrepancies file is for, when the database was built, and its record counts. The
+        database does not record the commit it was built from; an agent builds it from the
+        checkout it runs in, so the checkout's commit identifies it. Findings are counted only
+        when a discrepancies file was given or they were already loaded."""
+        import subprocess
+        db_file = Path(self.db_path)
+        kinds = dict(self.db.execute("SELECT kind, count(*) FROM record GROUP BY kind ORDER BY kind").fetchall())
+        try:
+            commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True,
+                                    check=True).stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
+            commit = None
+        report = self.report if self.discrepancies_path or hasattr(self, "_report") else None
+        findings = report["discrepancies"] if report else None
+        return {
+            "dataset": "rewire-benchmark-data",
+            "commit": commit,
+            "release_id": report.get("release_id") if report else None,
+            "database": str(db_file),
+            "built_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(db_file.stat().st_mtime)),
+            "records": sum(kinds.values()),
+            "public_records": len(self.public),
+            "records_by_kind": kinds,
+            "links": self.db.execute("SELECT count(*) FROM link").fetchone()[0],
+            "source_citations": self.db.execute("SELECT count(*) FROM record_source").fetchone()[0],
+            "discrepancies": None if findings is None else {
+                "total": len(findings), "open": sum(f["review_state"] not in SETTLED for f in findings),
+                "schema_version": report.get("schema_version")},
+            "queries": list(QUERIES),
+            "tools": list(TOOLS),
+        }
+
+
+TOOLS = {
+    "search": {
+        "title": "Records ranked by how well text matches their names, descriptions and search text",
+        "params": [{"name": "text", "type": "string", "required": True}, {"name": "types", "type": "list"},
+                   {"name": "limit", "type": "integer"}, {"name": "offset", "type": "integer"}],
+    },
+    "describe_resource": {
+        "title": "One record with its fields, attributes, sources, links out and in, and discrepancies",
+        "params": [{"name": "iri", "type": "iri", "required": True}, {"name": "direction", "type": "string"},
+                   {"name": "limit", "type": "integer"}, {"name": "offset", "type": "integer"}],
+    },
+    "dataset_info": {"title": "The release, the database and its record counts", "params": []},
+}
+
+
 QUERIES = {
+    "open_discrepancies": {
+        "title": "Open discrepancies between studies, most severe first",
+        "params": [{"name": "severity", "type": "string"}],
+        "columns": ["discrepancy", "severity", "state", "rule", "scope", "summary"],
+        "order_keys": ["rank:severity", "discrepancy"],
+    },
+    "discrepancies_for_system": {
+        "title": "Discrepancies, settled or not, that compare a model or method",
+        "params": [{"name": "system", "type": "iri", "required": True}],
+        "columns": ["discrepancy", "other", "otherName", "severity", "state", "summary"],
+        "order_keys": ["rank:severity", "discrepancy"],
+    },
+    "discrepancy_history": {
+        "title": "Follow-up history of a discrepancy, in revision order",
+        "params": [{"name": "discrepancy", "type": "iri", "required": True}],
+        "columns": ["revision", "actionType", "state", "date", "url", "nextCheck", "claim"],
+        "order_keys": ["revision"],
+    },
+    "contested_results_for_use_case": {
+        "title": "Results on a use case's protocols that an unsettled discrepancy rests on",
+        "params": [{"name": "use_case", "type": "iri", "required": True}],
+        "columns": ["result", "role", "discrepancy", "severity", "state", "summary"],
+        "order_keys": ["rank:severity", "discrepancy", "role", "result"],
+    },
     "rank_for_use_case": {
         "title": "Ranked configurations for a use case, on its one comparable protocol",
         "params": [{"name": "use_case", "type": "iri", "required": True}],
@@ -806,17 +1115,27 @@ def main() -> None:
     parser.add_argument("--db", default="kb/build/kb.sqlite")
     parser.add_argument("--use-cases", help="the release's use-cases.json, which says what the release serves "
                         "(default: public/omics/releases/<release in public/omics/manifest.json>/use-cases.json)")
-    parser.add_argument("--discrepancies", help="discrepancies.json from kb/discrepancies.py")
+    parser.add_argument("--discrepancies", help="discrepancies.json from kb/discrepancies.py; for the tools, none "
+                        "leaves the findings out")
     parser.add_argument("--format", choices=("json", "table"), default="json")
     args = parser.parse_args()
     if args.list or not args.query:
-        for name, spec in QUERIES.items():
+        for name, spec in {**QUERIES, **TOOLS}.items():
             params = ", ".join(f"{p['name']} ({p['type']}{', required' if p.get('required') else ''})" for p in spec["params"])
-            print(f"{name}: {spec['title']}. Parameters: {params}")
+            print(f"{name}: {spec['title']}. Parameters: {params or 'none'}")
         return
-    if args.query not in QUERIES:
+    if args.query not in QUERIES and args.query not in TOOLS:
         parser.error(f"unknown query {args.query}; see --list")
     params = dict(p.split("=", 1) for p in args.param)
+    if args.query in TOOLS:
+        known = {p["name"] for p in TOOLS[args.query]["params"]}
+        if set(params) - known:
+            parser.error(f"unknown parameter(s) for {args.query}: {', '.join(sorted(set(params) - known))}")
+        started = time.time()
+        answer = getattr(Records(args.db, discrepancies=args.discrepancies), args.query)(**params)
+        print(f"{args.query} in {time.time() - started:.1f} s", file=sys.stderr)
+        print(json.dumps(answer, indent=1, ensure_ascii=False))
+        return
     if args.use_cases is None:
         args.use_cases = default_use_cases()
         if args.use_cases is None:
