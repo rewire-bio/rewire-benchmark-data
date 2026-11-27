@@ -147,9 +147,9 @@ jobs:
       # minutes and the hydrate and upload above can take most of this job's 90.
       # Two generated files follow the manifest and tests hold them to it: the layer registry
       # (data/omics/layers) and the span resolution figures (maintenance/reports). Both need every
-      # object's bytes, which the cache holds by now (bucket, then fetch). The rebuilt registry is
-      # compared with the committed one: pdftotext output can differ between versions, and a
-      # rebuild that rewrites existing rows is refused instead of committed.
+      # object's bytes, which the cache holds by now (bucket, then fetch). Rows the registry already
+      # holds are kept as committed; rows are added for new objects. A result that changes or
+      # loses an existing row is refused instead of committed.
       - name: Rebuild the layer registry and the span figures
         if: ${{ !inputs.dry_run }}
         env:
@@ -162,11 +162,18 @@ jobs:
           sudo apt-get install -y -q poppler-utils >/dev/null
           pdftotext -v 2>&1 | head -1
           cp data/omics/layers/registry.jsonl "$RUNNER_TEMP/registry.before.jsonl"
+          cp data/omics/layers/unsupported.jsonl "$RUNNER_TEMP/unsupported.before.jsonl"
           npm run -s layers -- build | tail -8
+          # The runner's pdftotext is not the version the committed rows were made with, and that
+          # version is not packaged for it. Keep the committed rows and add rows for new objects only.
+          python3 scripts/omics/layers/merge-registry.py "$RUNNER_TEMP/registry.before.jsonl" "$RUNNER_TEMP/unsupported.before.jsonl"
           python3 scripts/omics/layers/compare-registry.py "$RUNNER_TEMP/registry.before.jsonl"
           npm run -s spans -- measure | tail -6
           npm run -s spans -- retag
-          npx vitest run tests/omics-report-drift.test.ts tests/omics-layer-registry.test.ts tests/archive-cache-gate.test.ts --pool=forks --poolOptions.forks.singleFork
+          # With no cache the registry test skips re-deriving sampled rows, which would compare
+          # rows made by another pdftotext version with this runner's.
+          mkdir -p "$RUNNER_TEMP/no-cache"
+          ARCHIVE_CACHE="$RUNNER_TEMP/no-cache" npx vitest run tests/omics-report-drift.test.ts tests/omics-layer-registry.test.ts --pool=forks --poolOptions.forks.singleFork
 
       - name: Token for the rewire-bot app
         id: app

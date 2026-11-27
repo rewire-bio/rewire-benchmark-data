@@ -156,8 +156,10 @@ yet held, uploads the bytes to the bucket, and commits the manifest rows and fet
 source it cannot get is recorded with the reason and counted in the run summary.
 
 The same run rebuilds the two generated files that follow the manifest, the layer registry and the
-span resolution figures, and runs their tests before it pushes. If the rebuild would rewrite rows
-that already exist, or a test fails, nothing is pushed and the run fails.
+span resolution figures, and runs their tests before it pushes. Registry rows that already exist
+are kept as committed, because the runner's pdftotext is a different version from the one that
+made them; rows are added for new objects, each recording the tool version that made it. If an
+existing row would change or be lost, or a test fails, nothing is pushed and the run fails.
 
 Batch tools and agents also fetch sources while they work, and commit only the files whose licence
 allows publication. They are not the archive. Before 26 November 2026 nothing fetched a source
