@@ -222,47 +222,5 @@ MutBERT and ESM-1b.
 
 ## Candidate reports to developers (drafts)
 
-These are drafts for a person to read and send. They are not in the leads register. All runs
-were on GitHub Actions `ubuntu-latest` (Ubuntu 26.04.1 LTS, 4 CPUs, no GPU), each in a fresh Python
-virtual environment, on 27 November 2026.
-
-**ProSST (ai4protein/ProSST).** At commit 13bd564 we ran the README's install commands
-(`git clone`, `cd ProSST`, `pip install -r requirements.txt`) with Python 3.14.4. pip stopped
-with: `ERROR: Could not find a version that satisfies the requirement ginnm==0.0.2 (from versions:
-none)`. The file also pins five packages with `+pt21cu118` versions, for example
-`torch-scatter==2.1.2+pt21cu118`. Is `ginnm` published on another index, and which index should
-pip use for the `+pt21cu118` packages?
-
-**basenji, used by Akita (calico/basenji).** At commit 06ce5d3 we ran `conda env create -f
-environment.yml` with conda 26.9.4 (Miniforge). The conda packages installed, and then the pip
-stage stopped with: `ERROR: Invalid requirement: 'tensorflow=2.15': Expected end or semicolon
-(after name and no valid version specifier)` and `Hint: = is not a valid operator. Did you mean ==
-?`, followed by `CondaEnvException: Pip failed`. Is `tensorflow==2.15` the intended pin?
-
-**Plant Genomic Benchmark (InstaDeepAI/plant-genomic-benchmark).** We ran `pip install datasets`,
-which installed datasets 5.2.0, and then the dataset card's example (revision 78ec815) with
-`task_name='terminator_strength.protoplast'`, on Python 3.11.18. `load_dataset` stopped with:
-`RuntimeError: Dataset scripts are no longer supported, but found plant-genomic-benchmark.py`.
-Which version of datasets do you support for this dataset, or is there a way to load it without
-the script?
-
-**IgLM (Graylab/IgLM).** We ran `pip install iglm`, which installed iglm 0.1.0, transformers 5.24.1,
-tokenizers 0.23.3 and torch 2.15.0, and then the README's "Re-design spans" package example. On
-Python 3.11.18 and on Python 3.14.4 it stopped in `IgLM.infill` with: `AssertionError: Unrecognized
-token supplied in starting tokens`. We have not tried other versions of transformers. Which
-versions of transformers and tokenizers do you support?
-
-**LOL-EVE (Marks-lab/LOL-EVE on Hugging Face).** We installed the packages in the model's
-`requirements.txt` (revision 397bbb8), which gave transformers 5.24.1 and torch 2.15.0, and ran
-the README's "Using Hugging Face Model" example. On Python 3.11.18 and on Python 3.14.4,
-`AutoModelForCausalLM.from_pretrained('Marks-lab/LOL-EVE', trust_remote_code=True)` stopped with:
-`AttributeError: 'int' object has no attribute 'is_floating_point'`, raised in transformers'
-`get_state_dict_dtype`. We have not tried other versions of transformers. Which version of
-transformers do you support?
-
-**sequence-models, used by CARP and MIF (microsoft/protein-sequence-models).** We ran `pip install
-torch sequence-models`, which installed sequence-models 1.8.0 and torch 2.15.0 on Python 3.11.18,
-and then `from sequence_models.pretrained import load_model_and_alphabet`. It stopped with:
-`ModuleNotFoundError: No module named 'numpy'`, raised at `sequence_models/constants.py` line 4.
-At commit af69577, `setup.py` lists no `install_requires` and `requirements.txt` is empty. Would
-you accept a change that declares the package's dependencies?
+Six reports are drafted from the failures above (ProSST, basenji, Plant Genomic Benchmark, IgLM,
+LOL-EVE and sequence-models) and held by the owner until he posts them.
