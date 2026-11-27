@@ -1,0 +1,14 @@
+{
+  "record_id": "lit-rna-20261011-rnalm-zeroshot-model-rna-km",
+  "statements_checked": 34,
+  "findings": [
+    {
+      "where": "structured RNA-km (weight.pth), parameters",
+      "verdict": "partly",
+      "statement": "parameters: 152000000",
+      "source_says": "Paper, Methods 2.2: \"we set the embedding dimension D as 1024, and used 12 transformer encoder layers with 16 attention heads in the study, resulting in a total of 152 million parameters.\" No saved file counts the parameters in weight.pth, and the page's own Versions section says \"the saved files do not tie weight.pth to that run explicitly\". The released pretrain_model.py does define the same 1024 width, 12 layers and 16 heads.",
+      "fix": "Set parameters to null for the weight.pth entry, as the batch rule keeps a count only when a saved file states it for that exact checkpoint; the 152 million figure stays in the Parameters fact as the paper's figure for its model."
+    }
+  ],
+  "summary": "Every statement checked against the paper text, README, code, example script and licence matches its source, including the architecture, training data, masking scheme, F1 figures and run steps. The one finding is the paper's parameter count placed on the released weight file, which no saved file counts; the page's notes already disclose this."
+}

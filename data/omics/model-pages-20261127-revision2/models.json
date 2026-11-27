@@ -1,0 +1,643 @@
+{
+ "lit-rna-20261011-rnalm-zeroshot-model-rna-km": {
+  "slug": "rna-km",
+  "new_source_ids": [
+   "model-pages-20261126-batch3-rna-km-source-readme",
+   "model-pages-20261126-batch3-rna-km-source-license",
+   "model-pages-20261126-batch3-rna-km-source-script",
+   "model-pages-20261126-batch3-rna-km-source-model-code",
+   "model-pages-20261126-batch3-rna-km-source-example",
+   "model-pages-20261126-batch3-rna-km-source-paper",
+   "paper-full-texts-20261127b-source-rna-km-paper-text"
+  ],
+  "profile": {
+   "summary": "RNA-km is a language model for non-coding RNA sequences, built to predict RNA secondary structure, including pseudoknots, without training on labelled structures. It reads a single RNA sequence and returns a 1024-value representation per nucleotide and attention maps. In the paper, the attention maps are turned into base pairs with a minimum-cost flow algorithm.",
+   "summary_source_ids": [
+    "model-pages-20261126-batch3-rna-km-source-paper",
+    "model-pages-20261126-batch3-rna-km-source-readme"
+   ],
+   "summary_source_locator": "Europe PMC abstract; README.md: Usage",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "RNA-km is a BERT-style transformer encoder with 12 layers, embedding dimension 1024 and 16 attention heads, 152 million parameters in total according to the paper. It uses a relative positional encoding instead of absolute sinusoidal positions. It was pretrained by masked language modelling: 15% of bases are masked, and 80% of the masks are contiguous spans of k bases with k from 3 to 8, so the model has to recover whole k-mers. The paper describes the input as the bases A, C, G, U and N; the released code converts U to T and builds its vocabulary from A, T, C, G and X. For structure prediction the paper fits an L1-regularised logistic regression on the attention maps, using 5 RNAs, to give base-pair probabilities, then builds the structure with the minimum-cost flow algorithm of KnotFold; that step is not in the repository files read.",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-rna-km-paper-text",
+      "model-pages-20261126-batch3-rna-km-source-model-code",
+      "model-pages-20261126-batch3-rna-km-source-script"
+     ],
+     "source_locator": "paper: Methods 2.1 to 2.3; model/pretrain_model.py"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "The repository offers one pretrained weight file, weight.pth, downloaded from Google Drive and placed in a weight folder. No version number, checksum or second checkpoint is given. The paper describes one model, trained with a batch of 1 million tokens for 600,000 steps; the saved files do not tie weight.pth to that run explicitly. The zero-shot structure results also depend on the logistic regression fitted on 5 PDB RNAs, which the repository files read do not include. A result should name the repository commit and note that the weight file comes from the Google Drive link in the README.",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-readme",
+      "model-pages-20261126-batch3-rna-km-source-script",
+      "paper-full-texts-20261127b-source-rna-km-paper-text"
+     ],
+     "source_locator": "README.md: Usage; paper: Methods 2.2 and 2.3.1"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "Self-supervised RNA language model (foundation model) for zero-shot RNA secondary structure prediction.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-paper"
+     ],
+     "source_locator": "Europe PMC abstract"
+    },
+    {
+     "label": "Architecture",
+     "value": "Transformer encoder: 12 layers, width 1024, 16 attention heads (the code sets the head count to the width divided by 64), feed-forward width four times the model width, relative position bias (64 buckets, maximum distance 256), plus a pairwise projection of width 512. The paper describes the same 12 layers, width 1024 and 16 heads.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-model-code",
+      "paper-full-texts-20261127b-source-rna-km-paper-text"
+     ],
+     "source_locator": "model/pretrain_model.py; paper: Methods 2.2"
+    },
+    {
+     "label": "Inputs",
+     "value": "One RNA sequence in FASTA format. U is converted to T and any letter other than A, C, G or T becomes N.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-script",
+      "model-pages-20261126-batch3-rna-km-source-readme"
+     ],
+     "source_locator": "RNA-km.py: inference, main; README.md: Usage"
+    },
+    {
+     "label": "Outputs",
+     "value": "A per-nucleotide representation of size L by 1024, saved as a .npy file; with --attn, the attention weights are saved too.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-readme",
+      "model-pages-20261126-batch3-rna-km-source-script"
+     ],
+     "source_locator": "README.md: Usage; RNA-km.py: main"
+    },
+    {
+     "label": "Parameters",
+     "value": "152 million, as the paper states for the model with 12 layers, width 1024 and 16 heads. No count is given for the released weight.pth file, which was not downloaded.",
+     "status": "source_checked",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-rna-km-paper-text"
+     ],
+     "source_locator": "paper: Methods 2.2"
+    },
+    {
+     "label": "Training data",
+     "value": "Over 23 million non-coding RNA sequences from RNAcentral version 22.0, used without structure labels. Sequences longer than 512 bases were cut into non-overlapping 512-base fragments, which MMseqs2 clustered at 80% identity into 8.9 million clusters; 10,000 clusters were held out for validation and each cluster was sampled with equal probability.",
+     "status": "source_checked",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-rna-km-paper-text"
+     ],
+     "source_locator": "paper: Methods 2.2"
+    },
+    {
+     "label": "Known versions",
+     "value": "One pretrained weight file (weight.pth) linked from the README. No other checkpoints are described.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-readme"
+     ],
+     "source_locator": "README.md: Installation step 3"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "RNAcentral version 22.0. The paper gives no download date.",
+     "status": "source_checked",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-rna-km-paper-text"
+     ],
+     "source_locator": "paper: Methods 2.2"
+    },
+    {
+     "label": "Context limits",
+     "value": "No fixed maximum length is stated. The model uses relative position biases (64 buckets, maximum distance 256) rather than a fixed-length position table. In training, sequences longer than 512 bases were cut into 512-base fragments.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-model-code",
+      "paper-full-texts-20261127b-source-rna-km-paper-text"
+     ],
+     "source_locator": "model/pretrain_model.py; paper: Methods 2.2"
+    },
+    {
+     "label": "Weights licence",
+     "value": "Not stated separately. The weight file is hosted on Google Drive and the README's MIT statement refers to the repository; no licence specific to the weights is given.",
+     "status": "unreported",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-readme"
+     ],
+     "source_locator": "README.md: Installation, License"
+    },
+    {
+     "label": "Code licence",
+     "value": "MIT, per the repository LICENSE (copyright 2024 gongtiansu).",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-license",
+      "model-pages-20261126-batch3-rna-km-source-readme"
+     ],
+     "source_locator": "LICENSE; README.md: License"
+    },
+    {
+     "label": "Access",
+     "value": "Code: https://github.com/gongtiansu/RNA-km. Weights: Google Drive, https://drive.google.com/file/d/1DI79-R33R396ZdbNcqbADQMP7Nprb_ze/view?usp=sharing.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-readme"
+     ],
+     "source_locator": "README.md: Installation"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "Designed for zero-shot structure prediction: base-pair probabilities come from the attention maps through a logistic regression fitted on only 5 RNAs, and the authors report F1 scores of 0.627 on 527 PDB RNAs and 0.456 on TR0, against 0.433 and 0.339 for RNA-FM run the same way (the authors' figures).",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-rna-km-paper-text"
+     ],
+     "source_locator": "paper: Results 3.2"
+    },
+    {
+     "text": "Small, readable code base under the MIT licence, with a single script that writes embeddings and attention maps to NumPy files.",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-license",
+      "model-pages-20261126-batch3-rna-km-source-readme"
+     ],
+     "source_locator": "LICENSE; README.md: Usage"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "The repository only extracts embeddings and attention maps. The minimum-cost flow step that turns attention into a secondary structure is described in the paper but is not in the repository files read.",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-readme",
+      "model-pages-20261126-batch3-rna-km-source-paper"
+     ],
+     "source_locator": "README.md: Usage; Europe PMC abstract"
+    },
+    {
+     "text": "The script reads only the first record of the FASTA file, taking the sequence from the second line, so multi-line or multi-sequence FASTA files are not handled.",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-script"
+     ],
+     "source_locator": "RNA-km.py: main"
+    },
+    {
+     "text": "The weights are a single file on Google Drive with no version, checksum or stated licence.",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-readme"
+     ],
+     "source_locator": "README.md: Installation step 3"
+    },
+    {
+     "text": "The authors report that RNA-FM beat RNA-km mainly on sequences shorter than 100 bases (94 of 95 such cases), and suggest RNA-km was pretrained mainly on long sequences.",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-rna-km-paper-text"
+     ],
+     "source_locator": "paper: Results 3.2"
+    }
+   ],
+   "diagram": {
+    "title": "RNA-km workflow",
+    "steps": [
+     "RNA sequence (FASTA)",
+     "U to T, other letters to N, tokenised",
+     "12-layer transformer encoder with relative position bias",
+     "Per-nucleotide representation (L by 1024) and attention maps",
+     "Minimum-cost flow on attention maps gives secondary structure (paper)"
+    ],
+    "caption": "Data flow from the repository code and the paper abstract. The last step is described in the paper and is not in the repository files read.",
+    "source_ids": [
+     "model-pages-20261126-batch3-rna-km-source-script",
+     "model-pages-20261126-batch3-rna-km-source-model-code",
+     "model-pages-20261126-batch3-rna-km-source-readme",
+     "model-pages-20261126-batch3-rna-km-source-paper"
+    ],
+    "source_locator": "RNA-km.py; model/pretrain_model.py; README.md: Usage; Europe PMC abstract"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "The paper's supplementary figures and tables (fine-tuning results, ablations) are not in the saved PDF.",
+    "No parameter count is given for the released weight.pth file, and the file was not downloaded.",
+    "The structure prediction step (logistic regression and minimum-cost flow) is not in the repository files read.",
+    "Whether the preprint has been published in a journal was not checked."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Written from the gongtiansu/RNA-km README, LICENSE, RNA-km.py, model/pretrain_model.py and example/run_example.sh at commit 189a1cdd and the Europe PMC record of bioRxiv 10.1101/2024.01.27.577533, each fetched on 2026-11-26, and revised on 2026-11-27 from the text layer of the full bioRxiv v1 PDF, which the owner downloaded in a browser that day. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "lit-rna-20261011-rnalm-zeroshot-model-rna-km",
+   "summary": "Install RNA-km at a pinned commit, place the pretrained weight file, and extract the representation of the example RNA sequence.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "Python 3.7+ and PyTorch 1.6+, as the README states.",
+    "A CUDA GPU in practice: the script's --cuda option defaults to true. Memory needs are not stated.",
+    "A browser or other means to download weight.pth from Google Drive. Code is MIT; no weights licence is stated."
+   ],
+   "steps": [
+    {
+     "title": "Get the code at the pinned commit",
+     "shell": "git clone https://github.com/gongtiansu/RNA-km.git\ncd RNA-km\ngit checkout --detach 189a1cdd3bcce9d9b4d8fd612295e4d91abd21a8",
+     "explanation": "Clones the repository as the README says. The checkout line is added to pin the commit this page was read from.",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-readme"
+     ],
+     "source_locator": "README.md: Installation step 1"
+    },
+    {
+     "title": "Install Python packages",
+     "shell": "pip install -r requirements.txt",
+     "explanation": "Installs the packages listed in requirements.txt. PyTorch 1.6+ must be installed separately, as the README's prerequisites say.",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-readme"
+     ],
+     "source_locator": "README.md: Installation step 2; Prerequisites"
+    },
+    {
+     "title": "Place the pretrained weights",
+     "shell": "mkdir weight\nmv weight.pth weight",
+     "explanation": "First download weight.pth by hand from the Google Drive link in the README into the repository folder; the README gives no command-line download.",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-readme"
+     ],
+     "source_locator": "README.md: Installation step 3"
+    },
+    {
+     "title": "Run the example",
+     "shell": "cd example\n./run_example.sh",
+     "explanation": "The example script runs python ../RNA-km.py -i 5E6M.fasta on the bundled sequence.",
+     "source_ids": [
+      "model-pages-20261126-batch3-rna-km-source-readme",
+      "model-pages-20261126-batch3-rna-km-source-example"
+     ],
+     "source_locator": "README.md: Example; example/run_example.sh"
+    }
+   ],
+   "outputs": [
+    "A NumPy file named after the FASTA record, holding the L by 1024 sequence representation; with --attn the file holds the representation and the attention weights."
+   ],
+   "limitations": [
+    "These commands were read from the repository and have not been executed by Rewire.",
+    "The weight file must be downloaded by hand from Google Drive.",
+    "The steps give embeddings and attention maps only, not a predicted secondary structure."
+   ],
+   "source_ids": [
+    "model-pages-20261126-batch3-rna-km-source-readme",
+    "model-pages-20261126-batch3-rna-km-source-script",
+    "model-pages-20261126-batch3-rna-km-source-example"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "The repository was found by a GitHub name search; its README names the paper, which matches the preprint by Gong and Bu (2024), so it is treated as official. Revision of 2026-11-27: the full bioRxiv v1 text is now read. The PDF has no bioRxiv banner and states no licence; the source record takes CC-BY-ND-4.0 from the bioRxiv details API. The text layer carries author email addresses; none is copied to the page. structured gives no parameter count: the paper's 152 million is its count for the architecture it describes, which the Parameters fact states, and no saved file counts weight.pth.",
+  "no_run_guide_reason": ""
+ },
+ "vep-uc-20261014-model-promoterai": {
+  "slug": "promoterai",
+  "new_source_ids": [
+   "model-pages-20261126-batch4-promoterai-source-readme",
+   "model-pages-20261126-batch4-promoterai-source-license",
+   "model-pages-20261126-batch4-promoterai-source-setup",
+   "model-pages-20261126-batch4-promoterai-source-architecture",
+   "model-pages-20261126-batch4-promoterai-source-paper-abstract",
+   "model-pages-20261126-batch4-promoterai-source-issue-3",
+   "model-pages-20261126-batch4-promoterai-source-issue-10",
+   "model-pages-20261126-batch4-promoterai-source-issue-10-question",
+   "model-pages-20261126-batch4-promoterai-source-github-repo",
+   "paper-full-texts-20261127b-source-promoterai-paper-text"
+  ],
+  "profile": {
+   "summary": "PromoterAI is a deep learning model from Illumina that predicts how a variant in a gene promoter changes that gene's expression. It takes a list of variants (chromosome, position, reference and alternative allele, strand) and a reference genome, and adds a score between -1 and 1 to each variant: negative values mean lower expression and positive values mean higher expression. The authors built it to find noncoding promoter variants that may explain rare genetic diseases.",
+   "summary_source_ids": [
+    "model-pages-20261126-batch4-promoterai-source-readme",
+    "model-pages-20261126-batch4-promoterai-source-paper-abstract"
+   ],
+   "summary_source_locator": "README.md: introduction and Variant effect prediction; Europe PMC abstract",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "PromoterAI is a convolutional network written in TensorFlow and Keras. In the paper, a 20,480-base one-hot sequence is widened to 1,024 channels and passed through 24 MetaFormer blocks, each a depthwise convolution and a feed-forward step with batch normalisation and residual connections, with kernel size 5 and dilations chosen to cover 16,384 bases. The outputs of every fourth block are averaged to predict 970 human and mouse regulatory profiles over the central 4,096 positions. The model was first trained on these profiles around annotated transcription start sites, then fine-tuned on rare GTEx promoter variants with known expression effects; only the output layers, about 3 million parameters, were tuned. A variant's score is the alternative minus the reference prediction, averaged over positions and channels.",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text",
+      "model-pages-20261126-batch4-promoterai-source-architecture",
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "paper: Materials and methods (Model architecture, Model training, Model fine-tuning, Variant score)"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "The paper's score is the average of two models: one trained and fine-tuned on human data only, and one on human and mouse data. The README's scoring command takes a single model folder and describes no averaging step. The Python package is at version 1.0rc6 in the repository read here. In June 2025 the authors said they had released the code and precomputed scores but not the model weights; in September 2025 they said the download link is sent by email after the licence agreement linked from the README is completed. The sources read do not name or version the distributed weights, so a result should name the package version, the repository commit, the model folder or folders used and the input length (20480).",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text",
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-setup",
+      "model-pages-20261126-batch4-promoterai-source-issue-3",
+      "model-pages-20261126-batch4-promoterai-source-issue-10",
+      "model-pages-20261126-batch4-promoterai-source-issue-10-question"
+     ],
+     "source_locator": "paper: Model ensemble, Variant score; README.md: scoring; setup.py; issues 3 and 10"
+    },
+    {
+     "title": "Scores and thresholds",
+     "body": "Scores run from -1 to 1. The README recommends cut-offs at 0.1, 0.2 and 0.5 in absolute value. Each variant row needs a strand; if it is unknown, the README says to create separate rows for each strand and aggregate the predictions. Precomputed scores for all human promoter single nucleotide variants are available for academic and non-commercial research after the licence agreement.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: introduction and Variant effect prediction"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "Supervised deep neural network for promoter variant effect prediction on gene expression.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-paper-abstract"
+     ],
+     "source_locator": "README.md: introduction; Europe PMC abstract"
+    },
+    {
+     "label": "Architecture",
+     "value": "1D convolutional network: input widened from 4 to 1,024 channels, then 24 MetaFormer blocks (depthwise convolution with kernel size 5 and a feed-forward step, each with batch normalisation and a residual connection); the outputs of every fourth block pass through a dense layer and are averaged. Output: 970 profiles over the central 4,096 positions.",
+     "status": "source_checked",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text",
+      "model-pages-20261126-batch4-promoterai-source-architecture",
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "paper: Model architecture"
+    },
+    {
+     "label": "Inputs",
+     "value": "A TSV of variants with columns chrom, pos, ref, alt and strand, plus a reference genome FASTA file. Single nucleotide variants and left-normalised indels are accepted.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Variant effect prediction"
+    },
+    {
+     "label": "Outputs",
+     "value": "One score per variant row, from -1 (under-expression) to 1 (over-expression), written as a new column named score in a copy of the variant file.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: introduction and Variant effect prediction"
+    },
+    {
+     "label": "Parameters",
+     "value": "About 208 million trainable parameters for the model the paper describes, with 970 human and mouse outputs; the fine-tuning step tuned about 3 million. The published score averages two models, one trained on human data only and one on human and mouse data; the paper gives no separate count for the human-only model. The distributed weight files are not named in the sources read.",
+     "status": "source_checked",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text"
+     ],
+     "source_locator": "paper: Model architecture, Model fine-tuning"
+    },
+    {
+     "label": "Training data",
+     "value": "970 regulatory profiles (498 human, 472 mouse): ENCODE histone, accessibility and transcription factor tracks (310 human and 192 mouse experiments after filtering) and FANTOM5 CAGE tracks, in 4,096-base windows around 244,939 GENCODE v39 and 81,540 GENCODE vM25 transcription start sites. Fine-tuned on 57,795 rare promoter variants from GTEx v8 with expression effects from RNA-seq.",
+     "status": "source_checked",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text",
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "paper: Training dataset, Model training, Model fine-tuning"
+    },
+    {
+     "label": "Known versions",
+     "value": "Python package promoterai 1.0rc6 in the repository read here. The sources read do not name the distributed model checkpoints.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-setup"
+     ],
+     "source_locator": "setup.py"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "No date is given. The data versions named are GENCODE v39 and vM25 for the training windows and GTEx v8 for fine-tuning.",
+     "status": "source_checked",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text"
+     ],
+     "source_locator": "paper: Model training; GTEx multi-tissue expression outliers"
+    },
+    {
+     "label": "Context limits",
+     "value": "20,480 bases of input sequence, as in the paper and the README scoring and training commands; predictions cover the central 4,096 positions. Training preprocessing writes 32,768-base windows.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "paper-full-texts-20261127b-source-promoterai-paper-text"
+     ],
+     "source_locator": "paper: Model architecture; README.md"
+    },
+    {
+     "label": "Weights licence",
+     "value": "Licence agreement with Illumina; weights are shared by email after the agreement linked from the README is completed. Commercial use is by purchase from Illumina.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-issue-10",
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-issue-10-question"
+     ],
+     "source_locator": "issue 10 collaborator reply; README.md: introduction"
+    },
+    {
+     "label": "Code licence",
+     "value": "PolyForm Strict License 1.0.0: noncommercial use only, no distribution and no changes or new works based on the software. GitHub lists the repository licence as NOASSERTION.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-license",
+      "model-pages-20261126-batch4-promoterai-source-setup",
+      "model-pages-20261126-batch4-promoterai-source-github-repo"
+     ],
+     "source_locator": "LICENSE; setup.py; GitHub API licence field"
+    },
+    {
+     "label": "Access",
+     "value": "Code: https://github.com/Illumina/PromoterAI and the pip package promoterai. Weights and precomputed scores: by email after completing the licence agreement linked from the README. Commercial licences are handled by Illumina; the README gives a contact.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-issue-10",
+      "model-pages-20261126-batch4-promoterai-source-issue-10-question"
+     ],
+     "source_locator": "README.md: introduction and Installation; issue 10 collaborator reply"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "Works from plain variant coordinates and a reference genome, and handles both single nucleotide variants and left-normalised indels.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Variant effect prediction"
+    },
+    {
+     "text": "Gives a signed score, so a user can tell predicted loss of expression from predicted gain, and the README gives thresholds to apply.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: introduction"
+    },
+    {
+     "text": "The authors report a correlation of 0.63 between PromoterAI scores and effect sizes measured for 686 promoter eQTLs in an assay of fine-mapped variants (the authors' figure).",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text"
+     ],
+     "source_locator": "paper: Results, Fig. 3E"
+    },
+    {
+     "text": "Training, preprocessing and fine-tuning code is included, along with the benchmark and training annotation files, so the model can be retrained.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-issue-3"
+     ],
+     "source_locator": "README.md: Model training and fine-tuning; issue 3 collaborator reply"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Not open source: the code is under the PolyForm Strict licence (noncommercial, no distribution, no derivative works), and commercial use of scores and models must be bought from Illumina.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-license",
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "LICENSE; README.md: introduction"
+    },
+    {
+     "text": "The weights are not downloadable directly. They are sent by email after a licence agreement, and the scoring command cannot run without a model folder.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-issue-10",
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-issue-10-question"
+     ],
+     "source_locator": "issue 10 collaborator reply; README.md: Variant effect prediction"
+    },
+    {
+     "text": "Each variant needs a strand. If the strand is unknown the user must score both strands and combine the results themselves.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Variant effect prediction"
+    },
+    {
+     "text": "The authors state that the model is limited by the modest number of gene expression measurements available for training, and may miss tissue-specific effects and variants further from the transcription start site.",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text"
+     ],
+     "source_locator": "paper: Discussion"
+    }
+   ],
+   "diagram": {
+    "title": "PromoterAI workflow",
+    "steps": [
+     "Variant TSV (chrom, pos, ref, alt, strand)",
+     "Reference genome FASTA",
+     "Reference and alternative sequences, 20,480 bases",
+     "Convolutional network predicts regulatory profiles for each",
+     "Difference averaged into a score from -1 to 1",
+     "Score column added to the variant file"
+    ],
+    "caption": "PromoterAI scores a promoter variant by comparing the model's predictions for the reference and the alternative sequence.",
+    "source_ids": [
+     "model-pages-20261126-batch4-promoterai-source-readme",
+     "model-pages-20261126-batch4-promoterai-source-architecture"
+    ],
+    "source_locator": "README.md: Variant effect prediction; promoterai/architecture.py: twin_wrap"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "The supplementary materials (figs. S1 to S8, tables S1 to S6) are not in the saved PDF.",
+    "The sources read do not name the distributed weight files or say whether they are one model or the two-model ensemble.",
+    "The exact list of ENCODE and FANTOM5 tracks is in data/bigwig/hg38.tsv, which was not fetched."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Read README.md, LICENSE, setup.py and promoterai/architecture.py of Illumina/PromoterAI at commit ce9fcd080556d7e962a5946327fe8fd1a04e272b, the GitHub repository metadata, the Europe PMC abstract and GitHub issues 3 and 10 on 2026-11-26, and revised on 2026-11-27 from the text layer of the Science First Release PDF, which the owner downloaded that day. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "vep-uc-20261014-model-promoterai",
+   "summary": "Install PromoterAI and score a small variant file against a reference genome, using a model folder obtained under the licence agreement.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "Python 3.8 or later, with TensorFlow 2.13 to 2.15 and Keras 2 (installed by pip).",
+    "CPU or GPU; tested on H100 and A100 GPUs.",
+    "A trained PromoterAI model folder, sent by email after completing the licence agreement linked from the README. Noncommercial use only under the PolyForm Strict licence.",
+    "A reference genome FASTA file matching the variant coordinates."
+   ],
+   "steps": [
+    {
+     "title": "Get the code at the pinned commit",
+     "shell": "git clone https://github.com/Illumina/PromoterAI\ncd PromoterAI\ngit checkout --detach ce9fcd080556d7e962a5946327fe8fd1a04e272b",
+     "explanation": "Clones the official repository. The checkout line, added here, pins the commit this page was written from.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Installation"
+    },
+    {
+     "title": "Install",
+     "shell": "pip install -e .",
+     "explanation": "Installs the package and the promoterai command. For scoring only, the README also allows pip install promoterai.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-setup"
+     ],
+     "source_locator": "README.md: Installation; setup.py"
+    },
+    {
+     "title": "Prepare a variant file",
+     "shell": "printf 'chrom\\tpos\\tref\\talt\\tstrand\\nchr16\\t84145214\\tG\\tT\\t1\\nchr2\\t55232249\\tT\\tG\\t-1\\n' > variants.tsv",
+     "explanation": "Writes two of the README's example variants to a tab-separated file with the required columns. Coordinates must match the reference FASTA used in the next step.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Variant effect prediction"
+    },
+    {
+     "title": "Score the variants",
+     "shell": "promoterai \\\n    --model_folder path/to/model \\\n    --var_file variants.tsv \\\n    --fasta_file path/to/genome_fa \\\n    --input_length 20480",
+     "explanation": "Runs the scoring command from the README. Replace path/to/model with the model folder received under the licence agreement and path/to/genome_fa with the reference FASTA.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Variant effect prediction"
+    }
+   ],
+   "outputs": [
+    "A copy of the variant file with a new score column, named by appending the model folder name to the variant file name."
+   ],
+   "limitations": [
+    "These commands were read from the repository and have not been executed by Rewire.",
+    "The model folder is not public; the sources read do not say which reference genome build the distributed model expects beyond the hg38 training annotation."
+   ],
+   "source_ids": [
+    "model-pages-20261126-batch4-promoterai-source-readme",
+    "model-pages-20261126-batch4-promoterai-source-setup",
+    "model-pages-20261126-batch4-promoterai-source-issue-10",
+    "model-pages-20261126-batch4-promoterai-source-issue-10-question"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "The existing source vep-uc-20261014-source-promoterai is the same README at the same commit. Weights access comes from collaborator replies on GitHub issues, not the README itself. The record's licence attribute says GitHub does not assert a licence; the repository LICENSE file is PolyForm Strict 1.0.0, which should replace that wording. A user on issue 15 refers to a model named promoterAI_v1_hg38_finetune; that name was not used here because no maintainer source states it. 'PolyForm-Strict-1.0.0' in the structured table is a short name: PolyForm Strict is not on the SPDX licence list (only PolyForm Noncommercial and Small Business are). Revision of 2026-11-27: the Science First Release full text is now read. The paper's ~208 million parameters is not put in structured, because no saved file says the distributed weights are that model. An email address on the earlier page was removed. The text layer carries the corresponding author's email; it is not copied.",
+  "no_run_guide_reason": ""
+ }
+}
