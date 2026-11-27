@@ -49,7 +49,7 @@ TABLES = {
     "lead": ("kb/curation/leads.jsonl", ["id", "setting_id", "kind", "model", "model_id", "metric", "values", "note", "state", "basis"]),
     "source_lead": ("kb/curation/source_leads.jsonl", ["id", "record_ids", "kind", "summary", "sides", "who", "where_to_raise", "strength", "strength_why", "impact", "impact_why", "state", "basis"]),
     "use_case_mapping_candidate": ("kb/curation/use_case_mapping_candidates.jsonl",
-                                   ["use_case", "test", "relevance", "reason", "test_kind", "test_name", "benchmark", "models", "results", "studies", "state", "basis"]),
+                                   ["use_case", "test", "relevance", "reason", "test_kind", "test_name", "benchmark", "models", "results", "studies", "state", "not_applied_reason", "basis"]),
 }
 VIEWS = {
     "setting_observation_v": """
