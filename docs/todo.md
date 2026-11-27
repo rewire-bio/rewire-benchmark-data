@@ -25,26 +25,28 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 | Work | State |
 | --- | --- |
 | Checkpoint and benchmark task facts on the records, so the website can show them | On the records: `checkpoints` on 199 model records (465 entries) and `benchmark_tasks` on 98 benchmarks (535 entries). The website does not show them yet |
-| Leaderboards per use case on the website | Each release publishes a board per use case (`public/omics/boards/<release_id>.json`, [boards.md](boards.md)). 41 use cases now, 26 of them with an ordering. The website does not show them yet |
+| Leaderboards per use case on the website | Each release publishes a board per use case (`public/omics/boards/<release_id>.json`, [boards.md](boards.md)). 39 use cases now, 25 of them with an ordering. The website does not show them yet |
 | Review of the differences found inside papers and code | 65 are in a register, checked against saved files; ten reports are drafted for the owner |
 | Running the run guides | Not started |
 
 ## Use cases
 
-Ten use cases were added on 27 November from evidence that was in the store and tied to no use case
+Eight use cases were added on 27 November from evidence that was in the store and tied to no use case
 ([use-case-pages-2026-11-27.md](reviews/use-cases/use-case-pages-2026-11-27.md),
-[fixes](reviews/use-cases/use-case-pages-fixes-2026-11-27.md)): genomic element annotation, RNA
-structure, RNA sequence properties, single-cell integration, protein function annotation, gene
-regulatory network inference, protein representation probing, protein design quality, glycan
-properties, and viral and microbial sequence classification. Five rest on one study and say so, and
-none has had a literature search. What they still need:
+[fixes](reviews/use-cases/use-case-pages-fixes-2026-11-27.md),
+[verification](reviews/use-cases/use-case-pages-verified-2026-11-28.md)): genomic element annotation,
+RNA structure, single-cell integration, protein function annotation, protein representation probing,
+protein design quality, glycan properties, and viral and microbial sequence classification. Four rest
+on one study and say so, and none has had a literature search. RNA sequence properties and gene
+regulatory network inference were held after verification; the verification review says what would
+make each publishable. What they still need:
 
-- A second-worker review. Drafter and reviewer were the same agent for all ten use cases and every
-  judgement added on 27 November, which each review states.
+- A second-worker review of the viral and microbial page and of the verification fixes, which the
+  verifier is re-checking. The other pages were verified once, independently.
 - A literature pass, so each can carry `evidence_checked`.
-- Reviewed protocol records for CAFA3, BEELINE, scIB, CAMI, FLIP, FLIP2, TAPE, PFMBench and the
-  DeepProtein benchmark. These are the second study for function annotation, network inference,
-  integration and representation probing, and all are `discovered` today.
+- Reviewed protocol records for CAFA3, BEELINE, scIB, CAMI and TAPE, and a cleared source for
+  Scaffold-Lab, SCMBench and DeepProtein. These are the second study for function annotation, network
+  inference, integration, design and representation probing.
 - Protocol records for the task-only benchmarks (BEND, DART-Eval, GUE, Genomic Benchmarks, Gene-MTEB,
   mRNABench, NABench, BEACON, ProteinBench, the Open Problems integration tasks). Their results are in
   the store but a judgement must name a protocol.

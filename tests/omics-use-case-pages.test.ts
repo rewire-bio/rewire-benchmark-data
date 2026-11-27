@@ -6,10 +6,12 @@ import { batchRecords } from "./helpers/records";
 
 const BATCH = "data/omics/use-case-pages-20261127";
 const SLUGS = [
-  "genomic-sequence-element-annotation", "rna-structure-prediction", "rna-sequence-property-prediction",
-  "single-cell-data-integration", "protein-function-annotation", "gene-regulatory-network-inference",
-  "protein-representation-property-prediction", "protein-design-quality", "glycan-property-prediction",
+  "genomic-sequence-element-annotation", "rna-structure-prediction", "single-cell-data-integration",
+  "protein-function-annotation", "protein-representation-property-prediction", "protein-design-quality",
+  "glycan-property-prediction",
 ];
+// Held after the independent verification and removed with their judgements before any release.
+const HELD = ["rna-sequence-property-prediction", "gene-regulatory-network-inference"];
 
 describe("new use cases (2026-11-27)", () => {
   const stored = batchRecords(BATCH);
@@ -18,8 +20,9 @@ describe("new use cases (2026-11-27)", () => {
   const cases = stored.filter((r) => r.kind === "use_case");
   const claims = stored.filter((r) => r.kind === "claim");
 
-  it("adds nine research-only use cases, each citing sources and stating how many studies it rests on", () => {
+  it("keeps seven research-only use cases, each citing sources and stating how many studies it rests on", () => {
     expect(cases.map((c) => c.attributes.slug).sort()).toEqual([...SLUGS].sort());
+    for (const slug of HELD) expect(inputs.use_cases.some((u) => u.slug === slug), slug).toBe(false);
     const fixes = batchRecords("data/omics/use-case-pages-fixes-20261127");
     expect(fixes.filter((r) => r.kind === "use_case").map((r) => r.attributes.slug)).toEqual(["viral-microbial-sequence-classification"]);
     for (const claim of fixes.filter((r) => r.kind === "claim"))
@@ -40,9 +43,9 @@ describe("new use cases (2026-11-27)", () => {
   });
 
   it("activates every judgement it adds that was not later withdrawn, with pins and eligible evaluations", () => {
-    expect(claims).toHaveLength(254);
+    expect(claims).toHaveLength(221);
     const withdrawn = claims.filter((c) => c.status === "excluded");
-    expect(withdrawn).toHaveLength(6);
+    expect(withdrawn).toHaveLength(18);
     for (const claim of withdrawn) expect(inputs.mappings.some((m) => m.id === claim.id), String(claim.id)).toBe(false);
     for (const claim of claims.filter((c) => c.status !== "excluded")) {
       const mapping = inputs.mappings.find((m) => m.id === claim.id);
@@ -67,16 +70,27 @@ describe("new use cases (2026-11-27)", () => {
       // Expression, 3D structure and taxonomic classification are not element annotation.
       ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-genbench-protocol-bulk-rna-expression"],
       ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-genbench-protocol-short-virus-covid-variant-classification"],
+      // Means of tied rows, and GENEB scores that mix element and species categories.
+      ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-genbench-protocol-short-human-promoter-detection"],
+      ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-geneb-protocol-full"],
+      ["use-case-single-cell-data-integration", "hycell-20261106-protocol-composite-score"],
+      ["use-case-protein-representation-property-prediction", "hyplm-flash-20261106-protocol-regression-ten-split-average"],
       // The RNA structure use case excludes attention-map secondary structure in as many words.
       ["use-case-rna-structure-prediction", "lit-rna-20261011-rnalm-zeroshot-protocol-t4-mcc-mean"],
       // Folding stability of substitutions is the protein stability question; throughput is a cost.
       ["use-case-protein-representation-property-prediction", "hyplm-flash-20261106-protocol-stability"],
       ["use-case-protein-representation-property-prediction", "hyplm-flash-20261106-protocol-embedding-throughput-h20"],
     ]) expect(linked.has(`${useCase}|${protocol}`), protocol).toBe(false);
-    // Splice-site tasks are proxy here because the splicing use cases hold the same tasks.
+    // The question names splice sites, so splice-site classification is direct (verification, 28 November).
     const splice = inputs.mappings.filter((m) => m.use_case_id === "use-case-genomic-sequence-element-annotation"
-      && /ntbench-protocol-splice-|segmentnt-supplement-2025-task-splice-|genbench-protocol-(long-splice-|short-human-splice-site)/.test(m.protocol_id!));
-    expect(splice.length).toBeGreaterThan(0);
-    for (const m of splice) expect(m.relevance, m.protocol_id).toBe("proxy");
+      && /ntbench-protocol-splice-|segmentnt-supplement-2025-task-splice-|genbench-protocol-(long-splice-splice|short-human-splice-site)/.test(m.protocol_id!));
+    expect(splice).toHaveLength(13);
+    for (const m of splice) expect(m.relevance, m.protocol_id).toBe("direct");
+    // The RhoFold+ developers' best-of-five targets are proxy.
+    const rhofold = inputs.mappings.filter((m) => /rhofold-2024-casp15-natural-task-/.test(m.protocol_id!));
+    expect(rhofold).toHaveLength(12);
+    for (const m of rhofold) expect(m.relevance, m.protocol_id).toBe("proxy");
+    expect(inputs.mappings.find((m) => m.protocol_id === "rewire-protocol-flip2-rhomax-by-wild-type-v1"
+      && m.use_case_id === "use-case-protein-representation-property-prediction")?.relevance).toBe("proxy");
   });
 });
