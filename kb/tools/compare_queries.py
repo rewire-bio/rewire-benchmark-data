@@ -182,6 +182,8 @@ def check_inputs(store, manifest, kb) -> list[str]:
             {(s, o) for s, o in pairs(f"SELECT DISTINCT ?s ?t WHERE {{ GRAPH <{graph}asserted> {{ ?s a ?t }} FILTER(STRSTARTS(STR(?s), STR(id:))) }}") if record(s)},
             None),
         "rb:within": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}inferred> {{ ?s rb:within ?o }} }}"), flat(kb.within)),
+        "rb:assessedBy": (pairs("SELECT ?s ?o WHERE { ?s rb:assessedBy ?o }"), flat(kb.out.get("assessed_by", {}))),
+        "rb:resultOn": (pairs("SELECT ?s ?o WHERE { ?s rb:resultOn ?o }"), flat(kb.result_on())),
         "rb:servedEvaluation": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}release> {{ ?s rb:servedEvaluation ?o }} }}"), flat(kb.served)),
         "rb:servedBaseline": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}release> {{ ?s rb:servedBaseline ?o }} }}"), flat(kb.baselines)),
         "rb:runReceipt": (pairs(f"SELECT ?s ?o WHERE {{ GRAPH <{graph}release> {{ ?s rb:runReceipt ?o }} }}"), flat(kb.receipts)),
@@ -240,20 +242,46 @@ def compare(name: str, params: dict, answer: dict, mine: list[dict]) -> list[str
 
 
 def order_key(row: dict, key: str):
+    if key.startswith("rank:"):
+        return queries.severity_rank(row[key[5:]])
     if key.startswith("lcase:"):
         value = row[key[6:]]
         return value.lower() if isinstance(value, str) else value
     return row[key]
 
 
-def parameter_sets(db_path: str) -> list[tuple[str, dict]]:
+def discrepancy_sets(report: list[dict], use_cases: list[str], db_path: str) -> list[tuple[str, dict]]:
+    """Every severity, systems in many findings and in few, systems of settled and resolved
+    findings, every discrepancy with a review history and some without, every use case, and
+    parameters that should give no rows: a configuration, a previous ID, records of other kinds."""
+    import sqlite3
+    from collections import Counter
+    sets = [("open_discrepancies", {})] + [("open_discrepancies", {"severity": s}) for s in ("high", "medium", "low", "none")]
+    counts = Counter(s for f in report for s in f["systems"])
+    systems = [s for s, _ in counts.most_common(8)] + [s for s, n in sorted(counts.items()) if n == 1][:4]
+    systems += [s for f in report if f["review_state"] != "open" for s in f["systems"]]
+    db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    systems += [r[0] for r in db.execute(
+        "SELECT from_id FROM link WHERE relation = 'configuration_of' AND to_id = ? ORDER BY from_id LIMIT 1", (systems[0],))]
+    db.close()
+    systems += [use_cases[0], "no-such-record"]
+    sets += [("discrepancies_for_system", {"system": s}) for s in dict.fromkeys(systems)]
+    histories = [f["id"] for f in report if f["actions"]] + [f["id"] for f in report if not f["actions"]][:3]
+    histories += [p for f in report for p in f["previous_ids"]][:2] + [systems[0]]
+    sets += [("discrepancy_history", {"discrepancy": d}) for d in dict.fromkeys(histories)]
+    sets += [("contested_results_for_use_case", {"use_case": u}) for u in use_cases + [systems[0]]]
+    return sets
+
+
+def parameter_sets(db_path: str, report: list[dict]) -> list[tuple[str, dict]]:
     """Realistic parameters: every use case, models with many and few results, benchmarks,
     protocols and results, and records that are not of the kind a query expects."""
     import sqlite3
     db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     one = lambda sql, *a: [r[0] for r in db.execute(sql, a)]
     use_cases = one("SELECT id FROM record WHERE kind = 'use_case' ORDER BY id")
-    sets = [("rank_for_use_case", {"use_case": u}) for u in use_cases]
+    sets = discrepancy_sets(report, use_cases, db_path)
+    sets += [("rank_for_use_case", {"use_case": u}) for u in use_cases]
     sets.append(("rank_for_use_case", {"use_case": "esm2-t33-650m-ur50d"}))
     sets.append(("gaps", {}))
     for tier in (1, 2, 3):
@@ -298,7 +326,7 @@ def main() -> None:
     parser.add_argument("--db", default="kb/build/oracle.sqlite")
     parser.add_argument("--use-cases", default="kb/build/oracle/use-cases.json")
     parser.add_argument("--discrepancies", default="kb/build/oracle/discrepancies.json")
-    parser.add_argument("--only", help="run only this query")
+    parser.add_argument("--only", help="run only these queries (names separated by commas)")
     parser.add_argument("--load-only", action="store_true")
     args = parser.parse_args()
     bundle = Path(args.bundle)
@@ -308,8 +336,8 @@ def main() -> None:
     kb = queries.KB(args.db, use_cases=args.use_cases, discrepancies=args.discrepancies)
     failures = len(check_inputs(store, manifest, kb))
     summary: dict[str, list] = {}
-    for name, params in parameter_sets(args.db):
-        if args.only and name != args.only:
+    for name, params in parameter_sets(args.db, kb.report):
+        if args.only and name not in args.only.split(","):
             continue
         answer = sparql_answer(store, manifest, bundle, name, params)
         started = time.time()

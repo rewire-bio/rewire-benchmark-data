@@ -183,6 +183,11 @@ def literals(value, how: str) -> list:
     return out
 
 
+def severity_rank(severity: str) -> int:
+    """The ?rank the discrepancy queries order by: high, medium, then anything else."""
+    return {"high": 0, "medium": 1}.get(severity, 2)
+
+
 def concat(items) -> str | None:
     """GROUP_CONCAT(DISTINCT ...; separator=" "), with the items sorted."""
     return " ".join(sorted(set(items))) or None
@@ -257,7 +262,7 @@ class KB:
         db.close()
         self.out = {p: {s: sorted(o, key=str) for s, o in by.items()} for p, by in out.items()}
         self.inv: dict[str, dict[str, list]] = {}
-        for p in ("subject", "evaluation", "system", *PARENT):
+        for p in ("subject", "evaluation", "system", "assessment", *PARENT):
             inverse = defaultdict(list)
             for s, objects in self.out.get(p, {}).items():
                 for o in objects:
@@ -355,6 +360,7 @@ class KB:
             graph = d.Graph(db)
             db.close()
             report = d.derive(graph, d.default_directions(ROOT / "data" / "vocab" / "metric.ttl"), d.load_rules(ROOT)).report
+        self.report = report
         self.findings: dict[str, set] = defaultdict(set)
         for finding in report:
             if finding["review_state"] in SETTLED:
@@ -731,6 +737,86 @@ class KB:
         rows.sort(key=lambda r: (step_rank[r["step"]], r["date"] is not None, r["date"] or "", r["record"]))
         return rows
 
+    # ---- the discrepancy queries (scripts/kg/build.py NAMED_QUERIES), from discrepancies.json ----
+
+    def finding_rows(self, finding: dict) -> dict:
+        """The derived-graph facts of one finding that the queries select."""
+        return {"discrepancy": node(finding["id"]), "severity": finding["severity"],
+                "state": iri(concept("discrepancy-state", finding["review_state"])),
+                "rule": iri(concept("discrepancy-rule", finding["rule"])) if finding["rule"] else None,
+                "scope": finding["scope"], "summary": finding["summary"]}
+
+    def open_discrepancies(self, severity: str | None = None) -> list[dict]:
+        rows = []
+        for finding in self.report:
+            # A resolved finding has no rule or scope, which the query requires.
+            if finding["review_state"] in SETTLED or finding["rule"] is None or finding["scope"] is None:
+                continue
+            if severity is not None and finding["severity"] != severity:
+                continue
+            f = self.finding_rows(finding)
+            rows.append({k: f[k] for k in ("discrepancy", "severity", "state", "rule", "scope", "summary")})
+        return sorted(rows, key=lambda r: (severity_rank(r["severity"]), r["discrepancy"]))
+
+    def discrepancies_for_system(self, system: str) -> list[dict]:
+        system = expand(system)
+        rows = []
+        for finding in self.report:
+            systems = {node(s) for s in finding["systems"]}
+            if system not in systems:
+                continue
+            f = self.finding_rows(finding)
+            for other in sorted(systems - {system}):
+                rows.append({"discrepancy": f["discrepancy"], "other": other, "otherName": self.label.get(other),
+                             "severity": f["severity"], "state": f["state"], "summary": f["summary"]})
+        return sorted(rows, key=lambda r: (severity_rank(r["severity"]), r["discrepancy"]))
+
+    def discrepancy_history(self, discrepancy: str) -> list[dict]:
+        """Only the current ID has actions: an ID listed in previous_ids returns nothing."""
+        discrepancy = expand(discrepancy)
+        rows = []
+        for finding in self.report:
+            if node(finding["id"]) != discrepancy:
+                continue
+            for action in finding["actions"]:
+                url = action.get("report_url") or action.get("investigation_url")
+                rows.append({
+                    "revision": action["revision"],
+                    "actionType": iri(concept("discrepancy-action", action["action"])) if action["action"] else None,
+                    "state": iri(concept("discrepancy-state", action["state"])), "date": action["date"],
+                    "url": iri(url) if url else None, "nextCheck": action.get("next_check"),
+                    "claim": node(action["claim_id"]),
+                })
+        return sorted(rows, key=lambda r: r["revision"])
+
+    def result_on(self) -> dict[str, set]:
+        """rb:resultOn: a result to the protocol, task or benchmark its evaluation was assessed on."""
+        if not hasattr(self, "_result_on"):
+            self._result_on = defaultdict(set)
+            for result, evaluations in self.out.get("evaluation", {}).items():
+                for evaluation in evaluations:
+                    self._result_on[result].update(self.objects(evaluation, "assessment"))
+        return self._result_on
+
+    def contested_results_for_use_case(self, use_case: str) -> list[dict]:
+        use_case = expand(use_case)
+        protocols = set(self.objects(use_case, "assessed_by"))
+        if not protocols:
+            return []
+        on = self.result_on()
+        rows = {}
+        for finding in self.report:
+            if finding["review_state"] in SETTLED:
+                continue
+            f = self.finding_rows(finding)
+            for role, key in (("outlier", "outlier_results"), ("consensus", "consensus_results"), ("party", "party_results")):
+                for result in map(node, finding.get(key) or []):
+                    if on.get(result, set()) & protocols:
+                        row = {"result": result, "role": role, "discrepancy": f["discrepancy"], "severity": f["severity"],
+                               "state": f["state"], "summary": f["summary"]}
+                        rows[(result, role, f["discrepancy"])] = row
+        return sorted(rows.values(), key=lambda r: (severity_rank(r["severity"]), r["discrepancy"], r["role"], r["result"]))
+
     def run(self, name: str, **params) -> list[dict]:
         spec = QUERIES[name]
         unknown = set(params) - {p["name"] for p in spec["params"]}
@@ -743,6 +829,30 @@ class KB:
 
 
 QUERIES = {
+    "open_discrepancies": {
+        "title": "Open discrepancies between studies, most severe first",
+        "params": [{"name": "severity", "type": "string"}],
+        "columns": ["discrepancy", "severity", "state", "rule", "scope", "summary"],
+        "order_keys": ["rank:severity", "discrepancy"],
+    },
+    "discrepancies_for_system": {
+        "title": "Discrepancies, settled or not, that compare a model or method",
+        "params": [{"name": "system", "type": "iri", "required": True}],
+        "columns": ["discrepancy", "other", "otherName", "severity", "state", "summary"],
+        "order_keys": ["rank:severity", "discrepancy"],
+    },
+    "discrepancy_history": {
+        "title": "Follow-up history of a discrepancy, in revision order",
+        "params": [{"name": "discrepancy", "type": "iri", "required": True}],
+        "columns": ["revision", "actionType", "state", "date", "url", "nextCheck", "claim"],
+        "order_keys": ["revision"],
+    },
+    "contested_results_for_use_case": {
+        "title": "Results on a use case's protocols that an unsettled discrepancy rests on",
+        "params": [{"name": "use_case", "type": "iri", "required": True}],
+        "columns": ["result", "role", "discrepancy", "severity", "state", "summary"],
+        "order_keys": ["rank:severity", "discrepancy", "role", "result"],
+    },
     "rank_for_use_case": {
         "title": "Ranked configurations for a use case, on its one comparable protocol",
         "params": [{"name": "use_case", "type": "iri", "required": True}],
