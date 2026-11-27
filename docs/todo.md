@@ -79,11 +79,13 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
     variant classes, and five supervised rows sit in label-free settings. First step: split them.
 13. **Boards rank at the model, not the checkpoint.** They become trustworthy per use case as
     grounding reaches it. Only models compared in two or more studies get a row, so 11 of 31 boards
-    have none yet. Store fixes the boards showed: configurations with no parent model that are a
-    model under a task label (the "Acceptor" and "Donor" rows of DNABERT-2, Caduceus-Ph, GROVER,
-    HyenaDNA and NT-v2 on splicing, and Strelka2 on tumour DNA), and an ensemble recorded as a
-    method (the majority-vote consensus of somatic callers, ranked 1 to 3 on tumour DNA). First
-    step: the website section that reads the file.
+    have none yet. Store fixes the boards showed: all 79 configurations of batch
+    `amp-feng-20261007` (Caduceus-Ph, DNABERT-2, Enformer, GROVER, HyenaDNA, NT-v2 and others under
+    a task label) have no parent model, so they are not ranked; 48 of them on the regulatory board
+    and 11 on rare disease were compared in two or more studies. Their `reported_name` names the
+    model. Strelka2 on tumour DNA has the same gap. An ensemble is recorded as a method (the
+    majority-vote consensus of somatic callers, ranked 1 to 3 on tumour DNA). First step: the
+    website section that reads the file.
 14. **Rewire's Evo 2 cloud study.** Two platforms' results are identical to 16 digits and the
     platform labels moved between the protocol and the run. One set is probably mislabelled.
     Needs the owner.

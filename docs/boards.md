@@ -24,7 +24,7 @@ case's tests and fits one order to them (a Bradley-Terry model, each study weigh
 | Field | Meaning |
 | --- | --- |
 | `positions` | Best and worst place the comparisons support, for example `[1, 3]`. One number when they agree. |
-| `strength` | Chance of beating an average model on this board, from 0 to 1 |
+| `strength` | Chance of beating an average model on this board, from 0 to 1. The average is taken over every model fitted, including those not ranked |
 | `interval` | Lowest and highest strength when the fit is repeated with each study left out |
 | `studies` | The studies the model was compared in, with how many comparisons came from each |
 | `opponents` | How many other models it was compared with directly |
@@ -54,8 +54,10 @@ The rules are stated in full in the docstring of `kb/board.py`. In short:
    - it must be joined, through comparisons, to the largest group of models on the board. Otherwise it is
      listed as `not compared with the main group`.
 6. A board with fewer than two rows has none (`no second model to rank`), and its summary says so.
-7. Model A is placed above B only when A is stronger in the full fit and in every refit with one study
-   left out. Positions follow from that rule, so near-ties share positions.
+7. Model A is placed above B only when A is stronger, by more than 0.1 percent, in the full fit and
+   in every refit with one study left out, and no refit leaves the two in groups of models never
+   compared with each other. Positions follow from that rule, so near-ties share positions, and an
+   order that rests on a single study joining two groups is not taken as settled.
 
 ## The file
 

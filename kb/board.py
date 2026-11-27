@@ -53,9 +53,11 @@ How certain a row is
     strength it has across the full fit and those refits (in each refit, strengths are put on the
     full fit's scale by matching the geometric mean of the ranked models it contains).
 12. Positions are ranges. Model A is placed above model B only when A is stronger than B in the
-    full fit and in every refit that contains both. A row's best position is one more than the
-    number of models placed above it, and its worst is the number of ranked models less those
-    placed below it. Models that no refit can separate share positions.
+    full fit and in every refit that contains both, by more than 0.1 percent of strength each time,
+    and no refit leaves the two in sets of models never compared with each other (their order there
+    would come only from the imagined draws). A row's best position is one more than the number of
+    models placed above it, and its worst is the number of ranked models less those placed below
+    it. Models that no refit can separate share positions.
 13. basis is "mostly one study" when one study gives 80 percent or more of a row's comparisons,
     and "several studies" otherwise.
 
@@ -89,6 +91,8 @@ METHOD = ("Models are ordered by a Bradley-Terry fit to which model did better i
 MODEL_KINDS = ("model", "method", "pipeline", "service")
 MIN_STUDIES = 2
 MOSTLY_ONE_STUDY = 0.8
+# Log strengths closer than this are a tie: far above the fit's tolerance, far below any real gap.
+SEPARATION = 1e-3
 NOT_A_MODEL, ONE_STUDY, NOT_CONNECTED, TOO_FEW = "not a model record", "one study", "not compared with the main group", "no second model to rank"
 
 GROUP_QUERY = """
@@ -291,19 +295,30 @@ def rank(groups, records):
         return [], left_out + [{"model_id": m, "name": records[m]["name"], "reason": TOO_FEW, "study_ids": sorted(by_study[m])}
                                for m in listed], counts
     full = fit(per_study)
-    refits = []
+    refits, parts_of = [], []
     for study in sorted(per_study):
         refit = fit(per_study, leave_out=study, start=full)
         present = [m for m in listed if m in refit]
         if present:
             shift = sum(math.log(full[m]) - math.log(refit[m]) for m in present) / len(present)
             refits.append({m: refit[m] * math.exp(shift) for m in present})
+            rest = {s: pairs for s, pairs in per_study.items() if s != study}
+            parts_of.append({m: i for i, part in enumerate(components(rest)) for m in part})
     order = sorted(listed, key=lambda m: (-full[m], records[m]["name"].lower(), m))
+
+    def placed_above(a, b):
+        if math.log(full[a] / full[b]) <= SEPARATION:
+            return False
+        for refit, part in zip(refits, parts_of):
+            if a in refit and b in refit and (part[a] != part[b] or math.log(refit[a] / refit[b]) <= SEPARATION):
+                return False
+        return True
+
     above = collections.Counter()
     below = collections.Counter()
     for i, a in enumerate(order):
         for b in order[i + 1:]:
-            if full[a] > full[b] and all(r[a] > r[b] for r in refits if a in r and b in r):
+            if placed_above(a, b):
                 above[b] += 1
                 below[a] += 1
     rows = []

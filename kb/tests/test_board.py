@@ -117,6 +117,27 @@ class Rules(unittest.TestCase):
         self.assertEqual(rows["a"]["positions"], [1, 2])
         self.assertEqual(rows["b"]["positions"], [1, 2])
 
+    def test_models_with_the_same_verdicts_share_positions(self):
+        # m sorts between the twins by name, so a solver that split them by noise would place m between.
+        table = {(f"s{i}", "t"): {"a": 3, "z": 3, "m": 2} for i in range(1, 4)}
+        rows, _, _ = ranked(groups_from(table), {k: model(k) for k in "amz"})
+        self.assertEqual(rows["a"]["positions"], [1, 2])
+        self.assertEqual(rows["z"]["positions"], [1, 2])
+        self.assertEqual(rows["m"]["positions"], [3, 3])
+
+    def test_order_resting_on_one_bridging_study_is_not_settled(self):
+        # s1 is the only study joining {a, x} to {b, y}. Without it, a (two wins) still sorts above
+        # b (one win, one loss), but only through the imagined draws, which must not count.
+        table = {("s1", "t"): {"a": 3, "b": 1},
+                 ("s2", "t"): {"a": 3, "x": 1}, ("s3", "t"): {"a": 3, "x": 1},
+                 ("s4", "t"): {"b": 3, "y": 1}, ("s5", "t"): {"b": 1, "y": 3}}
+        rows, _, _ = ranked(groups_from(table), {k: model(k) for k in "abxy"})
+        # Without s1, {a, x} and {b, y} were never compared, so a above b is not settled.
+        self.assertEqual(rows["a"]["positions"][0], 1)
+        self.assertEqual(rows["b"]["positions"][0], 1)
+        # a above x is supported by two studies and survives every refit.
+        self.assertGreater(rows["x"]["positions"][0], 1)
+
     def test_one_study_model_is_fitted_but_not_ranked(self):
         rows, left_out, counts = ranked(self.three_studies({("s1", "u"): {"a": 1, "solo": 9}}), {m: model(m) for m in ["a", "b", "c", "solo"]})
         self.assertNotIn("solo", rows)
