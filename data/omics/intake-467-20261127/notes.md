@@ -49,3 +49,9 @@ Each proposed field and whether the verification pass confirmed it. An empty kep
 | claude-haiku-5-5 | 12052 | 4603 | 41836 | 7941 | 0 | 3 | $0.0062 |
 | claude-sonnet-5-5 | 4 | 14665 | 10695 | 2346 | 0 | 0 | $0.0612 |
 | Total | | | | | | | $0.0674 |
+
+## Revision after review
+
+The reviewer agent requested changes (https://github.com/rewire-bio/rewire-benchmark-data/pull/471#pullrequestreview-6091931709). The intake agent revised the batch once; it changes only the fields the review did not pass, and it does not revise again.
+
+- `intake-467-20261127-method-few-shot-regulatory-sequence-design-with-a-genomic-language` duplicates: ruled distinct from `hyinv-20261106-model-lm-design` ("LM-Design"). Ruled in the revision after review: a different resource. New record: "prompts the Evo 2 genomic language model with tens of example regulatory DNA sequences". Store record hyinv-20261106-model-lm-design (model): "reprogramming a protein language model with structural information". The script compared the source URLs, DOIs and repository addresses the two records give and found none in common; it cannot see one resource cited at two unrelated addresses. The new record is an inference-time method prompting Evo 2 with example regulatory DNA sequences; the store record is LM-Design, a protein lan
