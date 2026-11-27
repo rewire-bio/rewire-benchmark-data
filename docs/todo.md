@@ -58,8 +58,7 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 8. **Corrections to existing records** that the page work showed are needed and that were not
    made: ESCOTT's description (the allele frequency step belongs to PRESCOTT), ProGen3's
    description (figures no source supports), Graph_RG (not structure-based), BACPI (graph
-   attention network), BERTax (repository address), CIViC MCP (`executable_suite`). ProtBert's page says its
-   weights are not under an open-source licence; they are AFL-3.0, which is. The ESM-1b run guide
+   attention network), BERTax (repository address), CIViC MCP (`executable_suite`). The ESM-1b run guide
    loads the original fair-esm file while the `rewirebench` adapter loads a pinned port; the two
    weight files have not been compared.
 9. **One page on two records.** Eight Tier 1 models carry the same page on two records. A
@@ -104,16 +103,22 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 
 ## Running things
 
-18. **Run guides: 4 of 16 complete; 5 more pass every step up to one that needs the reader's own
-    data or a missing dependency.** [run-guide-trials.md](run-guide-trials.md) runs a guide on a
-    clean GitHub runner with no credentials and returns a receipt. 16 guides have had 26 runs.
-    Complete: SAFFRON, GPN-Promoter, MutBERT and ESM-1b. Up to their last step: MIF and MIF-ST
-    (missing tqdm), MSA Transformer (missing pandas), GPN-MSA and DNALONGBENCH (the reader's own
-    data). Those three install lines are now corrected, and CARP's and Stack's commands too, all
-    untested since. Five guides fail because of their own sources, and say so; draft reports to
-    developers are in the [trial 2 review](reviews/2026-11-27-run-guide-trial-2.md) and the
-    [trial 4 review](reviews/2026-11-27-run-guide-trial-4.md). Next: rerun CARP, MIF, MIF-ST,
-    MSA Transformer and Stack, and try the rest of the candidates.
+18. **Run guides: 4 of 16 complete; 7 more pass every step up to one that needs the reader's own
+    data, an input the sources do not provide, or a change not yet run.**
+    [run-guide-trials.md](run-guide-trials.md) runs a guide on a clean GitHub runner with no
+    credentials and returns a receipt. 16 guides have had 31 runs.
+    - Complete: SAFFRON, GPN-Promoter, MutBERT and ESM-1b.
+    - Trial 5 ([review](reviews/2026-11-27-run-guide-trial-5.md)) took CARP, MIF and MIF-ST to
+      their last step. They stopped there on an output folder the README never creates; it is
+      now created but not yet run.
+    - Stack and GPN-MSA stop at the reader's own data, and DNALONGBENCH at a manual data download.
+    - MSA Transformer stops on the shipped example alignment, whose sequences have unequal
+      lengths.
+    - Five guides fail because of their own sources and say so; draft reports to developers are
+      in the [trial 2 review](reviews/2026-11-27-run-guide-trial-2.md) and the
+      [trial 4 review](reviews/2026-11-27-run-guide-trial-4.md).
+
+    The correction loop of one missing package per run is stopped here. The next step is item 19.
 19. **Check a guide's imports before a trial.** Trials of CARP, MIF and MSA Transformer each
     failed on one missing package per run, because their packages declare no dependencies. A
     `trial.py imports <record id>` command should fetch, at the guide's pinned commit, the scripts
