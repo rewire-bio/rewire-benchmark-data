@@ -1,10 +1,10 @@
-"""One-off: turn the comparison settings pilot and the structured checkpoint facts into curation files.
+"""One-off: turn the comparison settings pilot into curation files.
 
 Usage: python3 kb/tools/import_pilot.py
 
-Reads data/omics/comparison-settings-pilot-20261126/*.proposal.json and the `structured` lists in
-data/omics/model-pages-*/specs/*.json. Writes kb/curation/settings.jsonl, protocol_settings.jsonl,
-leads.jsonl and checkpoints.jsonl. After this the curation files are edited directly.
+Reads data/omics/comparison-settings-pilot-20261126/*.proposal.json. Writes kb/curation/settings.jsonl,
+protocol_settings.jsonl and leads.jsonl. After this the curation files are edited directly. The
+structured checkpoint facts are loaded by kb/curate.py straight from the batch content files.
 """
 import glob
 import json
@@ -35,21 +35,9 @@ def main():
             leads.append({"id": f"lead-{cluster}-{n:02d}", "setting_id": "setting-" + re.sub(r"[^a-z0-9]+", "-", d["setting"].lower()).strip("-"),
                           "kind": d["kind"], "model": d.get("model"), "model_id": d.get("model_id"), "metric": d.get("metric"),
                           "values": d.get("values", []), "note": d.get("note", ""), "state": "open", "basis": "agent proposal 2026-11-26, not reviewed"})
-    checkpoints = []
-    for path in sorted(glob.glob("data/omics/model-pages-*/specs/*.json")):
-        spec = json.load(open(path))
-        for entry in spec.get("structured") or []:
-            row = {k: entry.get(k) for k in ("checkpoint", "parameters", "context_length", "context_unit", "code_licence", "weights_licence", "code_url", "weights_url", "gated", "released")}
-            row["model_id"] = spec["record_id"]
-            row["id"] = "checkpoint-" + re.sub(r"[^a-z0-9]+", "-", f"{os.path.basename(path)[:-5]}-{entry.get('checkpoint') or 'family'}".lower()).strip("-")
-            row["evidence"] = path
-            checkpoints.append(row)
-    # A corrected content file comes later in the sorted list than the one it corrects: the last entry for an id wins.
-    checkpoints = list({row["id"]: row for row in checkpoints}.values())
     dump("kb/curation/settings.jsonl", settings)
     dump("kb/curation/protocol_settings.jsonl", memberships)
     dump("kb/curation/leads.jsonl", leads)
-    dump("kb/curation/checkpoints.jsonl", checkpoints)
 
 
 if __name__ == "__main__":
